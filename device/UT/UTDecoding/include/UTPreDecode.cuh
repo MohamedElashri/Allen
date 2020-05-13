@@ -47,10 +47,10 @@ namespace ut_pre_decode {
     {
       set_size<dev_ut_pre_decoded_hits_t>(
         arguments,
-        value<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
+        first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
       set_size<dev_ut_hit_count_t>(
         arguments,
-        value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+        first<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
     }
 
     void operator()(
@@ -63,15 +63,15 @@ namespace ut_pre_decode {
     {
       initialize<dev_ut_hit_count_t>(arguments, 0, cuda_stream);
 
-      const auto parameters = Parameters {begin<dev_ut_raw_input_t>(arguments),
-                                          begin<dev_ut_raw_input_offsets_t>(arguments),
-                                          begin<dev_event_list_t>(arguments),
-                                          begin<dev_ut_hit_offsets_t>(arguments),
-                                          begin<dev_ut_pre_decoded_hits_t>(arguments),
-                                          begin<dev_ut_hit_count_t>(arguments)};
+      const auto parameters = Parameters {data<dev_ut_raw_input_t>(arguments),
+                                          data<dev_ut_raw_input_offsets_t>(arguments),
+                                          data<dev_event_list_t>(arguments),
+                                          data<dev_ut_hit_offsets_t>(arguments),
+                                          data<dev_ut_pre_decoded_hits_t>(arguments),
+                                          data<dev_ut_hit_count_t>(arguments)};
 
       if (runtime_options.mep_layout) {
-        function_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        function_mep(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
           parameters,
           constants.dev_ut_boards.data(),
           constants.dev_ut_geometry.data(),
@@ -80,7 +80,7 @@ namespace ut_pre_decode {
           constants.dev_unique_x_sector_offsets.data());
       }
       else {
-        function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
           parameters,
           constants.dev_ut_boards.data(),
           constants.dev_ut_geometry.data(),

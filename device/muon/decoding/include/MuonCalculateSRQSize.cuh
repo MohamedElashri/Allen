@@ -32,7 +32,7 @@ namespace muon_calculate_srq_size {
       set_size<dev_muon_raw_to_hits_t>(arguments, 1);
       set_size<dev_storage_station_region_quarter_sizes_t>(
         arguments,
-        value<host_number_of_selected_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
+        first<host_number_of_selected_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
             Muon::Constants::n_quarters);
     }
 
@@ -50,7 +50,7 @@ namespace muon_calculate_srq_size {
       Muon::MuonRawToHits muonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
 
       cudaCheck(cudaMemcpyAsync(
-        begin<dev_muon_raw_to_hits_t>(arguments),
+        data<dev_muon_raw_to_hits_t>(arguments),
         &muonRawToHits,
         sizeof(muonRawToHits),
         cudaMemcpyHostToDevice,
@@ -59,17 +59,17 @@ namespace muon_calculate_srq_size {
       initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters {
-        begin<dev_event_list_t>(arguments),
-        begin<dev_muon_raw_t>(arguments),
-        begin<dev_muon_raw_offsets_t>(arguments),
-        begin<dev_muon_raw_to_hits_t>(arguments),
-        begin<dev_storage_station_region_quarter_sizes_t>(arguments)};
+        data<dev_event_list_t>(arguments),
+        data<dev_muon_raw_t>(arguments),
+        data<dev_muon_raw_offsets_t>(arguments),
+        data<dev_muon_raw_to_hits_t>(arguments),
+        data<dev_storage_station_region_quarter_sizes_t>(arguments)};
 
       using function_t = decltype(global_function(muon_calculate_srq_size));
       function_t function =
         runtime_options.mep_layout ? function_t {muon_calculate_srq_size_mep} : function_t {muon_calculate_srq_size};
       function(
-        value<host_number_of_selected_events_t>(arguments),
+        first<host_number_of_selected_events_t>(arguments),
         Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
         cuda_stream)(parameters);
     }

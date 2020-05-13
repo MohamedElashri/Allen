@@ -54,11 +54,11 @@ namespace MuonFilter {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_event_list_mf_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_event_list_mf_t>(arguments, first<host_number_of_selected_events_t>(arguments));
       set_size<dev_selected_events_mf_t>(arguments, 1);
       set_size<host_selected_events_mf_t>(arguments, 1);
-      set_size<dev_mf_decisions_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_mf_track_atomics_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_mf_decisions_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+      set_size<dev_mf_track_atomics_t>(arguments, first<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -74,40 +74,40 @@ namespace MuonFilter {
       initialize<dev_mf_decisions_t>(arguments, 0, cuda_stream);
       initialize<dev_mf_track_atomics_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_kalman_beamline_states_t>(arguments),
-                    begin<dev_velo_track_hits_t>(arguments),
-                    begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_ut_qop_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_offsets_scifi_track_hit_number>(arguments),
-                    begin<dev_scifi_qop_t>(arguments),
-                    begin<dev_scifi_states_t>(arguments),
-                    begin<dev_scifi_track_ut_indices_t>(arguments),
-                    begin<dev_is_muon_t>(arguments),
-                    begin<dev_kalman_pv_ipchi2_t>(arguments),
-                    begin<dev_mf_decisions_t>(arguments),
-                    begin<dev_event_list_mf_t>(arguments),
-                    begin<dev_selected_events_mf_t>(arguments),
-                    begin<dev_mf_track_atomics_t>(arguments),
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_kalman_beamline_states_t>(arguments),
+                    data<dev_velo_track_hits_t>(arguments),
+                    data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_ut_qop_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_offsets_scifi_track_hit_number>(arguments),
+                    data<dev_scifi_qop_t>(arguments),
+                    data<dev_scifi_states_t>(arguments),
+                    data<dev_scifi_track_ut_indices_t>(arguments),
+                    data<dev_is_muon_t>(arguments),
+                    data<dev_kalman_pv_ipchi2_t>(arguments),
+                    data<dev_mf_decisions_t>(arguments),
+                    data<dev_event_list_mf_t>(arguments),
+                    data<dev_selected_events_mf_t>(arguments),
+                    data<dev_mf_track_atomics_t>(arguments),
                     property<mf_min_pt_t>(),
                     property<mf_min_ipchi2_t>()});
 
       // copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, cuda_stream);
       cudaCheck(cudaMemcpyAsync(
-        begin<host_selected_events_mf_t>(arguments),
-        begin<dev_selected_events_mf_t>(arguments),
+        data<host_selected_events_mf_t>(arguments),
+        data<dev_selected_events_mf_t>(arguments),
         size<dev_selected_events_mf_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_selected_events_mf,
-        begin<dev_selected_events_mf_t>(arguments),
+        data<dev_selected_events_mf_t>(arguments),
         size<dev_selected_events_mf_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
@@ -115,7 +115,7 @@ namespace MuonFilter {
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_event_list_mf,
-          begin<dev_event_list_mf_t>(arguments),
+          data<dev_event_list_mf_t>(arguments),
           size<dev_event_list_mf_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

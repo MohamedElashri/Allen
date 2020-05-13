@@ -33,8 +33,8 @@ namespace ut_select_velo_tracks {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_ut_number_of_selected_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_ut_selected_velo_tracks_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments));
+      set_size<dev_ut_number_of_selected_velo_tracks_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+      set_size<dev_ut_selected_velo_tracks_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
     }
 
     void operator()(
@@ -47,13 +47,13 @@ namespace ut_select_velo_tracks {
     {
       initialize<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_states_t>(arguments),
-                    begin<dev_accepted_velo_tracks_t>(arguments),
-                    begin<dev_ut_number_of_selected_velo_tracks_t>(arguments),
-                    begin<dev_ut_selected_velo_tracks_t>(arguments)});
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_states_t>(arguments),
+                    data<dev_accepted_velo_tracks_t>(arguments),
+                    data<dev_ut_number_of_selected_velo_tracks_t>(arguments),
+                    data<dev_ut_selected_velo_tracks_t>(arguments)});
     }
 
   private:

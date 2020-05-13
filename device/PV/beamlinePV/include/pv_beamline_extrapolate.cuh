@@ -35,8 +35,8 @@ namespace pv_beamline_extrapolate {
       const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const {
-      set_size<dev_pvtracks_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments));
-      set_size<dev_pvtrack_z_t>(arguments, 2 * value<host_number_of_reconstructed_velo_tracks_t>(arguments));
+      set_size<dev_pvtracks_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+      set_size<dev_pvtrack_z_t>(arguments, 2 * first<host_number_of_reconstructed_velo_tracks_t>(arguments));
     }
 
     void operator()(
@@ -46,13 +46,13 @@ namespace pv_beamline_extrapolate {
       HostBuffers&,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters{
-          begin<dev_velo_kalman_beamline_states_t>(arguments),
-          begin<dev_offsets_all_velo_tracks_t>(arguments),
-          begin<dev_offsets_velo_track_hit_number_t>(arguments),
-          begin<dev_pvtracks_t>(arguments),
-          begin<dev_pvtrack_z_t>(arguments)
+          data<dev_velo_kalman_beamline_states_t>(arguments),
+          data<dev_offsets_all_velo_tracks_t>(arguments),
+          data<dev_offsets_velo_track_hit_number_t>(arguments),
+          data<dev_pvtracks_t>(arguments),
+          data<dev_pvtrack_z_t>(arguments)
         });
     }
 

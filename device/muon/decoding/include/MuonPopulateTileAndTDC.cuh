@@ -34,11 +34,11 @@ namespace muon_populate_tile_and_tdc {
       const HostBuffers&) const
     {
       set_size<dev_storage_tile_id_t>(
-        arguments, value<host_muon_total_number_of_tiles_t>(arguments));
+        arguments, first<host_muon_total_number_of_tiles_t>(arguments));
       set_size<dev_storage_tdc_value_t>(
-        arguments, value<host_muon_total_number_of_tiles_t>(arguments));
+        arguments, first<host_muon_total_number_of_tiles_t>(arguments));
       set_size<dev_atomics_muon_t>(arguments,
-        value<host_number_of_selected_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
+        first<host_number_of_selected_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
             Muon::Constants::n_quarters);
     }
 
@@ -54,18 +54,18 @@ namespace muon_populate_tile_and_tdc {
       initialize<dev_storage_tile_id_t>(arguments, 0, cuda_stream);
       initialize<dev_storage_tdc_value_t>(arguments, 0, cuda_stream);
 
-      const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
-                                          begin<dev_muon_raw_t>(arguments),
-                                          begin<dev_muon_raw_offsets_t>(arguments),
-                                          begin<dev_muon_raw_to_hits_t>(arguments),
-                                          begin<dev_storage_station_region_quarter_offsets_t>(arguments),
-                                          begin<dev_storage_tile_id_t>(arguments),
-                                          begin<dev_storage_tdc_value_t>(arguments),
-                                          begin<dev_atomics_muon_t>(arguments)};
+      const auto parameters = Parameters {data<dev_event_list_t>(arguments),
+                                          data<dev_muon_raw_t>(arguments),
+                                          data<dev_muon_raw_offsets_t>(arguments),
+                                          data<dev_muon_raw_to_hits_t>(arguments),
+                                          data<dev_storage_station_region_quarter_offsets_t>(arguments),
+                                          data<dev_storage_tile_id_t>(arguments),
+                                          data<dev_storage_tdc_value_t>(arguments),
+                                          data<dev_atomics_muon_t>(arguments)};
 
       using function_t = decltype(global_function(muon_populate_tile_and_tdc));
       function_t function = runtime_options.mep_layout ? function_t {muon_populate_tile_and_tdc_mep} : function_t {muon_populate_tile_and_tdc};
-      function(value<host_number_of_selected_events_t>(arguments),
+      function(first<host_number_of_selected_events_t>(arguments),
         Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
         cuda_stream)(parameters);
     }

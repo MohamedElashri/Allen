@@ -46,7 +46,7 @@ namespace ut_decode_raw_banks_in_order {
     {
       set_size<dev_ut_hits_t>(
         arguments,
-        value<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Hits::element_size);
+        first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Hits::element_size);
     }
 
     void operator()(
@@ -57,17 +57,17 @@ namespace ut_decode_raw_banks_in_order {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      const auto parameters = Parameters {begin<dev_ut_raw_input_t>(arguments),
-                                          begin<dev_ut_raw_input_offsets_t>(arguments),
-                                          begin<dev_event_list_t>(arguments),
-                                          begin<dev_ut_hit_offsets_t>(arguments),
-                                          begin<dev_ut_pre_decoded_hits_t>(arguments),
-                                          begin<dev_ut_hits_t>(arguments),
-                                          begin<dev_ut_hit_permutations_t>(arguments)};
+      const auto parameters = Parameters {data<dev_ut_raw_input_t>(arguments),
+                                          data<dev_ut_raw_input_offsets_t>(arguments),
+                                          data<dev_event_list_t>(arguments),
+                                          data<dev_ut_hit_offsets_t>(arguments),
+                                          data<dev_ut_pre_decoded_hits_t>(arguments),
+                                          data<dev_ut_hits_t>(arguments),
+                                          data<dev_ut_hit_permutations_t>(arguments)};
 
       if (runtime_options.mep_layout) {
         function_mep(
-          dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+          dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
           property<block_dim_t>(),
           cuda_stream)(
           parameters,
@@ -78,7 +78,7 @@ namespace ut_decode_raw_banks_in_order {
       }
       else {
         function(
-          dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+          dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
           property<block_dim_t>(),
           cuda_stream)(
           parameters,

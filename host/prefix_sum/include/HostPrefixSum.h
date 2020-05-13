@@ -62,9 +62,9 @@ namespace host_prefix_sum {
         size<dev_output_buffer_t>(arguments),
         cuda_stream,
         cuda_generic_event,
-        Parameters {begin<host_total_sum_holder_t>(arguments),
-                    begin<dev_input_buffer_t>(arguments),
-                    begin<dev_output_buffer_t>(arguments)});
+        Parameters {data<host_total_sum_holder_t>(arguments),
+                    data<dev_input_buffer_t>(arguments),
+                    data<dev_output_buffer_t>(arguments)});
     }
   };
 } // namespace host_prefix_sum

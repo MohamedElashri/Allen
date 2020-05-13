@@ -145,7 +145,7 @@ namespace kalman_filter {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_kf_tracks_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_kf_tracks_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
     }
 
     void operator()(
@@ -156,22 +156,22 @@ namespace kalman_filter {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_atomics_velo_t>(arguments),
-                    begin<dev_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_track_hits_t>(arguments),
-                    begin<dev_atomics_ut_t>(arguments),
-                    begin<dev_ut_track_hit_number_t>(arguments),
-                    begin<dev_ut_track_hits_t>(arguments),
-                    begin<dev_ut_qop_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments),
-                    begin<dev_atomics_scifi_t>(arguments),
-                    begin<dev_scifi_track_hit_number_t>(arguments),
-                    begin<dev_scifi_track_hits_t>(arguments),
-                    begin<dev_scifi_qop_t>(arguments),
-                    begin<dev_scifi_states_t>(arguments),
-                    begin<dev_scifi_track_ut_indices_t>(arguments),
-                    begin<dev_kf_tracks_t>(arguments)},
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_atomics_velo_t>(arguments),
+                    data<dev_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_track_hits_t>(arguments),
+                    data<dev_atomics_ut_t>(arguments),
+                    data<dev_ut_track_hit_number_t>(arguments),
+                    data<dev_ut_track_hits_t>(arguments),
+                    data<dev_ut_qop_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments),
+                    data<dev_atomics_scifi_t>(arguments),
+                    data<dev_scifi_track_hit_number_t>(arguments),
+                    data<dev_scifi_track_hits_t>(arguments),
+                    data<dev_scifi_qop_t>(arguments),
+                    data<dev_scifi_states_t>(arguments),
+                    data<dev_scifi_track_ut_indices_t>(arguments),
+                    data<dev_kf_tracks_t>(arguments)},
         constants.dev_scifi_geometry,
         constants.dev_inv_clus_res,
         constants.dev_kalman_params);
@@ -179,7 +179,7 @@ namespace kalman_filter {
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_kf_tracks,
-          begin<dev_kf_tracks_t>(arguments),
+          data<dev_kf_tracks_t>(arguments),
           size<dev_kf_tracks_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

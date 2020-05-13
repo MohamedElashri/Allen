@@ -50,9 +50,9 @@ namespace velo_masked_clustering {
       const HostBuffers&) const
     {
       set_size<dev_module_cluster_num_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
       set_size<dev_velo_cluster_container_t>(arguments,
-        value<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
+        first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
     }
 
     void operator()(
@@ -66,27 +66,27 @@ namespace velo_masked_clustering {
       initialize<dev_module_cluster_num_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters{
-          begin<dev_velo_raw_input_t>(arguments),
-          begin<dev_velo_raw_input_offsets_t>(arguments),
-          begin<dev_offsets_estimated_input_size_t>(arguments),
-          begin<dev_module_candidate_num_t>(arguments),
-          begin<dev_cluster_candidates_t>(arguments),
-          begin<dev_event_list_t>(arguments),
-          begin<dev_candidates_offsets_t>(arguments),
-          begin<dev_module_cluster_num_t>(arguments),
-          begin<dev_velo_cluster_container_t>(arguments)
+          data<dev_velo_raw_input_t>(arguments),
+          data<dev_velo_raw_input_offsets_t>(arguments),
+          data<dev_offsets_estimated_input_size_t>(arguments),
+          data<dev_module_candidate_num_t>(arguments),
+          data<dev_cluster_candidates_t>(arguments),
+          data<dev_event_list_t>(arguments),
+          data<dev_candidates_offsets_t>(arguments),
+          data<dev_module_cluster_num_t>(arguments),
+          data<dev_velo_cluster_container_t>(arguments)
         };
 
       // Selector from layout
       if (runtime_options.mep_layout) {
-        function_mep(dim3(begin<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
+        function_mep(dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
           parameters,
           constants.dev_velo_geometry,
           constants.dev_velo_sp_patterns.data(),
           constants.dev_velo_sp_fx.data(),
           constants.dev_velo_sp_fy.data());
       } else {
-        function(dim3(begin<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
+        function(dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
           parameters,
           constants.dev_velo_geometry,
           constants.dev_velo_sp_patterns.data(),

@@ -33,7 +33,7 @@ namespace scifi_pre_decode_v6 {
     {
       set_size<dev_cluster_references_t>(
         arguments,
-        value<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
+        first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
     }
 
     void operator()(
@@ -44,21 +44,21 @@ namespace scifi_pre_decode_v6 {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      const auto parameters = Parameters {begin<dev_scifi_raw_input_t>(arguments),
-                                          begin<dev_scifi_raw_input_offsets_t>(arguments),
-                                          begin<dev_event_list_t>(arguments),
-                                          begin<dev_scifi_hit_offsets_t>(arguments),
-                                          begin<dev_cluster_references_t>(arguments)};
+      const auto parameters = Parameters {data<dev_scifi_raw_input_t>(arguments),
+                                          data<dev_scifi_raw_input_offsets_t>(arguments),
+                                          data<dev_event_list_t>(arguments),
+                                          data<dev_scifi_hit_offsets_t>(arguments),
+                                          data<dev_cluster_references_t>(arguments)};
 
       if (runtime_options.mep_layout) {
         function_mep(
-          dim3(value<host_number_of_selected_events_t>(arguments)),
+          dim3(first<host_number_of_selected_events_t>(arguments)),
           dim3(SciFi::SciFiRawBankParams::NbBanks),
           cuda_stream)(parameters, constants.dev_scifi_geometry);
       }
       else {
         function(
-          dim3(value<host_number_of_selected_events_t>(arguments)),
+          dim3(first<host_number_of_selected_events_t>(arguments)),
           dim3(SciFi::SciFiRawBankParams::NbBanks),
           cuda_stream)(parameters, constants.dev_scifi_geometry);
       }

@@ -115,7 +115,7 @@ namespace kalman_velo_only {
       const Constants&,
       const HostBuffers&) const
     {
-      auto n_scifi_tracks = value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+      auto n_scifi_tracks = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
       set_size<dev_kf_tracks_t>(arguments, n_scifi_tracks);
       set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
 
@@ -129,50 +129,50 @@ namespace kalman_velo_only {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      kalman_function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_track_hits_t>(arguments),
-                    begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_ut_qop_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    begin<dev_scifi_qop_t>(arguments),
-                    begin<dev_scifi_states_t>(arguments),
-                    begin<dev_scifi_track_ut_indices_t>(arguments),
-                    begin<dev_velo_pv_ip_t>(arguments),
-                    begin<dev_kf_tracks_t>(arguments),
-                    begin<dev_multi_fit_vertices_t>(arguments),
-                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
-                    begin<dev_kalman_pv_ipchi2_t>(arguments),
-                    begin<dev_is_muon_t>(arguments)},
+      kalman_function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_track_hits_t>(arguments),
+                    data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_ut_qop_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
+                    data<dev_scifi_qop_t>(arguments),
+                    data<dev_scifi_states_t>(arguments),
+                    data<dev_scifi_track_ut_indices_t>(arguments),
+                    data<dev_velo_pv_ip_t>(arguments),
+                    data<dev_kf_tracks_t>(arguments),
+                    data<dev_multi_fit_vertices_t>(arguments),
+                    data<dev_number_of_multi_fit_vertices_t>(arguments),
+                    data<dev_kalman_pv_ipchi2_t>(arguments),
+                    data<dev_is_muon_t>(arguments)},
         constants.dev_scifi_geometry);
       
-      assoc_function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_track_hits_t>(arguments),
-                    begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_ut_qop_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    begin<dev_scifi_qop_t>(arguments),
-                    begin<dev_scifi_states_t>(arguments),
-                    begin<dev_scifi_track_ut_indices_t>(arguments),
-                    begin<dev_velo_pv_ip_t>(arguments),
-                    begin<dev_kf_tracks_t>(arguments),
-                    begin<dev_multi_fit_vertices_t>(arguments),
-                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
-                    begin<dev_kalman_pv_ipchi2_t>(arguments),
-                    begin<dev_is_muon_t>(arguments)});
+      assoc_function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_track_hits_t>(arguments),
+                    data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_ut_qop_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
+                    data<dev_scifi_qop_t>(arguments),
+                    data<dev_scifi_states_t>(arguments),
+                    data<dev_scifi_track_ut_indices_t>(arguments),
+                    data<dev_velo_pv_ip_t>(arguments),
+                    data<dev_kf_tracks_t>(arguments),
+                    data<dev_multi_fit_vertices_t>(arguments),
+                    data<dev_number_of_multi_fit_vertices_t>(arguments),
+                    data<dev_kalman_pv_ipchi2_t>(arguments),
+                    data<dev_is_muon_t>(arguments)});
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_kf_tracks,
-        begin<dev_kf_tracks_t>(arguments),
+        data<dev_kf_tracks_t>(arguments),
         size<dev_kf_tracks_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));

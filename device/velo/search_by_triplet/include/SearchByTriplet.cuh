@@ -52,18 +52,18 @@ namespace velo_search_by_triplet {
       const HostBuffers&) const
     {
       set_size<dev_tracks_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
       set_size<dev_tracklets_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
       set_size<dev_tracks_to_follow_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
       set_size<dev_three_hit_tracks_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_three_hit_tracks);
-      set_size<dev_hit_used_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
-      set_size<dev_atomics_velo_t>(arguments, value<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
-      set_size<dev_number_of_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_three_hit_tracks);
+      set_size<dev_hit_used_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+      set_size<dev_atomics_velo_t>(arguments, first<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
+      set_size<dev_number_of_velo_tracks_t>(arguments, first<host_number_of_selected_events_t>(arguments));
       set_size<dev_rel_indices_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_numhits_in_module_pair);
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_numhits_in_module_pair);
     }
 
     void operator()(
@@ -79,19 +79,19 @@ namespace velo_search_by_triplet {
       initialize<dev_number_of_velo_tracks_t>(arguments, 0, cuda_stream);
 
       function(
-        dim3(value<host_number_of_selected_events_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
-        Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
-                    begin<dev_offsets_estimated_input_size_t>(arguments),
-                    begin<dev_module_cluster_num_t>(arguments),
-                    begin<dev_hit_phi_t>(arguments),
-                    begin<dev_tracks_t>(arguments),
-                    begin<dev_tracklets_t>(arguments),
-                    begin<dev_tracks_to_follow_t>(arguments),
-                    begin<dev_three_hit_tracks_t>(arguments),
-                    begin<dev_hit_used_t>(arguments),
-                    begin<dev_atomics_velo_t>(arguments),
-                    begin<dev_rel_indices_t>(arguments),
-                    begin<dev_number_of_velo_tracks_t>(arguments),
+        dim3(first<host_number_of_selected_events_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+        Parameters {data<dev_sorted_velo_cluster_container_t>(arguments),
+                    data<dev_offsets_estimated_input_size_t>(arguments),
+                    data<dev_module_cluster_num_t>(arguments),
+                    data<dev_hit_phi_t>(arguments),
+                    data<dev_tracks_t>(arguments),
+                    data<dev_tracklets_t>(arguments),
+                    data<dev_tracks_to_follow_t>(arguments),
+                    data<dev_three_hit_tracks_t>(arguments),
+                    data<dev_hit_used_t>(arguments),
+                    data<dev_atomics_velo_t>(arguments),
+                    data<dev_rel_indices_t>(arguments),
+                    data<dev_number_of_velo_tracks_t>(arguments),
                     property<phi_tolerance_t>(),
                     property<max_scatter_t>(),
                     property<max_skipped_modules_t>()},

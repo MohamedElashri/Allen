@@ -36,9 +36,9 @@ namespace velo_three_hit_tracks_filter {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_number_of_three_hit_tracks_output_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_number_of_three_hit_tracks_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
       set_size<dev_three_hit_tracks_output_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
     }
 
     void operator()(
@@ -51,14 +51,14 @@ namespace velo_three_hit_tracks_filter {
     {
       initialize<dev_number_of_three_hit_tracks_output_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
-                    begin<dev_offsets_estimated_input_size_t>(arguments),
-                    begin<dev_three_hit_tracks_input_t>(arguments),
-                    begin<dev_atomics_velo_t>(arguments),
-                    begin<dev_hit_used_t>(arguments),
-                    begin<dev_three_hit_tracks_output_t>(arguments),
-                    begin<dev_number_of_three_hit_tracks_output_t>(arguments),
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_sorted_velo_cluster_container_t>(arguments),
+                    data<dev_offsets_estimated_input_size_t>(arguments),
+                    data<dev_three_hit_tracks_input_t>(arguments),
+                    data<dev_atomics_velo_t>(arguments),
+                    data<dev_hit_used_t>(arguments),
+                    data<dev_three_hit_tracks_output_t>(arguments),
+                    data<dev_number_of_three_hit_tracks_output_t>(arguments),
                     property<max_chi2_t>(),
                     property<max_weak_tracks_t>()});
     }

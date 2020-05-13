@@ -77,13 +77,13 @@ namespace run_hlt1 {
       }
 
       const auto lambda_one_track_fn = [&](const unsigned long i_line) {
-        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+        host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
       };
       Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(
         lambda_one_track_fn);
 
       const auto lambda_two_track_fn = [&](const unsigned long i_line) {
-        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_svs_t>(arguments);
+        host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_svs_t>(arguments);
       };
       Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(
         lambda_two_track_fn);
@@ -95,7 +95,7 @@ namespace run_hlt1 {
         lambda_special_fn);
 
       const auto lambda_velo_fn = [&](const unsigned long i_line) {
-        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_selected_events_t>(arguments);
+        host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_selected_events_t>(arguments);
       };
       Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
 
@@ -104,7 +104,7 @@ namespace run_hlt1 {
         host_buffers.host_sel_results_atomics, std::tuple_size<configured_lines_t>::value);
 
       cudaCheck(cudaMemcpyAsync(
-        begin<dev_sel_results_offsets_t>(arguments),
+        data<dev_sel_results_offsets_t>(arguments),
         host_buffers.host_sel_results_atomics,
         size<dev_sel_results_offsets_t>(arguments),
         cudaMemcpyHostToDevice,
@@ -114,45 +114,45 @@ namespace run_hlt1 {
 
       hlt1_function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
         Parameters {
-          begin<dev_event_list_t>(arguments),
-          begin<dev_kf_tracks_t>(arguments),
-          begin<dev_consolidated_svs_t>(arguments),
-          begin<dev_offsets_forward_tracks_t>(arguments),
-          begin<dev_sv_offsets_t>(arguments),
-          begin<dev_odin_raw_input_t>(arguments),
-          begin<dev_odin_raw_input_offsets_t>(arguments),
-          begin<dev_offsets_all_velo_tracks_t>(arguments),
-          begin<dev_sel_results_t>(arguments),
-          begin<dev_sel_results_offsets_t>(arguments),
+          data<dev_event_list_t>(arguments),
+          data<dev_kf_tracks_t>(arguments),
+          data<dev_consolidated_svs_t>(arguments),
+          data<dev_offsets_forward_tracks_t>(arguments),
+          data<dev_sv_offsets_t>(arguments),
+          data<dev_odin_raw_input_t>(arguments),
+          data<dev_odin_raw_input_offsets_t>(arguments),
+          data<dev_offsets_all_velo_tracks_t>(arguments),
+          data<dev_sel_results_t>(arguments),
+          data<dev_sel_results_offsets_t>(arguments),
           property<factor_one_track_t>(),
           property<factor_single_muon_t>(),
           property<factor_two_tracks_t>(),
           property<factor_disp_dimuon_t>(),
           property<factor_high_mass_dimuon_t>(),
           property<factor_dimuon_soft_t>()},
-        value<host_number_of_selected_events_t>(arguments),
+        first<host_number_of_selected_events_t>(arguments),
         event_start);
 
       // Run the postscaler.
       postscale_function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
         Parameters {
-          begin<dev_event_list_t>(arguments),
-          begin<dev_kf_tracks_t>(arguments),
-          begin<dev_consolidated_svs_t>(arguments),
-          begin<dev_offsets_forward_tracks_t>(arguments),
-          begin<dev_sv_offsets_t>(arguments),
-          begin<dev_odin_raw_input_t>(arguments),
-          begin<dev_odin_raw_input_offsets_t>(arguments),
-          begin<dev_offsets_all_velo_tracks_t>(arguments),
-          begin<dev_sel_results_t>(arguments),
-          begin<dev_sel_results_offsets_t>(arguments),
+          data<dev_event_list_t>(arguments),
+          data<dev_kf_tracks_t>(arguments),
+          data<dev_consolidated_svs_t>(arguments),
+          data<dev_offsets_forward_tracks_t>(arguments),
+          data<dev_sv_offsets_t>(arguments),
+          data<dev_odin_raw_input_t>(arguments),
+          data<dev_odin_raw_input_offsets_t>(arguments),
+          data<dev_offsets_all_velo_tracks_t>(arguments),
+          data<dev_sel_results_t>(arguments),
+          data<dev_sel_results_offsets_t>(arguments),
           property<factor_one_track_t>(),
           property<factor_single_muon_t>(),
           property<factor_two_tracks_t>(),
           property<factor_disp_dimuon_t>(),
           property<factor_high_mass_dimuon_t>(),
           property<factor_dimuon_soft_t>()},
-        value<host_number_of_selected_events_t>(arguments),
+        first<host_number_of_selected_events_t>(arguments),
         event_start);
 
       if (runtime_options.do_check) {

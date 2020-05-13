@@ -27,9 +27,9 @@ namespace velo_calculate_number_of_candidates {
       const HostBuffers&) const
     {
       if (logger::verbosity() >= logger::debug) {
-        debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
+        debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << std::endl;
       }
-      set_size<dev_number_of_candidates_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_number_of_candidates_t>(arguments, first<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -42,18 +42,18 @@ namespace velo_calculate_number_of_candidates {
     {
       // Enough blocks to cover all events
       const auto grid_size = dim3(
-        (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+        (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
       // Invoke kernel
-      const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
-                                          begin<dev_velo_raw_input_t>(arguments),
-                                          begin<dev_velo_raw_input_offsets_t>(arguments),
-                                          begin<dev_number_of_candidates_t>(arguments)};
+      const auto parameters = Parameters {data<dev_event_list_t>(arguments),
+                                          data<dev_velo_raw_input_t>(arguments),
+                                          data<dev_velo_raw_input_offsets_t>(arguments),
+                                          data<dev_number_of_candidates_t>(arguments)};
 
       using function_t = decltype(global_function(velo_calculate_number_of_candidates));
       function_t function = runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_mep) : global_function(velo_calculate_number_of_candidates);
       function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
-        parameters, value<host_number_of_selected_events_t>(arguments));
+        parameters, first<host_number_of_selected_events_t>(arguments));
     }
 
   private:

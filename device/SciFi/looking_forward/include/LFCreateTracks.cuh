@@ -66,14 +66,14 @@ namespace lf_create_tracks {
     {
       set_size<dev_scifi_lf_tracks_t>(
         arguments,
-        value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+        first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           LookingForward::maximum_number_of_candidates_per_ut_track);
-      set_size<dev_scifi_lf_atomics_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_scifi_lf_atomics_t>(arguments, first<host_number_of_selected_events_t>(arguments));
       set_size<dev_scifi_lf_total_number_of_found_triplets_t>(
-        arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
+        arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
       set_size<dev_scifi_lf_parametrization_t>(
         arguments,
-        4 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+        4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           LookingForward::maximum_number_of_candidates_per_ut_track);
     }
 
@@ -88,37 +88,37 @@ namespace lf_create_tracks {
       initialize<dev_scifi_lf_total_number_of_found_triplets_t>(arguments, 0, cuda_stream);
       initialize<dev_scifi_lf_atomics_t>(arguments, 0, cuda_stream);
 
-      const auto parameters = Parameters {begin<dev_offsets_ut_tracks_t>(arguments),
-                                          begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                                          begin<dev_scifi_lf_tracks_t>(arguments),
-                                          begin<dev_scifi_lf_atomics_t>(arguments),
-                                          begin<dev_scifi_lf_initial_windows_t>(arguments),
-                                          begin<dev_scifi_lf_process_track_t>(arguments),
-                                          begin<dev_scifi_lf_found_triplets_t>(arguments),
-                                          begin<dev_scifi_lf_number_of_found_triplets_t>(arguments),
-                                          begin<dev_scifi_lf_total_number_of_found_triplets_t>(arguments),
-                                          begin<dev_scifi_hits_t>(arguments),
-                                          begin<dev_scifi_hit_offsets_t>(arguments),
-                                          begin<dev_offsets_all_velo_tracks_t>(arguments),
-                                          begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                                          begin<dev_velo_states_t>(arguments),
-                                          begin<dev_ut_track_velo_indices_t>(arguments),
-                                          begin<dev_ut_qop_t>(arguments),
-                                          begin<dev_scifi_lf_parametrization_t>(arguments),
-                                          begin<dev_ut_states_t>(arguments)};
+      const auto parameters = Parameters {data<dev_offsets_ut_tracks_t>(arguments),
+                                          data<dev_offsets_ut_track_hit_number_t>(arguments),
+                                          data<dev_scifi_lf_tracks_t>(arguments),
+                                          data<dev_scifi_lf_atomics_t>(arguments),
+                                          data<dev_scifi_lf_initial_windows_t>(arguments),
+                                          data<dev_scifi_lf_process_track_t>(arguments),
+                                          data<dev_scifi_lf_found_triplets_t>(arguments),
+                                          data<dev_scifi_lf_number_of_found_triplets_t>(arguments),
+                                          data<dev_scifi_lf_total_number_of_found_triplets_t>(arguments),
+                                          data<dev_scifi_hits_t>(arguments),
+                                          data<dev_scifi_hit_offsets_t>(arguments),
+                                          data<dev_offsets_all_velo_tracks_t>(arguments),
+                                          data<dev_offsets_velo_track_hit_number_t>(arguments),
+                                          data<dev_velo_states_t>(arguments),
+                                          data<dev_ut_track_velo_indices_t>(arguments),
+                                          data<dev_ut_qop_t>(arguments),
+                                          data<dev_scifi_lf_parametrization_t>(arguments),
+                                          data<dev_ut_states_t>(arguments)};
 
       triplet_keep_best(
-        dim3(value<host_number_of_selected_events_t>(arguments)),
+        dim3(first<host_number_of_selected_events_t>(arguments)),
         property<triplet_keep_best_block_dim_t>(),
         cuda_stream)(parameters, constants.dev_looking_forward_constants);
 
       calculate_parametrization(
-        dim3(value<host_number_of_selected_events_t>(arguments)),
+        dim3(first<host_number_of_selected_events_t>(arguments)),
         property<calculate_parametrization_block_dim_t>(),
         cuda_stream)(parameters, constants.dev_looking_forward_constants);
 
       extend_tracks(
-        dim3(value<host_number_of_selected_events_t>(arguments)), property<extend_tracks_block_dim_t>(), cuda_stream)(
+        dim3(first<host_number_of_selected_events_t>(arguments)), property<extend_tracks_block_dim_t>(), cuda_stream)(
         parameters, constants.dev_looking_forward_constants);
     }
 

@@ -7,6 +7,7 @@
 #include "Logger.h"
 #include "TupleTools.cuh"
 #include "Argument.cuh"
+#include "BankTypes.h"
 
 /**
  * @brief Helper class to generate arguments based on
@@ -28,7 +29,7 @@ struct ArgumentManager {
   }
 
   template<typename T>
-  auto begin() const
+  auto data() const
   {
     auto pointer = tuple_ref_by_inheritance<T>(arguments_tuple).offset;
     return reinterpret_cast<typename T::type*>(pointer);
@@ -75,7 +76,7 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   ArgumentRefManager(TupleToReferences arguments) : m_arguments(arguments) {}
 
   template<typename T>
-  auto begin() const
+  auto data() const
   {
     auto pointer = tuple_ref_by_inheritance<T&>(m_arguments).offset;
     return reinterpret_cast<typename T::type*>(pointer);
@@ -106,13 +107,13 @@ size_t size(const Args& arguments) {
 }
 
 template<typename Arg, typename Args>
-auto begin(const Args& arguments) {
-  return Arg{arguments.template begin<Arg>()};
+auto data(const Args& arguments) {
+  return Arg{arguments.template data<Arg>()};
 }
 
 template<typename Arg, typename Args>
-auto value(const Args& arguments) {
-  return Arg{arguments.template begin<Arg>()}[0];
+auto first(const Args& arguments) {
+  return Arg{arguments.template data<Arg>()}[0];
 }
 
 template<typename Arg, typename Args, typename T>
@@ -129,7 +130,7 @@ void safe_assign_to_host_buffer(
 
   cudaCheck(cudaMemcpyAsync(
     array,
-    arguments.template begin<Arg>(),
+    arguments.template data<Arg>(),
     arguments.template size<Arg>(),
     cudaMemcpyDeviceToHost,
     cuda_stream));
@@ -147,12 +148,12 @@ struct SingleArgumentOverloadResolution<
   typename std::enable_if<std::is_base_of<host_datatype, Arg>::value>::type> {
   constexpr static void initialize(const Args& arguments, const int value, cudaStream_t)
   {
-    std::memset(begin<Arg>(arguments), value, size<Arg>(arguments));
+    std::memset(data<Arg>(arguments), value, size<Arg>(arguments));
   }
 
   constexpr static void print(const Args& arguments)
   {
-    const auto array = begin<Arg>(arguments);
+    const auto array = data<Arg>(arguments);
     for (uint i = 0; i < size<Arg>(arguments) / sizeof(typename Arg::type); ++i) {
       info_cout << array[i] << ", ";
     }
@@ -168,7 +169,7 @@ struct SingleArgumentOverloadResolution<
   constexpr static void initialize(const Args& arguments, const int value, cudaStream_t stream)
   {
     cudaCheck(cudaMemsetAsync(
-      begin<Arg>(arguments),
+      data<Arg>(arguments),
       value,
       size<Arg>(arguments),
       stream));
@@ -177,7 +178,7 @@ struct SingleArgumentOverloadResolution<
   constexpr static void print(const Args& arguments)
   {
     std::vector<typename Arg::type> v(size<Arg>(arguments) / sizeof(typename Arg::type));
-    cudaCheck(cudaMemcpy(v.data(), begin<Arg>(arguments), size<Arg>(arguments), cudaMemcpyDeviceToHost));
+    cudaCheck(cudaMemcpy(v.data(), data<Arg>(arguments), size<Arg>(arguments), cudaMemcpyDeviceToHost));
 
     for (const auto& i : v) {
       info_cout << i << ", ";
@@ -203,13 +204,13 @@ struct DoubleArgumentOverloadResolution<
   constexpr static void copy(const Args& arguments, cudaStream_t)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
-    std::memcpy(begin<A>(arguments), begin<B>(arguments), size<B>(arguments));
+    std::memcpy(data<A>(arguments), data<B>(arguments), size<B>(arguments));
   }
 
   constexpr static void copy(const Args& arguments, const size_t count, cudaStream_t)
   {
     assert(size<A>(arguments) >= count && size<B>(arguments) >= count);
-    std::memcpy(begin<A>(arguments), begin<B>(arguments), count);
+    std::memcpy(data<A>(arguments), data<B>(arguments), count);
   }
 };
 
@@ -227,8 +228,8 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     cudaCheck(cudaMemcpyAsync(
-      begin<A>(arguments),
-      begin<B>(arguments),
+      data<A>(arguments),
+      data<B>(arguments),
       size<B>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
@@ -238,8 +239,8 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= count && size<B>(arguments) >= count);
     cudaCheck(cudaMemcpyAsync(
-      begin<A>(arguments),
-      begin<B>(arguments),
+      data<A>(arguments),
+      data<B>(arguments),
       count,
       cudaMemcpyDeviceToHost,
       cuda_stream));
@@ -260,8 +261,8 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     cudaCheck(cudaMemcpyAsync(
-      begin<A>(arguments),
-      begin<B>(arguments),
+      data<A>(arguments),
+      data<B>(arguments),
       size<B>(arguments),
       cudaMemcpyHostToDevice,
       cuda_stream));
@@ -271,8 +272,8 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= count && size<B>(arguments) >= count);
     cudaCheck(cudaMemcpyAsync(
-      begin<A>(arguments),
-      begin<B>(arguments),
+      data<A>(arguments),
+      data<B>(arguments),
       count,
       cudaMemcpyHostToDevice,
       cuda_stream));
@@ -293,8 +294,8 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     cudaCheck(cudaMemcpyAsync(
-      begin<A>(arguments),
-      begin<B>(arguments),
+      data<A>(arguments),
+      data<B>(arguments),
       size<B>(arguments),
       cudaMemcpyDeviceToDevice,
       cuda_stream));
@@ -304,8 +305,8 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= count && size<B>(arguments) >= count);
     cudaCheck(cudaMemcpyAsync(
-      begin<A>(arguments),
-      begin<B>(arguments),
+      data<A>(arguments),
+      data<B>(arguments),
       count,
       cudaMemcpyDeviceToDevice,
       cuda_stream));
@@ -352,4 +353,24 @@ void copy(const Args& arguments, cudaStream_t stream = 0) {
 template<typename A, typename B, typename Args>
 void copy(const Args& arguments, const size_t count, cudaStream_t stream = 0) {
   DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, count, stream);
+}
+
+/**
+ * @brief Transfer data to the device, populating raw banks and offsets.
+ */
+template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
+void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream)
+{
+  auto offset = args.template data<DATA_ARG>();
+  for (gsl::span<char const> data_span : std::get<0>(bno)) {
+    cudaCheck(cudaMemcpyAsync(offset, data_span.data(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
+    offset += data_span.size_bytes();
+  }
+
+  cudaCheck(cudaMemcpyAsync(
+    args.template data<OFFSET_ARG>(),
+    std::get<2>(bno).data(),
+    std::get<2>(bno).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
 }

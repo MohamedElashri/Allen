@@ -29,7 +29,7 @@ namespace scifi_calculate_cluster_count_v4 {
       const HostBuffers&) const
     {
       set_size<dev_scifi_hit_count_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
+        arguments, first<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
     }
 
     void operator()(
@@ -42,14 +42,14 @@ namespace scifi_calculate_cluster_count_v4 {
     {
       initialize<dev_scifi_hit_count_t>(arguments, 0, cuda_stream);
 
-      const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
-                                          begin<dev_scifi_raw_input_t>(arguments),
-                                          begin<dev_scifi_raw_input_offsets_t>(arguments),
-                                          begin<dev_scifi_hit_count_t>(arguments)};
+      const auto parameters = Parameters {data<dev_event_list_t>(arguments),
+                                          data<dev_scifi_raw_input_t>(arguments),
+                                          data<dev_scifi_raw_input_offsets_t>(arguments),
+                                          data<dev_scifi_hit_count_t>(arguments)};
 
       using function_t = decltype(global_function(scifi_calculate_cluster_count_v4));
       function_t function = runtime_options.mep_layout ? function_t{scifi_calculate_cluster_count_v4_mep} : function_t{scifi_calculate_cluster_count_v4};
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         parameters, constants.dev_scifi_geometry);
     }
 

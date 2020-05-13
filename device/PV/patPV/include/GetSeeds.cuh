@@ -47,8 +47,8 @@ namespace pv_get_seeds {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_seeds_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments));
-      set_size<dev_number_seeds_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_seeds_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+      set_size<dev_number_seeds_t>(arguments, first<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -59,12 +59,12 @@ namespace pv_get_seeds {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_velo_kalman_beamline_states_t>(arguments),
-                    begin<dev_atomics_velo_t>(arguments),
-                    begin<dev_velo_track_hit_number_t>(arguments),
-                    begin<dev_seeds_t>(arguments),
-                    begin<dev_number_seeds_t>(arguments),
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_velo_kalman_beamline_states_t>(arguments),
+                    data<dev_atomics_velo_t>(arguments),
+                    data<dev_velo_track_hit_number_t>(arguments),
+                    data<dev_seeds_t>(arguments),
+                    data<dev_number_seeds_t>(arguments),
                     property<max_chi2_merge_t>(),
                     property<factor_to_increase_errors_t>(),
                     property<min_cluster_mult_t>(),
@@ -77,7 +77,7 @@ namespace pv_get_seeds {
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_number_of_seeds,
-          begin<dev_number_seeds_t>(arguments),
+          data<dev_number_seeds_t>(arguments),
           size<dev_number_seeds_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

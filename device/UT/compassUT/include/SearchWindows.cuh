@@ -44,7 +44,7 @@ namespace ut_search_windows {
     {
       set_size<dev_ut_windows_layers_t>(
         arguments,
-        CompassUT::num_elems * UT::Constants::n_layers * value<host_number_of_reconstructed_velo_tracks_t>(arguments));
+        CompassUT::num_elems * UT::Constants::n_layers * first<host_number_of_reconstructed_velo_tracks_t>(arguments));
     }
 
     void operator()(
@@ -58,17 +58,17 @@ namespace ut_search_windows {
       initialize<dev_ut_windows_layers_t>(arguments, 0, cuda_stream);
 
       function(
-        dim3(value<host_number_of_selected_events_t>(arguments)),
+        dim3(first<host_number_of_selected_events_t>(arguments)),
         dim3(UT::Constants::n_layers, property<block_dim_y_t>()),
         cuda_stream)(
-        Parameters {begin<dev_ut_hits_t>(arguments),
-                    begin<dev_ut_hit_offsets_t>(arguments),
-                    begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_states_t>(arguments),
-                    begin<dev_ut_number_of_selected_velo_tracks_t>(arguments),
-                    begin<dev_ut_selected_velo_tracks_t>(arguments),
-                    begin<dev_ut_windows_layers_t>(arguments),
+        Parameters {data<dev_ut_hits_t>(arguments),
+                    data<dev_ut_hit_offsets_t>(arguments),
+                    data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_states_t>(arguments),
+                    data<dev_ut_number_of_selected_velo_tracks_t>(arguments),
+                    data<dev_ut_selected_velo_tracks_t>(arguments),
+                    data<dev_ut_windows_layers_t>(arguments),
                     property<min_momentum_t>(),
                     property<min_pt_t>(),
                     property<y_tol_t>(),

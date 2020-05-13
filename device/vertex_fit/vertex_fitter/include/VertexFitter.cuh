@@ -102,7 +102,7 @@ namespace VertexFit {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_consolidated_svs_t>(arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_consolidated_svs_t>(arguments, first<host_number_of_svs_t>(arguments));
     }
 
     void operator()(
@@ -113,20 +113,20 @@ namespace VertexFit {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_kf_tracks_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    begin<dev_scifi_qop_t>(arguments),
-                    begin<dev_scifi_states_t>(arguments),
-                    begin<dev_scifi_track_ut_indices_t>(arguments),
-                    begin<dev_multi_fit_vertices_t>(arguments),
-                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
-                    begin<dev_kalman_pv_ipchi2_t>(arguments),
-                    begin<dev_svs_trk1_idx_t>(arguments),
-                    begin<dev_svs_trk2_idx_t>(arguments),
-                    begin<dev_sv_offsets_t>(arguments),
-                    begin<dev_consolidated_svs_t>(arguments),
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_kf_tracks_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
+                    data<dev_scifi_qop_t>(arguments),
+                    data<dev_scifi_states_t>(arguments),
+                    data<dev_scifi_track_ut_indices_t>(arguments),
+                    data<dev_multi_fit_vertices_t>(arguments),
+                    data<dev_number_of_multi_fit_vertices_t>(arguments),
+                    data<dev_kalman_pv_ipchi2_t>(arguments),
+                    data<dev_svs_trk1_idx_t>(arguments),
+                    data<dev_svs_trk2_idx_t>(arguments),
+                    data<dev_sv_offsets_t>(arguments),
+                    data<dev_consolidated_svs_t>(arguments),
                     property<max_assoc_ipchi2_t>()});
 
       safe_assign_to_host_buffer<dev_consolidated_svs_t>(
@@ -134,7 +134,7 @@ namespace VertexFit {
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_sv_offsets,
-        begin<dev_sv_offsets_t>(arguments),
+        data<dev_sv_offsets_t>(arguments),
         size<dev_sv_offsets_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));

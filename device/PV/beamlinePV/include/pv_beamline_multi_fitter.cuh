@@ -41,9 +41,9 @@ namespace pv_beamline_multi_fitter {
       const Constants&,
       const HostBuffers&) const {
       set_size<dev_multi_fit_vertices_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
-      set_size<dev_number_of_multi_fit_vertices_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_pvtracks_denom_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments));
+        arguments, first<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
+      set_size<dev_number_of_multi_fit_vertices_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+      set_size<dev_pvtracks_denom_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
     }
 
     void operator()(
@@ -55,16 +55,16 @@ namespace pv_beamline_multi_fitter {
       cudaEvent_t&) const {
       initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-                   begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                   begin<dev_pvtracks_t>(arguments),
-                   begin<dev_pvtracks_denom_t>(arguments),
-                   begin<dev_zpeaks_t>(arguments),
-                   begin<dev_number_of_zpeaks_t>(arguments),
-                   begin<dev_multi_fit_vertices_t>(arguments),
-                   begin<dev_number_of_multi_fit_vertices_t>(arguments),
-                   begin<dev_pvtrack_z_t>(arguments)},
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
+                   data<dev_offsets_velo_track_hit_number_t>(arguments),
+                   data<dev_pvtracks_t>(arguments),
+                   data<dev_pvtracks_denom_t>(arguments),
+                   data<dev_zpeaks_t>(arguments),
+                   data<dev_number_of_zpeaks_t>(arguments),
+                   data<dev_multi_fit_vertices_t>(arguments),
+                   data<dev_number_of_multi_fit_vertices_t>(arguments),
+                   data<dev_pvtrack_z_t>(arguments)},
         constants.dev_beamline.data());
     }
 

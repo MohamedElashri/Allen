@@ -36,13 +36,13 @@ namespace lf_quality_filter_length {
     {
       set_size<dev_scifi_lf_length_filtered_tracks_t>(
         arguments,
-        value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+        first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           LookingForward::maximum_number_of_candidates_per_ut_track);
       set_size<dev_scifi_lf_length_filtered_atomics_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
+        arguments, first<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
       set_size<dev_scifi_lf_parametrization_length_filter_t>(
         arguments,
-        4 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+        4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           LookingForward::maximum_number_of_candidates_per_ut_track);
     }
 
@@ -56,15 +56,15 @@ namespace lf_quality_filter_length {
     {
       initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_scifi_lf_tracks_t>(arguments),
-                    begin<dev_scifi_lf_atomics_t>(arguments),
-                    begin<dev_scifi_lf_length_filtered_tracks_t>(arguments),
-                    begin<dev_scifi_lf_length_filtered_atomics_t>(arguments),
-                    begin<dev_scifi_lf_parametrization_t>(arguments),
-                    begin<dev_scifi_lf_parametrization_length_filter_t>(arguments)});
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_scifi_lf_tracks_t>(arguments),
+                    data<dev_scifi_lf_atomics_t>(arguments),
+                    data<dev_scifi_lf_length_filtered_tracks_t>(arguments),
+                    data<dev_scifi_lf_length_filtered_atomics_t>(arguments),
+                    data<dev_scifi_lf_parametrization_t>(arguments),
+                    data<dev_scifi_lf_parametrization_length_filter_t>(arguments)});
     }
 
   private:

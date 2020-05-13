@@ -33,7 +33,7 @@ namespace velo_pv_ip {
       const Constants&,
       const HostBuffers&) const
     {
-      auto n_velo_tracks = value<host_number_of_reconstructed_velo_tracks_t>(arguments);
+      auto n_velo_tracks = first<host_number_of_reconstructed_velo_tracks_t>(arguments);
       set_size<dev_velo_pv_ip_t>(arguments, Associate::Consolidated::table_size(n_velo_tracks));
     }
 
@@ -45,13 +45,13 @@ namespace velo_pv_ip {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_velo_kalman_beamline_states_t>(arguments),
-                   begin<dev_offsets_all_velo_tracks_t>(arguments),
-                   begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                   begin<dev_multi_fit_vertices_t>(arguments),
-                   begin<dev_number_of_multi_fit_vertices_t>(arguments),
-                   begin<dev_velo_pv_ip_t>(arguments)});
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_velo_kalman_beamline_states_t>(arguments),
+                   data<dev_offsets_all_velo_tracks_t>(arguments),
+                   data<dev_offsets_velo_track_hit_number_t>(arguments),
+                   data<dev_multi_fit_vertices_t>(arguments),
+                   data<dev_number_of_multi_fit_vertices_t>(arguments),
+                   data<dev_velo_pv_ip_t>(arguments)});
     }
 
   private:

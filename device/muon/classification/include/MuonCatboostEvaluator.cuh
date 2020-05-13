@@ -32,7 +32,7 @@ namespace muon_catboost_evaluator {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_muon_catboost_output_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_muon_catboost_output_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
     }
 
     void operator()(
@@ -43,8 +43,8 @@ namespace muon_catboost_evaluator {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_muon_catboost_features_t>(arguments), begin<dev_muon_catboost_output_t>(arguments)},
+      function(dim3(first<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_muon_catboost_features_t>(arguments), data<dev_muon_catboost_output_t>(arguments)},
         constants.dev_muon_catboost_leaf_values,
         constants.dev_muon_catboost_leaf_offsets,
         constants.dev_muon_catboost_split_borders,
@@ -56,7 +56,7 @@ namespace muon_catboost_evaluator {
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_muon_catboost_output,
-          begin<dev_muon_catboost_output_t>(arguments),
+          data<dev_muon_catboost_output_t>(arguments),
           size<dev_muon_catboost_output_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

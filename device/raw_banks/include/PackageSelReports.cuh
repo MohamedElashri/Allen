@@ -33,7 +33,7 @@ namespace package_sel_reports {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_sel_rep_raw_banks_t>(arguments, value<host_number_of_sel_rep_words_t>(arguments));
+      set_size<dev_sel_rep_raw_banks_t>(arguments, first<host_number_of_sel_rep_words_t>(arguments));
     }
 
     void operator()(
@@ -55,21 +55,21 @@ namespace package_sel_reports {
         property<block_dim_x_t>());
 
       function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
-        Parameters {begin<dev_event_list_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_sel_rb_hits_t>(arguments),
-                    begin<dev_sel_rb_stdinfo_t>(arguments),
-                    begin<dev_sel_rb_objtyp_t>(arguments),
-                    begin<dev_sel_rb_substr_t>(arguments),
-                    begin<dev_sel_rep_offsets_t>(arguments),
-                    begin<dev_sel_rep_raw_banks_t>(arguments)},
+        Parameters {data<dev_event_list_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_sel_rb_hits_t>(arguments),
+                    data<dev_sel_rb_stdinfo_t>(arguments),
+                    data<dev_sel_rb_objtyp_t>(arguments),
+                    data<dev_sel_rb_substr_t>(arguments),
+                    data<dev_sel_rep_offsets_t>(arguments),
+                    data<dev_sel_rep_raw_banks_t>(arguments)},
         total_number_of_events,
-        value<host_number_of_selected_events_t>(arguments),
+        first<host_number_of_selected_events_t>(arguments),
         event_start);
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_sel_rep_offsets,
-        begin<dev_sel_rep_offsets_t>(arguments),
+        data<dev_sel_rep_offsets_t>(arguments),
         size<dev_sel_rep_offsets_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));

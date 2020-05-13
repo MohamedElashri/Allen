@@ -117,7 +117,7 @@ namespace velo_kalman_filter {
     {
       set_size<dev_velo_kalman_beamline_states_t>(
         arguments,
-        value<host_number_of_reconstructed_velo_tracks_t>(arguments) *
+        first<host_number_of_reconstructed_velo_tracks_t>(arguments) *
           Velo::Consolidated::kalman_states_number_of_arrays * sizeof(uint32_t));
     }
 
@@ -129,17 +129,17 @@ namespace velo_kalman_filter {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_track_hits_t>(arguments),
-                    begin<dev_velo_states_t>(arguments),
-                    begin<dev_velo_kalman_beamline_states_t>(arguments)});
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_track_hits_t>(arguments),
+                    data<dev_velo_states_t>(arguments),
+                    data<dev_velo_kalman_beamline_states_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_kalmanvelo_states,
-          begin<dev_velo_kalman_beamline_states_t>(arguments),
+          data<dev_velo_kalman_beamline_states_t>(arguments),
           size<dev_velo_kalman_beamline_states_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

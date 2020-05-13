@@ -40,13 +40,13 @@ namespace lf_least_mean_square_fit {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_scifi_hits_t>(arguments),
-                    begin<dev_scifi_hit_count_t>(arguments),
-                    begin<dev_atomics_ut_t>(arguments),
-                    begin<dev_scifi_tracks_t>(arguments),
-                    begin<dev_atomics_scifi_t>(arguments),
-                    begin<dev_scifi_lf_parametrization_x_filter_t>(arguments)},
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_scifi_hits_t>(arguments),
+                    data<dev_scifi_hit_count_t>(arguments),
+                    data<dev_atomics_ut_t>(arguments),
+                    data<dev_scifi_tracks_t>(arguments),
+                    data<dev_atomics_scifi_t>(arguments),
+                    data<dev_scifi_lf_parametrization_x_filter_t>(arguments)},
         constants.dev_looking_forward_constants);
     }
 

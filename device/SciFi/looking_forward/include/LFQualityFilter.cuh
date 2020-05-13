@@ -49,22 +49,22 @@ namespace lf_quality_filter {
       const HostBuffers&) const
     {
       set_size<dev_atomics_scifi_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
+        arguments, first<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
       set_size<dev_scifi_tracks_t>(
         arguments,
-        value<host_number_of_reconstructed_ut_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+        first<host_number_of_reconstructed_ut_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
       set_size<dev_scifi_lf_y_parametrization_length_filter_t>(
         arguments,
-        2 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+        2 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           LookingForward::maximum_number_of_candidates_per_ut_track);
       set_size<dev_scifi_lf_parametrization_consolidate_t>(
         arguments,
-        6 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+        6 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           SciFi::Constants::max_SciFi_tracks_per_UT_track);
       set_size<dev_lf_quality_of_tracks_t>(
         arguments,
         LookingForward::maximum_number_of_candidates_per_ut_track * 
-        value<host_number_of_reconstructed_ut_tracks_t>(arguments));
+        first<host_number_of_reconstructed_ut_tracks_t>(arguments));
     }
 
     void operator()(
@@ -77,38 +77,38 @@ namespace lf_quality_filter {
     {
       initialize<dev_atomics_scifi_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_scifi_hits_t>(arguments),
-                    begin<dev_scifi_hit_offsets_t>(arguments),
-                    begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_scifi_lf_length_filtered_tracks_t>(arguments),
-                    begin<dev_scifi_lf_length_filtered_atomics_t>(arguments),
-                    begin<dev_lf_quality_of_tracks_t>(arguments),
-                    begin<dev_atomics_scifi_t>(arguments),
-                    begin<dev_scifi_tracks_t>(arguments),
-                    begin<dev_scifi_lf_parametrization_length_filter_t>(arguments),
-                    begin<dev_scifi_lf_y_parametrization_length_filter_t>(arguments),
-                    begin<dev_scifi_lf_parametrization_consolidate_t>(arguments),
-                    begin<dev_ut_states_t>(arguments),
-                    begin<dev_velo_states_t>(arguments),
-                    begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments)},
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_scifi_hits_t>(arguments),
+                    data<dev_scifi_hit_offsets_t>(arguments),
+                    data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_scifi_lf_length_filtered_tracks_t>(arguments),
+                    data<dev_scifi_lf_length_filtered_atomics_t>(arguments),
+                    data<dev_lf_quality_of_tracks_t>(arguments),
+                    data<dev_atomics_scifi_t>(arguments),
+                    data<dev_scifi_tracks_t>(arguments),
+                    data<dev_scifi_lf_parametrization_length_filter_t>(arguments),
+                    data<dev_scifi_lf_y_parametrization_length_filter_t>(arguments),
+                    data<dev_scifi_lf_parametrization_consolidate_t>(arguments),
+                    data<dev_ut_states_t>(arguments),
+                    data<dev_velo_states_t>(arguments),
+                    data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments)},
         constants.dev_looking_forward_constants,
         constants.dev_magnet_polarity.data());
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_atomics_scifi,
-          begin<dev_atomics_scifi_t>(arguments),
+          data<dev_atomics_scifi_t>(arguments),
           size<dev_atomics_scifi_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_scifi_tracks,
-          begin<dev_scifi_tracks_t>(arguments),
+          data<dev_scifi_tracks_t>(arguments),
           size<dev_scifi_tracks_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

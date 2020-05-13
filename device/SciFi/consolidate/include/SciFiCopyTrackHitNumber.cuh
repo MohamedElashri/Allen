@@ -31,7 +31,7 @@ namespace scifi_copy_track_hit_number {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_scifi_track_hit_number_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_scifi_track_hit_number_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
     }
 
     void operator()(
@@ -42,11 +42,11 @@ namespace scifi_copy_track_hit_number {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_scifi_tracks_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_scifi_track_hit_number_t>(arguments)});
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_scifi_tracks_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_scifi_track_hit_number_t>(arguments)});
     }
     
   private:

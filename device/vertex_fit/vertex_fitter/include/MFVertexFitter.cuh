@@ -36,7 +36,7 @@ namespace MFVertexFit {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_mf_svs_t>(arguments, value<host_number_of_mf_svs_t>(arguments));
+      set_size<dev_mf_svs_t>(arguments, first<host_number_of_mf_svs_t>(arguments));
     }
 
     void operator()(
@@ -49,23 +49,23 @@ namespace MFVertexFit {
     {
       initialize<dev_mf_svs_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_kf_tracks_t>(arguments),
-                    begin<dev_mf_tracks_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_mf_track_offsets_t>(arguments),
-                    begin<dev_mf_sv_offsets_t>(arguments),
-                    begin<dev_svs_kf_idx_t>(arguments),
-                    begin<dev_svs_mf_idx_t>(arguments),
-                    begin<dev_event_list_mf_t>(arguments),
-                    begin<dev_mf_svs_t>(arguments)});
+      function(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_kf_tracks_t>(arguments),
+                    data<dev_mf_tracks_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_mf_track_offsets_t>(arguments),
+                    data<dev_mf_sv_offsets_t>(arguments),
+                    data<dev_svs_kf_idx_t>(arguments),
+                    data<dev_svs_mf_idx_t>(arguments),
+                    data<dev_event_list_mf_t>(arguments),
+                    data<dev_mf_svs_t>(arguments)});
 
       safe_assign_to_host_buffer<dev_mf_svs_t>(
         host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, arguments, cuda_stream);
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_mf_sv_offsets,
-        begin<dev_mf_sv_offsets_t>(arguments),
+        data<dev_mf_sv_offsets_t>(arguments),
         size<dev_mf_sv_offsets_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));

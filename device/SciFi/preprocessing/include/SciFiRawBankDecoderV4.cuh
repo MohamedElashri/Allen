@@ -42,7 +42,7 @@ namespace scifi_raw_bank_decoder_v4 {
     {
       set_size<dev_scifi_hits_t>(
         arguments,
-        value<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
+        first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
     }
 
     void operator()(
@@ -53,23 +53,23 @@ namespace scifi_raw_bank_decoder_v4 {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      const auto parameters = Parameters {begin<dev_scifi_raw_input_t>(arguments),
-                                          begin<dev_scifi_raw_input_offsets_t>(arguments),
-                                          begin<dev_scifi_hit_offsets_t>(arguments),
-                                          begin<dev_cluster_references_t>(arguments),
-                                          begin<dev_scifi_hits_t>(arguments),
-                                          begin<dev_event_list_t>(arguments)};
+      const auto parameters = Parameters {data<dev_scifi_raw_input_t>(arguments),
+                                          data<dev_scifi_raw_input_offsets_t>(arguments),
+                                          data<dev_scifi_hit_offsets_t>(arguments),
+                                          data<dev_cluster_references_t>(arguments),
+                                          data<dev_scifi_hits_t>(arguments),
+                                          data<dev_event_list_t>(arguments)};
 
       if (runtime_options.mep_layout) {
-        raw_bank_decoder_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
+        raw_bank_decoder_mep(dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
           parameters, constants.dev_scifi_geometry);
-        direct_decoder_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
+        direct_decoder_mep(dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
           parameters, constants.dev_scifi_geometry);
       }
       else {
-        raw_bank_decoder(dim3(value<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
+        raw_bank_decoder(dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
           parameters, constants.dev_scifi_geometry);
-        direct_decoder(dim3(value<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
+        direct_decoder(dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
           parameters, constants.dev_scifi_geometry);
       }
     }

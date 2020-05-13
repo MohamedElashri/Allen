@@ -35,8 +35,8 @@ namespace muon_populate_hits {
       const HostBuffers&) const
     {
       set_size<dev_muon_hits_t>(
-        arguments, value<host_muon_total_number_of_hits_t>(arguments) * Muon::Hits::element_size);
-      set_size<dev_permutation_station_t>(arguments, value<host_muon_total_number_of_hits_t>(arguments));
+        arguments, first<host_muon_total_number_of_hits_t>(arguments) * Muon::Hits::element_size);
+      set_size<dev_permutation_station_t>(arguments, first<host_muon_total_number_of_hits_t>(arguments));
     }
 
     void operator()(
@@ -49,16 +49,16 @@ namespace muon_populate_hits {
     {
       initialize<dev_permutation_station_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {
-          begin<dev_storage_tile_id_t>(arguments),
-          begin<dev_storage_tdc_value_t>(arguments),
-          begin<dev_permutation_station_t>(arguments),
-          begin<dev_muon_hits_t>(arguments),
-          begin<dev_station_ocurrences_offset_t>(arguments),
-          begin<dev_muon_compact_hit_t>(arguments),
-          begin<dev_muon_raw_to_hits_t>(arguments),
-          begin<dev_storage_station_region_quarter_offsets_t>(arguments)});
+          data<dev_storage_tile_id_t>(arguments),
+          data<dev_storage_tdc_value_t>(arguments),
+          data<dev_permutation_station_t>(arguments),
+          data<dev_muon_hits_t>(arguments),
+          data<dev_station_ocurrences_offset_t>(arguments),
+          data<dev_muon_compact_hit_t>(arguments),
+          data<dev_muon_raw_to_hits_t>(arguments),
+          data<dev_storage_station_region_quarter_offsets_t>(arguments)});
     }
 
   private:

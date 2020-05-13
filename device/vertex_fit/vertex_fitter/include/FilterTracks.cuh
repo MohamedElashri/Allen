@@ -54,11 +54,11 @@ namespace FilterTracks {
       const HostBuffers&) const
     {
       set_size<dev_sv_atomics_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments));
+        arguments, first<host_number_of_selected_events_t>(arguments));
       set_size<dev_svs_trk1_idx_t>(
-        arguments, 10 * VertexFit::max_svs * value<host_number_of_selected_events_t>(arguments));
+        arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
       set_size<dev_svs_trk2_idx_t>(
-        arguments, 10 * VertexFit::max_svs * value<host_number_of_selected_events_t>(arguments));
+        arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
     }
 
 
@@ -73,21 +73,21 @@ namespace FilterTracks {
       initialize<dev_sv_atomics_t>(arguments, 0, cuda_stream);
 
       function(
-        dim3(value<host_number_of_selected_events_t>(arguments)),
+        dim3(first<host_number_of_selected_events_t>(arguments)),
         property<block_dim_t>(),
         cuda_stream)(
-        Parameters {begin<dev_kf_tracks_t>(arguments),
-            begin<dev_offsets_forward_tracks_t>(arguments),
-            begin<dev_offsets_scifi_track_hit_number_t>(arguments),
-            begin<dev_scifi_qop_t>(arguments),
-            begin<dev_scifi_states_t>(arguments),
-            begin<dev_scifi_track_ut_indices_t>(arguments),
-            begin<dev_multi_fit_vertices_t>(arguments),
-            begin<dev_number_of_multi_fit_vertices_t>(arguments),
-            begin<dev_kalman_pv_ipchi2_t>(arguments),
-            begin<dev_sv_atomics_t>(arguments),
-            begin<dev_svs_trk1_idx_t>(arguments),
-            begin<dev_svs_trk2_idx_t>(arguments),
+        Parameters {data<dev_kf_tracks_t>(arguments),
+            data<dev_offsets_forward_tracks_t>(arguments),
+            data<dev_offsets_scifi_track_hit_number_t>(arguments),
+            data<dev_scifi_qop_t>(arguments),
+            data<dev_scifi_states_t>(arguments),
+            data<dev_scifi_track_ut_indices_t>(arguments),
+            data<dev_multi_fit_vertices_t>(arguments),
+            data<dev_number_of_multi_fit_vertices_t>(arguments),
+            data<dev_kalman_pv_ipchi2_t>(arguments),
+            data<dev_sv_atomics_t>(arguments),
+            data<dev_svs_trk1_idx_t>(arguments),
+            data<dev_svs_trk2_idx_t>(arguments),
             property<track_min_pt_t>(),
             property<track_min_ipchi2_t>(),
             property<track_muon_min_ipchi2_t>(),

@@ -42,12 +42,12 @@ namespace host_data_provider {
 
       // memcpy the offsets span directly
       auto const& offsets = std::get<2>(bno);
-      ::memcpy(begin<host_raw_offsets_t>(arguments), &offsets, sizeof(offsets));
+      ::memcpy(data<host_raw_offsets_t>(arguments), &offsets, sizeof(offsets));
 
       // Copy the spans for the blocks
       auto const& blocks = std::get<0>(bno);
       ::memcpy(
-        begin<host_raw_banks_t>(arguments),
+        data<host_raw_banks_t>(arguments),
         blocks.data(),
         blocks.size() * sizeof(typename std::remove_reference_t<decltype(blocks)>::value_type));
     }

@@ -32,8 +32,8 @@ namespace pv_beamline_peak {
       const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const {
-      set_size<dev_zpeaks_t>(arguments, value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
-      set_size<dev_number_of_zpeaks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_zpeaks_t>(arguments, first<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
+      set_size<dev_number_of_zpeaks_t>(arguments, first<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -44,13 +44,13 @@ namespace pv_beamline_peak {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const {
       const auto grid_dim = dim3(
-        (value<host_number_of_selected_events_t>(arguments) + PV::num_threads_pv_beamline_peak_t - 1) /
+        (first<host_number_of_selected_events_t>(arguments) + PV::num_threads_pv_beamline_peak_t - 1) /
         PV::num_threads_pv_beamline_peak_t);
 
       function(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
         Parameters {
-          begin<dev_zhisto_t>(arguments), begin<dev_zpeaks_t>(arguments), begin<dev_number_of_zpeaks_t>(arguments)},
-        value<host_number_of_selected_events_t>(arguments));
+          data<dev_zhisto_t>(arguments), data<dev_zpeaks_t>(arguments), data<dev_number_of_zpeaks_t>(arguments)},
+        first<host_number_of_selected_events_t>(arguments));
     }
   };
 } // namespace pv_beamline_peak

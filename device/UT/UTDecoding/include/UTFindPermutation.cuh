@@ -27,7 +27,7 @@ namespace ut_find_permutation {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_ut_hit_permutations_t>(arguments, value<host_accumulated_number_of_ut_hits_t>(arguments));
+      set_size<dev_ut_hit_permutations_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
     }
 
     void operator()(
@@ -39,12 +39,12 @@ namespace ut_find_permutation {
       cudaEvent_t&) const
     {
       function(
-        dim3(value<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
+        dim3(first<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
         property<block_dim_t>(),
         cuda_stream)(
-        Parameters {begin<dev_ut_pre_decoded_hits_t>(arguments),
-                   begin<dev_ut_hit_offsets_t>(arguments),
-                   begin<dev_ut_hit_permutations_t>(arguments)},
+        Parameters {data<dev_ut_pre_decoded_hits_t>(arguments),
+                   data<dev_ut_hit_offsets_t>(arguments),
+                   data<dev_ut_hit_permutations_t>(arguments)},
         constants.dev_unique_x_sector_layer_offsets.data());
     }
 

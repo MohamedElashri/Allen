@@ -28,11 +28,11 @@ namespace velo_copy_track_hit_number {
       const Constants&,
       const HostBuffers&) const {
       set_size<host_number_of_reconstructed_velo_tracks_t>(arguments, 1);
-      set_size<dev_velo_track_hit_number_t>(arguments, value<host_number_of_velo_tracks_at_least_four_hits_t>(arguments)
-        + value<host_number_of_three_hit_tracks_filtered_t>(arguments));
+      set_size<dev_velo_track_hit_number_t>(arguments, first<host_number_of_velo_tracks_at_least_four_hits_t>(arguments)
+        + first<host_number_of_three_hit_tracks_filtered_t>(arguments));
 
       // Note: Size is "+ 1" due to it storing offsets.
-      set_size<dev_offsets_all_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments) + 1);
+      set_size<dev_offsets_all_velo_tracks_t>(arguments, first<host_number_of_selected_events_t>(arguments) + 1);
     }
 
     void operator()(
@@ -44,18 +44,18 @@ namespace velo_copy_track_hit_number {
       cudaEvent_t&) const {
       initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters{
-          begin<dev_tracks_t>(arguments),
-          begin<dev_offsets_velo_tracks_t>(arguments),
-          begin<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments),
-          begin<dev_velo_track_hit_number_t>(arguments),
-          begin<dev_offsets_all_velo_tracks_t>(arguments)
+          data<dev_tracks_t>(arguments),
+          data<dev_offsets_velo_tracks_t>(arguments),
+          data<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments),
+          data<dev_velo_track_hit_number_t>(arguments),
+          data<dev_offsets_all_velo_tracks_t>(arguments)
         });
 
       cudaCheck(cudaMemcpyAsync(
-        begin<host_number_of_reconstructed_velo_tracks_t>(arguments),
-        begin<dev_offsets_all_velo_tracks_t>(arguments) + (size<dev_offsets_all_velo_tracks_t>(arguments) / sizeof(uint)) - 1,
+        data<host_number_of_reconstructed_velo_tracks_t>(arguments),
+        data<dev_offsets_all_velo_tracks_t>(arguments) + (size<dev_offsets_all_velo_tracks_t>(arguments) / sizeof(uint)) - 1,
         sizeof(uint), // Note: Only the last element needs to be copied here.
         cudaMemcpyDeviceToHost,
         cuda_stream));

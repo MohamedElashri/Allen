@@ -59,19 +59,19 @@ namespace host_global_event_cut {
       const auto number_of_events = event_end - event_start;
 
       // Initialize host event list
-      begin<host_total_number_of_events_t>(arguments)[0] = number_of_events;
-      begin<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
+      data<host_total_number_of_events_t>(arguments)[0] = number_of_events;
+      data<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
       for (uint i = 0; i < number_of_events; ++i) {
-        begin<host_event_list_t>(arguments)[i] = event_start + i;
+        data<host_event_list_t>(arguments)[i] = event_start + i;
       }
 
       // Parameters for the function call
-      const auto parameters = Parameters {begin<host_ut_raw_banks_t>(arguments),
-                                          begin<host_ut_raw_offsets_t>(arguments),
-                                          begin<host_scifi_raw_banks_t>(arguments),
-                                          begin<host_scifi_raw_offsets_t>(arguments),
-                                          begin<host_event_list_t>(arguments),
-                                          begin<host_number_of_selected_events_t>(arguments),
+      const auto parameters = Parameters {data<host_ut_raw_banks_t>(arguments),
+                                          data<host_ut_raw_offsets_t>(arguments),
+                                          data<host_scifi_raw_banks_t>(arguments),
+                                          data<host_scifi_raw_offsets_t>(arguments),
+                                          data<host_event_list_t>(arguments),
+                                          data<host_number_of_selected_events_t>(arguments),
                                           property<min_scifi_ut_clusters_t>(),
                                           property<max_scifi_ut_clusters_t>()};
 
@@ -84,16 +84,16 @@ namespace host_global_event_cut {
       function(number_of_events, parameters);
 
       cudaCheck(cudaMemcpyAsync(
-        begin<dev_event_list_t>(arguments),
-        begin<host_event_list_t>(arguments),
+        data<dev_event_list_t>(arguments),
+        data<host_event_list_t>(arguments),
         size<dev_event_list_t>(arguments),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
       // TODO: Remove whenever the checker uses variables
-      host_buffers.host_number_of_selected_events[0] = value<host_number_of_selected_events_t>(arguments);
+      host_buffers.host_number_of_selected_events[0] = first<host_number_of_selected_events_t>(arguments);
       for (uint i = 0; i < number_of_events; ++i) {
-        host_buffers.host_event_list[i] = begin<host_event_list_t>(arguments)[i];
+        host_buffers.host_event_list[i] = data<host_event_list_t>(arguments)[i];
       }
     }
 

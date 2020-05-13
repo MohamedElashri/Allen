@@ -47,15 +47,15 @@ namespace host_init_event_list {
       const auto number_of_events = event_end - event_start;
 
       // Initialize buffers
-      begin<host_total_number_of_events_t>(arguments)[0] = number_of_events;
-      begin<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
+      data<host_total_number_of_events_t>(arguments)[0] = number_of_events;
+      data<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
       for (uint i = 0; i < number_of_events; ++i) {
-        begin<host_event_list_t>(arguments)[i] = i;
+        data<host_event_list_t>(arguments)[i] = i;
       }
 
       cudaCheck(cudaMemcpyAsync(
-        begin<dev_event_list_t>(arguments),
-        begin<host_event_list_t>(arguments),
+        data<dev_event_list_t>(arguments),
+        data<host_event_list_t>(arguments),
         size<dev_event_list_t>(arguments),
         cudaMemcpyHostToDevice,
         cuda_stream));

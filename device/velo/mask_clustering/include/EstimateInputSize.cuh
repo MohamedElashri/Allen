@@ -34,13 +34,13 @@ namespace velo_estimate_input_size {
       const HostBuffers&) const
     {
       if (logger::verbosity() >= logger::debug) {
-        debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
+        debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << std::endl;
       }
 
       set_size<dev_estimated_input_size_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
-      set_size<dev_module_candidate_num_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_cluster_candidates_t>(arguments, value<host_number_of_cluster_candidates_t>(arguments));
+        arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
+      set_size<dev_module_candidate_num_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+      set_size<dev_cluster_candidates_t>(arguments, first<host_number_of_cluster_candidates_t>(arguments));
     }
 
     void operator()(
@@ -55,20 +55,20 @@ namespace velo_estimate_input_size {
       initialize<dev_module_candidate_num_t>(arguments, 0, cuda_stream);
 
       // Invoke kernel
-      const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
-                                          begin<dev_candidates_offsets_t>(arguments),
-                                          begin<dev_velo_raw_input_t>(arguments),
-                                          begin<dev_velo_raw_input_offsets_t>(arguments),
-                                          begin<dev_estimated_input_size_t>(arguments),
-                                          begin<dev_module_candidate_num_t>(arguments),
-                                          begin<dev_cluster_candidates_t>(arguments)};
+      const auto parameters = Parameters {data<dev_event_list_t>(arguments),
+                                          data<dev_candidates_offsets_t>(arguments),
+                                          data<dev_velo_raw_input_t>(arguments),
+                                          data<dev_velo_raw_input_offsets_t>(arguments),
+                                          data<dev_estimated_input_size_t>(arguments),
+                                          data<dev_module_candidate_num_t>(arguments),
+                                          data<dev_cluster_candidates_t>(arguments)};
 
       if (runtime_options.mep_layout) {
-        function_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        function_mep(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
           parameters);
       }
       else {
-        function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
           parameters);
       }
     }

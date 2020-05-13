@@ -59,8 +59,8 @@ namespace compass_ut {
       const HostBuffers&) const
     {
       set_size<dev_ut_tracks_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
-      set_size<dev_atomics_ut_t>(arguments, value<host_number_of_selected_events_t>(arguments) * UT::num_atomics);
+        arguments, first<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
+      set_size<dev_atomics_ut_t>(arguments, first<host_number_of_selected_events_t>(arguments) * UT::num_atomics);
     }
 
     void operator()(
@@ -74,17 +74,17 @@ namespace compass_ut {
       initialize<dev_atomics_ut_t>(arguments, 0, cuda_stream);
 
       function(
-        dim3(value<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
-        Parameters {begin<dev_ut_hits_t>(arguments),
-                    begin<dev_ut_hit_offsets_t>(arguments),
-                    begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_states_t>(arguments),
-                    begin<dev_ut_tracks_t>(arguments),
-                    begin<dev_atomics_ut_t>(arguments),
-                    begin<dev_ut_windows_layers_t>(arguments),
-                    begin<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments),
-                    begin<dev_ut_selected_velo_tracks_with_windows_t>(arguments),
+        dim3(first<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
+        Parameters {data<dev_ut_hits_t>(arguments),
+                    data<dev_ut_hit_offsets_t>(arguments),
+                    data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_states_t>(arguments),
+                    data<dev_ut_tracks_t>(arguments),
+                    data<dev_atomics_ut_t>(arguments),
+                    data<dev_ut_windows_layers_t>(arguments),
+                    data<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments),
+                    data<dev_ut_selected_velo_tracks_with_windows_t>(arguments),
                     property<sigma_velo_slope_t>(),
                     property<min_momentum_final_t>(),
                     property<min_pt_final_t>(),

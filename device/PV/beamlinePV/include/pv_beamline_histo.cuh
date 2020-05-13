@@ -33,7 +33,7 @@ namespace pv_beamline_histo {
       const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const {
-      set_size<dev_zhisto_t>(arguments, value<host_number_of_selected_events_t>(arguments) * (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz);
+      set_size<dev_zhisto_t>(arguments, first<host_number_of_selected_events_t>(arguments) * (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz);
     }
 
     void operator()(
@@ -43,11 +43,11 @@ namespace pv_beamline_histo {
       HostBuffers&,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-                   begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                   begin<dev_pvtracks_t>(arguments),
-                   begin<dev_zhisto_t>(arguments)},
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
+                   data<dev_offsets_velo_track_hit_number_t>(arguments),
+                   data<dev_pvtracks_t>(arguments),
+                   data<dev_zhisto_t>(arguments)},
         constants.dev_beamline.data());
     }
 

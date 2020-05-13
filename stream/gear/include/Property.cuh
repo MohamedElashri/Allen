@@ -3,6 +3,7 @@
 #include "CudaCommon.h"
 #include "Argument.cuh"
 #include "BaseTypes.cuh"
+#include "BankTypes.h"
 #include "Algorithm.cuh"
 #include "Logger.h"
 #include <string>

@@ -35,13 +35,13 @@ namespace muon_add_coords_crossing_maps {
       // Note: It is not known at this time how many muon hits will be created, considering crossings.
       //       Either we would have to decode twice, or we allocate a safe margin.
       set_size<dev_muon_compact_hit_t>(
-        arguments, Muon::Constants::compact_hit_allocate_factor * value<host_muon_total_number_of_tiles_t>(arguments));
+        arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
       set_size<dev_muon_tile_used_t>(
-        arguments, Muon::Constants::compact_hit_allocate_factor * value<host_muon_total_number_of_tiles_t>(arguments));
+        arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
       set_size<dev_station_ocurrences_sizes_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
+        arguments, first<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
       set_size<dev_atomics_index_insert_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments));
+        arguments, first<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -57,14 +57,14 @@ namespace muon_add_coords_crossing_maps {
       initialize<dev_station_ocurrences_sizes_t>(arguments, 0, cuda_stream);
       initialize<dev_atomics_index_insert_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_storage_station_region_quarter_offsets_t>(arguments),
-                    begin<dev_storage_tile_id_t>(arguments),
-                    begin<dev_muon_raw_to_hits_t>(arguments),
-                    begin<dev_atomics_index_insert_t>(arguments),
-                    begin<dev_muon_compact_hit_t>(arguments),
-                    begin<dev_muon_tile_used_t>(arguments),
-                    begin<dev_station_ocurrences_sizes_t>(arguments)});
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_storage_station_region_quarter_offsets_t>(arguments),
+                    data<dev_storage_tile_id_t>(arguments),
+                    data<dev_muon_raw_to_hits_t>(arguments),
+                    data<dev_atomics_index_insert_t>(arguments),
+                    data<dev_muon_compact_hit_t>(arguments),
+                    data<dev_muon_tile_used_t>(arguments),
+                    data<dev_station_ocurrences_sizes_t>(arguments)});
     }
 
   private:

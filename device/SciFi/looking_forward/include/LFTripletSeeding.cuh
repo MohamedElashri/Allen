@@ -44,11 +44,11 @@ namespace lf_triplet_seeding {
     {
       set_size<dev_scifi_lf_found_triplets_t>(
         arguments,
-        value<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::n_triplet_seeds *
+        first<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::n_triplet_seeds *
           LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread);
       set_size<dev_scifi_lf_number_of_found_triplets_t>(
         arguments,
-        value<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::n_triplet_seeds *
+        first<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::n_triplet_seeds *
           LookingForward::triplet_seeding_block_dim_x);
     }
 
@@ -63,22 +63,22 @@ namespace lf_triplet_seeding {
       initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, cuda_stream);
 
       function(
-        dim3(value<host_number_of_selected_events_t>(arguments)),
+        dim3(first<host_number_of_selected_events_t>(arguments)),
         dim3(LookingForward::triplet_seeding_block_dim_x, 2),
         cuda_stream)(
-        Parameters {begin<dev_scifi_hits_t>(arguments),
-                    begin<dev_scifi_hit_offsets_t>(arguments),
-                    begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_velo_states_t>(arguments),
-                    begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments),
-                    begin<dev_ut_qop_t>(arguments),
-                    begin<dev_scifi_lf_initial_windows_t>(arguments),
-                    begin<dev_ut_states_t>(arguments),
-                    begin<dev_scifi_lf_process_track_t>(arguments),
-                    begin<dev_scifi_lf_found_triplets_t>(arguments),
-                    begin<dev_scifi_lf_number_of_found_triplets_t>(arguments)},
+        Parameters {data<dev_scifi_hits_t>(arguments),
+                    data<dev_scifi_hit_offsets_t>(arguments),
+                    data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_velo_states_t>(arguments),
+                    data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments),
+                    data<dev_ut_qop_t>(arguments),
+                    data<dev_scifi_lf_initial_windows_t>(arguments),
+                    data<dev_ut_states_t>(arguments),
+                    data<dev_scifi_lf_process_track_t>(arguments),
+                    data<dev_scifi_lf_found_triplets_t>(arguments),
+                    data<dev_scifi_lf_number_of_found_triplets_t>(arguments)},
         constants.dev_looking_forward_constants);
     }
   };

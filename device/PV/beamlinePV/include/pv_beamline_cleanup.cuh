@@ -34,8 +34,8 @@ namespace pv_beamline_cleanup {
       const HostBuffers&) const
     {
       set_size<dev_multi_final_vertices_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
-      set_size<dev_number_of_multi_final_vertices_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+        arguments, first<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
+      set_size<dev_number_of_multi_final_vertices_t>(arguments, first<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -48,23 +48,23 @@ namespace pv_beamline_cleanup {
     {
       initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_multi_fit_vertices_t>(arguments),
-                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
-                    begin<dev_multi_final_vertices_t>(arguments),
-                    begin<dev_number_of_multi_final_vertices_t>(arguments)});
+      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {data<dev_multi_fit_vertices_t>(arguments),
+                    data<dev_number_of_multi_fit_vertices_t>(arguments),
+                    data<dev_multi_final_vertices_t>(arguments),
+                    data<dev_number_of_multi_final_vertices_t>(arguments)});
 
       // Retrieve result
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_reconstructed_multi_pvs,
-        begin<dev_multi_final_vertices_t>(arguments),
+        data<dev_multi_final_vertices_t>(arguments),
         size<dev_multi_final_vertices_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_number_of_multivertex,
-        begin<dev_number_of_multi_final_vertices_t>(arguments),
+        data<dev_number_of_multi_final_vertices_t>(arguments),
         size<dev_number_of_multi_final_vertices_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));

@@ -76,8 +76,8 @@ namespace prepare_raw_banks {
       const auto total_number_of_events =
         std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-      const auto padding_size = 3 * value<host_number_of_selected_events_t>(arguments);
-      const auto hits_size = ParKalmanFilter::nMaxMeasurements * value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+      const auto padding_size = 3 * first<host_number_of_selected_events_t>(arguments);
+      const auto hits_size = ParKalmanFilter::nMaxMeasurements * first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
       set_size<dev_sel_rb_hits_t>(arguments, hits_size + padding_size);
       set_size<dev_sel_rb_stdinfo_t>(arguments, total_number_of_events * Hlt1::maxStdInfoEvent);
       set_size<dev_sel_rb_objtyp_t>(arguments, total_number_of_events * (Hlt1::nObjTyp + 1));
@@ -93,10 +93,10 @@ namespace prepare_raw_banks {
       // TODO: Implement some check for this.
       set_size<dev_candidate_lists_t>(arguments, total_number_of_events * Hlt1::maxCandidates * n_hlt1_lines);
       set_size<dev_candidate_counts_t>(arguments, total_number_of_events * n_hlt1_lines);
-      set_size<dev_saved_tracks_list_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-      set_size<dev_saved_svs_list_t>(arguments, value<host_number_of_svs_t>(arguments));
-      set_size<dev_save_track_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-      set_size<dev_save_sv_t>(arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_saved_tracks_list_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_saved_svs_list_t>(arguments, first<host_number_of_svs_t>(arguments));
+      set_size<dev_save_track_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_save_sv_t>(arguments, first<host_number_of_svs_t>(arguments));
       set_size<dev_n_tracks_saved_t>(arguments, total_number_of_events);
       set_size<dev_n_svs_saved_t>(arguments, total_number_of_events);
       set_size<dev_n_hits_saved_t>(arguments, total_number_of_events);
@@ -135,7 +135,7 @@ namespace prepare_raw_banks {
       const uint block_dim = 1;
 #else
       uint grid_dim = 
-        (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
+        (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
         property<block_dim_x_t>();
       if (grid_dim == 0) {
         grid_dim = 1;
@@ -144,99 +144,99 @@ namespace prepare_raw_banks {
 #endif
 
       decisions_function(dim3(grid_dim), dim3(block_dim), cuda_stream)(
-        Parameters {begin<dev_event_list_t>(arguments),
-                    begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_track_hits_t>(arguments),
-                    begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_ut_qop_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments),
-                    begin<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    begin<dev_scifi_qop_t>(arguments),
-                    begin<dev_scifi_states_t>(arguments),
-                    begin<dev_scifi_track_ut_indices_t>(arguments),
-                    begin<dev_ut_track_hits_t>(arguments),
-                    begin<dev_scifi_track_hits_t>(arguments),
-                    begin<dev_kf_tracks_t>(arguments),
-                    begin<dev_consolidated_svs_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_sv_offsets_t>(arguments),
-                    begin<dev_sel_results_t>(arguments),
-                    begin<dev_sel_results_offsets_t>(arguments),
-                    begin<dev_candidate_lists_t>(arguments),
-                    begin<dev_candidate_counts_t>(arguments),
-                    begin<dev_n_passing_decisions_t>(arguments),
-                    begin<dev_n_svs_saved_t>(arguments),
-                    begin<dev_n_tracks_saved_t>(arguments),
-                    begin<dev_n_hits_saved_t>(arguments),
-                    begin<dev_saved_tracks_list_t>(arguments),
-                    begin<dev_saved_svs_list_t>(arguments),
-                    begin<dev_save_track_t>(arguments),
-                    begin<dev_save_sv_t>(arguments),
-                    begin<dev_dec_reports_t>(arguments),
-                    begin<dev_sel_rb_hits_t>(arguments),
-                    begin<dev_sel_rb_stdinfo_t>(arguments),
-                    begin<dev_sel_rb_objtyp_t>(arguments),
-                    begin<dev_sel_rb_substr_t>(arguments),
-                    begin<dev_sel_rep_sizes_t>(arguments),
-                    begin<dev_passing_event_list_t>(arguments)},
-        value<host_number_of_selected_events_t>(arguments),
+        Parameters {data<dev_event_list_t>(arguments),
+                    data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_track_hits_t>(arguments),
+                    data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_ut_qop_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments),
+                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
+                    data<dev_scifi_qop_t>(arguments),
+                    data<dev_scifi_states_t>(arguments),
+                    data<dev_scifi_track_ut_indices_t>(arguments),
+                    data<dev_ut_track_hits_t>(arguments),
+                    data<dev_scifi_track_hits_t>(arguments),
+                    data<dev_kf_tracks_t>(arguments),
+                    data<dev_consolidated_svs_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_sv_offsets_t>(arguments),
+                    data<dev_sel_results_t>(arguments),
+                    data<dev_sel_results_offsets_t>(arguments),
+                    data<dev_candidate_lists_t>(arguments),
+                    data<dev_candidate_counts_t>(arguments),
+                    data<dev_n_passing_decisions_t>(arguments),
+                    data<dev_n_svs_saved_t>(arguments),
+                    data<dev_n_tracks_saved_t>(arguments),
+                    data<dev_n_hits_saved_t>(arguments),
+                    data<dev_saved_tracks_list_t>(arguments),
+                    data<dev_saved_svs_list_t>(arguments),
+                    data<dev_save_track_t>(arguments),
+                    data<dev_save_sv_t>(arguments),
+                    data<dev_dec_reports_t>(arguments),
+                    data<dev_sel_rb_hits_t>(arguments),
+                    data<dev_sel_rb_stdinfo_t>(arguments),
+                    data<dev_sel_rb_objtyp_t>(arguments),
+                    data<dev_sel_rb_substr_t>(arguments),
+                    data<dev_sel_rep_sizes_t>(arguments),
+                    data<dev_passing_event_list_t>(arguments)},
+        first<host_number_of_selected_events_t>(arguments),
         event_start);
 
       raw_banks_function(dim3(grid_dim), dim3(block_dim), cuda_stream)(
-        Parameters {begin<dev_event_list_t>(arguments),
-                    begin<dev_offsets_all_velo_tracks_t>(arguments),
-                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                    begin<dev_velo_track_hits_t>(arguments),
-                    begin<dev_offsets_ut_tracks_t>(arguments),
-                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
-                    begin<dev_ut_qop_t>(arguments),
-                    begin<dev_ut_track_velo_indices_t>(arguments),
-                    begin<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    begin<dev_scifi_qop_t>(arguments),
-                    begin<dev_scifi_states_t>(arguments),
-                    begin<dev_scifi_track_ut_indices_t>(arguments),
-                    begin<dev_ut_track_hits_t>(arguments),
-                    begin<dev_scifi_track_hits_t>(arguments),
-                    begin<dev_kf_tracks_t>(arguments),
-                    begin<dev_consolidated_svs_t>(arguments),
-                    begin<dev_offsets_forward_tracks_t>(arguments),
-                    begin<dev_sv_offsets_t>(arguments),
-                    begin<dev_sel_results_t>(arguments),
-                    begin<dev_sel_results_offsets_t>(arguments),
-                    begin<dev_candidate_lists_t>(arguments),
-                    begin<dev_candidate_counts_t>(arguments),
-                    begin<dev_n_passing_decisions_t>(arguments),
-                    begin<dev_n_svs_saved_t>(arguments),
-                    begin<dev_n_tracks_saved_t>(arguments),
-                    begin<dev_n_hits_saved_t>(arguments),
-                    begin<dev_saved_tracks_list_t>(arguments),
-                    begin<dev_saved_svs_list_t>(arguments),
-                    begin<dev_save_track_t>(arguments),
-                    begin<dev_save_sv_t>(arguments),
-                    begin<dev_dec_reports_t>(arguments),
-                    begin<dev_sel_rb_hits_t>(arguments),
-                    begin<dev_sel_rb_stdinfo_t>(arguments),
-                    begin<dev_sel_rb_objtyp_t>(arguments),
-                    begin<dev_sel_rb_substr_t>(arguments),
-                    begin<dev_sel_rep_sizes_t>(arguments),
-                    begin<dev_passing_event_list_t>(arguments)},
-        value<host_number_of_selected_events_t>(arguments),
+        Parameters {data<dev_event_list_t>(arguments),
+                    data<dev_offsets_all_velo_tracks_t>(arguments),
+                    data<dev_offsets_velo_track_hit_number_t>(arguments),
+                    data<dev_velo_track_hits_t>(arguments),
+                    data<dev_offsets_ut_tracks_t>(arguments),
+                    data<dev_offsets_ut_track_hit_number_t>(arguments),
+                    data<dev_ut_qop_t>(arguments),
+                    data<dev_ut_track_velo_indices_t>(arguments),
+                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
+                    data<dev_scifi_qop_t>(arguments),
+                    data<dev_scifi_states_t>(arguments),
+                    data<dev_scifi_track_ut_indices_t>(arguments),
+                    data<dev_ut_track_hits_t>(arguments),
+                    data<dev_scifi_track_hits_t>(arguments),
+                    data<dev_kf_tracks_t>(arguments),
+                    data<dev_consolidated_svs_t>(arguments),
+                    data<dev_offsets_forward_tracks_t>(arguments),
+                    data<dev_sv_offsets_t>(arguments),
+                    data<dev_sel_results_t>(arguments),
+                    data<dev_sel_results_offsets_t>(arguments),
+                    data<dev_candidate_lists_t>(arguments),
+                    data<dev_candidate_counts_t>(arguments),
+                    data<dev_n_passing_decisions_t>(arguments),
+                    data<dev_n_svs_saved_t>(arguments),
+                    data<dev_n_tracks_saved_t>(arguments),
+                    data<dev_n_hits_saved_t>(arguments),
+                    data<dev_saved_tracks_list_t>(arguments),
+                    data<dev_saved_svs_list_t>(arguments),
+                    data<dev_save_track_t>(arguments),
+                    data<dev_save_sv_t>(arguments),
+                    data<dev_dec_reports_t>(arguments),
+                    data<dev_sel_rb_hits_t>(arguments),
+                    data<dev_sel_rb_stdinfo_t>(arguments),
+                    data<dev_sel_rb_objtyp_t>(arguments),
+                    data<dev_sel_rb_substr_t>(arguments),
+                    data<dev_sel_rep_sizes_t>(arguments),
+                    data<dev_passing_event_list_t>(arguments)},
+        first<host_number_of_selected_events_t>(arguments),
         total_number_of_events,
         event_start);
 
       // Copy raw bank data.
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_dec_reports,
-        begin<dev_dec_reports_t>(arguments),
+        data<dev_dec_reports_t>(arguments),
         size<dev_dec_reports_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_passing_event_list,
-        begin<dev_passing_event_list_t>(arguments),
+        data<dev_passing_event_list_t>(arguments),
         size<dev_passing_event_list_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
