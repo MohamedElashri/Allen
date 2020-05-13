@@ -4,14 +4,14 @@
 #include "ClusteringDefinitions.cuh"
 
 namespace velo_calculate_number_of_candidates {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
-    DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint) dev_velo_raw_input_offsets;
-    DEVICE_OUTPUT(dev_number_of_candidates_t, uint) dev_number_of_candidates;
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X");
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), blub),
+    (DEVICE_INPUT(dev_event_list_t, uint), dev_event_list),
+    (DEVICE_INPUT(dev_velo_raw_input_t, char), dev_velo_raw_input),
+    (DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint), dev_velo_raw_input_offsets),
+    (DEVICE_OUTPUT(dev_number_of_candidates_t, uint), dev_number_of_candidates),
+    (PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X"), prop))
 
   // Global function
   __global__ void velo_calculate_number_of_candidates(Parameters parameters, const uint number_of_events);
@@ -26,6 +26,9 @@ namespace velo_calculate_number_of_candidates {
       const Constants&,
       const HostBuffers&) const
     {
+      std::cout << "Size: " << boost::hana::size(boost::hana::members(std::declval<Parameters>())) << "\n";
+      // decltype(boost::hana::at_c<0>(boost::hana::members(std::declval<Parameters>()))) a{};
+
       if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << std::endl;
       }
@@ -42,16 +45,19 @@ namespace velo_calculate_number_of_candidates {
     {
       // Enough blocks to cover all events
       const auto grid_size = dim3(
-        (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+        (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
+        property<block_dim_x_t>());
 
       // Invoke kernel
-      const auto parameters = Parameters {data<dev_event_list_t>(arguments),
-                                          data<dev_velo_raw_input_t>(arguments),
-                                          data<dev_velo_raw_input_offsets_t>(arguments),
-                                          data<dev_number_of_candidates_t>(arguments)};
+      const auto parameters = Parameters {
+        data<dev_event_list_t>(arguments),
+        data<dev_velo_raw_input_t>(arguments),
+        data<dev_velo_raw_input_offsets_t>(arguments),
+        data<dev_number_of_candidates_t>(arguments)};
 
       using function_t = decltype(global_function(velo_calculate_number_of_candidates));
-      function_t function = runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_mep) : global_function(velo_calculate_number_of_candidates);
+      function_t function = runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_mep) :
+                                                         global_function(velo_calculate_number_of_candidates);
       function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
         parameters, first<host_number_of_selected_events_t>(arguments));
     }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <tuple>
+#include <boost/hana/define_struct.hpp>
+#include <boost/hana/members.hpp>
 
 // Datatypes can be host or device.
 // Note: These structs need to be not templated.
@@ -148,3 +150,8 @@ struct ScheduledDependencies {
   using Algorithm = T;
   using Arguments = ArgumentsTuple;
 };
+
+#define DEFINE_PARAMETERS(CLASS_NAME, ...)             \
+  struct CLASS_NAME {                                  \
+    BOOST_HANA_DEFINE_STRUCT(CLASS_NAME, __VA_ARGS__); \
+  };

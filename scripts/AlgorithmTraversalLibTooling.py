@@ -1,4 +1,5 @@
 import clang.cindex as cindex
+from IPython import embed
 
 
 class ParsedAlgorithm():
@@ -150,6 +151,7 @@ class AlgorithmTraversal():
         it proceeds to find algorithm parameters, template parameters, and returns a quintuplet:
         (kind, spelling, algorithm class, algorithm parameters)."""
         if c.kind == cindex.CursorKind.CLASS_TEMPLATE:
+            embed()
             # Detecting inheritance from the algorithm needs to be done with tokens so far
             algorithm_class = None
             for t in c.get_tokens():
