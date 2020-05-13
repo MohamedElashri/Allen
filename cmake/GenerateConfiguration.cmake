@@ -9,7 +9,7 @@ set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 
 # We need Python 3
-find_package (Python3 COMPONENTS Interpreter Development QUIET)
+find_package (Python3 COMPONENTS Interpreter QUIET)
 
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this

@@ -37,7 +37,7 @@ else()
 
 endif()
 
-find_package(Boost COMPONENTS serialization iostreams program_options filesystem)
+find_package(Boost COMPONENTS serialization iostreams program_options filesystem optional)
 
 if (GaudiProject_FOUND)
   find_package(AIDA REQUIRED)
