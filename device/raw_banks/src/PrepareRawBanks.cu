@@ -1,4 +1,5 @@
-template<typename T>
+#include "PrepareRawBanks.cuh"
+
 __global__ void prepare_raw_banks::prepare_raw_banks(
   prepare_raw_banks::Parameters parameters,
   const uint selected_number_of_events,
@@ -10,7 +11,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
        selected_event_number < total_number_of_events;
        selected_event_number += blockDim.x * gridDim.x) {
     const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
-    const int n_hlt1_lines = std::tuple_size<T>::value;
+    const int n_hlt1_lines = std::tuple_size<configured_lines_t>::value;
     uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
 
     // Set the DecReport.
@@ -40,7 +41,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         n_decisions++;
       }
     };
-    Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_fn)>::traverse(lambda_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::Line, decltype(lambda_fn)>::traverse(lambda_fn);
 
     // TODO: Handle SelReports.
     const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
@@ -79,7 +80,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         substr_bank.addSubstr(0, 0);
       }
     };
-    Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
 
     // Set the sizes of the banks.
     objtyp_bank.saveSize();
@@ -133,7 +134,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[selected_event_number];
 
     // Dec reports.
-    const int n_hlt1_lines = std::tuple_size<T>::value;
+    const int n_hlt1_lines = std::tuple_size<configured_lines_t>::value;
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
     // Sel reports.
@@ -230,7 +231,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         }
       }
     };
-    Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_onetrack_fn)>::traverse(lambda_onetrack_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_onetrack_fn)>::traverse(lambda_onetrack_fn);
 
     // Add two-track decisions to the substr and stdinfo.
     const auto lambda_twotrack_fn = [&](const unsigned int i_line) {
@@ -246,7 +247,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         }
       }
     };
-    Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_twotrack_fn)>::traverse(lambda_twotrack_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_twotrack_fn)>::traverse(lambda_twotrack_fn);
 
     // Add special decisions to substr and stdinfo.
     const auto lambda_special_fn = [&](const unsigned int i_line) {
@@ -257,8 +258,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       }
     };
     // Can use this lambda for both the VELO and special lines.
-    Hlt1::TraverseLines<T, Hlt1::VeloLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
-    Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     // TODO: dev_n_tracks_saved was 0s at the beginning! ./Allen -m3

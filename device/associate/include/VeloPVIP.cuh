@@ -22,9 +22,9 @@ namespace velo_pv_ip {
 
   __global__ void velo_pv_ip(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct velo_pv_ip_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(velo_pv_ip)) function {velo_pv_ip};
 
     void set_arguments_size(

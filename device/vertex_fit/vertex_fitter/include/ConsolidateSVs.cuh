@@ -15,9 +15,9 @@ namespace consolidate_svs {
 
   __global__ void consolidate_svs(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct consolidate_svs_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(consolidate_svs)) function {consolidate_svs};
 
     void set_arguments_size(

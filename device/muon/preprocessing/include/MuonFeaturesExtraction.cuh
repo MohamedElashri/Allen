@@ -30,9 +30,9 @@ namespace muon_catboost_features_extraction {
 
   __global__ void muon_catboost_features_extraction(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct muon_catboost_features_extraction_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(muon_catboost_features_extraction)) function {muon_catboost_features_extraction};
 
     void set_arguments_size(

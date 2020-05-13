@@ -2,7 +2,6 @@
 
 #include "DeviceAlgorithm.cuh"
 #include "ClusteringDefinitions.cuh"
-#include <boost/pfr/precise/core.hpp>
 
 namespace velo_calculate_number_of_candidates {
   struct Parameters {
@@ -19,7 +18,7 @@ namespace velo_calculate_number_of_candidates {
   __global__ void velo_calculate_number_of_candidates_mep(Parameters parameters, const uint number_of_events);
 
   // Algorithm
-  template<typename T, char... S>
+  template<typename T>
   struct velo_calculate_number_of_candidates_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -27,8 +26,6 @@ namespace velo_calculate_number_of_candidates {
       const Constants&,
       const HostBuffers&) const
     {
-      boost::pfr::tuple_element<0, Parameters>::type a;
-
       if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
       }

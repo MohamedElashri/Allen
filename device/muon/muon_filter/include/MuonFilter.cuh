@@ -43,9 +43,9 @@ namespace MuonFilter {
 
   __global__ void muon_filter(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct muon_filter_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(muon_filter)) function {muon_filter};
 
     void set_arguments_size(

@@ -23,9 +23,9 @@ namespace ut_select_velo_tracks_with_windows {
 
   __global__ void ut_select_velo_tracks_with_windows(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct ut_select_velo_tracks_with_windows_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(ut_select_velo_tracks_with_windows)) function {ut_select_velo_tracks_with_windows};
 
     void set_arguments_size(

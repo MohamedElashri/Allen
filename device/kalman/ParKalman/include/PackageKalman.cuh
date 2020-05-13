@@ -34,9 +34,9 @@ namespace package_kalman_tracks {
 
   __global__ void package_kalman_tracks(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct package_kalman_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(package_kalman_tracks)) function {package_kalman_tracks};
 
     void set_arguments_size(

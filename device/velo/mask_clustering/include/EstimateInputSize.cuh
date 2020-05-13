@@ -22,9 +22,8 @@ namespace velo_estimate_input_size {
   __global__ void velo_estimate_input_size_mep(Parameters parameters);
 
   // Algorithm
-  template<typename T, char... S>
+  template<typename T>
   struct velo_estimate_input_size_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_estimate_input_size)) function {velo_estimate_input_size};
     decltype(global_function(velo_estimate_input_size_mep)) function_mep {velo_estimate_input_size_mep};
 

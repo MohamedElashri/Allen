@@ -91,9 +91,9 @@ namespace VertexFit {
 
   __global__ void fit_secondary_vertices(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct fit_secondary_vertices_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(fit_secondary_vertices)) function {fit_secondary_vertices};
 
     void set_arguments_size(

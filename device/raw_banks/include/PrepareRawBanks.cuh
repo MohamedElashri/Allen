@@ -10,6 +10,7 @@
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "LineTraverser.cuh"
+#include "ConfiguredLines.h"
 
 namespace prepare_raw_banks {
   struct Parameters {
@@ -56,18 +57,15 @@ namespace prepare_raw_banks {
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X");
   };
 
-  template<typename T>
   __global__ void prepare_decisions(Parameters, const uint selected_number_of_events, const uint event_start);
   
-  template<typename T>
   __global__ void
   prepare_raw_banks(Parameters, const uint number_of_events, const uint total_number_of_events, const uint event_start);
 
-  template<typename T, typename U, char... S>
+  template<typename T>
   struct prepare_raw_banks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
-    decltype(global_function(prepare_raw_banks<U>)) raw_banks_function {prepare_raw_banks<U>};
-    decltype(global_function(prepare_decisions<U>)) decisions_function {prepare_decisions<U>};
+    decltype(global_function(prepare_raw_banks)) raw_banks_function {prepare_raw_banks};
+    decltype(global_function(prepare_decisions)) decisions_function {prepare_decisions};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -87,7 +85,7 @@ namespace prepare_raw_banks {
       set_size<dev_sel_rep_sizes_t>(arguments, total_number_of_events);
       set_size<dev_passing_event_list_t>(arguments, total_number_of_events);
 
-      const auto n_hlt1_lines = std::tuple_size<U>::value;
+      const auto n_hlt1_lines = std::tuple_size<configured_lines_t>::value;
       set_size<dev_dec_reports_t>(arguments, (2 + n_hlt1_lines) * total_number_of_events);
 
       // This is not technically enough to save every single track, but
@@ -248,6 +246,3 @@ namespace prepare_raw_banks {
     Property<block_dim_x_t> m_block_dim_x {this, 32};
   };
 } // namespace prepare_raw_banks
-
-#include "PrepareDecisions.icc"
-#include "PrepareRawBanks.icc"

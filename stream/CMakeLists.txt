@@ -99,6 +99,7 @@ target_link_libraries(Stream PRIVATE
   Kalman
   VertexFitter
   RawBanks
+  Selections
   SciFi
   HostGEC
   Muon

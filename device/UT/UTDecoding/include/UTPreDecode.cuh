@@ -33,9 +33,9 @@ namespace ut_pre_decode {
     const uint* dev_unique_x_sector_layer_offsets,
     const uint* dev_unique_x_sector_offsets);
 
-  template<typename T, char... S>
+  template<typename T>
   struct ut_pre_decode_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(ut_pre_decode)) function {ut_pre_decode};
     decltype(global_function(ut_pre_decode_mep)) function_mep {ut_pre_decode_mep};
 

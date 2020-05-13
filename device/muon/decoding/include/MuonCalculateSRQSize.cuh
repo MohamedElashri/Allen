@@ -19,9 +19,9 @@ namespace muon_calculate_srq_size {
 
   __global__ void muon_calculate_srq_size_mep(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct muon_calculate_srq_size_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,

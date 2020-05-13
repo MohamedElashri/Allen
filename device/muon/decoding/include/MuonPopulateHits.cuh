@@ -23,9 +23,9 @@ namespace muon_populate_hits {
 
   __global__ void muon_populate_hits(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct muon_populate_hits_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(muon_populate_hits)) function {muon_populate_hits};
 
     void set_arguments_size(

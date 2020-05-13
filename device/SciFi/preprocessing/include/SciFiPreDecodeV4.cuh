@@ -19,9 +19,9 @@ namespace scifi_pre_decode_v4 {
 
   __global__ void scifi_pre_decode_v4_mep(Parameters, const char* scifi_geometry);
 
-  template<typename T, char... S>
+  template<typename T>
   struct scifi_pre_decode_v4_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(scifi_pre_decode_v4)) function {scifi_pre_decode_v4};
     decltype(global_function(scifi_pre_decode_v4_mep)) function_mep {scifi_pre_decode_v4_mep};
 

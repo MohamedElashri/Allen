@@ -42,9 +42,9 @@ namespace FilterTracks {
 
   __global__ void filter_tracks(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct filter_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(filter_tracks)) function {filter_tracks};
 
     void set_arguments_size(

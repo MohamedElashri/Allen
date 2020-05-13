@@ -23,9 +23,9 @@ namespace pv_beamline_histo {
 
   __global__ void pv_beamline_histo(Parameters, float* dev_beamline);
 
-  template<typename T, char... S>
+  template<typename T>
   struct pv_beamline_histo_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(pv_beamline_histo)) function {pv_beamline_histo};
 
     void set_arguments_size(

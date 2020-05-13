@@ -31,9 +31,9 @@ namespace ut_search_windows {
     const uint* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs);
 
-  template<typename T, char... S>
+  template<typename T>
   struct ut_search_windows_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(ut_search_windows)) function {ut_search_windows};
 
     void set_arguments_size(

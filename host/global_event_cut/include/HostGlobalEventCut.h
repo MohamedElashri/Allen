@@ -27,9 +27,9 @@ namespace host_global_event_cut {
   void host_global_event_cut_mep(const uint number_of_events, Parameters parameters);
 
   // Algorithm
-  template<typename T, char... S>
+  template<typename T>
   struct host_global_event_cut_t : public HostAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,

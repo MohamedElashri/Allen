@@ -29,9 +29,9 @@ namespace package_mf_tracks {
 
   __global__ void package_mf_tracks(Parameters, const uint number_of_events);
 
-  template<typename T, char... S>
+  template<typename T>
   struct package_mf_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(package_mf_tracks)) function {package_mf_tracks};
 
     void set_arguments_size(

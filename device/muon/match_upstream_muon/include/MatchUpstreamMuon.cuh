@@ -32,9 +32,9 @@ namespace MatchUpstreamMuon {
     const SearchWindows* dev_muonmatch_search_windows,
     const uint number_of_events);
 
-  template<typename T, char... S>
+  template<typename T>
   struct match_upstream_muon_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(match_upstream_muon)) function {match_upstream_muon};
 
     void set_arguments_size(

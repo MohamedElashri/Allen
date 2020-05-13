@@ -36,9 +36,9 @@ namespace lf_search_initial_windows {
     const LookingForward::Constants* dev_looking_forward_constants,
     const float* dev_magnet_polarity);
 
-  template<typename T, char... S>
+  template<typename T>
   struct lf_search_initial_windows_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(lf_search_initial_windows)) function {lf_search_initial_windows};
 
     void set_arguments_size(

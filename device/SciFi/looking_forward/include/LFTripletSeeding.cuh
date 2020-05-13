@@ -31,9 +31,9 @@ namespace lf_triplet_seeding {
     Parameters,
     const LookingForward::Constants* dev_looking_forward_constants);
 
-  template<typename T, char... S>
+  template<typename T>
   struct lf_triplet_seeding_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(lf_triplet_seeding)) function {lf_triplet_seeding};
 
     void set_arguments_size(

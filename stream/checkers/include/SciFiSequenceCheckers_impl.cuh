@@ -4,8 +4,8 @@
 /**
  * @brief Specialization when invoking scifi_pr_forward_t as last step.
  */
-template<typename T, char... S>
-struct SequenceVisitor<scifi_consolidate_tracks::scifi_consolidate_tracks_t<T, S...>> {
+template<typename T>
+struct SequenceVisitor<scifi_consolidate_tracks::scifi_consolidate_tracks_t<T>> {
   static void check(
     HostBuffers& host_buffers,
     const Constants& constants,

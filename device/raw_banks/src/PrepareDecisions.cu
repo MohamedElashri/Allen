@@ -1,10 +1,11 @@
-template<typename T>
+#include "PrepareRawBanks.cuh"
+
 __global__ void prepare_raw_banks::prepare_decisions(
   prepare_raw_banks::Parameters parameters,
   const uint selected_number_of_events,
   const uint event_start)
 {
-  const int n_hlt1_lines = std::tuple_size<T>::value;
+  const int n_hlt1_lines = std::tuple_size<configured_lines_t>::value;
   const uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
 
   // Set special line decisions.
@@ -15,7 +16,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
     uint32_t dec = ((decisions[0] ? 1 : 0) & dec_mask);
     atomicOr(event_dec_reports + 2 + i_line, dec);
   };
-  Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
   if (blockIdx.x < selected_number_of_events) {
     const uint selected_event_number = blockIdx.x;
@@ -81,7 +82,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
         }
       };
 
-      Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
+      Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
       if (save_sv & dec_mask) {
         const uint sv_insert_index = atomicAdd(parameters.dev_n_svs_saved + event_number, 1);
@@ -114,7 +115,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
         }
       };
 
-      Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
+      Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
       if (save_track) {
         event_save_track[i_track] = 1;
@@ -143,7 +144,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
         uint32_t dec = ((decisions[0] ? 1 : 0) & dec_mask);
         atomicOr(event_dec_reports + 2 + i_line, dec);
       };
-      Hlt1::TraverseLines<T, Hlt1::VeloLine, decltype(lambda_fn)>::traverse(lambda_fn);
+      Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine, decltype(lambda_fn)>::traverse(lambda_fn);
     }
   }
 }

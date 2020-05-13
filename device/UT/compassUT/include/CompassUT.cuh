@@ -47,9 +47,9 @@ namespace compass_ut {
     const float* dev_ut_dxDy,
     const uint* dev_unique_x_sector_layer_offsets);
 
-  template<typename T, char... S>
+  template<typename T>
   struct compass_ut_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(compass_ut)) function {compass_ut};
 
     void set_arguments_size(

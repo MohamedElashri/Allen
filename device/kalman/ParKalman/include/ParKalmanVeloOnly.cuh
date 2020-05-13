@@ -103,9 +103,9 @@ namespace kalman_velo_only {
   __global__ void kalman_velo_only(Parameters, const char* dev_scifi_geometry);
   __global__ void kalman_pv_ipchi2(Parameters parameters);
   
-  template<typename T, char... S>
+  template<typename T>
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(kalman_velo_only)) kalman_function {kalman_velo_only};
     decltype(global_function(kalman_pv_ipchi2)) assoc_function {kalman_pv_ipchi2};
 

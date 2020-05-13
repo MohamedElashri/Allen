@@ -17,6 +17,8 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
+include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CPPGSL_INCLUDE_DIR})
 
@@ -26,4 +28,4 @@ allen_add_device_library(RawBanks STATIC
   ${raw_banks_src}
 )
 
-set_property(TARGET RawBanks PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+add_dependencies(RawBanks configured_sequence)

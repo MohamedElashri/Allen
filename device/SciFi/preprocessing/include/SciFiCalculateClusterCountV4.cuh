@@ -18,9 +18,9 @@ namespace scifi_calculate_cluster_count_v4 {
 
   __global__ void scifi_calculate_cluster_count_v4_mep(Parameters, const char* scifi_geometry);
 
-  template<typename T, char... S>
+  template<typename T>
   struct scifi_calculate_cluster_count_v4_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,

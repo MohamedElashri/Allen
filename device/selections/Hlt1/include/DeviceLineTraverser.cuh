@@ -7,7 +7,7 @@ namespace Hlt1 {
 
   template<>
   struct TraverseImpl<std::tuple<>, std::index_sequence<>, void> {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool*,
       const uint*,
       const uint*,
@@ -27,7 +27,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<OneTrackLine, T>::value>::type> {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -66,7 +66,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<VeloLine, T>::value>::type> {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -105,7 +105,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<TwoTrackLine, T>::value>::type> {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -144,7 +144,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<SpecialLine, T>::value>::type> {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -175,7 +175,7 @@ namespace Hlt1 {
 
   template<typename T>
   struct Traverse {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -209,7 +209,7 @@ namespace Hlt1 {
 
   template<>
   struct SpecialLineTraverseImpl<std::tuple<>, std::index_sequence<>, void> {
-    constexpr static __device__ void traverse(bool*, const uint*, const uint*, const char*, const uint) {}
+    constexpr static void traverse(bool*, const uint*, const uint*, const char*, const uint) {}
   };
 
   template<typename T, typename... OtherLines, unsigned long I, unsigned long... Is>
@@ -217,7 +217,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<!std::is_base_of<SpecialLine, T>::value>::type> {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_odin_raw_input_offsets,
@@ -234,7 +234,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<SpecialLine, T>::value>::type> {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_odin_raw_input_offsets,
@@ -254,7 +254,7 @@ namespace Hlt1 {
 
   template<typename T>
   struct SpecialLineTraverse {
-    constexpr static __device__ void traverse(
+    constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_odin_raw_input_offsets,

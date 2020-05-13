@@ -190,10 +190,6 @@ class AllenConf():
         s += AllenConf.prefix(i) + "self.__name = name\n"
         s += AllenConf.prefix(
             i) + "self.__original_name = \"" + algorithm.name + "\"\n"
-        if algorithm.threetemplate:
-            s += AllenConf.prefix(i) + "self.__requires_lines = True\n"
-        else:
-            s += AllenConf.prefix(i) + "self.__requires_lines = False\n"
         s += AllenConf.prefix(
             i) + "self.__namespace = \"" + algorithm.namespace + "\"\n"
         s += AllenConf.prefix(i) + "self.__ordered_parameters = OrderedDict(["
@@ -242,11 +238,6 @@ class AllenConf():
         s += AllenConf.prefix(i) + "def name(self):\n"
         i += 1
         s += AllenConf.prefix(i) + "return self.__name\n\n"
-        i -= 1
-
-        s += AllenConf.prefix(i) + "def requires_lines(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__requires_lines\n\n"
         i -= 1
 
         for var in algorithm.parameters:

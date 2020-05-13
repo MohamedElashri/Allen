@@ -23,9 +23,9 @@ namespace muon_populate_tile_and_tdc {
 
   __global__ void muon_populate_tile_and_tdc_mep(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct muon_populate_tile_and_tdc_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,

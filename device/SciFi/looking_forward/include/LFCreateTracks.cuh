@@ -51,9 +51,9 @@ namespace lf_create_tracks {
 
   __global__ void lf_extend_tracks(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
-  template<typename T, char... S>
+  template<typename T>
   struct lf_create_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(lf_triplet_keep_best)) triplet_keep_best {lf_triplet_keep_best};
     decltype(global_function(lf_calculate_parametrization)) calculate_parametrization {lf_calculate_parametrization};
     decltype(global_function(lf_extend_tracks)) extend_tracks {lf_extend_tracks};

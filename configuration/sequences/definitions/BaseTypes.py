@@ -337,20 +337,17 @@ class Sequence():
 
     def generate(self,
                  output_filename="Sequence.h",
+                 configured_lines_filename="ConfiguredLines.h",
                  json_configuration_filename="Sequence.json",
                  prefix_includes="../../"):
         # Check that sequence is valid
         print("Validating sequence...")
         if self.validate():
-            print("Generating sequence file...")
             # Add all the includes
-            s = "#pragma once\n\n#include <tuple>\n"
-            s += "#include \"" + prefix_includes + "device/selections/Hlt1/include/LineTraverser.cuh\"\n"
+            s = "#pragma once\n\n#include <tuple>\n#include \"" + configured_lines_filename + "\"\n"
             for _, algorithm in iter(self.__sequence.items()):
                 s += "#include \"" + prefix_includes + algorithm.filename(
                 ) + "\"\n"
-            for _, line in iter(self.__lines.items()):
-                s += "#include \"" + prefix_includes + line.filename() + "\"\n"
             s += "\n"
             # Generate all parameters
             parameters = OrderedDict([])
@@ -377,13 +374,6 @@ class Sequence():
                     s += inheriting_class + ", "
                 s = s[:-2]
                 s += " { constexpr static auto name {\"" + paramenter_name + "\"}; size_t size; char* offset; };\n"
-            # Generate lines
-            s += "\nusing configured_lines_t = std::tuple<"
-            for _, line in iter(self.__lines.items()):
-                s += line.namespace() + "::" + line.name() + ", "
-            if len(self.__lines) > 0:
-                s = s[:-2]
-            s += ">;\n"
             # Generate sequence
             s += "\nusing configured_sequence_t = std::tuple<\n"
             i_alg = 0
@@ -400,12 +390,8 @@ class Sequence():
                     s += parameter.fullname()
                     if i != len(algorithm.parameters()):
                         s += ", "
-                s += ">"
+                s += ">>"
                 i = 0
-                # In case it is needed, pass the lines as an argument to the template
-                if algorithm.requires_lines():
-                    s += ", configured_lines_t"
-                s += ">"
                 if i_alg != len(self.__sequence):
                     s += ","
                 s += "\n"
@@ -421,7 +407,22 @@ class Sequence():
             f.write(s)
             f.close()
             print("Generated sequence file " + output_filename)
-            print("Generating JSON configuration file...")
+            s = "#pragma once\n\n#include <tuple>\n"
+            s += "#include \"" + prefix_includes + "device/selections/Hlt1/include/LineTraverser.cuh\"\n"
+            for _, line in iter(self.__lines.items()):
+                s += "#include \"" + prefix_includes + line.filename() + "\"\n"
+            s += "\n"
+            # Generate lines
+            s += "using configured_lines_t = std::tuple<"
+            for _, line in iter(self.__lines.items()):
+                s += line.namespace() + "::" + line.name() + ", "
+            if len(self.__lines) > 0:
+                s = s[:-2]
+            s += ">;\n"
+            f = open(configured_lines_filename, "w")
+            f.write(s)
+            f.close()
+            print("Generated line configuration file " + configured_lines_filename)
             s = "{\n"
             i = 1
             for _, algorithm in iter(self.__sequence.items()):

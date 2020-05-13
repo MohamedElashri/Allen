@@ -26,9 +26,9 @@ namespace scifi_raw_bank_decoder_v4 {
 
   __global__ void scifi_direct_decoder_v4_mep(Parameters, const char* scifi_geometry);
 
-  template<typename T, char... S>
+  template<typename T>
   struct scifi_raw_bank_decoder_v4_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(scifi_raw_bank_decoder_v4)) raw_bank_decoder {scifi_raw_bank_decoder_v4};
     decltype(global_function(scifi_direct_decoder_v4)) direct_decoder {scifi_direct_decoder_v4};
     decltype(global_function(scifi_raw_bank_decoder_v4_mep)) raw_bank_decoder_mep {scifi_raw_bank_decoder_v4_mep};

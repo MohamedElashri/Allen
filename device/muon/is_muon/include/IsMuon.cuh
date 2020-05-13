@@ -25,9 +25,9 @@ namespace is_muon {
     const Muon::Constants::FieldOfInterest* dev_muon_foi,
     const float* dev_muon_momentum_cuts);
 
-  template<typename T, char... S>
+  template<typename T>
   struct is_muon_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(is_muon)) function {is_muon};
 
     void set_arguments_size(

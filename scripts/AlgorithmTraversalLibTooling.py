@@ -2,13 +2,12 @@ import clang.cindex as cindex
 
 
 class ParsedAlgorithm():
-    def __init__(self, name, scope, filename, namespace, threetemplate,
+    def __init__(self, name, scope, filename, namespace,
                  parameters, properties):
         self.name = name
         self.scope = scope
         self.filename = filename
         self.namespace = namespace
-        self.threetemplate = threetemplate
         self.parameters = parameters
         self.properties = properties
 
@@ -41,11 +40,10 @@ def make_parsed_algorithms(filename, data):
             # There is an algorithm defined here, fetch it
             namespace = namespace_data[1]
             name = algorithm_description[1]
-            threetemplate = algorithm_description[2] == 3
-            scope = algorithm_description[3]
+            scope = algorithm_description[2]
             parameters = []
             properties = []
-            for t in algorithm_description[4][0]:
+            for t in algorithm_description[3][0]:
                 kind = t[1]
                 typename = t[2][0]
                 typedef = t[2][1]
@@ -59,7 +57,7 @@ def make_parsed_algorithms(filename, data):
                     parameters.append(Parameter(kind, typename, typedef))
             parsed_algorithms.append(
                 ParsedAlgorithm(name, scope, filename, namespace,
-                                threetemplate, parameters, properties))
+                                parameters, properties))
     return parsed_algorithms
 
 
@@ -146,19 +144,11 @@ class AlgorithmTraversal():
             return None
 
     @staticmethod
-    def algorithm_templates(c):
-        """Fetch how many template parameters this struct has."""
-        if c.kind == cindex.CursorKind.TEMPLATE_TYPE_PARAMETER or c.kind == cindex.CursorKind.TEMPLATE_NON_TYPE_PARAMETER:
-            return 1
-        else:
-            return None
-
-    @staticmethod
     def algorithm(c):
         """Traverses an algorithm. First, it identifies whether the struct has
         either "HostAlgorithm" or "DeviceAlgorithm" among its tokens. If so,
         it proceeds to find algorithm parameters, template parameters, and returns a quintuplet:
-        (kind, spelling, number of template parameters, algorithm class, algorithm parameters)."""
+        (kind, spelling, algorithm class, algorithm parameters)."""
         if c.kind == cindex.CursorKind.CLASS_TEMPLATE:
             # Detecting inheritance from the algorithm needs to be done with tokens so far
             algorithm_class = None
@@ -170,10 +160,7 @@ class AlgorithmTraversal():
                 # Fetch the parameters of the algorithm
                 algorithm_parameters = AlgorithmTraversal.traverse_children(
                     c, AlgorithmTraversal.algorithm_definition)
-                template_parameters = len(
-                    AlgorithmTraversal.traverse_children(
-                        c, AlgorithmTraversal.algorithm_templates))
-                return (c.kind, c.spelling, template_parameters,
+                return (c.kind, c.spelling,
                         algorithm_class, algorithm_parameters)
             else:
                 return None

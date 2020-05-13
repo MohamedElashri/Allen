@@ -19,9 +19,9 @@ namespace saxpy {
 __global__ void saxpy(Parameters);
 
 
-  template<typename T, char... S>
+  template<typename T>
   struct saxpy_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(saxpy)) function {saxpy};
 
     void set_arguments_size(

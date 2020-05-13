@@ -22,9 +22,9 @@ namespace pv_beamline_cleanup {
 
   __global__ void pv_beamline_cleanup(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct pv_beamline_cleanup_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(pv_beamline_cleanup)) function {pv_beamline_cleanup};
 
     void set_arguments_size(

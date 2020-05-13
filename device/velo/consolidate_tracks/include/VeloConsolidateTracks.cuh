@@ -29,9 +29,9 @@ namespace velo_consolidate_tracks {
 
   __global__ void velo_consolidate_tracks(Parameters);
 
-  template<typename T, char... S>
+  template<typename T>
   struct velo_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(velo_consolidate_tracks)) function {velo_consolidate_tracks};
 
     void set_arguments_size(

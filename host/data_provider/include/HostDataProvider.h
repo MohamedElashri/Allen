@@ -13,9 +13,9 @@ namespace host_data_provider {
   };
 
   // Algorithm
-  template<typename T, char... S>
+  template<typename T>
   struct host_data_provider_t : public HostAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,

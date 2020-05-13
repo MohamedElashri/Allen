@@ -33,9 +33,9 @@ namespace FilterMFTracks {
 
   __global__ void filter_mf_tracks(Parameters, const uint number_of_events);
 
-  template<typename T, char... S>
+  template<typename T>
   struct filter_mf_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(filter_mf_tracks)) function {filter_mf_tracks};
 
     void set_arguments_size(

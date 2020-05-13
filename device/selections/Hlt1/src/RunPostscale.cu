@@ -3,7 +3,6 @@
 #include "DeterministicPostscaler.cuh"
 #include "Event/ODIN.h"
 
-template<typename T>
 __global__ void run_hlt1::run_postscale(
   run_hlt1::Parameters parameters,
   const uint selected_number_of_events,
@@ -27,7 +26,7 @@ __global__ void run_hlt1::run_postscale(
     DeterministicPostscaler ps(i_line, scale_factor);
     ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
   };
-  Hlt1::TraverseLinesScaleFactors<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+  Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
 
   if (blockIdx.x < selected_number_of_events) {
     const uint selected_event_number = blockIdx.x;
@@ -55,7 +54,7 @@ __global__ void run_hlt1::run_postscale(
       DeterministicPostscaler ps(i_line, scale_factor);
       ps(n_tracks_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     };
-    Hlt1::TraverseLinesScaleFactors<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(
+    Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(
       lambda_one_track_fn);
 
     // Process 2-track lines.
@@ -65,7 +64,7 @@ __global__ void run_hlt1::run_postscale(
       DeterministicPostscaler ps(i_line, scale_factor);
       ps(n_vertices_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     };
-    Hlt1::TraverseLinesScaleFactors<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(
+    Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(
       lambda_two_track_fn);
 
     // Process Velo lines.
@@ -74,6 +73,6 @@ __global__ void run_hlt1::run_postscale(
       DeterministicPostscaler ps(i_line, scale_factor);
       ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     };
-    Hlt1::TraverseLinesScaleFactors<T, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
+    Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
   }
 }

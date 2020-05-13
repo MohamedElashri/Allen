@@ -22,9 +22,9 @@ namespace package_sel_reports {
 
   __global__ void package_sel_reports(Parameters, const uint number_of_events, const uint selected_number_of_events, const uint event_start);
 
-  template<typename T, char... S>
+  template<typename T>
   struct package_sel_reports_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
+
     decltype(global_function(package_sel_reports)) function {package_sel_reports};
 
     void set_arguments_size(
