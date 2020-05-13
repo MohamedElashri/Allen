@@ -84,7 +84,7 @@ class AlgorithmTraversal():
 
     # Arguments to pass to compiler, as function of file extension.
     __compile_flags = {
-        "cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"],
+        "cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++", "-I../stream/gear/include"],
         "hpp": ["-std=c++17"],
         "h": ["-std=c++17"]
     }
@@ -128,9 +128,9 @@ class AlgorithmTraversal():
     @staticmethod
     def parameters(c):
         """Traverses all parameters of an Algorithm."""
-        if c.kind == cindex.CursorKind.CXX_METHOD:
-            return (c.kind, c.spelling,
-                    AlgorithmTraversal.traverse_individual_parameters(c))
+        if c.kind == cindex.CursorKind.STRUCT_DECL:
+            return (c.kind, c.spelling, c)
+            # AlgorithmTraversal.traverse_individual_parameters(c)
         else:
             return None
 
@@ -139,8 +139,11 @@ class AlgorithmTraversal():
         """Traverses an algorithm definition. Once a base class is found (Parameters),
         it delegates traversing the parameters."""
         if c.kind == cindex.CursorKind.CXX_BASE_SPECIFIER:
-            return AlgorithmTraversal.traverse_children(
-                c.get_definition(), AlgorithmTraversal.parameters)
+            if c.type.spelling in AlgorithmTraversal.__algorithm_tokens:
+                return ("AlgorithmClass", c.kind, c.type.spelling)
+            else:
+                return AlgorithmTraversal.traverse_children(
+                    c.get_definition(), AlgorithmTraversal.parameters)
         else:
             return None
 
@@ -151,21 +154,22 @@ class AlgorithmTraversal():
         it proceeds to find algorithm parameters, template parameters, and returns a quintuplet:
         (kind, spelling, algorithm class, algorithm parameters)."""
         if c.kind == cindex.CursorKind.CLASS_TEMPLATE:
+            # Fetch the class and parameters of the algorithm
+            algorithm_class = ""
+            algorithm_parameters = ""
+            algorithm_class_parameters = AlgorithmTraversal.traverse_children(
+                c, AlgorithmTraversal.algorithm_definition)
+            for d in algorithm_class_parameters:
+                if len(d) > 0 and d[0] == "AlgorithmClass":
+                    algorithm_class = d[2]
+            # TODO: For parameters:
+            #       - Host / Device is now visible as a child class.
+            #       - There is a function (foo) which captures:
+            #         * f.is_const_method(): Input / Output
+            #         * f.type.spelling: The type (restricted to POD types, others decay to int)
             embed()
-            # Detecting inheritance from the algorithm needs to be done with tokens so far
-            algorithm_class = None
-            for t in c.get_tokens():
-                if t.spelling in AlgorithmTraversal.__algorithm_tokens:
-                    algorithm_class = t.spelling
-                    break
-            if algorithm_class is not None:
-                # Fetch the parameters of the algorithm
-                algorithm_parameters = AlgorithmTraversal.traverse_children(
-                    c, AlgorithmTraversal.algorithm_definition)
-                return (c.kind, c.spelling,
-                        algorithm_class, algorithm_parameters)
-            else:
-                return None
+            return (c.kind, c.spelling,
+                    algorithm_class, algorithm_parameters)
         else:
             return None
 

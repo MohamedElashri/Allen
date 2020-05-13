@@ -64,7 +64,7 @@ class Parser():
                   line_parser=LineTraversal()):
         """Parses all files and traverses algorithm and line definitions."""
         # all_filenames = Parser.get_all_filenames()
-        all_filenames = ["device/velo/include/VeloCalculateNumberOfCandidates.cuh"]
+        all_filenames = ["../device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"]
         algorithms = []
         lines = []
         for filename in all_filenames:

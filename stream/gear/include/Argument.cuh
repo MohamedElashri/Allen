@@ -4,6 +4,9 @@
 #include <boost/hana/define_struct.hpp>
 #include <boost/hana/members.hpp>
 
+// Define uint for libclang
+using uint = unsigned int;
+
 // Datatypes can be host or device.
 // Note: These structs need to be not templated.
 struct host_datatype {
@@ -43,55 +46,29 @@ struct output_datatype : datatype<internal_t> {
   __host__ __device__ type* get() const { return this->m_value; }
 };
 
-// Datatypes can be:
-// * device / host
-// * input / output
-template<typename internal_t>
-struct input_device_datatype : device_datatype, input_datatype<internal_t> {
-  using type = typename input_datatype<internal_t>::type;
-  __host__ __device__ input_device_datatype() {}
-  __host__ __device__ input_device_datatype(type* value) : input_datatype<internal_t>(value) {}
-};
-
-template<typename internal_t>
-struct output_device_datatype : device_datatype, output_datatype<internal_t> {
-  using type = typename output_datatype<internal_t>::type;
-  __host__ __device__ output_device_datatype() {}
-  __host__ __device__ output_device_datatype(type* value) : output_datatype<internal_t>(value) {}
-};
-
-template<typename internal_t>
-struct input_host_datatype : host_datatype, input_datatype<internal_t> {
-  using type = typename input_datatype<internal_t>::type;
-  __host__ __device__ input_host_datatype() {}
-  __host__ __device__ input_host_datatype(type* value) : input_datatype<internal_t>(value) {}
-};
-
-template<typename internal_t>
-struct output_host_datatype : host_datatype, output_datatype<internal_t> {
-  using type = typename output_datatype<internal_t>::type;
-  __host__ __device__ output_host_datatype() {}
-  __host__ __device__ output_host_datatype(type* value) : output_datatype<internal_t>(value) {}
-};
-
-#define DEVICE_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                     \
-  struct ARGUMENT_NAME : input_device_datatype<ARGUMENT_TYPE> {        \
-    using input_device_datatype<ARGUMENT_TYPE>::input_device_datatype; \
+// Inputs / outputs have an additional foo method to be able to parse it with libclang.
+#define DEVICE_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
+  struct ARGUMENT_NAME : device_datatype, input_datatype<ARGUMENT_TYPE> { \
+    using input_datatype<ARGUMENT_TYPE>::input_datatype;                  \
+    ARGUMENT_TYPE inline foo() const {}                                   \
   }
 
-#define DEVICE_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                      \
-  struct ARGUMENT_NAME : output_device_datatype<ARGUMENT_TYPE> {         \
-    using output_device_datatype<ARGUMENT_TYPE>::output_device_datatype; \
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
+  struct ARGUMENT_NAME : device_datatype, output_datatype<ARGUMENT_TYPE> { \
+    using output_datatype<ARGUMENT_TYPE>::output_datatype;                 \
+    ARGUMENT_TYPE inline foo() {}                                          \
   }
 
-#define HOST_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                   \
-  struct ARGUMENT_NAME : input_host_datatype<ARGUMENT_TYPE> {      \
-    using input_host_datatype<ARGUMENT_TYPE>::input_host_datatype; \
+#define HOST_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
+  struct ARGUMENT_NAME : host_datatype, input_datatype<ARGUMENT_TYPE> { \
+    using input_datatype<ARGUMENT_TYPE>::input_datatype;                \
+    ARGUMENT_TYPE inline foo() const {}                                 \
   }
 
-#define HOST_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                    \
-  struct ARGUMENT_NAME : output_host_datatype<ARGUMENT_TYPE> {       \
-    using output_host_datatype<ARGUMENT_TYPE>::output_host_datatype; \
+#define HOST_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
+  struct ARGUMENT_NAME : host_datatype, output_datatype<ARGUMENT_TYPE> { \
+    using output_datatype<ARGUMENT_TYPE>::output_datatype;               \
+    ARGUMENT_TYPE inline foo() {}                                        \
   }
 
 // Struct that mimics std::array<uint, 3> and works with CUDA.
