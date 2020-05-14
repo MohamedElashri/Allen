@@ -27,10 +27,9 @@ namespace host_global_event_cut {
   void host_global_event_cut_mep(const uint number_of_events, Parameters parameters);
 
   // Algorithm
-  template<typename T>
   struct host_global_event_cut_t : public HostAlgorithm, Parameters {
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       const HostBuffers&) const
@@ -45,7 +44,7 @@ namespace host_global_event_cut {
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,

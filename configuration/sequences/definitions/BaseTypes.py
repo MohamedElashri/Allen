@@ -345,6 +345,7 @@ class Sequence():
         if self.validate():
             # Add all the includes
             s = "#pragma once\n\n#include <tuple>\n#include \"" + configured_lines_filename + "\"\n"
+            s += "#include \"" + prefix_includes + "stream/gear/include/ArgumentManager.cuh\"\n"
             for _, algorithm in iter(self.__sequence.items()):
                 s += "#include \"" + prefix_includes + algorithm.filename(
                 ) + "\"\n"
@@ -373,7 +374,15 @@ class Sequence():
                 for inheriting_class in inheriting_classes:
                     s += inheriting_class + ", "
                 s = s[:-2]
-                s += " { constexpr static auto name {\"" + paramenter_name + "\"}; size_t size; char* offset; };\n"
+                s += " { \
+void set_size(size_t size) override { m_size = size; } \
+size_t size() const override { return m_size; } \
+std::string name() const override { return \"" + paramenter_name + "\"; } \
+void set_offset(char* offset) override { m_offset = offset; } \
+char* offset() const override { return m_offset; } \
+private: \
+    size_t m_size = 0; \
+    char* m_offset = nullptr; };\n"
             # Generate sequence
             s += "\nusing configured_sequence_t = std::tuple<\n"
             i_alg = 0
@@ -381,16 +390,7 @@ class Sequence():
                 i_alg += 1
                 # Add algorithm namespace::name
                 s += prefix(1) + algorithm.namespace(
-                ) + "::" + algorithm.original_name() + "<std::tuple<"
-                i = 0
-                # Add parameters
-                for parameter_t, parameter in iter(
-                        algorithm.parameters().items()):
-                    i += 1
-                    s += parameter.fullname()
-                    if i != len(algorithm.parameters()):
-                        s += ", "
-                s += ">>"
+                ) + "::" + algorithm.original_name()
                 i = 0
                 if i_alg != len(self.__sequence):
                     s += ","

@@ -21,10 +21,9 @@ namespace velo_calculate_number_of_candidates {
     const uint number_of_events);
 
   // Algorithm
-  template<typename T>
   struct velo_calculate_number_of_candidates_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
       const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const
@@ -34,11 +33,11 @@ namespace velo_calculate_number_of_candidates {
       //   boost::hana::size_c<parameter_hanatuple>
       // )::value;
 
-      using parameter_tuple = decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<Parameters>())));
+      using parameter_tuple = ParameterTuple<Parameters>::t;
       printf("Size: %i\n", std::tuple_size<parameter_tuple>());
 
-      typename std::tuple_element<5, parameter_tuple>::type a = 2;
-      printf("Test: %i\n", a);
+      // typename std::tuple_element<5, parameter_tuple>::type a = 2;
+      // printf("Test: %i\n", a);
       
       if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << "\n";
@@ -47,7 +46,7 @@ namespace velo_calculate_number_of_candidates {
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,

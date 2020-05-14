@@ -4,7 +4,7 @@
 #include "BankTypes.h"
 
 // Forward declare IInputProvider to avoid including "InputProvider.h" from device code
-class IInputProvider;
+struct IInputProvider;
 
 /**
  * @brief Runtime options singleton.

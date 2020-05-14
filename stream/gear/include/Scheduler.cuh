@@ -79,7 +79,7 @@ struct Scheduler {
     static_assert(std::is_same<T, out_algorithm>::value, "Scheduler index mismatch (out_algorithm)");
 
     // Free all arguments in OutDependencies
-    MemoryManagerFree<out_arguments>::free(device_memory_manager, host_memory_manager);
+    MemoryManagerFree<argument_manager_t, out_arguments>::free(device_memory_manager, host_memory_manager, argument_manager);
 
     // Reserve all arguments in InDependencies
     MemoryManagerReserve<argument_manager_t, in_arguments>::reserve(device_memory_manager, host_memory_manager, argument_manager);

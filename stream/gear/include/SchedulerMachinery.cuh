@@ -314,7 +314,7 @@ namespace Sch {
   struct ProduceSingleArgument {
     constexpr static Argument& produce(ArgumentsTuple& arguments_tuple)
     {
-      Argument& argument = std::get<Argument>(arguments_tuple);
+      Argument& argument = tuple_ref_by_inheritance<Argument>(arguments_tuple);
       return argument;
     }
   };

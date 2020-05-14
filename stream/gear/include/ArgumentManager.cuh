@@ -31,34 +31,40 @@ struct ArgumentManager {
   template<typename T>
   auto data() const
   {
-    auto pointer = tuple_ref_by_inheritance<T>(arguments_tuple).offset;
+    auto pointer = tuple_ref_by_inheritance<T>(arguments_tuple).offset();
     return reinterpret_cast<typename T::type*>(pointer);
   }
 
   template<typename T>
   size_t size() const
   {
-    return tuple_ref_by_inheritance<T>(arguments_tuple).size;
+    return tuple_ref_by_inheritance<T>(arguments_tuple).size();
+  }
+
+  template<typename T>
+  std::string name() const
+  {
+    return tuple_ref_by_inheritance<T>(arguments_tuple).name();
   }
 
   template<typename T>
   typename std::enable_if<std::is_base_of<device_datatype, T>::value>::type
   set_offset(const uint offset)
   {
-    tuple_ref_by_inheritance<T>(arguments_tuple).offset = device_base_pointer + offset;
+    tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(device_base_pointer + offset);
   }
 
   template<typename T>
   typename std::enable_if<std::is_base_of<host_datatype, T>::value>::type
   set_offset(const uint offset)
   {
-    tuple_ref_by_inheritance<T>(arguments_tuple).offset = host_base_pointer + offset;
+    tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(host_base_pointer + offset);
   }
 
   template<typename T>
   void set_size(const size_t size)
   {
-    tuple_ref_by_inheritance<T>(arguments_tuple).size = size * sizeof(typename T::type);
+    tuple_ref_by_inheritance<T>(arguments_tuple).set_size(size * sizeof(typename T::type));
   }
 };
 
@@ -78,21 +84,52 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   template<typename T>
   auto data() const
   {
-    auto pointer = tuple_ref_by_inheritance<T&>(m_arguments).offset;
+    auto pointer = tuple_ref_by_inheritance<T&>(m_arguments).offset();
     return reinterpret_cast<typename T::type*>(pointer);
   }
 
   template<typename T>
   size_t size() const
   {
-    return tuple_ref_by_inheritance<T&>(m_arguments).size;
+    return tuple_ref_by_inheritance<T&>(m_arguments).size();
   }
 
   template<typename T>
   void set_size(const size_t size)
   {
-    tuple_ref_by_inheritance<T&>(m_arguments).size = size * sizeof(typename T::type);
+    tuple_ref_by_inheritance<T&>(m_arguments).set_size(size * sizeof(typename T::type));
   }
+
+  template<typename T>
+  std::string name() const
+  {
+    return tuple_ref_by_inheritance<T>(m_arguments).name();
+  }
+};
+
+// Wraps tuple arguments
+template<typename Tuple, typename Enabled = void>
+struct WrappedTuple;
+
+template<>
+struct WrappedTuple<std::tuple<>, void> {
+  using t = std::tuple<>;
+};
+
+template<typename T, typename... R>
+struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value>::type> {
+  using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
+  using t = typename TupleAppendFirst<T, previous_t>::t;
+};
+
+template<typename T, typename... R>
+struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<!std::is_base_of<device_datatype, T>::value && !std::is_base_of<host_datatype, T>::value>::type> {
+  using t = typename WrappedTuple<std::tuple<R...>>::t;
+};
+
+template<typename T>
+struct ParameterTuple {
+  using t = typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t;
 };
 
 // Helpers

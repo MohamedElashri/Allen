@@ -2,11 +2,13 @@
 
 #include <tuple>
 
+// Avoid warnings from the hana library from nvcc and clang
 #ifdef __CUDACC__
-// Avoid the "expression has no effect" warnings from the hana library
-// when compiling with nvcc.
 #pragma push
 #pragma diag_suppress = expr_has_no_effect
+#elif defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdouble-promotion"
 #endif
 
 #include <boost/hana/members.hpp>
@@ -15,6 +17,8 @@
 
 #ifdef __CUDACC__
 #pragma pop
+#elif defined(__clang__)
+#pragma clang diagnostic pop
 #endif
 
 // Define uint for libclang
@@ -23,9 +27,21 @@ using uint = unsigned int;
 // Datatypes can be host or device.
 // Note: These structs need to be not templated.
 struct host_datatype {
+  virtual void set_size(size_t) {}
+  virtual size_t size() const { return 0; }
+  virtual std::string name() const { return ""; }
+  virtual void set_offset(char*) {}
+  virtual char* offset() const { return nullptr; }
+  virtual ~host_datatype() {}
 };
 
 struct device_datatype {
+  virtual void set_size(size_t) {}
+  virtual size_t size() const { return 0; }
+  virtual std::string name() const { return ""; }
+  virtual void set_offset(char*) {}
+  virtual char* offset() const { return nullptr; }
+  virtual ~device_datatype() {}
 };
 
 // A generic datatype* data holder.
@@ -60,28 +76,28 @@ struct output_datatype : datatype<internal_t> {
 };
 
 // Inputs / outputs have an additional parameter method to be able to parse it with libclang.
-#define DEVICE_INPUT(ARGUMENT_NAME, ...)                                \
-  struct ARGUMENT_NAME : device_datatype, input_datatype<__VA_ARGS__> { \
-    using input_datatype<__VA_ARGS__>::input_datatype;                  \
-    void inline parameter(__VA_ARGS__) const {}                         \
+#define DEVICE_INPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public device_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                         \
+    void inline parameter(__VA_ARGS__) const {}                                \
   }
 
-#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                \
-  struct ARGUMENT_NAME : device_datatype, output_datatype<__VA_ARGS__> { \
-    using output_datatype<__VA_ARGS__>::output_datatype;                 \
-    void inline parameter(__VA_ARGS__) {}                                \
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public device_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                        \
+    void inline parameter(__VA_ARGS__) {}                                       \
   }
 
-#define HOST_INPUT(ARGUMENT_NAME, ...)                                \
-  struct ARGUMENT_NAME : host_datatype, input_datatype<__VA_ARGS__> { \
-    using input_datatype<__VA_ARGS__>::input_datatype;                \
-    void inline parameter(__VA_ARGS__) const {}                       \
+#define HOST_INPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public host_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                       \
+    void inline parameter(__VA_ARGS__) const {}                              \
   }
 
-#define HOST_OUTPUT(ARGUMENT_NAME, ...)                                \
-  struct ARGUMENT_NAME : host_datatype, output_datatype<__VA_ARGS__> { \
-    using output_datatype<__VA_ARGS__>::output_datatype;               \
-    void inline parameter(__VA_ARGS__) {}                              \
+#define HOST_OUTPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public host_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                      \
+    void inline parameter(__VA_ARGS__) {}                                     \
   }
 
 // Struct that mimics std::array<uint, 3> and works with CUDA.
@@ -126,7 +142,7 @@ protected:
 
 // Properties have an additional property method to be able to parse it with libclang.
 // libclang relies on name and description being 2nd and 3rd arguments of this macro function.
-#define PROPERTY(ARGUMENT_NAME, NAME, DESCRIPTION, ...)  \
+#define PROPERTY(ARGUMENT_NAME, NAME, DESCRIPTION, ...)      \
   struct ARGUMENT_NAME : property_datatype<__VA_ARGS__> {    \
     constexpr static auto name {NAME};                       \
     constexpr static auto description {DESCRIPTION};         \

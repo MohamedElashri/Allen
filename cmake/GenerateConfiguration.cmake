@@ -13,7 +13,7 @@ find_package (Python3 COMPONENTS Interpreter QUIET)
 
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this
-set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64)
+set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64)
 set(REQUIRED_CPLUS_PATH /cvmfs/sft.cern.ch/lcg/views/LCG_97python3/x86_64-centos7-gcc8-opt/include)
 set(DEFAULT_MOORE_RUN "/scratch/dcampora/gaudi_projects/MooreDev_v51r0/run")
 

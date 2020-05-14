@@ -12,10 +12,9 @@ namespace data_provider {
     (PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes), prop_raw_bank_type))
 
   // Algorithm
-  template<typename T>
   struct data_provider_t : public HostAlgorithm, Parameters {
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       const HostBuffers&) const
@@ -26,7 +25,7 @@ namespace data_provider {
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,

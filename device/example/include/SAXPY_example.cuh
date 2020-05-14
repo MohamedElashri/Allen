@@ -37,7 +37,7 @@ __global__ void saxpy(Parameters);
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions&,
-      const Constants& constants,
+      const Constants&,
       HostBuffers&,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const

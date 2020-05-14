@@ -207,7 +207,7 @@ class AlgorithmTraversal():
         either "HostAlgorithm" or "DeviceAlgorithm" among its tokens. If so,
         it proceeds to find algorithm parameters, template parameters, and returns a quintuplet:
         (kind, spelling, algorithm class, algorithm parameters)."""
-        if c.kind == cindex.CursorKind.CLASS_TEMPLATE:
+        if c.kind in [cindex.CursorKind.STRUCT_DECL, cindex.CursorKind.CLASS_DECL]:
             # Fetch the class and parameters of the algorithm
             algorithm_class = ""
             algorithm_parameters = ""
@@ -218,8 +218,11 @@ class AlgorithmTraversal():
                     algorithm_class = d[2]
                 elif type(d) == list:
                     algorithm_parameters = d
-            return (c.kind, c.spelling,
-                    algorithm_class, algorithm_parameters)
+            if algorithm_class != "":
+                return (c.kind, c.spelling,
+                        algorithm_class, algorithm_parameters)
+            else:
+                return None
         else:
             return None
 
