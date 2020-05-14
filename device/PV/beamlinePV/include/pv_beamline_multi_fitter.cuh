@@ -23,7 +23,7 @@ namespace pv_beamline_multi_fitter {
     DEVICE_OUTPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
     DEVICE_OUTPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_INPUT(dev_pvtrack_z_t, float) dev_pvtrack_z;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void pv_beamline_multi_fitter(

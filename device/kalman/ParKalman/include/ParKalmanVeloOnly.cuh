@@ -97,7 +97,7 @@ namespace kalman_velo_only {
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void kalman_velo_only(Parameters, const char* dev_scifi_geometry);

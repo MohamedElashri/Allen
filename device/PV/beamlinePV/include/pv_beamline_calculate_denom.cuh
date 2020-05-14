@@ -20,7 +20,7 @@ namespace pv_beamline_calculate_denom {
     DEVICE_OUTPUT(dev_pvtracks_denom_t, float) dev_pvtracks_denom;
     DEVICE_INPUT(dev_zpeaks_t, float) dev_zpeaks;
     DEVICE_INPUT(dev_number_of_zpeaks_t, uint) dev_number_of_zpeaks;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void pv_beamline_calculate_denom(Parameters);

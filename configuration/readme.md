@@ -40,7 +40,7 @@ velo_calculate_phi_and_sort_t "velo_calculate_phi_and_sort_t" (
   dev_sorted_velo_cluster_container_t = DeviceOutput("dev_sorted_velo_cluster_container_t", char), 
   dev_hit_permutation_t = DeviceOutput("dev_hit_permutation_t", uint32_t), 
   dev_hit_phi_t = DeviceOutput("dev_hit_phi_t", half_t), 
-  block_dim = Property(DeviceDimensions, {64, 1, 1}, block dimensions) = "")
+  block_dim = PROPERTY(DeviceDimensions, 1, 1}, block dimensions, {64) = "")
 ```
 
 You can also create an instance of the algorithm and auto-complete the parameters:
@@ -54,7 +54,7 @@ a.dev_ut_hit_offsets_t(                        a.filename(                      
 a.dev_ut_hits_t(                               a.host_number_of_reconstructed_velo_tracks_t(  a.original_name(                               
 a.dev_ut_number_of_selected_velo_tracks_t(     a.host_number_of_selected_events_t(            a.parameters(                                  
 >>> a.block_dim_y_t()
-Property(uint32_t, 64, block dimension Y) = ""
+PROPERTY(uint32_t, block dimension Y) = ""
 
 ```
 
@@ -83,7 +83,7 @@ with either loose or restricted cuts. The full code can be found in `generator/U
     compass_ut = None
     if restricted:
         ut_search_windows = ut_search_windows_t(
-            min_momentum="1500.0", min_pt="300.0")
+            min_momentum="1500.0", min_pt="300.0", 64)
         compass_ut = compass_ut_t(
             max_considered_before_found="6",
             min_momentum_final="2500.0",

@@ -10,7 +10,7 @@ namespace host_data_provider {
     Parameters,
     (HOST_OUTPUT(host_raw_banks_t, gsl::span<char const>), host_raw_banks),
     (HOST_OUTPUT(host_raw_offsets_t, gsl::span<unsigned int const>), host_raw_offsets),
-    (NEW_PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes), prop_raw_bank_type))
+    (PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes), prop_raw_bank_type))
 
   // Algorithm
   template<typename T>

@@ -16,11 +16,11 @@ namespace velo_three_hit_tracks_filter {
     DEVICE_OUTPUT(dev_number_of_three_hit_tracks_output_t, uint) dev_number_of_three_hit_tracks_output;
 
     // Max chi2
-    PROPERTY(max_chi2_t, float, "max_chi2", "chi2") max_chi2;
+    PROPERTY(max_chi2_t, "max_chi2", "chi2", float) max_chi2;
 
     // Maximum number of tracks to follow at a time
-    PROPERTY(max_weak_tracks_t, uint, "max_weak_tracks", "max weak tracks") max_weak_tracks;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(max_weak_tracks_t, "max_weak_tracks", "max weak tracks", uint) max_weak_tracks;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void velo_three_hit_tracks_filter(Parameters);

@@ -9,7 +9,7 @@ namespace data_provider {
     Parameters,
     (DEVICE_OUTPUT(dev_raw_banks_t, char), dev_raw_banks),
     (DEVICE_OUTPUT(dev_raw_offsets_t, uint), dev_raw_offsets),
-    (NEW_PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes), prop_raw_bank_type))
+    (PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes), prop_raw_bank_type))
 
   // Algorithm
   template<typename T>

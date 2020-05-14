@@ -16,7 +16,7 @@ namespace muon_add_coords_crossing_maps {
     DEVICE_OUTPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
     DEVICE_OUTPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
     DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, uint) dev_station_ocurrences_sizes;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void muon_add_coords_crossing_maps(Parameters);

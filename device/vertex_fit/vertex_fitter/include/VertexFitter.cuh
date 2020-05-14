@@ -84,9 +84,9 @@ namespace VertexFit {
     DEVICE_INPUT(dev_svs_trk2_idx_t, uint) dev_svs_trk2_idx;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
-    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV")
+    PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float)
     max_assoc_ipchi2;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void fit_secondary_vertices(Parameters);

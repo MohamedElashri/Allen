@@ -15,7 +15,7 @@ namespace scifi_copy_track_hit_number {
     DEVICE_INPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
     DEVICE_OUTPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void scifi_copy_track_hit_number(Parameters);

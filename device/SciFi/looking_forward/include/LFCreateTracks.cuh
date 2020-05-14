@@ -31,16 +31,10 @@ namespace lf_create_tracks {
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
     DEVICE_INPUT(dev_ut_states_t, MiniState) dev_ut_states;
     PROPERTY(
-      triplet_keep_best_block_dim_t,
-      DeviceDimensions,
-      "triplet_keep_best_block_dim",
-      "block dimensions triplet keep best");
+      triplet_keep_best_block_dim_t, "triplet_keep_best_block_dim", "block dimensions triplet keep best", DeviceDimensions);
     PROPERTY(
-      calculate_parametrization_block_dim_t,
-      DeviceDimensions,
-      "calculate_parametrization_block_dim",
-      "block dimensions calculate parametrization");
-    PROPERTY(extend_tracks_block_dim_t, DeviceDimensions, "extend_tracks_block_dim", "block dimensions extend tracks");
+      calculate_parametrization_block_dim_t, "calculate_parametrization_block_dim", "block dimensions calculate parametrization", DeviceDimensions);
+    PROPERTY(extend_tracks_block_dim_t, "extend_tracks_block_dim", "block dimensions extend tracks", DeviceDimensions);
   };
 
   __global__ void lf_triplet_keep_best(Parameters, const LookingForward::Constants* dev_looking_forward_constants);

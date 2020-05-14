@@ -113,19 +113,12 @@ protected:
 
 // Properties have an additional property method to be able to parse it with libclang.
 // libclang relies on name and description being 2nd and 3rd arguments of this macro function.
-#define NEW_PROPERTY(ARGUMENT_NAME, NAME, DESCRIPTION, ...)  \
+#define PROPERTY(ARGUMENT_NAME, NAME, DESCRIPTION, ...)  \
   struct ARGUMENT_NAME : property_datatype<__VA_ARGS__> {    \
     constexpr static auto name {NAME};                       \
     constexpr static auto description {DESCRIPTION};         \
     using property_datatype<__VA_ARGS__>::property_datatype; \
     void inline property(__VA_ARGS__) {}                     \
-  }
-
-#define PROPERTY(ARGUMENT_NAME, TYPE, NAME, DESCRIPTION) \
-  struct ARGUMENT_NAME : property_datatype<TYPE> {       \
-    constexpr static auto name {NAME};                   \
-    constexpr static auto description {DESCRIPTION};     \
-    using property_datatype<TYPE>::property_datatype;    \
   }
 
 /**

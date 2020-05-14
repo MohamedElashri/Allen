@@ -24,19 +24,16 @@ namespace compass_ut {
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, uint) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, uint) dev_ut_selected_velo_tracks;
 
-    PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", "sigma velo slope [radians]")
+    PROPERTY(sigma_velo_slope_t, "sigma_velo_slope", "sigma velo slope [radians]", float)
     sigma_velo_slope;
     PROPERTY(
-      min_momentum_final_t,
-      float,
-      "min_momentum_final",
-      "final min momentum cut [MeV/c]")
+      min_momentum_final_t, "min_momentum_final", "final min momentum cut [MeV/c]", float)
     min_momentum_final;
-    PROPERTY(min_pt_final_t, float, "min_pt_final", "final min pT cut [MeV/c]")
+    PROPERTY(min_pt_final_t, "min_pt_final", "final min pT cut [MeV/c]", float)
     min_pt_final;
-    PROPERTY(hit_tol_2_t, float, "hit_tol_2", "hit_tol_2 [mm]") hit_tol_2;
-    PROPERTY(delta_tx_2_t, float, "delta_tx_2", "delta_tx_2") delta_tx_2;
-    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", "max_considered_before_found")
+    PROPERTY(hit_tol_2_t, "hit_tol_2", "hit_tol_2 [mm]", float) hit_tol_2;
+    PROPERTY(delta_tx_2_t, "delta_tx_2", "delta_tx_2", float) delta_tx_2;
+    PROPERTY(max_considered_before_found_t, "max_considered_before_found", "max_considered_before_found", uint)
     max_considered_before_found;
   };
 

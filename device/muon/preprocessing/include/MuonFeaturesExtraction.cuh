@@ -25,7 +25,7 @@ namespace muon_catboost_features_extraction {
     DEVICE_INPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
     DEVICE_OUTPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void muon_catboost_features_extraction(Parameters);

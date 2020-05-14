@@ -24,7 +24,7 @@ namespace package_mf_tracks {
     DEVICE_INPUT(dev_event_list_mf_t, uint) dev_event_list_mf;
     DEVICE_INPUT(dev_mf_track_offsets_t, uint) dev_mf_track_offsets;
     DEVICE_OUTPUT(dev_mf_tracks_t, ParKalmanFilter::FittedTrack) dev_mf_tracks;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void package_mf_tracks(Parameters, const uint number_of_events);

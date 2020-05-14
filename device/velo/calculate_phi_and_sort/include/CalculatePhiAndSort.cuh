@@ -18,7 +18,7 @@ namespace velo_calculate_phi_and_sort {
     DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutation_t, uint) dev_hit_permutation;
     DEVICE_OUTPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __device__ void calculate_phi(

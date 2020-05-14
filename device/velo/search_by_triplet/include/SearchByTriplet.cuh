@@ -25,17 +25,17 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_number_of_velo_tracks_t, uint) dev_number_of_velo_tracks;
 
     // Tolerance in phi
-    PROPERTY(phi_tolerance_t, float, "phi_tolerance", "tolerance in phi") phi_tolerance;
+    PROPERTY(phi_tolerance_t, "phi_tolerance", "tolerance in phi", float) phi_tolerance;
 
     // Max scatter for forming triplets (seeding) and forwarding
-    PROPERTY(max_scatter_t, float, "max_scatter", "maximum scatter for seeding and forwarding") max_scatter;
+    PROPERTY(max_scatter_t, "max_scatter", "maximum scatter for seeding and forwarding", float) max_scatter;
 
     // Maximum number of skipped modules allowed for a track
     // before storing it
-    PROPERTY(max_skipped_modules_t, uint, "max_skipped_modules", "skipped modules") max_skipped_modules;
+    PROPERTY(max_skipped_modules_t, "max_skipped_modules", "skipped modules", uint) max_skipped_modules;
 
     // Block dimension x of kernel
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension x");
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", uint);
   };
 
   __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);

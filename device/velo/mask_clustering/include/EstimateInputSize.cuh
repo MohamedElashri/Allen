@@ -14,7 +14,7 @@ namespace velo_estimate_input_size {
     DEVICE_OUTPUT(dev_estimated_input_size_t, uint) dev_estimated_input_size;
     DEVICE_OUTPUT(dev_module_candidate_num_t, uint) dev_module_candidate_num;
     DEVICE_OUTPUT(dev_cluster_candidates_t, uint) dev_cluster_candidates;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   // Global function

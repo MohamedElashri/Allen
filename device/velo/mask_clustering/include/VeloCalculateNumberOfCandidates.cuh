@@ -11,7 +11,7 @@ namespace velo_calculate_number_of_candidates {
     (DEVICE_INPUT(dev_velo_raw_input_t, char), dev_velo_raw_input),
     (DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint), dev_velo_raw_input_offsets),
     (DEVICE_OUTPUT(dev_number_of_candidates_t, uint), dev_number_of_candidates),
-    (NEW_PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim_x_prop))
+    (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim_x_prop))
 
   // Global function
   __global__ void velo_calculate_number_of_candidates(Parameters parameters, const uint number_of_events);
@@ -29,10 +29,6 @@ namespace velo_calculate_number_of_candidates {
       const Constants&,
       const HostBuffers&) const
     {
-      using parameter_hanatuple = decltype(boost::hana::members(std::declval<Parameters>()));
-      std::cout << "Size: " << boost::hana::size_c<parameter_hanatuple> << "\n";
-      // decltype(boost::hana::at_c<0>(boost::hana::members(std::declval<Parameters>()))) a{};
-
       if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << "\n";
       }

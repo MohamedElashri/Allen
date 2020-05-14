@@ -22,7 +22,7 @@ namespace MatchUpstreamMuon {
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
     DEVICE_INPUT(dev_event_list_mf_t, uint) dev_event_list_mf;
     DEVICE_OUTPUT(dev_match_upstream_muon_t, bool) dev_muon_match;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void match_upstream_muon(

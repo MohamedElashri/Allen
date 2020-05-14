@@ -10,7 +10,7 @@ namespace ut_calculate_number_of_hits {
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
     DEVICE_OUTPUT(dev_ut_hit_sizes_t, uint) dev_ut_hit_sizes;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void ut_calculate_number_of_hits(

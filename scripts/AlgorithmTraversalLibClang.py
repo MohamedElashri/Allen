@@ -240,7 +240,7 @@ class AlgorithmTraversal():
                 last_found = -1
                 while True:
                     try:
-                        last_found = ts.index("NEW_PROPERTY", last_found + 1)
+                        last_found = ts.index("PROPERTY", last_found + 1)
                         typename = ts[last_found + 2]
                         name = ts[last_found + 4]
                         description = ts[last_found + 6]

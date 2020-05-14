@@ -20,18 +20,18 @@ namespace run_hlt1 {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_velo_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
     DEVICE_OUTPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
-    PROPERTY(factor_one_track_t, float, "factor_one_track", "postscale for one-track line") factor_one_track;
-    PROPERTY(factor_single_muon_t, float, "factor_single_muon", "postscale for single-muon line")
+    PROPERTY(factor_one_track_t, "factor_one_track", "postscale for one-track line", float) factor_one_track;
+    PROPERTY(factor_single_muon_t, "factor_single_muon", "postscale for single-muon line", float)
     factor_single_muon;
-    PROPERTY(factor_two_tracks_t, float, "factor_two_tracks", "postscale for two-track line") factor_two_tracks;
-    PROPERTY(factor_disp_dimuon_t, float, "factor_disp_dimuon", "postscale for displaced-dimuon line")
+    PROPERTY(factor_two_tracks_t, "factor_two_tracks", "postscale for two-track line", float) factor_two_tracks;
+    PROPERTY(factor_disp_dimuon_t, "factor_disp_dimuon", "postscale for displaced-dimuon line", float)
     factor_disp_dimuon;
-    PROPERTY(factor_high_mass_dimuon_t, float, "factor_high_mass_dimuon", "postscale for high-mass-dimuon line")
+    PROPERTY(factor_high_mass_dimuon_t, "factor_high_mass_dimuon", "postscale for high-mass-dimuon line", float)
     factor_high_mass_dimuon;
-    PROPERTY(factor_dimuon_soft_t, float, "factor_dimuon_soft", "postscale for soft-dimuon line")
+    PROPERTY(factor_dimuon_soft_t, "factor_dimuon_soft", "postscale for soft-dimuon line", float)
     factor_dimuon_soft;
 
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void run_hlt1(Parameters parameters, const uint selected_number_of_events, const uint event_start);

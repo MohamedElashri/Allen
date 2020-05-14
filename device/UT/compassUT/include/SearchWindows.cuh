@@ -17,11 +17,11 @@ namespace ut_search_windows {
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    PROPERTY(min_momentum_t, float, "min_momentum", "min momentum cut [MeV/c]") min_momentum;
-    PROPERTY(min_pt_t, float, "min_pt", "min pT cut [MeV/c]") min_pt;
-    PROPERTY(y_tol_t, float, "y_tol", "y tol [mm]") y_tol;
-    PROPERTY(y_tol_slope_t, float, "y_tol_slope", "y tol slope [mm]") y_tol_slope;
-    PROPERTY(block_dim_y_t, uint, "block_dim_y_t", "block dimension Y");
+    PROPERTY(min_momentum_t, "min_momentum", "min momentum cut [MeV/c]", float) min_momentum;
+    PROPERTY(min_pt_t, "min_pt", "min pT cut [MeV/c]", float) min_pt;
+    PROPERTY(y_tol_t, "y_tol", "y tol [mm]", float) y_tol;
+    PROPERTY(y_tol_slope_t, "y_tol_slope", "y tol slope [mm]", float) y_tol_slope;
+    PROPERTY(block_dim_y_t, "block_dim_y_t", "block dimension Y", uint);
   };
 
   __global__ void ut_search_windows(

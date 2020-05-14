@@ -135,8 +135,8 @@ namespace saxpy {
         
     DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;
 
-    PROPERTY(saxpy_scale_factor_t, float, "saxpy_scale_factor", "scale factor a used in a*x + y") saxpy_scale_factor;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 ```
 

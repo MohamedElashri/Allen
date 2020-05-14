@@ -36,9 +36,9 @@ namespace MuonFilter {
     DEVICE_OUTPUT(dev_event_list_mf_t, uint) dev_event_list_mf;
     DEVICE_OUTPUT(dev_selected_events_mf_t, uint) dev_selected_events_mf;
     DEVICE_OUTPUT(dev_mf_track_atomics_t, uint) dev_mf_track_atomics;
-    PROPERTY(mf_min_pt_t, float, "mf_min_pt", "minimum track pT") mf_min_pt;
-    PROPERTY(mf_min_ipchi2_t, float, "mf_min_ipchi2", "minimum track IP chi2") mf_min_ipchi2;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(mf_min_pt_t, "mf_min_pt", "minimum track pT", float) mf_min_pt;
+    PROPERTY(mf_min_ipchi2_t, "mf_min_ipchi2", "minimum track IP chi2", float) mf_min_ipchi2;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void muon_filter(Parameters);

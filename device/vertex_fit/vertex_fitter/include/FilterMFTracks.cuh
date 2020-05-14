@@ -25,10 +25,10 @@ namespace FilterMFTracks {
     DEVICE_OUTPUT(dev_mf_sv_atomics_t, uint) dev_mf_sv_atomics;
     DEVICE_OUTPUT(dev_svs_kf_idx_t, uint) dev_svs_kf_idx;
     DEVICE_OUTPUT(dev_svs_mf_idx_t, uint) dev_svs_mf_idx;
-    PROPERTY(kf_track_min_pt_t, float, "kf_track_min_pt", "minimum track pT") kf_track_min_pt;
-    PROPERTY(kf_track_min_ipchi2_t, float, "kf_track_min_ipchi2", "minimum track IP chi2") kf_track_min_ipchi2;
-    PROPERTY(mf_track_min_pt_t, float, "mf_track_min_pt", "minimum velo-UT-muon track pt") mf_track_min_pt;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(kf_track_min_pt_t, "kf_track_min_pt", "minimum track pT", float) kf_track_min_pt;
+    PROPERTY(kf_track_min_ipchi2_t, "kf_track_min_ipchi2", "minimum track IP chi2", float) kf_track_min_ipchi2;
+    PROPERTY(mf_track_min_pt_t, "mf_track_min_pt", "minimum velo-UT-muon track pt", float) mf_track_min_pt;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void filter_mf_tracks(Parameters, const uint number_of_events);

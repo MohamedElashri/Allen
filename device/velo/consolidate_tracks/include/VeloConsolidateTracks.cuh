@@ -24,7 +24,7 @@ namespace velo_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint)
     dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void velo_consolidate_tracks(Parameters);

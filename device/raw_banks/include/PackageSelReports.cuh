@@ -17,7 +17,7 @@ namespace package_sel_reports {
     DEVICE_INPUT(dev_sel_rb_substr_t, uint) dev_sel_rb_substr;
     DEVICE_INPUT(dev_sel_rep_offsets_t, uint) dev_sel_rep_offsets;
     DEVICE_OUTPUT(dev_sel_rep_raw_banks_t, uint) dev_sel_rep_raw_banks;
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X");
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint);
   };
 
   __global__ void package_sel_reports(Parameters, const uint number_of_events, const uint selected_number_of_events, const uint event_start);

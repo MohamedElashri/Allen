@@ -14,8 +14,8 @@ namespace scifi_raw_bank_decoder_v4 {
     DEVICE_INPUT(dev_cluster_references_t, uint) dev_cluster_references;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    PROPERTY(raw_bank_decoder_block_dim_t, DeviceDimensions, "raw_bank_decoder_block_dim", "block dimensions of raw bank decoder kernel");
-    PROPERTY(direct_decoder_block_dim_t, DeviceDimensions, "direct_decoder_block_dim", "block dimensions of direct decoder");
+    PROPERTY(raw_bank_decoder_block_dim_t, "raw_bank_decoder_block_dim", "block dimensions of raw bank decoder kernel", DeviceDimensions);
+    PROPERTY(direct_decoder_block_dim_t, "direct_decoder_block_dim", "block dimensions of direct decoder", DeviceDimensions);
   };
 
   __global__ void scifi_raw_bank_decoder_v4(Parameters, const char* scifi_geometry);
