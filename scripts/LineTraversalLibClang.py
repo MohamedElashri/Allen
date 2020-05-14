@@ -103,7 +103,7 @@ class LineTraversal():
 
     @staticmethod
     def traverse(filename):
-        """Opens the file with libTooling, parses it and find lines.
+        """Opens the file with libClang, parses it and find lines.
         Returns a list of ParsedLines."""
         extension = filename.split(".")[-1]
         try:

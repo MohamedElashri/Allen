@@ -5,8 +5,8 @@ import os
 import sys
 import codecs
 from collections import OrderedDict
-from AlgorithmTraversalLibTooling import AlgorithmTraversal
-from LineTraversalLibTooling import LineTraversal
+from AlgorithmTraversalLibClang import AlgorithmTraversal
+from LineTraversalLibClang import LineTraversal
 import argparse
 
 # Prefix folder, prepended to device / host folder
@@ -100,19 +100,6 @@ class AllenConf():
         return "".join([" "] * indentation_level * indent_by)
 
     @staticmethod
-    def create_var_type(scope):
-        t = ""
-        if scope == "DEVICE_INPUT":
-            t = "DeviceInput"
-        elif scope == "DEVICE_OUTPUT":
-            t = "DeviceOutput"
-        elif scope == "HOST_INPUT":
-            t = "HostInput"
-        elif scope == "HOST_OUTPUT":
-            t = "HostOutput"
-        return t
-
-    @staticmethod
     def write_preamble(i=0):
         s = "from definitions.BaseTypes import *\n\n"
         return s
@@ -158,13 +145,13 @@ class AllenConf():
         s += AllenConf.prefix(i) + "inputs = ("
         i += 1
         for param in algorithm.parameters:
-            if "Input" in AllenConf.create_var_type(param.kind):
+            if "Input" in param.kind:
                 s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
         i -= 1
         s += ")\n" + AllenConf.prefix(i) + "outputs = ("
         i += 1
         for param in algorithm.parameters:
-            if "Output" in AllenConf.create_var_type(param.kind):
+            if "Output" in param.kind:
                 s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
         i -= 1
         s += ")\n" + AllenConf.prefix(i) + "props = ("
@@ -176,7 +163,7 @@ class AllenConf():
         s += AllenConf.prefix(i) + "def __init__(self"
         i += 1
         for var in algorithm.parameters:
-            if "Output" not in AllenConf.create_var_type(var.kind):
+            if "Output" not in var.kind:
                 s += ",\n" \
                   + AllenConf.prefix(i) + var.typename
         for prop in algorithm.properties:
@@ -196,12 +183,12 @@ class AllenConf():
         s += AllenConf.prefix(i) + "self.__ordered_parameters = OrderedDict(["
         i += 1
         for var in algorithm.parameters:
-            if "Output" in AllenConf.create_var_type(var.kind):
-                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + AllenConf.create_var_type(var.kind) \
+            if "Output" in var.kind:
+                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + var.kind \
                   + "(\"" + var.typename + "\", \"" + var.typedef + "\", self.__name)),"
             else:
                 s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", check_input_parameter(" + var.typename \
-                  + ", " + AllenConf.create_var_type(var.kind) + ", \"" + var.typedef + "\")),"
+                  + ", " + var.kind + ", \"" + var.typedef + "\")),"
         s = s[:-1]
         if len(algorithm.parameters) > 0:
             s += "]"
@@ -368,7 +355,7 @@ def algorithm_dict(*algorithms):\n\
         i += 1
         for param in algorithm.parameters:
             s += GaudiAllenConf.prefix(i) + param.typename + " = DataObjectHandleBase(\"" + param.typename + "\", \"" \
-                + GaudiAllenConf.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
+                + param.kind + "\", \"" + str(param.typedef) + "\"),\n"
         for prop in algorithm.properties:
             s += GaudiAllenConf.prefix(i) + prop.name[1:-1] + " = \"\",\n"
         s = s[:-2]

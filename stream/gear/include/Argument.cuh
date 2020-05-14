@@ -46,29 +46,29 @@ struct output_datatype : datatype<internal_t> {
   __host__ __device__ type* get() const { return this->m_value; }
 };
 
-// Inputs / outputs have an additional foo method to be able to parse it with libclang.
-#define DEVICE_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
-  struct ARGUMENT_NAME : device_datatype, input_datatype<ARGUMENT_TYPE> { \
-    using input_datatype<ARGUMENT_TYPE>::input_datatype;                  \
-    ARGUMENT_TYPE inline foo() const {}                                   \
+// Inputs / outputs have an additional parameter method to be able to parse it with libclang.
+#define DEVICE_INPUT(ARGUMENT_NAME, ...)                                \
+  struct ARGUMENT_NAME : device_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                  \
+    __VA_ARGS__ inline parameter() const {}                             \
   }
 
-#define DEVICE_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
-  struct ARGUMENT_NAME : device_datatype, output_datatype<ARGUMENT_TYPE> { \
-    using output_datatype<ARGUMENT_TYPE>::output_datatype;                 \
-    ARGUMENT_TYPE inline foo() {}                                          \
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                \
+  struct ARGUMENT_NAME : device_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                 \
+    __VA_ARGS__ inline parameter() {}                                    \
   }
 
-#define HOST_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
-  struct ARGUMENT_NAME : host_datatype, input_datatype<ARGUMENT_TYPE> { \
-    using input_datatype<ARGUMENT_TYPE>::input_datatype;                \
-    ARGUMENT_TYPE inline foo() const {}                                 \
+#define HOST_INPUT(ARGUMENT_NAME, ...)                                \
+  struct ARGUMENT_NAME : host_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                \
+    __VA_ARGS__ inline parameter() const {}                           \
   }
 
-#define HOST_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                        \
-  struct ARGUMENT_NAME : host_datatype, output_datatype<ARGUMENT_TYPE> { \
-    using output_datatype<ARGUMENT_TYPE>::output_datatype;               \
-    ARGUMENT_TYPE inline foo() {}                                        \
+#define HOST_OUTPUT(ARGUMENT_NAME, ...)                                \
+  struct ARGUMENT_NAME : host_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;               \
+    __VA_ARGS__ inline parameter() {}                                  \
   }
 
 // Struct that mimics std::array<uint, 3> and works with CUDA.
@@ -111,11 +111,14 @@ protected:
   t m_value;
 };
 
-#define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DESCRIPTION) \
-  struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {       \
-    constexpr static auto name {NAME};                            \
-    constexpr static auto description {DESCRIPTION};              \
-    using property_datatype<ARGUMENT_TYPE>::property_datatype;    \
+// Properties have an additional property method to be able to parse it with libclang.
+// libclang relies on name and description being 2nd and 3rd arguments of this macro function.
+#define PROPERTY(ARGUMENT_NAME, NAME, DESCRIPTION, ...)        \
+  struct ARGUMENT_NAME : property_datatype<__VA_ARGS__> {      \
+    constexpr static auto name {NAME};                         \
+    constexpr static auto description {DESCRIPTION};           \
+    using property_datatype<ARGUMENT_TYPE>::property_datatype; \
+    ARGUMENT_TYPE inline property() {}                         \
   }
 
 /**
