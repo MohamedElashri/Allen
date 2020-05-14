@@ -50,25 +50,25 @@ struct output_datatype : datatype<internal_t> {
 #define DEVICE_INPUT(ARGUMENT_NAME, ...)                                \
   struct ARGUMENT_NAME : device_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                  \
-    __VA_ARGS__ inline parameter() const {}                             \
+    void inline parameter(__VA_ARGS__) const {}                         \
   }
 
 #define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                \
   struct ARGUMENT_NAME : device_datatype, output_datatype<__VA_ARGS__> { \
     using output_datatype<__VA_ARGS__>::output_datatype;                 \
-    __VA_ARGS__ inline parameter() {}                                    \
+    void inline parameter(__VA_ARGS__) {}                                \
   }
 
 #define HOST_INPUT(ARGUMENT_NAME, ...)                                \
   struct ARGUMENT_NAME : host_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                \
-    __VA_ARGS__ inline parameter() const {}                           \
+    void inline parameter(__VA_ARGS__) const {}                       \
   }
 
 #define HOST_OUTPUT(ARGUMENT_NAME, ...)                                \
   struct ARGUMENT_NAME : host_datatype, output_datatype<__VA_ARGS__> { \
     using output_datatype<__VA_ARGS__>::output_datatype;               \
-    __VA_ARGS__ inline parameter() {}                                  \
+    void inline parameter(__VA_ARGS__) {}                              \
   }
 
 // Struct that mimics std::array<uint, 3> and works with CUDA.
@@ -113,12 +113,19 @@ protected:
 
 // Properties have an additional property method to be able to parse it with libclang.
 // libclang relies on name and description being 2nd and 3rd arguments of this macro function.
-#define PROPERTY(ARGUMENT_NAME, NAME, DESCRIPTION, ...)        \
-  struct ARGUMENT_NAME : property_datatype<__VA_ARGS__> {      \
-    constexpr static auto name {NAME};                         \
-    constexpr static auto description {DESCRIPTION};           \
-    using property_datatype<ARGUMENT_TYPE>::property_datatype; \
-    ARGUMENT_TYPE inline property() {}                         \
+#define NEW_PROPERTY(ARGUMENT_NAME, NAME, DESCRIPTION, ...)  \
+  struct ARGUMENT_NAME : property_datatype<__VA_ARGS__> {    \
+    constexpr static auto name {NAME};                       \
+    constexpr static auto description {DESCRIPTION};         \
+    using property_datatype<__VA_ARGS__>::property_datatype; \
+    void inline property(__VA_ARGS__) {}                     \
+  }
+
+#define PROPERTY(ARGUMENT_NAME, TYPE, NAME, DESCRIPTION) \
+  struct ARGUMENT_NAME : property_datatype<TYPE> {       \
+    constexpr static auto name {NAME};                   \
+    constexpr static auto description {DESCRIPTION};     \
+    using property_datatype<TYPE>::property_datatype;    \
   }
 
 /**

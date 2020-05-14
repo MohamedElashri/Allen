@@ -6,20 +6,20 @@
 #include "HostAlgorithm.cuh"
 
 namespace host_global_event_cut {
-  struct Parameters {
-    HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>) ut_banks;
-    HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>) ut_offsets;
-    HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
-    HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
-    HOST_OUTPUT(host_total_number_of_events_t, uint);
-    HOST_OUTPUT(host_event_list_t, uint) host_event_list;
-    HOST_OUTPUT(host_number_of_selected_events_t, uint) host_number_of_selected_events;
-    DEVICE_OUTPUT(dev_event_list_t, uint);
-    PROPERTY(min_scifi_ut_clusters_t, uint, "min_scifi_ut_clusters", "minimum number of scifi + ut clusters")
-    min_scifi_ut_clusters;
-    PROPERTY(max_scifi_ut_clusters_t, uint, "max_scifi_ut_clusters", "maximum number of scifi + ut clusters")
-    max_scifi_ut_clusters;
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>), ut_banks),
+    (HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>), ut_offsets),
+    (HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>), scifi_banks),
+    (HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>), scifi_offsets),
+    (HOST_OUTPUT(host_total_number_of_events_t, uint), host_total_number_of_events),
+    (HOST_OUTPUT(host_event_list_t, uint), host_event_list),
+    (HOST_OUTPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (DEVICE_OUTPUT(dev_event_list_t, uint), dev_event_list),
+    (NEW_PROPERTY(min_scifi_ut_clusters_t, "min_scifi_ut_clusters", "minimum number of scifi + ut clusters", uint),
+     min_scifi_ut_clusters),
+    (NEW_PROPERTY(max_scifi_ut_clusters_t, "max_scifi_ut_clusters", "maximum number of scifi + ut clusters", uint),
+     max_scifi_ut_clusters))
 
   // Function
   void host_global_event_cut(uint number_of_events, Parameters parameters);
@@ -29,8 +29,6 @@ namespace host_global_event_cut {
   // Algorithm
   template<typename T>
   struct host_global_event_cut_t : public HostAlgorithm, Parameters {
-
-
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
@@ -66,14 +64,15 @@ namespace host_global_event_cut {
       }
 
       // Parameters for the function call
-      const auto parameters = Parameters {data<host_ut_raw_banks_t>(arguments),
-                                          data<host_ut_raw_offsets_t>(arguments),
-                                          data<host_scifi_raw_banks_t>(arguments),
-                                          data<host_scifi_raw_offsets_t>(arguments),
-                                          data<host_event_list_t>(arguments),
-                                          data<host_number_of_selected_events_t>(arguments),
-                                          property<min_scifi_ut_clusters_t>(),
-                                          property<max_scifi_ut_clusters_t>()};
+      const auto parameters = Parameters {
+        data<host_ut_raw_banks_t>(arguments),
+        data<host_ut_raw_offsets_t>(arguments),
+        data<host_scifi_raw_banks_t>(arguments),
+        data<host_scifi_raw_offsets_t>(arguments),
+        data<host_event_list_t>(arguments),
+        data<host_number_of_selected_events_t>(arguments),
+        property<min_scifi_ut_clusters_t>(),
+        property<max_scifi_ut_clusters_t>()};
 
       // Select the function to run, MEP or Allen layout
       using function_t = decltype(host_function(host_global_event_cut));

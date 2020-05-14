@@ -5,17 +5,15 @@
 #include <gsl/gsl>
 
 namespace data_provider {
-  struct Parameters {
-    DEVICE_OUTPUT(dev_raw_banks_t, char) dev_raw_banks;
-    DEVICE_OUTPUT(dev_raw_offsets_t, uint) dev_raw_offsets;
-    PROPERTY(raw_bank_type_t, BankTypes, "bank_type", "type of raw bank to provide");
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (DEVICE_OUTPUT(dev_raw_banks_t, char), dev_raw_banks),
+    (DEVICE_OUTPUT(dev_raw_offsets_t, uint), dev_raw_offsets),
+    (NEW_PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes), prop_raw_bank_type))
 
   // Algorithm
   template<typename T>
   struct data_provider_t : public HostAlgorithm, Parameters {
-
-
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,

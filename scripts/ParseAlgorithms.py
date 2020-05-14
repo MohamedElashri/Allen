@@ -63,8 +63,7 @@ class Parser():
     def parse_all(algorithm_parser=AlgorithmTraversal(),
                   line_parser=LineTraversal()):
         """Parses all files and traverses algorithm and line definitions."""
-        # all_filenames = Parser.get_all_filenames()
-        all_filenames = ["../device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"]
+        all_filenames = Parser.get_all_filenames()
         algorithms = []
         lines = []
         for filename in all_filenames:
@@ -75,7 +74,7 @@ class Parser():
                     has_algorithm = Parser.__algorithm_pattern_compiled.search(
                         s)
                     if has_algorithm:
-                        parsed_algorithms = algorithm_parser.traverse(filename)
+                        parsed_algorithms = algorithm_parser.traverse(filename, prefix_project_folder)
                         if parsed_algorithms:
                             algorithms += parsed_algorithms
                     # Invoke the libTooling line parser only if we find the line pattern

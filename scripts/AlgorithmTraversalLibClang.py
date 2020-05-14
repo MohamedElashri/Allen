@@ -94,9 +94,9 @@ class AlgorithmTraversal():
 
     # Arguments to pass to compiler, as function of file extension.
     __compile_flags = {
-        "cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++", "-I../stream/gear/include"],
-        "hpp": ["-std=c++17", "-I../stream/gear/include"],
-        "h": ["-std=c++17", "-I../stream/gear/include"]
+        "cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"],
+        "hpp": ["-std=c++17"],
+        "h": ["-std=c++17"]
     }
 
     # Clang index
@@ -148,7 +148,7 @@ class AlgorithmTraversal():
             # - Host / Device is now visible as a child class.
             # - There is a function (parameter) which captures:
             #   * f.is_const_method(): Input / Output
-            #   * f.type.spelling: The type (restricted to POD types, others decay to int)
+            #   * f.type.spelling: The type (restricted to POD types)
             kind = None
             io = None
             typedef = None
@@ -157,17 +157,22 @@ class AlgorithmTraversal():
                     kind = child.type.spelling
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
-                    # child.type.spelling is like "uint () const", or "uint ()"
-                    typedef = child.type.spelling[:child.type.spelling.find(" ()")]
+                    # child.type.spelling is like "void (uint) const", or "void (uint)"
+                    typedef = child.type.spelling[child.type.spelling.find("(") + 1:child.type.spelling.find(")")]
+            if typedef == "":
+                # This happens if the type cannot be parsed
+                typedef = "unknown_t"
             if kind and typedef and io != None:
                 return ("Parameter", typename, kind, io, typedef)
         elif is_property:
             # - There is a function (property) which captures:
-            #   * f.type.spelling: The type (restricted to POD types, others decay to int)
+            #   * f.type.spelling: The type (restricted to POD types)
             typedef = None
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_METHOD:
-                    typedef = child.type.spelling[:child.type.spelling.find(" ()")]
+                    typedef = child.type.spelling[child.type.spelling.find("(") + 1:child.type.spelling.find(")")]
+            if typedef == "":
+                typedef = "unknown_t"
             # Unfortunately, for properties we need to rely on tokens found in the
             # namespace to get the literals.
             name = AlgorithmTraversal.__properties[typename]["name"]
@@ -226,33 +231,39 @@ class AlgorithmTraversal():
         (eg. https://stackoverflow.com/questions/25520945/how-to-retrieve-function-call-argument-values-using-libclang),
         the list of tokens needs to be parsed to find the default names and descriptions of properties.
         """
-        ts = [a.spelling for a in c.get_tokens()]
-        last_found = -1
-        while True:
-            try:
-                last_found = ts.index("PROPERTY", last_found + 1)
-                typename = ts[last_found + 2]
-                name = ts[last_found + 4]
-                description = ts[last_found + 6]
-                AlgorithmTraversal.__properties[typename] = {"name": name, "description": description}
-            except ValueError:
-                break
         if c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in AlgorithmTraversal.__ignored_namespaces and \
             c.location.file.name == filename:
-            return (c.kind, c.spelling,
-                    AlgorithmTraversal.traverse_children(
-                        c, AlgorithmTraversal.algorithm))
+            ts = [a.spelling for a in c.get_tokens()]
+            # Check if it is a "new algorithm":
+            try:
+                ts.index("DEFINE_PARAMETERS")
+                last_found = -1
+                while True:
+                    try:
+                        last_found = ts.index("NEW_PROPERTY", last_found + 1)
+                        typename = ts[last_found + 2]
+                        name = ts[last_found + 4]
+                        description = ts[last_found + 6]
+                        AlgorithmTraversal.__properties[typename] = {"name": name, "description": description}
+                    except ValueError:
+                        break
+                return (c.kind, c.spelling,
+                        AlgorithmTraversal.traverse_children(
+                            c, AlgorithmTraversal.algorithm))
+            except:
+                return None
         else:
             return None
 
     @staticmethod
-    def traverse(filename):
+    def traverse(filename, project_location="../"):
         """Opens the file with libClang, parses it and find algorithms.
         Returns a list of ParsedAlgorithms."""
         AlgorithmTraversal.__properties = {}
         extension = filename.split(".")[-1]
         try:
             clang_args = AlgorithmTraversal.__compile_flags[extension]
+            clang_args.append("-I" + project_location + "/stream/gear/include")
             tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
             if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
                 return make_parsed_algorithms(
