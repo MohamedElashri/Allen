@@ -6,36 +6,36 @@ def VeloSequence(doGEC = True):
         name = "host_ut_banks",
         bank_type = "UT")
 
-    # host_scifi_banks = host_data_provider_t(
-    #     name = "host_scifi_banks",
-    #     bank_type = "FTCluster")
+    host_scifi_banks = host_data_provider_t(
+        name = "host_scifi_banks",
+        bank_type = "FTCluster")
 
-    # initialize_lists = None
-    # if doGEC:
-    #     initialize_lists = host_global_event_cut_t(
-    #         name = "initialize_lists",
-    #         host_ut_raw_banks_t = host_ut_banks.host_raw_banks_t(),
-    #         host_ut_raw_offsets_t = host_ut_banks.host_raw_offsets_t(),
-    #         host_scifi_raw_banks_t = host_scifi_banks.host_raw_banks_t(),
-    #         host_scifi_raw_offsets_t = host_scifi_banks.host_raw_offsets_t())
-    # else:
-    #     initialize_lists = host_init_event_list_t(
-    #         name = "initialize_lists",
-    #         host_ut_raw_banks_t = host_ut_banks.host_raw_banks_t(),
-    #         host_ut_raw_offsets_t = host_ut_banks.host_raw_offsets_t(),
-    #         host_scifi_raw_banks_t = host_scifi_banks.host_raw_banks_t(),
-    #         host_scifi_raw_offsets_t = host_scifi_banks.host_raw_offsets_t())
+    initialize_lists = None
+    if doGEC:
+        initialize_lists = host_global_event_cut_t(
+            name = "initialize_lists",
+            host_ut_raw_banks_t = host_ut_banks.host_raw_banks_t(),
+            host_ut_raw_offsets_t = host_ut_banks.host_raw_offsets_t(),
+            host_scifi_raw_banks_t = host_scifi_banks.host_raw_banks_t(),
+            host_scifi_raw_offsets_t = host_scifi_banks.host_raw_offsets_t())
+    else:
+        initialize_lists = host_init_event_list_t(
+            name = "initialize_lists",
+            host_ut_raw_banks_t = host_ut_banks.host_raw_banks_t(),
+            host_ut_raw_offsets_t = host_ut_banks.host_raw_offsets_t(),
+            host_scifi_raw_banks_t = host_scifi_banks.host_raw_banks_t(),
+            host_scifi_raw_offsets_t = host_scifi_banks.host_raw_offsets_t())
 
-    # velo_banks = data_provider_t(
-    #     name = "velo_banks",
-    #     bank_type = "VP")
+    velo_banks = data_provider_t(
+        name = "velo_banks",
+        bank_type = "VP")
 
-    # velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
-    #     name = "velo_calculate_number_of_candidates",
-    #     host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
-    #     dev_event_list_t = initialize_lists.dev_event_list_t(),
-    #     dev_velo_raw_input_t = velo_banks.dev_raw_banks_t(),
-    #     dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t())
+    velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
+        name = "velo_calculate_number_of_candidates",
+        host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
+        dev_event_list_t = initialize_lists.dev_event_list_t(),
+        dev_velo_raw_input_t = velo_banks.dev_raw_banks_t(),
+        dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t())
 
     # prefix_sum_offsets_velo_candidates = host_prefix_sum_t(
     #     name = "prefix_sum_offsets_velo_candidates",
@@ -127,9 +127,9 @@ def VeloSequence(doGEC = True):
     #     dev_three_hit_tracks_output_t = velo_three_hit_tracks_filter.dev_three_hit_tracks_output_t(),
     #     dev_offsets_number_of_three_hit_tracks_filtered_t = prefix_sum_offsets_number_of_three_hit_tracks_filtered.dev_output_buffer_t())
 
-    velo_sequence = Sequence(host_ut_banks)
-        # , host_scifi_banks, initialize_lists,
-        # velo_banks, velo_calculate_number_of_candidates)
+    velo_sequence = Sequence(
+        host_ut_banks, host_scifi_banks, initialize_lists,
+        velo_banks, velo_calculate_number_of_candidates)
         # prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
         # prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
         # velo_calculate_phi_and_sort, velo_search_by_triplet,

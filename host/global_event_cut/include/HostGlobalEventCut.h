@@ -69,8 +69,10 @@ namespace host_global_event_cut {
         data<host_ut_raw_offsets_t>(arguments),
         data<host_scifi_raw_banks_t>(arguments),
         data<host_scifi_raw_offsets_t>(arguments),
+        data<host_total_number_of_events_t>(arguments),
         data<host_event_list_t>(arguments),
         data<host_number_of_selected_events_t>(arguments),
+        data<dev_event_list_t>(arguments),
         property<min_scifi_ut_clusters_t>(),
         property<max_scifi_ut_clusters_t>()};
 

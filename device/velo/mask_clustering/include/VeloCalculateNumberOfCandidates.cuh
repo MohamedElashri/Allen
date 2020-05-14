@@ -29,6 +29,17 @@ namespace velo_calculate_number_of_candidates {
       const Constants&,
       const HostBuffers&) const
     {
+
+      // constexpr size_t tupleSize = decltype(
+      //   boost::hana::size_c<parameter_hanatuple>
+      // )::value;
+
+      using parameter_tuple = decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<Parameters>())));
+      printf("Size: %i\n", std::tuple_size<parameter_tuple>());
+
+      typename std::tuple_element<5, parameter_tuple>::type a = 2;
+      printf("Test: %i\n", a);
+      
       if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << "\n";
       }
@@ -50,10 +61,12 @@ namespace velo_calculate_number_of_candidates {
 
       // Invoke kernel
       const auto parameters = Parameters {
+        data<host_number_of_selected_events_t>(arguments),
         data<dev_event_list_t>(arguments),
         data<dev_velo_raw_input_t>(arguments),
         data<dev_velo_raw_input_offsets_t>(arguments),
-        data<dev_number_of_candidates_t>(arguments)};
+        data<dev_number_of_candidates_t>(arguments),
+        property<block_dim_x_t>()};
 
       using function_t = decltype(global_function(velo_calculate_number_of_candidates));
       function_t function = runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_mep) :

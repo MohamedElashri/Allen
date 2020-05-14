@@ -110,7 +110,7 @@ def compatible_parameter_assignment(a, b):
 
 
 def check_input_parameter(parameter, assign_class, typename):
-    assert compatible_parameter_assignment(parameter.__class__, assign_class)
+    assert compatible_parameter_assignment(type(parameter), assign_class)
     assert parameter.type() == Type(typename)
     return assign_class(parameter.name(), parameter.type(), parameter.producer())
 

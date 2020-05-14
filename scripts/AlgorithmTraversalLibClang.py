@@ -161,7 +161,7 @@ class AlgorithmTraversal():
                     typedef = child.type.spelling[child.type.spelling.find("(") + 1:child.type.spelling.find(")")]
             if typedef == "":
                 # This happens if the type cannot be parsed
-                typedef = "unknown_t"
+                typedef = "int"
             if kind and typedef and io != None:
                 return ("Parameter", typename, kind, io, typedef)
         elif is_property:
@@ -172,7 +172,7 @@ class AlgorithmTraversal():
                 if child.kind == cindex.CursorKind.CXX_METHOD:
                     typedef = child.type.spelling[child.type.spelling.find("(") + 1:child.type.spelling.find(")")]
             if typedef == "":
-                typedef = "unknown_t"
+                typedef = "int"
             # Unfortunately, for properties we need to rely on tokens found in the
             # namespace to get the literals.
             name = AlgorithmTraversal.__properties[typename]["name"]

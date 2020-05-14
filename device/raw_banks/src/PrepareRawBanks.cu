@@ -168,7 +168,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;
     uint n_decisions = 0;
-    for (uint i_line = 0; i_line < n_hlt1_lines; i_line++) {
+    for (int i_line = 0; i_line < n_hlt1_lines; i_line++) {
       HltDecReport dec_report;
       dec_report.setDecision(false);
       // TODO: These are all placeholder values for now.

@@ -1,8 +1,21 @@
 #pragma once
 
 #include <tuple>
-#include <boost/hana/define_struct.hpp>
+
+#ifdef __CUDACC__
+// Avoid the "expression has no effect" warnings from the hana library
+// when compiling with nvcc.
+#pragma push
+#pragma diag_suppress = expr_has_no_effect
+#endif
+
 #include <boost/hana/members.hpp>
+#include <boost/hana/define_struct.hpp>
+#include <boost/hana/ext/std/tuple.hpp>
+
+#ifdef __CUDACC__
+#pragma pop
+#endif
 
 // Define uint for libclang
 using uint = unsigned int;
