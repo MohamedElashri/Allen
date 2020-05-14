@@ -24,6 +24,7 @@ include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB selections_src "Hlt1/src/*cu")
 

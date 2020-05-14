@@ -21,8 +21,8 @@ namespace host_data_provider {
       const Constants&,
       const HostBuffers&) const
     {
-      using parameter_hanatuple = decltype(boost::hana::members(std::declval<Parameters>()));
-      std::cout << "Size: " << boost::hana::size_c<parameter_hanatuple> << "\n";
+      // using parameter_hanatuple = decltype(boost::hana::members(std::declval<Parameters>()));
+      // std::cout << "Size: " << boost::hana::size_c<parameter_hanatuple> << "\n";
       
       auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
       // A number of spans for the blocks equal to the number of blocks

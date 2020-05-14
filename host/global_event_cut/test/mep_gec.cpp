@@ -146,6 +146,8 @@ int main(int argc, char* argv[])
     auto ut_banks = slice_to_banks(0, BankTypes::UT);
     auto scifi_banks = slice_to_banks(0, BankTypes::FT);
 
+    vector<uint> host_total_number_of_events(interval, 0);
+    vector<uint> host_event_list(interval, 0);
     vector<uint> event_list(interval, 0);
     uint number_of_selected_events = 0;
 
@@ -153,6 +155,8 @@ int main(int argc, char* argv[])
                                             &std::get<2>(ut_banks),
                                             std::get<0>(scifi_banks).data(),
                                             &std::get<2>(scifi_banks),
+                                            host_total_number_of_events.data(),
+                                            host_event_list.data(),
                                             &number_of_selected_events,
                                             event_list.data(),
                                             0,

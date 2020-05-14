@@ -16,6 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/host/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 allen_add_device_library(PV_beamline STATIC
   ${blPV})

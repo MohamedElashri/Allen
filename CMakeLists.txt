@@ -520,6 +520,8 @@ endif()
 
 set(EXTERNAL_DIR "external")
 
+find_package(Boost REQUIRED)
+
 add_subdirectory(device)
 add_subdirectory(stream)
 add_subdirectory(checker)
@@ -583,6 +585,7 @@ include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
 include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 #Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")

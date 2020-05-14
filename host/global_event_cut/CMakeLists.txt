@@ -72,6 +72,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 allen_add_host_library(HostGEC STATIC
   ${host_gec}
@@ -83,7 +84,8 @@ target_include_directories(mep_gec PUBLIC
   ${CPPGSL_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/stream/gear/include
   ${CMAKE_SOURCE_DIR}/host/global_event_cut/include
-  ${CMAKE_SOURCE_DIR}/main/include)
+  ${CMAKE_SOURCE_DIR}/main/include
+  ${Boost_INCLUDE_DIRS})
 
 target_link_libraries(mep_gec PUBLIC Common mdf HostGEC
   ${MPI_CXX_LIBRARIES})

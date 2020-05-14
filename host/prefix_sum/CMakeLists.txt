@@ -73,6 +73,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 allen_add_host_library(HostPrefixSum STATIC
   ${host_prefix_sum}

@@ -20,6 +20,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/muon/decoding/include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
 

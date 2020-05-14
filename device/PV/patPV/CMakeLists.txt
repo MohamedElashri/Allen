@@ -14,6 +14,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB pat_pv "src/*cu")
 

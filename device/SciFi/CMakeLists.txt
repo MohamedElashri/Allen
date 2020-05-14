@@ -26,6 +26,7 @@ include_directories(preprocessing/include)
 include_directories(looking_forward/include)
 include_directories(consolidate/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 allen_add_device_library(SciFi STATIC
   ${scifi_preprocessing}

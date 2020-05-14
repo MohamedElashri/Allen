@@ -21,6 +21,7 @@ include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB raw_banks_src "src/*cu")
 
