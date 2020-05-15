@@ -25,10 +25,7 @@
 #include <Event/RawBank.h>
 #include <eb_header.hpp>
 #include "TransposeTypes.h"
-
-#ifndef NO_CUDA
 #include <CudaCommon.h>
-#endif
 
 namespace {
   using namespace Allen::Units;

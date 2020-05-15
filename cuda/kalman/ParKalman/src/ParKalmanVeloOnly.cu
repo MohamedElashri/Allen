@@ -30,10 +30,10 @@ __device__ void simplified_step(
   KalmanFloat predcovTxTx = covTxTx;
 
   // Add noise.
-  const KalmanFloat par1 = scatterSensorParameters[0];
-  const KalmanFloat par2 = scatterSensorParameters[1];
-  const KalmanFloat par6 = scatterSensorParameters[2];
-  const KalmanFloat par7 = scatterSensorParameters[3];
+  const KalmanFloat par1 = scatterSensorParameters_0;
+  const KalmanFloat par2 = scatterSensorParameters_1;
+  const KalmanFloat par6 = scatterSensorParameters_2;
+  const KalmanFloat par7 = scatterSensorParameters_3;
   const KalmanFloat sigTx = par1 * ((KalmanFloat) 1e-5) + par2 * fabsf(qop);
   const KalmanFloat sigX = par6 * sigTx * fabsf(dz);
   const KalmanFloat corr = par7;
@@ -232,7 +232,7 @@ __device__ void propagate_to_beamline(FittedTrack& track)
   // Add RF foil scattering.
   const KalmanFloat qop = track.state[4];
   const KalmanFloat scat2RFFoil =
-    scatterFoilParameters[0] * (1.f + scatterFoilParameters[1] * t2) * qop * qop;
+    scatterFoilParameters_0 * (1.f + scatterFoilParameters_1 * t2) * qop * qop;
   track.cov(2, 2) += scat2RFFoil;
   track.cov(3, 3) += scat2RFFoil;
 

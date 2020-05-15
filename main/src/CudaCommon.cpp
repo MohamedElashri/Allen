@@ -1,6 +1,6 @@
 #include "CudaCommon.h"
 
-#ifdef CPU
+#ifdef TARGET_DEVICE_CPU
 
 #include <cstring>
 #include "stdlib.h"
@@ -90,5 +90,9 @@ unsigned int atomicInc(unsigned int* address, unsigned int val)
 namespace Configuration {
   uint verbosity_level;
 }
+
+cudaError_t cudaHostUnregister(void*) { return 0; }
+
+cudaError_t cudaHostRegister(void*, size_t, unsigned int) { return 0; }
 
 #endif

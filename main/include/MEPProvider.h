@@ -26,17 +26,10 @@
 #include <read_mep.hpp>
 #include <Event/RawBank.h>
 #include <write_mdf.hpp>
-
+#include <CudaCommon.h>
+#include <MEPTools.h>
 #include "Transpose.h"
 #include "TransposeMEP.h"
-
-#ifndef CPU
-#define CPU
-#include <MEPTools.h>
-#undef CPU
-#else
-#include <MEPTools.h>
-#endif
 
 #ifdef HAVE_MPI
 #include "MPIConfig.h"
@@ -44,10 +37,6 @@
 
 #ifdef HAVE_HWLOC
 #include <hwloc.h>
-#endif
-
-#ifndef NO_CUDA
-#include <CudaCommon.h>
 #endif
 
 namespace {
@@ -207,9 +196,7 @@ public:
 
 #ifdef HAVE_MPI
     for (auto* buf : m_mpi_buffers) {
-#if !defined(NO_CUDA) && !defined(CPU)
       cudaCheck(cudaHostUnregister(buf));
-#endif
       MPI_Free_mem(buf);
     }
 #ifdef HAVE_HWLOC
@@ -551,9 +538,7 @@ private:
       }
     }
 #endif
-#if !defined(NO_CUDA) && !defined(CPU)
     cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
-#endif
     m_net_slices.emplace_back(
       EB::Header {},
       gsl::span<char const> {contents, static_cast<events_size>(n_bytes)},
@@ -915,10 +900,9 @@ void mpi_read()
     // Reallocate if needed
     if (mep_size > buffer_size) {
       buffer_size = mep_size * bank_size_fudge_factor;
-#if !defined(NO_CUDA) && !defined(CPU)
       // Unregister memory
       cudaCheck(cudaHostUnregister(contents));
-#endif
+
       // Free memory
       MPI_Free_mem(contents);
 
@@ -940,7 +924,6 @@ void mpi_read()
         }
       }
 #endif
-#if !defined(NO_CUDA) && !defined(CPU)
       // Register memory with CUDA
       try {
         cudaCheck(cudaHostRegister(contents, buffer_size, cudaHostRegisterDefault));
@@ -948,7 +931,7 @@ void mpi_read()
         m_read_error = true;
         break;
       }
-#endif
+
       buffer_span = gsl::span {contents, static_cast<events_size>(buffer_size)};
     }
 

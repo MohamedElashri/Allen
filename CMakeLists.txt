@@ -6,10 +6,13 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
-set(CUDA_SEPARABLE_COMPILATION ON)
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
+set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
 
 # ---------------
 # Boolean options
@@ -21,7 +24,6 @@ option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 option(USE_LZMA "build with lzma" OFF)
 option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
-option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 
 # -----------------------
@@ -38,8 +40,13 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debu
 message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # CUDA compute capability
-set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target compute capability")
+set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
 set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75)
+
+# HIP architecture
+# https://llvm.org/docs/AMDGPUUsage.html
+set(HIP_ARCH gfx906 CACHE STRING "HIP target architecture")
+set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 gfx909 gfx1010 gfx1011 gfx1012)
 
 # --------------------
 # Unrestricted options
@@ -76,6 +83,17 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 message(STATUS "Note: Support for CUDACLANG is experimental")
 endif()
 message(STATUS "Allen device target: " ${TARGET_DEVICE})
+
+# Add compile definition for target
+if(TARGET_DEVICE STREQUAL "CPU")
+  add_compile_definitions(TARGET_DEVICE_CPU)
+elseif(TARGET_DEVICE STREQUAL "HIP")
+  add_compile_definitions(TARGET_DEVICE_HIP)
+elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
+  add_compile_definitions(TARGET_DEVICE_CUDACLANG)
+elseif(TARGET_DEVICE STREQUAL "CUDA")
+  add_compile_definitions(TARGET_DEVICE_CUDA)
+endif()
 
 #Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
@@ -131,9 +149,74 @@ macro(allen_project)
   endif()
 endmacro()
 
+# Detect architecture (CUDA, CUDACLANG)
+if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
+#Settings can be overriden by setting OVERRIDE_CUDA_ARCH_FLAG
+  if(DEFINED OVERRIDE_CUDA_ARCH_FLAG AND NOT OVERRIDE_CUDA_ARCH_FLAG STREQUAL "")
+    message(STATUS "Overriding CUDA architecture setting.")
+    set(DEVICE_ARCHITECTURE "${OVERRIDE_CUDA_ARCH_FLAG}")
+  else()
+    set(CUDA_ARCH_LIST)
+  #CUDA_ARCH can be set to MAX
+    if(CUDA_ARCH STREQUAL "MAX")
+      set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
+      set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
+      execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
+      if(CUDA_ARCH STREQUAL "MAX")
+        set(CHECK_ARGS "-l")
+      endif()
+      message(STATUS "Detecting highest CUDA compute capability available...")
+      execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
+        RESULT_VARIABLE CUDA_RETURN_CODE
+        OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
+
+      if(${CUDA_RETURN_CODE} EQUAL 1)
+        message(FATAL_ERROR "${CUDA_ARCH}")
+      else()
+        message(STATUS "Detected architecture: " ${CUDA_ARCH_OUTPUT})
+        list(APPEND CUDA_ARCH_LIST ${CUDA_ARCH_OUTPUT})
+      endif()
+  #CUDA_ARCH can be set to MIN
+    elseif(CUDA_ARCH STREQUAL "MIN")
+      message(STATUS "Setting lowest CUDA compute capability:")
+      list(APPEND CUDA_ARCH_LIST 53)
+  #By default, compile for compatibility
+    elseif(CUDA_ARCH STREQUAL "COMPATIBILITY")
+  #Compatibility arch flag.
+  #* These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
+  #* All other 3.X, 5.X and 6.X architectures are supported through their respective
+  #major number builds, specifics of those architectures are not used.
+  #* Forward compatibility with newer devices is also supported by generating PTX from 7.5
+  #(- gencode = arch = compute_75, compute = compute_75)
+      message(STATUS "Setting compute capability to COMPATIBILITY:")
+      foreach(arch 53 60 70 75)
+        list(APPEND CUDA_ARCH_LIST ${arch})
+      endforeach()
+  #Finally, compile for the specified architecture
+    else()
+      message(STATUS "Setting architecture " ${CUDA_ARCH})
+      list(APPEND CUDA_ARCH_LIST ${CUDA_ARCH})
+    endif()
+
+    set(DEVICE_ARCHITECTURE "")
+    if(TARGET_DEVICE STREQUAL "CUDA")
+      foreach(arch ${CUDA_ARCH_LIST})
+        string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_${arch},code=sm_${arch}")
+      endforeach()
+      if(CUDA_ARCH STREQUAL "COMPATIBILITY")
+        string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_75,code=compute_75")
+      endif()
+    elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
+      foreach(arch ${CUDA_ARCH_LIST})
+        string(APPEND DEVICE_ARCHITECTURE " --cuda-gpu-arch=sm_${arch}")
+      endforeach()
+    endif()
+  endif()
+  message(STATUS "Device architecture set to ${DEVICE_ARCHITECTURE}")
+endif()
+
 #Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
-  add_compile_definitions(CPU)
   allen_project()
 
 #This seems to be needed across compilers
@@ -166,14 +249,12 @@ if(TARGET_DEVICE STREQUAL "CPU")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
+  string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
-    set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
+    string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
-  add_compile_definitions(HIP)
-
 #Setup HIPCC compiler
   if(NOT DEFINED HIP_PATH)
     if(NOT DEFINED ENV{HIP_PATH})
@@ -200,12 +281,43 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable HIP_PATH is set.")
   endif()
 
-  set(HIP_SEPARABLE_COMPILATION ON)
+  set(HIP_SEPARABLE_COMPILATION OFF)
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-result")
+#HCC Options(HIPCC compiler)
+#Other warning options : -Wall - Wno - bitwise - op - parentheses - Wno - unused - variable - Wno - logical - op - \parentheses
+  if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+    set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
+  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
+  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+#Note : HIP does not support asserts for now
+    message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
+    set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
+  else()
+    message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
+  endif()
+
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
+
+  function(allen_add_host_library)
+    add_library(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+  endfunction()
+
+#Define allen_add_device_library and allen_add_executable HIP specializations
+  function(allen_add_device_library)
+    hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
+  endfunction()
+
+  function(allen_add_executable)
+    hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+  endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
-  add_compile_definitions(TARGET_DEVICE_CUDACLANG)
-
   allen_project()
 
   function(allen_add_host_library)
@@ -224,7 +336,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
-    target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} -pthread --cuda-gpu-arch=sm_75 -fcuda-rdc --no-cuda-include-ptx=all)
+    target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} -pthread ${DEVICE_ARCHITECTURE})
   endfunction()
 
   function(allen_add_executable)
@@ -233,60 +345,61 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
-#Workaround 1 / 2 for shared cuda runtime
-  set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
-  if(CMAKE_CUDA_FLAGS)
-	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
-  endif()
-  string(APPEND CMAKE_CUDA_FLAGS "-cudart shared --shared --compiler-options -fPIC")
-
   allen_project()
   enable_language(CUDA)
 
-#Workaround 2 / 2 for shared cuda runtime
-  if(CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
-	list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
+  set(CMAKE_CUDA_STANDARD 14)
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_DEBUG "-G -g -DALLEN_DEBUG ")
+  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  
+  option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
+  if (CUDA_VERBOSE_BUILD)
+    set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
+  else()
+    set(CUDA_VERBOSE_FLAGS "")
   endif()
-  if(CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
-	list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
-  endif()
+
+  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} --ftemplate-depth=500 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_host_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
   function(allen_add_device_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
-    set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+      # TODO: Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
+      #       don't link properly. Revisit this and turn off separable compilation once the
+      #       algorithms become non-templated.
+      set_target_properties(${ARGV0} PROPERTIES CUDA_SEPARABLE_COMPILATION ON CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    else()
+      set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    endif()
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
+  string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
-    set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
+    string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-gnu-zero-variadic-macro-arguments")
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments")
 endif()
-
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DALLEN_DEBUG")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 
 #Detect target CPU architecture
 include(TargetArch)
@@ -298,140 +411,20 @@ message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
 #x86 family
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
 #PowerPC family
 #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=${CPU_ARCH}")
+  string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
 #ARM family
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
 #ARM64 family
 #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH} -floop-optimize \
+  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
 -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
-endif()
-
-if(TARGET_DEVICE STREQUAL "CUDA")
-  set(CUDA_SEPARABLE_COMPILATION ON)
-  option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
-  set(CMAKE_CUDA_STANDARD 14)
-
-#Settings can be overriden by setting OVERRIDE_CUDA_ARCH_FLAG
-  if(DEFINED OVERRIDE_CUDA_ARCH_FLAG AND NOT OVERRIDE_CUDA_ARCH_FLAG STREQUAL "")
-    message(STATUS "Overriding CUDA architecture setting.")
-    set(ARCH_FLAG "${OVERRIDE_CUDA_ARCH_FLAG}")
-#CUDA_ARCH can be set to MAX
-  elseif(CUDA_ARCH STREQUAL "MAX")
-    set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
-    set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
-    execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
-    if(CUDA_ARCH STREQUAL "MAX")
-      set(CHECK_ARGS "-l")
-    endif()
-    message(STATUS "Detecting highest CUDA compute capability available...")
-    execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
-      RESULT_VARIABLE CUDA_RETURN_CODE
-      OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
-
-    if(${CUDA_RETURN_CODE} EQUAL 1)
-      message(FATAL_ERROR "${CUDA_ARCH}")
-    else()
-      message(STATUS "Detected architecture: " ${CUDA_ARCH_OUTPUT})
-      set(ARCH_FLAG "-gencode=arch=compute_${CUDA_ARCH_OUTPUT},code=sm_${CUDA_ARCH_OUTPUT}")
-    endif()
-#CUDA_ARCH can be set to MIN
-  elseif(CUDA_ARCH STREQUAL "MIN")
-    message(STATUS "Setting lowest CUDA compute capability:")
-    set(ARCH_FLAG "-gencode=arch=compute_53,code=compute_53")
-#By default, compile for compatibility
-  elseif(CUDA_ARCH STREQUAL "COMPATIBILITY")
-#Compatibility arch flag.
-#* These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
-#* All other 3.X, 5.X and 6.X architectures are supported through their respective
-#major number builds, specifics of those architectures are not used.
-#* Forward compatibility with newer devices is also supported by generating PTX from 7.5
-#(- gencode = arch = compute_75, compute = compute_75)
-    message(STATUS "Setting compute capability to COMPATIBILITY:")
-    foreach(arch 53 60 70 75)
-      set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
-    endforeach()
-    set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")
-    set(ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG}")
-#Finally, compile for the specified architecture
-  else()
-    message(STATUS "Setting architecture " ${CUDA_ARCH})
-    set(ARCH_FLAG "-gencode=arch=compute_${CUDA_ARCH},code=sm_${CUDA_ARCH}")
-  endif()
-  message(STATUS "Cuda architecture set to ${ARCH_FLAG}")
-
-  if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-    set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
-  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
-  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DALLEN_DEBUG ")
-  else()
-    message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
-  endif()
-
-  option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
-  if (CUDA_VERBOSE_BUILD)
-    set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
-  else()
-    set(CUDA_VERBOSE_FLAGS "")
-  endif()
-
-  string(APPEND CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=500 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
-
-elseif(TARGET_DEVICE STREQUAL "HIP")
-#HCC Options(HIPCC compiler)
-#Other warning options : -Wall - Wno - bitwise - op - parentheses - Wno - unused - variable - Wno - logical - op - \parentheses
-  if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-    set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
-  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
-  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-#Note : HIP does not support asserts for now
-    message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
-    set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
-  else()
-    message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
-  endif()
-
-#Other options tested:
-#- hc - hc - function - calls
-#- finline - functions - finline - hint - functions
-#- flto - fwhole - program - vtables
-#- funroll - loops
-#- fstack - protector - strong
-#- fPIC - shared
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
-
-  function(allen_add_host_library)
-    add_library(${ARGV})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
-  endfunction()
-
-#Define allen_add_device_library and allen_add_executable HIP specializations
-  function(allen_add_device_library)
-    hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    set_property(TARGET ${ARGV0} PROPERTY
-      HIP_SEPARABLE_COMPILATION ON)
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
-  endfunction()
-
-  function(allen_add_executable)
-    hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    set_target_properties(${ARGV0}
-         PROPERTIES HIP_SEPARABLE_COMPILATION ON
-                  HIP_RESOLVE_DEVICE_SYMBOLS ON)
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
-  endfunction()
 endif()
 
 find_package(ZLIB REQUIRED)
@@ -606,13 +599,15 @@ endif()
 #common libraries
 allen_add_host_library(Common STATIC ${common_sources})
 
+message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
+
 add_library(allen_fs INTERFACE)
 if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
-  find_package(Boost COMPONENTS filesystem)
+  find_package(Boost COMPONENTS filesystem REQUIRED)
   target_compile_definitions(allen_fs INTERFACE USE_BOOST_FILESYSTEM)
   target_link_libraries(allen_fs INTERFACE Boost::filesystem)
 else()
-  find_package(Filesystem)
+  find_package(Filesystem REQUIRED)
   target_link_libraries(allen_fs INTERFACE std::filesystem)
 endif()
 target_link_libraries(Common mdf allen_fs)

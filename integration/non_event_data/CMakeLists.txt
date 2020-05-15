@@ -31,4 +31,3 @@ target_include_directories(NonEventData PUBLIC
   ${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include
   ${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include/
   ${CMAKE_SOURCE_DIR}/main/include)
-

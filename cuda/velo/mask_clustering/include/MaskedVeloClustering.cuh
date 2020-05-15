@@ -5,6 +5,7 @@
 #include "ClusteringDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
+#include "VeloTools.cuh"
 
 namespace velo_masked_clustering {
   struct Parameters {
@@ -77,7 +78,7 @@ namespace velo_masked_clustering {
           begin<dev_velo_cluster_container_t>(arguments)
         };
 
-        // Selector from layout
+      // Selector from layout
       if (runtime_options.mep_layout) {
         function_mep(dim3(begin<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
           parameters,

@@ -267,9 +267,9 @@ __device__ void compass_ut::save_track(
   // the track will be added
   uint n_tracks = atomicAdd(n_veloUT_tracks, 1u);
 
-  // to do: maybe save y from fit
+  // // to do: maybe save y from fit
   UT::TrackHits track;
-  track.velo_track_index = i_track;
+  track.velo_track_index = static_cast<uint16_t>(i_track);
   track.qop = qop;
   track.x = best_params.x;
   track.z = best_params.z;
@@ -279,11 +279,11 @@ __device__ void compass_ut::save_track(
   // Adding hits to track
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     if (best_hits[i] != -1) {
-      track.hits[i] = best_hits[i] - event_hit_offset;
+      track.hits[i] = static_cast<int16_t>(best_hits[i] - event_hit_offset);
       ++track.hits_num;
     }
     else {
-      track.hits[i] = -1;
+      track.hits[i] = static_cast<int16_t>(-1);
     }
   }
 

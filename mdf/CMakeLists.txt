@@ -65,7 +65,8 @@ if (LZ4_FOUND)
 endif (LZ4_FOUND)
 
 # These tests don't need CUDA
-add_compile_definitions(NO_CUDA)
+remove_definitions(-DTARGET_DEVICE_CUDA)
+add_compile_definitions(TARGET_DEVICE_CPU)
 
 function(test_program)
   cmake_parse_arguments(PARSED_ARGS "" "NAME" "" ${ARGN})
@@ -92,7 +93,7 @@ function(test_program)
 endfunction()
 
 # Build our own common library to avoid circular dependency in Gaudi build
-foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp)
+foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp CudaCommon.cpp)
   list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
 endforeach()
 allen_add_host_library(MdfTestCommon STATIC ${common_sources})
