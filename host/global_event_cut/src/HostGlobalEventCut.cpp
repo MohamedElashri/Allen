@@ -1,5 +1,74 @@
 #include "HostGlobalEventCut.h"
 
+void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
+  ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  const HostBuffers&) const
+{
+  const auto event_start = std::get<0>(runtime_options.event_interval);
+  const auto event_end = std::get<1>(runtime_options.event_interval);
+
+  set_size<host_total_number_of_events_t>(arguments, 1);
+  set_size<host_number_of_selected_events_t>(arguments, 1);
+  set_size<host_event_list_t>(arguments, event_end - event_start);
+  set_size<dev_event_list_t>(arguments, event_end - event_start);
+}
+
+void host_global_event_cut::host_global_event_cut_t::operator()(
+  const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  const auto event_start = std::get<0>(runtime_options.event_interval);
+  const auto event_end = std::get<1>(runtime_options.event_interval);
+  const auto number_of_events = event_end - event_start;
+
+  // Initialize host event list
+  data<host_total_number_of_events_t>(arguments)[0] = number_of_events;
+  data<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
+  for (uint i = 0; i < number_of_events; ++i) {
+    data<host_event_list_t>(arguments)[i] = event_start + i;
+  }
+
+  // Parameters for the function call
+  const auto parameters = Parameters {
+    data<host_ut_raw_banks_t>(arguments),
+    data<host_ut_raw_offsets_t>(arguments),
+    data<host_scifi_raw_banks_t>(arguments),
+    data<host_scifi_raw_offsets_t>(arguments),
+    data<host_total_number_of_events_t>(arguments),
+    data<host_event_list_t>(arguments),
+    data<host_number_of_selected_events_t>(arguments),
+    data<dev_event_list_t>(arguments),
+    property<min_scifi_ut_clusters_t>(),
+    property<max_scifi_ut_clusters_t>()};
+
+  // Select the function to run, MEP or Allen layout
+  using function_t = decltype(host_function(host_global_event_cut));
+  function_t function =
+    runtime_options.mep_layout ? function_t {host_global_event_cut_mep} : function_t {host_global_event_cut};
+
+  // Run the function
+  function(number_of_events, parameters);
+
+  cudaCheck(cudaMemcpyAsync(
+    data<dev_event_list_t>(arguments),
+    data<host_event_list_t>(arguments),
+    size<dev_event_list_t>(arguments),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  // TODO: Remove whenever the checker uses variables
+  host_buffers.host_number_of_selected_events[0] = first<host_number_of_selected_events_t>(arguments);
+  for (uint i = 0; i < number_of_events; ++i) {
+    host_buffers.host_event_list[i] = data<host_event_list_t>(arguments)[i];
+  }
+}
+
 void host_global_event_cut::host_global_event_cut(
   const uint number_of_events,
   host_global_event_cut::Parameters parameters)

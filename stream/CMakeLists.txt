@@ -104,7 +104,8 @@ target_link_libraries(Stream PRIVATE
   HostGEC
   Muon
   Utils
-  Saxpy)
+  Saxpy
+  HostDataProvider)
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})

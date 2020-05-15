@@ -53,12 +53,7 @@ namespace host_init_event_list {
         data<host_event_list_t>(arguments)[i] = i;
       }
 
-      cudaCheck(cudaMemcpyAsync(
-        data<dev_event_list_t>(arguments),
-        data<host_event_list_t>(arguments),
-        size<dev_event_list_t>(arguments),
-        cudaMemcpyHostToDevice,
-        cuda_stream));
+      copy<dev_event_list_t, host_event_list_t>(arguments, cuda_stream);
     }
   };
 } // namespace host_init_event_list

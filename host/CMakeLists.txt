@@ -1,0 +1,4 @@
+add_subdirectory(data_provider)
+add_subdirectory(global_event_cut)
+add_subdirectory(velo/clustering)
+add_subdirectory(prefix_sum)

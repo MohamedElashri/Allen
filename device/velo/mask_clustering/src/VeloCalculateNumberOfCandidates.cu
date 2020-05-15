@@ -1,6 +1,50 @@
 #include <MEPTools.h>
 #include <VeloCalculateNumberOfCandidates.cuh>
 
+void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t::set_arguments_size(
+  ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  // using parameter_tuple = ParameterTuple<Parameters>::t;
+  // printf("Size: %i\n", std::tuple_size<parameter_tuple>());
+
+  if (logger::verbosity() >= logger::debug) {
+    debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << "\n";
+  }
+  set_size<dev_number_of_candidates_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+}
+
+void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t::operator()(
+  const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  // Enough blocks to cover all events
+  const auto grid_size = dim3(
+    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
+    property<block_dim_x_t>());
+
+  // Invoke kernel
+  const auto parameters = Parameters {
+    data<host_number_of_selected_events_t>(arguments),
+    data<dev_event_list_t>(arguments),
+    data<dev_velo_raw_input_t>(arguments),
+    data<dev_velo_raw_input_offsets_t>(arguments),
+    data<dev_number_of_candidates_t>(arguments),
+    property<block_dim_x_t>()};
+
+  using function_t = decltype(global_function(velo_calculate_number_of_candidates));
+  function_t function = runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_mep) :
+                                                     global_function(velo_calculate_number_of_candidates);
+  function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    parameters, first<host_number_of_selected_events_t>(arguments));
+}
+
 __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates(
   velo_calculate_number_of_candidates::Parameters parameters,
   const uint number_of_events)
