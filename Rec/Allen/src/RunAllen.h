@@ -19,6 +19,7 @@
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
+#include <Event/HltDecReports.h>
 
 // Rec includes
 #include "Event/Track.h"
@@ -39,7 +40,7 @@
 #include "Logger.h"
 #include "TESProvider.h"
 
-class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
+class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers, LHCb::HltDecReports>(
                          const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
                          const LHCb::ODIN& odin)> {
 public:
@@ -50,7 +51,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::tuple<bool, HostBuffers> operator()(
+  std::tuple<bool, HostBuffers, LHCb::HltDecReports> operator()(
     const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
