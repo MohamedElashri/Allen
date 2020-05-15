@@ -142,6 +142,7 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
         Sch::RunSequenceTuple<
           scheduler_t,
           configured_sequence_t,
+          configured_sequence_arguments_t,
           std::tuple<const RuntimeOptions&, const Constants&, const HostBuffers&>,
           std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, cudaStream_t&, cudaEvent_t&>>::
           run(

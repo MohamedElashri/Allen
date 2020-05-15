@@ -6,14 +6,14 @@
 #include "Logger.h"
 #include <utility>
 
-template<typename ConfiguredSequence>
+template<typename ConfiguredSequence, typename ConfiguredArguments, typename ConfiguredSequenceArguments>
 struct Scheduler {
   // Dependencies calculated at compile time
   // Determines what to free (out_deps) and reserve (in_deps)
   // at every iteration.
-  using in_deps_t = typename Sch::InDependencies<ConfiguredSequence>::t;
-  using out_deps_t = typename Sch::OutDependencies<ConfiguredSequence>::t;
-  using arguments_tuple_t = typename Sch::ArgumentsTuple<in_deps_t>::t;
+  using in_deps_t = typename Sch::InDependencies<ConfiguredSequenceArguments>::t;
+  using out_deps_t = typename Sch::OutDependencies<ConfiguredSequenceArguments>::t;
+  using arguments_tuple_t = ConfiguredArguments;
   using argument_manager_t = ArgumentManager<arguments_tuple_t>;
 
   MemoryManager device_memory_manager;
@@ -68,21 +68,14 @@ struct Scheduler {
     //
     // in_deps and out_deps should be in order
     // and index I should contain algorithm type T
-    using in_deps_I_t = typename std::tuple_element<I, in_deps_t>::type;
-    using out_deps_I_t = typename std::tuple_element<I, out_deps_t>::type;
-    using in_algorithm = typename in_deps_I_t::Algorithm;
-    using in_arguments = typename in_deps_I_t::Arguments;
-    using out_algorithm = typename out_deps_I_t::Algorithm;
-    using out_arguments = typename out_deps_I_t::Arguments;
-
-    static_assert(std::is_same<T, in_algorithm>::value, "Scheduler index mismatch (in_algorithm)");
-    static_assert(std::is_same<T, out_algorithm>::value, "Scheduler index mismatch (out_algorithm)");
-
+    using in_arguments_t = typename std::tuple_element<I, in_deps_t>::type;
+    using out_arguments_t = typename std::tuple_element<I, out_deps_t>::type;
+    
     // Free all arguments in OutDependencies
-    MemoryManagerFree<argument_manager_t, out_arguments>::free(device_memory_manager, host_memory_manager, argument_manager);
+    MemoryManagerFree<argument_manager_t, out_arguments_t>::free(device_memory_manager, host_memory_manager, argument_manager);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerReserve<argument_manager_t, in_arguments>::reserve(device_memory_manager, host_memory_manager, argument_manager);
+    MemoryManagerReserve<argument_manager_t, in_arguments_t>::reserve(device_memory_manager, host_memory_manager, argument_manager);
 
     // Print memory manager state
     if (do_print) {

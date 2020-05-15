@@ -28,17 +28,9 @@ namespace velo_calculate_number_of_candidates {
       const Constants&,
       const HostBuffers&) const
     {
+      // using parameter_tuple = ParameterTuple<Parameters>::t;
+      // printf("Size: %i\n", std::tuple_size<parameter_tuple>());
 
-      // constexpr size_t tupleSize = decltype(
-      //   boost::hana::size_c<parameter_hanatuple>
-      // )::value;
-
-      using parameter_tuple = ParameterTuple<Parameters>::t;
-      printf("Size: %i\n", std::tuple_size<parameter_tuple>());
-
-      // typename std::tuple_element<5, parameter_tuple>::type a = 2;
-      // printf("Test: %i\n", a);
-      
       if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << "\n";
       }

@@ -54,7 +54,7 @@ struct MemoryManager {
     if (requested_size == 0) {
       warning_cout << "Warning: MemoryManager: Requested to reserve zero bytes for argument " << tag
                    << ". Did you forget to set_size?" << std::endl;
-      requested_size = 8;
+      requested_size = 1;
     }
 
     // Aligned requested size

@@ -71,12 +71,8 @@ struct ArgumentManager {
 /**
  * @brief Manager of argument references for every handler.
  */
-template<typename Arguments>
-struct ArgumentRefManager;
-
-template<typename... Arguments>
-struct ArgumentRefManager<std::tuple<Arguments...>> {
-  using TupleToReferences = std::tuple<Arguments&...>;
+template<typename TupleToReferences>
+struct ArgumentRefManager {
   TupleToReferences m_arguments;
 
   ArgumentRefManager(TupleToReferences arguments) : m_arguments(arguments) {}
@@ -84,26 +80,26 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   template<typename T>
   auto data() const
   {
-    auto pointer = tuple_ref_by_inheritance<T&>(m_arguments).offset();
+    auto pointer = std::get<T&>(m_arguments).offset();
     return reinterpret_cast<typename T::type*>(pointer);
   }
 
   template<typename T>
   size_t size() const
   {
-    return tuple_ref_by_inheritance<T&>(m_arguments).size();
+    return std::get<T&>(m_arguments).size();
   }
 
   template<typename T>
   void set_size(const size_t size)
   {
-    tuple_ref_by_inheritance<T&>(m_arguments).set_size(size * sizeof(typename T::type));
+    std::get<T&>(m_arguments).set_size(size * sizeof(typename T::type));
   }
 
   template<typename T>
   std::string name() const
   {
-    return tuple_ref_by_inheritance<T>(m_arguments).name();
+    return std::get<T&>(m_arguments).name();
   }
 };
 
@@ -119,7 +115,7 @@ struct WrappedTuple<std::tuple<>, void> {
 template<typename T, typename... R>
 struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value>::type> {
   using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
-  using t = typename TupleAppendFirst<T, previous_t>::t;
+  using t = typename TupleAppendFirst<T&, previous_t>::t;
 };
 
 template<typename T, typename... R>

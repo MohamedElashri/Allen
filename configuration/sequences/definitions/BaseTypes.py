@@ -363,9 +363,9 @@ class Sequence():
                         parameters[parameter.fullname()] = [(algorithm.name(),
                                                          algorithm.namespace(),
                                                          parameter_t)]
-            # Generate configuration
-            for paramenter_name, v in iter(parameters.items()):
-                s += "struct " + paramenter_name + " : "
+            # Generate arguments
+            for parameter_name, v in iter(parameters.items()):
+                s += "struct " + parameter_name + " : "
                 inheriting_classes = []
                 for algorithm_name, algorithm_namespace, parameter_t in v:
                     parameter = algorithm_namespace + "::Parameters::" + parameter_t
@@ -377,12 +377,17 @@ class Sequence():
                 s += " { \
 void set_size(size_t size) override { m_size = size; } \
 size_t size() const override { return m_size; } \
-std::string name() const override { return \"" + paramenter_name + "\"; } \
+std::string name() const override { return \"" + parameter_name + "\"; } \
 void set_offset(char* offset) override { m_offset = offset; } \
 char* offset() const override { return m_offset; } \
 private: \
     size_t m_size = 0; \
     char* m_offset = nullptr; };\n"
+            # Generate argument tuple
+            s += "\nusing configured_arguments_t = std::tuple<\n"
+            for parameter_name in parameters.keys():
+                s += prefix(1) + parameter_name + ",\n"
+            s = s[:-2] + ">;\n"
             # Generate sequence
             s += "\nusing configured_sequence_t = std::tuple<\n"
             i_alg = 0
@@ -393,9 +398,23 @@ private: \
                 ) + "::" + algorithm.original_name()
                 i = 0
                 if i_alg != len(self.__sequence):
-                    s += ","
-                s += "\n"
+                    s += ",\n"
             s += ">;\n\n"
+            # Generate argument tuple for each step of the sequence
+            s += "using configured_sequence_arguments_t = std::tuple<\n"
+            for _, algorithm in iter(self.__sequence.items()):
+                s += prefix(1) + "std::tuple<"
+                i = 0
+                for parameter_t, parameter in iter(
+                        algorithm.parameters().items()):
+                    s += parameter.fullname()
+                    i += 1
+                    if i != len(algorithm.parameters()):
+                        s += ", "
+                    else:
+                        s += ">"
+                s += ",\n"
+            s = s[:-2] + ">;\n\n"
             # Generate populate_sequence_algorithm_names function
             s += "void inline populate_sequence_algorithm_names(configured_sequence_t& sequence) {\n"
             i = 0

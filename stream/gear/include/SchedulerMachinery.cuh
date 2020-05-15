@@ -26,99 +26,97 @@ namespace Sch {
   //   Out<c_t, dev_c, dev_b, dev_d>,
   // > output_t;
 
-  // Get the Arguments from the function operator()
+  // Get the ParameterTuple from the function operator()
   template<typename Function>
   struct FunctionTraits;
 
-  template<typename Function, typename FirstArgument, typename... OtherArguments>
-  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<FirstArgument>&, OtherArguments...) const> {
-    using Arguments = FirstArgument;
+  template<typename Function, typename T, typename... OtherArguments>
+  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<T>&, OtherArguments...) const> {
+    using ParameterTuple = T;
   };
 
   template<typename Algorithm>
   struct AlgorithmTraits {
-    using Arguments = typename FunctionTraits<decltype(&Algorithm::operator())>::Arguments;
+    using ParameterTuple = typename FunctionTraits<decltype(&Algorithm::operator())>::ParameterTuple;
   };
 
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
-  template<typename T, typename Algorithms>
-  struct IsInAlgorithmsArguments;
+  template<typename T, typename Arguments>
+  struct IsInAnyArgumentTuple;
 
   template<typename T>
-  struct IsInAlgorithmsArguments<T, std::tuple<>> : std::false_type {
+  struct IsInAnyArgumentTuple<T, std::tuple<>> : std::false_type {
   };
 
-  template<typename T, typename Algorithm, typename... Algorithms>
-  struct IsInAlgorithmsArguments<T, std::tuple<Algorithm, Algorithms...>>
+  template<typename T, typename Arguments, typename... RestOfArguments>
+  struct IsInAnyArgumentTuple<T, std::tuple<Arguments, RestOfArguments...>>
     : std::conditional_t<
-        TupleContains<T, typename AlgorithmTraits<Algorithm>::Arguments>::value,
+        TupleContains<T, Arguments>::value,
         std::true_type,
-        IsInAlgorithmsArguments<T, std::tuple<Algorithms...>>> {
+        IsInAnyArgumentTuple<T, std::tuple<RestOfArguments...>>> {
   };
 
   // A mechanism to only return the arguments in Algorithm
-  // that are not on any of the other Algorithms
-  template<typename Arguments, typename Algorithms>
+  // that are not on any of the other RestOfArguments
+  template<typename Arguments, typename RestOfArguments>
   struct ArgumentsNotIn;
 
-  // If there are no other algorithms, return all the types
-  template<typename... Args>
-  struct ArgumentsNotIn<std::tuple<Args...>, std::tuple<>> {
-    using t = std::tuple<Args...>;
+  // If there are no other RestOfArguments, return all the types
+  template<typename... Arguments>
+  struct ArgumentsNotIn<std::tuple<Arguments...>, std::tuple<>> {
+    using t = std::tuple<Arguments...>;
   };
 
   // Weird case: No dependencies in algo
-  template<typename... Algorithms>
-  struct ArgumentsNotIn<std::tuple<>, std::tuple<Algorithms...>> {
+  template<typename... RestOfArguments>
+  struct ArgumentsNotIn<std::tuple<>, std::tuple<RestOfArguments...>> {
     using t = std::tuple<>;
   };
 
-  template<typename Arg, typename... Args, typename AnotherAlgorithm, typename... Algorithms>
-  struct ArgumentsNotIn<std::tuple<Arg, Args...>, std::tuple<AnotherAlgorithm, Algorithms...>> {
+  template<typename Arg, typename... Args, typename OtherArguments, typename... RestOfArguments>
+  struct ArgumentsNotIn<std::tuple<Arg, Args...>, std::tuple<OtherArguments, RestOfArguments...>> {
     // Types unused from Args...
-    using previous_t = typename ArgumentsNotIn<std::tuple<Args...>, std::tuple<AnotherAlgorithm, Algorithms...>>::t;
+    using previous_t = typename ArgumentsNotIn<std::tuple<Args...>, std::tuple<OtherArguments, RestOfArguments...>>::t;
 
     // We append Arg only if it is _not_ on the previous algorithms
     using t = typename std::conditional_t<
-      IsInAlgorithmsArguments<Arg, std::tuple<AnotherAlgorithm, Algorithms...>>::value,
+      IsInAnyArgumentTuple<Arg, std::tuple<OtherArguments, RestOfArguments...>>::value,
       previous_t,
       typename TupleAppend<previous_t, Arg>::t>;
   };
 
   // Consume the algorithms and put their dependencies one by one
-  template<typename Algorithms>
+  template<typename Arguments>
   struct OutDependenciesImpl;
 
-  template<typename Algorithm>
-  struct OutDependenciesImpl<std::tuple<Algorithm>> {
+  template<typename Arguments>
+  struct OutDependenciesImpl<std::tuple<Arguments>> {
     using t = std::tuple<>;
   };
 
-  template<typename Algorithm, typename NextAlgorithm, typename... Algorithms>
-  struct OutDependenciesImpl<std::tuple<Algorithm, NextAlgorithm, Algorithms...>> {
-    using previous_t = typename OutDependenciesImpl<std::tuple<NextAlgorithm, Algorithms...>>::t;
+  template<typename Arguments, typename NextArguments, typename... RestOfArguments>
+  struct OutDependenciesImpl<std::tuple<Arguments, NextArguments, RestOfArguments...>> {
+    using previous_t = typename OutDependenciesImpl<std::tuple<NextArguments, RestOfArguments...>>::t;
     using t = typename TupleAppend<
       previous_t,
-      ScheduledDependencies<
-        NextAlgorithm,
-        typename ArgumentsNotIn<
-          typename AlgorithmTraits<Algorithm>::Arguments,
-          std::tuple<NextAlgorithm, Algorithms...>>::t>>::t;
+      typename ArgumentsNotIn<
+        Arguments,
+        std::tuple<NextArguments, RestOfArguments...>>::t>::t;
   };
 
   // Helper to calculate OUT dependencies
   template<typename ConfiguredSequence>
   struct OutDependencies;
 
-  template<typename FirstAlgorithmInSequence, typename... RestOfSequence>
-  struct OutDependencies<std::tuple<FirstAlgorithmInSequence, RestOfSequence...>> {
+  template<typename Arguments, typename... RestOfArguments>
+  struct OutDependencies<std::tuple<Arguments, RestOfArguments...>> {
     using t = typename TupleReverse<typename TupleAppend<
-      typename OutDependenciesImpl<typename std::tuple<FirstAlgorithmInSequence, RestOfSequence...>>::t,
-      ScheduledDependencies<FirstAlgorithmInSequence, std::tuple<>>>::t>::t;
+      typename OutDependenciesImpl<typename std::tuple<Arguments, RestOfArguments...>>::t,
+      std::tuple<>>::t>::t;
   };
 
   // Consume the algorithms and put their dependencies one by one
-  template<typename Algorithms>
+  template<typename Arguments>
   struct InDependenciesImpl;
 
   template<>
@@ -126,39 +124,16 @@ namespace Sch {
     using t = std::tuple<>;
   };
 
-  template<typename Algorithm, typename... Algorithms>
-  struct InDependenciesImpl<std::tuple<Algorithm, Algorithms...>> {
-    using previous_t = typename InDependenciesImpl<std::tuple<Algorithms...>>::t;
+  template<typename Arguments, typename... RestOfArguments>
+  struct InDependenciesImpl<std::tuple<Arguments, RestOfArguments...>> {
+    using previous_t = typename InDependenciesImpl<std::tuple<RestOfArguments...>>::t;
     using t = typename TupleAppend<
       previous_t,
-      ScheduledDependencies<
-        Algorithm,
-        typename ArgumentsNotIn<typename AlgorithmTraits<Algorithm>::Arguments, std::tuple<Algorithms...>>::t>>::t;
+      typename ArgumentsNotIn<Arguments, std::tuple<RestOfArguments...>>::t>::t;
   };
 
-  template<typename ConfiguredSequence>
-  using InDependencies = InDependenciesImpl<typename TupleReverse<ConfiguredSequence>::t>;
-
-  // Fetches all arguments from ie. InDependencies into a tuple
-  template<typename in_deps>
-  struct ArgumentsTuple;
-
-  template<>
-  struct ArgumentsTuple<std::tuple<>> {
-    using t = std::tuple<>;
-  };
-
-  template<typename Algorithm, typename... Algorithms>
-  struct ArgumentsTuple<std::tuple<ScheduledDependencies<Algorithm, std::tuple<>>, Algorithms...>> {
-    using t = typename ArgumentsTuple<std::tuple<Algorithms...>>::t;
-  };
-
-  template<typename Algorithm, typename Arg, typename... Args, typename... Algorithms>
-  struct ArgumentsTuple<std::tuple<ScheduledDependencies<Algorithm, std::tuple<Arg, Args...>>, Algorithms...>> {
-    using previous_t =
-      typename ArgumentsTuple<std::tuple<ScheduledDependencies<Algorithm, std::tuple<Args...>>, Algorithms...>>::t;
-    using t = typename TupleAppendFirst<Arg, previous_t>::t;
-  };
+  template<typename ConfiguredArguments>
+  using InDependencies = InDependenciesImpl<typename TupleReverse<ConfiguredArguments>::t>;
 
   // Helper to just print the arguments
   template<typename Arguments>
@@ -314,7 +289,7 @@ namespace Sch {
   struct ProduceSingleArgument {
     constexpr static Argument& produce(ArgumentsTuple& arguments_tuple)
     {
-      Argument& argument = tuple_ref_by_inheritance<Argument>(arguments_tuple);
+      Argument& argument = std::get<Argument>(arguments_tuple);
       return argument;
     }
   };
@@ -337,28 +312,40 @@ namespace Sch {
   /**
    * @brief Produces a single algorithm with references to arguments.
    */
-  template<typename ArgumentsTuple, typename Algorithm>
+  template<typename ArgumentsTuple, typename Algorithm, typename ConfiguredArguments>
   struct ProduceArgumentsTuple {
-    constexpr static ArgumentRefManager<typename AlgorithmTraits<Algorithm>::Arguments> produce(
+    constexpr static ArgumentRefManager<typename AlgorithmTraits<Algorithm>::ParameterTuple> produce(
       ArgumentsTuple& arguments_tuple)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
-        ArgumentRefManager<typename AlgorithmTraits<Algorithm>::Arguments>,
-        typename AlgorithmTraits<Algorithm>::Arguments>::produce(arguments_tuple);
+        ArgumentRefManager<typename AlgorithmTraits<Algorithm>::ParameterTuple>,
+        ConfiguredArguments>::produce(arguments_tuple);
     }
   };
 
   /**
    * @brief Runs the sequence tuple (implementation).
    */
-  template<typename Scheduler, typename Tuple, typename SetSizeArguments, typename VisitArguments, typename Indices>
+  template<
+    typename Scheduler,
+    typename Tuple,
+    typename ConfiguredSequenceArguments,
+    typename SetSizeArguments,
+    typename VisitArguments,
+    typename Indices>
   struct RunSequenceTupleImpl;
 
-  template<typename Scheduler, typename Tuple, typename... SetSizeArguments, typename... VisitArguments>
+  template<
+    typename Scheduler,
+    typename Tuple,
+    typename ConfiguredSequenceArguments,
+    typename... SetSizeArguments,
+    typename... VisitArguments>
   struct RunSequenceTupleImpl<
     Scheduler,
     Tuple,
+    ConfiguredSequenceArguments,
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<>> {
@@ -368,6 +355,7 @@ namespace Sch {
   template<
     typename Scheduler,
     typename Tuple,
+    typename ConfiguredSequenceArguments,
     typename... SetSizeArguments,
     typename... VisitArguments,
     unsigned long I,
@@ -375,6 +363,7 @@ namespace Sch {
   struct RunSequenceTupleImpl<
     Scheduler,
     Tuple,
+    ConfiguredSequenceArguments,
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<I, Is...>> {
@@ -385,23 +374,25 @@ namespace Sch {
       VisitArguments&&... visit_arguments)
     {
       using t = typename std::tuple_element<I, Tuple>::type;
+      using configured_arguments_t = typename std::tuple_element<I, ConfiguredSequenceArguments>::type;
 
       // Sets the arguments sizes, setups the scheduler and visits the algorithm.
       std::get<I>(tuple).set_arguments_size(
-        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
+        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
           scheduler.argument_manager.arguments_tuple),
         std::forward<SetSizeArguments>(set_size_arguments)...);
 
       scheduler.template setup<I, t>();
 
       std::get<I>(tuple).operator()(
-        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
+        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
           scheduler.argument_manager.arguments_tuple),
         std::forward<VisitArguments>(visit_arguments)...);
 
       RunSequenceTupleImpl<
         Scheduler,
         Tuple,
+        ConfiguredSequenceArguments,
         std::tuple<SetSizeArguments...>,
         std::tuple<VisitArguments...>,
         std::index_sequence<Is...>>::
@@ -420,11 +411,26 @@ namespace Sch {
    * @tparam SetSizeArguments Arguments to set_arguments_size
    * @tparam VisitArguments   Arguments to visit
    */
-  template<typename Scheduler, typename Tuple, typename SetSizeArguments, typename VisitArguments>
+  template<
+    typename Scheduler,
+    typename Tuple,
+    typename ConfiguredSequenceArguments,
+    typename SetSizeArguments,
+    typename VisitArguments>
   struct RunSequenceTuple;
 
-  template<typename Scheduler, typename Tuple, typename... SetSizeArguments, typename... VisitArguments>
-  struct RunSequenceTuple<Scheduler, Tuple, std::tuple<SetSizeArguments...>, std::tuple<VisitArguments...>> {
+  template<
+    typename Scheduler,
+    typename Tuple,
+    typename ConfiguredSequenceArguments,
+    typename... SetSizeArguments,
+    typename... VisitArguments>
+  struct RunSequenceTuple<
+    Scheduler,
+    Tuple,
+    ConfiguredSequenceArguments,
+    std::tuple<SetSizeArguments...>,
+    std::tuple<VisitArguments...>> {
     constexpr static void run(
       Scheduler& scheduler,
       Tuple& tuple,
@@ -434,6 +440,7 @@ namespace Sch {
       RunSequenceTupleImpl<
         Scheduler,
         Tuple,
+        ConfiguredSequenceArguments,
         std::tuple<SetSizeArguments...>,
         std::tuple<VisitArguments...>,
         std::make_index_sequence<std::tuple_size<Tuple>::value>>::

@@ -27,7 +27,7 @@
 class Timer;
 
 struct Stream {
-  using scheduler_t = Scheduler<configured_sequence_t>;
+  using scheduler_t = Scheduler<configured_sequence_t, configured_arguments_t, configured_sequence_arguments_t>;
 
   Stream() = default;
    
