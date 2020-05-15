@@ -2,7 +2,7 @@
 #include <VeloCalculateNumberOfCandidates.cuh>
 
 void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t::set_arguments_size(
-  ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+  ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
   const Constants&,
   const HostBuffers&) const
@@ -17,7 +17,7 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
 }
 
 void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t::operator()(
-  const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+  const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,

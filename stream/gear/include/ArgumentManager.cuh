@@ -128,6 +128,9 @@ struct ParameterTuple {
   using t = typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t;
 };
 
+template<typename T>
+using ArgumentReferences = typename ArgumentRefManager<typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t>;
+
 // Helpers
 template<typename Arg, typename Args>
 void set_size(Args arguments, const size_t size) {
