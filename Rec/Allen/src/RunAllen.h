@@ -64,6 +64,7 @@ private:
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
+  std::map<std::string, std::string> m_line_names;
   const uint m_number_of_streams = 1;
   const uint m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
@@ -84,6 +85,9 @@ private:
   // If set to false, events are only filtered by the GEC
   // If set to true, events are filtered based on an OR of the Allen selection lines
   Gaudi::Property<bool> m_filter_hlt1 {this, "FilterHLT1", false};
+
+  // Counters for HLT1 selection rates
+mutable Gaudi::Accumulators::BinomialCounter<> m_trackMVA_counter{this, "TrackMVA rate"};
 };
 
 #endif

@@ -92,6 +92,9 @@ StatusCode RunAllen::initialize()
   std::string conf_file = resolveEnvVars(m_json);
   ConfigurationReader configuration_reader(conf_file);
 
+  // Get HLT1 selection names
+  m_line_names = configuration_reader.params()["configured_lines"];
+
   // Initialize stream
   const bool print_memory_usage = false;
   const uint start_event_offset = 0;
@@ -163,6 +166,23 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   if (m_filter_hlt1.value()) {
     filter = buffer->host_passing_event_list[0];
   }
+
+  // Get line decisions from DecReports
+  // First two words contain the TCK and taskID, then one word per HLT1 line
+  uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask; 
+  for (uint i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
+    const uint32_t line_report = buffer->host_dec_reports[2+i];
+    const bool dec = line_report & dec_mask;
+    const auto it = m_line_names.find(std::to_string(i));
+    if (it == m_line_names.end()) {
+      std::cout << "ERROR: did not find line name for " << i << std::endl;
+      continue;
+    } 
+    if (i == 10) {
+      m_trackMVA_counter.buffer() += int(dec);
+    }
+  } 
+  
   if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << uint(filter) << endmsg;
   return std::make_tuple(filter, *buffer);
 }
