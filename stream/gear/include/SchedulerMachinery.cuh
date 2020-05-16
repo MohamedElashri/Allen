@@ -30,14 +30,16 @@ namespace Sch {
   template<typename Function>
   struct FunctionTraits;
 
-  template<typename Function, typename T, typename... OtherArguments>
-  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<T>&, OtherArguments...) const> {
+  template<typename Function, typename T, typename S, typename R, typename... OtherArguments>
+  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<T, S, R>&, OtherArguments...) const> {
     using ParameterTuple = T;
+    using ArgumentRefManagerType = ArgumentRefManager<T, S, R>;
   };
 
   template<typename Algorithm>
   struct AlgorithmTraits {
     using ParameterTuple = typename FunctionTraits<decltype(&Algorithm::operator())>::ParameterTuple;
+    using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
@@ -314,12 +316,12 @@ namespace Sch {
    */
   template<typename ArgumentsTuple, typename Algorithm, typename ConfiguredArguments>
   struct ProduceArgumentsTuple {
-    constexpr static ArgumentRefManager<typename AlgorithmTraits<Algorithm>::ParameterTuple> produce(
+    constexpr static typename AlgorithmTraits<Algorithm>::ArgumentRefManagerType produce(
       ArgumentsTuple& arguments_tuple)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
-        ArgumentRefManager<typename AlgorithmTraits<Algorithm>::ParameterTuple>,
+        typename AlgorithmTraits<Algorithm>::ArgumentRefManagerType,
         ConfiguredArguments>::produce(arguments_tuple);
     }
   };

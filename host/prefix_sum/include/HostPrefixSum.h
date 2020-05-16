@@ -33,7 +33,7 @@ namespace host_prefix_sum {
   template<typename T>
   struct host_prefix_sum_t : public HostAlgorithm, Parameters {
 
-    decltype(host_function(host_prefix_sum)) function {host_prefix_sum};
+    // decltype(host_function(host_prefix_sum)) function {host_prefix_sum};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -55,7 +55,7 @@ namespace host_prefix_sum {
       cudaEvent_t& cuda_generic_event) const
     {
       // Invokes the function
-      function(
+      host_prefix_sum(
         host_buffers.host_prefix_sum_buffer,
         host_buffers.host_allocated_prefix_sum_space,
         size<dev_input_buffer_t>(arguments),

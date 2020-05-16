@@ -78,6 +78,8 @@ allen_add_host_library(HostGEC STATIC
   ${host_gec}
 )
 
+target_link_libraries(HostGEC PUBLIC CudaCommon)
+
 add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/main/src/CudaCommon.cpp)
 
 target_include_directories(mep_gec PUBLIC

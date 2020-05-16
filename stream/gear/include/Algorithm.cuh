@@ -3,6 +3,7 @@
 #include "CudaCommon.h"
 #include "Logger.h"
 #include "BaseTypes.cuh"
+#include "HostFunction.cuh"
 
 namespace Allen {
   // Forward declare to use in Algorithm
@@ -26,7 +27,8 @@ namespace Allen {
 
         if (it == m_properties.end()) {
           error_cout << "could not set " << kv.first << "=" << kv.second << "\n";
-          error_cout << "parameter does not exist" << "\n";
+          error_cout << "parameter does not exist"
+                     << "\n";
           throw std::exception {};
         }
         else {
@@ -39,13 +41,12 @@ namespace Allen {
     template<typename T>
     T property() const
     {
-      T holder;
       auto prop = dynamic_cast<Allen::Property<T> const*>(get_prop(T::name));
       if (prop)
-        holder = prop->get_value();
+        return prop->get_value();
       else
         warning_cout << "property " << T::name << " not found\n";
-      return holder;
+      return T{};
     }
 
     std::map<std::string, std::string> get_properties() const override
@@ -67,13 +68,9 @@ namespace Allen {
     }
 
     // Setter and getter of name of the algorithm
-    void set_name(const std::string& name) {
-      m_name = name;
-    }
+    void set_name(const std::string& name) { m_name = name; }
 
-    std::string thename() const {
-      return m_name;
-    }
+    std::string thename() const { return m_name; }
 
   protected:
     BaseProperty const* get_prop(const std::string& prop_name) const override
@@ -84,8 +81,14 @@ namespace Allen {
       return 0;
     }
 
+    template<typename R, typename... T>
+    HostFunction<const Allen::Algorithm*, R, T...> host_function(R(f)(T...)) const
+    {
+      return HostFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
+    }
+
   private:
     std::map<std::string, BaseProperty*> m_properties;
     std::string m_name = "";
   };
-}
+} // namespace Allen

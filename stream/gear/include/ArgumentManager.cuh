@@ -71,8 +71,12 @@ struct ArgumentManager {
 /**
  * @brief Manager of argument references for every handler.
  */
-template<typename TupleToReferences>
+template<typename TupleToReferences, typename ParameterTuple = void, typename ParameterStruct = void>
 struct ArgumentRefManager {
+  using parameter_tuple_t = ParameterTuple;
+  using parameter_struct_t = ParameterStruct;
+  using tuple_to_references_t = TupleToReferences;
+
   TupleToReferences m_arguments;
 
   ArgumentRefManager(TupleToReferences arguments) : m_arguments(arguments) {}
@@ -110,17 +114,22 @@ struct WrappedTuple;
 template<>
 struct WrappedTuple<std::tuple<>, void> {
   using t = std::tuple<>;
+  using parameter_tuple_t = std::tuple<>;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value>::type> {
   using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
   using t = typename TupleAppendFirst<T&, previous_t>::t;
+  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
+  using parameter_tuple_t = typename TupleAppendFirst<T, previous_parameter_tuple_t>::t;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<!std::is_base_of<device_datatype, T>::value && !std::is_base_of<host_datatype, T>::value>::type> {
   using t = typename WrappedTuple<std::tuple<R...>>::t;
+  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
+  using parameter_tuple_t = typename TupleAppendFirst<T, previous_parameter_tuple_t>::t;
 };
 
 template<typename T>
@@ -129,7 +138,9 @@ struct ParameterTuple {
 };
 
 template<typename T>
-using ArgumentReferences = typename ArgumentRefManager<typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t>;
+using ArgumentReferences = ArgumentRefManager<typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t,
+typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::parameter_tuple_t,
+T>;
 
 // Helpers
 template<typename Arg, typename Args>

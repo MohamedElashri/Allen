@@ -1,7 +1,7 @@
 #include "HostGlobalEventCut.h"
 
 void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
-  ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+  ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
   const HostBuffers&) const
@@ -16,7 +16,7 @@ void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
 }
 
 void host_global_event_cut::host_global_event_cut_t::operator()(
-  const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+  const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
@@ -34,33 +34,13 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
     data<host_event_list_t>(arguments)[i] = event_start + i;
   }
 
-  // Parameters for the function call
-  const auto parameters = Parameters {
-    data<host_ut_raw_banks_t>(arguments),
-    data<host_ut_raw_offsets_t>(arguments),
-    data<host_scifi_raw_banks_t>(arguments),
-    data<host_scifi_raw_offsets_t>(arguments),
-    data<host_total_number_of_events_t>(arguments),
-    data<host_event_list_t>(arguments),
-    data<host_number_of_selected_events_t>(arguments),
-    data<dev_event_list_t>(arguments),
-    property<min_scifi_ut_clusters_t>(),
-    property<max_scifi_ut_clusters_t>()};
-
-  // Select the function to run, MEP or Allen layout
-  using function_t = decltype(host_function(host_global_event_cut));
-  function_t function =
-    runtime_options.mep_layout ? function_t {host_global_event_cut_mep} : function_t {host_global_event_cut};
-
-  // Run the function
-  function(number_of_events, parameters);
-
-  cudaCheck(cudaMemcpyAsync(
-    data<dev_event_list_t>(arguments),
-    data<host_event_list_t>(arguments),
-    size<dev_event_list_t>(arguments),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
+  if (runtime_options.mep_layout) {
+    host_function(host_global_event_cut::host_global_event_cut_mep)(number_of_events, arguments);
+  } else {
+    host_function(host_global_event_cut::host_global_event_cut)(number_of_events, arguments);
+  }
+  
+  copy<dev_event_list_t, host_event_list_t>(arguments, cuda_stream);
 
   // TODO: Remove whenever the checker uses variables
   host_buffers.host_number_of_selected_events[0] = first<host_number_of_selected_events_t>(arguments);
