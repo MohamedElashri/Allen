@@ -107,7 +107,6 @@ struct DeviceDimensions {
   uint z;
 
   constexpr DeviceDimensions() : x(1), y(1), z(1) {}
-  constexpr DeviceDimensions(const DeviceDimensions& other) : x(other.x), y(other.y), z(other.z) {}
   constexpr DeviceDimensions(const std::array<uint, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
 };
 

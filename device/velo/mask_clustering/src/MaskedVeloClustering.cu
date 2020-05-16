@@ -1,6 +1,49 @@
 #include <MEPTools.h>
 #include <MaskedVeloClustering.cuh>
 
+void velo_masked_clustering::velo_masked_clustering_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_module_cluster_num_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
+  set_size<dev_velo_cluster_container_t>(
+    arguments, first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
+}
+
+void velo_masked_clustering::velo_masked_clustering_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_module_cluster_num_t>(arguments, 0, cuda_stream);
+
+  // Selector from layout
+  if (runtime_options.mep_layout) {
+    device_function(velo_masked_clustering_mep)(
+      dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
+      arguments,
+      constants.dev_velo_geometry,
+      constants.dev_velo_sp_patterns.data(),
+      constants.dev_velo_sp_fx.data(),
+      constants.dev_velo_sp_fy.data());
+  }
+  else {
+    device_function(velo_masked_clustering)(
+      dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
+      arguments,
+      constants.dev_velo_geometry,
+      constants.dev_velo_sp_patterns.data(),
+      constants.dev_velo_sp_fx.data(),
+      constants.dev_velo_sp_fy.data());
+  }
+}
+
 /**
  * @brief Makes a 8-connectivity mask
  * @details For a pixel x, constructs its 8-connectivity mask +:
@@ -170,7 +213,8 @@ __device__ void no_neighbour_sp(
         const uint cluster_num = atomicAdd(module_pair_cluster_num + module_pair_number, 1);
 
 #if ALLEN_DEBUG
-        const auto module_estimated_num = module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
+        const auto module_estimated_num =
+          module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
         assert(cluster_num <= module_estimated_num);
 #else
         _unused(module_pair_cluster_start);
@@ -204,7 +248,8 @@ __device__ void no_neighbour_sp(
         const uint cluster_num = atomicAdd(module_pair_cluster_num + module_pair_number, 1);
 
 #if ALLEN_DEBUG
-        const auto module_estimated_num = module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
+        const auto module_estimated_num =
+          module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
         assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -394,7 +439,8 @@ __device__ void rest_of_clusters(
       const uint cluster_num = atomicAdd(module_pair_cluster_num + module_pair_number, 1);
 
 #if ALLEN_DEBUG
-      const auto module_estimated_num = module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
+      const auto module_estimated_num =
+        module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
       assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -426,7 +472,8 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
   const uint* module_pair_cluster_start =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  uint* module_pair_cluster_num = parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
+  uint* module_pair_cluster_num =
+    parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
   uint number_of_candidates = parameters.dev_module_pair_candidate_num[event_number];
   const uint* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
@@ -472,7 +519,8 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
     assert(raw_bank_number < Velo::Constants::n_sensors);
 
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    rest_of_clusters(module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);
+    rest_of_clusters(
+      module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);
   }
 }
 
@@ -489,7 +537,8 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
 
   const uint* module_pair_cluster_start =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  uint* module_pair_cluster_num = parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
+  uint* module_pair_cluster_num =
+    parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
   uint number_of_candidates = parameters.dev_module_pair_candidate_num[event_number];
   const uint* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
@@ -537,6 +586,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
     const auto raw_bank = MEP::raw_bank<VeloRawBank>(
       parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
 
-    rest_of_clusters(module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);
+    rest_of_clusters(
+      module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);
   }
 }

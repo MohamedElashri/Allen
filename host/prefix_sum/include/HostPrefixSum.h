@@ -4,12 +4,12 @@
 #include "HostAlgorithm.cuh"
 
 namespace host_prefix_sum {
-  struct Parameters {
-    HOST_OUTPUT(host_total_sum_holder_t, uint) host_total_sum_holder;
-    DEVICE_INPUT(dev_input_buffer_t, uint) dev_input_buffer;
-    DEVICE_OUTPUT(dev_output_buffer_t, uint) dev_output_buffer;
-  };
-
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_OUTPUT(host_total_sum_holder_t, uint), host_total_sum_holder),
+    (DEVICE_INPUT(dev_input_buffer_t, uint), dev_input_buffer),
+    (DEVICE_OUTPUT(dev_output_buffer_t, uint), dev_output_buffer))
+  
   /**
    * @brief Implementation of prefix sum.
    */
@@ -30,41 +30,19 @@ namespace host_prefix_sum {
     cudaEvent_t& cuda_generic_event,
     Parameters parameters);
 
-  template<typename T>
   struct host_prefix_sum_t : public HostAlgorithm, Parameters {
-
-    // decltype(host_function(host_prefix_sum)) function {host_prefix_sum};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      // The total sum holder just holds a single unsigned integer.
-      set_size<host_total_sum_holder_t>(arguments, 1);
-      set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(uint) + 1);
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
-    {
-      // Invokes the function
-      host_prefix_sum(
-        host_buffers.host_prefix_sum_buffer,
-        host_buffers.host_allocated_prefix_sum_space,
-        size<dev_input_buffer_t>(arguments),
-        size<dev_output_buffer_t>(arguments),
-        cuda_stream,
-        cuda_generic_event,
-        Parameters {data<host_total_sum_holder_t>(arguments),
-                    data<dev_input_buffer_t>(arguments),
-                    data<dev_output_buffer_t>(arguments)});
-    }
+      cudaEvent_t& cuda_generic_event) const;
   };
 } // namespace host_prefix_sum

@@ -19,7 +19,7 @@ private:
   // Invocation of function with CUDA parameters
   void invoke_fn(const dim3& num_blocks,
     const dim3& num_threads,
-    cudaStream_t& stream,
+    cudaStream_t stream,
     T... arguments) const
   {
     const auto invoke_arguments = std::tuple<T...> {arguments...};
@@ -29,7 +29,7 @@ private:
       fn,
       num_blocks,
       num_threads,
-      &stream,
+      stream,
       invoke_arguments,
       std::make_index_sequence<sizeof...(T)>());
 
@@ -45,8 +45,8 @@ public:
   //  foo(num_blocks, num_threads, cuda_stream)(arguments...)
   auto operator()(const dim3& param_num_blocks,
     const dim3& param_num_threads,
-    cudaStream_t& param_stream) const {
-    return [&] (T... arguments) {
+    cudaStream_t param_stream) const {
+    return [=] (T... arguments) {
       invoke_fn(param_num_blocks, param_num_threads, param_stream, arguments...);
     };
   }

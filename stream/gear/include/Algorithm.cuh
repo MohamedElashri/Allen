@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "BaseTypes.cuh"
 #include "HostFunction.cuh"
+#include "DeviceFunction.cuh"
 
 namespace Allen {
   // Forward declare to use in Algorithm
@@ -85,6 +86,12 @@ namespace Allen {
     HostFunction<const Allen::Algorithm*, R, T...> host_function(R(f)(T...)) const
     {
       return HostFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
+    }
+
+    template<typename R, typename... T>
+    DeviceFunction<const Allen::Algorithm*, R, T...> device_function(R(f)(T...)) const
+    {
+      return DeviceFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
     }
 
   private:

@@ -3,8 +3,8 @@
 #include "ArgumentManager.cuh"
 #include "Property.cuh"
 #include <functional>
-#include <tuple>
 #include <utility>
+#include <tuple>
 
 template<typename ArgMan, typename P, typename T, typename Enabled = void>
 struct ProduceSingleParameter;
@@ -38,17 +38,17 @@ struct TransformParameterImpl<ArgMan, P, std::tuple<T...>> {
 template<typename T>
 struct TransformParameter {
   template<typename P>
-  constexpr static T transform(T t, P) {
-    return t;
+  constexpr static auto transform(T&& t, P) {
+    return std::forward<T>(t);
   }
 };
 
 template<typename... T>
-struct TransformParameter<ArgumentRefManager<T...>> {
+struct TransformParameter<const ArgumentRefManager<T...>&> {
   using tuple = typename ArgumentRefManager<T...>::parameter_tuple_t;
 
   template<typename P>
-  constexpr static auto transform(ArgumentRefManager<T...> t, P class_ptr) {
+  constexpr static auto transform(const ArgumentRefManager<T...>& t, P class_ptr) {
     return TransformParameterImpl<ArgumentRefManager<T...>, P, tuple>::transform(t, class_ptr);
   }
 };
@@ -68,8 +68,8 @@ public:
   HostFunction(P class_ptr, std::function<R(T...)> fn) : m_class_ptr(class_ptr), m_fn(fn) {}
 
   template<typename... S>
-  auto operator()(S... arguments) const
+  auto operator()(S&&... arguments) const
   {
-    return m_fn(TransformParameter<S>::template transform<P>(arguments, m_class_ptr)...);
+    return m_fn(TransformParameter<S>::template transform<P>(std::forward<S>(arguments), m_class_ptr)...);
   }
 };

@@ -26,23 +26,17 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
 {
   // Enough blocks to cover all events
   const auto grid_size = dim3(
-    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
-    property<block_dim_x_t>());
+    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
-  // Invoke kernel
-  const auto parameters = Parameters {
-    data<host_number_of_selected_events_t>(arguments),
-    data<dev_event_list_t>(arguments),
-    data<dev_velo_raw_input_t>(arguments),
-    data<dev_velo_raw_input_offsets_t>(arguments),
-    data<dev_number_of_candidates_t>(arguments),
-    property<block_dim_x_t>()};
-
-  using function_t = decltype(global_function(velo_calculate_number_of_candidates));
-  function_t function = runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_mep) :
-                                                     global_function(velo_calculate_number_of_candidates);
-  function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
-    parameters, first<host_number_of_selected_events_t>(arguments));
+  if (runtime_options.mep_layout) {
+    device_function(velo_calculate_number_of_candidates_mep)(
+      grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
+      arguments, first<host_number_of_selected_events_t>(arguments));
+  }
+  else {
+    device_function(velo_calculate_number_of_candidates)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
+      arguments, first<host_number_of_selected_events_t>(arguments));
+  }
 }
 
 __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates(
@@ -52,7 +46,8 @@ __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_ca
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
     const auto selected_event_number = parameters.dev_event_list[event_number];
-    const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
+    const char* raw_input =
+      parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
 
     // Read raw event
     const auto raw_event = VeloRawEvent(raw_input);

@@ -1,5 +1,37 @@
 #include "HostPrefixSum.h"
 
+void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  // The total sum holder just holds a single unsigned integer.
+  set_size<host_total_sum_holder_t>(arguments, 1);
+  set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(uint) + 1);
+}
+
+void host_prefix_sum::host_prefix_sum_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  // Invokes the function
+  host_prefix_sum(
+    host_buffers.host_prefix_sum_buffer,
+    host_buffers.host_allocated_prefix_sum_space,
+    size<dev_input_buffer_t>(arguments),
+    size<dev_output_buffer_t>(arguments),
+    cuda_stream,
+    cuda_generic_event,
+    Parameters {data<host_total_sum_holder_t>(arguments),
+                data<dev_input_buffer_t>(arguments),
+                data<dev_output_buffer_t>(arguments)});
+}
+
 void host_prefix_sum::host_prefix_sum_impl(
   uint* host_prefix_sum_buffer,
   const size_t input_number_of_elements,

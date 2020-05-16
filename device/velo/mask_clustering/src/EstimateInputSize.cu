@@ -1,6 +1,43 @@
 #include <MEPTools.h>
 #include <EstimateInputSize.cuh>
 
+void velo_estimate_input_size::velo_estimate_input_size_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  if (logger::verbosity() >= logger::debug) {
+    debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << std::endl;
+  }
+
+  set_size<dev_estimated_input_size_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
+  set_size<dev_module_candidate_num_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_cluster_candidates_t>(arguments, first<host_number_of_cluster_candidates_t>(arguments));
+}
+
+void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_estimated_input_size_t>(arguments, 0, cuda_stream);
+  initialize<dev_module_candidate_num_t>(arguments, 0, cuda_stream);
+
+  if (runtime_options.mep_layout) {
+    device_function(velo_estimate_input_size_mep)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  }
+  else {
+    device_function(velo_estimate_input_size)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  }
+}
+
 __device__ void estimate_raw_bank_size(
   uint* estimated_input_size,
   uint32_t* cluster_candidates,
@@ -43,7 +80,8 @@ __device__ void estimate_raw_bank_size(
       const uint number_of_clusters = (pattern_0 | pattern_1) ? 2 : 1;
 
       // Add the found clusters
-      [[maybe_unused]] const uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, number_of_clusters);
+      [[maybe_unused]] const uint current_estimated_module_pair_size =
+        atomicAdd(estimated_module_pair_size, number_of_clusters);
       assert(current_estimated_module_pair_size < Velo::Constants::max_numhits_in_module_pair);
     }
     else {
@@ -183,7 +221,8 @@ __device__ void estimate_raw_bank_size(
 
   // Add the found cluster candidates
   if (found_cluster_candidates > 0) {
-    [[maybe_unused]] const uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, found_cluster_candidates);
+    [[maybe_unused]] const uint current_estimated_module_pair_size =
+      atomicAdd(estimated_module_pair_size, found_cluster_candidates);
     assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module_pair);
   }
 }
