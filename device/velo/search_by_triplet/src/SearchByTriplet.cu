@@ -6,6 +6,44 @@
 
 using namespace Velo::Tracking;
 
+void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_tracks_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
+  set_size<dev_tracklets_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
+  set_size<dev_tracks_to_follow_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
+  set_size<dev_three_hit_tracks_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_three_hit_tracks);
+  set_size<dev_hit_used_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+  set_size<dev_atomics_velo_t>(arguments, first<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
+  set_size<dev_number_of_velo_tracks_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_rel_indices_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_numhits_in_module_pair);
+}
+
+void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_atomics_velo_t>(arguments, 0, cuda_stream);
+  initialize<dev_hit_used_t>(arguments, 0, cuda_stream);
+  initialize<dev_number_of_velo_tracks_t>(arguments, 0, cuda_stream);
+
+  device_function(velo_search_by_triplet::velo_search_by_triplet)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    arguments, constants.dev_velo_geometry);
+}
+
 /**
  * @brief Track forwarding algorithm based on triplet finding.
  *

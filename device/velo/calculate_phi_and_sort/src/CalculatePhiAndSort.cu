@@ -3,6 +3,37 @@
 #include "CudaMathConstants.h"
 #include "VeloTools.cuh"
 
+void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments));
+  set_size<dev_hit_permutation_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+  set_size<dev_hit_phi_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+}
+
+void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
+
+  device_function(velo_calculate_phi_and_sort)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments);
+
+  // printf("After velo_calculate_phi_and_sort:\n");
+  // print_velo_clusters<dev_sorted_velo_cluster_container_t,
+  //   dev_offsets_estimated_input_size_t,
+  //   dev_module_cluster_num_t,
+  //   host_total_number_of_velo_clusters_t>(arguments);
+}
+
 /**
  * @brief Track forwarding algorithm based on triplet finding
  */

@@ -1,5 +1,30 @@
 #include "ThreeHitTracksFilter.cuh"
 
+void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_number_of_three_hit_tracks_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_three_hit_tracks_output_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
+}
+
+void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_number_of_three_hit_tracks_output_t>(arguments, 0, cuda_stream);
+
+  device_function(velo_three_hit_tracks_filter)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 /**
  * @brief Calculates the parameters according to a root means square fit
  *        and returns the chi2.
@@ -112,7 +137,8 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   // Input three hit tracks
   const Velo::TrackletHits* input_tracks =
     parameters.dev_three_hit_tracks_input + event_number * Velo::Constants::max_three_hit_tracks;
-  const auto number_of_input_tracks = parameters.dev_atomics_velo[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
+  const auto number_of_input_tracks =
+    parameters.dev_atomics_velo[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
 
   // Output containers
   Velo::TrackletHits* output_tracks = parameters.dev_three_hit_tracks_output.get() + tracks_offset;

@@ -1,5 +1,64 @@
 #include "VeloConsolidateTracks.cuh"
 
+void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_velo_track_hits_t>(
+    arguments, first<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * Velo::Clusters::element_size);
+  set_size<dev_velo_states_t>(
+    arguments,
+    (first<host_number_of_reconstructed_velo_tracks_t>(arguments) +
+     first<host_number_of_three_hit_tracks_filtered_t>(arguments)) *
+      Velo::Consolidated::states_number_of_arrays * sizeof(uint32_t));
+  set_size<dev_accepted_velo_tracks_t>(
+    arguments,
+    first<host_number_of_reconstructed_velo_tracks_t>(arguments) +
+      first<host_number_of_three_hit_tracks_filtered_t>(arguments));
+}
+
+void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(velo_consolidate_tracks)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+
+  // Set all found tracks to accepted
+  initialize<dev_accepted_velo_tracks_t>(arguments, 1, cuda_stream);
+
+  if (runtime_options.do_check) {
+    // Transmission device to host
+    // Velo tracks
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_atomics_velo,
+      data<dev_offsets_all_velo_tracks_t>(arguments),
+      size<dev_offsets_all_velo_tracks_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_velo_track_hit_number,
+      data<dev_offsets_velo_track_hit_number_t>(arguments),
+      size<dev_offsets_velo_track_hit_number_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_velo_track_hits,
+      data<dev_velo_track_hits_t>(arguments),
+      size<dev_velo_track_hits_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 /**
  * @brief Calculates the parameters according to a root means square fit
  */
@@ -75,10 +134,11 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
     parameters.dev_three_hit_tracks_output + event_number * Velo::Constants::max_tracks;
 
   // Consolidated datatypes
-  const Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
-                                                parameters.dev_offsets_velo_track_hit_number,
-                                                event_number,
-                                                number_of_events};
+  const Velo::Consolidated::Tracks velo_tracks {
+    parameters.dev_offsets_all_velo_tracks,
+    parameters.dev_offsets_velo_track_hit_number,
+    event_number,
+    number_of_events};
   Velo::Consolidated::States velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
   const uint event_number_of_tracks = velo_tracks.number_of_tracks(event_number);
@@ -119,17 +179,15 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
 
     // Populate hits in a coalesced manner, taking into account
     // the underlying container.
-    populate(
-      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-        consolidated_hits.set_x(i, velo_cluster_container.x(hit_index));
-        consolidated_hits.set_y(i, velo_cluster_container.y(hit_index));
-        consolidated_hits.set_z(i, velo_cluster_container.z(hit_index));
-      });
+    populate(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
+      consolidated_hits.set_x(i, velo_cluster_container.x(hit_index));
+      consolidated_hits.set_y(i, velo_cluster_container.y(hit_index));
+      consolidated_hits.set_z(i, velo_cluster_container.z(hit_index));
+    });
 
-    populate(
-      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-        consolidated_hits.set_id(i, velo_cluster_container.id(hit_index));
-      });
+    populate(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
+      consolidated_hits.set_id(i, velo_cluster_container.id(hit_index));
+    });
 
     // Calculate and store fit in consolidated container
     const VeloState beam_state = means_square_fit(consolidated_hits, number_of_hits);
