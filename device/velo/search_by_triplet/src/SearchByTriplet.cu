@@ -39,7 +39,7 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   initialize<dev_hit_used_t>(arguments, 0, cuda_stream);
   initialize<dev_number_of_velo_tracks_t>(arguments, 0, cuda_stream);
 
-  device_function(velo_search_by_triplet::velo_search_by_triplet)(
+  device_function(velo_search_by_triplet)(
     dim3(first<host_number_of_selected_events_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
     arguments, constants.dev_velo_geometry);
 }
