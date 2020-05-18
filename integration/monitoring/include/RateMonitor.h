@@ -19,6 +19,6 @@ struct RateMonitor : public BufferMonitor {
 private:
   void init();
 
-  [[maybe_unused]] HostBuffersManager* m_buffers_manager;
-  [[maybe_unused]] const uint m_number_of_hlt1_lines;
+  HostBuffersManager* m_buffers_manager;
+  const uint m_number_of_hlt1_lines;
 };

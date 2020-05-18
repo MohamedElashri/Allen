@@ -15,7 +15,7 @@ StreamWrapper::StreamWrapper() {
   const auto lambda_fn = [&] (const unsigned long i, const std::string& line_name) {
     if (line_name == "ErrorEvent") errorevent_line_index = i;
   };
-  Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
+  Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine>::traverse(lambda_fn);
   errorevent_line = errorevent_line_index;
 }
 

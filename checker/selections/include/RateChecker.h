@@ -58,14 +58,14 @@ public:
       }
       m_line_names[i] = line_name;
     };
-    Hlt1::TraverseLinesNames<T, Hlt1::Line, decltype(lambda_all_tracks_fn0)>::traverse(lambda_all_tracks_fn0);
+    Hlt1::TraverseLinesNames<T, Hlt1::Line>::traverse(lambda_all_tracks_fn0);
 
     // Event loop.
     for (uint i_event = 0; i_event < total_number_of_events; i_event++) {
 
       // Initialize counters
       const auto lambda_all_tracks_fn2 = [&](const unsigned long i) { m_event_decs[i] = false; };
-      Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_all_tracks_fn2)>::traverse(lambda_all_tracks_fn2);
+      Hlt1::TraverseLines<T, Hlt1::Line>::traverse(lambda_all_tracks_fn2);
 
       if (i_event < selected_number_of_events) {
 
@@ -77,7 +77,7 @@ public:
             if (decs[i_track]) m_event_decs[i_line] = true;
           }
         };
-        Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+        Hlt1::TraverseLines<T, Hlt1::OneTrackLine>::traverse(lambda_one_track_fn);
 
         // Check two track decisions.
         const unsigned int n_svs_event = sv_offsets[i_event + 1] - sv_offsets[i_event];
@@ -87,14 +87,14 @@ public:
             if (decs[i_sv]) m_event_decs[i_line] = true;
           }
         };
-        Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+        Hlt1::TraverseLines<T, Hlt1::TwoTrackLine>::traverse(lambda_two_track_fn);
 
         // Check velo line decisions.
         const auto lambda_velo_fn = [&](const unsigned long i_line) {
           const bool* decs = decisions + decisions_offsets[i_line] + i_event;
           if (decs[0]) m_event_decs[i_line] = true;
         };
-        Hlt1::TraverseLines<T, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
+        Hlt1::TraverseLines<T, Hlt1::VeloLine>::traverse(lambda_velo_fn);
       }
 
       // Check special decisions.
@@ -102,7 +102,7 @@ public:
         const bool* decs = decisions + decisions_offsets[i_line] + i_event;
         if (decs[0]) m_event_decs[i_line] = true;
       };
-      Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+      Hlt1::TraverseLines<T, Hlt1::SpecialLine>::traverse(lambda_special_fn);
 
       // See if an event passes.
       bool inc_dec = false;
@@ -112,7 +112,7 @@ public:
           m_counters[i_line] += 1;
         }
       };
-      Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_all_tracks_fn1)>::traverse(lambda_all_tracks_fn1);
+      Hlt1::TraverseLines<T, Hlt1::Line>::traverse(lambda_all_tracks_fn1);
 
       if (inc_dec) {
         m_tot += 1;

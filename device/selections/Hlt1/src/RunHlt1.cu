@@ -35,25 +35,25 @@ void run_hlt1::run_hlt1_t::operator()(
   const auto lambda_one_track_fn = [&](const unsigned long i_line) {
     host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
   };
-  Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine>::traverse(
     lambda_one_track_fn);
 
   const auto lambda_two_track_fn = [&](const unsigned long i_line) {
     host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_svs_t>(arguments);
   };
-  Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse(
     lambda_two_track_fn);
 
   const auto lambda_special_fn = [&](const unsigned long i_line) {
     host_buffers.host_sel_results_atomics[i_line] = total_number_of_events;
   };
-  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse(
     lambda_special_fn);
 
   const auto lambda_velo_fn = [&](const unsigned long i_line) {
     host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_selected_events_t>(arguments);
   };
-  Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse(lambda_velo_fn);
 
   // Prefix sum
   host_prefix_sum::host_prefix_sum_impl(

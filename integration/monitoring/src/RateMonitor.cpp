@@ -61,5 +61,8 @@ void RateMonitor::init()
 }
 #else
 void RateMonitor::fill(uint, bool) {}
-void RateMonitor::init() {}
+void RateMonitor::init() {
+  _unused(m_buffers_manager);
+  _unused(m_number_of_hlt1_lines);
+}
 #endif

@@ -134,7 +134,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         n_decisions++;
       }
     };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::Line, decltype(lambda_fn)>::traverse(lambda_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::Line>::traverse(lambda_fn);
 
     // TODO: Handle SelReports.
     const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
@@ -173,7 +173,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         substr_bank.addSubstr(0, 0);
       }
     };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse(
       lambda_special_fn);
 
     // Set the sizes of the banks.
@@ -339,7 +339,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         }
       }
     };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_onetrack_fn)>::traverse(
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine>::traverse(
       lambda_onetrack_fn);
 
     // Add two-track decisions to the substr and stdinfo.
@@ -356,7 +356,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         }
       }
     };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_twotrack_fn)>::traverse(
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse(
       lambda_twotrack_fn);
 
     // Add special decisions to substr and stdinfo.
@@ -368,8 +368,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       }
     };
     // Can use this lambda for both the VELO and special lines.
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse(lambda_special_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse(
       lambda_special_fn);
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
