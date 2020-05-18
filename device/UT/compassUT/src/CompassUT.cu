@@ -24,7 +24,7 @@ void compass_ut::compass_ut_t::operator()(
 {
   initialize<dev_atomics_ut_t>(arguments, 0, cuda_stream);
 
-  device_function(compass_ut)(
+  global_function(compass_ut)(
     dim3(first<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
     arguments,
     constants.dev_ut_magnet_tool,

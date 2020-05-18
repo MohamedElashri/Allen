@@ -19,7 +19,7 @@ void ut_find_permutation::ut_find_permutation_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(ut_find_permutation)(
+  global_function(ut_find_permutation)(
     dim3(first<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
     property<block_dim_t>(),
     cuda_stream)(arguments, constants.dev_unique_x_sector_layer_offsets.data());

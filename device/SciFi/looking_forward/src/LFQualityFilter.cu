@@ -34,7 +34,7 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
 {
   initialize<dev_atomics_scifi_t>(arguments, 0, cuda_stream);
 
-  device_function(lf_quality_filter)(
+  global_function(lf_quality_filter)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
 

@@ -29,12 +29,12 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
     (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
   if (runtime_options.mep_layout) {
-    device_function(velo_calculate_number_of_candidates_mep)(
+    global_function(velo_calculate_number_of_candidates_mep)(
       grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
       arguments, first<host_number_of_selected_events_t>(arguments));
   }
   else {
-    device_function(velo_calculate_number_of_candidates)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    global_function(velo_calculate_number_of_candidates)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
       arguments, first<host_number_of_selected_events_t>(arguments));
   }
 }

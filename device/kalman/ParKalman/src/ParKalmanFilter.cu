@@ -17,7 +17,7 @@ void kalman_filter::kalman_filter_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(kalman_filter)(
+  global_function(kalman_filter)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
 

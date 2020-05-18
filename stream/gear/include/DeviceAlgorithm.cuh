@@ -7,7 +7,6 @@
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
-#include "GlobalFunction.cuh"
 #include "Property.cuh"
 #include "Argument.cuh"
 

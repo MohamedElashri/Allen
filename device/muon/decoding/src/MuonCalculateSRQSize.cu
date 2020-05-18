@@ -37,13 +37,13 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, cuda_stream);
 
   if (runtime_options.mep_layout) {
-    device_function(muon_calculate_srq_size_mep)(
+    global_function(muon_calculate_srq_size_mep)(
       first<host_number_of_selected_events_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       cuda_stream)(arguments);
   }
   else {
-    device_function(muon_calculate_srq_size)(
+    global_function(muon_calculate_srq_size)(
       first<host_number_of_selected_events_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       cuda_stream)(arguments);

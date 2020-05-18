@@ -23,7 +23,7 @@ void FilterMFTracks::filter_mf_tracks_t::operator()(
   initialize<dev_svs_kf_idx_t>(arguments, 0, cuda_stream);
   initialize<dev_svs_mf_idx_t>(arguments, 0, cuda_stream);
 
-  device_function(filter_mf_tracks)(
+  global_function(filter_mf_tracks)(
     dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments, first<host_number_of_selected_events_t>(arguments));
 }

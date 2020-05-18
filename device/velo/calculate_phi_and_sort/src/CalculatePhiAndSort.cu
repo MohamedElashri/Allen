@@ -24,7 +24,7 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
 {
   initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
 
-  device_function(velo_calculate_phi_and_sort)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+  global_function(velo_calculate_phi_and_sort)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments);
 
   // printf("After velo_calculate_phi_and_sort:\n");

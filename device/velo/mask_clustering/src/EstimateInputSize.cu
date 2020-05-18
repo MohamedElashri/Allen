@@ -29,11 +29,11 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
   initialize<dev_module_candidate_num_t>(arguments, 0, cuda_stream);
 
   if (runtime_options.mep_layout) {
-    device_function(velo_estimate_input_size_mep)(
+    global_function(velo_estimate_input_size_mep)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
   }
   else {
-    device_function(velo_estimate_input_size)(
+    global_function(velo_estimate_input_size)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
   }
 }

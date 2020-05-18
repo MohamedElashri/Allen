@@ -21,12 +21,12 @@ void scifi_pre_decode_v4::scifi_pre_decode_v4_t::operator()(
   cudaEvent_t&) const
 {
   if (runtime_options.mep_layout) {
-    device_function(scifi_pre_decode_v4_mep)(
+    global_function(scifi_pre_decode_v4_mep)(
       dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
-    device_function(scifi_pre_decode_v4)(
+    global_function(scifi_pre_decode_v4)(
       dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
   }

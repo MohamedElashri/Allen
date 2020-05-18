@@ -69,13 +69,13 @@ void run_hlt1::run_hlt1_t::operator()(
 
   initialize<dev_sel_results_t>(arguments, 0, cuda_stream);
 
-  device_function(run_hlt1)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+  global_function(run_hlt1)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
     arguments,
     first<host_number_of_selected_events_t>(arguments),
     event_start);
 
   // Run the postscaler.
-  device_function(run_postscale)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+  global_function(run_postscale)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
     arguments,
     first<host_number_of_selected_events_t>(arguments),
     event_start);

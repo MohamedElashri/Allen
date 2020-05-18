@@ -25,7 +25,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
 
   // Selector from layout
   if (runtime_options.mep_layout) {
-    device_function(velo_masked_clustering_mep)(
+    global_function(velo_masked_clustering_mep)(
       dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
       arguments,
       constants.dev_velo_geometry,
@@ -34,7 +34,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
       constants.dev_velo_sp_fy.data());
   }
   else {
-    device_function(velo_masked_clustering)(
+    global_function(velo_masked_clustering)(
       dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
       arguments,
       constants.dev_velo_geometry,

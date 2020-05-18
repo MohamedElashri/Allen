@@ -22,7 +22,7 @@ void is_muon::is_muon_t::operator()(
 {
   initialize<dev_muon_track_occupancies_t>(arguments, 0, cuda_stream);
 
-  device_function(is_muon)(
+  global_function(is_muon)(
     dim3(first<host_number_of_selected_events_t>(arguments)), dim3(32, Muon::Constants::n_stations), cuda_stream)(
     arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 

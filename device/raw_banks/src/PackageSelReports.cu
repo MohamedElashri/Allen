@@ -25,7 +25,7 @@ void package_sel_reports::package_sel_reports_t::operator()(
 
   const auto grid_size = dim3((total_number_of_events + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
-  device_function(package_sel_reports)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
+  global_function(package_sel_reports)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
     arguments, total_number_of_events, first<host_number_of_selected_events_t>(arguments), event_start);
 
   cudaCheck(cudaMemcpyAsync(

@@ -1,5 +1,25 @@
 #include "LFLeastMeanSquareFit.cuh"
 
+void lf_least_mean_square_fit::lf_least_mean_square_fit_t::set_arguments_size(
+  ArgumentReferences<Parameters>,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{}
+
+void lf_least_mean_square_fit::lf_least_mean_square_fit_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  global_function(lf_least_mean_square_fit)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments, constants.dev_looking_forward_constants);
+}
+
 __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
   lf_least_mean_square_fit::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
@@ -11,8 +31,9 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
   const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits
-  const uint total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  
+  const uint total_number_of_hits =
+    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
 
@@ -36,15 +57,15 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
 
     // Load parametrization
     const auto prev_curvature = parameters.dev_scifi_lf_parametrization_x_filter[scifi_track_index];
-    const auto prev_tx = parameters.dev_scifi_lf_parametrization_x_filter
-      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index];
-    const auto prev_offset = parameters.dev_scifi_lf_parametrization_x_filter
-      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index];
-    const auto d_ratio = parameters.dev_scifi_lf_parametrization_x_filter
-      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index];
+    const auto prev_tx =
+      parameters.dev_scifi_lf_parametrization_x_filter
+        [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
+    const auto prev_offset =
+      parameters.dev_scifi_lf_parametrization_x_filter
+        [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
+    const auto d_ratio =
+      parameters.dev_scifi_lf_parametrization_x_filter
+        [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
 
     for (uint i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
       const auto hit_index = event_offset + track.hits[i_hit];
@@ -90,11 +111,10 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
     // Update parametrization
     parameters.dev_scifi_lf_parametrization_x_filter[scifi_track_index] = curvature;
     parameters.dev_scifi_lf_parametrization_x_filter
-      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index] = tx;
+      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index] = tx;
     parameters.dev_scifi_lf_parametrization_x_filter
-      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index] = offset;
+      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index] =
+      offset;
 
     // Update track quality
     track.quality = 0.f;

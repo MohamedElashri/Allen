@@ -26,7 +26,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
   initialize<dev_ut_hit_count_t>(arguments, 0, cuda_stream);
 
   if (runtime_options.mep_layout) {
-    device_function(ut_pre_decode_mep)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    global_function(ut_pre_decode_mep)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -35,7 +35,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
       constants.dev_unique_x_sector_offsets.data());
   }
   else {
-    device_function(ut_pre_decode)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    global_function(ut_pre_decode)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),

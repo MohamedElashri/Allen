@@ -3,6 +3,39 @@
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
 
+void MFVertexFit::fit_mf_vertices_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_mf_svs_t>(arguments, first<host_number_of_mf_svs_t>(arguments));
+}
+
+void MFVertexFit::fit_mf_vertices_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_mf_svs_t>(arguments, 0, cuda_stream);
+
+  global_function(fit_mf_vertices)(
+    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+
+  safe_assign_to_host_buffer<dev_mf_svs_t>(
+    host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, arguments, cuda_stream);
+
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_mf_sv_offsets,
+    data<dev_mf_sv_offsets_t>(arguments),
+    size<dev_mf_sv_offsets_t>(arguments),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+}
+
 __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
 {
   const uint muon_filtered_event = blockIdx.x;
@@ -23,7 +56,7 @@ __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
 
   // Vertices.
   VertexFit::TrackMVAVertex* event_mf_svs = parameters.dev_mf_svs + sv_offset;
-  
+
   // Loop over svs.
   for (uint i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
     event_mf_svs[i_sv].chi2 = -1;
@@ -41,5 +74,4 @@ __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
     // Fill extra info. Don't worry about PVs.
     fill_extra_info(event_mf_svs[i_sv], trackA, trackB);
   }
-  
 }

@@ -7,48 +7,33 @@
 #include "UTConsolidated.cuh"
 
 namespace lf_least_mean_square_fit {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
-    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_OUTPUT(dev_scifi_lf_parametrization_x_filter_t, float) dev_scifi_lf_parametrization_x_filter;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (DEVICE_INPUT(dev_scifi_hits_t, char), dev_scifi_hits),
+    (DEVICE_INPUT(dev_scifi_hit_count_t, uint), dev_scifi_hit_count),
+    (DEVICE_INPUT(dev_atomics_ut_t, uint), dev_atomics_ut),
+    (DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits), dev_scifi_tracks),
+    (DEVICE_INPUT(dev_atomics_scifi_t, uint), dev_atomics_scifi),
+    (DEVICE_OUTPUT(dev_scifi_lf_parametrization_x_filter_t, float), dev_scifi_lf_parametrization_x_filter),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void lf_least_mean_square_fit(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
-  template<typename T>
   struct lf_least_mean_square_fit_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(lf_least_mean_square_fit)) function {lf_least_mean_square_fit};
-
     void set_arguments_size(
-      ArgumentRefManager<T>,
+      ArgumentReferences<Parameters>,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {}
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {data<dev_scifi_hits_t>(arguments),
-                    data<dev_scifi_hit_count_t>(arguments),
-                    data<dev_atomics_ut_t>(arguments),
-                    data<dev_scifi_tracks_t>(arguments),
-                    data<dev_atomics_scifi_t>(arguments),
-                    data<dev_scifi_lf_parametrization_x_filter_t>(arguments)},
-        constants.dev_looking_forward_constants);
-    }
+      cudaEvent_t&) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

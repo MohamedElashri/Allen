@@ -22,12 +22,12 @@ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_v4_t::opera
   initialize<dev_scifi_hit_count_t>(arguments, 0, cuda_stream);
 
   if (runtime_options.mep_layout) {
-    device_function(scifi_calculate_cluster_count_v4_mep)(
+    global_function(scifi_calculate_cluster_count_v4_mep)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
-    device_function(scifi_calculate_cluster_count_v4)(
+    global_function(scifi_calculate_cluster_count_v4)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
   }

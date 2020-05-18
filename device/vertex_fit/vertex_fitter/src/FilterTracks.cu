@@ -24,7 +24,7 @@ void FilterTracks::filter_tracks_t::operator()(
 {
   initialize<dev_sv_atomics_t>(arguments, 0, cuda_stream);
 
-  device_function(filter_tracks)(
+  global_function(filter_tracks)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

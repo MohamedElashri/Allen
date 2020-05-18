@@ -18,7 +18,7 @@ void pv_beamline_extrapolate::pv_beamline_extrapolate_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(pv_beamline_extrapolate)(
+  global_function(pv_beamline_extrapolate)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

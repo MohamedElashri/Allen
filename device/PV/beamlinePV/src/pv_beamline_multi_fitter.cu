@@ -22,7 +22,7 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
 {
   initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, cuda_stream);
 
-  device_function(pv_beamline_multi_fitter)(
+  global_function(pv_beamline_multi_fitter)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments, constants.dev_beamline.data());
 }

@@ -23,7 +23,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(ut_consolidate_tracks)(
+  global_function(ut_consolidate_tracks)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 

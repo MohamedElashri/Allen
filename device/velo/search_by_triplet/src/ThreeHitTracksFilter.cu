@@ -21,7 +21,7 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
 {
   initialize<dev_number_of_three_hit_tracks_output_t>(arguments, 0, cuda_stream);
 
-  device_function(velo_three_hit_tracks_filter)(
+  global_function(velo_three_hit_tracks_filter)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

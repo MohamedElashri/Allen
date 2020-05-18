@@ -23,7 +23,7 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(velo_pv_ip)(
+  global_function(velo_pv_ip)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

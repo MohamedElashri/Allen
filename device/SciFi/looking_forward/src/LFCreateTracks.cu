@@ -30,16 +30,16 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
   initialize<dev_scifi_lf_total_number_of_found_triplets_t>(arguments, 0, cuda_stream);
   initialize<dev_scifi_lf_atomics_t>(arguments, 0, cuda_stream);
 
-  device_function(lf_triplet_keep_best)(
+  global_function(lf_triplet_keep_best)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<triplet_keep_best_block_dim_t>(), cuda_stream)(
     arguments, constants.dev_looking_forward_constants);
 
-  device_function(lf_calculate_parametrization)(
+  global_function(lf_calculate_parametrization)(
     dim3(first<host_number_of_selected_events_t>(arguments)),
     property<calculate_parametrization_block_dim_t>(),
     cuda_stream)(arguments, constants.dev_looking_forward_constants);
 
-  device_function(lf_extend_tracks)(
+  global_function(lf_extend_tracks)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<extend_tracks_block_dim_t>(), cuda_stream)(
     arguments, constants.dev_looking_forward_constants);
 }

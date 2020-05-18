@@ -28,13 +28,13 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   initialize<dev_storage_tdc_value_t>(arguments, 0, cuda_stream);
 
   if (runtime_options.mep_layout) {
-    device_function(muon_populate_tile_and_tdc_mep)(
+    global_function(muon_populate_tile_and_tdc_mep)(
       first<host_number_of_selected_events_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       cuda_stream)(arguments);
   }
   else {
-    device_function(muon_populate_tile_and_tdc)(
+    global_function(muon_populate_tile_and_tdc)(
       first<host_number_of_selected_events_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       cuda_stream)(arguments);

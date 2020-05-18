@@ -72,10 +72,10 @@ void prepare_raw_banks::prepare_raw_banks_t::operator()(
   const uint block_dim = property<block_dim_x_t>().get();
 #endif
 
-  device_function(prepare_decisions)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
+  global_function(prepare_decisions)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
     arguments, first<host_number_of_selected_events_t>(arguments), event_start);
 
-  device_function(prepare_raw_banks)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
+  global_function(prepare_raw_banks)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
     arguments, first<host_number_of_selected_events_t>(arguments), total_number_of_events, event_start);
 
   // Copy raw bank data.

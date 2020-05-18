@@ -17,7 +17,7 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(fit_secondary_vertices)(
+  global_function(fit_secondary_vertices)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 
   safe_assign_to_host_buffer<dev_consolidated_svs_t>(

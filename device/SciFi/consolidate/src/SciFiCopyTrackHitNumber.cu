@@ -17,7 +17,7 @@ void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(scifi_copy_track_hit_number)(
+  global_function(scifi_copy_track_hit_number)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

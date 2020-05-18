@@ -26,7 +26,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
 {
   initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, cuda_stream);
 
-  device_function(velo_copy_track_hit_number)(
+  global_function(velo_copy_track_hit_number)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 
   cudaCheck(cudaMemcpyAsync(

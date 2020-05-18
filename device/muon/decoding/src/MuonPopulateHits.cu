@@ -20,7 +20,7 @@ void muon_populate_hits::muon_populate_hits_t::operator()(
 {
   initialize<dev_permutation_station_t>(arguments, 0, cuda_stream);
 
-  device_function(muon_populate_hits)(
+  global_function(muon_populate_hits)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

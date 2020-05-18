@@ -30,7 +30,7 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
   initialize<dev_station_ocurrences_sizes_t>(arguments, 0, cuda_stream);
   initialize<dev_atomics_index_insert_t>(arguments, 0, cuda_stream);
 
-  device_function(muon_add_coords_crossing_maps)(
+  global_function(muon_add_coords_crossing_maps)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

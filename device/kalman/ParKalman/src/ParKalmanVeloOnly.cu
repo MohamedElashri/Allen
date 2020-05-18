@@ -19,11 +19,11 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(kalman_velo_only)(
+  global_function(kalman_velo_only)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments, constants.dev_scifi_geometry);
 
-  device_function(kalman_pv_ipchi2)(
+  global_function(kalman_pv_ipchi2)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 
   cudaCheck(cudaMemcpyAsync(

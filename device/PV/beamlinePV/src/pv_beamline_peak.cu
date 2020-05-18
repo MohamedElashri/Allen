@@ -22,7 +22,7 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
     (first<host_number_of_selected_events_t>(arguments) + PV::num_threads_pv_beamline_peak_t - 1) /
     PV::num_threads_pv_beamline_peak_t);
 
-  device_function(pv_beamline_peak)(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
+  global_function(pv_beamline_peak)(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
     arguments, first<host_number_of_selected_events_t>(arguments));
 }
 

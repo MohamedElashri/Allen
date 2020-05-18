@@ -29,7 +29,7 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
 {
   initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, cuda_stream);
 
-  device_function(lf_triplet_seeding)(
+  global_function(lf_triplet_seeding)(
     dim3(first<host_number_of_selected_events_t>(arguments)),
     dim3(LookingForward::triplet_seeding_block_dim_x, 2),
     cuda_stream)(arguments, constants.dev_looking_forward_constants);

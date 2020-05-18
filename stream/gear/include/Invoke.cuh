@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CudaCommon.h"
+#include "Logger.h"
 
 /**
  * @brief      Invokes a function specified by its function and arguments.
@@ -48,6 +49,7 @@ void invoke_impl(
 #elif defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)
   function<<<grid_dim, block_dim, 0, stream>>>(std::get<I>(invoke_arguments)...);
 #else
+  error_cout << "Global function invoked with unexpected backend.\n"
   _unused(function);
   _unused(stream);
   _unused(invoke_arguments);

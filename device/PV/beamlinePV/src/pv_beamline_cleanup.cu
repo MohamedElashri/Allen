@@ -21,7 +21,7 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
 {
   initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, cuda_stream);
 
-  device_function(pv_beamline_cleanup)(
+  global_function(pv_beamline_cleanup)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 
   // Retrieve result

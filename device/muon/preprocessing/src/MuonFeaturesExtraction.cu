@@ -1,6 +1,30 @@
 #include "MuonFeaturesExtraction.cuh"
 #include "MuonEventModel.cuh"
 
+void muon_catboost_features_extraction::muon_catboost_features_extraction_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_muon_catboost_features_t>(
+    arguments, Muon::Constants::n_catboost_features * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+}
+
+void muon_catboost_features_extraction::muon_catboost_features_extraction_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  global_function(muon_catboost_features_extraction)(
+    dim3(first<host_number_of_selected_events_t>(arguments), Muon::Constants::n_stations),
+    property<block_dim_t>(),
+    cuda_stream)(arguments);
+}
+
 __global__ void muon_catboost_features_extraction::muon_catboost_features_extraction(
   muon_catboost_features_extraction::Parameters parameters)
 {
@@ -8,13 +32,14 @@ __global__ void muon_catboost_features_extraction::muon_catboost_features_extrac
   const uint event_id = blockIdx.x;
   const uint station_id = blockIdx.y;
 
-  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
-                                                 parameters.dev_scifi_track_hit_number,
-                                                 parameters.dev_scifi_qop,
-                                                 parameters.dev_scifi_states,
-                                                 parameters.dev_scifi_track_ut_indices,
-                                                 event_id,
-                                                 number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {
+    parameters.dev_atomics_scifi,
+    parameters.dev_scifi_track_hit_number,
+    parameters.dev_scifi_qop,
+    parameters.dev_scifi_states,
+    parameters.dev_scifi_track_ut_indices,
+    event_id,
+    number_of_events};
 
   const auto muon_total_number_of_hits =
     parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];
@@ -62,13 +87,11 @@ __global__ void muon_catboost_features_extraction::muon_catboost_features_extrac
 
       const int idx = muon_event_offset + index_of_closest_hit;
 
-      parameters.dev_muon_catboost_features[tracks_features_offset + offset::TIMES + station_id] =
-        muon_hits.time(idx);
+      parameters.dev_muon_catboost_features[tracks_features_offset + offset::TIMES + station_id] = muon_hits.time(idx);
       parameters.dev_muon_catboost_features[tracks_features_offset + offset::DTS + station_id] =
         muon_hits.delta_time(idx);
       parameters.dev_muon_catboost_features[tracks_features_offset + offset::CROSS + station_id] =
-        (muon_hits.uncrossed(idx) == 0) ? 2.f :
-                                                                   muon_hits.uncrossed(idx);
+        (muon_hits.uncrossed(idx) == 0) ? 2.f : muon_hits.uncrossed(idx);
 
       const float trav_dist = sqrtf(
         (station_z - station_z0) * (station_z - station_z0) +
@@ -79,14 +102,12 @@ __global__ void muon_catboost_features_extraction::muon_catboost_features_extrac
       parameters.dev_muon_catboost_features[tracks_features_offset + offset::RES_X + station_id] =
         (extrapolation_x - muon_hits.x(idx)) /
         sqrtf(
-          (muon_hits.dx(idx) * Muon::Constants::INVSQRT3) *
-            (muon_hits.dx(idx) * Muon::Constants::INVSQRT3) +
+          (muon_hits.dx(idx) * Muon::Constants::INVSQRT3) * (muon_hits.dx(idx) * Muon::Constants::INVSQRT3) +
           errMS * errMS);
       parameters.dev_muon_catboost_features[tracks_features_offset + offset::RES_Y + station_id] =
         (extrapolation_y - muon_hits.y(idx)) /
         sqrtf(
-          (muon_hits.dy(idx) * Muon::Constants::INVSQRT3) *
-            (muon_hits.dy(idx) * Muon::Constants::INVSQRT3) +
+          (muon_hits.dy(idx) * Muon::Constants::INVSQRT3) * (muon_hits.dy(idx) * Muon::Constants::INVSQRT3) +
           errMS * errMS);
     }
     else {

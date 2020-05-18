@@ -24,7 +24,7 @@ void ut_search_windows::ut_search_windows_t::operator()(
 {
   initialize<dev_ut_windows_layers_t>(arguments, 0, cuda_stream);
 
-  device_function(ut_search_windows)(
+  global_function(ut_search_windows)(
     dim3(first<host_number_of_selected_events_t>(arguments)),
     dim3(UT::Constants::n_layers, property<block_dim_y_t>()),
     cuda_stream)(

@@ -18,7 +18,7 @@ void pv_get_seeds::pv_get_seeds_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(pv_get_seeds)(
+  global_function(pv_get_seeds)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 
   if (runtime_options.do_check) {

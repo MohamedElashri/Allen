@@ -1,5 +1,43 @@
 #include "MuonCatboostEvaluator.cuh"
 
+void muon_catboost_evaluator::muon_catboost_evaluator_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_muon_catboost_output_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+}
+
+void muon_catboost_evaluator::muon_catboost_evaluator_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  global_function(muon_catboost_evaluator)(
+    dim3(first<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments,
+    constants.dev_muon_catboost_leaf_values,
+    constants.dev_muon_catboost_leaf_offsets,
+    constants.dev_muon_catboost_split_borders,
+    constants.dev_muon_catboost_split_features,
+    constants.dev_muon_catboost_tree_depths,
+    constants.dev_muon_catboost_tree_offsets,
+    constants.muon_catboost_n_trees);
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_muon_catboost_output,
+      data<dev_muon_catboost_output_t>(arguments),
+      size<dev_muon_catboost_output_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 /**
 * Computes probability of being a muon.
 * CatBoost uses oblivious trees as base predictors. In such trees same splitting criterion is used

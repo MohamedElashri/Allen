@@ -19,7 +19,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   cudaEvent_t&) const
 {
   if (runtime_options.mep_layout) {
-    device_function(ut_decode_raw_banks_in_order_mep)(
+    global_function(ut_decode_raw_banks_in_order_mep)(
       dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
       property<block_dim_t>(),
       cuda_stream)(
@@ -30,7 +30,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
       constants.dev_unique_x_sector_layer_offsets.data());
   }
   else {
-    device_function(ut_decode_raw_banks_in_order)(
+    global_function(ut_decode_raw_banks_in_order)(
       dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
       property<block_dim_t>(),
       cuda_stream)(

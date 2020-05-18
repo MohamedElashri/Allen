@@ -23,7 +23,7 @@ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::o
 {
   initialize<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, 0, cuda_stream);
 
-  device_function(ut_select_velo_tracks_with_windows)(
+  global_function(ut_select_velo_tracks_with_windows)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 }
 

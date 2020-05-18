@@ -21,7 +21,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  device_function(scifi_consolidate_tracks)(
+  global_function(scifi_consolidate_tracks)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 
   // Transmission device to host of Scifi consolidated tracks

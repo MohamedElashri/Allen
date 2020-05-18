@@ -1,63 +1,66 @@
 #pragma once
 
 #include "ArgumentManager.cuh"
+#include "Property.cuh"
+#include "HostFunction.cuh"
 #include "Invoke.cuh"
-#include <tuple>
+#include "CudaCommon.h"
+#include <functional>
 #include <utility>
-#include <cstdint>
-#include <cassert>
+#include <tuple>
 
-/**
- * @brief A class that encapsulates a CUDA function.
- */
-template<typename R, typename... T>
-struct GlobalFunction {
+template<typename P, typename R, typename... T>
+struct GlobalFunctionImpl {
 private:
-  // Function
-  R (*fn)(T...);
+  P m_class_ptr;
+  R (*m_fn)(T...);
+  dim3 m_num_blocks;
+  dim3 m_num_threads;
+  cudaStream_t m_stream;
 
-  // Invocation of function with CUDA parameters
-  void invoke_fn(const dim3& num_blocks,
+public:
+  GlobalFunctionImpl(
+    P class_ptr,
+    R (*param_function)(T...),
+    const dim3& num_blocks,
     const dim3& num_threads,
-    cudaStream_t stream,
-    T... arguments) const
+    cudaStream_t stream) :
+    m_class_ptr(class_ptr),
+    m_fn(param_function), m_num_blocks(num_blocks), m_num_threads(num_threads), m_stream(stream)
+  {}
+
+  template<typename... S>
+  void operator()(S&&... arguments) const
   {
-    const auto invoke_arguments = std::tuple<T...> {arguments...};
+    const auto invoke_arguments =
+      std::tuple<T...> {TransformParameter<S>::template transform<P>(std::forward<S>(arguments), m_class_ptr)...};
 
     // Delegate function invocation
     invoke_impl(
-      fn,
-      num_blocks,
-      num_threads,
-      stream,
-      invoke_arguments,
-      std::make_index_sequence<sizeof...(T)>());
+      m_fn, m_num_blocks, m_num_threads, m_stream, invoke_arguments, std::make_index_sequence<sizeof...(T)>());
 
     // Check result of kernel call
     cudaCheckKernelCall(cudaPeekAtLastError());
   }
-
-public:
-  // Constructor. Encapsulates a CUDA function.
-  GlobalFunction(R (*param_function)(T...)) : fn(param_function) {}
-
-  // The syntax of operator() resembles the CUDA syntax:
-  //  foo(num_blocks, num_threads, cuda_stream)(arguments...)
-  auto operator()(const dim3& param_num_blocks,
-    const dim3& param_num_threads,
-    cudaStream_t param_stream) const {
-    return [=] (T... arguments) {
-      invoke_fn(param_num_blocks, param_num_threads, param_stream, arguments...);
-    };
-  }
 };
 
 /**
- * @brief      A helper to make GlobalFunctions without needing
- *             to specify its function type (ie. "global_function(function)").
+ * @brief A class that encapsulates a CUDA function.
  */
-template<typename R, typename... T>
-GlobalFunction<R, T...> global_function(R(f)(T...))
-{
-  return GlobalFunction<R, T...> {f};
-}
+template<typename P, typename R, typename... T>
+struct GlobalFunction {
+private:
+  P m_class_ptr;
+  R (*m_fn)(T...);
+
+public:
+  // Constructor. Encapsulates a CUDA function.
+  GlobalFunction(P class_ptr, R (*param_function)(T...)) : m_class_ptr(class_ptr), m_fn(param_function) {}
+
+  // The syntax of operator() resembles the CUDA syntax:
+  //  foo(num_blocks, num_threads, cuda_stream)(arguments...)
+  auto operator()(const dim3& num_blocks, const dim3& num_threads, cudaStream_t stream) const
+  {
+    return GlobalFunctionImpl<P, R, T...> {m_class_ptr, m_fn, num_blocks, num_threads, stream};
+  }
+};

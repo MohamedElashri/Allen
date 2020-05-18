@@ -22,18 +22,18 @@ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_t::operator()(
   cudaEvent_t&) const
 {
   if (runtime_options.mep_layout) {
-    device_function(scifi_raw_bank_decoder_v4_mep)(
+    global_function(scifi_raw_bank_decoder_v4_mep)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
-    device_function(scifi_direct_decoder_v4_mep)(
+    global_function(scifi_direct_decoder_v4_mep)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
-    device_function(scifi_raw_bank_decoder_v4)(
+    global_function(scifi_raw_bank_decoder_v4)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
-    device_function(scifi_direct_decoder_v4)(
+    global_function(scifi_direct_decoder_v4)(
       dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
       arguments, constants.dev_scifi_geometry);
   }
