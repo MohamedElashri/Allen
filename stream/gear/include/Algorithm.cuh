@@ -71,7 +71,7 @@ namespace Allen {
     // Setter and getter of name of the algorithm
     void set_name(const std::string& name) { m_name = name; }
 
-    std::string thename() const { return m_name; }
+    std::string name() const { return m_name; }
 
   protected:
     BaseProperty const* get_prop(const std::string& prop_name) const override

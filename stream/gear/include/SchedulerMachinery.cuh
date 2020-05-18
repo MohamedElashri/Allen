@@ -235,7 +235,7 @@ namespace Sch {
       Tuple& algs,
       const std::map<std::string, std::map<std::string, std::string>>& config)
     {
-      const auto algorithm_name = std::get<I>(algs).thename();
+      const auto algorithm_name = std::get<I>(algs).name();
       if (config.find(algorithm_name) != config.end()) {
         auto& a = std::get<I>(algs);
         a.set_properties(config.at(algorithm_name));
@@ -270,7 +270,7 @@ namespace Sch {
     {
       const auto& algorithm = std::get<I>(algs);
       auto props = algorithm.get_properties();
-      config.emplace(algorithm.thename(), props);
+      config.emplace(algorithm.name(), props);
       return GetSequenceConfigurationImpl<Tuple, std::index_sequence<Is...>>::get(algs, config);
     }
   };
@@ -331,8 +331,6 @@ namespace Sch {
    */
   template<
     typename Scheduler,
-    typename Tuple,
-    typename ConfiguredSequenceArguments,
     typename SetSizeArguments,
     typename VisitArguments,
     typename Indices>
@@ -340,67 +338,55 @@ namespace Sch {
 
   template<
     typename Scheduler,
-    typename Tuple,
-    typename ConfiguredSequenceArguments,
     typename... SetSizeArguments,
     typename... VisitArguments>
   struct RunSequenceTupleImpl<
     Scheduler,
-    Tuple,
-    ConfiguredSequenceArguments,
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<>> {
-    constexpr static void run(Scheduler&, Tuple&, SetSizeArguments&&..., VisitArguments&&...) {}
+    constexpr static void run(Scheduler&, SetSizeArguments&&..., VisitArguments&&...) {}
   };
 
   template<
     typename Scheduler,
-    typename Tuple,
-    typename ConfiguredSequenceArguments,
     typename... SetSizeArguments,
     typename... VisitArguments,
     unsigned long I,
     unsigned long... Is>
   struct RunSequenceTupleImpl<
     Scheduler,
-    Tuple,
-    ConfiguredSequenceArguments,
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<I, Is...>> {
     constexpr static void run(
       Scheduler& scheduler,
-      Tuple& tuple,
       SetSizeArguments&&... set_size_arguments,
       VisitArguments&&... visit_arguments)
     {
-      using t = typename std::tuple_element<I, Tuple>::type;
-      using configured_arguments_t = typename std::tuple_element<I, ConfiguredSequenceArguments>::type;
+      using t = typename std::tuple_element<I, typename Scheduler::configured_sequence_t>::type;
+      using configured_arguments_t = typename std::tuple_element<I, typename Scheduler::configured_sequence_arguments_t>::type;
+      auto arguments_tuple = ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
+          scheduler.argument_manager.arguments_tuple);
 
       // Sets the arguments sizes, setups the scheduler and visits the algorithm.
-      std::get<I>(tuple).set_arguments_size(
-        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
-          scheduler.argument_manager.arguments_tuple),
+      std::get<I>(scheduler.sequence_tuple).set_arguments_size(
+        arguments_tuple,
         std::forward<SetSizeArguments>(set_size_arguments)...);
 
       scheduler.template setup<I, t>();
 
-      std::get<I>(tuple).operator()(
-        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
-          scheduler.argument_manager.arguments_tuple),
+      std::get<I>(scheduler.sequence_tuple).operator()(
+        arguments_tuple,
         std::forward<VisitArguments>(visit_arguments)...);
 
       RunSequenceTupleImpl<
         Scheduler,
-        Tuple,
-        ConfiguredSequenceArguments,
         std::tuple<SetSizeArguments...>,
         std::tuple<VisitArguments...>,
         std::index_sequence<Is...>>::
         run(
           scheduler,
-          tuple,
           std::forward<SetSizeArguments>(set_size_arguments)...,
           std::forward<VisitArguments>(visit_arguments)...);
     }
@@ -415,40 +401,30 @@ namespace Sch {
    */
   template<
     typename Scheduler,
-    typename Tuple,
-    typename ConfiguredSequenceArguments,
     typename SetSizeArguments,
     typename VisitArguments>
   struct RunSequenceTuple;
 
   template<
     typename Scheduler,
-    typename Tuple,
-    typename ConfiguredSequenceArguments,
     typename... SetSizeArguments,
     typename... VisitArguments>
   struct RunSequenceTuple<
     Scheduler,
-    Tuple,
-    ConfiguredSequenceArguments,
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>> {
     constexpr static void run(
       Scheduler& scheduler,
-      Tuple& tuple,
       SetSizeArguments&&... set_size_arguments,
       VisitArguments&&... visit_arguments)
     {
       RunSequenceTupleImpl<
         Scheduler,
-        Tuple,
-        ConfiguredSequenceArguments,
         std::tuple<SetSizeArguments...>,
         std::tuple<VisitArguments...>,
-        std::make_index_sequence<std::tuple_size<Tuple>::value>>::
+        std::make_index_sequence<std::tuple_size<typename Scheduler::configured_sequence_t>::value>>::
         run(
           scheduler,
-          tuple,
           std::forward<SetSizeArguments>(set_size_arguments)...,
           std::forward<VisitArguments>(visit_arguments)...);
     }

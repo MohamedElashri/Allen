@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <vector>
 #include <ostream>
-
+#include <sstream>
 #include "CudaCommon.h"
 #include "Common.h"
 #include "Logger.h"

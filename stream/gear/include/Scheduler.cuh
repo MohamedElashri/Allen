@@ -8,6 +8,9 @@
 
 template<typename ConfiguredSequence, typename ConfiguredArguments, typename ConfiguredSequenceArguments>
 struct Scheduler {
+  using configured_sequence_t = ConfiguredSequence;
+  using configured_sequence_arguments_t = ConfiguredSequenceArguments;
+
   // Dependencies calculated at compile time
   // Determines what to free (out_deps) and reserve (in_deps)
   // at every iteration.
@@ -79,7 +82,7 @@ struct Scheduler {
 
     // Print memory manager state
     if (do_print) {
-      info_cout << "Sequence step " << I << " \"" << std::get<I>(sequence_tuple).thename() << "\":\n";
+      info_cout << "Sequence step " << I << " \"" << std::get<I>(sequence_tuple).name() << "\":\n";
       device_memory_manager.print();
       host_memory_manager.print();
     }

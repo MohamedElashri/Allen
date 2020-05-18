@@ -1,5 +1,6 @@
 #include "Tools.h"
 #include "CudaCommon.h"
+#include <iomanip>
 
 void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffer, size)); }
 

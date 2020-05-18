@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdexcept>
-#include <iostream>
 #include <cassert>
 #include "LoggerCommon.h"
 
