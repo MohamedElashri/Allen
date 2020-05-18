@@ -46,7 +46,7 @@ void invoke_impl(
   }
 #elif defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))
   hipLaunchKernelGGL(function, grid_dim, block_dim, 0, stream, std::get<I>(invoke_arguments)...);
-#elif defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)
+#elif (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__))
   function<<<grid_dim, block_dim, 0, stream>>>(std::get<I>(invoke_arguments)...);
 #else
   error_cout << "Global function invoked with unexpected backend.\n"
