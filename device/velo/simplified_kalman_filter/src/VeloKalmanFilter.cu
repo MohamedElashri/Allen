@@ -1,5 +1,38 @@
 #include "VeloKalmanFilter.cuh"
 
+void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_velo_kalman_beamline_states_t>(
+    arguments,
+    first<host_number_of_reconstructed_velo_tracks_t>(arguments) * Velo::Consolidated::kalman_states_number_of_arrays *
+      sizeof(uint32_t));
+}
+
+void velo_kalman_filter::velo_kalman_filter_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(velo_kalman_filter)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_kalmanvelo_states,
+      data<dev_velo_kalman_beamline_states_t>(arguments),
+      size<dev_velo_kalman_beamline_states_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 /**
  * @brief Helper function to filter one hit
  */
@@ -46,15 +79,16 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
   const uint event_number = blockIdx.x;
 
   // Consolidated datatypes
-  const Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
-                                                parameters.dev_offsets_velo_track_hit_number,
-                                                event_number,
-                                                number_of_events};
+  const Velo::Consolidated::Tracks velo_tracks {
+    parameters.dev_offsets_all_velo_tracks,
+    parameters.dev_offsets_velo_track_hit_number,
+    event_number,
+    number_of_events};
 
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
-  Velo::Consolidated::KalmanStates kalmanvelo_states {parameters.dev_velo_kalman_beamline_states,
-                                                      velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::KalmanStates kalmanvelo_states {
+    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
 
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);

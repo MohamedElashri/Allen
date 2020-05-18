@@ -1,6 +1,32 @@
 #include "UTSelectVeloTracksWithWindows.cuh"
 #include <tuple>
 
+void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_ut_number_of_selected_velo_tracks_with_windows_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_ut_selected_velo_tracks_with_windows_t>(
+    arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+}
+
+void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, 0, cuda_stream);
+
+  device_function(ut_select_velo_tracks_with_windows)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 //=========================================================================
 // Determine if there are valid windows for this track looking at the sizes
 //=========================================================================
@@ -38,7 +64,8 @@ found_active_windows(const short* dev_windows_layers, const int number_of_tracks
   return (l0_found && l2_found && (l1_found || l3_found)) || (l3_found && l1_found && (l2_found || l0_found));
 }
 
-__global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows(ut_select_velo_tracks_with_windows::Parameters parameters)
+__global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows(
+  ut_select_velo_tracks_with_windows::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -53,9 +80,12 @@ __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_w
 
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
-  const auto ut_windows_layers = parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;;
+  const auto ut_windows_layers =
+    parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
+  ;
 
-  auto ut_number_of_selected_velo_tracks_with_windows = parameters.dev_ut_number_of_selected_velo_tracks_with_windows + event_number;
+  auto ut_number_of_selected_velo_tracks_with_windows =
+    parameters.dev_ut_number_of_selected_velo_tracks_with_windows + event_number;
   auto ut_selected_velo_tracks_with_windows = parameters.dev_ut_selected_velo_tracks_with_windows + event_tracks_offset;
 
   for (uint i = threadIdx.x; i < ut_number_of_selected_tracks; i += blockDim.x) {

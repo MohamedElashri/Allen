@@ -3,6 +3,38 @@
 #include "BinarySearch.cuh"
 #include <tuple>
 
+void ut_search_windows::ut_search_windows_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_ut_windows_layers_t>(
+    arguments,
+    CompassUT::num_elems * UT::Constants::n_layers * first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+}
+
+void ut_search_windows::ut_search_windows_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_ut_windows_layers_t>(arguments, 0, cuda_stream);
+
+  device_function(ut_search_windows)(
+    dim3(first<host_number_of_selected_events_t>(arguments)),
+    dim3(UT::Constants::n_layers, property<block_dim_y_t>()),
+    cuda_stream)(
+    arguments,
+    constants.dev_ut_magnet_tool,
+    constants.dev_ut_dxDy.data(),
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    constants.dev_unique_sector_xs.data());
+}
+
 __global__ void ut_search_windows::ut_search_windows(
   ut_search_windows::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
@@ -118,7 +150,8 @@ __device__ void tol_refine(
   if (!first_found) {
     first_candidate = 0;
     number_of_candidates = 0;
-  } else {
+  }
+  else {
     number_of_candidates = last_candidate - first_candidate + 1;
   }
 }
@@ -286,22 +319,23 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       xTolNormFact,
       right2_group,
       y_tol,
-      y_tol_slope );
+      y_tol_slope);
 
     right2_group_first_candidate = std::get<0>(right2_group_candidates);
     right2_group_number_of_candidates = std::get<1>(right2_group_candidates);
   }
 
-  return std::tuple<int, int, int, int, int, int, int, int, int, int> {first_candidate,
-                                                                       number_of_candidates,
-                                                                       left_group_first_candidate,
-                                                                       left_group_number_of_candidates,
-                                                                       right_group_first_candidate,
-                                                                       right_group_number_of_candidates,
-                                                                       left2_group_first_candidate,
-                                                                       left2_group_number_of_candidates,
-                                                                       right2_group_first_candidate,
-                                                                       right2_group_number_of_candidates};
+  return std::tuple<int, int, int, int, int, int, int, int, int, int> {
+    first_candidate,
+    number_of_candidates,
+    left_group_first_candidate,
+    left_group_number_of_candidates,
+    right_group_first_candidate,
+    right_group_number_of_candidates,
+    left2_group_first_candidate,
+    left2_group_number_of_candidates,
+    right2_group_first_candidate,
+    right2_group_number_of_candidates};
 }
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
@@ -331,9 +365,7 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
 
   // Find the first candidate (y_track - tol) employing a normal binary search
   int first_candidate = binary_search_leftmost(
-    ut_hits.yEnd_p(sector_group_offset),
-    ut_hit_offsets.sector_group_number_of_hits(sector_group),
-    y_track - tol);
+    ut_hits.yEnd_p(sector_group_offset), ut_hit_offsets.sector_group_number_of_hits(sector_group), y_track - tol);
 
   // In case we found a first candidate
   if (first_candidate < static_cast<int>(ut_hit_offsets.sector_group_number_of_hits(sector_group))) {
@@ -342,14 +374,22 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
       ut_hits.yBegin_p(sector_group_offset + first_candidate),
       ut_hit_offsets.sector_group_number_of_hits(sector_group) - first_candidate,
       y_track + tol);
-  
+
     first_candidate += sector_group_offset;
 
     // If there is no last candidate, we are done
     if (number_of_candidates > 0) {
       // Refine the found candidate to fulfill some specific criteria
       tol_refine(
-        first_candidate, number_of_candidates, ut_hits, velo_state, invNormFact, xTolNormFact, dx_dy, y_tol, y_tol_slope);
+        first_candidate,
+        number_of_candidates,
+        ut_hits,
+        velo_state,
+        invNormFact,
+        xTolNormFact,
+        dx_dy,
+        y_tol,
+        y_tol_slope);
     }
   }
 

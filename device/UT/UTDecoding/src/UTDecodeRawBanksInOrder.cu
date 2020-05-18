@@ -1,6 +1,47 @@
 #include <MEPTools.h>
 #include <UTDecodeRawBanksInOrder.cuh>
 
+void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_ut_hits_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Hits::element_size);
+}
+
+void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  if (runtime_options.mep_layout) {
+    device_function(ut_decode_raw_banks_in_order_mep)(
+      dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+      property<block_dim_t>(),
+      cuda_stream)(
+      arguments,
+      constants.dev_ut_boards.data(),
+      constants.dev_ut_geometry.data(),
+      constants.dev_ut_region_offsets.data(),
+      constants.dev_unique_x_sector_layer_offsets.data());
+  }
+  else {
+    device_function(ut_decode_raw_banks_in_order)(
+      dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+      property<block_dim_t>(),
+      cuda_stream)(
+      arguments,
+      constants.dev_ut_boards.data(),
+      constants.dev_ut_geometry.data(),
+      constants.dev_ut_region_offsets.data(),
+      constants.dev_unique_x_sector_layer_offsets.data());
+  }
+}
+
 __device__ void decode_raw_bank(
   uint const* dev_ut_region_offsets,
   UTGeometry const& geometry,
@@ -85,12 +126,12 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  UT::Hits ut_hits {parameters.dev_ut_hits,
-                    parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits ut_hits {
+    parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  UT::ConstPreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
-                                               parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
-                                               
+  UT::ConstPreDecodedHits ut_pre_decoded_hits {
+    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
@@ -126,11 +167,11 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  UT::Hits ut_hits {parameters.dev_ut_hits,
-                    parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits ut_hits {
+    parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  UT::ConstPreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
-                                               parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::ConstPreDecodedHits ut_pre_decoded_hits {
+    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);

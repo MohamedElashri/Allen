@@ -1,5 +1,36 @@
 #include "GetSeeds.cuh"
 
+void pv_get_seeds::pv_get_seeds_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_seeds_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+  set_size<dev_number_seeds_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+}
+
+void pv_get_seeds::pv_get_seeds_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(pv_get_seeds)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_seeds,
+      data<dev_number_seeds_t>(arguments),
+      size<dev_number_seeds_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 __device__ float zCloseBeam(KalmanVeloState track, const PatPV::XYZPoint& beamspot)
 {
 
@@ -54,8 +85,8 @@ __global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
 
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstKalmanStates velo_states {parameters.dev_velo_kalman_beamline_states,
-                                                     velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstKalmanStates velo_states {
+    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
@@ -99,8 +130,7 @@ __device__ int pv_get_seeds::find_clusters(
   const pv_get_seeds::Parameters& parameters)
 {
   for (int i = 0; i < number_of_clusters; i++) {
-    vclus[i].sigsq *= parameters.factor_to_increase_errors *
-                      parameters.factor_to_increase_errors; // blow up errors
+    vclus[i].sigsq *= parameters.factor_to_increase_errors * parameters.factor_to_increase_errors; // blow up errors
     vclus[i].sigsqmin = vclus[i].sigsq;
   }
 
@@ -176,8 +206,7 @@ __device__ int pv_get_seeds::find_clusters(
 
     int n_tracks_close = 0;
     for (int i = 0; i < number_of_clusters; i++)
-      if (fabsf(vclus[i].z - pvclus[index].z) < parameters.dz_close_tracks_in_cluster)
-        n_tracks_close++;
+      if (fabsf(vclus[i].z - pvclus[index].z) < parameters.dz_close_tracks_in_cluster) n_tracks_close++;
 
     float dist_to_closest = 1000000.;
     if (return_number_of_clusters > 1) {
@@ -193,13 +222,8 @@ __device__ int pv_get_seeds::find_clusters(
     int ntracks = pvclus[index].ntracks;
     if (ntracks >= parameters.min_cluster_mult) {
       if (dist_to_closest > 10.f && rat < 0.95f) igood = true;
-      if (
-        ntracks >= parameters.high_mult &&
-        rat < parameters.ratio_sig2_high_mult)
-        igood = true;
-      if (
-        ntracks < parameters.high_mult && rat < parameters.ratio_sig2_low_mult)
-        igood = true;
+      if (ntracks >= parameters.high_mult && rat < parameters.ratio_sig2_high_mult) igood = true;
+      if (ntracks < parameters.high_mult && rat < parameters.ratio_sig2_low_mult) igood = true;
     }
     // veto
     if (n_tracks_close < parameters.min_close_tracks_in_cluster) igood = false;

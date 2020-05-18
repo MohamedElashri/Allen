@@ -1,6 +1,50 @@
 #include <MEPTools.h>
 #include <UTPreDecode.cuh>
 
+void ut_pre_decode::ut_pre_decode_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  const HostBuffers&) const
+{
+  set_size<dev_ut_pre_decoded_hits_t>(
+    arguments,
+    first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
+  set_size<dev_ut_hit_count_t>(
+    arguments,
+    first<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+}
+
+void ut_pre_decode::ut_pre_decode_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_ut_hit_count_t>(arguments, 0, cuda_stream);
+
+  if (runtime_options.mep_layout) {
+    device_function(ut_pre_decode_mep)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments,
+      constants.dev_ut_boards.data(),
+      constants.dev_ut_geometry.data(),
+      constants.dev_ut_region_offsets.data(),
+      constants.dev_unique_x_sector_layer_offsets.data(),
+      constants.dev_unique_x_sector_offsets.data());
+  }
+  else {
+    device_function(ut_pre_decode)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments,
+      constants.dev_ut_boards.data(),
+      constants.dev_ut_geometry.data(),
+      constants.dev_ut_region_offsets.data(),
+      constants.dev_unique_x_sector_layer_offsets.data(),
+      constants.dev_unique_x_sector_offsets.data());
+  }
+}
+
 __device__ void pre_decode_raw_bank(
   uint const* dev_ut_region_offsets,
   uint const* dev_unique_x_sector_offsets,

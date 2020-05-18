@@ -11,31 +11,25 @@
 // Function definitions
 //=========================================================================
 namespace compass_ut {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits; // actual hit content
-    DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo; // prefixsum, offset to tracks
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
-    DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
-    DEVICE_OUTPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, uint) dev_ut_number_of_selected_velo_tracks;
-    DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, uint) dev_ut_selected_velo_tracks;
-
-    PROPERTY(sigma_velo_slope_t, "sigma_velo_slope", "sigma velo slope [radians]", float)
-    sigma_velo_slope;
-    PROPERTY(
-      min_momentum_final_t, "min_momentum_final", "final min momentum cut [MeV/c]", float)
-    min_momentum_final;
-    PROPERTY(min_pt_final_t, "min_pt_final", "final min pT cut [MeV/c]", float)
-    min_pt_final;
-    PROPERTY(hit_tol_2_t, "hit_tol_2", "hit_tol_2 [mm]", float) hit_tol_2;
-    PROPERTY(delta_tx_2_t, "delta_tx_2", "delta_tx_2", float) delta_tx_2;
-    PROPERTY(max_considered_before_found_t, "max_considered_before_found", "max_considered_before_found", uint)
-    max_considered_before_found;
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (DEVICE_INPUT(dev_ut_hits_t, char), dev_ut_hits), // actual hit contents
+    (DEVICE_INPUT(dev_ut_hit_offsets_t, uint), dev_ut_hit_offsets),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo), // prefixsum, offset to tracks
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (DEVICE_INPUT(dev_velo_states_t, char), dev_velo_states),
+    (DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits), dev_ut_tracks),
+    (DEVICE_OUTPUT(dev_atomics_ut_t, uint), dev_atomics_ut),
+    (DEVICE_INPUT(dev_ut_windows_layers_t, short), dev_ut_windows_layers),
+    (DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, uint), dev_ut_number_of_selected_velo_tracks),
+    (DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, uint), dev_ut_selected_velo_tracks),
+    (PROPERTY(sigma_velo_slope_t, "sigma_velo_slope", "sigma velo slope [radians]", float), sigma_velo_slope),
+    (PROPERTY(min_momentum_final_t, "min_momentum_final", "final min momentum cut [MeV/c]", float), min_momentum_final),
+    (PROPERTY(min_pt_final_t, "min_pt_final", "final min pT cut [MeV/c]", float), min_pt_final),
+    (PROPERTY(hit_tol_2_t, "hit_tol_2", "hit_tol_2 [mm]", float), hit_tol_2),
+    (PROPERTY(delta_tx_2_t, "delta_tx_2", "delta_tx_2", float), delta_tx_2),
+    (PROPERTY(max_considered_before_found_t, "max_considered_before_found", "max_considered_before_found", uint), max_considered_before_found))
 
   __global__ void compass_ut(
     Parameters,
@@ -44,55 +38,20 @@ namespace compass_ut {
     const float* dev_ut_dxDy,
     const uint* dev_unique_x_sector_layer_offsets);
 
-  template<typename T>
   struct compass_ut_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(compass_ut)) function {compass_ut};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      set_size<dev_ut_tracks_t>(
-        arguments, first<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
-      set_size<dev_atomics_ut_t>(arguments, first<host_number_of_selected_events_t>(arguments) * UT::num_atomics);
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      initialize<dev_atomics_ut_t>(arguments, 0, cuda_stream);
-
-      function(
-        dim3(first<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
-        Parameters {data<dev_ut_hits_t>(arguments),
-                    data<dev_ut_hit_offsets_t>(arguments),
-                    data<dev_offsets_all_velo_tracks_t>(arguments),
-                    data<dev_offsets_velo_track_hit_number_t>(arguments),
-                    data<dev_velo_states_t>(arguments),
-                    data<dev_ut_tracks_t>(arguments),
-                    data<dev_atomics_ut_t>(arguments),
-                    data<dev_ut_windows_layers_t>(arguments),
-                    data<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments),
-                    data<dev_ut_selected_velo_tracks_with_windows_t>(arguments),
-                    property<sigma_velo_slope_t>(),
-                    property<min_momentum_final_t>(),
-                    property<min_pt_final_t>(),
-                    property<hit_tol_2_t>(),
-                    property<delta_tx_2_t>(),
-                    property<max_considered_before_found_t>()},
-        constants.dev_ut_magnet_tool,
-        constants.dev_magnet_polarity.data(),
-        constants.dev_ut_dxDy.data(),
-        constants.dev_unique_x_sector_layer_offsets.data());
-    }
+      cudaEvent_t&) const;
 
   private:
     Property<sigma_velo_slope_t> m_slope {this, 0.1f * Gaudi::Units::mrad};

@@ -105,7 +105,8 @@ target_link_libraries(Stream PRIVATE
   Muon
   Utils
   Saxpy
-  HostDataProvider)
+  HostDataProvider
+  HostInitEventList)
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})

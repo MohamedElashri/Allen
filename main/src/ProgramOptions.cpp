@@ -65,7 +65,7 @@ std::vector<ProgramOption> allen_program_options()
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)
 {
   const auto program_options = allen_program_options();
-  std::cout << "Requested options:" << std::endl;
+  std::cout << "Requested options:\n";
   for (const auto& po : program_options) {
     std::cout << " " << po.description << " (";
     for (size_t i = 0; i < po.options.size(); ++i) {
@@ -91,10 +91,11 @@ void print_call_options(const std::map<std::string, std::string>& options, const
     }
     // Special case: -d should say the device
     if (po.options[0] == "device") {
-      std::cout << ", " << device_name << std::endl;
+      std::cout << ", " << device_name;
     }
-    std::cout << std::endl;
+    std::cout << "\n";
   }
+  std::cout << "\n";
 }
 
 std::vector<std::string> split_string(std::string const& input, std::string const& sep)

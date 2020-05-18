@@ -1,5 +1,27 @@
 #include "pv_beamline_extrapolate.cuh"
 
+void pv_beamline_extrapolate::pv_beamline_extrapolate_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_pvtracks_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+  set_size<dev_pvtrack_z_t>(arguments, 2 * first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+}
+
+void pv_beamline_extrapolate::pv_beamline_extrapolate_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(pv_beamline_extrapolate)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_extrapolate::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;

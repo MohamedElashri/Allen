@@ -1,6 +1,33 @@
 #include "pv_beamline_peak.cuh"
 
-__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters, const uint number_of_events) {
+void pv_beamline_peak::pv_beamline_peak_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_zpeaks_t>(arguments, first<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
+  set_size<dev_number_of_zpeaks_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+}
+
+void pv_beamline_peak::pv_beamline_peak_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  const auto grid_dim = dim3(
+    (first<host_number_of_selected_events_t>(arguments) + PV::num_threads_pv_beamline_peak_t - 1) /
+    PV::num_threads_pv_beamline_peak_t);
+
+  device_function(pv_beamline_peak)(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
+    arguments, first<host_number_of_selected_events_t>(arguments));
+}
+
+__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters, const uint number_of_events)
+{
   // At least parallelize over events, even if it's
   // one event on each thread
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
@@ -17,7 +44,8 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
 
     {
       const float inv_maxTrackZ0Err = 1.f / (10.f * BeamlinePVConstants::Common::maxTrackZ0Err);
-      const float threshold = BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
+      const float threshold =
+        BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
       bool prevempty = true;
       float integral = zhisto[0];
       for (BinIndex i = 1; i < BeamlinePVConstants::Common::Nbins; ++i) {
@@ -41,7 +69,8 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
         const BinIndex ibegin = clusteredges[i * 2];
         const BinIndex iend = clusteredges[i * 2 + 1];
         // find the extrema
-        const float mindip = BeamlinePVConstants::Peak::minDipDensity * BeamlinePVConstants::Common::dz; // need to invent something
+        const float mindip =
+          BeamlinePVConstants::Peak::minDipDensity * BeamlinePVConstants::Common::dz; // need to invent something
         const float minpeak = BeamlinePVConstants::Peak::minDensity * BeamlinePVConstants::Common::dz;
 
         Extremum extrema[PV::max_number_vertices];

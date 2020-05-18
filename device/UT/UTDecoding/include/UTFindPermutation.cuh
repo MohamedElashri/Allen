@@ -5,48 +5,31 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_find_permutation {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint);
-    DEVICE_INPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
-    DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
-    DEVICE_OUTPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint), host_accumulated_number_of_ut_hits),
+    (DEVICE_INPUT(dev_ut_pre_decoded_hits_t, char), dev_ut_pre_decoded_hits),
+    (DEVICE_INPUT(dev_ut_hit_offsets_t, uint), dev_ut_hit_offsets),
+    (DEVICE_OUTPUT(dev_ut_hit_permutations_t, uint), dev_ut_hit_permutations),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void ut_find_permutation(Parameters, const uint* dev_unique_x_sector_layer_offsets);
 
-  template<typename T>
   struct ut_find_permutation_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(ut_find_permutation)) function {ut_find_permutation};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      set_size<dev_ut_hit_permutations_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      function(
-        dim3(first<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
-        property<block_dim_t>(),
-        cuda_stream)(
-        Parameters {data<dev_ut_pre_decoded_hits_t>(arguments),
-                   data<dev_ut_hit_offsets_t>(arguments),
-                   data<dev_ut_hit_permutations_t>(arguments)},
-        constants.dev_unique_x_sector_layer_offsets.data());
-    }
+      cudaEvent_t&) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{16, 1, 1}}};

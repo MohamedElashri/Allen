@@ -1,5 +1,92 @@
 #include "ConsolidateUT.cuh"
 
+void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_ut_track_hits_t>(
+    arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::Hits::element_size);
+  set_size<dev_ut_qop_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_track_velo_indices_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_x_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_z_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_tx_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+}
+
+void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(ut_consolidate_tracks)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments, constants.dev_unique_x_sector_layer_offsets.data());
+
+  if (runtime_options.do_check) {
+    // Transmission device to host of UT consolidated tracks
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_atomics_ut,
+      data<dev_offsets_ut_tracks_t>(arguments),
+      size<dev_offsets_ut_tracks_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_ut_track_hit_number,
+      data<dev_offsets_ut_track_hit_number_t>(arguments),
+      size<dev_offsets_ut_track_hit_number_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_ut_track_hits,
+      data<dev_ut_track_hits_t>(arguments),
+      size<dev_ut_track_hits_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_ut_qop,
+      data<dev_ut_qop_t>(arguments),
+      size<dev_ut_qop_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_ut_x,
+      data<dev_ut_x_t>(arguments),
+      size<dev_ut_x_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_ut_tx,
+      data<dev_ut_tx_t>(arguments),
+      size<dev_ut_tx_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_ut_z,
+      data<dev_ut_z_t>(arguments),
+      size<dev_ut_z_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_ut_track_velo_indices,
+      data<dev_ut_track_velo_indices_t>(arguments),
+      size<dev_ut_track_velo_indices_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 template<typename F>
 __device__ void populate(const UT::TrackHits& track, const F& assign)
 {
@@ -41,12 +128,13 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   // Create consolidated SoAs.
-  UT::Consolidated::ExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                              parameters.dev_ut_track_hit_number,
-                                              parameters.dev_ut_qop,
-                                              parameters.dev_ut_track_velo_indices,
-                                              event_number,
-                                              number_of_events};
+  UT::Consolidated::ExtendedTracks ut_tracks {
+    parameters.dev_atomics_ut,
+    parameters.dev_ut_track_hit_number,
+    parameters.dev_ut_qop,
+    parameters.dev_ut_track_velo_indices,
+    event_number,
+    number_of_events};
 
   const uint number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = ut_tracks.tracks_offset(event_number);

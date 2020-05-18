@@ -5,8 +5,8 @@
 /**
  * @brief Specialization for patPV PV finding algorithm
  */
-template<typename T>
-struct SequenceVisitor<fit_seeds::pv_fit_seeds_t<T>> {
+template<>
+struct SequenceVisitor<fit_seeds::pv_fit_seeds_t> {
   static void check(
     HostBuffers& host_buffers,
     const Constants&,
@@ -25,8 +25,8 @@ struct SequenceVisitor<fit_seeds::pv_fit_seeds_t<T>> {
 /**
  * @brief Specialization for beamline PV finding algorithm on GPU
  */
-template<typename T>
-struct SequenceVisitor<pv_beamline_cleanup::pv_beamline_cleanup_t<T>> {
+template<>
+struct SequenceVisitor<pv_beamline_cleanup::pv_beamline_cleanup_t> {
   static void check(
     HostBuffers& host_buffers,
     const Constants&,

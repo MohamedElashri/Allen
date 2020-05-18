@@ -1,6 +1,32 @@
 #include "pv_beamline_histo.cuh"
 
-__device__ float gauss_integral(float x) {
+void pv_beamline_histo::pv_beamline_histo_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_zhisto_t>(
+    arguments,
+    first<host_number_of_selected_events_t>(arguments) *
+      (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz);
+}
+
+void pv_beamline_histo::pv_beamline_histo_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(pv_beamline_histo)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments, constants.dev_beamline.data());
+}
+
+__device__ float gauss_integral(float x)
+{
   const float a = sqrtf(float(2 * BeamlinePVConstants::Histo::order_polynomial + 3));
   const float xi = x / a;
   const float eta = 1.f - xi * xi;
@@ -9,7 +35,8 @@ __device__ float gauss_integral(float x) {
   return 0.5f + xi * (p[0] + eta * (p[1] + eta * p[2]));
 }
 
-__global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Parameters parameters, float* dev_beamline) {
+__global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Parameters parameters, float* dev_beamline)
+{
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
@@ -35,8 +62,8 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
     if (BeamlinePVConstants::Common::zmin < trk.z && trk.z < BeamlinePVConstants::Common::zmax) {
       const float diffx2 = (trk.x.x - dev_beamline[0]) * (trk.x.x - dev_beamline[0]);
       const float diffy2 = (trk.x.y - dev_beamline[1]) * (trk.x.y - dev_beamline[1]);
-      const float blchi2 = diffx2 * trk.W_00  + diffy2 * trk.W_11 ;
-      if (blchi2 >= BeamlinePVConstants::Histo::maxTrackBLChi2 ) continue;
+      const float blchi2 = diffx2 * trk.W_00 + diffy2 * trk.W_11;
+      if (blchi2 >= BeamlinePVConstants::Histo::maxTrackBLChi2) continue;
 
       // bin in which z0 is, in floating point
       const float zbin = (trk.z - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz;
@@ -58,7 +85,8 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
         if (maxbin >= minbin) {
           float integral = 0;
           for (auto i = minbin; i < maxbin; ++i) {
-            const float relz = (BeamlinePVConstants::Common::zmin + (i + 1) * BeamlinePVConstants::Common::dz - trk.z) / zerr;
+            const float relz =
+              (BeamlinePVConstants::Common::zmin + (i + 1) * BeamlinePVConstants::Common::dz - trk.z) / zerr;
             const float thisintegral = gauss_integral(relz);
             atomicAdd(histo_base_pointer + i, thisintegral - integral);
             integral = thisintegral;

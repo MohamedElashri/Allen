@@ -3,6 +3,36 @@
 #include "BinarySearch.cuh"
 #include "UTFastFitter.cuh"
 
+void compass_ut::compass_ut_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_ut_tracks_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
+  set_size<dev_atomics_ut_t>(arguments, first<host_number_of_selected_events_t>(arguments) * UT::num_atomics);
+}
+
+void compass_ut::compass_ut_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_atomics_ut_t>(arguments, 0, cuda_stream);
+
+  device_function(compass_ut)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
+    arguments,
+    constants.dev_ut_magnet_tool,
+    constants.dev_magnet_polarity.data(),
+    constants.dev_ut_dxDy.data(),
+    constants.dev_unique_x_sector_layer_offsets.data());
+}
+
 __global__ void compass_ut::compass_ut(
   compass_ut::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
@@ -113,10 +143,11 @@ __device__ void compass_ut::compass_ut_tracking(
     1.f / sigma_velo_slope,
     event_hit_offset);
 
-  const int best_hits[UT::Constants::n_layers] = {std::get<0>(best_hits_and_params),
-                                                  std::get<1>(best_hits_and_params),
-                                                  std::get<2>(best_hits_and_params),
-                                                  std::get<3>(best_hits_and_params)};
+  const int best_hits[UT::Constants::n_layers] = {
+    std::get<0>(best_hits_and_params),
+    std::get<1>(best_hits_and_params),
+    std::get<2>(best_hits_and_params),
+    std::get<3>(best_hits_and_params)};
   const BestParams best_params = std::get<4>(best_hits_and_params);
 
   // write the final track
@@ -202,9 +233,10 @@ __device__ void compass_ut::save_track(
   float bdl = bdl_table[master_index(index1, index2, index3)];
 
   const int num_idx = 3;
-  const float bdls[num_idx] = {bdl_table[master_index(index1 + 1, index2, index3)],
-                               bdl_table[master_index(index1, index2 + 1, index3)],
-                               bdl_table[master_index(index1, index2, index3 + 1)]};
+  const float bdls[num_idx] = {
+    bdl_table[master_index(index1 + 1, index2, index3)],
+    bdl_table[master_index(index1, index2 + 1, index3)],
+    bdl_table[master_index(index1, index2, index3 + 1)]};
   const float deltaBdl[num_idx] = {0.02f, 50.0f, 80.0f};
   const float boundaries[num_idx] = {
     -0.3f + float(index1) * deltaBdl[0], -250.0f + float(index2) * deltaBdl[1], 0.0f + float(index3) * deltaBdl[2]};
@@ -221,10 +253,11 @@ __device__ void compass_ut::save_track(
   }
   bdl += addBdlVal;
 
-  float finalParams[4] = {best_params.x,
-                          best_params.tx,
-                          velo_state.y + velo_state.ty * (UT::Constants::zMidUT - velo_state.z),
-                          best_params.chi2UT};
+  float finalParams[4] = {
+    best_params.x,
+    best_params.tx,
+    velo_state.y + velo_state.ty * (UT::Constants::zMidUT - velo_state.z),
+    best_params.chi2UT};
 
   // const float qpxz2p = -1 * sqrtf(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
   const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;

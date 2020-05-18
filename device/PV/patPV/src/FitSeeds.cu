@@ -1,5 +1,44 @@
 #include "FitSeeds.cuh"
 
+void fit_seeds::pv_fit_seeds_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_vertex_t>(arguments, PatPV::max_number_vertices * first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_number_vertex_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+}
+
+void fit_seeds::pv_fit_seeds_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(fit_seeds)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+
+  if (runtime_options.do_check) {
+    // Retrieve result
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_reconstructed_pvs,
+      data<dev_vertex_t>(arguments),
+      size<dev_vertex_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_vertex,
+      data<dev_number_vertex_t>(arguments),
+      size<dev_number_vertex_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 __global__ void fit_seeds::fit_seeds(fit_seeds::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
@@ -7,8 +46,8 @@ __global__ void fit_seeds::fit_seeds(fit_seeds::Parameters parameters)
 
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstKalmanStates velo_states {parameters.dev_velo_kalman_beamline_states,
-                                                      velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstKalmanStates velo_states {
+    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 

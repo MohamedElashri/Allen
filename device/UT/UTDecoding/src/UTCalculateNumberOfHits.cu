@@ -1,6 +1,44 @@
 #include <MEPTools.h>
 #include <UTCalculateNumberOfHits.cuh>
 
+void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  const HostBuffers&) const
+{
+  set_size<dev_ut_hit_sizes_t>(
+    arguments,
+    first<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+}
+
+void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_ut_hit_sizes_t>(arguments, 0, cuda_stream);
+
+  if (runtime_options.mep_layout) {
+    device_function(ut_calculate_number_of_hits_mep)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments,
+      constants.dev_ut_boards.data(),
+      constants.dev_ut_region_offsets.data(),
+      constants.dev_unique_x_sector_layer_offsets.data(),
+      constants.dev_unique_x_sector_offsets.data());
+  } else {
+    device_function(ut_calculate_number_of_hits)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments,
+      constants.dev_ut_boards.data(),
+      constants.dev_ut_region_offsets.data(),
+      constants.dev_unique_x_sector_layer_offsets.data(),
+      constants.dev_unique_x_sector_offsets.data());
+  }
+}
+
 __device__ void calculate_number_of_hits(
   uint const* dev_ut_region_offsets,
   uint const* dev_unique_x_sector_offsets,
