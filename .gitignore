@@ -16,7 +16,6 @@ debug*
 .#*
 CMakeFiles
 CMakeCache.txt
-configuration/sequences/ConfiguredSequence.h
 run.sh
 setup.sh
 *pyc
@@ -34,4 +33,6 @@ InstallArea*
 Makefile
 toolchain.cmake
 configuration/sequences/definitions/algorithms.py
+configuration/sequences/ConfiguredSequence.h
+configuration/sequences/ConfiguredLines.h
 scripts/algorithms.py
