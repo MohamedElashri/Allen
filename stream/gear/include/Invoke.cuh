@@ -50,7 +50,6 @@ void invoke_impl(
   function<<<grid_dim, block_dim, 0, stream>>>(std::get<I>(invoke_arguments)...);
 #else
   error_cout << "Global function invoked with unexpected backend.\n"
-  _unused(function);
   _unused(stream);
   _unused(invoke_arguments);
 #endif
