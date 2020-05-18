@@ -43,8 +43,7 @@ public:
     const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_mf_sv_decisions[line_name].clear();
     };
-    Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine>::traverse(
-      lambda_velo_ut_two_track_fn);
+    Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine>::traverse(lambda_velo_ut_two_track_fn);
 
     const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_sv_decisions[line_name].clear();
@@ -81,8 +80,7 @@ public:
       const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
         make_branch(line_name, "mf_sv_pass_", m_mf_sv_decisions);
       };
-      Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine>::traverse(
-        lambda_velo_ut_two_track_fn);
+      Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine>::traverse(lambda_velo_ut_two_track_fn);
 
       const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
         make_branch(line_name, "sv_pass_", m_sv_decisions);

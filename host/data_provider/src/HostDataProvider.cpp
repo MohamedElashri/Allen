@@ -9,7 +9,7 @@ void host_data_provider::host_data_provider_t::set_arguments_size(
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
   // A number of spans for the blocks equal to the number of blocks
   set_size<host_raw_banks_t>(arguments, std::get<0>(bno).size());
-  
+
   // A single span for the offsets
   set_size<host_raw_offsets_t>(arguments, 1);
 }

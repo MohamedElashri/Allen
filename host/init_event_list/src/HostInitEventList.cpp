@@ -8,7 +8,7 @@ void host_init_event_list::host_init_event_list_t::set_arguments_size(
 {
   const auto event_start = std::get<0>(runtime_options.event_interval);
   const auto event_end = std::get<1>(runtime_options.event_interval);
-  
+
   set_size<host_total_number_of_events_t>(arguments, 1);
   set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<host_event_list_t>(arguments, event_end - event_start);

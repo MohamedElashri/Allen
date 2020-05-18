@@ -94,8 +94,9 @@ class LineTraversal():
     @staticmethod
     def namespace(c, filename):
         """Traverses the namespaces."""
-        if (c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in LineTraversal.__ignored_namespaces and 
-            c.location.file.name == filename):
+        if (c.kind == cindex.CursorKind.NAMESPACE
+                and c.spelling not in LineTraversal.__ignored_namespaces
+                and c.location.file.name == filename):
             return (c.kind, c.spelling,
                     LineTraversal.traverse_children(c, LineTraversal.line))
         else:

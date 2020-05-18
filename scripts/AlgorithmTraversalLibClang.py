@@ -2,8 +2,8 @@ import clang.cindex as cindex
 
 
 class ParsedAlgorithm():
-    def __init__(self, name, scope, filename, namespace,
-                 parameters, properties):
+    def __init__(self, name, scope, filename, namespace, parameters,
+                 properties):
         self.name = name
         self.scope = scope
         self.filename = filename
@@ -58,17 +58,17 @@ def make_parsed_algorithms(filename, data):
                     prop_name = t[3]
                     description = t[4]
                     properties.append(
-                        Property(typename, typedef, prop_name,
-                                 description))
+                        Property(typename, typedef, prop_name, description))
                 elif kind == "Parameter":
                     typename = t[1]
                     datatype = t[2]
                     is_input = t[3]
                     typedef = t[4]
-                    parameters.append(Parameter(typename, datatype, is_input, typedef))
+                    parameters.append(
+                        Parameter(typename, datatype, is_input, typedef))
             parsed_algorithms.append(
-                ParsedAlgorithm(name, scope, filename, namespace,
-                                parameters, properties))
+                ParsedAlgorithm(name, scope, filename, namespace, parameters,
+                                properties))
     return parsed_algorithms
 
 
@@ -126,7 +126,7 @@ class AlgorithmTraversal():
         * kind: host / device.
         * io: input / output.
         * typedef: Type that it holds (ie. uint).
-        
+
         For a property:
         * typedef: Type that it holds (ie. uint).
         * name: Name of the property (obtained with tokens)
@@ -158,7 +158,8 @@ class AlgorithmTraversal():
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
                     # child.type.spelling is like "void (uint) const", or "void (uint)"
-                    typedef = child.type.spelling[child.type.spelling.find("(") + 1:child.type.spelling.find(")")]
+                    typedef = child.type.spelling[child.type.spelling.find(
+                        "(") + 1:child.type.spelling.find(")")]
             if typedef == "":
                 # This happens if the type cannot be parsed
                 typedef = "int"
@@ -170,13 +171,15 @@ class AlgorithmTraversal():
             typedef = None
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_METHOD:
-                    typedef = child.type.spelling[child.type.spelling.find("(") + 1:child.type.spelling.find(")")]
+                    typedef = child.type.spelling[child.type.spelling.find(
+                        "(") + 1:child.type.spelling.find(")")]
             if typedef == "":
                 typedef = "int"
             # Unfortunately, for properties we need to rely on tokens found in the
             # namespace to get the literals.
             name = AlgorithmTraversal.__properties[typename]["name"]
-            description = AlgorithmTraversal.__properties[typename]["description"]
+            description = AlgorithmTraversal.__properties[typename][
+                "description"]
             return ("Property", typename, typedef, name, description)
         return None
 
@@ -207,7 +210,9 @@ class AlgorithmTraversal():
         either "HostAlgorithm" or "DeviceAlgorithm" among its tokens. If so,
         it proceeds to find algorithm parameters, template parameters, and returns a quintuplet:
         (kind, spelling, algorithm class, algorithm parameters)."""
-        if c.kind in [cindex.CursorKind.STRUCT_DECL, cindex.CursorKind.CLASS_DECL]:
+        if c.kind in [
+                cindex.CursorKind.STRUCT_DECL, cindex.CursorKind.CLASS_DECL
+        ]:
             # Fetch the class and parameters of the algorithm
             algorithm_class = ""
             algorithm_parameters = ""
@@ -219,8 +224,8 @@ class AlgorithmTraversal():
                 elif type(d) == list:
                     algorithm_parameters = d
             if algorithm_class != "":
-                return (c.kind, c.spelling,
-                        algorithm_class, algorithm_parameters)
+                return (c.kind, c.spelling, algorithm_class,
+                        algorithm_parameters)
             else:
                 return None
         else:
@@ -247,7 +252,10 @@ class AlgorithmTraversal():
                         typename = ts[last_found + 2]
                         name = ts[last_found + 4]
                         description = ts[last_found + 6]
-                        AlgorithmTraversal.__properties[typename] = {"name": name, "description": description}
+                        AlgorithmTraversal.__properties[typename] = {
+                            "name": name,
+                            "description": description
+                        }
                     except ValueError:
                         break
                 return (c.kind, c.spelling,

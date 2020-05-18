@@ -113,12 +113,14 @@ def check_input_parameter(parameter, assign_class, typename):
     if typename == "int" or parameter.type() == Type("int"):
         # If the type is int, unfortunately it is not possible to distinguish whether
         # the parser parsed an unknown type or not, so just accept it
-        return assign_class(parameter.name(), parameter.type(), parameter.producer())
+        return assign_class(parameter.name(), parameter.type(),
+                            parameter.producer())
     else:
         assert compatible_parameter_assignment(type(parameter), assign_class)
         assert parameter.type() == Type(typename)
-        return assign_class(parameter.name(), parameter.type(), parameter.producer())
-    
+        return assign_class(parameter.name(), parameter.type(),
+                            parameter.producer())
+
 
 class HostInput(HostParameter, InputParameter):
     def __init__(self, name, typename, producer):
@@ -139,7 +141,8 @@ class HostInput(HostParameter, InputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "HostInput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "HostInput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class HostOutput(HostParameter, OutputParameter):
@@ -161,7 +164,8 @@ class HostOutput(HostParameter, OutputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "HostOutput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "HostOutput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class DeviceInput(DeviceParameter, InputParameter):
@@ -183,7 +187,8 @@ class DeviceInput(DeviceParameter, InputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "DeviceInput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "DeviceInput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class DeviceOutput(DeviceParameter, OutputParameter):
@@ -205,7 +210,8 @@ class DeviceOutput(DeviceParameter, OutputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "DeviceOutput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "DeviceOutput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class Property():
@@ -273,7 +279,8 @@ class Sequence():
                     algorithm.parameters().items()):
                 if issubclass(parameter.__class__, OutputParameter):
                     if parameter.fullname() in output_names:
-                        output_names[parameter.fullname()].append(algorithm.name())
+                        output_names[parameter.fullname()].append(
+                            algorithm.name())
                     else:
                         output_names[parameter.fullname()] = [algorithm.name()]
 
@@ -365,9 +372,10 @@ class Sequence():
                             (algorithm.name(), algorithm.namespace(),
                              parameter_t))
                     else:
-                        parameters[parameter.fullname()] = [(algorithm.name(),
-                                                         algorithm.namespace(),
-                                                         parameter_t)]
+                        parameters[parameter.fullname()] = [
+                            (algorithm.name(), algorithm.namespace(),
+                             parameter_t)
+                        ]
             # Generate arguments
             for parameter_name, v in iter(parameters.items()):
                 s += "struct " + parameter_name + " : "
@@ -388,6 +396,7 @@ char* offset() const override { return m_offset; } \
 private: \
     size_t m_size = 0; \
     char* m_offset = nullptr; };\n"
+
             # Generate argument tuple
             s += "\nusing configured_arguments_t = std::tuple<\n"
             for parameter_name in parameters.keys():
@@ -424,7 +433,9 @@ private: \
             s += "void inline populate_sequence_algorithm_names(configured_sequence_t& sequence) {\n"
             i = 0
             for _, algorithm in iter(self.__sequence.items()):
-                s += prefix(1) + "std::get<" + str(i) + ">(sequence).set_name(\"" + algorithm.name() + "\");\n"
+                s += prefix(1) + "std::get<" + str(
+                    i) + ">(sequence).set_name(\"" + algorithm.name(
+                    ) + "\");\n"
                 i += 1
             s += "}\n"
             f = open(output_filename, "w")
@@ -446,7 +457,8 @@ private: \
             f = open(configured_lines_filename, "w")
             f.write(s)
             f.close()
-            print("Generated line configuration file " + configured_lines_filename)
+            print("Generated line configuration file " +
+                  configured_lines_filename)
             s = "{\n"
             i = 1
             for _, algorithm in iter(self.__sequence.items()):

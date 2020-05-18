@@ -36,10 +36,11 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
 
   if (runtime_options.mep_layout) {
     host_function(host_global_event_cut_mep)(number_of_events, arguments);
-  } else {
+  }
+  else {
     host_function(host_global_event_cut)(number_of_events, arguments);
   }
-  
+
   copy<dev_event_list_t, host_event_list_t>(arguments, cuda_stream);
 
   // TODO: Remove whenever the checker uses variables

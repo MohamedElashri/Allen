@@ -74,7 +74,8 @@ class Parser():
                     has_algorithm = Parser.__algorithm_pattern_compiled.search(
                         s)
                     if has_algorithm:
-                        parsed_algorithms = algorithm_parser.traverse(filename, prefix_project_folder)
+                        parsed_algorithms = algorithm_parser.traverse(
+                            filename, prefix_project_folder)
                         if parsed_algorithms:
                             algorithms += parsed_algorithms
                     # Invoke the libTooling line parser only if we find the line pattern
@@ -87,7 +88,6 @@ class Parser():
                     print("Parsing file", filename, "failed")
                     raise
         return algorithms, lines
-
 
 
 class AllenConf():
@@ -139,7 +139,8 @@ class AllenConf():
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
         s = AllenConf.prefix(
-            i) + "class " + algorithm.name + "(" + algorithm.scope + ", metaclass=AlgorithmRepr):\n"
+            i
+        ) + "class " + algorithm.name + "(" + algorithm.scope + ", metaclass=AlgorithmRepr):\n"
         i += 1
         s += AllenConf.prefix(i) + "inputs = ("
         i += 1
@@ -311,6 +312,7 @@ def algorithm_dict(*algorithms):\n\
     for alg in algorithms:\n\
         d[alg.name] = alg\n\
     return d\n\n\n"
+
         return s
 
     @staticmethod
@@ -321,8 +323,8 @@ def algorithm_dict(*algorithms):\n\
         s += GaudiAllenConf.prefix(i) + "def __init__(self):\n"
         i += 1
         s += GaudiAllenConf.prefix(i) + "self.__name=\"" + line.name + "\"\n"
-        s += GaudiAllenConf.prefix(i) + "self.__filename=\"" + line.filename[len(
-            prefix_project_folder):] + "\"\n"
+        s += GaudiAllenConf.prefix(i) + "self.__filename=\"" + line.filename[
+            len(prefix_project_folder):] + "\"\n"
         s += GaudiAllenConf.prefix(
             i) + "self.__namespace=\"" + line.namespace + "\"\n"
         i -= 1
@@ -348,7 +350,8 @@ def algorithm_dict(*algorithms):\n\
 
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
-        s = GaudiAllenConf.prefix(i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
+        s = GaudiAllenConf.prefix(
+            i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
         i += 1
         s += GaudiAllenConf.prefix(i) + "__slots__ = dict(\n"
         i += 1
@@ -370,17 +373,20 @@ def algorithm_dict(*algorithms):\n\
         s += GaudiAllenConf.prefix(i) + "@classmethod\n"
         s += GaudiAllenConf.prefix(i) + "def namespace(cls):\n"
         i += 1
-        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm.namespace + "\"\n\n"
+        s += GaudiAllenConf.prefix(
+            i) + "return \"" + algorithm.namespace + "\"\n\n"
         i -= 1
         s += GaudiAllenConf.prefix(i) + "@classmethod\n"
         s += GaudiAllenConf.prefix(i) + "def filename(cls):\n"
         i += 1
-        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm.filename + "\"\n\n"
+        s += GaudiAllenConf.prefix(
+            i) + "return \"" + algorithm.filename + "\"\n\n"
         i -= 1
         s += GaudiAllenConf.prefix(i) + "@classmethod\n"
         s += GaudiAllenConf.prefix(i) + "def getType(cls):\n"
         i += 1
-        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm.name + "\"\n\n\n"
+        s += GaudiAllenConf.prefix(
+            i) + "return \"" + algorithm.name + "\"\n\n\n"
 
         return s
 

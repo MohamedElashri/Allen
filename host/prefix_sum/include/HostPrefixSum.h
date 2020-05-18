@@ -9,7 +9,7 @@ namespace host_prefix_sum {
     (HOST_OUTPUT(host_total_sum_holder_t, uint), host_total_sum_holder),
     (DEVICE_INPUT(dev_input_buffer_t, uint), dev_input_buffer),
     (DEVICE_OUTPUT(dev_output_buffer_t, uint), dev_output_buffer))
-  
+
   /**
    * @brief Implementation of prefix sum.
    */

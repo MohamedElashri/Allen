@@ -9,10 +9,11 @@
 #include "KalmanSequenceCheckers_impl.cuh"
 #include "RateCheckers_impl.cuh"
 
-StreamWrapper::StreamWrapper() {
+StreamWrapper::StreamWrapper()
+{
   number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
   uint errorevent_line_index = number_of_hlt1_lines;
-  const auto lambda_fn = [&] (const unsigned long i, const std::string& line_name) {
+  const auto lambda_fn = [&](const unsigned long i, const std::string& line_name) {
     if (line_name == "ErrorEvent") errorevent_line_index = i;
   };
   Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine>::traverse(lambda_fn);
@@ -32,16 +33,15 @@ void StreamWrapper::initialize_streams(
   }
 
   for (size_t i = 0; i < streams.size(); ++i) {
-    streams[i]->initialize(
-      print_memory_usage, start_event_offset, reserve_mb, constants);
+    streams[i]->initialize(print_memory_usage, start_event_offset, reserve_mb, constants);
 
     // Configuration of the algorithms must happen after stream initialization
     streams[i]->configure_algorithms(config);
   }
 }
 
-void StreamWrapper::initialize_streams_host_buffers_manager(
-  HostBuffersManager* buffers_manager) {
+void StreamWrapper::initialize_streams_host_buffers_manager(HostBuffersManager* buffers_manager)
+{
   for (size_t i = 0; i < streams.size(); ++i) {
     streams[i]->set_host_buffer_manager(buffers_manager);
   }
@@ -108,7 +108,8 @@ cudaError_t Stream::initialize(
   cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1024 * 1024));
 
   // Prepare scheduler
-  scheduler.initialize(do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 10 * 1024 * 1024, host_base_pointer);
+  scheduler.initialize(
+    do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 10 * 1024 * 1024, host_base_pointer);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);
@@ -116,7 +117,8 @@ cudaError_t Stream::initialize(
   return cudaSuccess;
 }
 
-void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager) {
+void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
+{
   // Set host buffers manager
   host_buffers_manager = buffers_manager;
 }
