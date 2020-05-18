@@ -1,5 +1,37 @@
 #include "LFQualityFilterLength.cuh"
 
+void lf_quality_filter_length::lf_quality_filter_length_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_scifi_lf_length_filtered_tracks_t>(
+    arguments,
+    first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+      LookingForward::maximum_number_of_candidates_per_ut_track);
+  set_size<dev_scifi_lf_length_filtered_atomics_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
+  set_size<dev_scifi_lf_parametrization_length_filter_t>(
+    arguments,
+    4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+      LookingForward::maximum_number_of_candidates_per_ut_track);
+}
+
+void lf_quality_filter_length::lf_quality_filter_length_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, cuda_stream);
+
+  device_function(lf_quality_filter_length)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 __global__ void lf_quality_filter_length::lf_quality_filter_length(lf_quality_filter_length::Parameters parameters)
 {
   const auto event_number = blockIdx.x;

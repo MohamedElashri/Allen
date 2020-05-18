@@ -79,7 +79,7 @@ void print_call_options(const std::map<std::string, std::string>& options, const
     }
     std::cout << "): ";
     bool option_specified = false;
-    for (const auto opt : po.options) {
+    for (const auto& opt : po.options) {
       const auto it = options.find(opt);
       if (it != options.end()) {
         option_specified = true;

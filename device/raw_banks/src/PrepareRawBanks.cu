@@ -1,5 +1,98 @@
 #include "PrepareRawBanks.cuh"
 
+void prepare_raw_banks::prepare_raw_banks_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  const HostBuffers&) const
+{
+  const auto total_number_of_events =
+    std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
+  const auto padding_size = 3 * first<host_number_of_selected_events_t>(arguments);
+  const auto hits_size =
+    ParKalmanFilter::nMaxMeasurements * first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+  set_size<dev_sel_rb_hits_t>(arguments, hits_size + padding_size);
+  set_size<dev_sel_rb_stdinfo_t>(arguments, total_number_of_events * Hlt1::maxStdInfoEvent);
+  set_size<dev_sel_rb_objtyp_t>(arguments, total_number_of_events * (Hlt1::nObjTyp + 1));
+  set_size<dev_sel_rb_substr_t>(arguments, total_number_of_events * Hlt1::subStrDefaultAllocationSize);
+  set_size<dev_sel_rep_sizes_t>(arguments, total_number_of_events);
+  set_size<dev_passing_event_list_t>(arguments, total_number_of_events);
+
+  const auto n_hlt1_lines = std::tuple_size<configured_lines_t>::value;
+  set_size<dev_dec_reports_t>(arguments, (2 + n_hlt1_lines) * total_number_of_events);
+
+  // This is not technically enough to save every single track, but
+  // should be more than enough in practice.
+  // TODO: Implement some check for this.
+  set_size<dev_candidate_lists_t>(arguments, total_number_of_events * Hlt1::maxCandidates * n_hlt1_lines);
+  set_size<dev_candidate_counts_t>(arguments, total_number_of_events * n_hlt1_lines);
+  set_size<dev_saved_tracks_list_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_saved_svs_list_t>(arguments, first<host_number_of_svs_t>(arguments));
+  set_size<dev_save_track_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_save_sv_t>(arguments, first<host_number_of_svs_t>(arguments));
+  set_size<dev_sel_atomics_t>(arguments, Hlt1::number_of_sel_atomics * total_number_of_events);
+}
+
+void prepare_raw_banks::prepare_raw_banks_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  const auto event_start = std::get<0>(runtime_options.event_interval);
+  const auto total_number_of_events =
+    std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
+  initialize<dev_sel_rb_hits_t>(arguments, 0, cuda_stream);
+  initialize<dev_sel_rb_stdinfo_t>(arguments, 0, cuda_stream);
+  initialize<dev_sel_rb_objtyp_t>(arguments, 0, cuda_stream);
+  initialize<dev_sel_rb_substr_t>(arguments, 0, cuda_stream);
+  initialize<dev_sel_rep_sizes_t>(arguments, 0, cuda_stream);
+  initialize<dev_passing_event_list_t>(arguments, 0, cuda_stream);
+  initialize<dev_candidate_lists_t>(arguments, 0, cuda_stream);
+  initialize<dev_candidate_counts_t>(arguments, 0, cuda_stream);
+  initialize<dev_dec_reports_t>(arguments, 0, cuda_stream);
+  initialize<dev_save_track_t>(arguments, -1, cuda_stream);
+  initialize<dev_save_sv_t>(arguments, -1, cuda_stream);
+  initialize<dev_sel_atomics_t>(arguments, 0, cuda_stream);
+
+#ifdef CPU
+  const uint grid_dim = 1;
+  const uint block_dim = 1;
+#else
+  uint grid_dim =
+    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>();
+  if (grid_dim == 0) {
+    grid_dim = 1;
+  }
+  const uint block_dim = property<block_dim_x_t>().get();
+#endif
+
+  device_function(prepare_decisions)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
+    arguments, first<host_number_of_selected_events_t>(arguments), event_start);
+
+  device_function(prepare_raw_banks)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
+    arguments, first<host_number_of_selected_events_t>(arguments), total_number_of_events, event_start);
+
+  // Copy raw bank data.
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_dec_reports,
+    data<dev_dec_reports_t>(arguments),
+    size<dev_dec_reports_t>(arguments),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_passing_event_list,
+    data<dev_passing_event_list_t>(arguments),
+    size<dev_passing_event_list_t>(arguments),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+}
+
 __global__ void prepare_raw_banks::prepare_raw_banks(
   prepare_raw_banks::Parameters parameters,
   const uint selected_number_of_events,
@@ -80,7 +173,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         substr_bank.addSubstr(0, 0);
       }
     };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(
+      lambda_special_fn);
 
     // Set the sizes of the banks.
     objtyp_bank.saveSize();
@@ -98,27 +192,30 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
 
     // Create velo tracks.
-    Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_atomics_velo,
-                                                 parameters.dev_velo_track_hit_number,
-                                                 selected_event_number,
-                                                 selected_number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {
+      parameters.dev_atomics_velo,
+      parameters.dev_velo_track_hit_number,
+      selected_event_number,
+      selected_number_of_events};
 
     // Create UT tracks.
-    UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                     parameters.dev_ut_track_hit_number,
-                                                     parameters.dev_ut_qop,
-                                                     parameters.dev_ut_track_velo_indices,
-                                                     selected_event_number,
-                                                     selected_number_of_events};
+    UT::Consolidated::ConstExtendedTracks ut_tracks {
+      parameters.dev_atomics_ut,
+      parameters.dev_ut_track_hit_number,
+      parameters.dev_ut_qop,
+      parameters.dev_ut_track_velo_indices,
+      selected_event_number,
+      selected_number_of_events};
 
     // Create SciFi tracks.
-    SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_offsets_forward_tracks,
-                                                   parameters.dev_scifi_track_hit_number,
-                                                   parameters.dev_scifi_qop,
-                                                   parameters.dev_scifi_states,
-                                                   parameters.dev_scifi_track_ut_indices,
-                                                   selected_event_number,
-                                                   selected_number_of_events};
+    SciFi::Consolidated::ConstTracks scifi_tracks {
+      parameters.dev_offsets_forward_tracks,
+      parameters.dev_scifi_track_hit_number,
+      parameters.dev_scifi_qop,
+      parameters.dev_scifi_states,
+      parameters.dev_scifi_track_ut_indices,
+      selected_event_number,
+      selected_number_of_events};
 
     // Tracks.
     const int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(selected_event_number);
@@ -184,25 +281,36 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Create the hits sub-bank.
     HltSelRepRBHits hits_bank(
-      parameters.dev_n_tracks_saved[event_number], parameters.dev_n_hits_saved[event_number], event_sel_rb_hits);
+      parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved],
+      parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_hits_saved],
+      event_sel_rb_hits);
 
     // Create the substructure sub-bank.
     // Use default allocation size.
     HltSelRepRBSubstr substr_bank(0, event_sel_rb_substr);
 
     // Create the standard info sub-bank.
-    uint nAllInfo = Hlt1::nStdInfoDecision * n_decisions +
-                    Hlt1::nStdInfoTrack * (parameters.dev_n_tracks_saved[event_number]) +
-                    Hlt1::nStdInfoSV * (parameters.dev_n_svs_saved[event_number]);
-    uint nObj = n_decisions + parameters.dev_n_tracks_saved[event_number] + parameters.dev_n_svs_saved[event_number];
+    uint nAllInfo =
+      Hlt1::nStdInfoDecision * n_decisions +
+      Hlt1::nStdInfoTrack *
+        (parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved]) +
+      Hlt1::nStdInfoSV *
+        (parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved]);
+    uint nObj = n_decisions +
+                parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved] +
+                parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved];
     bool writeStdInfo = nAllInfo < Hlt1::maxStdInfoEvent;
     HltSelRepRBStdInfo stdinfo_bank(nObj, nAllInfo, event_sel_rb_stdinfo);
 
     // Create the object type sub-bank.
     HltSelRepRBObjTyp objtyp_bank(Hlt1::nObjTyp, event_sel_rb_objtyp);
     objtyp_bank.addObj(Hlt1::selectionCLID, n_decisions);
-    objtyp_bank.addObj(Hlt1::trackCLID, parameters.dev_n_tracks_saved[event_number]);
-    objtyp_bank.addObj(Hlt1::svCLID, parameters.dev_n_svs_saved[event_number]);
+    objtyp_bank.addObj(
+      Hlt1::trackCLID,
+      parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved]);
+    objtyp_bank.addObj(
+      Hlt1::svCLID,
+      parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved]);
 
     // Note: This was moved because it needs to be in the same order
     // as the lines in the substr
@@ -231,7 +339,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         }
       }
     };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_onetrack_fn)>::traverse(lambda_onetrack_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_onetrack_fn)>::traverse(
+      lambda_onetrack_fn);
 
     // Add two-track decisions to the substr and stdinfo.
     const auto lambda_twotrack_fn = [&](const unsigned int i_line) {
@@ -247,7 +356,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         }
       }
     };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_twotrack_fn)>::traverse(lambda_twotrack_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_twotrack_fn)>::traverse(
+      lambda_twotrack_fn);
 
     // Add special decisions to substr and stdinfo.
     const auto lambda_special_fn = [&](const unsigned int i_line) {
@@ -259,11 +369,15 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     };
     // Can use this lambda for both the VELO and special lines.
     Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(
+      lambda_special_fn);
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     // TODO: dev_n_tracks_saved was 0s at the beginning! ./Allen -m3
-    for (uint i_saved_track = 0; i_saved_track < parameters.dev_n_tracks_saved[event_number]; i_saved_track++) {
+    for (uint i_saved_track = 0;
+         i_saved_track <
+         parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved];
+         i_saved_track++) {
       uint i_track = event_saved_tracks_list[i_saved_track];
       // Add track parameters to StdInfo.
       if (writeStdInfo) {
@@ -311,7 +425,10 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     }
 
     // Add secondary vertices to the hits StdInfo. CLID = 10030.
-    for (uint i_saved_sv = 0; i_saved_sv < parameters.dev_n_svs_saved[event_number]; i_saved_sv++) {
+    for (uint i_saved_sv = 0;
+         i_saved_sv <
+         parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved];
+         i_saved_sv++) {
       uint i_sv = event_saved_svs_list[i_saved_sv];
 
       // Add to Substr.

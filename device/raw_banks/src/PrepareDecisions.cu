@@ -24,27 +24,30 @@ __global__ void prepare_raw_banks::prepare_decisions(
     const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
 
     // Create velo tracks.
-    Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_atomics_velo,
-                                                 parameters.dev_velo_track_hit_number,
-                                                 selected_event_number,
-                                                 selected_number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {
+      parameters.dev_atomics_velo,
+      parameters.dev_velo_track_hit_number,
+      selected_event_number,
+      selected_number_of_events};
 
     // Create UT tracks.
-    UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                     parameters.dev_ut_track_hit_number,
-                                                     parameters.dev_ut_qop,
-                                                     parameters.dev_ut_track_velo_indices,
-                                                     selected_event_number,
-                                                     selected_number_of_events};
+    UT::Consolidated::ConstExtendedTracks ut_tracks {
+      parameters.dev_atomics_ut,
+      parameters.dev_ut_track_hit_number,
+      parameters.dev_ut_qop,
+      parameters.dev_ut_track_velo_indices,
+      selected_event_number,
+      selected_number_of_events};
 
     // Create SciFi tracks.
-    SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_offsets_forward_tracks,
-                                                   parameters.dev_scifi_track_hit_number,
-                                                   parameters.dev_scifi_qop,
-                                                   parameters.dev_scifi_states,
-                                                   parameters.dev_scifi_track_ut_indices,
-                                                   selected_event_number,
-                                                   selected_number_of_events};
+    SciFi::Consolidated::ConstTracks scifi_tracks {
+      parameters.dev_offsets_forward_tracks,
+      parameters.dev_scifi_track_hit_number,
+      parameters.dev_scifi_qop,
+      parameters.dev_scifi_states,
+      parameters.dev_scifi_track_ut_indices,
+      selected_event_number,
+      selected_number_of_events};
 
     // Tracks.
     int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(selected_event_number);
@@ -85,7 +88,8 @@ __global__ void prepare_raw_banks::prepare_decisions(
       Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
       if (save_sv & dec_mask) {
-        const uint sv_insert_index = atomicAdd(parameters.dev_n_svs_saved + event_number, 1);
+        const uint sv_insert_index = atomicAdd(
+          parameters.dev_sel_atomics + event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved, 1);
         event_save_sv[i_sv] = sv_insert_index;
         event_saved_svs_list[sv_insert_index] = i_sv;
         // Set to 1 for as a placeholder.
@@ -126,8 +130,11 @@ __global__ void prepare_raw_banks::prepare_decisions(
         const int i_velo_track = ut_tracks.velo_track(i_ut_track);
         const int n_hits = scifi_tracks.number_of_hits(i_track) + ut_tracks.number_of_hits(i_ut_track) +
                            velo_tracks.number_of_hits(i_velo_track);
-        const uint track_insert_index = atomicAdd(parameters.dev_n_tracks_saved + event_number, 1);
-        atomicAdd(parameters.dev_n_hits_saved + event_number, n_hits);
+        const uint track_insert_index = atomicAdd(
+          parameters.dev_sel_atomics + event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved, 1);
+        atomicAdd(
+          parameters.dev_sel_atomics + event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_hits_saved,
+          n_hits);
         event_saved_tracks_list[track_insert_index] = (uint) i_track;
         event_save_track[i_track] = (int) track_insert_index;
       }

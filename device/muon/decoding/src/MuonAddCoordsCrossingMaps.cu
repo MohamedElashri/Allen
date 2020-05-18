@@ -1,5 +1,39 @@
 #include "MuonAddCoordsCrossingMaps.cuh"
 
+void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  // Note: It is not known at this time how many muon hits will be created, considering crossings.
+  //       Either we would have to decode twice, or we allocate a safe margin.
+  set_size<dev_muon_compact_hit_t>(
+    arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
+  set_size<dev_muon_tile_used_t>(
+    arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
+  set_size<dev_station_ocurrences_sizes_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
+  set_size<dev_atomics_index_insert_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+}
+
+void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_muon_compact_hit_t>(arguments, 0, cuda_stream);
+  initialize<dev_muon_tile_used_t>(arguments, 0, cuda_stream);
+  initialize<dev_station_ocurrences_sizes_t>(arguments, 0, cuda_stream);
+  initialize<dev_atomics_index_insert_t>(arguments, 0, cuda_stream);
+
+  device_function(muon_add_coords_crossing_maps)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   muon_add_coords_crossing_maps::Parameters parameters)
 {
@@ -42,12 +76,14 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
       const auto layout2 = (x1 > x2 ? Muon::MuonLayout {x2, y2} : Muon::MuonLayout {x1, y1});
 
       for (uint digitsOneIndex = start_index; digitsOneIndex < mid_index; digitsOneIndex++) {
-        const unsigned int keyX = Muon::MuonTileID::nX(storage_tile_id[digitsOneIndex]) * layout2.xGrid() / layout1.xGrid();
+        const unsigned int keyX =
+          Muon::MuonTileID::nX(storage_tile_id[digitsOneIndex]) * layout2.xGrid() / layout1.xGrid();
         const unsigned int keyY = Muon::MuonTileID::nY(storage_tile_id[digitsOneIndex]);
 
         for (uint digitsTwoIndex = mid_index; digitsTwoIndex < end_index; digitsTwoIndex++) {
           const unsigned int candidateX = Muon::MuonTileID::nX(storage_tile_id[digitsTwoIndex]);
-          const unsigned int candidateY = Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]) * layout1.yGrid() / layout2.yGrid();
+          const unsigned int candidateY =
+            Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]) * layout1.yGrid() / layout2.yGrid();
 
           if (keyX == candidateX && keyY == candidateY) {
             Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);

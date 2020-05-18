@@ -1,5 +1,26 @@
 #include "SciFiCopyTrackHitNumber.cuh"
 
+void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_scifi_track_hit_number_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+}
+
+void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(scifi_copy_track_hit_number)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 /**
  * @brief Copies UT track hit numbers on a consecutive container
  */

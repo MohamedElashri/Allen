@@ -1,6 +1,38 @@
 #include <MEPTools.h>
 #include <SciFiCalculateClusterCountV4.cuh>
 
+void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_v4_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_scifi_hit_count_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
+}
+
+void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_v4_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_scifi_hit_count_t>(arguments, 0, cuda_stream);
+
+  if (runtime_options.mep_layout) {
+    device_function(scifi_calculate_cluster_count_v4_mep)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+  else {
+    device_function(scifi_calculate_cluster_count_v4)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+}
+
 using namespace SciFi;
 
 /**
@@ -17,7 +49,8 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
-  const SciFiRawEvent event(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
+  const SciFiRawEvent event(
+    parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
   const SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
@@ -77,8 +110,8 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);
 
     // Create SciFi raw bank from MEP layout
-    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets,
-                                                      selected_event_number, current_raw_bank);
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, current_raw_bank);
 
     uint16_t* it = raw_bank.data + 2;
     uint16_t* last = raw_bank.last;
@@ -94,12 +127,11 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
   uint32_t* hits_mat = nullptr;
 
   const uint mats_difference = 3 * SciFi::Constants::n_consecutive_raw_banks;
-  for (uint i = SciFi::Constants::n_consecutive_raw_banks + threadIdx.x; i < n_scifi_banks;
-       i += blockDim.x) {
+  for (uint i = SciFi::Constants::n_consecutive_raw_banks + threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
 
     // Create SciFi raw bank from MEP layout
-    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets,
-                                                      selected_event_number, i);
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, i);
 
     uint16_t* it = raw_bank.data + 2;
     uint16_t* last = raw_bank.last;

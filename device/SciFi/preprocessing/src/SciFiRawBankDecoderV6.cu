@@ -2,6 +2,37 @@
 #include <MEPTools.h>
 #include "assert.h"
 
+void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_scifi_hits_t>(
+    arguments,
+    first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
+}
+
+void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  if (runtime_options.mep_layout) {
+    device_function(scifi_raw_bank_decoder_v6_mep)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+  else {
+    device_function(scifi_raw_bank_decoder_v6)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+}
+
 using namespace SciFi;
 
 // Merge of PrStoreFTHit and RawBankDecoder.
@@ -55,8 +86,9 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
   const auto event =
     SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::Hits hits {
+    parameters.dev_scifi_hits,
+    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
@@ -119,8 +151,9 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_mep(
 
   const SciFiGeometry geom {scifi_geometry};
 
-  SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::Hits hits {
+    parameters.dev_scifi_hits,
+    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
@@ -131,9 +164,9 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_mep(
     const int condition = (cluster_reference >> 13) & 0x07;
     const int delta_parameter = cluster_reference & 0xFF;
 
-    auto const rawbank = MEP::raw_bank<SciFiRawBank>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets,
-                                                      selected_event_number, raw_bank_number);
-    
+    auto const rawbank = MEP::raw_bank<SciFiRawBank>(
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, raw_bank_number);
+
     const uint16_t* it = rawbank.data + 2;
     it += it_number;
 

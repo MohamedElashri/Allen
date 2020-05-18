@@ -1,5 +1,68 @@
 #include "ConsolidateSciFi.cuh"
 
+void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_scifi_track_hits_t>(
+    arguments, first<host_accumulated_number_of_hits_in_scifi_tracks_t>(arguments) * sizeof(SciFi::Hit));
+  set_size<dev_scifi_qop_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_scifi_track_ut_indices_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_scifi_states_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+}
+
+void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(scifi_consolidate_tracks)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+
+  // Transmission device to host of Scifi consolidated tracks
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_atomics_scifi,
+    data<dev_offsets_forward_tracks_t>(arguments),
+    size<dev_offsets_forward_tracks_t>(arguments),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_track_hit_number,
+      data<dev_offsets_scifi_track_hit_number_t>(arguments),
+      size<dev_offsets_scifi_track_hit_number_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_track_hits,
+      data<dev_scifi_track_hits_t>(arguments),
+      size<dev_scifi_track_hits_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_qop,
+      data<dev_scifi_qop_t>(arguments),
+      size<dev_scifi_qop_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_track_ut_indices,
+      data<dev_scifi_track_ut_indices_t>(arguments),
+      size<dev_scifi_track_ut_indices_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 template<typename F>
 __device__ void populate(const SciFi::TrackHits& track, const F& assign)
 {
@@ -34,13 +97,14 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
 
   // Create consolidated SoAs.
-  SciFi::Consolidated::Tracks scifi_tracks {parameters.dev_atomics_scifi,
-                                            parameters.dev_scifi_track_hit_number,
-                                            parameters.dev_scifi_qop,
-                                            parameters.dev_scifi_states,
-                                            parameters.dev_scifi_track_ut_indices,
-                                            event_number,
-                                            number_of_events};
+  SciFi::Consolidated::Tracks scifi_tracks {
+    parameters.dev_atomics_scifi,
+    parameters.dev_scifi_track_hit_number,
+    parameters.dev_scifi_qop,
+    parameters.dev_scifi_states,
+    parameters.dev_scifi_track_ut_indices,
+    event_number,
+    number_of_events};
   const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const uint event_offset = scifi_hit_count.event_offset();
 
@@ -67,11 +131,12 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
         [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
 
     const auto dz = SciFi::Constants::ZEndT - LookingForward::z_mid_t;
-    const MiniState scifi_state {x0 + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz),
-                                 y0 + ty * SciFi::Constants::ZEndT,
-                                 SciFi::Constants::ZEndT,
-                                 tx + 2.f * dz * curvature + 3.f * dz * dz * curvature * d_ratio,
-                                 ty};
+    const MiniState scifi_state {
+      x0 + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz),
+      y0 + ty * SciFi::Constants::ZEndT,
+      SciFi::Constants::ZEndT,
+      tx + 2.f * dz * curvature + 3.f * dz * dz * curvature * d_ratio,
+      ty};
 
     scifi_tracks.states(i) = scifi_state;
 

@@ -1,5 +1,39 @@
 #include "ParKalmanVeloOnly.cuh"
 
+void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  auto n_scifi_tracks = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+  set_size<dev_kf_tracks_t>(arguments, n_scifi_tracks);
+  set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
+}
+
+void kalman_velo_only::kalman_velo_only_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(kalman_velo_only)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments, constants.dev_scifi_geometry);
+
+  device_function(kalman_pv_ipchi2)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_kf_tracks,
+    data<dev_kf_tracks_t>(arguments),
+    size<dev_kf_tracks_t>(arguments),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+}
+
 __device__ void simplified_step(
   const KalmanFloat z,
   const KalmanFloat zhit,
@@ -231,8 +265,7 @@ __device__ void propagate_to_beamline(FittedTrack& track)
 
   // Add RF foil scattering.
   const KalmanFloat qop = track.state[4];
-  const KalmanFloat scat2RFFoil =
-    scatterFoilParameters_0 * (1.f + scatterFoilParameters_1 * t2) * qop * qop;
+  const KalmanFloat scat2RFFoil = scatterFoilParameters_0 * (1.f + scatterFoilParameters_1 * t2) * qop * qop;
   track.cov(2, 2) += scat2RFFoil;
   track.cov(3, 3) += scat2RFFoil;
 
@@ -282,17 +315,15 @@ __device__ void simplified_fit(
   // Calculate winv.
   const KalmanFloat wx = pixelErr * pixelErr;
   const KalmanFloat wy = wx;
-  
+
   // Fit loop.
   for (int i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
     int hitindex = i;
     const auto hit_x = velo_hits.x(hitindex);
     const auto hit_y = velo_hits.y(hitindex);
     const auto hit_z = velo_hits.z(hitindex);
-    simplified_step(
-      z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
-    simplified_step(
-      z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
+    simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
+    simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
     z = hit_z;
   }
   __syncthreads();
@@ -340,30 +371,32 @@ __global__ void kalman_velo_only::kalman_velo_only(
   // Create velo tracks.
   Velo::Consolidated::Tracks const velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  
+
   // Create UT tracks.
-  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                   parameters.dev_ut_track_hit_number,
-                                                   parameters.dev_ut_qop,
-                                                   parameters.dev_ut_track_velo_indices,
-                                                   event_number,
-                                                   number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {
+    parameters.dev_atomics_ut,
+    parameters.dev_ut_track_hit_number,
+    parameters.dev_ut_qop,
+    parameters.dev_ut_track_velo_indices,
+    event_number,
+    number_of_events};
 
   // Create SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
-                                                 parameters.dev_scifi_track_hit_number,
-                                                 parameters.dev_scifi_qop,
-                                                 parameters.dev_scifi_states,
-                                                 parameters.dev_scifi_track_ut_indices,
-                                                 event_number,
-                                                 number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {
+    parameters.dev_atomics_scifi,
+    parameters.dev_scifi_track_hit_number,
+    parameters.dev_scifi_qop,
+    parameters.dev_scifi_states,
+    parameters.dev_scifi_track_ut_indices,
+    event_number,
+    number_of_events};
 
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
 
   // Velo track <-> PV table.
   Associate::Consolidated::ConstTable velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
   const auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
-  
+
   // Loop over SciFi tracks and get associated UT and VELO tracks.
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
   for (uint i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {

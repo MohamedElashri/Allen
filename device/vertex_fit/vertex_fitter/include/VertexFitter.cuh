@@ -68,77 +68,42 @@ namespace VertexFit {
     const ParKalmanFilter::FittedTrack& trackB,
     const float max_assoc_ipchi2);
 
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_number_of_svs_t, uint);
-    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
-    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
-    DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
-    DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
-    DEVICE_INPUT(dev_svs_trk1_idx_t, uint) dev_svs_trk1_idx;
-    DEVICE_INPUT(dev_svs_trk2_idx_t, uint) dev_svs_trk2_idx;
-    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
-    DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
-    PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float)
-    max_assoc_ipchi2;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_svs_t, uint), host_number_of_svs),
+    (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
+    (DEVICE_INPUT(dev_offsets_forward_tracks_t, uint), dev_atomics_scifi),
+    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, uint), dev_scifi_track_hit_number),
+    (DEVICE_INPUT(dev_scifi_qop_t, float), dev_scifi_qop),
+    (DEVICE_INPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
+    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint), dev_scifi_track_ut_indices),
+    (DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex), dev_multi_fit_vertices),
+    (DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint), dev_number_of_multi_fit_vertices),
+    (DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char), dev_kalman_pv_ipchi2),
+    (DEVICE_INPUT(dev_svs_trk1_idx_t, uint), dev_svs_trk1_idx),
+    (DEVICE_INPUT(dev_svs_trk2_idx_t, uint), dev_svs_trk2_idx),
+    (DEVICE_INPUT(dev_sv_offsets_t, uint), dev_sv_offsets),
+    (DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex), dev_consolidated_svs),
+    (PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float), max_assoc_ipchi2),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void fit_secondary_vertices(Parameters);
 
-  template<typename T>
   struct fit_secondary_vertices_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(fit_secondary_vertices)) function {fit_secondary_vertices};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      set_size<dev_consolidated_svs_t>(arguments, first<host_number_of_svs_t>(arguments));
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {data<dev_kf_tracks_t>(arguments),
-                    data<dev_offsets_forward_tracks_t>(arguments),
-                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    data<dev_scifi_qop_t>(arguments),
-                    data<dev_scifi_states_t>(arguments),
-                    data<dev_scifi_track_ut_indices_t>(arguments),
-                    data<dev_multi_fit_vertices_t>(arguments),
-                    data<dev_number_of_multi_fit_vertices_t>(arguments),
-                    data<dev_kalman_pv_ipchi2_t>(arguments),
-                    data<dev_svs_trk1_idx_t>(arguments),
-                    data<dev_svs_trk2_idx_t>(arguments),
-                    data<dev_sv_offsets_t>(arguments),
-                    data<dev_consolidated_svs_t>(arguments),
-                    property<max_assoc_ipchi2_t>()});
-
-      safe_assign_to_host_buffer<dev_consolidated_svs_t>(
-        host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, cuda_stream);
-
-      cudaCheck(cudaMemcpyAsync(
-        host_buffers.host_sv_offsets,
-        data<dev_sv_offsets_t>(arguments),
-        size<dev_sv_offsets_t>(arguments),
-        cudaMemcpyDeviceToHost,
-        cuda_stream));
-    };
+      cudaEvent_t&) const;
 
   private:
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};

@@ -1,5 +1,60 @@
 #include "LFQualityFilter.cuh"
 
+void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_atomics_scifi_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
+  set_size<dev_scifi_tracks_t>(
+    arguments,
+    first<host_number_of_reconstructed_ut_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  set_size<dev_scifi_lf_y_parametrization_length_filter_t>(
+    arguments,
+    2 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+      LookingForward::maximum_number_of_candidates_per_ut_track);
+  set_size<dev_scifi_lf_parametrization_consolidate_t>(
+    arguments,
+    6 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  set_size<dev_lf_quality_of_tracks_t>(
+    arguments,
+    LookingForward::maximum_number_of_candidates_per_ut_track *
+      first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+}
+
+void lf_quality_filter::lf_quality_filter_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_atomics_scifi_t>(arguments, 0, cuda_stream);
+
+  device_function(lf_quality_filter)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_atomics_scifi,
+      data<dev_atomics_scifi_t>(arguments),
+      size<dev_atomics_scifi_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_tracks,
+      data<dev_scifi_tracks_t>(arguments),
+      size<dev_scifi_tracks_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 __global__ void lf_quality_filter::lf_quality_filter(
   lf_quality_filter::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
@@ -122,9 +177,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
     for (uint j = 0; j < number_of_tracks; j++) {
       const auto index = ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + j;
       const auto track_quality = parameters.dev_scifi_quality_of_tracks[index];
-      const SciFi::TrackHits& track =
-        parameters.dev_scifi_lf_length_filtered_tracks
-          [index];
+      const SciFi::TrackHits& track = parameters.dev_scifi_lf_length_filtered_tracks[index];
 
       if (track.ut_track_index == i && track_quality < best_quality) {
         best_quality = track_quality;

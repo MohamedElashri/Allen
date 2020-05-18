@@ -3,6 +3,38 @@
 #include "LookingForwardTools.cuh"
 #include "BinarySearch.cuh"
 
+void lf_triplet_seeding::lf_triplet_seeding_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_scifi_lf_found_triplets_t>(
+    arguments,
+    first<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::n_triplet_seeds *
+      LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread);
+  set_size<dev_scifi_lf_number_of_found_triplets_t>(
+    arguments,
+    first<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::n_triplet_seeds *
+      LookingForward::triplet_seeding_block_dim_x);
+}
+
+void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, cuda_stream);
+
+  device_function(lf_triplet_seeding)(
+    dim3(first<host_number_of_selected_events_t>(arguments)),
+    dim3(LookingForward::triplet_seeding_block_dim_x, 2),
+    cuda_stream)(arguments, constants.dev_looking_forward_constants);
+}
+
 __global__ void lf_triplet_seeding::lf_triplet_seeding(
   lf_triplet_seeding::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
@@ -13,17 +45,18 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   const uint event_number = blockIdx.x;
 
   // Velo consolidated types
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
-                                               parameters.dev_atomics_velo[number_of_events]};
+  Velo::Consolidated::ConstStates velo_states {
+    parameters.dev_velo_states, parameters.dev_atomics_velo[number_of_events]};
   const uint velo_tracks_offset_event = parameters.dev_atomics_velo[event_number];
 
   // UT consolidated tracks
-  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                   parameters.dev_ut_track_hit_number,
-                                                   parameters.dev_ut_qop,
-                                                   parameters.dev_ut_track_velo_indices,
-                                                   event_number,
-                                                   number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {
+    parameters.dev_atomics_ut,
+    parameters.dev_ut_track_hit_number,
+    parameters.dev_ut_qop,
+    parameters.dev_ut_track_velo_indices,
+    event_number,
+    number_of_events};
 
   const auto ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
   const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
@@ -45,7 +78,9 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
       const int* initial_windows = parameters.dev_scifi_lf_initial_windows + current_ut_track_index;
 
       const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const auto x_at_z_magnet = velo_states.x(velo_states_index) + (LookingForward::z_magnet - velo_states.z(velo_states_index)) * velo_states.tx(velo_states_index);
+      const auto x_at_z_magnet =
+        velo_states.x(velo_states_index) +
+        (LookingForward::z_magnet - velo_states.z(velo_states_index)) * velo_states.tx(velo_states_index);
 
       for (uint triplet_seed = threadIdx.y; triplet_seed < LookingForward::n_triplet_seeds;
            triplet_seed += blockDim.y) {
@@ -118,9 +153,12 @@ __device__ void lf_triplet_seeding_impl(
   int8_t* scifi_lf_number_of_found_triplets,
   const uint triplet_seed)
 {
-  const int l0_start = initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
-  const int l1_start = initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
-  const int l2_start = initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+  const int l0_start =
+    initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+  const int l1_start =
+    initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+  const int l2_start =
+    initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
 
   const auto inverse_dz2 = 1.f / (z0 - z2);
   const auto constant_expected_x1 =
@@ -157,15 +195,16 @@ __device__ void lf_triplet_seeding_impl(
 
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
-      // Use a simple correction once T1-T2 hits are known to align expected position according to Sagitta-Quality 
-      // Same approach used in Seeding. Might be improved exploiting other dependencies (here only the line propagation at 0)
+      // Use a simple correction once T1-T2 hits are known to align expected position according to Sagitta-Quality
+      // Same approach used in Seeding. Might be improved exploiting other dependencies (here only the line propagation
+      // at 0)
 
       const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
 
-      // Compute as well the x(z-magnet) from Velo-UT (or Velo) and SciFi doublet( T1 +T3 ) to check if 
-      // charge assumption is correct. The best Chi2 triplet is based on expected_x1. The more precise we can go on this, 
-      // the bigger the gain. Currently at low momentum spreads up to 5 mm in x-true - expected_t1 (after correection)
-      // We might could benefit with some more math of a q/p (updated) dependence and tx-SciFi dependence 
+      // Compute as well the x(z-magnet) from Velo-UT (or Velo) and SciFi doublet( T1 +T3 ) to check if
+      // charge assumption is correct. The best Chi2 triplet is based on expected_x1. The more precise we can go on
+      // this, the bigger the gain. Currently at low momentum spreads up to 5 mm in x-true - expected_t1 (after
+      // correection) We might could benefit with some more math of a q/p (updated) dependence and tx-SciFi dependence
 
       const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
       const auto x_at_z_magnet_diff = fabsf(

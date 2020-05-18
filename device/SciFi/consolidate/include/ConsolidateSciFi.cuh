@@ -9,105 +9,41 @@
 #include "LookingForwardConstants.cuh"
 
 namespace scifi_consolidate_tracks {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, uint);
-    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
-    DEVICE_OUTPUT(dev_scifi_track_hits_t, char) dev_scifi_track_hits;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
-    DEVICE_OUTPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_OUTPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
-    DEVICE_INPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
-    DEVICE_INPUT(dev_scifi_lf_parametrization_consolidate_t, float) dev_scifi_lf_parametrization_consolidate;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, uint), host_accumulated_number_of_hits_in_scifi_tracks),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_scifi_hits_t, char), dev_scifi_hits),
+    (DEVICE_INPUT(dev_scifi_hit_offsets_t, uint), dev_scifi_hit_count),
+    (DEVICE_OUTPUT(dev_scifi_track_hits_t, char), dev_scifi_track_hits),
+    (DEVICE_INPUT(dev_offsets_forward_tracks_t, uint), dev_atomics_scifi),
+    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, uint), dev_scifi_track_hit_number),
+    (DEVICE_OUTPUT(dev_scifi_qop_t, float), dev_scifi_qop),
+    (DEVICE_OUTPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
+    (DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, uint), dev_scifi_track_ut_indices),
+    (DEVICE_INPUT(dev_offsets_ut_tracks_t, uint), dev_atomics_ut),
+    (DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint), dev_ut_track_hit_number),
+    (DEVICE_INPUT(dev_scifi_tracks_t, SciFi::TrackHits), dev_scifi_tracks),
+    (DEVICE_INPUT(dev_scifi_lf_parametrization_consolidate_t, float), dev_scifi_lf_parametrization_consolidate),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void scifi_consolidate_tracks(Parameters);
 
-  template<typename T>
   struct scifi_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(scifi_consolidate_tracks)) function {scifi_consolidate_tracks};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      set_size<dev_scifi_track_hits_t>(
-        arguments, first<host_accumulated_number_of_hits_in_scifi_tracks_t>(arguments) * sizeof(SciFi::Hit));
-      set_size<dev_scifi_qop_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-      set_size<dev_scifi_track_ut_indices_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-      set_size<dev_scifi_states_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {data<dev_scifi_hits_t>(arguments),
-                    data<dev_scifi_hit_offsets_t>(arguments),
-                    data<dev_scifi_track_hits_t>(arguments),
-                    data<dev_offsets_forward_tracks_t>(arguments),
-                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    data<dev_scifi_qop_t>(arguments),
-                    data<dev_scifi_states_t>(arguments),
-                    data<dev_scifi_track_ut_indices_t>(arguments),
-                    data<dev_offsets_ut_tracks_t>(arguments),
-                    data<dev_offsets_ut_track_hit_number_t>(arguments),
-                    data<dev_scifi_tracks_t>(arguments),
-                    data<dev_scifi_lf_parametrization_consolidate_t>(arguments)});
-
-      // Transmission device to host of Scifi consolidated tracks
-      cudaCheck(cudaMemcpyAsync(
-        host_buffers.host_atomics_scifi,
-        data<dev_offsets_forward_tracks_t>(arguments),
-        size<dev_offsets_forward_tracks_t>(arguments),
-        cudaMemcpyDeviceToHost,
-        cuda_stream));
-
-      if (runtime_options.do_check) {
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_scifi_track_hit_number,
-          data<dev_offsets_scifi_track_hit_number_t>(arguments),
-          size<dev_offsets_scifi_track_hit_number_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_scifi_track_hits,
-          data<dev_scifi_track_hits_t>(arguments),
-          size<dev_scifi_track_hits_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_scifi_qop,
-          data<dev_scifi_qop_t>(arguments),
-          size<dev_scifi_qop_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_scifi_track_ut_indices,
-          data<dev_scifi_track_ut_indices_t>(arguments),
-          size<dev_scifi_track_ut_indices_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-      }
-    }
+      cudaEvent_t&) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

@@ -2,6 +2,43 @@
 #include <SciFiRawBankDecoderV4.cuh>
 #include <assert.h>
 
+void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_scifi_hits_t>(
+    arguments,
+    first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
+}
+
+void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  if (runtime_options.mep_layout) {
+    device_function(scifi_raw_bank_decoder_v4_mep)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+    device_function(scifi_direct_decoder_v4_mep)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+  else {
+    device_function(scifi_raw_bank_decoder_v4)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+    device_function(scifi_direct_decoder_v4)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+}
+
 using namespace SciFi;
 
 // Merge of PrStoreFTHit and RawBankDecoder.
@@ -55,13 +92,15 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4(
   const auto event =
     SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::Hits hits {
+    parameters.dev_scifi_hits,
+    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
-    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.offset_zones_without_mat_groups() + i];
+    const uint32_t cluster_reference =
+      parameters.dev_cluster_references[hit_count.offset_zones_without_mat_groups() + i];
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
     const int it_number = (cluster_reference) &0xFF;
     const auto rawbank = event.getSciFiRawBank(raw_bank_number);
@@ -91,13 +130,15 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_mep(
 
   const SciFiGeometry geom {scifi_geometry};
 
-  SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::Hits hits {
+    parameters.dev_scifi_hits,
+    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
-    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.offset_zones_without_mat_groups() + i];
+    const uint32_t cluster_reference =
+      parameters.dev_cluster_references[hit_count.offset_zones_without_mat_groups() + i];
 
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
     const int it_number = (cluster_reference) &0xFF;

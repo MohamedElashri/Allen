@@ -1,6 +1,41 @@
 #include "IsMuon.cuh"
 #include "SystemOfUnits.h"
 
+void is_muon::is_muon_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_muon_track_occupancies_t>(
+    arguments, Muon::Constants::n_stations * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+}
+
+void is_muon::is_muon_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_muon_track_occupancies_t>(arguments, 0, cuda_stream);
+
+  device_function(is_muon)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), dim3(32, Muon::Constants::n_stations), cuda_stream)(
+    arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_is_muon,
+      data<dev_is_muon_t>(arguments),
+      size<dev_is_muon_t>(arguments),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
 {
   return a + b * expf(-c * momentum / Gaudi::Units::GeV);
@@ -13,16 +48,17 @@ __device__ std::pair<float, float> field_of_interest(
   const float momentum)
 {
   if (momentum < 1000 * Gaudi::Units::GeV) {
-    return {elliptical_foi_window(
-              dev_muon_foi->param_a_x[station][region],
-              dev_muon_foi->param_b_x[station][region],
-              dev_muon_foi->param_c_x[station][region],
-              momentum),
-            elliptical_foi_window(
-              dev_muon_foi->param_a_y[station][region],
-              dev_muon_foi->param_b_y[station][region],
-              dev_muon_foi->param_c_y[station][region],
-              momentum)};
+    return {
+      elliptical_foi_window(
+        dev_muon_foi->param_a_x[station][region],
+        dev_muon_foi->param_b_x[station][region],
+        dev_muon_foi->param_c_x[station][region],
+        momentum),
+      elliptical_foi_window(
+        dev_muon_foi->param_a_y[station][region],
+        dev_muon_foi->param_b_y[station][region],
+        dev_muon_foi->param_c_y[station][region],
+        momentum)};
   }
   else {
     return {dev_muon_foi->param_a_x[station][region], dev_muon_foi->param_a_y[station][region]};
@@ -60,13 +96,14 @@ __global__ void is_muon::is_muon(
   const auto station_ocurrences_offset =
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
 
-  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
-                                                 parameters.dev_scifi_track_hit_number,
-                                                 parameters.dev_scifi_qop,
-                                                 parameters.dev_scifi_states,
-                                                 parameters.dev_scifi_track_ut_indices,
-                                                 event_number,
-                                                 number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {
+    parameters.dev_atomics_scifi,
+    parameters.dev_scifi_track_hit_number,
+    parameters.dev_scifi_qop,
+    parameters.dev_scifi_states,
+    parameters.dev_scifi_track_ut_indices,
+    event_number,
+    number_of_events};
 
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
@@ -85,10 +122,8 @@ __global__ void is_muon::is_muon(
 
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_ocurrences_offset[station_id] + i_hit;
-        const float extrapolation_x = state.x +
-                                    state.tx * (muon_hits.z(idx) - state.z);
-        const float extrapolation_y = state.y +
-                                    state.ty * (muon_hits.z(idx)- state.z);
+        const float extrapolation_x = state.x + state.tx * (muon_hits.z(idx) - state.z);
+        const float extrapolation_y = state.y + state.ty * (muon_hits.z(idx) - state.z);
         if (is_in_window(
               muon_hits.x(idx),
               muon_hits.y(idx),

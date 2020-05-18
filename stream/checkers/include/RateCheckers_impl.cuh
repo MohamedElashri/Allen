@@ -4,8 +4,8 @@
 #include "RunHlt1.cuh"
 #include "ConfiguredLines.h"
 
-template<typename T>
-struct SequenceVisitor<run_hlt1::run_hlt1_t<T>> {
+template<>
+struct SequenceVisitor<run_hlt1::run_hlt1_t> {
   static void check(
     HostBuffers& host_buffers,
     [[maybe_unused]] const Constants& constants,

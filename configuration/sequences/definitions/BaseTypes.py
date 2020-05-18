@@ -110,10 +110,15 @@ def compatible_parameter_assignment(a, b):
 
 
 def check_input_parameter(parameter, assign_class, typename):
-    assert compatible_parameter_assignment(type(parameter), assign_class)
-    assert parameter.type() == Type(typename)
-    return assign_class(parameter.name(), parameter.type(), parameter.producer())
-
+    if typename == "int" or parameter.type() == Type("int"):
+        # If the type is int, unfortunately it is not possible to distinguish whether
+        # the parser parsed an unknown type or not, so just accept it
+        return assign_class(parameter.name(), parameter.type(), parameter.producer())
+    else:
+        assert compatible_parameter_assignment(type(parameter), assign_class)
+        assert parameter.type() == Type(typename)
+        return assign_class(parameter.name(), parameter.type(), parameter.producer())
+    
 
 class HostInput(HostParameter, InputParameter):
     def __init__(self, name, typename, producer):

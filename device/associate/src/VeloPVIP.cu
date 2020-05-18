@@ -5,6 +5,28 @@
 #include <AssociateConstants.cuh>
 #include <VeloPVIP.cuh>
 
+void velo_pv_ip::velo_pv_ip_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  auto n_velo_tracks = first<host_number_of_reconstructed_velo_tracks_t>(arguments);
+  set_size<dev_velo_pv_ip_t>(arguments, Associate::Consolidated::table_size(n_velo_tracks));
+}
+
+void velo_pv_ip::velo_pv_ip_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  device_function(velo_pv_ip)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 namespace Distance {
   __device__ float
   velo_ip(Velo::Consolidated::ConstKalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
@@ -89,10 +111,12 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
 
   // Consolidated Velo fitted states for this event
   Velo::Consolidated::ConstKalmanStates velo_kalman_states {
-    parameters.dev_velo_kalman_beamline_states + sizeof(float) * event_tracks_offset, velo_tracks.total_number_of_tracks()};
+    parameters.dev_velo_kalman_beamline_states + sizeof(float) * event_tracks_offset,
+    velo_tracks.total_number_of_tracks()};
 
-  cuda::span<const PV::Vertex> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-                                         *(parameters.dev_number_of_multi_fit_vertices + event_number)};
+  cuda::span<const PV::Vertex> vertices {
+    parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
+    *(parameters.dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event
   auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);

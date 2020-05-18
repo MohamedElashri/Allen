@@ -6,66 +6,35 @@
 #include "MuonRaw.cuh"
 
 namespace muon_add_coords_crossing_maps {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_muon_total_number_of_tiles_t, uint);
-    DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, uint) dev_storage_station_region_quarter_offsets;
-    DEVICE_INPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
-    DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
-    DEVICE_OUTPUT(dev_atomics_index_insert_t, uint) dev_atomics_index_insert;
-    DEVICE_OUTPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
-    DEVICE_OUTPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
-    DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, uint) dev_station_ocurrences_sizes;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (HOST_INPUT(host_muon_total_number_of_tiles_t, uint), host_muon_total_number_of_tiles),
+    (DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, uint), dev_storage_station_region_quarter_offsets),
+    (DEVICE_INPUT(dev_storage_tile_id_t, uint), dev_storage_tile_id),
+    (DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits), dev_muon_raw_to_hits),
+    (DEVICE_OUTPUT(dev_atomics_index_insert_t, uint), dev_atomics_index_insert),
+    (DEVICE_OUTPUT(dev_muon_compact_hit_t, uint64_t), dev_muon_compact_hit),
+    (DEVICE_OUTPUT(dev_muon_tile_used_t, bool), dev_muon_tile_used),
+    (DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, uint), dev_station_ocurrences_sizes),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void muon_add_coords_crossing_maps(Parameters);
 
-  template<typename T>
   struct muon_add_coords_crossing_maps_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(muon_add_coords_crossing_maps)) function {muon_add_coords_crossing_maps};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      // Note: It is not known at this time how many muon hits will be created, considering crossings.
-      //       Either we would have to decode twice, or we allocate a safe margin.
-      set_size<dev_muon_compact_hit_t>(
-        arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
-      set_size<dev_muon_tile_used_t>(
-        arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
-      set_size<dev_station_ocurrences_sizes_t>(
-        arguments, first<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
-      set_size<dev_atomics_index_insert_t>(
-        arguments, first<host_number_of_selected_events_t>(arguments));
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      initialize<dev_muon_compact_hit_t>(arguments, 0, cuda_stream);
-      initialize<dev_muon_tile_used_t>(arguments, 0, cuda_stream);
-      initialize<dev_station_ocurrences_sizes_t>(arguments, 0, cuda_stream);
-      initialize<dev_atomics_index_insert_t>(arguments, 0, cuda_stream);
-
-      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {data<dev_storage_station_region_quarter_offsets_t>(arguments),
-                    data<dev_storage_tile_id_t>(arguments),
-                    data<dev_muon_raw_to_hits_t>(arguments),
-                    data<dev_atomics_index_insert_t>(arguments),
-                    data<dev_muon_compact_hit_t>(arguments),
-                    data<dev_muon_tile_used_t>(arguments),
-                    data<dev_station_ocurrences_sizes_t>(arguments)});
-    }
+      cudaEvent_t&) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

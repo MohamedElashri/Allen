@@ -2,6 +2,36 @@
 #include <MEPTools.h>
 #include "assert.h"
 
+void scifi_pre_decode_v6::scifi_pre_decode_v6_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_cluster_references_t>(
+    arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
+}
+
+void scifi_pre_decode_v6::scifi_pre_decode_v6_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  if (runtime_options.mep_layout) {
+    device_function(scifi_pre_decode_v6_mep)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+  else {
+    device_function(scifi_pre_decode_v6)(
+      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      arguments, constants.dev_scifi_geometry);
+  }
+}
+
 using namespace SciFi;
 
 __device__ void store_sorted_cluster_reference_v6(

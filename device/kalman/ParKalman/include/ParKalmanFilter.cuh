@@ -104,26 +104,26 @@ namespace ParKalmanFilter {
 } // namespace ParKalmanFilter
 
 namespace kalman_filter {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
-    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
-    DEVICE_INPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
-    DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
-    DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
-    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
-    DEVICE_INPUT(dev_scifi_track_hits_t, char) dev_scifi_track_hits;
-    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
-    DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_atomics_velo_t, uint), dev_atomics_velo),
+    (DEVICE_INPUT(dev_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
+    (DEVICE_INPUT(dev_atomics_ut_t, uint), dev_atomics_ut),
+    (DEVICE_INPUT(dev_ut_track_hit_number_t, uint), dev_ut_track_hit_number),
+    (DEVICE_INPUT(dev_ut_track_hits_t, char), dev_ut_track_hits),
+    (DEVICE_INPUT(dev_ut_qop_t, float), dev_ut_qop),
+    (DEVICE_INPUT(dev_ut_track_velo_indices_t, uint), dev_ut_track_velo_indices),
+    (DEVICE_INPUT(dev_atomics_scifi_t, uint), dev_atomics_scifi),
+    (DEVICE_INPUT(dev_scifi_track_hit_number_t, uint), dev_scifi_track_hit_number),
+    (DEVICE_INPUT(dev_scifi_track_hits_t, char), dev_scifi_track_hits),
+    (DEVICE_INPUT(dev_scifi_qop_t, float), dev_scifi_qop),
+    (DEVICE_INPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
+    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint), dev_scifi_track_ut_indices),
+    (DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   //--------------------------------------------------
   // Main execution of the parametrized Kalman Filter.
@@ -134,57 +134,20 @@ namespace kalman_filter {
     const float* dev_inv_clus_res,
     const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
-  template<typename T>
   struct kalman_filter_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(kalman_filter)) function {kalman_filter};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      set_size<dev_kf_tracks_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {data<dev_atomics_velo_t>(arguments),
-                    data<dev_velo_track_hit_number_t>(arguments),
-                    data<dev_velo_track_hits_t>(arguments),
-                    data<dev_atomics_ut_t>(arguments),
-                    data<dev_ut_track_hit_number_t>(arguments),
-                    data<dev_ut_track_hits_t>(arguments),
-                    data<dev_ut_qop_t>(arguments),
-                    data<dev_ut_track_velo_indices_t>(arguments),
-                    data<dev_atomics_scifi_t>(arguments),
-                    data<dev_scifi_track_hit_number_t>(arguments),
-                    data<dev_scifi_track_hits_t>(arguments),
-                    data<dev_scifi_qop_t>(arguments),
-                    data<dev_scifi_states_t>(arguments),
-                    data<dev_scifi_track_ut_indices_t>(arguments),
-                    data<dev_kf_tracks_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res,
-        constants.dev_kalman_params);
-
-      if (runtime_options.do_check) {
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_kf_tracks,
-          data<dev_kf_tracks_t>(arguments),
-          size<dev_kf_tracks_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-      }
-    }
+      cudaEvent_t&) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

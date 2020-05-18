@@ -1,5 +1,29 @@
 #include "MuonPopulateHits.cuh"
 
+void muon_populate_hits::muon_populate_hits_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_muon_hits_t>(arguments, first<host_muon_total_number_of_hits_t>(arguments) * Muon::Hits::element_size);
+  set_size<dev_permutation_station_t>(arguments, first<host_muon_total_number_of_hits_t>(arguments));
+}
+
+void muon_populate_hits::muon_populate_hits_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  initialize<dev_permutation_station_t>(arguments, 0, cuda_stream);
+
+  device_function(muon_populate_hits)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+}
+
 __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Parameters parameters)
 {
   const auto number_of_events = gridDim.x;
@@ -18,7 +42,8 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
   const auto event_offset_tiles = storage_station_region_quarter_offsets[0];
 
-  const auto muon_compact_hit = parameters.dev_muon_compact_hit + Muon::Constants::compact_hit_allocate_factor * event_offset_tiles;
+  const auto muon_compact_hit =
+    parameters.dev_muon_compact_hit + Muon::Constants::compact_hit_allocate_factor * event_offset_tiles;
   const auto storage_tile_id = parameters.dev_storage_tile_id + event_offset_tiles;
   const auto storage_tdc_value = parameters.dev_storage_tdc_value + event_offset_tiles;
 

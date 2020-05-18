@@ -76,108 +76,48 @@ __device__ void simplified_fit(
 __device__ void propagate_to_beamline(FittedTrack& track);
 
 namespace kalman_velo_only {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
-    DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
-    DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
-    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_velo_pv_ip_t, char) dev_velo_pv_ip;
-    DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
-    DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
-    DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
-    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
+    (DEVICE_INPUT(dev_offsets_ut_tracks_t, uint), dev_atomics_ut),
+    (DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint), dev_ut_track_hit_number),
+    (DEVICE_INPUT(dev_ut_qop_t, float), dev_ut_qop),
+    (DEVICE_INPUT(dev_ut_track_velo_indices_t, uint), dev_ut_track_velo_indices),
+    (DEVICE_INPUT(dev_offsets_forward_tracks_t, uint), dev_atomics_scifi),
+    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, uint), dev_scifi_track_hit_number),
+    (DEVICE_INPUT(dev_scifi_qop_t, float), dev_scifi_qop),
+    (DEVICE_INPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
+    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint), dev_scifi_track_ut_indices),
+    (DEVICE_INPUT(dev_velo_pv_ip_t, char), dev_velo_pv_ip),
+    (DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
+    (DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex), dev_multi_fit_vertices),
+    (DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint), dev_number_of_multi_fit_vertices),
+    (DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char), dev_kalman_pv_ipchi2),
+    (DEVICE_INPUT(dev_is_muon_t, bool), dev_is_muon),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void kalman_velo_only(Parameters, const char* dev_scifi_geometry);
+  
   __global__ void kalman_pv_ipchi2(Parameters parameters);
   
-  template<typename T>
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
-
-    decltype(global_function(kalman_velo_only)) kalman_function {kalman_velo_only};
-    decltype(global_function(kalman_pv_ipchi2)) assoc_function {kalman_pv_ipchi2};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      auto n_scifi_tracks = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
-      set_size<dev_kf_tracks_t>(arguments, n_scifi_tracks);
-      set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
-
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      kalman_function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
-                    data<dev_offsets_velo_track_hit_number_t>(arguments),
-                    data<dev_velo_track_hits_t>(arguments),
-                    data<dev_offsets_ut_tracks_t>(arguments),
-                    data<dev_offsets_ut_track_hit_number_t>(arguments),
-                    data<dev_ut_qop_t>(arguments),
-                    data<dev_ut_track_velo_indices_t>(arguments),
-                    data<dev_offsets_forward_tracks_t>(arguments),
-                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    data<dev_scifi_qop_t>(arguments),
-                    data<dev_scifi_states_t>(arguments),
-                    data<dev_scifi_track_ut_indices_t>(arguments),
-                    data<dev_velo_pv_ip_t>(arguments),
-                    data<dev_kf_tracks_t>(arguments),
-                    data<dev_multi_fit_vertices_t>(arguments),
-                    data<dev_number_of_multi_fit_vertices_t>(arguments),
-                    data<dev_kalman_pv_ipchi2_t>(arguments),
-                    data<dev_is_muon_t>(arguments)},
-        constants.dev_scifi_geometry);
-      
-      assoc_function(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {data<dev_offsets_all_velo_tracks_t>(arguments),
-                    data<dev_offsets_velo_track_hit_number_t>(arguments),
-                    data<dev_velo_track_hits_t>(arguments),
-                    data<dev_offsets_ut_tracks_t>(arguments),
-                    data<dev_offsets_ut_track_hit_number_t>(arguments),
-                    data<dev_ut_qop_t>(arguments),
-                    data<dev_ut_track_velo_indices_t>(arguments),
-                    data<dev_offsets_forward_tracks_t>(arguments),
-                    data<dev_offsets_scifi_track_hit_number_t>(arguments),
-                    data<dev_scifi_qop_t>(arguments),
-                    data<dev_scifi_states_t>(arguments),
-                    data<dev_scifi_track_ut_indices_t>(arguments),
-                    data<dev_velo_pv_ip_t>(arguments),
-                    data<dev_kf_tracks_t>(arguments),
-                    data<dev_multi_fit_vertices_t>(arguments),
-                    data<dev_number_of_multi_fit_vertices_t>(arguments),
-                    data<dev_kalman_pv_ipchi2_t>(arguments),
-                    data<dev_is_muon_t>(arguments)});
-
-      cudaCheck(cudaMemcpyAsync(
-        host_buffers.host_kf_tracks,
-        data<dev_kf_tracks_t>(arguments),
-        size<dev_kf_tracks_t>(arguments),
-        cudaMemcpyDeviceToHost,
-        cuda_stream));
-
-    }
+      cudaEvent_t&) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

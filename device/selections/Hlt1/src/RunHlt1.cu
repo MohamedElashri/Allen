@@ -1,5 +1,90 @@
 #include "RunHlt1.cuh"
 
+void run_hlt1::run_hlt1_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  const HostBuffers&) const
+{
+  const auto total_number_of_events =
+    std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
+  set_size<dev_sel_results_t>(
+    arguments, 1000 * total_number_of_events * std::tuple_size<configured_lines_t>::value);
+  set_size<dev_sel_results_offsets_t>(arguments, std::tuple_size<configured_lines_t>::value + 1);
+}
+
+void run_hlt1::run_hlt1_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  const auto event_start = std::get<0>(runtime_options.event_interval);
+  const auto total_number_of_events =
+    std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
+  // TODO: Do this on the GPU, or rather remove completely
+  // Prepare prefix sum of sizes of number of tracks and number of secondary vertices
+  for (uint i_line = 0; i_line < std::tuple_size<configured_lines_t>::value; i_line++) {
+    host_buffers.host_sel_results_atomics[i_line] = 0;
+  }
+
+  const auto lambda_one_track_fn = [&](const unsigned long i_line) {
+    host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+  };
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(
+    lambda_one_track_fn);
+
+  const auto lambda_two_track_fn = [&](const unsigned long i_line) {
+    host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_svs_t>(arguments);
+  };
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(
+    lambda_two_track_fn);
+
+  const auto lambda_special_fn = [&](const unsigned long i_line) {
+    host_buffers.host_sel_results_atomics[i_line] = total_number_of_events;
+  };
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(
+    lambda_special_fn);
+
+  const auto lambda_velo_fn = [&](const unsigned long i_line) {
+    host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_selected_events_t>(arguments);
+  };
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
+
+  // Prefix sum
+  host_prefix_sum::host_prefix_sum_impl(
+    host_buffers.host_sel_results_atomics, std::tuple_size<configured_lines_t>::value);
+
+  cudaCheck(cudaMemcpyAsync(
+    data<dev_sel_results_offsets_t>(arguments),
+    host_buffers.host_sel_results_atomics,
+    size<dev_sel_results_offsets_t>(arguments),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  initialize<dev_sel_results_t>(arguments, 0, cuda_stream);
+
+  device_function(run_hlt1)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+    arguments,
+    first<host_number_of_selected_events_t>(arguments),
+    event_start);
+
+  // Run the postscaler.
+  device_function(run_postscale)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+    arguments,
+    first<host_number_of_selected_events_t>(arguments),
+    event_start);
+
+  if (runtime_options.do_check) {
+    safe_assign_to_host_buffer<dev_sel_results_t>(
+      host_buffers.host_sel_results, host_buffers.host_sel_results_size, arguments, cuda_stream);
+  }
+}
+
 __global__ void
 run_hlt1::run_hlt1(run_hlt1::Parameters parameters, const uint selected_number_of_events, const uint event_start)
 {

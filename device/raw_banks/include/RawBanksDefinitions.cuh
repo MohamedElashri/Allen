@@ -5,42 +5,51 @@
 
 namespace Hlt1 {
   // Hlt1 TCK.
-  const unsigned int TCK = 0x00000000;
+  constexpr static unsigned int TCK = 0x00000000;
 
   // Task ID.
-  const unsigned int taskID = 1;
+  constexpr static unsigned int taskID = 1;
 
   // 1 StdInfo per passed decision.
-  const unsigned int nStdInfoDecision = 1;
+  constexpr static unsigned int nStdInfoDecision = 1;
 
   // 6 per passing track.
-  const unsigned int nStdInfoTrack = 6;
+  constexpr static unsigned int nStdInfoTrack = 6;
 
   // 3 per passing secondary vertex.
-  const unsigned int nStdInfoSV = 3;
+  constexpr static unsigned int nStdInfoSV = 3;
 
   // Maximum number of StdInfo to store. Indices are 8 bits.
-  const unsigned int maxStdInfoEvent = 256;
+  constexpr static unsigned int maxStdInfoEvent = 256;
 
   // Default allocation size.
-  const unsigned int subStrDefaultAllocationSize = 500;
+  constexpr static unsigned int subStrDefaultAllocationSize = 500;
 
   // Maximum number of candidates per line.
   // For now just make this equal for every line.
-  const unsigned int maxCandidates = 1000;
+  constexpr static unsigned int maxCandidates = 1000;
 
   // Maximum numbers of candidates per event.
-  const unsigned int nMaxOneTrackMVA = 1000;
-  const unsigned int nMaxTwoTrackMVA = 1000;
-  const unsigned int nMaxSingleMuon = 1000;
-  const unsigned int nMaxDisplacedDiMuon = 1000;
-  const unsigned int nMaxHighMassDiMuon = 1000;
+  constexpr static unsigned int nMaxOneTrackMVA = 1000;
+  constexpr static unsigned int nMaxTwoTrackMVA = 1000;
+  constexpr static unsigned int nMaxSingleMuon = 1000;
+  constexpr static unsigned int nMaxDisplacedDiMuon = 1000;
+  constexpr static unsigned int nMaxHighMassDiMuon = 1000;
 
   // CLIDs.
   // TODO: Save these in the classes themselves.
-  const unsigned int nObjTyp = 3;
-  const unsigned int selectionCLID = 1;
-  const unsigned int trackCLID = 10010;
-  const unsigned int svCLID = 10030;
-  
+  constexpr static unsigned int nObjTyp = 3;
+  constexpr static unsigned int selectionCLID = 1;
+  constexpr static unsigned int trackCLID = 10010;
+  constexpr static unsigned int svCLID = 10030;
+
+  constexpr static unsigned int number_of_sel_atomics = 3;
+  namespace atomics {
+    enum atomic_types {
+      // n_passing_decisions,
+      n_svs_saved,
+      n_tracks_saved,
+      n_hits_saved
+    };
+  }
 } // namespace Hlt1
