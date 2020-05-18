@@ -374,7 +374,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} --ftemplate-depth=500 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
