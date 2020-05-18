@@ -1,4 +1,5 @@
 #include "RunHlt1.cuh"
+#include "DeviceLineTraverser.cuh"
 
 void run_hlt1::run_hlt1_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,

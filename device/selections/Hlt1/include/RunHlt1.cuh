@@ -1,7 +1,6 @@
 #pragma once
 
 #include "DeviceAlgorithm.cuh"
-#include "DeviceLineTraverser.cuh"
 #include "HostPrefixSum.h"
 #include "ConfiguredLines.h"
 

@@ -1,13 +1,162 @@
-#include "LineTraverser.cuh"
+#pragma once
+
+// #include "LineTraverser.cuh"
 
 namespace Hlt1 {
   // Struct that iterates over the lines according to their signature
+  template<typename Tuple, typename Linetype, typename Iseq, typename Enabled = void>
+  struct DeviceTraverseLinesImpl;
+
+  template<typename U>
+  struct DeviceTraverseLinesImpl<std::tuple<>, U, std::index_sequence<>, void> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F&) {}
+  };
+
+  // If the line inherits from U, execute the lambda with the index of the line
+  template<typename T, typename... OtherLines, typename U, unsigned long I, unsigned long... Is>
+  struct DeviceTraverseLinesImpl<
+    std::tuple<T, OtherLines...>,
+    U,
+    std::index_sequence<I, Is...>,
+    typename std::enable_if<std::is_base_of<U, T>::value>::type> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      lambda_fn(I);
+      DeviceTraverseLinesImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+    }
+  };
+
+  // If the line does not inherit from U, ignore the line
+  template<typename T, typename... OtherLines, typename U, unsigned long I, unsigned long... Is>
+  struct DeviceTraverseLinesImpl<
+    std::tuple<T, OtherLines...>,
+    U,
+    std::index_sequence<I, Is...>,
+    typename std::enable_if<!std::is_base_of<U, T>::value>::type> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      DeviceTraverseLinesImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+    }
+  };
+
+  // Traverse lines that inherit from U
+  template<typename T, typename U>
+  struct DeviceTraverseLines {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      DeviceTraverseLinesImpl<T, U, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(lambda_fn);
+    }
+  };
+
+  // Struct that iterates over the lines according to their signature
+  template<typename Tuple, typename Linetype, typename Iseq, typename Enabled = void>
+  struct DeviceTraverseLinesNamesImpl;
+
+  template<typename U>
+  struct DeviceTraverseLinesNamesImpl<std::tuple<>, U, std::index_sequence<>, void> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F&) {}
+  };
+
+  // If the line inherits from U, execute the lambda with the index of the line
+  template<typename T, typename... OtherLines, typename U, unsigned long I, unsigned long... Is>
+  struct DeviceTraverseLinesNamesImpl<
+    std::tuple<T, OtherLines...>,
+    U,
+    std::index_sequence<I, Is...>,
+    typename std::enable_if<std::is_base_of<U, T>::value>::type> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      lambda_fn(I, T::name);
+      DeviceTraverseLinesNamesImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+    }
+  };
+
+  // If the line does not inherit from U, ignore the line
+  template<typename T, typename... OtherLines, typename U, unsigned long I, unsigned long... Is>
+  struct DeviceTraverseLinesNamesImpl<
+    std::tuple<T, OtherLines...>,
+    U,
+    std::index_sequence<I, Is...>,
+    typename std::enable_if<!std::is_base_of<U, T>::value>::type> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      DeviceTraverseLinesNamesImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+    }
+  };
+
+  // Traverse lines that inherit from U
+  template<typename T, typename U>
+  struct DeviceTraverseLinesNames {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      DeviceTraverseLinesNamesImpl<T, U, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(lambda_fn);
+    }
+  };
+
+  // Struct Devicethat iterates over the lines according to their signature
+  template<typename Tuple, typename Linetype, typename Iseq, typename Enabled = void>
+  struct DeviceTraverseLinesScaleFactorsImpl;
+
+  template<typename U>
+  struct DeviceTraverseLinesScaleFactorsImpl<std::tuple<>, U, std::index_sequence<>, void> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F&) {}
+  };
+
+  // If the line inherits from U, execute the lambda with the index of the line
+  template<typename T, typename... OtherLines, typename U, unsigned long I, unsigned long... Is>
+  struct DeviceTraverseLinesScaleFactorsImpl<
+    std::tuple<T, OtherLines...>,
+    U,
+    std::index_sequence<I, Is...>,
+    typename std::enable_if<std::is_base_of<U, T>::value>::type> {\
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      lambda_fn(I, T::scale_factor);
+      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+    }
+  };
+
+  // If the line does not inherit from U, ignore the line
+  template<typename T, typename... OtherLines, typename U, unsigned long I, unsigned long... Is>
+  struct DeviceTraverseLinesScaleFactorsImpl<
+    std::tuple<T, OtherLines...>,
+    U,
+    std::index_sequence<I, Is...>,
+    typename std::enable_if<!std::is_base_of<U, T>::value>::type> {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+    }
+  };
+
+  // Traverse lines that inherit from U
+  template<typename T, typename U>
+  struct DeviceTraverseLinesScaleFactors {
+    template<typename F>
+    __device__ constexpr static void traverse(const F& lambda_fn)
+    {
+      DeviceTraverseLinesScaleFactorsImpl<T, U, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(lambda_fn);
+    }
+  };
+
+  // Struct Devicethat iterates over the lines according to their signature
   template<typename T, typename I, typename Enabled = void>
   struct TraverseImpl;
 
   template<>
   struct TraverseImpl<std::tuple<>, std::index_sequence<>, void> {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool*,
       const uint*,
       const uint*,
@@ -27,7 +176,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<OneTrackLine, T>::value>::type> {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -66,7 +215,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<VeloLine, T>::value>::type> {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -105,7 +254,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<TwoTrackLine, T>::value>::type> {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -144,7 +293,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<SpecialLine, T>::value>::type> {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -175,7 +324,7 @@ namespace Hlt1 {
 
   template<typename T>
   struct Traverse {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_offsets_forward_tracks,
@@ -209,7 +358,7 @@ namespace Hlt1 {
 
   template<>
   struct SpecialLineTraverseImpl<std::tuple<>, std::index_sequence<>, void> {
-    constexpr static void traverse(bool*, const uint*, const uint*, const char*, const uint) {}
+    __device__ constexpr static void traverse(bool*, const uint*, const uint*, const char*, const uint) {}
   };
 
   template<typename T, typename... OtherLines, unsigned long I, unsigned long... Is>
@@ -217,7 +366,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<!std::is_base_of<SpecialLine, T>::value>::type> {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_odin_raw_input_offsets,
@@ -234,7 +383,7 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     std::index_sequence<I, Is...>,
     typename std::enable_if<std::is_base_of<SpecialLine, T>::value>::type> {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_odin_raw_input_offsets,
@@ -254,7 +403,7 @@ namespace Hlt1 {
 
   template<typename T>
   struct SpecialLineTraverse {
-    constexpr static void traverse(
+    __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const uint* dev_sel_results_offsets,
       const uint* dev_odin_raw_input_offsets,

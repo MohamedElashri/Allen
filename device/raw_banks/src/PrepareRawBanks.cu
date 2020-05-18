@@ -1,4 +1,5 @@
 #include "PrepareRawBanks.cuh"
+#include "DeviceLineTraverser.cuh"
 
 void prepare_raw_banks::prepare_raw_banks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -123,7 +124,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;
     uint n_decisions = 0;
-    const auto lambda_fn = [&](const unsigned long i_line) {
+    
+    Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::Line>::traverse([&](const unsigned long i_line) {
       HltDecReport dr;
       dr.setDecision(false);
       dr.setErrorBits(0);
@@ -133,8 +135,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       if (event_dec_reports[2 + i_line] & dec_mask) {
         n_decisions++;
       }
-    };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::Line>::traverse(lambda_fn);
+    });
 
     // TODO: Handle SelReports.
     const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
@@ -165,16 +166,14 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     objtyp_bank.addObj(Hlt1::svCLID, 0);
 
     // Add special decisions to the substr bank.
-    const auto lambda_special_fn = [&](const unsigned int i_line) {
+    Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse([&](const unsigned int i_line) {
       if (event_dec_reports[2 + i_line] & dec_mask) {
         // Substructure is pointers, but there are no candidates.
         stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
         stdinfo_bank.addInfo(i_line);
         substr_bank.addSubstr(0, 0);
       }
-    };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse(
-      lambda_special_fn);
+    });
 
     // Set the sizes of the banks.
     objtyp_bank.saveSize();
@@ -325,7 +324,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     // }
 
     // Add one-track decisions to the substr and stdinfo.
-    const auto lambda_onetrack_fn = [&](const unsigned int i_line) {
+    Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::OneTrackLine>::traverse([&](const unsigned int i_line) {
       const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
       const uint* candidate_list =
         parameters.dev_candidate_lists + (i_line * total_number_of_events + event_number) * Hlt1::maxCandidates;
@@ -338,12 +337,10 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
           substr_bank.addPtr(n_decisions + event_save_track[candidate_list[i_sub]]);
         }
       }
-    };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine>::traverse(
-      lambda_onetrack_fn);
+    });
 
     // Add two-track decisions to the substr and stdinfo.
-    const auto lambda_twotrack_fn = [&](const unsigned int i_line) {
+    Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse([&](const unsigned int i_line) {
       const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
       const uint* candidate_list =
         parameters.dev_candidate_lists + (i_line * total_number_of_events + event_number) * Hlt1::maxCandidates;
@@ -355,22 +352,25 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
           substr_bank.addPtr(n_decisions + event_save_sv[candidate_list[i_sub]]);
         }
       }
-    };
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse(
-      lambda_twotrack_fn);
+    });
 
     // Add special decisions to substr and stdinfo.
-    const auto lambda_special_fn = [&](const unsigned int i_line) {
+    // Can use this lambda for both the VELO and special lines.
+    Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse([&](const unsigned int i_line) {
       if (event_dec_reports[2 + i_line] & dec_mask) {
         stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
         stdinfo_bank.addInfo(i_line);
         substr_bank.addSubstr(0, 0);
       }
-    };
-    // Can use this lambda for both the VELO and special lines.
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse(lambda_special_fn);
-    Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse(
-      lambda_special_fn);
+    });
+    
+    Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse([&](const unsigned int i_line) {
+      if (event_dec_reports[2 + i_line] & dec_mask) {
+        stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
+        stdinfo_bank.addInfo(i_line);
+        substr_bank.addSubstr(0, 0);
+      }
+    });
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     // TODO: dev_n_tracks_saved was 0s at the beginning! ./Allen -m3

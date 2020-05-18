@@ -2,11 +2,10 @@
 #include "RunHlt1.cuh"
 #include "DeterministicPostscaler.cuh"
 #include "Event/ODIN.h"
+#include "DeviceLineTraverser.cuh"
 
-__global__ void run_hlt1::run_postscale(
-  run_hlt1::Parameters parameters,
-  const uint selected_number_of_events,
-  const uint event_start)
+__global__ void
+run_hlt1::run_postscale(run_hlt1::Parameters parameters, const uint selected_number_of_events, const uint event_start)
 {
   const auto event_number = blockIdx.x;
 
@@ -21,12 +20,12 @@ __global__ void run_hlt1::run_postscale(
   const uint32_t gps_lo = odinData[LHCb::ODIN::Data::GPSTimeLo];
 
   // Process lines.
-  const auto lambda_special_fn = [&](const unsigned long i_line, const float scale_factor) {
-    bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + event_number;
-    DeterministicPostscaler ps(i_line, scale_factor);
-    ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-  };
-  Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::SpecialLine>::traverse(lambda_special_fn);
+  Hlt1::DeviceTraverseLinesScaleFactors<configured_lines_t, Hlt1::SpecialLine>::traverse(
+    [&](const unsigned long i_line, const float scale_factor) {
+      bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + event_number;
+      DeterministicPostscaler ps(i_line, scale_factor);
+      ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+    });
 
   if (blockIdx.x < selected_number_of_events) {
     const uint selected_event_number = blockIdx.x;
@@ -48,31 +47,29 @@ __global__ void run_hlt1::run_postscale(
       parameters.dev_sv_offsets[selected_event_number + 1] - parameters.dev_sv_offsets[selected_event_number];
 
     // Process 1-track lines.
-    const auto lambda_one_track_fn = [&](const unsigned long i_line, const float scale_factor) {
-      bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
-                   parameters.dev_offsets_forward_tracks[selected_event_number];
-      DeterministicPostscaler ps(i_line, scale_factor);
-      ps(n_tracks_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-    };
-    Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::OneTrackLine>::traverse(
-      lambda_one_track_fn);
+    Hlt1::DeviceTraverseLinesScaleFactors<configured_lines_t, Hlt1::OneTrackLine>::traverse(
+      [&](const unsigned long i_line, const float scale_factor) {
+        bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
+                     parameters.dev_offsets_forward_tracks[selected_event_number];
+        DeterministicPostscaler ps(i_line, scale_factor);
+        ps(n_tracks_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+      });
 
     // Process 2-track lines.
-    const auto lambda_two_track_fn = [&](const unsigned long i_line, const float scale_factor) {
-      bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
-                   parameters.dev_sv_offsets[event_number];
-      DeterministicPostscaler ps(i_line, scale_factor);
-      ps(n_vertices_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-    };
-    Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::TwoTrackLine>::traverse(
-      lambda_two_track_fn);
+    Hlt1::DeviceTraverseLinesScaleFactors<configured_lines_t, Hlt1::TwoTrackLine>::traverse(
+      [&](const unsigned long i_line, const float scale_factor) {
+        bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
+                     parameters.dev_sv_offsets[event_number];
+        DeterministicPostscaler ps(i_line, scale_factor);
+        ps(n_vertices_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+      });
 
     // Process Velo lines.
-    const auto lambda_velo_fn = [&](const unsigned long i_line, const float scale_factor) {
-      bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + selected_event_number;
-      DeterministicPostscaler ps(i_line, scale_factor);
-      ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-    };
-    Hlt1::TraverseLinesScaleFactors<configured_lines_t, Hlt1::VeloLine>::traverse(lambda_velo_fn);
+    Hlt1::DeviceTraverseLinesScaleFactors<configured_lines_t, Hlt1::VeloLine>::traverse(
+      [&](const unsigned long i_line, const float scale_factor) {
+        bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + selected_event_number;
+        DeterministicPostscaler ps(i_line, scale_factor);
+        ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+      });
   }
 }

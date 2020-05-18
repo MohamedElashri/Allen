@@ -9,7 +9,6 @@
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
-#include "LineTraverser.cuh"
 #include "ConfiguredLines.h"
 
 namespace prepare_raw_banks {

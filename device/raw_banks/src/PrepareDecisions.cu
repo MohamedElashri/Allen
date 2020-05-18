@@ -1,4 +1,5 @@
 #include "PrepareRawBanks.cuh"
+#include "DeviceLineTraverser.cuh"
 
 __global__ void prepare_raw_banks::prepare_decisions(
   prepare_raw_banks::Parameters parameters,
@@ -11,12 +12,12 @@ __global__ void prepare_raw_banks::prepare_decisions(
   // Set special line decisions.
   const auto event_number = blockIdx.x;
   uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
-  const auto lambda_fn = [&](const unsigned long i_line) {
+  
+  Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse([&](const unsigned long i_line) {
     const bool* decisions = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + event_number;
     uint32_t dec = ((decisions[0] ? 1 : 0) & dec_mask);
     atomicOr(event_dec_reports + 2 + i_line, dec);
-  };
-  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine>::traverse(lambda_fn);
+  });
 
   if (blockIdx.x < selected_number_of_events) {
     const uint selected_event_number = blockIdx.x;
@@ -85,7 +86,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
         }
       };
 
-      Hlt1::TraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse(lambda_fn);
+      Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse(lambda_fn);
 
       if (save_sv & dec_mask) {
         const uint sv_insert_index = atomicAdd(
@@ -103,7 +104,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
     // Set track decisions.
     for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {
       uint32_t save_track = 0;
-      const auto lambda_fn = [&](const unsigned long i_line) {
+      Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::OneTrackLine>::traverse([&](const unsigned long i_line) {
         const bool* decisions = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
                                 scifi_tracks.tracks_offset(selected_event_number);
 
@@ -117,9 +118,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
         if (dec) {
           candidate_list[insert_index] = i_track;
         }
-      };
-
-      Hlt1::TraverseLines<configured_lines_t, Hlt1::OneTrackLine>::traverse(lambda_fn);
+      });
 
       if (save_track) {
         event_save_track[i_track] = 1;
@@ -145,13 +144,12 @@ __global__ void prepare_raw_banks::prepare_decisions(
          selected_event_number++) {
       const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
       uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
-      const auto lambda_fn = [&](const unsigned long i_line) {
+      Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse([&](const unsigned long i_line) {
         const bool* decisions =
           parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + selected_event_number;
         uint32_t dec = ((decisions[0] ? 1 : 0) & dec_mask);
         atomicOr(event_dec_reports + 2 + i_line, dec);
-      };
-      Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse(lambda_fn);
+      });
     }
   }
 }

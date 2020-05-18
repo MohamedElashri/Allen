@@ -606,8 +606,9 @@ __device__ int compass_ut::sum_layer_hits(const TrackCandidates& ranges, const i
 //=========================================================================
 __device__ int compass_ut::sum_layer_hits(const TrackCandidates& ranges, const int layer)
 {
-  return ranges.get_size(layer, 0) + ranges.get_size(layer, 1) + ranges.get_size(layer, 2) + ranges.get_size(layer, 3) +
-         ranges.get_size(layer, 4);
+  return ranges.get_size(layer, 0, threadIdx.x) + ranges.get_size(layer, 1, threadIdx.x) +
+         ranges.get_size(layer, 2, threadIdx.x) + ranges.get_size(layer, 3, threadIdx.x) +
+         ranges.get_size(layer, 4, threadIdx.x);
 }
 
 //=========================================================================
@@ -623,9 +624,9 @@ __device__ int compass_ut::calc_index(
 {
   auto temp_index = index;
   for (uint i = 0; i < CompassUT::num_sectors; ++i) {
-    const auto ranges_size = ranges.get_size(layer, i);
+    const auto ranges_size = ranges.get_size(layer, i, threadIdx.x);
     if (temp_index < ranges_size) {
-      return temp_index + ut_hit_offsets.layer_offset(layer) + ranges.get_from(layer, i);
+      return temp_index + ut_hit_offsets.layer_offset(layer) + ranges.get_from(layer, i, threadIdx.x);
     }
     temp_index -= ranges_size;
   }
@@ -647,9 +648,9 @@ __device__ int compass_ut::calc_index(
 {
   auto temp_index = index;
   for (uint i = 0; i < CompassUT::num_sectors; ++i) {
-    const auto ranges_size = ranges.get_size(layer0, i);
+    const auto ranges_size = ranges.get_size(layer0, i, threadIdx.x);
     if (temp_index < ranges_size) {
-      return temp_index + ut_hit_offsets.layer_offset(layer0) + ranges.get_from(layer0, i);
+      return temp_index + ut_hit_offsets.layer_offset(layer0) + ranges.get_from(layer0, i, threadIdx.x);
     }
     temp_index -= ranges_size;
   }
