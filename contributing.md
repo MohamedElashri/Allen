@@ -1,49 +1,50 @@
-Allen: Adding a new CUDA algorithm
-=====================================
+Allen: Adding a new device algorithm
+====================================
 
-This tutorial will guide you through adding a new CUDA algorithm to the `Allen` project.
+This tutorial will guide you through adding a new device algorithm to the `Allen` framework.
 
 SAXPY
 -----
 
-Writing an algorithm in CUDA in the `Allen` project is no different than writing it on any other GPU project. The differences are in how to invoke that program, and how to setup the options, arguments, and so on.
+Writing functions to be executed in the device in `Allen` is literally the same as writing a CUDA kernel. Therefore, you may use any existing tutorial or documentation on how to write good CUDA code.
 
-So let's assume that we have the following simple `SAXPY` algorithm, taken out from this website https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/
+Writing a device algorithm in the `Allen` framework has been made to resemble the Gaudi syntax, where possible.
 
-```clike=
+Let's assume that we want to run the following classic `SAXPY` CUDA kernel, taken out from this website https://devblogs.nvidia.com/easy-introduction-cuda-c-and-c/ :
+
+```c++
 __global__ void saxpy(float *x, float *y, int n, float a) {
   int i = blockIdx.x*blockDim.x + threadIdx.x;
   if (i < n) y[i] = a*x[i] + y[i];
 }
 ```
 
-### Adding the CUDA algorithm
+### Adding the device algorithm
 
-We want to add the algorithm to a specific folder inside the `cuda` folder:
+We want to add the algorithm to a specific folder inside the `device` folder:
 
 ```
-├── cuda
+device
+├── associate
 │   ├── CMakeLists.txt
-│   └── velo
-│       ├── CMakeLists.txt
-│       ├── calculate_phi_and_sort
-│       │   ├── include
-│       │   │   └── CalculatePhiAndSort.cuh
-│       │   └── src
-│       │       ├── CalculatePhiAndSort.cu
-│       │       ├── CalculatePhi.cu
-│       │       └── SortByPhi.cu
-│       ├── common
-│       │   ├── include
-│       │   │   ├── ClusteringDefinitions.cuh
-│       │   │   └── VeloDefinitions.cuh
-│       │   └── src
-│       │       ├── ClusteringDefinitions.cu
-│       │       └── Definitions.cu
+│   ├── include
+│   │   ├── AssociateConstants.cuh
+│   │   └── VeloPVIP.cuh
+│   └── src
+│       └── VeloPVIP.cu
+├── CMakeLists.txt
+├── event_model
+│   ├── associate
+│   │   └── include
+│   │       └── AssociateConsolidated.cuh
+│   ├── common
+│   │   └── include
+│   │       ├── ConsolidatedTypes.cuh
+│   │       └── States.cuh
 ...
 ```
 
-Let's create a new folder inside the `cuda` directory named `example`. We need to modify `cuda/CMakeLists.txt` to reflect this:
+Let's create a new folder inside the `device` directory named `example`. We need to modify `device/CMakeLists.txt` to reflect this:
 
 ```cmake=
 add_subdirectory(raw_banks)
@@ -68,21 +69,14 @@ The newly created `test/CMakeLists.txt` file should reflect the project we are c
 file(GLOB saxpy_sources "src/*cu")
 
 include_directories(include)
-include_directories(../velo/common/include)
-include_directories(../event_model/common/include)
-include_directories(../event_model/velo/include)
-
+include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/velo/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  foreach(source_file ${saxpy_sources})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
-allen_add_device_library(Saxpy STATIC
+allen_add_device_library(Examples STATIC
   ${saxpy_sources}
 )
 ```
@@ -91,10 +85,9 @@ If your new algorithm does not use any Velo related objects, this is not necessa
 
 The includes of main, gear and sequence are required for any new algorithm in Allen.
 
-Link the new library "Saxpy" to the stream librariy in `stream/CMakeLists.txt`:
+Link the new library "Examples" to the stream library in `stream/CMakeLists.txt`:
 ```cmake=
 target_link_libraries(Stream PRIVATE
-  HostStream
   CudaCommon
   Associate
   Velo
@@ -106,132 +99,208 @@ target_link_libraries(Stream PRIVATE
   Kalman
   VertexFitter
   RawBanks
+  Selections
   SciFi
   HostGEC
   Muon
   Utils
-  Saxpy)
+  Examples
+  HostDataProvider
+  HostInitEventList)
 ```
 
 Next, we create the header file for our algorithm `SAXPY_example.cuh`, which is similar to an algorithm definition in Gaudi: inputs, outputs and properties are defined, as well as the algorithm function itself and an operator calling the function.
-There are slight differences to Gaudi, since we want to be able to run the algorithm on a GPU.
-The full file can be viewed [here](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_update_documentation/cuda/example/include/SAXPY_example.cuh). Let's take a look at the components:
 
-```clike=
+There are slight differences to Gaudi, since we want to be able to run the algorithm on a GPU.
+The full file is under `device/example/include/SAXPY_example.cuh`. Let's take a look at the components:
+
+```c++
 #pragma once
 
 #include "VeloConsolidated.cuh"
 #include "DeviceAlgorithm.cuh"
 ```
-The Velo include is only required if Velo objects are used in the algorithm. `DeviceAlgorithm.cuh` needs to be included for every device algorithm.
 
-```clike=
+The Velo include is only required if Velo objects are used in the algorithm. `DeviceAlgorithm.cuh` defines class `DeviceAlgorithm` and some other handy resources.
+
+#### Parameters and properties
+
+```c++
 namespace saxpy {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo; 
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
-        
-    DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;
-
-    PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-  };
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
+    (PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float), saxpy_scale_factor),
+    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 ```
 
+In the `saxpy` namespace the parameters and properties are specified. Parameters _scope_ can either be the host or the device, and they can either be inputs or outputs. Parameters should be defined with the following convention:
 
-In the `saxpy` namespace the inputs and outputs are specified. These can refer to data either on the host or on the device. So one can choose between `HOST_INPUT`, `HOST_OUTPUT`, `DEVICE_INPUT` and `DEVICE_OUTPUT`.
-In all cases the name and type are defined, e.g. ` DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint)`. An algorithm can be called several times in a sequence with different inputs, outputs and properties.
-The default input name to be used can be set by ` DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;`. A `PROPERTY` describes a constant used in an algorithm, the default value of a property is set when declaring it, as described below.
+    (<scope>_<io>(<name>, <type>), <identifier>)
 
+Some parameter examples:
 
-```clike=
-__global__ void saxpy(Parameters);
+* `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _uint_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `uint`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const uint*`. Its identifier is `dev_atomics_velo`.
+* `(DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output)`: Defines an output parameter on _device memory_, with name `dev_saxpy_output_t` and identifier `dev_saxpy_output`. Its underlying type is `float*`.
+* `(HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events)`: Defines an input parameter on _host memory_, with name `host_number_of_selected_events_t` and identifier `host_number_of_selected_events`. Its underlying type is `const uint*`.
 
+Properties of algorithms define constants can be configured prior to running the application. They are defined in two parts. First, they should be defined in the `DEFINE_PARAMETERS` macro following the convention:
+
+    (PROPERTY(<name>, <key>, <description>, <type>), <identifier>)
+
+* `(PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float), saxpy_scale_factor)`: Property with name `saxpy_scale_factor_t` is of type `float`. It will be accessible through key `"saxpy_scale_factor"` in a python configuration file, and it has description `"scale factor a used in a*x + y"`. Its identifier is `saxpy_scale_factor`. Properties _underlying type_ is always the same as their type, so in this case `float`.
+
+And second, properties should be defined inside the algorithm struct as follows:
+
+    Property<_name_> _internal_name_ {this, _default_value_}
+
+In the case of saxpy:
+
+```c++
+  private:
+    Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
+    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
 ```
-The function of the algorithm is defined. 
 
-```clike=
-  template<typename T, char... S>
+#### Defining an algorithm
+
+##### SAXPY_example.cuh
+
+An algorithm is defined by a `struct` (or `class`) that inherits from either `HostAlgorithm` or `DeviceAlgorithm`. In addition, it is convenient to also inherit from `Parameters`, to be able to easily access _identifiers_ of parameters and properties. The struct identifier is the name of the algorithm.
+
+An algorithm must define **two methods**: `set_arguments_size` and `operator()`. Their signatures are as follows:
+
+```c++
   struct saxpy_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
-    decltype(global_function(saxpy)) function {saxpy};
-
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentReferences<Parameters>,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      set_size<dev_saxpy_output_t>(
-                                   arguments, value<host_number_of_selected_events_t>(arguments));
-    }
+      const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,
-      const Constants& constants,
+      const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
-      cudaEvent_t&) const
-    {
-      function(dim3(value<host_number_of_selected_events_t>(arguments) / property<block_dim_t>()), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_saxpy_output_t>(arguments),
-            property<saxpy_scale_factor_t>()});
-    }
+      cudaStream_t&,
+      cudaEvent_t&) const;
 
-    private:
-        Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
-        Property<block_dim_t> m_block_dim {this, {32, 1, 1}};
+  private:
+    Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
+    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
   };
-} // namespace saxpy
-```
-In ` struct saxpy_t`, the function call is handled. Note that the name of the struct must match the function name (`saxpy`), followed by `_t`.
-In `set_arguments_size`, the sizes of `DEVICE_OUTPUT` parameters are defined. The actual memory allocation is handled by the memory manager. In our case, for `dev_saxpy_output_t` we reserve `<host_number_of_selected_events_t * sizeof(float)` bytes of memory.
-The `sizeof(float)` is implicit, because we set the type of `dev_saxpy_output_t` to float in the `Parameters` struct.
-In the call to `function` the first two arguments are the number of blocks per grid (`dim3(value<host_number_of_selected_events_t>(arguments) / property<block_dim_t>())`) and the number
-of threads per block (`property<block_dim_t>()`). The struct `Parameters` contains the pointers to all `DEVICE_INPUT` and `DEVICE_OUTPUT` which were defined in the `Parameters` struct above, as well as the `PROPERTY`s.
-Finally, the properties belonging to the algorithm are defined as private members of the `saxpy_t` struct together with their default values.
-
-If a new variable is required in host memory, allocate its memory like so:
-Go to `stream/sequence/include/HostBuffers.cuh` and add the new host memory pointer:
-
-```clike
-  // Pinned host datatypes
-  uint* host_velo_tracks_atomics;
-  uint* host_velo_track_hit_number;
 ```
 
-Reserve that host memory in `stream/sequence/src/HostBuffers.cu`:
+An algorithm `saxpy_t` has been declared. It is a `DeviceAlgorithm`, and for convenience it inherits from the previously defined `Parameters`. It defines two methods, `set_arguments_size` and `operator()` with the above predefined signatures. The algorithm declaration ends with the `private:` block for the properties mentioned before.
 
-```clike
-  cudaCheck(cudaMallocHost((void**)&host_velo_tracks_atomics, (2 * max_number_of_events + 1) * sizeof(int)));
-  cudaCheck(cudaMallocHost((void**)&host_velo_track_hit_number, max_number_of_events * VeloTracking::max_tracks * sizeof(uint)));
- 
+Since this is a DeviceAlgorithm, one would like the work to actually be done on the device. In order to run code on the device, a _global kernel_ has to be defined. The syntax used is standard CUDA:
+
+```
+__global__ void saxpy(Parameters);
 ```
 
+##### SAXPY_example.cu
 
-Next, we add the [source file](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_update_documentation/cuda/example/src/SAXPY_example.cu):
+The source file of SAXPY should define `set_arguments_size`, `operator()` and the previously mentioned _global kernel_ `saxpy`:
 
-```clike
+* `set_arguments_size`: Sets the `size` of output parameters.
+* `operator()`: The actual algorithm runs (similar to Gaudi).
+
+In Allen, it is not recommended to use _dynamic memory allocations_. Therefore, types such as `std::vector` are "forbidden", and instead sizes of output arguments must be set in the `set_arguments_size` method of algorithms.
+
+```c++
 #include "SAXPY_example.cuh"
 
-__global__ void saxpy::saxpy(
-  saxpy::Parameters parameters)
-  {
-    const uint number_of_events = gridDim.x;
-    const uint event_number = blockIdx.x * blockDim.x + threadIdx.x;
-
-    Velo::Consolidated::ConstTracks velo_tracks {
-      parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_evnts};
-    const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-    
-    if (event_number < number_of_events)
-      parameters.dev_saxpy_output[event_number] = parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+void saxpy::saxpy_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  arguments.set_size<dev_saxpy_output_t>(arguments.first<host_number_of_selected_events_t>());
 }
 ```
-The source code looks like any other CUDA function, with the only difference being that Allen inputs and outputs, as well as properties are passed via the `saxpy::Parameters` struct. 
-The are accessed as in `parameters.dev_atomics_velo` (DEVICE_INPUT) or `parametres.saxpy_scale_factor` (PROPERTY).
 
-To integrate the new algorithm into a sequence, please follow [this]() readme.
+To do that, arguments provides several methods:
+
+* `set_size<T>(const size_t)`: Sets the size of _name_ `T`. The `sizeof(T)` is implicit, so eg. `set_size<T>(10)` will actually allocate space for `10 * sizeof(T)`.
+* `size<T>()`: Gets the size of _name_ `T`.
+* `data<T>()`: Gets the pointer to the beginning of `T`.
+* `first<T>()`: Gets the first element of `T`.
+* `name<T>()`: Gets the name of `T`.
+
+Next, `operator()` should be defined:
+
+```c++
+void saxpy::saxpy_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  global_function(saxpy)(
+    dim3(first<host_number_of_selected_events_t>(arguments) / property<block_dim_t>().get().x),
+    property<block_dim_t>(),
+    cuda_stream)(arguments);
+}
+```
+
+In order to invoke host and global functions, wrapper methods `host_function` and `global_function` should be used. The syntax is as follows:
+
+    global_function(<global_function_identifier>)(<grid_size>, <block_size>, <stream>)(<parameters of function>)
+
+`global_function` wraps a function identifier, such as `saxpy`. The object it returns can be used to invoke a _global kernel_ following a syntax that is similar to [CUDA's kernel invocation syntax](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels). It expects:
+
+* `grid_size`: Number of blocks of kernel invocation (passed as 3-dimensional object of type `dim3`).
+* `block_size`: Number of threads in each block (passed as 3-dimensional object of type `dim3`).
+* `stream`: Stream where to run.
+* `parameters of function`: Parameters of the _global kernel_ being invoked.
+
+In this case, the kernel `saxpy` accepts only one parameter of type `Parameters`. The global_function and host_function wrappers automatically detect and transform `const ArgumentReferences<Parameters>&` into `Parameters`. Therefore, we can safely pass `arguments` to our kernel invocation.
+
+Finally, the kernel is defined:
+
+```c++
+/**
+ * @brief SAXPY example algorithm
+ * @detail Calculates for every event y = a*x + x, where x is the number of velo tracks in one event
+ */
+__global__ void saxpy::saxpy(saxpy::Parameters parameters)
+{
+  const uint number_of_events = gridDim.x;
+  const uint event_number = blockIdx.x * blockDim.x + threadIdx.x;
+
+  Velo::Consolidated::ConstTracks velo_tracks {
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+
+  if (event_number < number_of_events)
+    parameters.dev_saxpy_output[event_number] =
+      parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+}
+```
+
+The kernel accepts a single parameter of type `saxpy::Parameters`. It is now possible to access all previously defined parameters by their _identifier_. Things to remember here:
+
+* A parameter or property is accessed with its _identifier_.
+* Parameters decays to _underlying type_ (eg. formed from its _scope_ and its _type_).
+* Properties decay to _type_.
+* If explicit access to the _underlying type_ of parameters is required, `get()` can be used.
+* One should not access `host` parameters inside a function to be executed on the `device`, and viceversa.
+
+In other words, in the code above:
+
+* `parameters.dev_atomics_velo` decays to `const uint*`.
+* `parameters.dev_velo_track_hit_number` decays to `const uint*`.
+* `parameters.dev_saxpy_output` decays to `float*`.
+* `parameters.saxpy_scale_factor` decays to `float`, and has default value `2.f`.
+
+The last thing remaining is to add the algorithm to a sequence, and run it.
+
+* [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.

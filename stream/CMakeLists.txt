@@ -100,7 +100,7 @@ target_link_libraries(Stream PRIVATE
   HostGEC
   Muon
   Utils
-  Saxpy
+  Examples
   HostDataProvider
   HostInitEventList)
 

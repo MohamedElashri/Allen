@@ -89,6 +89,12 @@ struct ArgumentRefManager {
   }
 
   template<typename T>
+  auto first() const
+  {
+    return data<T>()[0];
+  }
+
+  template<typename T>
   size_t size() const
   {
     return std::get<T&>(m_arguments).size();

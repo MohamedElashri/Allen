@@ -12,6 +12,6 @@ include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
-allen_add_device_library(Saxpy STATIC
+allen_add_device_library(Examples STATIC
   ${saxpy_sources}
 )
