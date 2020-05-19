@@ -78,7 +78,8 @@ There are some cmake options to configure the build process:
 * The build type can be specified to `RelWithDebInfo`, `Release` or `Debug`, e.g. `cmake -DCMAKE_BUILD_TYPE=Debug ..`
 * ROOT can be enabled to generate monitoring plots using `-DUSE_ROOT=ON`
 * If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
-* If multiple versions of CUDA are installed and CUDA 10.0 is not the default, it can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
+* If multiple versions of CUDA are installed the desired CUDA version can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
+* Compilation for CPU can be chosen with `-DTARGET_DEVICE=CPU`, other available targets are `CUDA`, `HIP` and `CUDACLANG`. 
 
 How to run it
 -------------
