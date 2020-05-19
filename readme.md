@@ -5,29 +5,32 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------
-The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++17.
+The project requires CMake 3.12, Python3 and a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support).
+Further requirements depend on the device chosen as target. For each target,
+we show a proposed development setup with CVMFS and CentOS 7:
 
-If you are working from a node with CVMFS and CentOS 7, we suggest the following setup:
+* CPU target: Any modern compiler can be used, such as gcc greater than 7.0:
+    
+    ```shell
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    ```
+    
+* CUDA target: The latest supported compilers are gcc-8 and clang-6. CUDA is
+  available in cvmfs as well:
 
-```shell
-source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
-export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
-export PATH=/usr/local/cuda/bin:$PATH
-```
-Regardless of the OS you are running on, you can check your compiler versions as follows:
+    ```shell
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
+    ```
+    
+* HIP target: A local installation of ROCm at least version 3.3.0 is required.
 
-```shell
-$ g++ --version
-g++ (GCC) 8.2.0
+* CUDACLANG target: A version of the clang compiler with ptx support is required,
+  alongside a local installation of CUDA 10.1 (currently latest supported release):
 
-$ nvcc --version
-Cuda compilation tools, release 10.1, V10.1.243
-
-$ cmake --version
-cmake version 3.14.2
-```
-
-You can check your compiler standard compatibility by scrolling to the `C++17 features` chart [here](https://en.cppreference.com/w/cpp/compiler_support).
+    ```shell
+    source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
+    ```
 
 Optionally you can compile the project with ROOT. Then, trees will be filled with variables to check when running the UT tracking or SciFi tracking algorithms on x86 architecture.
 In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
@@ -75,7 +78,8 @@ There are some cmake options to configure the build process:
 * The build type can be specified to `RelWithDebInfo`, `Release` or `Debug`, e.g. `cmake -DCMAKE_BUILD_TYPE=Debug ..`
 * ROOT can be enabled to generate monitoring plots using `-DUSE_ROOT=ON`
 * If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
-* If multiple versions of CUDA are installed and CUDA 10.0 is not the default, it can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
+* If multiple versions of CUDA are installed the desired CUDA version can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
+* Compilation for CPU can be chosen with `-DTARGET_DEVICE=CPU`, other available targets are `CUDA`, `HIP` and `CUDACLANG`. 
 
 How to run it
 -------------
@@ -129,11 +133,25 @@ Here are some example run options:
 
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
+    
+Which GPU to use
+---------------------
+For development purposes, a server with eight GTX 2080 Ti GPUs is set up in the online network.
+An online account is required to access it. If you need to create one, please send a request to lbonsupp@cern.ch.
+Enter the online network from lxplus with `ssh lbgw`. Then `ssh n4050101` to reach the GPU server.
+Allen input data is available in `/scratch/dcampora/allen_data/201907`.
 
-How to enable Nvidia persistenced mode
------------------------------------------
-Enabling Nvidia [persistenced mode](https://docs.nvidia.com/deploy/driver-persistence/index.html) will increase the throughput of Allen, as the GPU will remain initialized even when no process is running. To enable:
-`sudo systemctl enable nvidia-persistenced`, reboot the machine.
+
+How to measure throughput
+----------------------------
+Every merge request in Allen will automatically be tested in the CI system. As part of the tests, the throughput is measured on a number of different GPUs and a CPU.
+The result of the tests is published in this [mattermost channel][https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput].
+
+For local throughput measurements, we recommend the following settings in Allen standalone mode:
+```
+./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
+```
+
 
 How to profile it
 ------------------

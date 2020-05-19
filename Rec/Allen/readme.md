@@ -5,7 +5,7 @@ This readme explains how to setup Allen as Gaudi project, calling Allen either f
 The described setup works on lxplus.
 
 ```
-LbLogin -c x86_64-centos7-gcc9-opt
+lb-set-platform x86_64-centos7-gcc9-opt
 export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
 export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
 ```
@@ -33,6 +33,7 @@ make install
 ```
 
 Note that this setup uses the nightlies from Tuesday. Adopt the day of the nightly build according to when you are building. Possibly check that the nightly build was successful.
+
 
 Call Allen from Brunel
 ---------------------------
