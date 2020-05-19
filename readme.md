@@ -133,11 +133,25 @@ Here are some example run options:
 
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
+    
+Which GPU to use
+---------------------
+For development purposes, a server with eight GTX 2080 Ti GPUs is set up in the online network.
+An online account is required to access it. If you need to create one, please send a request to lbonsupp@cern.ch.
+Enter the online network from lxplus with `ssh lbgw`. Then `ssh n4050101` to reach the GPU server.
+Allen input data is available in `/scratch/dcampora/allen_data/201907`.
 
-How to enable Nvidia persistenced mode
------------------------------------------
-Enabling Nvidia [persistenced mode](https://docs.nvidia.com/deploy/driver-persistence/index.html) will increase the throughput of Allen, as the GPU will remain initialized even when no process is running. To enable:
-`sudo systemctl enable nvidia-persistenced`, reboot the machine.
+
+How to measure throughput
+----------------------------
+Every merge request in Allen will automatically be tested in the CI system. As part of the tests, the throughput is measured on a number of different GPUs and a CPU.
+The result of the tests is published in this [mattermost channel][https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput].
+
+For local throughput measurements, we recommend the following settings in Allen standalone mode:
+```
+./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
+```
+
 
 How to profile it
 ------------------
