@@ -88,7 +88,7 @@ private:
   Gaudi::Property<bool> m_filter_hlt1 {this, "FilterHLT1", false};
 
   // Counters for HLT1 selection rates
-  mutable std::vector<Gaudi::Accumulators::BinomialCounter<>> m_hlt1_line_rates{};
+  mutable std::vector<Gaudi::Accumulators::BinomialCounter<>> m_hlt1_line_rates {};
 };
 
 #endif
