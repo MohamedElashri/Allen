@@ -49,7 +49,7 @@ StatusCode RunAllen::initialize()
   if (sc.isFailure()) return sc;
   if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
 
-  // initialize Allen
+  /* initialize Allen */
 
   // Get updater service and register all consumers
   auto svc = service(m_updaterName);
@@ -97,19 +97,27 @@ StatusCode RunAllen::initialize()
   const uint start_event_offset = 0;
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
 
-  m_number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
+  m_stream_wrapper.reset(new StreamWrapper());
+  m_stream_wrapper->initialize_streams(
+    m_number_of_streams,
+    print_memory_usage,
+    start_event_offset,
+    reserve_mb,
+    m_constants,
+    configuration_reader.params());
 
-  uint error_line = 0;
-  const auto lambda_fn = [&error_line](const unsigned long i, const std::string& line_name) {
-    if (line_name == "ErrorEvent") error_line = i;
-  };
-  Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
+  // Initialize host buffers (where Allen output is stored)
+  m_host_buffers_manager.reset(new HostBuffersManager(
+    m_n_buffers, 2, m_do_check, m_stream_wrapper->number_of_hlt1_lines, m_stream_wrapper->errorevent_line));
+  m_stream_wrapper->initialize_streams_host_buffers_manager(m_host_buffers_manager.get());
 
-  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_do_check, m_number_of_hlt1_lines, error_line));
-  m_stream.reset(new Stream());
-  m_stream->configure_algorithms(configuration_reader.params());
-  m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants);
-  m_stream->set_host_buffer_manager(m_host_buffers_manager.get());
+  // Initialize input provider
+  const size_t number_of_slices = 1;
+  const size_t events_per_slice = 1;
+  const size_t n_events = 1;
+  m_tes_input_provider.reset(
+    new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
+      number_of_slices, events_per_slice, n_events));
 
   // Set verbosity level
   logger::setVerbosity(6 - this->msgLevel());
@@ -124,48 +132,39 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const LHCb::ODIN&) const
 {
 
-  // Get raw input and event offsets for every detector
-  std::array<BanksAndOffsets, LHCb::RawBank::LastType> banks_and_offsets;
-  std::array<std::array<unsigned int, 2>, LHCb::RawBank::LastType> event_offsets;
-  for (const auto bankType : m_bankTypes) {
-    // to do: catch that raw bank type was not dumped
-
-    // Offsets to events (we only process one event)
-    // unsigned int offsets_mem[2];
-    event_offsets[bankType][0] = 0;
-    event_offsets[bankType][1] = allen_banks[bankType].size();
-    gsl::span<unsigned int const> offsets {event_offsets[bankType].data(), 2};
-    using data_span = gsl::span<char const>;
-    auto data_size = static_cast<data_span::index_type>(allen_banks[bankType].size());
-    std::vector<data_span> spans(1, data_span {allen_banks[bankType].data(), data_size});
-    banks_and_offsets[bankType] = std::make_tuple(std::move(spans), data_size, std::move(offsets));
+  int rv = m_tes_input_provider.get()->set_banks(allen_banks, m_bankTypes);
+  if (rv > 0) {
+    error() << "Error in reading dumped raw banks" << endmsg;
   }
 
   // initialize RuntimeOptions
+  const uint event_start = 0;
+  const uint event_end = 1;
+  const size_t slice_index = 0;
+  const bool mep_layout = false;
   RuntimeOptions runtime_options(
-    banks_and_offsets[LHCb::RawBank::VP],
-    banks_and_offsets[LHCb::RawBank::UT],
-    banks_and_offsets[LHCb::RawBank::FTCluster],
-    banks_and_offsets[LHCb::RawBank::Muon],
-    banks_and_offsets[LHCb::RawBank::ODIN],
-    {0u, 1u},
+    m_tes_input_provider.get(),
+    slice_index,
+    {event_start, event_end},
     m_number_of_repetitions,
-    m_do_check.value(),
+    m_do_check,
     m_cpu_offload,
-    false);
+    mep_layout);
 
   const uint buf_idx = m_n_buffers - 1;
-  cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);
-  if (rv != cudaSuccess) {
+  const uint stream_index = m_number_of_streams - 1;
+  cudaError_t cuda_rv = m_stream_wrapper->run_stream(stream_index, buf_idx, runtime_options);
+  if (cuda_rv != cudaSuccess) {
     error() << "Allen exited with errorCode " << rv << endmsg;
     // how to exit a filter with failure?
   }
   bool filter = true;
+  HostBuffers* buffer = m_host_buffers_manager->getBuffers(buf_idx);
   if (m_filter_hlt1.value()) {
-    filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_passing_event_list[0];
+    filter = buffer->host_passing_event_list[0];
   }
   if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << uint(filter) << endmsg;
-  return std::make_tuple(filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)));
+  return std::make_tuple(filter, *buffer);
 }
 
 StatusCode RunAllen::finalize()

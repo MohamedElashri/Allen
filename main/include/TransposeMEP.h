@@ -19,6 +19,7 @@
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
+#include <AllenUnits.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Event/RawBank.h>
