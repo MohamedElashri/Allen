@@ -11,14 +11,14 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
 * CPU target: Any modern compiler can be used, such as gcc greater than 7.0:
     
-    ```shell
+    ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     ```
     
 * CUDA target: The latest supported compilers are gcc-8 and clang-6. CUDA is
   available in cvmfs as well:
 
-    ```shell
+    ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     ```
@@ -28,7 +28,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
 * CUDACLANG target: A version of the clang compiler with ptx support is required,
   alongside a local installation of CUDA 10.1 (currently latest supported release):
 
-    ```shell
+    ```console
     source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
     ```
 
@@ -53,7 +53,7 @@ If other inputs are required, follow these instructions for producing them:
 
 Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
 
-```shell
+```console
 python3 scripts/makeODIN.py /path/to/data/banks/
 ```
 
@@ -153,7 +153,7 @@ The results of the tests are published in this [mattermost channel](https://matt
 
 For local throughput measurements, we recommend the following settings in Allen standalone mode:
 
-```
+```console
 nvprof ./Allen -f /scratch/allen_data/201907/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
 ```
 

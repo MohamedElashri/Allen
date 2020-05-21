@@ -1,7 +1,7 @@
 Configuring the sequence of algorithms
 ======================================
 
-`Allen` centers around the idea of running a __sequence of algorithms__ on input events. This sequence is predefined and will always be executed in the same order.
+Allen centers around the idea of running a __sequence of algorithms__ on input events. This sequence is predefined and will always be executed in the same order.
 
 The sequence can be configured with python. Existing configurations can be browsed under `configuration/sequences`. The sequence name is the name of each individual file, without the `.py` extension, in that folder. For instance, some sequence names are `velo`, `ut`, or `hlt1_pp_default`.
 

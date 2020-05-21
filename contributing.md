@@ -23,7 +23,7 @@ __global__ void saxpy(float *x, float *y, int n, float a) {
 
 We want to add the algorithm to a specific folder inside the `device` folder:
 
-```
+```console
 device
 ├── associate
 │   ├── CMakeLists.txt
@@ -46,14 +46,14 @@ device
 
 Let's create a new folder inside the `device` directory named `example`. We need to modify `device/CMakeLists.txt` to reflect this:
 
-```cmake=
+```cmake
 add_subdirectory(raw_banks)
 add_subdirectory(example)
 ```
 
 Inside the `test` folder we will create the following structure:
 
-```
+```console
 ├── test
 │   ├── CMakeLists.txt
 │   └── example
@@ -65,7 +65,7 @@ Inside the `test` folder we will create the following structure:
 
 The newly created `test/CMakeLists.txt` file should reflect the project we are creating. We can do that by populating it like so:
 
-```cmake=
+```cmake
 file(GLOB saxpy_sources "src/*cu")
 
 include_directories(include)
@@ -86,7 +86,7 @@ If your new algorithm does not use any Velo related objects, this is not necessa
 The includes of main, gear and sequence are required for any new algorithm in Allen.
 
 Link the new library "Examples" to the stream library in `stream/CMakeLists.txt`:
-```cmake=
+```cmake
 target_link_libraries(Stream PRIVATE
   CudaCommon
   Associate
