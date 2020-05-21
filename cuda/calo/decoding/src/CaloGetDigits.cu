@@ -19,7 +19,7 @@ __global__ void calo_get_digits::calo_get_digits(
 
   for (auto event_number = blockIdx.x * blockDim.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    
+
     const auto selected_event_number = parameters.dev_event_list[event_number];
 
     // Ecal
@@ -51,8 +51,13 @@ __global__ void calo_get_digits::calo_get_digits(
           offset += coding_numbers[coding * 3 + 2];
           
           // Store cellid and adc in result array.
-          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
-          parameters.dev_ecal_digits[event_number * MAX_CELLID + cellid].adc = adc;
+          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit];
+
+          // Some cell IDs have an area of 3 without any neighbors etc. ignore these.
+          if ((cellid >> 12) <= 2) {
+            parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + cellid].adc = adc;
+            parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + cellid].clustered_at_iteration = UNCLUSTERED;
+          }
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;
@@ -90,8 +95,13 @@ __global__ void calo_get_digits::calo_get_digits(
           offset += coding_numbers[coding * 3 + 2];
           
           // Store cellid and adc in result array.
-          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
-          parameters.dev_hcal_digits[event_number * MAX_CELLID + cellid].adc = adc;
+          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit];
+
+          // Some cell IDs have an area of 3 without any neighbors etc. ignore these.
+          if ((cellid >> 12) <= 1) {
+            parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + cellid].adc = adc;
+            parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + cellid].clustered_at_iteration = UNCLUSTERED;
+          }
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;
@@ -150,8 +160,13 @@ __global__ void calo_get_digits::calo_get_digits_mep(
           offset += coding_numbers[coding * 3 + 2];
           
           // Store cellid and adc in result array.
-          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
-          parameters.dev_ecal_digits[event_number * MAX_CELLID + cellid].adc = adc;
+          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit];
+
+          // Some cell IDs have an area of 3 without any neighbors etc. ignore these.
+          if ((cellid >> 12) <= 2) {
+            parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + cellid].adc = adc;
+            parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + cellid].clustered_at_iteration = UNCLUSTERED;
+          }
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;
@@ -190,8 +205,13 @@ __global__ void calo_get_digits::calo_get_digits_mep(
           offset += coding_numbers[coding * 3 + 2];
 
           // Store cellid and adc in result array.
-          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
-          parameters.dev_hcal_digits[event_number * MAX_CELLID + cellid].adc = adc;
+          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit];
+
+          // Some cell IDs have an area of 3 without any neighbors etc. ignore these.
+          if ((cellid >> 12) <= 1) {
+            parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + cellid].adc = adc;
+            parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + cellid].clustered_at_iteration = UNCLUSTERED;
+          }
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;

@@ -2,15 +2,17 @@
 
 #include "CudaCommon.h"
 
-#define MAX_NEIGH 9
+#define MAX_CLUST 15
 
 struct CaloDigit {
   uint16_t adc;
-  uint16_t clusters[MAX_NEIGH];
+  uint16_t clustered_at_iteration;
+  uint16_t clusters[MAX_CLUST];
 
   __device__ __host__ CaloDigit() {
       adc = 0;
-      for (int i = 0; i < MAX_NEIGH; i++) {
+      clustered_at_iteration = 0;
+      for (int i = 0; i < MAX_CLUST; i++) {
           clusters[i] = 0;
       }
   }

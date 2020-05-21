@@ -9,7 +9,10 @@
 #define ECAL_BANKS 28
 #define HCAL_BANKS 8
 #define CARD_CHANNELS 32
-#define MAX_CELLID 0b100000000000000
+#define ECAL_MAX_CELLID 0b11000000000000
+#define HCAL_MAX_CELLID 0b10000000000000
+// Max distance based on CellIDs is 64 steps away, so the iteration in which a cell is clustered can never be more than 64.
+#define UNCLUSTERED 65 
 
 
 namespace calo_get_digits {
@@ -52,8 +55,8 @@ namespace calo_get_digits {
       set_size<dev_hcal_raw_input_offsets_t>(
         arguments, std::get<2>(runtime_options.host_hcal_events).size_bytes() / sizeof(uint));
 
-      set_size<dev_ecal_digits_t>(arguments, MAX_CELLID * value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_hcal_digits_t>(arguments, MAX_CELLID * value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_ecal_digits_t>(arguments, ECAL_MAX_CELLID * value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_hcal_digits_t>(arguments, ECAL_MAX_CELLID * value<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -70,6 +73,9 @@ namespace calo_get_digits {
       data_to_device<dev_hcal_raw_input_t, dev_hcal_raw_input_offsets_t>(
         arguments, runtime_options.host_hcal_events, cuda_stream);
 
+      initialize<dev_ecal_digits_t>(arguments, 0, cuda_stream);
+      initialize<dev_hcal_digits_t>(arguments, 0, cuda_stream);
+
       // Enough blocks to cover all events
       const auto grid_size = dim3(
         (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
@@ -82,6 +88,7 @@ namespace calo_get_digits {
                                   begin<dev_hcal_raw_input_t>(arguments),
                                   begin<dev_hcal_raw_input_offsets_t>(arguments),
                                   begin<dev_hcal_digits_t>(arguments)};
+      
       if (runtime_options.mep_layout) {
         function_mep(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
           parameters, value<host_number_of_selected_events_t>(arguments),

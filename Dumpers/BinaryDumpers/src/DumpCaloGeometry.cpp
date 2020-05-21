@@ -20,8 +20,7 @@
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
 #define MAX_NEIGH 9
-#define AREA_SIZE 64 * 64 * MAX_NEIGH // 4096 * 9
-#define ROW_SIZE 64 * MAX_NEIGH
+#define AREA_SIZE 64 * 64 // 4096
 
 DECLARE_COMPONENT(DumpCaloGeometry)
 
@@ -76,28 +75,37 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     int index = (code - min) * 32;
     auto channels = det.cardChannels(card);
     for (size_t i = 0; i < channels.size(); i++) {
-      allChannels[index + i] = (uint16_t) channels.at(i).all();
+      allChannels[index + i] = (uint16_t) channels.at(i).index();
     }
   }
 
   // Create neighbours per cellID.
   const CaloVector<CellParam>& params = det.cellParams();
   // Check if 'E'cal or 'H'cal
-  int levels = det.caloName()[0] == 'E' ? 3 : 2;
-  std::vector<uint16_t> neighbors(levels * AREA_SIZE, 0);
+  uint levels = det.caloName()[0] == 'E' ? 3 : 2;
+  std::vector<uint16_t> neighbors(levels * AREA_SIZE * MAX_NEIGH, 0);
+  std::vector<double> xy(levels * AREA_SIZE * 2, 0);
   for (auto param : params) {
     auto cid = param.cellID();
+    if(cid.area() >= levels) {
+      continue;
+    }
     auto ns = param.neighbors();
     for (size_t i = 0; i < ns.size(); i++) {
       // Use 4D indexing based on Area, row, column and neighbor index.
-      neighbors[cid.area() * AREA_SIZE + cid.row() * ROW_SIZE + cid.col() * MAX_NEIGH + i] =
-        (uint16_t) ns.at(i).all();
+      neighbors[cid.index() * MAX_NEIGH + i] = (uint16_t) ns.at(i).index();
     }
+    xy[cid.index() * 2] = param.x();
+    xy[cid.index() * 2 + 1] = param.y();
   }
 
-  // Write the neighbors offset, minimum card code, array of CellIDs and the array of neighbors.
+
+
+  // Write the neighbors offset, the xy offset, minimum card code, array of CellIDs,
+  // the array of neighbors and the array of xy values.
   DumpUtils::Writer output {};
-  output.write((uint16_t) allChannels.size() * sizeof(uint16_t));
+  output.write((uint32_t) (allChannels.size() * sizeof(uint16_t)));
+  output.write((uint32_t) (allChannels.size() * sizeof(uint16_t) + neighbors.size() * sizeof(uint16_t)));
   output.write((uint16_t) min);
   for (uint16_t chan : allChannels) {
     output.write(chan);
@@ -105,6 +113,10 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   
   for (uint16_t neigh : neighbors) {
     output.write(neigh);
+  }
+
+  for (double xory : xy) {
+    output.write(xory);
   }
 
 
