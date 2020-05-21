@@ -45,13 +45,11 @@ public:
       if (bank >= bank_ids_mapping.size()) {
         std::cout << "ERROR: LHCb::RawBank index out of scope from conversion between Allen and LHCb raw bank types"
                   << std::endl;
-        ;
         return 1;
       }
       const auto allen_bank_index = bank_ids_mapping[bank];
       if (allen_bank_index < 0) {
         std::cout << "ERROR: dumped bank type does not exist in Allen" << std::endl;
-        ;
         return 1;
       }
 
