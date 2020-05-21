@@ -35,7 +35,9 @@
 #include "RuntimeOptions.h"
 #include "BankTypes.h"
 #include "Stream.cuh"
+#include "StreamWrapper.cuh"
 #include "Logger.h"
+#include "TESProvider.h"
 
 class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
                          const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
@@ -62,22 +64,23 @@ private:
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
-
+  const uint m_number_of_streams = 1;
   const uint m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
   const uint m_n_buffers = 1;
   uint m_number_of_hlt1_lines = 0;
+  const bool m_do_check = true;
 
-  std::unique_ptr<Stream> m_stream;
+  std::unique_ptr<StreamWrapper> m_stream_wrapper;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
+  std::unique_ptr<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>
+    m_tes_input_provider;
 
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 
-  Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
+  Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_INSTALL_DIR}/constants/Sequence.json"};
   Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
 
-  // Run Allen standalone checker
-  Gaudi::Property<bool> m_do_check {this, "DoCheck", true};
   // If set to false, events are only filtered by the GEC
   // If set to true, events are filtered based on an OR of the Allen selection lines
   Gaudi::Property<bool> m_filter_hlt1 {this, "FilterHLT1", false};
