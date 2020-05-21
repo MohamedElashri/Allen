@@ -13,7 +13,6 @@ __device__ void decode_muon_bank(
   const auto tell_number = raw_bank.sourceID;
   uint16_t* p = raw_bank.data;
 
-  // Note: Review this logic
   p += (*p + 3) & 0xFFFE;
   for (int j = 0; j < batch_index; ++j) {
     p += 1 + *p;
@@ -29,19 +28,20 @@ __device__ void decode_muon_bank(
     if (tileId != 0) {
       const auto tile = Muon::MuonTileID(tileId);
 
-      const auto x1 = getLayoutX(
-        muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, tile.station(), tile.region());
-      const auto y1 = getLayoutY(
-        muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, tile.station(), tile.region());
-      const auto x2 = getLayoutX(
-        muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, tile.station(), tile.region());
-      const auto y2 = getLayoutY(
-        muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, tile.station(), tile.region());
+      const auto x1 =
+        getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, tile.station(), tile.region());
+      const auto y1 =
+        getLayoutY(muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, tile.station(), tile.region());
+      const auto x2 =
+        getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, tile.station(), tile.region());
+      const auto y2 =
+        getLayoutY(muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, tile.station(), tile.region());
       const auto layout1 = (x1 > x2 ? Muon::MuonLayout {x1, y1} : Muon::MuonLayout {x2, y2});
 
       // Store tiles according to their station, region, quarter and layout,
       // to prepare data for easy process in muonaddcoordscrossingmaps.
-      const auto storage_srq_layout = 2 * tile.stationRegionQuarter() + (tile.layout() != layout1);
+      const auto storage_srq_layout =
+        Muon::Constants::n_layouts * tile.stationRegionQuarter() + (tile.layout() != layout1);
       const auto insert_index = atomicAdd(atomics_muon + storage_srq_layout, 1);
       dev_storage_tile_id[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] = tileId;
       dev_storage_tdc_value[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] = tdc_value;
@@ -49,7 +49,8 @@ __device__ void decode_muon_bank(
   }
 }
 
-__global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(muon_populate_tile_and_tdc::Parameters parameters)
+__global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
+  muon_populate_tile_and_tdc::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
   const auto event_id = parameters.dev_event_list[blockIdx.x];
@@ -57,9 +58,8 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(muon_popu
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-  uint* atomics_muon = 
-    parameters.dev_atomics_muon +
-    event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  uint* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
+                                                       Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
@@ -83,16 +83,16 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(muon_popu
   }
 }
 
-__global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(muon_populate_tile_and_tdc::Parameters parameters)
+__global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
+  muon_populate_tile_and_tdc::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
   const auto event_id = parameters.dev_event_list[blockIdx.x];
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-  uint* atomics_muon = 
-    parameters.dev_atomics_muon +
-    event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  uint* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
+                                                       Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
