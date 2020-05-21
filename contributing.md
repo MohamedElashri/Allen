@@ -221,7 +221,7 @@ void saxpy::saxpy_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  arguments.set_size<dev_saxpy_output_t>(arguments.first<host_number_of_selected_events_t>());
+  set_size<dev_saxpy_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 ```
 

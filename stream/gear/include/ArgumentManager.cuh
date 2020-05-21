@@ -166,7 +166,7 @@ auto data(const Args& arguments) {
 
 template<typename Arg, typename Args>
 auto first(const Args& arguments) {
-  return Arg{arguments.template data<Arg>()}[0];
+  return arguments.template first<Arg>();
 }
 
 template<typename Arg, typename Args, typename T>

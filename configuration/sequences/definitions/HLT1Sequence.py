@@ -7,7 +7,8 @@ def HLT1Sequence(initialize_lists, velo_copy_track_hit_number,
                  velo_consolidate_tracks, prefix_sum_ut_tracks,
                  prefix_sum_ut_track_hit_number, ut_consolidate_tracks,
                  prefix_sum_scifi_track_hit_number, scifi_consolidate_tracks,
-                 is_muon):
+                 is_muon,
+                 add_default_lines=True):
 
     velo_pv_ip = velo_pv_ip_t(
         host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
@@ -175,39 +176,42 @@ def HLT1Sequence(initialize_lists, velo_copy_track_hit_number,
         dev_sel_rb_substr_t=prepare_raw_banks.dev_sel_rb_substr_t(),
         dev_sel_rep_offsets_t=prefix_sum_sel_reps.dev_output_buffer_t())
 
-    ErrorEvent_line = ErrorEvent_t()
-    PassThrough_line = PassThrough_t()
-    NoBeams_line = NoBeams_t()
-    BeamOne_line = BeamOne_t()
-    BeamTwo_line = BeamTwo_t()
-    BothBeams_line = BothBeams_t()
-    ODINNoBias_line = ODINNoBias_t()
-    ODINLumi_line = ODINLumi_t()
-    GECPassthrough_line = GECPassthrough_t()
-    VeloMicroBias_line = VeloMicroBias_t()
-    TrackMVA_line = TrackMVA_t()
-    TrackMuonMVA_line = TrackMuonMVA_t()
-    SingleHighPtMuon_line = SingleHighPtMuon_t()
-    LowPtMuon_line = LowPtMuon_t()
-    TwoTrackMVA_line = TwoTrackMVA_t()
-    DiMuonHighMass_line = DiMuonHighMass_t()
-    DiMuonLowMass_line = DiMuonLowMass_t()
-    LowPtDiMuon_line = LowPtDiMuon_t()
-    DisplacedDiMuon_line = DisplacedDiMuon_t()
-    DiMuonSoft_line = DiMuonSoft_t()
-    D2KPi_line = D2KPi_t()
-    D2PiPi_line = D2PiPi_t()
-    D2KK_line = D2KK_t()
-
     hlt1_sequence = Sequence(
         velo_pv_ip, kalman_velo_only, filter_tracks,
         prefix_sum_secondary_vertices, fit_secondary_vertices, odin_banks,
-        run_hlt1, prepare_raw_banks, prefix_sum_sel_reps, package_sel_reports,
-        ErrorEvent_line, PassThrough_line, NoBeams_line, BeamOne_line,
-        BeamTwo_line, BothBeams_line, ODINNoBias_line, ODINLumi_line,
-        GECPassthrough_line, VeloMicroBias_line, TrackMVA_line,
-        TrackMuonMVA_line, SingleHighPtMuon_line, LowPtMuon_line,
-        TwoTrackMVA_line, DiMuonHighMass_line, DiMuonLowMass_line,
-        LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line, D2PiPi_line, D2KK_line)
+        run_hlt1, prepare_raw_banks, prefix_sum_sel_reps, package_sel_reports)
+
+    if add_default_lines:
+        ErrorEvent_line = ErrorEvent_t()
+        PassThrough_line = PassThrough_t()
+        NoBeams_line = NoBeams_t()
+        BeamOne_line = BeamOne_t()
+        BeamTwo_line = BeamTwo_t()
+        BothBeams_line = BothBeams_t()
+        ODINNoBias_line = ODINNoBias_t()
+        ODINLumi_line = ODINLumi_t()
+        GECPassthrough_line = GECPassthrough_t()
+        VeloMicroBias_line = VeloMicroBias_t()
+        TrackMVA_line = TrackMVA_t()
+        TrackMuonMVA_line = TrackMuonMVA_t()
+        SingleHighPtMuon_line = SingleHighPtMuon_t()
+        LowPtMuon_line = LowPtMuon_t()
+        TwoTrackMVA_line = TwoTrackMVA_t()
+        DiMuonHighMass_line = DiMuonHighMass_t()
+        DiMuonLowMass_line = DiMuonLowMass_t()
+        LowPtDiMuon_line = LowPtDiMuon_t()
+        DisplacedDiMuon_line = DisplacedDiMuon_t()
+        DiMuonSoft_line = DiMuonSoft_t()
+        D2KPi_line = D2KPi_t()
+        D2PiPi_line = D2PiPi_t()
+        D2KK_line = D2KK_t()
+
+        return extend_sequence(hlt1_sequence, 
+            ErrorEvent_line, PassThrough_line, NoBeams_line, BeamOne_line,
+            BeamTwo_line, BothBeams_line, ODINNoBias_line, ODINLumi_line,
+            GECPassthrough_line, VeloMicroBias_line, TrackMVA_line,
+            TrackMuonMVA_line, SingleHighPtMuon_line, LowPtMuon_line,
+            TwoTrackMVA_line, DiMuonHighMass_line, DiMuonLowMass_line,
+            LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line, D2PiPi_line, D2KK_line)
 
     return hlt1_sequence

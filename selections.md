@@ -226,9 +226,10 @@ that takes the trigger candidate as an argument and returns a bool.
 
 Selections are added to the Allen sequence similarly to
 algorithms. After creating the selection source code, a new sequence
-must be generated. From `configuration/generator`, do
-`./parse_algorithms.py` to generate the relevant python code. The
-selection can then be added to a sequence. The sequence header file
+must be generated. Head to `configuration/sequences` and add a new
+configuration file.
+
+The selection can then be added to a sequence. The sequence header file
 can then be generated in the usual way. The line will automatically be
 included in a tuple of selections, which will be accessed using the
 `LineTraverser`. The traverser evaluates the selections on candidates
@@ -242,54 +243,39 @@ checker, DecReports, and SelReports.
     algorithms and the example selections we created above. Calling
     generate using the returned sequence will produce an Allen sequence
     that automatically runs the example selection.
-    
-        from algorithms import *
-        from MuonSequence import Muon_sequence
-        
-        def MinimalHLT1_sequence(validate=False):
-          kalman_velo_only = kalman_velo_only_t()
-          kalman_pv_ipchi2 = kalman_pv_ipchi2_t()
-        
-          filter_tracks = filter_tracks_t()
-          fit_secondary_vertices = fit_secondary_vertices_t()
-          prefix_sum_secondary_vertices = host_prefix_sum_t("prefix_sum_secondary_vertices",
-            host_total_sum_holder_t="host_number_of_svs_t",
-            dev_input_buffer_t=filter_tracks.dev_sv_atomics_t(),
-            dev_output_buffer_t="dev_sv_offsets_t")
-        
-          run_hlt1 = run_hlt1_t()
-          run_postscale = run_postscale_t()
-          prepare_decisions = prepare_decisions_t()
-          prepare_raw_banks = prepare_raw_banks_t()
-        
-          prefix_sum_sel_reps = host_prefix_sum_t("prefix_sum_sel_reps",
-            host_total_sum_holder_t="host_number_of_sel_rep_words_t",
-            dev_input_buffer_t=prepare_raw_banks.dev_sel_rep_sizes_t(),
-            dev_output_buffer_t="dev_sel_rep_offsets_t")
-        
-          package_sel_reports = package_sel_reports_t()
-        
-          ExampleOneTrack_line = ExampleOneTrack_t()
-          ExampleTwoTrack_line = ExampleTwoTrack_t()
-        
-          muon_sequence = Muon_sequence()
-          hlt1_sequence = extend_sequence(muon_sequence,
-            kalman_velo_only,
-            kalman_pv_ipchi2,
-            filter_tracks,
-            prefix_sum_secondary_vertices,
-            fit_secondary_vertices,
-            run_hlt1,
-            run_postscale,
-            prepare_decisions,
-            prepare_raw_banks,
-            prefix_sum_sel_reps,
-            package_sel_reports,
-            ExampleOneTrack_line,
-            ExampleTwoTrack_line)
-        
-          if validate:
-            hlt1_sequence.validate()
-        
-          return hlt1_sequence
 
+    First, copy the contents of `hlt1_pp_default.py` into `custom_sequence.py`.
+    Modify the argument list to `HLT1Sequence` by adding the keyword argument
+    `add_default_lines = False`, and add the lines:
+
+        hlt1_sequence = HLT1Sequence(
+            initialize_lists=velo_sequence["initialize_lists"],
+            velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
+            velo_kalman_filter=pv_sequence["velo_kalman_filter"],
+            prefix_sum_offsets_velo_track_hit_number=velo_sequence[
+                "prefix_sum_offsets_velo_track_hit_number"],
+            pv_beamline_multi_fitter=pv_sequence["pv_beamline_multi_fitter"],
+            prefix_sum_forward_tracks=forward_sequence["prefix_sum_forward_tracks"],
+            velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
+            prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],
+            prefix_sum_ut_track_hit_number=ut_sequence[
+                "prefix_sum_ut_track_hit_number"],
+            ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"],
+            prefix_sum_scifi_track_hit_number=forward_sequence[
+                "prefix_sum_scifi_track_hit_number"],
+            scifi_consolidate_tracks=forward_sequence["scifi_consolidate_tracks_t"],
+            is_muon=muon_sequence["is_muon_t"],
+            # Disable default lines
+            add_default_lines=False)
+
+        # New lines
+        ExampleOneTrack_line = ExampleOneTrack_t()
+        ExampleTwoTrack_line = ExampleTwoTrack_t()
+
+        # Compose final sequence with lines
+        compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
+                          muon_sequence, hlt1_sequence, ExampleOneTrack_line,
+                          ExampleTwoTrack_line).generate()
+
+    Now, you should be able to build and run the newly generated `custom_sequence`.
+    
