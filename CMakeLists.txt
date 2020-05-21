@@ -31,8 +31,8 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 # -----------------------
 
 # Device target architecture
-set(TARGET_DEVICE CUDA CACHE STRING "Target architecture of the device")
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CUDA CPU HIP CUDACLANG)
+set(TARGET_DEVICE CPU CACHE STRING "Target architecture of the device")
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CPU CUDA HIP CUDACLANG)
 
 # Build type
 set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
