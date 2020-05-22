@@ -25,6 +25,7 @@ option(USE_LZMA "build with lzma" OFF)
 option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
+option(STANDALONE "Build Allen standalone" OFF)
 
 # -----------------------
 # Multiple-choice options
@@ -65,7 +66,7 @@ set(MOORE_GENERATOR CACHE BOOL OFF)
 set(MOORE_INSTALL_DIR CACHE STRING "")
 
 # Deal with device target architecture
-if(DEFINED ENV{ALLEN_GAUDI})
+if(NOT STANDALONE)
   message(STATUS "Configured Gaudi build")
   if(FORCE_CUDA)
     message(STATUS "Configured Gaudi build - CUDA target")
@@ -103,7 +104,7 @@ endif()
 #Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
 #Gaudi build
-  if (DEFINED ENV{ALLEN_GAUDI})
+  if (NOT STANDALONE)
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
