@@ -65,11 +65,12 @@ set(MOORE_GENERATOR CACHE BOOL OFF)
 set(MOORE_INSTALL_DIR CACHE STRING "")
 
 # Deal with device target architecture
-if(DEFINED ENV{LHCBRELEASES})
+if(DEFINED ENV{ALLEN_GAUDI})
+  message(STATUS "Configured Gaudi build")
   if(FORCE_CUDA)
-    message(STATUS "Using CUDA target for Gaudi build")
+    message(STATUS "Configured Gaudi build - CUDA target")
   else()
-    message(STATUS "Setting CPU target for Gaudi build")
+    message(STATUS "Configured Gaudi build - CPU target")
     set(TARGET_DEVICE "CPU")
   endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
@@ -102,7 +103,7 @@ endif()
 #Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
 #Gaudi build
-  if (DEFINED ENV{LHCBRELEASES})
+  if (DEFINED ENV{ALLEN_GAUDI})
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
