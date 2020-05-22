@@ -18,7 +18,8 @@ namespace logger {
   class Logger {
   public:
     int verbosityLevel = 3;
-    boost::iostreams::stream<boost::iostreams::null_sink> nullOstream = boost::iostreams::null_sink();
+    boost::iostreams::stream<boost::iostreams::null_sink> nullOstream;
+    Logger();
   };
 
   std::ostream& logger(int requestedLogLevel);

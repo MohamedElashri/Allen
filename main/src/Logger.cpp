@@ -7,6 +7,10 @@
 
 namespace logger {
   static std::unique_ptr<Logger> ll;
+
+  Logger::Logger() {
+    nullOstream = boost::iostreams::null_sink();
+  }
 }
 
 void logger::setVerbosity(int level)
