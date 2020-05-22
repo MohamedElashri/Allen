@@ -11,15 +11,11 @@
 #include <streambuf>
 #include <memory>
 #include "LoggerCommon.h"
-#include "boost/iostreams/stream.hpp"
-#include "boost/iostreams/device/null.hpp"
 
 namespace logger {
   class Logger {
   public:
     int verbosityLevel = 3;
-    boost::iostreams::stream<boost::iostreams::null_sink> nullOstream;
-    Logger();
   };
 
   std::ostream& logger(int requestedLogLevel);

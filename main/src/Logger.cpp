@@ -1,4 +1,6 @@
 #include "Logger.h"
+#include "boost/iostreams/stream.hpp"
+#include "boost/iostreams/device/null.hpp"
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -7,10 +9,6 @@
 
 namespace logger {
   static std::unique_ptr<Logger> ll;
-
-  Logger::Logger() {
-    nullOstream = boost::iostreams::null_sink();
-  }
 }
 
 void logger::setVerbosity(int level)
@@ -38,6 +36,6 @@ std::ostream& logger::logger(int requestedLogLevel)
     return std::cout;
   }
   else {
-    return logger::ll->nullOstream;
+    return boost::iostreams::stream<boost::iostreams::null_sink> nullOstream {boost::iostreams::null_sink()};
   }
 }
