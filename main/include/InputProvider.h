@@ -11,10 +11,11 @@
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Common.h>
+#include <AllenUnits.h>
 
 struct IInputProvider {
 
-  /// Descturctor
+  /// Desctructor
   virtual ~IInputProvider() noexcept(false) {};
 
   /**

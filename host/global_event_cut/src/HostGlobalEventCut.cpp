@@ -65,7 +65,6 @@ void host_global_event_cut::host_global_event_cut(
     // Check SciFi clusters
     const SciFi::SciFiRawEvent scifi_event(parameters.scifi_banks[0].data() + scifi_offsets[event_number]);
     uint n_SciFi_clusters = 0;
-
     for (uint i = 0; i < scifi_event.number_of_raw_banks; ++i) {
       // get bank size in bytes, subtract four bytes for header word
       uint bank_size = scifi_event.raw_bank_offset[i + 1] - scifi_event.raw_bank_offset[i] - 4;

@@ -53,7 +53,6 @@ __device__ void decode_muon_bank(
   const auto tell_number = raw_bank.sourceID;
   uint16_t* p = raw_bank.data;
 
-  // Note: Review this logic
   p += (*p + 3) & 0xFFFE;
   for (int j = 0; j < batch_index; ++j) {
     p += 1 + *p;
@@ -81,7 +80,8 @@ __device__ void decode_muon_bank(
 
       // Store tiles according to their station, region, quarter and layout,
       // to prepare data for easy process in muonaddcoordscrossingmaps.
-      const auto storage_srq_layout = 2 * tile.stationRegionQuarter() + (tile.layout() != layout1);
+      const auto storage_srq_layout =
+        Muon::Constants::n_layouts * tile.stationRegionQuarter() + (tile.layout() != layout1);
       const auto insert_index = atomicAdd(atomics_muon + storage_srq_layout, 1);
       dev_storage_tile_id[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] = tileId;
       dev_storage_tdc_value[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] = tdc_value;

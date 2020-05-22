@@ -59,7 +59,6 @@ endif()
 
 if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 0 AND
   ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 0)
-
   message(STATUS "Testing code generation with LLVM - Success")
   if(${MOORE_GENERATOR})
     add_custom_command(
@@ -106,3 +105,5 @@ else()
     VERBATIM
   )
 endif()
+
+install(FILES "${PROJECT_BINARY_DIR}/Sequence.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")

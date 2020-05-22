@@ -92,12 +92,15 @@ find_package(ZMQ REQUIRED)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}/configuration/sequences")
 
+message(STATUS "Setting Allen install dir env variable to ${CMAKE_INSTALL_PREFIX}")
+gaudi_env(SET ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+ 
 gaudi_add_module(AllenWrapper
                  src/*.cpp
                  INCLUDE_DIRS Online/OnlineKernel
                  LINK_LIBRARIES AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
                                 PrKernel VPDetLib UTDetLib UTKernelLib
-                                FTDetLib)
+                                FTDetLib HltEvent)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()

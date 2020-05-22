@@ -38,8 +38,9 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
   const auto number_of_hits = station_ocurrences_offset[Muon::Constants::n_stations] - event_offset_hits;
 
   const auto storage_station_region_quarter_offsets =
-    parameters.dev_storage_station_region_quarter_offsets +
-    event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+    parameters.dev_storage_station_region_quarter_offsets + event_number * Muon::Constants::n_layouts *
+                                                              Muon::Constants::n_stations * Muon::Constants::n_regions *
+                                                              Muon::Constants::n_quarters;
   const auto event_offset_tiles = storage_station_region_quarter_offsets[0];
 
   const auto muon_compact_hit =

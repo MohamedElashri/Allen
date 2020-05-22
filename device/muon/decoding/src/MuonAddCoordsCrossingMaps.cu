@@ -7,7 +7,8 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::set_argumen
   const HostBuffers&) const
 {
   // Note: It is not known at this time how many muon hits will be created, considering crossings.
-  //       Either we would have to decode twice, or we allocate a safe margin.
+  //       We therefore allocate a safe margin of Muon::Constants::compact_hit_allocate_factor times
+  //       the space.
   set_size<dev_muon_compact_hit_t>(
     arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
   set_size<dev_muon_tile_used_t>(
@@ -40,8 +41,9 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   const auto event_number = blockIdx.x;
 
   const auto storage_station_region_quarter_offsets =
-    parameters.dev_storage_station_region_quarter_offsets +
-    event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+    parameters.dev_storage_station_region_quarter_offsets + event_number * Muon::Constants::n_layouts *
+                                                              Muon::Constants::n_stations * Muon::Constants::n_regions *
+                                                              Muon::Constants::n_quarters;
   const auto event_offset = storage_station_region_quarter_offsets[0];
 
   auto current_hit_index = parameters.dev_atomics_index_insert + event_number;
@@ -53,6 +55,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   for (uint i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
        i += blockDim.x) {
 
+    // Note: The location of the indices depends on n_layouts.
     const auto start_index = storage_station_region_quarter_offsets[2 * i] - event_offset;
     const auto mid_index = storage_station_region_quarter_offsets[2 * i + 1] - event_offset;
     const auto end_index = storage_station_region_quarter_offsets[2 * i + 2] - event_offset;
