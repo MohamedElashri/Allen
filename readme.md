@@ -4,7 +4,7 @@ Allen
 Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
-----------
+----------------
 The project requires CMake 3.12, Python3 and a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support).
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
@@ -38,7 +38,7 @@ In addition, histograms of reconstructible and reconstructed tracks are then fil
 [Building and running inside Docker](readme_docker.md)
 
 Where to find input
--------------
+---------------------
 Input from 5k events for each of the following decay modes can be found here:
 
 * minimum bias, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/minbias_mag_down.tar.gz`
@@ -65,6 +65,8 @@ This will create a random ODIN bank for each bank in `/path/to/data/banks/VP`.
 How to build it
 ---------------
 
+### As standalone project
+
 The build process doesn't differ from standard cmake projects:
 
     mkdir build
@@ -80,6 +82,92 @@ There are some cmake options to configure the build process:
 * If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
 * If multiple versions of CUDA are installed the desired CUDA version can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
 * Compilation for CPU can be chosen with `-DTARGET_DEVICE=CPU`, other available targets are `CUDA`, `HIP` and `CUDACLANG`. 
+
+### As a Gaudi/LHCb project
+Two ways of calling Allen with Gaudi exist:
+
+1. Use Gaudi to update non-event data such as alignment and configuration constants and use Moore to steer the event loop and call Allen one event at a time (this method will be used for the simulation workflow and efficiency studies)
+2. Use Gaudi to update non-event data such as alignment and configuration constants and use Allen to steer the event loop, where batches of events (O(1000)) are processed together (this method will be used for data-taking)
+
+#### Call Allen with Gaudi, steer event loop from Moore
+The software can be compiled either based on the nightlies or by compiling the full stack. Both methods are described below.
+
+Instructions on how to call Allen from Moore can be found in [this readme](Rec/Allen/readme.md).
+
+
+##### Using the stack setup
+Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself. If lhcb/Moore!388 is not yet merged, the branch `dovombru_Allen_Moore_integration` is required in Moore.
+
+
+##### Using the nightlies
+
+```
+lb-set-platform x86_64-centos7-gcc9-opt
+export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
+```
+
+Create a new directory `Allen_Gaudi_integration` and clone both `Allen` and `Moore` into this new directory. 
+```
+ls Allen_Gaudi_integration
+Allen Moore
+export CMAKE_PREFIX_PATH=/path/to/user/directory/Allen_Gaudi_integration:$CMAKE_PREFIX_PATH
+```
+
+Compile both `Allen` and `Moore`.
+```
+cd Allen
+lb-project-init
+make configure
+make install
+
+cd ..
+cd Moore
+lb-project-init
+make configure
+make install
+```
+
+If a specific version of [Rec](https://gitlab.cern.ch/lhcb/Rec) is needed, Rec needs to be compiled as well. 
+Note that this setup uses the nightlies from Tuesday. Adopt the day of the nightly build according to when you are building. Possibly check that the nightly build was successful.
+
+#### Call Allen with Gaudi, steer event loop from Allen
+Allen can also be built as a Gaudi/LHCb cmake project; it then depends
+on Rec and Online. To build Allen like this, is the same as building
+any other Gaudi/LHCb project:
+
+    LbLogin -c x86_64-centos7-gcc9-opt
+    cd Allen
+    lb-project-init
+    make configure
+    make install
+
+##### Build options
+By default the `DefaultSequence` is selected, Allen is built with
+CUDA, and the CUDA stack is searched for in `/usr/local/cuda`. These
+defaults (and other cmake variables) can be changed by adding the same
+flags that you would pass to a standalone build to the `CMAKEFLAGS`
+environment variable before calling `make configure`.
+
+For example, to specify another CUDA stack to be used set:
+```console
+$> export CMAKEFLAGS="-DCMAKE_CUDA_COMPILER=/path/to/alternative/nvcc"
+```
+
+##### Runtime environment:
+To setup the runtime environment for Allen, the same tools as for
+other Gaudi/LHCb projects can be used:
+```console
+$> cd Allen
+$> ./build.${BINARY_TAG}/run Allen ...
+```
+
+##### Run Allen using the Python entry point:
+```console
+$> cd Allen
+$> ./build.${CMTCONFIG}/run bindings/Allen.py
+```
+
 
 How to run it
 -------------
@@ -164,44 +252,6 @@ As a quick workaround one can also use the older version of nvprof:
 
     /usr/local/cuda-10.0/bin/nvprof ./Allen -c 0 -n 1000
 
-Building as a Gaudi/LHCb project
---------------------------------
-
-Allen can also be built as a Gaudi/LHCb cmake project; it then depends
-on Rec and Online. To build Allen like this, is the same as building
-any other Gaudi/LHCb project:
-
-    LbLogin -c x86_64-centos7-gcc9-opt
-    cd Allen
-    lb-project-init
-    make configure
-    make install
-
-### Build options
-By default the `DefaultSequence` is selected, Allen is built with
-CUDA, and the CUDA stack is searched for in `/usr/local/cuda`. These
-defaults (and other cmake variables) can be changed by adding the same
-flags that you would pass to a standalone build to the `CMAKEFLAGS`
-environment variable before calling `make configure`.
-
-For example, to specify another CUDA stack to be used set:
-```console
-$> export CMAKEFLAGS="-DCMAKE_CUDA_COMPILER=/path/to/alternative/nvcc"
-```
-
-### Runtime environment:
-To setup the runtime environment for Allen, the same tools as for
-other Gaudi/LHCb projects can be used:
-```console
-$> cd Allen
-$> ./build.${BINARY_TAG}/run Allen ...
-```
-
-### Run Allen using the Python entry point:
-```console
-$> cd Allen
-$> ./build.${CMTCONFIG}/run bindings/Allen.py
-```
 
 ### Links to more readmes
 The following readmes explain various aspects of Allen:
