@@ -9,6 +9,10 @@
 #include <zmq_compat.h>
 #include <Logger.h>
 
+#ifdef __APPLE__
+#define HOST_NAME_MAX 64
+#endif
+
 namespace {
   using namespace std::string_literals;
   using namespace zmq;

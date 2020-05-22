@@ -4,8 +4,13 @@
 #include <cstdint>
 #include <memory>
 #include <x86intrin.h>
-#include <cpuid.h>
 #include <cassert>
+
+#ifdef __APPLE__
+#include <CpuID.h>
+#else
+#include <cpuid.h>
+#endif
 
 namespace cpu_id {
   constexpr unsigned cpu_id_register_size = 4;

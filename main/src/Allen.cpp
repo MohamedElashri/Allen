@@ -342,7 +342,7 @@ extern "C" int allen(
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
 
-  std::unique_ptr<IInputProvider> input_provider {};
+  std::unique_ptr<IInputProvider> input_provider;
 
   // Number of requested events as an optional
   boost::optional<size_t> n_events;
@@ -427,6 +427,8 @@ extern "C" int allen(
   // Register all consumers
   register_consumers(updater, constants);
 
+  printf("2");
+
   // Run all registered produces and consumers
   updater->update(0);
 
@@ -444,6 +446,8 @@ extern "C" int allen(
     stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
+
+  printf("3");
 
   if (print_status) {
     buffer_manager->printStatus();
@@ -536,8 +540,8 @@ extern "C" int allen(
 
   // Lambda with the execution of the monitoring thread
   const auto mon_thread = [&](unsigned thread_id, unsigned mon_id) {
-    return std::tuple {std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id},
-                       std::optional<zmq::socket_t> {}};
+    return std::make_tuple(std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id},
+                       std::optional<zmq::socket_t> {});
   };
 
   using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(unsigned, unsigned)>;
