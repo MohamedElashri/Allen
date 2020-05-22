@@ -4,7 +4,6 @@ class AllenAlgorithm(object):
   _all_algs = OrderedDict()
   
   def __new__(cls, name, **kwargs):
-    # print(kwargs)
     i = super(AllenAlgorithm, cls).__new__(cls)
     for k,v in iter(cls.__slots__.items()):
       setattr(i,k,v)
