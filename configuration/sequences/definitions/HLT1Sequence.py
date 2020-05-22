@@ -1,12 +1,18 @@
 from definitions.algorithms import *
 
 
-def HLT1Sequence(initialize_lists, velo_copy_track_hit_number,
-                 velo_kalman_filter, prefix_sum_offsets_velo_track_hit_number,
-                 pv_beamline_multi_fitter, prefix_sum_forward_tracks,
-                 velo_consolidate_tracks, prefix_sum_ut_tracks,
-                 prefix_sum_ut_track_hit_number, ut_consolidate_tracks,
-                 prefix_sum_scifi_track_hit_number, scifi_consolidate_tracks,
+def HLT1Sequence(initialize_lists,
+                 velo_copy_track_hit_number,
+                 velo_kalman_filter,
+                 prefix_sum_offsets_velo_track_hit_number,
+                 pv_beamline_multi_fitter,
+                 prefix_sum_forward_tracks,
+                 velo_consolidate_tracks,
+                 prefix_sum_ut_tracks,
+                 prefix_sum_ut_track_hit_number,
+                 ut_consolidate_tracks,
+                 prefix_sum_scifi_track_hit_number,
+                 scifi_consolidate_tracks,
                  is_muon,
                  add_default_lines=True):
 
@@ -206,12 +212,13 @@ def HLT1Sequence(initialize_lists, velo_copy_track_hit_number,
         D2PiPi_line = D2PiPi_t()
         D2KK_line = D2KK_t()
 
-        return extend_sequence(hlt1_sequence, 
-            ErrorEvent_line, PassThrough_line, NoBeams_line, BeamOne_line,
-            BeamTwo_line, BothBeams_line, ODINNoBias_line, ODINLumi_line,
-            GECPassthrough_line, VeloMicroBias_line, TrackMVA_line,
-            TrackMuonMVA_line, SingleHighPtMuon_line, LowPtMuon_line,
-            TwoTrackMVA_line, DiMuonHighMass_line, DiMuonLowMass_line,
-            LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line, D2PiPi_line, D2KK_line)
+        return extend_sequence(
+            hlt1_sequence, ErrorEvent_line, PassThrough_line, NoBeams_line,
+            BeamOne_line, BeamTwo_line, BothBeams_line, ODINNoBias_line,
+            ODINLumi_line, GECPassthrough_line, VeloMicroBias_line,
+            TrackMVA_line, TrackMuonMVA_line, SingleHighPtMuon_line,
+            LowPtMuon_line, TwoTrackMVA_line, DiMuonHighMass_line,
+            DiMuonLowMass_line, LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line,
+            D2PiPi_line, D2KK_line)
 
     return hlt1_sequence
