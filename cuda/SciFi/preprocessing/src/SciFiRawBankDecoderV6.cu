@@ -61,7 +61,7 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
-    const uint32_t cluster_reference = hits.cluster_reference(hit_count.event_offset() + i);
+    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
     const int condition = (cluster_reference >> 13) & 0x07;
@@ -125,7 +125,7 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_mep(
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
-    const uint32_t cluster_reference = hits.cluster_reference(hit_count.event_offset() + i);
+    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
     const int condition = (cluster_reference >> 13) & 0x07;
