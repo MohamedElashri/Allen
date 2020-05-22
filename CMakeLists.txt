@@ -58,8 +58,8 @@ set(SEQUENCE hlt1_pp_default CACHE STRING "Configured sequence")
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
 #Configured CPU architecture
-set(CPU_ARCHITECTURE native CACHE STRING "Target CPU architecture")
-message(STATUS "CPU_ARCHITECTURE: " ${CPU_ARCHITECTURE})
+set(CPU_ARCH native CACHE STRING "Target CPU architecture")
+message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 
 # Support generating configuration with Allen standalone, and with Moore
 set(MOORE_GENERATOR CACHE BOOL OFF)
@@ -111,7 +111,7 @@ macro(allen_project)
     gaudi_project(Allen v0r9 USE Rec HEAD Online HEAD)
 
 #Use the lowest - common - denominator cpu arch
-    set(CPU_ARCHITECTURE "host-64 -msse4.2")
+    set(CPU_ARCH "x86-64 -msse4.2")
 
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
@@ -426,19 +426,19 @@ message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
 #x86 family
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCHITECTURE}")
+  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
 #PowerPC family
 #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
-  string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCHITECTURE}")
+  string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
 #ARM family
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCHITECTURE}")
+  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
 #ARM64 family
 #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCHITECTURE} -floop-optimize \
+  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
 -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
 endif()
 
