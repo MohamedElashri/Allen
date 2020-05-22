@@ -1,54 +1,10 @@
 Call Allen from Gaudi, event loop directed by Brunel or Moore
 =============================
-
-The software can be compiled either based on the nightlies or by compiling the full stack. The nightlies method is described [here](readme.md#using-the-nightlies), the stack setup [here](readme.md#using-the-stack-setup).
-
-Using the nightlies
-=======================
-This readme explains how to setup Allen as Gaudi project, calling Allen either from Brunel or Moore. This means that Allen is called one event at a time and the event loop is governed by Brunel or Moore.
-The described setup works on lxplus.
-
-```
-lb-set-platform x86_64-centos7-gcc9-opt
-export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
-export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
-```
-
-If a specific version of [Rec](https://gitlab.cern.ch/lhcb/Rec) is needed, Rec needs to be compiled as well. If not, you can skip these instructions and use Rec from the nightlies instead.
-
-Create a new directory `Allen_Gaudi_integration` and clone both `Allen` and `Rec` into this new directory. 
-```
-ls Allen_Gaudi_integration
-Allen Rec
-
-```
-
-```
-cd Rec
-lb-project-init
-make configure
-make install
-cd ..
-export CMAKE_PREFIX_PATH=/path/to/user/directory/Allen_Gaudi_integration:$CMAKE_PREFIX_PATH
-cd Allen
-lb-project-init
-make configure
-make install
-```
-
-Note that this setup uses the nightlies from Tuesday. Adopt the day of the nightly build according to when you are building. Possibly check that the nightly build was successful.
+The software can be compiled either based on the nightlies or by compiling the full stack, as described [here](https://gitlab.cern.ch/lhcb/Allen/-/blob/master/readme.md#call-allen-with-gaudi-steer-event-loop-from-moore).
 
 
 Call Allen from Moore
 -------------------------
-Clone `Moore` into the directory `Allen_Gaudi_integration` as well.
-If https://gitlab.cern.ch/lhcb/Moore/merge_requests/378 is not yet merged, checkout that branch in Moore.
-```
-cd Moore
-lb-project-init
-make configure
-make install
-```
 
 Call the executable from within the Moore directory as in the following examples:
 ```
@@ -82,17 +38,7 @@ The scripts in `Moore/Hlt/RecoConf/scripts/` can be used to produce plots of the
 
 Call Allen from Brunel
 ---------------------------
-Clone `Brunel` into the directory `Allen_Gaudi_integration` as well.
-
-In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec/BrunelCache` directory, then:
-```
-cd Brunel
-lb-project-init
-make configure
-make install
-```
-
-The calls to `lb-project-init` are only required when setting up the directories for the first time.
+In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec/BrunelCache` directory, then `make install`.
 
 Call the executable from within the Brunel directory:
 ```
@@ -119,6 +65,3 @@ If this was not the case, change it accordingly and `make install` Moore before 
 This will run on minimum bias data. mooreanalysis/HltEfficiencyChecker/scripts/HltEfficiencyChecker.py contains a dictionary with all the files that can be used. If SciFi raw bank version 6 is used, make sure the Allen sequence is configured to decode that version. The default in Allen is SciFi raw bank version 4.
 `Hlt1SingleMuonLine` indicates which line should be analyzed. The efficiency script still needs to be adopted for the Allen lines.
 
-Using the stack setup
-===========================
-Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself. If the branch `dovombru_Allen_Moore_integration` is checked out in Moore, one can call the scripts described above for studies of Allen called from Moore.
