@@ -68,7 +68,7 @@ The build process doesn't differ from standard cmake projects:
 
     mkdir build
     cd build
-    cmake ..
+    cmake -DSTANDALONE=ON ..
     make
 
 The build process can be configured with cmake options. For a complete list of options and for editing them we suggest using the `ccmake` tool.
@@ -77,12 +77,13 @@ The build process can be configured with cmake options. For a complete list of o
 
 Alternatively, cmake options can be passed with `-D` when invoking the cmake command (eg. `cmake -D<option>=<value> ..`). Here is a brief explanation of some options:
 
-* `TARGET_DEVICE` -- Selects the target device architecture. Options are `CPU` (default), `CUDA`, `HIP` (experimental) and `CUDACLANG` (experimental).
-* `SEQUENCE` -- Selects the sequence to be compiled (the sequence must be selected at compile time). For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.py` extension, ie. `-DSEQUENCE=VeloPVUTSciFiDecoding`.
-* `CMAKE_BUILD_TYPE` -- Build type, which is either of `RelWithDebInfo` (default), `Release` or `Debug`.
-* `USE_ROOT` -- Configure to run with / without ROOT. `OFF` by default.
-* `CUDA_ARCH` -- Selects the architecture to target for `CUDA` compilation. It only has effect if the target device is either `CUDA` or `CUDACLANG`.
-* `HIP_ARCH` -- Selects the architecture to target with `HIP` compilation.
+* `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
+* `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU` (default), `CUDA`, `HIP` (experimental) and `CUDACLANG` (experimental).
+* `SEQUENCE` - Selects the sequence to be compiled (the sequence must be selected at compile time). For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.py` extension, ie. `-DSEQUENCE=VeloPVUTSciFiDecoding`.
+* `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo` (default), `Release` or `Debug`.
+* `USE_ROOT` - Configure to run with / without ROOT. `OFF` by default.
+* `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation. It only has effect if the target device is either `CUDA` or `CUDACLANG`.
+* `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
 
 ### As a Gaudi/LHCb project
 Two ways of calling Allen with Gaudi exist:
