@@ -15,7 +15,8 @@ for sequence in `ls | egrep ".py$" --color=none`; do
   echo "Generating ${SEQUENCE_NAME}"
 
   python3 ${sequence}
-  mv Sequence.h ${PREGENERATED_DIR}/${SEQUENCE_NAME}.h
+  mv Sequence.h ${PREGENERATED_DIR}/${SEQUENCE_NAME}_sequence.h
+  mv ConfiguredLines.h ${PREGENERATED_DIR}/${SEQUENCE_NAME}_lines.h
   mv Sequence.json ${PREGENERATED_DIR}/${SEQUENCE_NAME}.json
 done
 
