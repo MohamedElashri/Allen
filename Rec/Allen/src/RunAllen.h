@@ -19,6 +19,7 @@
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
+#include <Event/HltDecReports.h>
 
 // Rec includes
 #include "Event/Track.h"
@@ -39,7 +40,7 @@
 #include "Logger.h"
 #include "TESProvider.h"
 
-class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
+class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers, LHCb::HltDecReports>(
                          const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
                          const LHCb::ODIN& odin)> {
 public:
@@ -50,7 +51,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::tuple<bool, HostBuffers> operator()(
+  std::tuple<bool, HostBuffers, LHCb::HltDecReports> operator()(
     const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
@@ -64,6 +65,7 @@ private:
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
+  std::map<std::string, std::string> m_line_names;
   const uint m_number_of_streams = 1;
   const uint m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
@@ -84,6 +86,9 @@ private:
   // If set to false, events are only filtered by the GEC
   // If set to true, events are filtered based on an OR of the Allen selection lines
   Gaudi::Property<bool> m_filter_hlt1 {this, "FilterHLT1", false};
+
+  // Counters for HLT1 selection rates
+  mutable std::vector<Gaudi::Accumulators::BinomialCounter<>> m_hlt1_line_rates {};
 };
 
 #endif
