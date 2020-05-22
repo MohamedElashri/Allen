@@ -11,10 +11,6 @@ namespace Muon {
     unsigned int tdc;
   };
 
-  /** @class MuonRawToHits MuonRawToHits.h
-   *  This is the muon reconstruction algorithm
-   *  This just crosses the logical strips back into pads
-   */
   struct MuonRawToHits {
     MuonTables* muonTables;
     MuonGeometry* muonGeometry;

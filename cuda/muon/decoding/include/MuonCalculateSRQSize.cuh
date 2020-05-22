@@ -32,7 +32,7 @@ namespace muon_calculate_srq_size {
       set_size<dev_muon_raw_to_hits_t>(arguments, 1);
       set_size<dev_storage_station_region_quarter_sizes_t>(
         arguments,
-        value<host_number_of_selected_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
+        value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations * Muon::Constants::n_regions *
             Muon::Constants::n_quarters);
     }
 

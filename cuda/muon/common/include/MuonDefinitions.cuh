@@ -27,6 +27,9 @@ namespace Muon {
     // Safe margin to account for hit crossings
     static constexpr uint compact_hit_allocate_factor = 2;
 
+    // Number of layouts
+    static constexpr uint n_layouts = 2;
+
     /* IsMuon constants */
     static constexpr float momentum_cuts[] = {3 * Gaudi::Units::GeV, 6 * Gaudi::Units::GeV, 10 * Gaudi::Units::GeV};
     struct FieldOfInterest {

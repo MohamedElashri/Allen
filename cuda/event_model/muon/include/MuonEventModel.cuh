@@ -181,12 +181,10 @@ namespace Muon {
     float y;
     float dy;
     float z;
-    float dz;
     unsigned int time;
     int tile;
     int uncrossed;
     int delta_time;
-    int cluster_size;
     int region;
   };
 } // namespace Muon
