@@ -305,7 +305,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
   //
   // check LHCbIDs for MC association
   Checker::TruthCounter total_counter;
-  std::unordered_map<uint, Checker::TruthCounter> truth_counters;
+  std::unordered_map<unsigned, Checker::TruthCounter> truth_counters;
   int n_meas = 0;
 
   const auto& ids = track.ids();

@@ -8,19 +8,19 @@
 #include <cmath>
 
 #ifdef WITH_ROOT
-void TrackMonitor::fill(uint i_buf, bool)
+void TrackMonitor::fill(unsigned i_buf, bool)
 {
   HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
 
-  uint nevt = buf->host_number_of_selected_events[0];
+  unsigned nevt = buf->host_number_of_selected_events[0];
 
-  for (uint ievt = 0; ievt < nevt; ++ievt) {
+  for (unsigned ievt = 0; ievt < nevt; ++ievt) {
     int trk_offset = buf->host_atomics_scifi[ievt];
-    uint ntrk = buf->host_atomics_scifi[ievt + 1] - trk_offset;
+    unsigned ntrk = buf->host_atomics_scifi[ievt + 1] - trk_offset;
 
     m_histograms[KalmanTrackN]->Fill(ntrk);
 
-    for (uint itrk = 0; itrk < ntrk; ++itrk) {
+    for (unsigned itrk = 0; itrk < ntrk; ++itrk) {
       const auto& track = buf->host_kf_tracks[trk_offset + itrk];
 
       m_histograms[KalmanTrackP]->Fill(track.p());
@@ -33,7 +33,7 @@ void TrackMonitor::fill(uint i_buf, bool)
 
 void TrackMonitor::init()
 {
-  uint nBins = 1000;
+  unsigned nBins = 1000;
 
   m_histograms.emplace(KalmanTrackN, new TH1D("Ntracks", "", 200, 0., 200.));
   m_histograms.emplace(KalmanTrackP, new TH1D("trackP", "", nBins, 0., 1e6));
@@ -47,6 +47,6 @@ void TrackMonitor::init()
   }
 }
 #else
-void TrackMonitor::fill(uint, bool) {}
+void TrackMonitor::fill(unsigned, bool) {}
 void TrackMonitor::init() {}
 #endif

@@ -157,8 +157,8 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
     if (lhcb_type == LHCb::RawBank::ODIN) {
       // decode ODIN bank to obtain run and event numbers
       auto odin_version = mep_header.versions[i_block];
-      uint fragment_offset = 0;
-      for (uint i_event = 0; i_event < event_end; ++i_event) {
+      unsigned fragment_offset = 0;
+      for (unsigned i_event = 0; i_event < event_end; ++i_event) {
         if (i_event >= event_start) {
           auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + fragment_offset);
           auto odin = MDF::decode_odin(odin_version, odin_data);

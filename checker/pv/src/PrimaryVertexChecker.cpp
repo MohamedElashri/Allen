@@ -15,7 +15,7 @@ void PVChecker::accumulate(
   MCEvents const& mc_events,
   PV::Vertex* rec_vertex,
   int* number_of_vertex,
-  uint n_selected_events)
+  unsigned n_selected_events)
 {
   passed += n_selected_events;
 
@@ -54,7 +54,7 @@ void PVChecker::accumulate(
   std::vector<double> vec_mc_z;
 
   // loop over selected events
-  for (uint i_event = 0; i_event < n_selected_events; ++i_event) {
+  for (unsigned i_event = 0; i_event < n_selected_events; ++i_event) {
     std::vector<PV::Vertex*> vecOfVertices;
     // first fill vector with vertices
     for (int i = 0; i < number_of_vertex[i_event]; i++) {

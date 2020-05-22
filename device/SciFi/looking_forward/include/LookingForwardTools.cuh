@@ -89,13 +89,13 @@ namespace LookingForward {
 
   __device__ inline std::tuple<float, float, float> least_mean_square_y_fit(
     const SciFi::TrackHits& track,
-    const uint number_of_uv_hits,
+    const unsigned number_of_uv_hits,
     SciFi::ConstHits& scifi_hits,
     const float a1,
     const float b1,
     const float c1,
     const float d_ratio,
-    const uint event_offset,
+    const unsigned event_offset,
     const LookingForward::Constants* dev_looking_forward_constants)
   {
     // Traverse all UV hits
@@ -104,7 +104,7 @@ namespace LookingForward {
     auto y_mean = 0.f;
     auto z_mean = 0.f;
 
-    for (uint j = 0; j < number_of_uv_hits; ++j) {
+    for (unsigned j = 0; j < number_of_uv_hits; ++j) {
       const auto hit_index = event_offset + track.hits[track.hitsNum - number_of_uv_hits + j];
       const auto plane = scifi_hits.planeCode(hit_index) / 2;
       const auto z = scifi_hits.z0(hit_index);
@@ -123,7 +123,7 @@ namespace LookingForward {
 
     auto nom = 0.f;
     auto denom = 0.f;
-    for (uint j = 0; j < number_of_uv_hits; ++j) {
+    for (unsigned j = 0; j < number_of_uv_hits; ++j) {
       nom += (z_values[j] - z_mean) * (y_values[j] - y_mean);
       denom += (z_values[j] - z_mean) * (z_values[j] - z_mean);
     }
@@ -131,7 +131,7 @@ namespace LookingForward {
     const auto b = y_mean - m * z_mean;
 
     auto lms_fit = 0.f;
-    for (uint j = 0; j < number_of_uv_hits; ++j) {
+    for (unsigned j = 0; j < number_of_uv_hits; ++j) {
       const auto expected_y = b + m * z_values[j];
       lms_fit += (y_values[j] - expected_y) * (y_values[j] - expected_y);
     }

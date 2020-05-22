@@ -122,14 +122,14 @@ extern "C" int allen(
   std::string json_constants_configuration_file = "Sequence.json";
 
   std::string folder_name_imported_forward_tracks = "";
-  uint number_of_slices = 0;
-  uint number_of_buffers = 0;
+  unsigned number_of_slices = 0;
+  unsigned number_of_buffers = 0;
   long number_of_events_requested = 0;
-  auto events_per_slice = boost::make_optional(false, uint {});
-  uint start_event_offset = 0;
-  uint number_of_threads = 1;
-  uint number_of_repetitions = 1;
-  uint verbosity = 3;
+  auto events_per_slice = boost::make_optional(false, unsigned {});
+  unsigned start_event_offset = 0;
+  unsigned number_of_threads = 1;
+  unsigned number_of_repetitions = 1;
+  unsigned verbosity = 3;
   bool print_memory_usage = false;
   bool non_stop = false;
   bool write_config = false;
@@ -494,7 +494,7 @@ extern "C" int allen(
   auto checker_invoker = std::make_unique<CheckerInvoker>();
 
   // Lambda with the execution of a thread-stream pair
-  const auto stream_thread = [&](uint thread_id, uint stream_id) {
+  const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
     std::optional<zmq::socket_t> check_control;
     if (do_check || !output_file.empty()) {
       check_control = zmqSvc->socket(zmq::PAIR);
@@ -521,13 +521,13 @@ extern "C" int allen(
 
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
-  const auto slice_thread = [&](uint thread_id, uint) {
+  const auto slice_thread = [&](unsigned thread_id, unsigned) {
     return std::make_tuple(
       std::thread {run_slices, thread_id, zmqSvc, input_provider.get()}, std::optional<zmq::socket_t> {});
   };
 
   // Lambda with the execution of the output thread
-  const auto output_thread = [&](uint thread_id, uint) {
+  const auto output_thread = [&](unsigned thread_id, unsigned) {
     return std::make_tuple(
       std::thread {
         run_output, thread_id, zmqSvc, output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
@@ -535,12 +535,12 @@ extern "C" int allen(
   };
 
   // Lambda with the execution of the monitoring thread
-  const auto mon_thread = [&](uint thread_id, uint mon_id) {
+  const auto mon_thread = [&](unsigned thread_id, unsigned mon_id) {
     return std::tuple {std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id},
                        std::optional<zmq::socket_t> {}};
   };
 
-  using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(uint, uint)>;
+  using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(unsigned, unsigned)>;
 
   // Vector of worker threads
   using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t, std::optional<zmq::socket_t>>>;
@@ -595,21 +595,21 @@ extern "C" int allen(
                                                               handle_ready {handle_stream_ready}},
                                                   std::tuple {&io_workers,
                                                               start_thread {slice_thread},
-                                                              static_cast<uint>(n_input),
+                                                              static_cast<unsigned>(n_input),
                                                               std::string("Slices"),
                                                               handle_ready {handle_default_ready}},
                                                   std::tuple {&io_workers,
                                                               start_thread {output_thread},
-                                                              static_cast<uint>(n_write),
+                                                              static_cast<unsigned>(n_write),
                                                               std::string("Output"),
                                                               handle_ready {handle_default_ready}},
                                                   std::tuple {&mon_workers,
                                                               start_thread {mon_thread},
-                                                              static_cast<uint>(n_mon),
+                                                              static_cast<unsigned>(n_mon),
                                                               std::string("Mon"),
                                                               handle_ready {handle_default_ready}}}) {
     size_t n_ready = 0;
-    for (uint i = 0; i < n; ++i) {
+    for (unsigned i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);
       auto con = connection(thread_id);
@@ -793,7 +793,7 @@ extern "C" int allen(
         auto msg = zmqSvc->receive<std::string>(socket);
         assert(msg == "MONITORED");
         auto buffer_index = zmqSvc->receive<size_t>(socket);
-        auto monitor_index = zmqSvc->receive<uint>(socket);
+        auto monitor_index = zmqSvc->receive<unsigned>(socket);
         buffer_manager->returnBufferProcessed(buffer_index);
         monitor_manager->freeMonitor(monitor_index);
       }

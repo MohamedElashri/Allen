@@ -46,10 +46,10 @@ struct Stream {
   HostBuffers* host_buffers {0};
 
   // Start event offset
-  uint start_event_offset;
+  unsigned start_event_offset;
 
   // Number of input events
-  uint number_of_input_events;
+  unsigned number_of_input_events;
 
   // Memory base pointers for host and device
   char* host_base_pointer;
@@ -60,7 +60,7 @@ struct Stream {
 
   cudaError_t initialize(
     const bool param_print_memory_usage,
-    const uint param_start_event_offset,
+    const unsigned param_start_event_offset,
     const size_t param_reserve_mb,
     const Constants& param_constants);
 
@@ -73,7 +73,7 @@ struct Stream {
     MCEvents const& mc_events,
     std::vector<Checker::Tracks> const& forward_tracks);
 
-  cudaError_t run_sequence(const uint buf_idx, RuntimeOptions const& runtime_options);
+  cudaError_t run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
   void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
   {

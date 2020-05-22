@@ -38,7 +38,7 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
   u0 = uy = uz = uyz = uz2 = 0.0f;
 
   // Iterate over hits
-  for (uint h = 0; h < 3; ++h) {
+  for (unsigned h = 0; h < 3; ++h) {
     const auto hit_number = track.hits[h];
     const float x = velo_cluster_container.x(hit_number);
     const float y = velo_cluster_container.y(hit_number);
@@ -74,7 +74,7 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
 
   // Chi2 / degrees-of-freedom of straight-line fit
   float chi2 = 0.0f;
-  for (uint h = 0; h < 3; ++h) {
+  for (unsigned h = 0; h < 3; ++h) {
     const auto hit_number = track.hits[h];
 
     const float z = velo_cluster_container.z(hit_number);
@@ -92,22 +92,22 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
 
 __device__ void three_hit_tracks_filter_impl(
   const Velo::TrackletHits* input_tracks,
-  const uint number_of_input_tracks,
+  const unsigned number_of_input_tracks,
   Velo::TrackletHits* output_tracks,
-  uint* number_of_output_tracks,
+  unsigned* number_of_output_tracks,
   const bool* hit_used,
   Velo::ConstClusters& velo_cluster_container,
   const float max_chi2)
 {
 
-  for (uint track_number = threadIdx.x; track_number < number_of_input_tracks; track_number += blockDim.x) {
+  for (unsigned track_number = threadIdx.x; track_number < number_of_input_tracks; track_number += blockDim.x) {
     const Velo::TrackletHits& t = input_tracks[track_number];
     const bool any_used = hit_used[t.hits[0]] || hit_used[t.hits[1]] || hit_used[t.hits[2]];
     const float chi2 = means_square_fit_chi2(velo_cluster_container, t);
 
     // Store them in the tracks container
     if (!any_used && chi2 < max_chi2) {
-      const uint track_insert_number = atomicAdd(number_of_output_tracks, 1);
+      const unsigned track_insert_number = atomicAdd(number_of_output_tracks, 1);
       assert(track_insert_number < Velo::Constants::max_tracks);
       output_tracks[track_insert_number] = t;
     }
@@ -118,16 +118,16 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   velo_three_hit_tracks_filter::Parameters parameters)
 {
   // Data initialization
-  const uint event_number = blockIdx.x;
-  const uint number_of_events = gridDim.x;
-  const uint tracks_offset = event_number * Velo::Constants::max_tracks;
+  const unsigned event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned tracks_offset = event_number * Velo::Constants::max_tracks;
 
   // Pointers to data within the event
-  const uint total_estimated_number_of_clusters =
+  const unsigned total_estimated_number_of_clusters =
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
-  const uint* module_hitStarts =
+  const unsigned* module_hitStarts =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  const uint hit_offset = module_hitStarts[0];
+  const unsigned hit_offset = module_hitStarts[0];
   const bool* hit_used = parameters.dev_hit_used + hit_offset;
 
   // Offseted VELO cluster container
@@ -142,7 +142,7 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
 
   // Output containers
   Velo::TrackletHits* output_tracks = parameters.dev_three_hit_tracks_output.get() + tracks_offset;
-  uint* number_of_output_tracks = parameters.dev_number_of_three_hit_tracks_output.get() + event_number;
+  unsigned* number_of_output_tracks = parameters.dev_number_of_three_hit_tracks_output.get() + event_number;
 
   three_hit_tracks_filter_impl(
     input_tracks,

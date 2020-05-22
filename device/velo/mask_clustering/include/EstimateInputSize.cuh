@@ -6,15 +6,15 @@
 namespace velo_estimate_input_size {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (HOST_INPUT(host_number_of_cluster_candidates_t, uint), host_number_of_cluster_candidates),
-    (DEVICE_INPUT(dev_event_list_t, uint), dev_event_list),
-    (DEVICE_INPUT(dev_candidates_offsets_t, uint), dev_candidates_offsets),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_cluster_candidates_t, unsigned), host_number_of_cluster_candidates),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_candidates_offsets_t, unsigned), dev_candidates_offsets),
     (DEVICE_INPUT(dev_velo_raw_input_t, char), dev_velo_raw_input),
-    (DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint), dev_velo_raw_input_offsets),
-    (DEVICE_OUTPUT(dev_estimated_input_size_t, uint), dev_estimated_input_size),
-    (DEVICE_OUTPUT(dev_module_candidate_num_t, uint), dev_module_candidate_num),
-    (DEVICE_OUTPUT(dev_cluster_candidates_t, uint), dev_cluster_candidates),
+    (DEVICE_INPUT(dev_velo_raw_input_offsets_t, unsigned), dev_velo_raw_input_offsets),
+    (DEVICE_OUTPUT(dev_estimated_input_size_t, unsigned), dev_estimated_input_size),
+    (DEVICE_OUTPUT(dev_module_candidate_num_t, unsigned), dev_module_candidate_num),
+    (DEVICE_OUTPUT(dev_cluster_candidates_t, unsigned), dev_cluster_candidates),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void velo_estimate_input_size(Parameters parameters);

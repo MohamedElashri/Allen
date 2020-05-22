@@ -35,7 +35,7 @@ class Type():
     def __init__(self, vtype):
         if vtype.__class__ == Type:
             self.__type = vtype.type()
-        elif vtype == "uint" or vtype == "unsigned int" or vtype == "unsigned int32_t":
+        elif vtype == "unsigned" or vtype == "unsigned int" or vtype == "unsigned int32_t":
             self.__type = "uint32_t"
         elif vtype == "int" or vtype == "signed int":
             self.__type = "int32_t"

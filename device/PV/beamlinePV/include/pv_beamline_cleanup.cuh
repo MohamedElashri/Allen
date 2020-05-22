@@ -13,11 +13,11 @@
 namespace pv_beamline_cleanup {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
     (DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex), dev_multi_fit_vertices),
-    (DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint), dev_number_of_multi_fit_vertices),
+    (DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, unsigned), dev_number_of_multi_fit_vertices),
     (DEVICE_OUTPUT(dev_multi_final_vertices_t, PV::Vertex), dev_multi_final_vertices),
-    (DEVICE_OUTPUT(dev_number_of_multi_final_vertices_t, uint), dev_number_of_multi_final_vertices),
+    (DEVICE_OUTPUT(dev_number_of_multi_final_vertices_t, unsigned), dev_number_of_multi_final_vertices),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void pv_beamline_cleanup(Parameters);

@@ -4,7 +4,7 @@
 #include "Event/ODIN.h"
 
 namespace ODINNoBias {
-  constexpr uint eventType = LHCb::ODIN::NoBias;
+  constexpr unsigned eventType = LHCb::ODIN::NoBias;
 
   struct ODINNoBias_t : public Hlt1::SpecialLine {
     constexpr static auto name {"ODINNoBias"};
@@ -12,7 +12,7 @@ namespace ODINNoBias {
 
     static __device__ bool function(const char* odin)
     {
-      const uint hdr_size(8);
+      const unsigned hdr_size(8);
       const uint32_t* odinData = reinterpret_cast<const uint32_t*>(
         odin + hdr_size);
       const uint32_t word2 = odinData[LHCb::ODIN::Data::EventType];

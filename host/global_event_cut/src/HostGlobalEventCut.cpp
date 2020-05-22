@@ -30,7 +30,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   // Initialize host event list
   data<host_total_number_of_events_t>(arguments)[0] = number_of_events;
   data<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
-  for (uint i = 0; i < number_of_events; ++i) {
+  for (unsigned i = 0; i < number_of_events; ++i) {
     data<host_event_list_t>(arguments)[i] = event_start + i;
   }
 
@@ -45,29 +45,29 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
 
   // TODO: Remove whenever the checker uses variables
   host_buffers.host_number_of_selected_events[0] = first<host_number_of_selected_events_t>(arguments);
-  for (uint i = 0; i < number_of_events; ++i) {
+  for (unsigned i = 0; i < number_of_events; ++i) {
     host_buffers.host_event_list[i] = data<host_event_list_t>(arguments)[i];
   }
 }
 
 void host_global_event_cut::host_global_event_cut(
-  const uint number_of_events,
+  const unsigned number_of_events,
   host_global_event_cut::Parameters parameters)
 {
   auto const ut_offsets = *parameters.ut_offsets;
   auto const scifi_offsets = *parameters.scifi_offsets;
 
-  uint insert_index = 0;
-  uint reverse_insert_index = number_of_events - 1;
-  uint first_event = parameters.host_event_list[0];
-  for (uint event_index = 0; event_index < number_of_events; ++event_index) {
-    uint event_number = first_event + event_index;
+  unsigned insert_index = 0;
+  unsigned reverse_insert_index = number_of_events - 1;
+  unsigned first_event = parameters.host_event_list[0];
+  for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
+    unsigned event_number = first_event + event_index;
     // Check SciFi clusters
     const SciFi::SciFiRawEvent scifi_event(parameters.scifi_banks[0].data() + scifi_offsets[event_number]);
-    uint n_SciFi_clusters = 0;
-    for (uint i = 0; i < scifi_event.number_of_raw_banks; ++i) {
+    unsigned n_SciFi_clusters = 0;
+    for (unsigned i = 0; i < scifi_event.number_of_raw_banks; ++i) {
       // get bank size in bytes, subtract four bytes for header word
-      uint bank_size = scifi_event.raw_bank_offset[i + 1] - scifi_event.raw_bank_offset[i] - 4;
+      unsigned bank_size = scifi_event.raw_bank_offset[i + 1] - scifi_event.raw_bank_offset[i] - 4;
       n_SciFi_clusters += bank_size;
     }
 
@@ -81,9 +81,9 @@ void host_global_event_cut::host_global_event_cut(
     // Check UT clusters
     const uint32_t ut_event_offset = ut_offsets[event_number];
     const UTRawEvent ut_event(parameters.ut_banks[0].data() + ut_event_offset);
-    uint n_UT_clusters = 0;
+    unsigned n_UT_clusters = 0;
 
-    for (uint i = 0; i < ut_event.number_of_raw_banks; ++i) {
+    for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i) {
       const UTRawBank ut_bank = ut_event.getUTRawBank(i);
       n_UT_clusters += ut_bank.number_of_hits;
     }
@@ -103,23 +103,23 @@ void host_global_event_cut::host_global_event_cut(
 }
 
 void host_global_event_cut::host_global_event_cut_mep(
-  const uint number_of_events,
+  const unsigned number_of_events,
   host_global_event_cut::Parameters parameters)
 {
   auto const ut_offsets = *parameters.ut_offsets;
   auto const scifi_offsets = *parameters.scifi_offsets;
 
-  uint insert_index = 0;
-  uint reverse_insert_index = number_of_events - 1;
-  for (uint event_number = 0; event_number < number_of_events; ++event_number) {
+  unsigned insert_index = 0;
+  unsigned reverse_insert_index = number_of_events - 1;
+  for (unsigned event_number = 0; event_number < number_of_events; ++event_number) {
     // Check SciFi clusters
 
     auto const number_of_scifi_raw_banks = scifi_offsets[0];
-    uint n_SciFi_clusters = 0;
+    unsigned n_SciFi_clusters = 0;
 
-    for (uint i = 0; i < number_of_scifi_raw_banks; ++i) {
-      uint const offset_index = 2 + number_of_scifi_raw_banks * (1 + event_number);
-      uint bank_size = scifi_offsets[offset_index + i + number_of_scifi_raw_banks] - scifi_offsets[offset_index + i];
+    for (unsigned i = 0; i < number_of_scifi_raw_banks; ++i) {
+      unsigned const offset_index = 2 + number_of_scifi_raw_banks * (1 + event_number);
+      unsigned bank_size = scifi_offsets[offset_index + i + number_of_scifi_raw_banks] - scifi_offsets[offset_index + i];
       // std::cout << "scifi " << std::setw(4) << event_number << " " << std::setw(3) << i << " " << bank_size << "\n";
       n_SciFi_clusters += bank_size;
     }
@@ -133,9 +133,9 @@ void host_global_event_cut::host_global_event_cut_mep(
 
     // Check UT clusters
     auto const number_of_ut_raw_banks = ut_offsets[0];
-    uint n_UT_clusters = 0;
+    unsigned n_UT_clusters = 0;
 
-    for (uint i = 0; i < number_of_ut_raw_banks; ++i) {
+    for (unsigned i = 0; i < number_of_ut_raw_banks; ++i) {
       auto sourceID = ut_offsets[2 + i];
       // We're on the host, so use the blocks directly
       auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];

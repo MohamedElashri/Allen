@@ -73,7 +73,7 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
   dzdy.resize(max_uniqueMat);
   globaldy.resize(max_uniqueMat);
 
-  for (uint quarter = 0; quarter < det.nQuarters; quarter++) {
+  for (unsigned quarter = 0; quarter < det.nQuarters; quarter++) {
     const auto& modules = det.quarter(quarter)->modules();
     number_of_modules[quarter] = modules.size();
 

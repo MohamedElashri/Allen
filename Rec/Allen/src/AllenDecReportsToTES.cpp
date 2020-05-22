@@ -46,7 +46,7 @@ LHCb::RawEvent AllenDecReportsToTES::operator()(const HostBuffers& host_buffers)
   std::vector<unsigned int> dec_reports;
   // First two words contain the TCK and taskID, then one word per HLT1 line
   dec_reports.reserve(2 + host_buffers.host_number_of_hlt1_lines);
-  for (uint i = 0; i < 2 + host_buffers.host_number_of_hlt1_lines; i++) {
+  for (unsigned i = 0; i < 2 + host_buffers.host_number_of_hlt1_lines; i++) {
     dec_reports.push_back(host_buffers.host_dec_reports[i]);
   }
   LHCb::RawEvent raw_event;

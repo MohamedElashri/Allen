@@ -88,8 +88,8 @@ __global__ void is_muon::is_muon(
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   const auto muon_total_number_of_hits =
     parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];
@@ -107,16 +107,16 @@ __global__ void is_muon::is_muon(
 
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
-  const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
-  const uint event_offset = scifi_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
+  const unsigned event_offset = scifi_tracks.tracks_offset(event_number);
 
-  for (uint track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
+  for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
     const float momentum = 1 / fabsf(scifi_tracks.qop(track_id));
-    const uint track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
+    const unsigned track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
 
     __syncthreads();
 
-    for (uint station_id = threadIdx.y; station_id < Muon::Constants::n_stations; station_id += blockDim.y) {
+    for (unsigned station_id = threadIdx.y; station_id < Muon::Constants::n_stations; station_id += blockDim.y) {
       const int number_of_hits = station_ocurrences_offset[station_id + 1] - station_ocurrences_offset[station_id];
       const auto& state = scifi_tracks.states(track_id);
 

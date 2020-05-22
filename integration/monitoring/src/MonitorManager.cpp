@@ -8,7 +8,7 @@
 #include "HostBuffersManager.cuh"
 #include "Logger.h"
 
-void MonitorManager::fill(uint i_mon, uint i_buf, bool useWallTime)
+void MonitorManager::fill(unsigned i_mon, unsigned i_buf, bool useWallTime)
 {
   if (i_mon >= m_monitors.size()) {
     warning_cout << "No monitors exist for thread " << i_mon << std::endl;
@@ -65,13 +65,13 @@ void MonitorManager::freeMonitor(size_t i_mon)
 }
 
 void MonitorManager::init(
-  uint n_mon_thread,
+  unsigned n_mon_thread,
   HostBuffersManager* buffers_manager,
-  uint number_of_hlt1_lines,
+  unsigned number_of_hlt1_lines,
   int time_step,
   int offset)
 {
-  for (uint i = 0; i < n_mon_thread; ++i) {
+  for (unsigned i = 0; i < n_mon_thread; ++i) {
     m_monitors.push_back(std::vector<BufferMonitor*>());
     m_monitors.back().push_back(new RateMonitor(buffers_manager, number_of_hlt1_lines, time_step, offset));
     m_monitors.back().push_back(new TrackMonitor(buffers_manager, time_step, offset));

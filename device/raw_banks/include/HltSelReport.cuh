@@ -41,9 +41,9 @@ struct HltSelRepRBHits {
 
   __device__ __host__ HltSelRepRBHits() {}
   
-  __device__ __host__ HltSelRepRBHits(uint nSeq, uint nHits, uint32_t* base_pointer)
+  __device__ __host__ HltSelRepRBHits(unsigned nSeq, unsigned nHits, uint32_t* base_pointer)
   {
-    uint len = nSeq / 2 + 1 + nHits;
+    unsigned len = nSeq / 2 + 1 + nHits;
     m_location = base_pointer;
     m_location[0] = 0u;
     m_location[0] += nSeq;
@@ -51,72 +51,72 @@ struct HltSelRepRBHits {
     m_length = len;
   }
 
-  __device__ uint numberOfSeq() const
+  __device__ unsigned numberOfSeq() const
   {
-    return (uint)(m_location[0] & 0xFFFFu);
+    return (unsigned)(m_location[0] & 0xFFFFu);
   }
 
-  __device__ uint hitsLocation() const
+  __device__ unsigned hitsLocation() const
   {
     return (numberOfSeq() / 2 + 1);
   }
   
-  __device__ uint seqEnd(uint iSeq) const
+  __device__ unsigned seqEnd(unsigned iSeq) const
   {
     if ((numberOfSeq() == 0) && (iSeq == 0)) return hitsLocation();
-    uint iWord = (iSeq + 1) / 2;
-    uint iPart = (iSeq + 1) % 2;
-    uint bits = iPart * 16;
-    uint mask = 0xFFFFu << bits;
-    return (uint)((m_location[iWord] & mask) >> bits);
+    unsigned iWord = (iSeq + 1) / 2;
+    unsigned iPart = (iSeq + 1) % 2;
+    unsigned bits = iPart * 16;
+    unsigned mask = 0xFFFFu << bits;
+    return (unsigned)((m_location[iWord] & mask) >> bits);
   }
 
-  __device__ uint seqBegin(uint iSeq) const
+  __device__ unsigned seqBegin(unsigned iSeq) const
   {
     if ((numberOfSeq() == 0) && (iSeq == 0)) return hitsLocation();
     if (iSeq) return seqEnd(iSeq - 1);
     return hitsLocation();
   }
 
-  __device__ uint seqSize(uint iSeq) const
+  __device__ unsigned seqSize(unsigned iSeq) const
   {
     return (seqEnd(iSeq) - seqBegin(iSeq));
   }
 
-  __device__ uint size() const
+  __device__ unsigned size() const
   {
     if (numberOfSeq()) return seqEnd(numberOfSeq() - 1);
     return seqEnd(0);
   }
 
-  __device__ static uint sizeFromPtr(const uint32_t* ptr)
+  __device__ static unsigned sizeFromPtr(const uint32_t* ptr)
   {
-    if ((uint)(ptr[0] & 0xFFFFu)) {
-      uint iSeq = (uint)(ptr[0] & 0xFFFFu) - 1;
-      uint iWord = (iSeq + 1) / 2;
-      uint iPart = (iSeq + 1) % 2;
-      uint bits = iPart * 16;
-      uint mask = 0xFFFFu << bits;
-      return (uint)((ptr[iWord] & mask) >> bits);
+    if ((unsigned)(ptr[0] & 0xFFFFu)) {
+      unsigned iSeq = (unsigned)(ptr[0] & 0xFFFFu) - 1;
+      unsigned iWord = (iSeq + 1) / 2;
+      unsigned iPart = (iSeq + 1) % 2;
+      unsigned bits = iPart * 16;
+      unsigned mask = 0xFFFFu << bits;
+      return (unsigned)((ptr[iWord] & mask) >> bits);
     }
     else {
-      return (uint)(ptr[0] & 0xFFFFu) / 2 + 1;
+      return (unsigned)(ptr[0] & 0xFFFFu) / 2 + 1;
     }
   }
   
   // Add the a hit sequence to the bank. Just adds the total number of
   // hits in order to calculate the sequence end point. Hits have to
   // be copied manually on the GPU.
-  __device__ uint addSeq(uint nHits)
+  __device__ unsigned addSeq(unsigned nHits)
   {
-    for (uint iSeq = 0; iSeq < numberOfSeq(); ++iSeq) {
+    for (unsigned iSeq = 0; iSeq < numberOfSeq(); ++iSeq) {
       if (seqSize(iSeq) == 0) {
-        uint iWord = (iSeq + 1) / 2;
-        uint iPart = (iSeq + 1) % 2;
-        uint bits = iPart * 16;
-        uint mask = 0xFFFFu << bits;
-        uint begin = seqBegin(iSeq);
-        uint end = begin + nHits;
+        unsigned iWord = (iSeq + 1) / 2;
+        unsigned iPart = (iSeq + 1) % 2;
+        unsigned bits = iPart * 16;
+        unsigned mask = 0xFFFFu << bits;
+        unsigned begin = seqBegin(iSeq);
+        unsigned end = begin + nHits;
         m_location[iWord] = (m_location[iWord] & ~mask) | (end << bits);
         ++iSeq;
         if (iSeq < numberOfSeq()) {
@@ -149,10 +149,10 @@ struct HltSelRepRBStdInfo {
 
   __device__ __host__ HltSelRepRBStdInfo() {}
 
-  __device__ __host__ HltSelRepRBStdInfo(uint nObj, uint  nAllInfo, uint32_t* base_pointer)
+  __device__ __host__ HltSelRepRBStdInfo(unsigned nObj, unsigned  nAllInfo, uint32_t* base_pointer)
   {
     m_location = base_pointer;
-    uint len = 1 + (3 + nObj) / 4 + nAllInfo;
+    unsigned len = 1 + (3 + nObj) / 4 + nAllInfo;
     //m_location[0] = (std::min(len, 0xFFFFu) << 16);
     // Just set this to length and check if it's too large later.
     m_iterator = 0;
@@ -167,12 +167,12 @@ struct HltSelRepRBStdInfo {
     m_iteratorInfo = 0;
   }
 
-  __device__ __host__ uint sizeStored() const
+  __device__ __host__ unsigned sizeStored() const
   {
     return (m_location[0] >> 16) & 0xFFFFu;
   }
 
-  __device__ __host__ static uint sizeStoredFromPtr(const uint32_t* ptr)
+  __device__ __host__ static unsigned sizeStoredFromPtr(const uint32_t* ptr)
   {
     return (ptr[0] >> 16) & 0xFFFFu;
   }
@@ -182,33 +182,33 @@ struct HltSelRepRBStdInfo {
     return sizeStored() >= Hlt1::maxStdInfoEvent;
   }
   
-  __device__ __host__ uint numberOfObj() const
+  __device__ __host__ unsigned numberOfObj() const
   {
-    return (uint)(m_location[0] & 0xFFFFu);
+    return (unsigned)(m_location[0] & 0xFFFFu);
   }
 
-  __device__ __host__ uint sizeInfo(uint iObj) const
+  __device__ __host__ unsigned sizeInfo(unsigned iObj) const
   {
-    uint bits = 8 * (iObj % 4);
+    unsigned bits = 8 * (iObj % 4);
     return (m_location[1 + (iObj / 4)] >> bits) & 0xFFu;
   }
 
-  __device__ __host__ uint size() const
+  __device__ __host__ unsigned size() const
   {
-    uint nObj = numberOfObj();
-    uint len = 1 + (3 + nObj) / 4;
-    for (uint i = 0; i != nObj; ++i) {
+    unsigned nObj = numberOfObj();
+    unsigned len = 1 + (3 + nObj) / 4;
+    for (unsigned i = 0; i != nObj; ++i) {
       auto bits = 8 * (i % 4);
       len += (m_location[1 + (i / 4)] >> bits) & 0xFFu;
     }
     return len;
   }
 
-  __device__ __host__ static uint sizeFromPtr(const uint32_t* ptr)
+  __device__ __host__ static unsigned sizeFromPtr(const uint32_t* ptr)
   {
-    uint nObj = (uint)(ptr[0] & 0xFFFFu);
-    uint len = 1 + (3 + nObj) / 4;
-    for (uint i = 0; i != nObj; ++i) {
+    unsigned nObj = (unsigned)(ptr[0] & 0xFFFFu);
+    unsigned len = 1 + (3 + nObj) / 4;
+    for (unsigned i = 0; i != nObj; ++i) {
       auto bits = 8 * (i % 4);
       len += (ptr[1 + (i / 4)] >> bits) & 0xFFu;
     }
@@ -217,30 +217,30 @@ struct HltSelRepRBStdInfo {
   
   __device__ __host__ void saveSize()
   {
-    uint s = size();
+    unsigned s = size();
     m_location[0] &= 0xFFFFu;
     m_location[0] |= (std::min(s, 0xFFFFu) << 16);
   }
   
   // Prepare to add info for an object with nInfo floats.
-  __device__ __host__ void addObj(uint nInfo)
+  __device__ __host__ void addObj(unsigned nInfo)
   {
-    uint iObj = numberOfObj();
-    uint iWord = 1 + (iObj / 4);
+    unsigned iObj = numberOfObj();
+    unsigned iWord = 1 + (iObj / 4);
     m_location[0] = (m_location[0] & ~0xFFFFu) | (iObj + 1);
 
-    uint iPart = iObj % 4;
-    uint bits = iPart * 8;
-    uint mask = 0xFFu << bits;
+    unsigned iPart = iObj % 4;
+    unsigned bits = iPart * 8;
+    unsigned mask = 0xFFu << bits;
     m_location[iWord] = ((m_location[iWord] & ~mask) | (nInfo << bits));
     
     ++m_iterator;
   }
 
-  // Add a uint to the StdInfo.
-  __device__ __host__ void addInfo(uint info)
+  // Add a unsigned to the StdInfo.
+  __device__ __host__ void addInfo(unsigned info)
   {
-    uint iWord = m_floatLoc + m_iteratorInfo;
+    unsigned iWord = m_floatLoc + m_iteratorInfo;
     ++m_iteratorInfo;
     m_location[iWord] = info;
   }
@@ -250,7 +250,7 @@ struct HltSelRepRBStdInfo {
   {
     IntFloat a;
     a.mFloat = info;
-    uint iWord = m_floatLoc + m_iteratorInfo;
+    unsigned iWord = m_floatLoc + m_iteratorInfo;
     ++m_iteratorInfo;
     m_location[iWord] = a.mInt;
   }
@@ -264,7 +264,7 @@ struct HltSelRepRBObjTyp {
   
   __device__ __host__ HltSelRepRBObjTyp() {}
 
-  __device__ __host__ HltSelRepRBObjTyp(uint len, uint32_t* base_pointer)
+  __device__ __host__ HltSelRepRBObjTyp(unsigned len, uint32_t* base_pointer)
   {
     m_location = base_pointer;
     m_location[0] = (len << 16);
@@ -272,32 +272,32 @@ struct HltSelRepRBObjTyp {
     m_iterator = 0;
   }
 
-  __device__ __host__ void addObj(uint clid, uint nObj)
+  __device__ __host__ void addObj(unsigned clid, unsigned nObj)
   {
-    uint iWord = m_iterator;
+    unsigned iWord = m_iterator;
     m_location[iWord] = (clid << 16);
     m_location[iWord] &= 0xFFFF0000u;
     m_location[iWord] |= nObj;
   }
 
-  __device__ __host__ uint numberOfObjTyp() const
+  __device__ __host__ unsigned numberOfObjTyp() const
   {
-    return (uint)(m_location[0] & 0xFFFFu);
+    return (unsigned)(m_location[0] & 0xFFFFu);
   }
 
-  __device__ __host__ uint size() const
+  __device__ __host__ unsigned size() const
   {
     return (numberOfObjTyp() + 1);
   }
 
-  __device__ __host__ static uint sizeFromPtr(const uint32_t* ptr)
+  __device__ __host__ static unsigned sizeFromPtr(const uint32_t* ptr)
   {
-    return (uint)(ptr[0] & 0xFFFFu) + 1;
+    return (unsigned)(ptr[0] & 0xFFFFu) + 1;
   }
   
   __device__ __host__ void saveSize()
   {
-    uint s = size();
+    unsigned s = size();
     m_location[0] &= 0xFFFFu;
     m_location[0] |= (s << 16);
   }
@@ -315,7 +315,7 @@ struct HltSelRepRBSubstr {
 
   __device__ __host__ HltSelRepRBSubstr() {}
 
-  __device__ __host__ HltSelRepRBSubstr(uint len, uint32_t* base_pointer)
+  __device__ __host__ HltSelRepRBSubstr(unsigned len, uint32_t* base_pointer)
   {
     if (len < 1) {
       len = Hlt1::subStrDefaultAllocationSize;
@@ -325,14 +325,14 @@ struct HltSelRepRBSubstr {
     m_iterator = InitialPositionOfIterator::kInitialPosition;
   }
 
-  __device__ __host__ void addSubstr(uint nPtrs, uint hits)
+  __device__ __host__ void addSubstr(unsigned nPtrs, unsigned hits)
   {
     // Increment the number of substructures.
-    uint iSub = m_location[0] & 0xFFFFL;
+    unsigned iSub = m_location[0] & 0xFFFFL;
     m_location[0] = (m_location[0] & ~0xFFFFL) | (iSub + 1);
     // Put the count in.
-    uint iWord = m_iterator / 2;
-    uint iPart = m_iterator % 2;
+    unsigned iWord = m_iterator / 2;
+    unsigned iPart = m_iterator % 2;
     ++m_iterator;
     unsigned short nW = 0;
     nW = nPtrs << 1;
@@ -349,10 +349,10 @@ struct HltSelRepRBSubstr {
     }
   }
 
-  __device__ __host__ void addPtr(uint ptr)
+  __device__ __host__ void addPtr(unsigned ptr)
   {
-    uint iWord = m_iterator / 2;
-    uint iPart = m_iterator % 2;
+    unsigned iWord = m_iterator / 2;
+    unsigned iPart = m_iterator % 2;
     ++m_iterator;
     if (iPart) {
       m_location[iWord] &= 0xFFFFL;
@@ -362,67 +362,67 @@ struct HltSelRepRBSubstr {
     }
   }
 
-  __device__ __host__ uint numberOfObj() const
+  __device__ __host__ unsigned numberOfObj() const
   {
-    return (uint)(m_location[0] & 0xFFFFL);
+    return (unsigned)(m_location[0] & 0xFFFFL);
   }
   
-  __device__ __host__ uint allocatedSize() const
+  __device__ __host__ unsigned allocatedSize() const
   {
-    return (uint)((m_location[0] & 0xFFFF0000L) >> 16);
+    return (unsigned)((m_location[0] & 0xFFFF0000L) >> 16);
   }
 
-  __device__ __host__ uint lenSubstr(uint inpt) const
+  __device__ __host__ unsigned lenSubstr(unsigned inpt) const
   {
-    return (uint)((inpt & 0xFFFF) >> 1);
+    return (unsigned)((inpt & 0xFFFF) >> 1);
   }
   
-  __device__ __host__ uint size() const
+  __device__ __host__ unsigned size() const
   {
-    uint itera = InitialPositionOfIterator::kInitialPosition;
-    for (uint iSub = 0; iSub != numberOfObj(); ++iSub) {
-      uint iWord = itera / 2;
-      uint iPart = itera % 2;
+    unsigned itera = InitialPositionOfIterator::kInitialPosition;
+    for (unsigned iSub = 0; iSub != numberOfObj(); ++iSub) {
+      unsigned iWord = itera / 2;
+      unsigned iPart = itera % 2;
       unsigned short nW;
       if (iPart) {
         nW = (unsigned short)((m_location[iWord] & 0xFFFF0000L) >> 16);
       } else {
         nW = (unsigned short)(m_location[iWord] & 0xFFFFL);
       }
-      uint nL = lenSubstr(nW);
+      unsigned nL = lenSubstr(nW);
       itera += nL + 1;
     }
-    uint iWord = itera / 2;
-    uint iPart = itera % 2;
+    unsigned iWord = itera / 2;
+    unsigned iPart = itera % 2;
     if (iPart) ++iWord;
     return iWord;
   }
 
-  __device__ __host__ static uint sizeFromPtr(const uint32_t* ptr)
+  __device__ __host__ static unsigned sizeFromPtr(const uint32_t* ptr)
   {
-    uint itera = InitialPositionOfIterator::kInitialPosition;
-    uint nObj = (uint)(ptr[0] & 0xFFFFL);
-    for (uint iSub = 0; iSub != nObj; ++iSub) {
-      uint iWord = itera / 2;
-      uint iPart = itera % 2;
+    unsigned itera = InitialPositionOfIterator::kInitialPosition;
+    unsigned nObj = (unsigned)(ptr[0] & 0xFFFFL);
+    for (unsigned iSub = 0; iSub != nObj; ++iSub) {
+      unsigned iWord = itera / 2;
+      unsigned iPart = itera % 2;
       unsigned short nW;
       if (iPart) {
         nW = (unsigned short)((ptr[iWord] & 0xFFFF0000L) >> 16);
       } else {
         nW = (unsigned short)(ptr[iWord] & 0xFFFFL);
       }
-      uint nL = (uint)((nW & 0xFFFF) >> 1);
+      unsigned nL = (unsigned)((nW & 0xFFFF) >> 1);
       itera += nL + 1;
     }
-    uint iWord = itera / 2;
-    uint iPart = itera % 2;
+    unsigned iWord = itera / 2;
+    unsigned iPart = itera % 2;
     if (iPart) ++iWord;
     return iWord;
   }
   
   __device__ __host__ void saveSize()
   {
-    uint s = size();
+    unsigned s = size();
     m_location[0] &= 0xFFFFL;
     m_location[0] |= (s << 16);
   }
@@ -442,116 +442,116 @@ struct HltSelRepRawBank {
     kDefaultAllocation = 4000
   };
 
-  uint* m_location;
+  unsigned* m_location;
 
   __device__ __host__ HltSelRepRawBank() {};
   __device__ __host__ HltSelRepRawBank(
-    uint* base_pointer,
-    uint len = DefaultAllocation::kDefaultAllocation)
+    unsigned* base_pointer,
+    unsigned len = DefaultAllocation::kDefaultAllocation)
   {
     m_location = base_pointer;
     if (len < Header::kHeaderSize) len = DefaultAllocation::kDefaultAllocation;
     m_location[Header::kAllocatedSize] = len;
     // Initialize the header.
-    for (uint iLoc = 0; iLoc < Header::kHeaderSize; ++iLoc) {
+    for (unsigned iLoc = 0; iLoc < Header::kHeaderSize; ++iLoc) {
       m_location[iLoc] = 0;
     }
     m_location[Header::kSubBankIDs] = 0;
     m_location[Header::kSubBankLocations + numberOfSubBanks()] = Header::kHeaderSize;
   }
   
-  __device__ __host__ uint numberOfSubBanks() const
+  __device__ __host__ unsigned numberOfSubBanks() const
   {
-    return (uint)(m_location[Header::kSubBankIDs] & 0x7u);
+    return (unsigned)(m_location[Header::kSubBankIDs] & 0x7u);
   }
 
-  __device__ __host__ uint indexSubBank(uint idSubBank) const
+  __device__ __host__ unsigned indexSubBank(unsigned idSubBank) const
   {
-    if (!m_location) return (uint)(HltSelRepRBEnums::SubBankIDs::kUnknownID);
-    for (uint iBank = 0; iBank != numberOfSubBanks(); ++iBank) {
+    if (!m_location) return (unsigned)(HltSelRepRBEnums::SubBankIDs::kUnknownID);
+    for (unsigned iBank = 0; iBank != numberOfSubBanks(); ++iBank) {
       if (subBankID(iBank) == idSubBank) return iBank;
     }
-    return (uint)(HltSelRepRBEnums::SubBankIDs::kUnknownID);
+    return (unsigned)(HltSelRepRBEnums::SubBankIDs::kUnknownID);
   }
 
-  __device__ __host__ uint subBankID(uint iBank) const
+  __device__ __host__ unsigned subBankID(unsigned iBank) const
   {
-    uint bits = (iBank + 1) * 3;
-    uint mask = 0x7u << bits;
-    return (uint)((m_location[Header::kSubBankIDs] & mask) >> bits);
+    unsigned bits = (iBank + 1) * 3;
+    unsigned mask = 0x7u << bits;
+    return (unsigned)((m_location[Header::kSubBankIDs] & mask) >> bits);
   }
 
-  __device__ __host__ uint subBankBegin(uint iBank) const
+  __device__ __host__ unsigned subBankBegin(unsigned iBank) const
   {
     if (iBank) {
       return m_location[Header::kSubBankLocations + iBank - 1];
     } else {
-      return (uint) Header::kHeaderSize;
+      return (unsigned) Header::kHeaderSize;
     }
   }
 
-  __device__ __host__ uint subBankEnd(uint iBank) const
+  __device__ __host__ unsigned subBankEnd(unsigned iBank) const
   {
     return m_location[Header::kSubBankLocations + iBank];
   }
 
-  __device__ __host__ uint subBankBeginFromID(uint idSubBank) const
+  __device__ __host__ unsigned subBankBeginFromID(unsigned idSubBank) const
   {
     return subBankBegin(indexSubBank(idSubBank));
   }
 
-  __device__ __host__ uint subBankEndFromID(uint idSubBank) const
+  __device__ __host__ unsigned subBankEndFromID(unsigned idSubBank) const
   {
     return subBankEnd(indexSubBank(idSubBank));
   }
 
-  __device__ __host__ uint subBankSize(uint iBank) const
+  __device__ __host__ unsigned subBankSize(unsigned iBank) const
   {
     return (subBankEnd(iBank) - subBankBegin(iBank));
   }
 
-  __device__ __host__ uint subBankSizeFromID(uint idSubBank)
+  __device__ __host__ unsigned subBankSizeFromID(unsigned idSubBank)
   {
     return subBankSize(indexSubBank(idSubBank));
   }
 
-  __device__ __host__ uint* subBankFromID(uint idSubBank) const
+  __device__ __host__ unsigned* subBankFromID(unsigned idSubBank) const
   {
-    uint loc = subBankBeginFromID(idSubBank);
+    unsigned loc = subBankBeginFromID(idSubBank);
     if (!loc) return 0;
     return &(m_location[loc]);
   }
 
-  __device__ __host__ uint allocatedSize() const
+  __device__ __host__ unsigned allocatedSize() const
   {
     return m_location[Header::kAllocatedSize];
   }
 
-  __device__ __host__ uint size() const
+  __device__ __host__ unsigned size() const
   {
     if (numberOfSubBanks()) return subBankEnd(numberOfSubBanks() - 1);
     return Header::kHeaderSize;
   }
 
-  __device__ __host__ void push_back(uint idSubBank, const uint* pSubBank, uint sizeSubBank)
+  __device__ __host__ void push_back(unsigned idSubBank, const unsigned* pSubBank, unsigned sizeSubBank)
   {
     // Don't worry about reallocating for now.
     // Increment number of banks.
-    uint iBank = m_location[Header::kSubBankIDs] & 0x7u;
+    unsigned iBank = m_location[Header::kSubBankIDs] & 0x7u;
     m_location[Header::kSubBankIDs] =
       (m_location[Header::kSubBankIDs] & ~0x7u) | (iBank + 1);
     // Set the sub-bank's ID.
-    uint bits = (iBank + 1) * 3;
-    uint mask = 0x7u << bits;
+    unsigned bits = (iBank + 1) * 3;
+    unsigned mask = 0x7u << bits;
     m_location[Header::kSubBankIDs] =
       (m_location[Header::kSubBankIDs] & ~mask) | (idSubBank << bits);
     // Get its location.
-    uint locBank = subBankBegin(iBank);
+    unsigned locBank = subBankBegin(iBank);
     // Set its end.
     m_location[Header::kSubBankLocations + iBank] = locBank + sizeSubBank;
     // Copy content. NB: cudaMemcpyDeviceToDevice might have poor
     // performance for these small copies. For now naively copy.
-    for (uint iWord = 0; iWord < sizeSubBank; ++iWord) {
+    for (unsigned iWord = 0; iWord < sizeSubBank; ++iWord) {
       m_location[locBank + iWord] = pSubBank[iWord];
     }
   }

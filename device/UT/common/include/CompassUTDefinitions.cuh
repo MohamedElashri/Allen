@@ -6,8 +6,8 @@
 
 namespace CompassUT {
 
-  constexpr uint num_sectors = 5;
-  constexpr uint num_elems = num_sectors * 2;
+  constexpr unsigned num_sectors = 5;
+  constexpr unsigned num_elems = num_sectors * 2;
 
 } // namespace CompassUT
 

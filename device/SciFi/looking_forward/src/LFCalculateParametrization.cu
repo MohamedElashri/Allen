@@ -11,7 +11,7 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
-  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const unsigned velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
   UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
@@ -25,7 +25,7 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
 
   // SciFi hits
-  const uint total_number_of_hits =
+  const unsigned total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
 
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
@@ -34,13 +34,13 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   const auto event_offset = scifi_hit_count.event_offset();
   const auto number_of_tracks = parameters.dev_scifi_lf_atomics[event_number];
 
-  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
     const auto velo_track_index = ut_tracks.velo_track(track.ut_track_index);
 
-    const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
+    const unsigned velo_states_index = velo_tracks_offset_event + velo_track_index;
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
 
     // Note: The notation 1, 2, 3 is used here (instead of h0, h1, h2)

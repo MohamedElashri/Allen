@@ -65,7 +65,7 @@ __device__ void make_cluster_v6(
   // Apparently the unique* methods are not designed to start at 0, therefore -16
   const uint32_t uniqueZone = ((id.uniqueQuarter() - 16) >> 1);
 
-  const uint plane_code = 2 * planeCode + (uniqueZone % 2);
+  const unsigned plane_code = 2 * planeCode + (uniqueZone % 2);
   hits.x0(hit_index) = x0;
   hits.z0(hit_index) = z0;
   hits.channel(hit_index) = chan;
@@ -78,9 +78,9 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
   scifi_raw_bank_decoder_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom {scifi_geometry};
   const auto event =
@@ -90,9 +90,9 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
     parameters.dev_scifi_hits,
     parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
-  const uint number_of_hits_in_event = hit_count.event_number_of_hits();
+  const unsigned number_of_hits_in_event = hit_count.event_number_of_hits();
 
-  for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
     const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
@@ -145,9 +145,9 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_mep(
   scifi_raw_bank_decoder_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom {scifi_geometry};
 
@@ -155,9 +155,9 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_mep(
     parameters.dev_scifi_hits,
     parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
-  const uint number_of_hits_in_event = hit_count.event_number_of_hits();
+  const unsigned number_of_hits_in_event = hit_count.event_number_of_hits();
 
-  for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
     const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;

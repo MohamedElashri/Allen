@@ -27,10 +27,10 @@ void package_mf_tracks::package_mf_tracks_t::operator()(
 
 __global__ void package_mf_tracks::package_mf_tracks(
   package_mf_tracks::Parameters parameters,
-  const uint number_of_events)
+  const unsigned number_of_events)
 {
-  const uint muon_filtered_event = blockIdx.x;
-  const uint i_event = parameters.dev_event_list_mf[muon_filtered_event];
+  const unsigned muon_filtered_event = blockIdx.x;
+  const unsigned i_event = parameters.dev_event_list_mf[muon_filtered_event];
 
   // Create velo tracks.
   const Velo::Consolidated::ConstTracks velo_tracks {
@@ -45,10 +45,10 @@ __global__ void package_mf_tracks::package_mf_tracks(
     i_event,
     number_of_events};
 
-  const uint mf_track_offset = parameters.dev_mf_track_offsets[i_event];
+  const unsigned mf_track_offset = parameters.dev_mf_track_offsets[i_event];
   ParKalmanFilter::FittedTrack* event_mf_tracks = parameters.dev_mf_tracks + mf_track_offset;
 
-  for (uint i_ut_track = threadIdx.x; i_ut_track < ut_tracks.number_of_tracks(i_event); i_ut_track += blockDim.x) {
+  for (unsigned i_ut_track = threadIdx.x; i_ut_track < ut_tracks.number_of_tracks(i_event); i_ut_track += blockDim.x) {
 
     const int i_velo_track = ut_tracks.velo_track(i_ut_track);
     Velo::Consolidated::ConstKalmanStates kalmanvelo_states {

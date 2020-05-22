@@ -12,7 +12,7 @@
 StreamWrapper::StreamWrapper()
 {
   number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
-  uint errorevent_line_index = number_of_hlt1_lines;
+  unsigned errorevent_line_index = number_of_hlt1_lines;
   const auto lambda_fn = [&](const unsigned long i, const std::string& line_name) {
     if (line_name == "ErrorEvent") errorevent_line_index = i;
   };
@@ -21,14 +21,14 @@ StreamWrapper::StreamWrapper()
 }
 
 void StreamWrapper::initialize_streams(
-  const uint n,
+  const unsigned n,
   const bool print_memory_usage,
-  const uint start_event_offset,
+  const unsigned start_event_offset,
   const size_t reserve_mb,
   const Constants& constants,
   const std::map<std::string, std::map<std::string, std::string>>& config)
 {
-  for (uint i = 0; i < n; ++i) {
+  for (unsigned i = 0; i < n; ++i) {
     streams.push_back(new Stream());
   }
 
@@ -47,15 +47,15 @@ void StreamWrapper::initialize_streams_host_buffers_manager(HostBuffersManager* 
   }
 }
 
-cudaError_t StreamWrapper::run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options)
+cudaError_t StreamWrapper::run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
   return streams[i]->run_sequence(buf_idx, runtime_options);
 }
 
-std::vector<bool> StreamWrapper::reconstructed_events(const uint i) const { return streams[i]->reconstructed_events(); }
+std::vector<bool> StreamWrapper::reconstructed_events(const unsigned i) const { return streams[i]->reconstructed_events(); }
 
 void StreamWrapper::run_monte_carlo_test(
-  uint const i,
+  unsigned const i,
   CheckerInvoker& invoker,
   MCEvents const& mc_events,
   std::vector<Checker::Tracks> const& forward_tracks)
@@ -87,7 +87,7 @@ void print_configured_sequence()
  */
 cudaError_t Stream::initialize(
   const bool param_do_print_memory_manager,
-  const uint param_start_event_offset,
+  const unsigned param_start_event_offset,
   const size_t reserve_mb,
   const Constants& param_constants)
 {
@@ -123,7 +123,7 @@ void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
   host_buffers_manager = buffers_manager;
 }
 
-cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runtime_options)
+cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
   host_buffers = host_buffers_manager->getBuffers(buf_idx);
   // The sequence is only run if there are events to run on
@@ -132,7 +132,7 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
 
   number_of_input_events = event_end - event_start;
   if (event_end > event_start) {
-    for (uint repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
+    for (unsigned repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
       // Initialize selected_number_of_events with requested_number_of_events
       host_buffers->host_number_of_events = event_end - event_start;
 
@@ -174,7 +174,7 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
 std::vector<bool> Stream::reconstructed_events() const
 {
   std::vector<bool> mask(number_of_input_events, false);
-  for (uint i = 0; i < host_buffers->host_number_of_selected_events[0]; ++i) {
+  for (unsigned i = 0; i < host_buffers->host_number_of_selected_events[0]; ++i) {
     mask[host_buffers->host_event_list[i]] = true;
   }
   return mask;

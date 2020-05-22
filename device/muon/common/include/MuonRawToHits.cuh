@@ -16,7 +16,7 @@ namespace Muon {
     MuonGeometry* muonGeometry;
   };
 
-  __device__ inline uint regionAndQuarter(const Digit& i)
+  __device__ inline unsigned regionAndQuarter(const Digit& i)
   {
     return i.tile.region() * Constants::n_quarters + i.tile.quarter();
   }

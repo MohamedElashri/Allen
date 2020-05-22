@@ -12,9 +12,9 @@ struct IInputProvider;
 struct RuntimeOptions {
   IInputProvider const* input_provider;
   size_t const slice_index;
-  std::tuple<uint, uint> event_interval;
-  uint number_of_selected_events;
-  uint number_of_repetitions;
+  std::tuple<unsigned, unsigned> event_interval;
+  unsigned number_of_selected_events;
+  unsigned number_of_repetitions;
   bool do_check;
   bool cpu_offload;
   bool mep_layout;
@@ -22,8 +22,8 @@ struct RuntimeOptions {
   RuntimeOptions(
     IInputProvider const* ip,
     size_t const index,
-    std::tuple<uint, uint> param_event_interval,
-    uint param_number_of_repetitions,
+    std::tuple<unsigned, unsigned> param_event_interval,
+    unsigned param_number_of_repetitions,
     bool param_do_check,
     bool param_cpu_offload,
     bool param_mep_layout) :

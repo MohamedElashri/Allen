@@ -91,7 +91,7 @@ template<typename F>
 __device__ void populate(const UT::TrackHits& track, const F& assign)
 {
   int hit_number = 0;
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = track.hits[i];
     if (hit_index != -1) {
       assign(hit_number++, hit_index);
@@ -103,7 +103,7 @@ template<typename F>
 __device__ void populate_plane_code(const UT::TrackHits& track, const F& assign)
 {
   int hit_number = 0;
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = track.hits[i];
     if (hit_index != -1) {
       assign(hit_number++, i);
@@ -113,12 +113,12 @@ __device__ void populate_plane_code(const UT::TrackHits& track, const F& assign)
 
 __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
   ut_consolidate_tracks::Parameters parameters,
-  const uint* dev_unique_x_sector_layer_offsets)
+  const unsigned* dev_unique_x_sector_layer_offsets)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
-  const uint total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
   const UT::TrackHits* event_veloUT_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   const UT::HitOffsets ut_hit_offsets {
@@ -136,11 +136,11 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
     event_number,
     number_of_events};
 
-  const uint number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = ut_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // Loop over tracks.
-  for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     const UT::TrackHits& track = event_veloUT_tracks[i];
 
     ut_tracks.velo_track(i) = track.velo_track_index;
@@ -154,31 +154,31 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
     UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(parameters.dev_ut_track_hits, i);
 
     // Populate the consolidated hits.
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint j) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.yBegin(hit_number) = ut_hits.yBegin(j + event_offset);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint j) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.yEnd(hit_number) = ut_hits.yEnd(j + event_offset);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint j) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.zAtYEq0(hit_number) = ut_hits.zAtYEq0(j + event_offset);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint j) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.xAtYEq0(hit_number) = ut_hits.xAtYEq0(j + event_offset);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint j) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.id(hit_number) = ut_hits.id(j + event_offset);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint j) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.weight(hit_number) = ut_hits.weight(j + event_offset);
     });
 
-    populate_plane_code(track, [&consolidated_hits, &event_offset](const uint hit_number, const uint j) {
+    populate_plane_code(track, [&consolidated_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.plane_code(hit_number) = static_cast<uint8_t>(j + event_offset);
     });
   }

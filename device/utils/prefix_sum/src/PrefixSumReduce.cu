@@ -3,12 +3,12 @@
 /**
  * @brief Up-Sweep
  */
-__device__ void up_sweep_512(uint* data_block)
+__device__ void up_sweep_512(unsigned* data_block)
 {
-  uint starting_elem = 1;
-  for (uint i = 2; i <= 512; i <<= 1) {
-    for (uint j = 0; j < (511 + blockDim.x) / i; ++j) {
-      const uint element = starting_elem + (j * blockDim.x + threadIdx.x) * i;
+  unsigned starting_elem = 1;
+  for (unsigned i = 2; i <= 512; i <<= 1) {
+    for (unsigned j = 0; j < (511 + blockDim.x) / i; ++j) {
+      const unsigned element = starting_elem + (j * blockDim.x + threadIdx.x) * i;
       if (element < 512) {
         data_block[element] += data_block[element - (i >> 1)];
       }
@@ -21,10 +21,10 @@ __device__ void up_sweep_512(uint* data_block)
 /**
  * @brief Down-sweep
  */
-__device__ void down_sweep_512(uint* data_block)
+__device__ void down_sweep_512(unsigned* data_block)
 {
-  for (uint i = 512; i >= 2; i >>= 1) {
-    for (uint j = 0; j < (511 + blockDim.x) / i; ++j) {
+  for (unsigned i = 512; i >= 2; i >>= 1) {
+    for (unsigned j = 0; j < (511 + blockDim.x) / i; ++j) {
       const auto element = 511 - (j * blockDim.x + threadIdx.x) * i;
       if (element < 512) {
         const auto other_element = element - (i >> 1);
@@ -51,15 +51,15 @@ __device__ void down_sweep_512(uint* data_block)
  *          Note: 512 is the block size, optimal for the maximum
  *          number of threads in a block, 1024 threads.
  */
-__global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size)
+__global__ void prefix_sum_reduce(unsigned* dev_main_array, unsigned* dev_auxiliary_array, const unsigned array_size)
 {
   // Use a data block size of 512
-  __shared__ uint data_block[512];
+  __shared__ unsigned data_block[512];
 
   // Let's do it in blocks of 512 (2^9)
-  const uint last_block = array_size >> 9;
+  const unsigned last_block = array_size >> 9;
   if (blockIdx.x < last_block) {
-    const uint first_elem = blockIdx.x << 9;
+    const unsigned first_elem = blockIdx.x << 9;
 
     // Load elements into shared memory, add prev_last_elem
     data_block[threadIdx.x] = dev_main_array[first_elem + threadIdx.x];
@@ -67,7 +67,7 @@ __global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_arra
 
     __syncthreads();
 
-    up_sweep_512((uint*) &data_block[0]);
+    up_sweep_512((unsigned*) &data_block[0]);
 
     if (threadIdx.x == 0) {
       dev_auxiliary_array[blockIdx.x] = data_block[511];
@@ -76,7 +76,7 @@ __global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_arra
 
     __syncthreads();
 
-    down_sweep_512((uint*) &data_block[0]);
+    down_sweep_512((unsigned*) &data_block[0]);
 
     // Store back elements
     // assert( first_elem + threadIdx.x + blockDim.x < number_of_events * VeloTracking::n_modules + 2);
@@ -108,7 +108,7 @@ __global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_arra
 
       __syncthreads();
 
-      up_sweep_512((uint*) &data_block[0]);
+      up_sweep_512((unsigned*) &data_block[0]);
 
       // Store sum of all elements
       if (threadIdx.x == 0) {
@@ -118,7 +118,7 @@ __global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_arra
 
       __syncthreads();
 
-      down_sweep_512((uint*) &data_block[0]);
+      down_sweep_512((unsigned*) &data_block[0]);
 
       // Store back elements
       if (elem_index < array_size) {

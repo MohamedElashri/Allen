@@ -77,7 +77,7 @@ chi2X(const int* indices, Muon::ConstHits& muon_hits_event, const int no_points,
 
   for (int i = 0; i < no_points; i++) {
 
-    uint i_h = indices[i];
+    unsigned i_h = indices[i];
     float d = muon_hits_event.x(i_h) - (a + b * muon_hits_event.z(i_h));
     prev += d * d / d2(muon_hits_event.dx(i_h));
   }
@@ -90,7 +90,7 @@ chi2X(const int* indices, Muon::ConstHits& muon_hits_event, const int no_points,
  */
 __device__ std::tuple<float, float, float, float> stationWindow(
   const KalmanVeloState& state,
-  const uint& i_station,
+  const unsigned& i_station,
   const MatchUpstreamMuon::Hit& magnet_hit,
   const float& slope,
   const float& station_z,
@@ -121,7 +121,7 @@ __device__ std::tuple<float, float, float, float> stationWindow(
 __device__ std::tuple<float, float, float, float> firstStationWindow(
   const float& qop,
   const KalmanVeloState& state,
-  const uint& i_station,
+  const unsigned& i_station,
   const float& station_z,
   const MatchUpstreamMuon::Hit& magnet_hit,
   const float* magnet_polarity,
@@ -153,10 +153,10 @@ __device__ std::tuple<float, float, float, float> firstStationWindow(
 }
 
 __device__ int findHit(
-  const uint& i_station,
+  const unsigned& i_station,
   const KalmanVeloState& state,
   const MatchUpstreamMuon::Hit& magnet_hit,
-  const uint* station_ocurrences_offset,
+  const unsigned* station_ocurrences_offset,
   Muon::ConstHits& muon_hits_event,
   const float& slope,
   const MatchUpstreamMuon::SearchWindows& Windows)
@@ -177,9 +177,9 @@ __device__ int findHit(
 
   float min_dist2 = -1.f;
 
-  uint station_offset = station_ocurrences_offset[i_station];
+  unsigned station_offset = station_ocurrences_offset[i_station];
 
-  for (uint i = 0; i < station_ocurrences_offset[i_station + 1] - station_ocurrences_offset[i_station]; ++i) {
+  for (unsigned i = 0; i < station_ocurrences_offset[i_station + 1] - station_ocurrences_offset[i_station]; ++i) {
 
     const int i_h = i + station_offset;
 
@@ -222,7 +222,7 @@ __device__ std::pair<float, float> fit_linearX(
 
   for (int i = 0; i < no_points; i++) {
 
-    uint i_h = indices[i];
+    unsigned i_h = indices[i];
     float dx2 = d2(muon_hits_event.dx(i_h));
 
     S += 1.f / dx2;
@@ -242,7 +242,7 @@ __device__ std::pair<float, float> fit_linearX(
   for (int i = 0; i < no_points; i++) {
 
     // MatchUpstreamMuon::Hit it = points[i];
-    uint i_h = indices[i];
+    unsigned i_h = indices[i];
 
     const float t_i = (muon_hits_event.z(i_h) - alpha);
     // float dx2 = muon_hits_event.dx(i_h) * muon_hits_event.dx(i_h) / 12;
@@ -264,7 +264,7 @@ __device__ std::pair<float, float> fit_linearX(
 __device__ bool match(
   const float& qop,
   const KalmanVeloState& state,
-  const uint* station_ocurrences_offset,
+  const unsigned* station_ocurrences_offset,
   Muon::ConstHits& muon_hits_event,
   const float* magnet_polarity,
   const MatchUpstreamMuon::MuonChambers& MuCh,
@@ -281,7 +281,7 @@ __device__ bool match(
   for (auto it = MuCh.firstOffsets[tt - 1]; it < MuCh.firstOffsets[tt]; it++) {
 
     const int& ist = MuCh.first[it];
-    uint station_offset = station_ocurrences_offset[ist];
+    unsigned station_offset = station_ocurrences_offset[ist];
 
     std::tuple<float, float, float, float> firstWindow =
       firstStationWindow(qop, state, ist, muon_hits_event.z(station_offset), magnet_hit, magnet_polarity, Windows);
@@ -291,7 +291,7 @@ __device__ bool match(
     // const float& yMin = std::get<2>(firstWindow);
     // const float& yMax = std::get<3>(firstWindow);
 
-    for (uint i = 0; i < station_ocurrences_offset[ist + 1] - station_ocurrences_offset[ist]; ++i) {
+    for (unsigned i = 0; i < station_ocurrences_offset[ist + 1] - station_ocurrences_offset[ist]; ++i) {
 
       int i_h = i + station_offset;
 

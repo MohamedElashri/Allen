@@ -81,10 +81,10 @@ namespace ParKalmanFilter {
     KalmanFloat ipChi2;
     KalmanFloat ip;
     
-    uint ndof;
-    uint ndofV;
-    uint ndofT;
-    uint nhits;
+    unsigned ndof;
+    unsigned ndofV;
+    unsigned ndofT;
+    unsigned nhits;
 
     bool is_muon;
 

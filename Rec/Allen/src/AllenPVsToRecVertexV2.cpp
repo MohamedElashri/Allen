@@ -48,8 +48,8 @@ LHCb::Event::v2::RecVertices AllenPVsToRecVertexV2::operator()(
   const ConditionHolders::Beamline_t& beamline) const
 {
 
-  const uint i_event = 0;
-  const uint n_pvs = host_buffers.host_number_of_multivertex[i_event];
+  const unsigned i_event = 0;
+  const unsigned n_pvs = host_buffers.host_number_of_multivertex[i_event];
 
   if (msgLevel(MSG::DEBUG)) debug() << "Number of PVs to convert = " << n_pvs << endmsg;
 

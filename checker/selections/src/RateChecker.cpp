@@ -15,9 +15,9 @@ void RateChecker::report(const size_t requested_events) const
     }
   }
 
-  for (uint i_line = 0; i_line < m_line_names.size(); i_line++) {
+  for (unsigned i_line = 0; i_line < m_line_names.size(); i_line++) {
     std::printf("%s:", m_line_names[i_line].c_str());
-    for (uint i = 0; i < longest_string - m_line_names[i_line].length(); ++i) {
+    for (unsigned i = 0; i < longest_string - m_line_names[i_line].length(); ++i) {
       std::printf(" ");
     }
 
@@ -30,7 +30,7 @@ void RateChecker::report(const size_t requested_events) const
   }
 
   std::printf("Inclusive:");
-  for (uint i = 0; i < longest_string - 9; ++i) {
+  for (unsigned i = 0; i < longest_string - 9; ++i) {
     std::printf(" ");
   }
 

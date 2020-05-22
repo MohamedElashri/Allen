@@ -3,12 +3,12 @@
 /**
  * @brief Up-Sweep
  */
-__device__ void up_sweep_2048(uint* data_block)
+__device__ void up_sweep_2048(unsigned* data_block)
 {
-  uint starting_elem = 1;
-  for (uint i = 2; i <= 2048; i <<= 1) {
-    for (uint j = 0; j < (2047 + blockDim.x) / i; ++j) {
-      const uint element = starting_elem + (j * blockDim.x + threadIdx.x) * i;
+  unsigned starting_elem = 1;
+  for (unsigned i = 2; i <= 2048; i <<= 1) {
+    for (unsigned j = 0; j < (2047 + blockDim.x) / i; ++j) {
+      const unsigned element = starting_elem + (j * blockDim.x + threadIdx.x) * i;
       if (element < 2048) {
         data_block[element] += data_block[element - (i >> 1)];
       }
@@ -21,10 +21,10 @@ __device__ void up_sweep_2048(uint* data_block)
 /**
  * @brief Down-sweep
  */
-__device__ void down_sweep_2048(uint* data_block)
+__device__ void down_sweep_2048(unsigned* data_block)
 {
-  for (uint i = 2048; i >= 2; i >>= 1) {
-    for (uint j = 0; j < (2047 + blockDim.x) / i; ++j) {
+  for (unsigned i = 2048; i >= 2; i >>= 1) {
+    for (unsigned j = 0; j < (2047 + blockDim.x) / i; ++j) {
       const auto element = 2047 - (j * blockDim.x + threadIdx.x) * i;
       if (element < 2048) {
         const auto other_element = element - (i >> 1);
@@ -38,15 +38,15 @@ __device__ void down_sweep_2048(uint* data_block)
 }
 
 __device__ void
-prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, const uint array_size, uint* data_block)
+prefix_sum_single_block_implementation(unsigned* dev_total_sum, unsigned* dev_array, const unsigned array_size, unsigned* data_block)
 {
   // Prefix sum of elements in dev_array
   // Using Blelloch scan https://www.youtube.com/watch?v=mmYv3Haj6uc
 
   // Let's do it in blocks of 2048 (2^11)
   unsigned prev_last_elem = 0;
-  for (uint block = 0; block < (array_size >> 11); ++block) {
-    const uint first_elem = block << 11;
+  for (unsigned block = 0; block < (array_size >> 11); ++block) {
+    const unsigned first_elem = block << 11;
 
     // Load elements into shared memory, add prev_last_elem
     data_block[2 * threadIdx.x] = dev_array[first_elem + 2 * threadIdx.x];
@@ -54,15 +54,15 @@ prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, con
 
     __syncthreads();
 
-    up_sweep_2048((uint*) &data_block[0]);
+    up_sweep_2048((unsigned*) &data_block[0]);
 
-    const uint new_last_elem = data_block[2047];
+    const unsigned new_last_elem = data_block[2047];
 
     __syncthreads();
     data_block[2047] = 0;
     __syncthreads();
 
-    down_sweep_2048((uint*) &data_block[0]);
+    down_sweep_2048((unsigned*) &data_block[0]);
 
     // Store back elements
     dev_array[first_elem + 2 * threadIdx.x] = data_block[2 * threadIdx.x] + prev_last_elem;
@@ -93,7 +93,7 @@ prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, con
 
     __syncthreads();
 
-    up_sweep_2048((uint*) &data_block[0]);
+    up_sweep_2048((unsigned*) &data_block[0]);
 
     // Store sum of all elements
     if (threadIdx.x == 0) {
@@ -104,7 +104,7 @@ prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, con
     data_block[2047] = 0;
     __syncthreads();
 
-    down_sweep_2048((uint*) &data_block[0]);
+    down_sweep_2048((unsigned*) &data_block[0]);
 
     // Store back elements
     if (elem_index < array_size) {
@@ -122,23 +122,23 @@ prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, con
   }
 }
 
-__global__ void prefix_sum_single_block(uint* dev_total_sum, uint* dev_array, const uint array_size)
+__global__ void prefix_sum_single_block(unsigned* dev_total_sum, unsigned* dev_array, const unsigned array_size)
 {
-  __shared__ uint data_block[2048];
+  __shared__ unsigned data_block[2048];
 
   prefix_sum_single_block_implementation(dev_total_sum, dev_array, array_size, data_block);
 }
 
 __global__ void copy_and_prefix_sum_single_block(
-  uint* dev_total_sum,
-  uint* dev_input_array,
-  uint* dev_output_array,
-  const uint array_size)
+  unsigned* dev_total_sum,
+  unsigned* dev_input_array,
+  unsigned* dev_output_array,
+  const unsigned array_size)
 {
-  __shared__ uint data_block[2048];
+  __shared__ unsigned data_block[2048];
 
   // Copy the input array into the output array
-  for (uint i = 0; i < (array_size + blockDim.x - 1) / blockDim.x; ++i) {
+  for (unsigned i = 0; i < (array_size + blockDim.x - 1) / blockDim.x; ++i) {
     const auto element = i * blockDim.x + threadIdx.x;
     if (element < array_size) {
       dev_output_array[element] = dev_input_array[element];
@@ -152,15 +152,15 @@ __global__ void copy_and_prefix_sum_single_block(
 }
 
 __global__ void copy_square_and_prefix_sum_single_block(
-  uint* dev_total_sum,
-  uint* dev_input_array,
-  uint* dev_output_array,
-  const uint array_size)
+  unsigned* dev_total_sum,
+  unsigned* dev_input_array,
+  unsigned* dev_output_array,
+  const unsigned array_size)
 {
-  __shared__ uint data_block[2048];
+  __shared__ unsigned data_block[2048];
 
   // Copy N(N-1)/2 to the output location.
-  for (uint i = 0; i < (array_size + blockDim.x - 1) / blockDim.x; ++i) {
+  for (unsigned i = 0; i < (array_size + blockDim.x - 1) / blockDim.x; ++i) {
     const auto element = i * blockDim.x + threadIdx.x;
     if (element < array_size) {
       dev_output_array[element] = (dev_input_array[element] * (dev_input_array[element] - 1)) >> 1;
@@ -177,8 +177,8 @@ __global__ void copy_square_and_prefix_sum_single_block(
  */
 __global__ void copy_velo_track_hit_number(
   const Velo::TrackHits* dev_tracks,
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number)
+  unsigned* dev_atomics_storage,
+  unsigned* dev_velo_track_hit_number)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -187,9 +187,9 @@ __global__ void copy_velo_track_hit_number(
   const auto number_of_tracks = dev_atomics_storage[event_number];
 
   // Pointer to velo_track_hit_number of current event
-  uint* velo_track_hit_number = dev_velo_track_hit_number + accumulated_tracks;
+  unsigned* velo_track_hit_number = dev_velo_track_hit_number + accumulated_tracks;
 
-  for (uint element = threadIdx.x; element < number_of_tracks; ++element) {
+  for (unsigned element = threadIdx.x; element < number_of_tracks; ++element) {
     velo_track_hit_number[element] = event_tracks[element].hitsNum;
   }
 }
@@ -199,8 +199,8 @@ __global__ void copy_velo_track_hit_number(
  */
 __global__ void copy_ut_track_hit_number(
   const UT::TrackHits* dev_veloUT_tracks,
-  uint* dev_atomics_veloUT,
-  uint* dev_ut_track_hit_number)
+  unsigned* dev_atomics_veloUT,
+  unsigned* dev_ut_track_hit_number)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -209,10 +209,10 @@ __global__ void copy_ut_track_hit_number(
   const auto number_of_tracks = dev_atomics_veloUT[event_number];
 
   // Pointer to ut_track_hit_number of current event.
-  uint* ut_track_hit_number = dev_ut_track_hit_number + accumulated_tracks;
+  unsigned* ut_track_hit_number = dev_ut_track_hit_number + accumulated_tracks;
 
   // Loop over tracks.
-  for (uint element = threadIdx.x; element < number_of_tracks; ++element) {
+  for (unsigned element = threadIdx.x; element < number_of_tracks; ++element) {
     ut_track_hit_number[element] = event_tracks[element].hits_num;
   }
 }
@@ -221,10 +221,10 @@ __global__ void copy_ut_track_hit_number(
  * @brief Copies SciFi track hit numbers to a consecutive container.
  */
 __global__ void copy_scifi_track_hit_number(
-  const uint* dev_atomics_ut,
+  const unsigned* dev_atomics_ut,
   const SciFi::TrackHits* dev_scifi_tracks,
-  uint* dev_n_scifi_tracks,
-  uint* dev_scifi_track_hit_number)
+  unsigned* dev_n_scifi_tracks,
+  unsigned* dev_scifi_track_hit_number)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -239,10 +239,10 @@ __global__ void copy_scifi_track_hit_number(
   const auto number_of_tracks = dev_n_scifi_tracks[event_number];
 
   // Pointer to scifi_track_hit_number of current event.
-  uint* scifi_track_hit_number = dev_scifi_track_hit_number + accumulated_tracks;
+  unsigned* scifi_track_hit_number = dev_scifi_track_hit_number + accumulated_tracks;
 
   // Loop over tracks.
-  for (uint element = threadIdx.x; element < number_of_tracks; ++element) {
+  for (unsigned element = threadIdx.x; element < number_of_tracks; ++element) {
     scifi_track_hit_number[element] = event_tracks[element].hitsNum;
   }
 }

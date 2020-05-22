@@ -45,7 +45,7 @@ TFile* CheckerInvoker::root_file(std::string const& root_file) const
 
 MCEvents CheckerInvoker::load(
   std::string const mc_folder,
-  std::vector<std::tuple<uint, unsigned long>> const& events,
+  std::vector<std::tuple<unsigned, unsigned long>> const& events,
   std::vector<bool> const& event_mask,
   std::string const tracks_folder,
   std::string const pvs_folder) const

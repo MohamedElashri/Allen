@@ -158,16 +158,16 @@ namespace Hlt1 {
   struct TraverseImpl<std::tuple<>, std::index_sequence<>, void> {
     __device__ constexpr static void traverse(
       bool*,
-      const uint*,
-      const uint*,
-      const uint*,
+      const unsigned*,
+      const unsigned*,
+      const unsigned*,
       const ParKalmanFilter::FittedTrack*,
       const VertexFit::TrackMVAVertex*,
       const char*,
-      const uint,
-      const uint,
-      const uint,
-      const uint)
+      const unsigned,
+      const unsigned,
+      const unsigned,
+      const unsigned)
     {}
   };
 
@@ -178,20 +178,20 @@ namespace Hlt1 {
     typename std::enable_if<std::is_base_of<OneTrackLine, T>::value>::type> {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_offsets_forward_tracks,
-      const uint* dev_sv_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
       const char* event_odin_data,
-      const uint number_of_velo_tracks,
-      const uint event_number,
-      const uint number_of_tracks_in_event,
-      const uint number_of_vertices_in_event)
+      const unsigned number_of_velo_tracks,
+      const unsigned event_number,
+      const unsigned number_of_tracks_in_event,
+      const unsigned number_of_vertices_in_event)
     {
       bool* decisions = dev_sel_results + dev_sel_results_offsets[I] + dev_offsets_forward_tracks[event_number];
 
-      for (uint i = threadIdx.x; i < number_of_tracks_in_event; i += blockDim.x) {
+      for (unsigned i = threadIdx.x; i < number_of_tracks_in_event; i += blockDim.x) {
         decisions[i] = T::function(event_tracks[i]);
       }
 
@@ -217,16 +217,16 @@ namespace Hlt1 {
     typename std::enable_if<std::is_base_of<VeloLine, T>::value>::type> {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_offsets_forward_tracks,
-      const uint* dev_sv_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
       const char* event_odin_data,
-      const uint number_of_velo_tracks,
-      const uint event_number,
-      const uint number_of_tracks_in_event,
-      const uint number_of_vertices_in_event)
+      const unsigned number_of_velo_tracks,
+      const unsigned event_number,
+      const unsigned number_of_tracks_in_event,
+      const unsigned number_of_vertices_in_event)
     {
       bool* decisions = dev_sel_results + dev_sel_results_offsets[I] + event_number;
 
@@ -256,20 +256,20 @@ namespace Hlt1 {
     typename std::enable_if<std::is_base_of<TwoTrackLine, T>::value>::type> {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_offsets_forward_tracks,
-      const uint* dev_sv_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
       const char* event_odin_data,
-      const uint number_of_velo_tracks,
-      const uint event_number,
-      const uint number_of_tracks_in_event,
-      const uint number_of_vertices_in_event)
+      const unsigned number_of_velo_tracks,
+      const unsigned event_number,
+      const unsigned number_of_tracks_in_event,
+      const unsigned number_of_vertices_in_event)
     {
       bool* decisions = dev_sel_results + dev_sel_results_offsets[I] + dev_sv_offsets[event_number];
 
-      for (uint i = threadIdx.x; i < number_of_vertices_in_event; i += blockDim.x) {
+      for (unsigned i = threadIdx.x; i < number_of_vertices_in_event; i += blockDim.x) {
         decisions[i] = T::function(event_vertices[i]);
       }
 
@@ -295,16 +295,16 @@ namespace Hlt1 {
     typename std::enable_if<std::is_base_of<SpecialLine, T>::value>::type> {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_offsets_forward_tracks,
-      const uint* dev_sv_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
       const char* event_odin_data,
-      const uint number_of_velo_tracks,
-      const uint event_number,
-      const uint number_of_tracks_in_event,
-      const uint number_of_vertices_in_event)
+      const unsigned number_of_velo_tracks,
+      const unsigned event_number,
+      const unsigned number_of_tracks_in_event,
+      const unsigned number_of_vertices_in_event)
     {
       // Ignore the special lines
       TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
@@ -326,16 +326,16 @@ namespace Hlt1 {
   struct Traverse {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_offsets_forward_tracks,
-      const uint* dev_sv_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
       const char* event_odin_data,
-      const uint number_of_velo_tracks,
-      const uint event_number,
-      const uint number_of_tracks_in_event,
-      const uint number_of_vertices_in_event)
+      const unsigned number_of_velo_tracks,
+      const unsigned event_number,
+      const unsigned number_of_tracks_in_event,
+      const unsigned number_of_vertices_in_event)
     {
       TraverseImpl<T, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(
         dev_sel_results,
@@ -358,7 +358,7 @@ namespace Hlt1 {
 
   template<>
   struct SpecialLineTraverseImpl<std::tuple<>, std::index_sequence<>, void> {
-    __device__ constexpr static void traverse(bool*, const uint*, const uint*, const char*, const uint) {}
+    __device__ constexpr static void traverse(bool*, const unsigned*, const unsigned*, const char*, const unsigned) {}
   };
 
   template<typename T, typename... OtherLines, unsigned long I, unsigned long... Is>
@@ -368,10 +368,10 @@ namespace Hlt1 {
     typename std::enable_if<!std::is_base_of<SpecialLine, T>::value>::type> {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_odin_raw_input_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_odin_raw_input_offsets,
       const char* dev_odin_raw_input,
-      const uint number_of_events)
+      const unsigned number_of_events)
     {
       SpecialLineTraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
         dev_sel_results, dev_sel_results_offsets, dev_odin_raw_input_offsets, dev_odin_raw_input, number_of_events);
@@ -385,14 +385,14 @@ namespace Hlt1 {
     typename std::enable_if<std::is_base_of<SpecialLine, T>::value>::type> {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_odin_raw_input_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_odin_raw_input_offsets,
       const char* dev_odin_raw_input,
-      const uint number_of_events)
+      const unsigned number_of_events)
     {
       bool* decision = dev_sel_results + dev_sel_results_offsets[I];
 
-      for (uint i = threadIdx.x; i < number_of_events; i += blockDim.x) {
+      for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
         decision[i] = T::function(dev_odin_raw_input + dev_odin_raw_input_offsets[i]);
       }
 
@@ -405,10 +405,10 @@ namespace Hlt1 {
   struct SpecialLineTraverse {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_odin_raw_input_offsets,
+      const unsigned* dev_sel_results_offsets,
+      const unsigned* dev_odin_raw_input_offsets,
       const char* dev_odin_raw_input,
-      const uint number_of_events)
+      const unsigned number_of_events)
     {
       SpecialLineTraverseImpl<T, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(
         dev_sel_results, dev_sel_results_offsets, dev_odin_raw_input_offsets, dev_odin_raw_input, number_of_events);

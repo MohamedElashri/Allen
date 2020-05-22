@@ -29,12 +29,12 @@ void saxpy::saxpy_t::operator()(
  */
 __global__ void saxpy::saxpy(saxpy::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x * blockDim.x + threadIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x;
 
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
 
   if (event_number < number_of_events)
     parameters.dev_saxpy_output[event_number] =

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tuple>
+#include <array>
 
 // Avoid warnings from the hana library from nvcc and clang
 #ifdef __CUDACC__
@@ -20,9 +21,6 @@
 #elif defined(__clang__)
 #pragma clang diagnostic pop
 #endif
-
-// Define uint for libclang
-using uint = unsigned int;
 
 // Datatypes can be host or device.
 // Note: These structs need to be not templated.
@@ -100,14 +98,14 @@ struct output_datatype : datatype<internal_t> {
     void inline parameter(__VA_ARGS__) {}                                     \
   }
 
-// Struct that mimics std::array<uint, 3> and works with CUDA.
+// Struct that mimics std::array<unsigned, 3> and works with CUDA.
 struct DeviceDimensions {
-  uint x;
-  uint y;
-  uint z;
+  unsigned x;
+  unsigned y;
+  unsigned z;
 
   constexpr DeviceDimensions() : x(1), y(1), z(1) {}
-  constexpr DeviceDimensions(const std::array<uint, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
+  constexpr DeviceDimensions(const std::array<unsigned, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
 };
 
 // A property datatype data holder.

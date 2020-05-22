@@ -30,7 +30,7 @@ void host_init_event_list::host_init_event_list_t::operator()(
   // Initialize buffers
   data<host_total_number_of_events_t>(arguments)[0] = number_of_events;
   data<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
-  for (uint i = 0; i < number_of_events; ++i) {
+  for (unsigned i = 0; i < number_of_events; ++i) {
     data<host_event_list_t>(arguments)[i] = i;
   }
 
