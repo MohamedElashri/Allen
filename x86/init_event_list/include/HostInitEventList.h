@@ -4,6 +4,11 @@
 
 namespace host_init_event_list {
   struct Parameters {
+    HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>) ut_banks;
+    HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>) ut_offsets;
+    HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
+    HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
+    HOST_OUTPUT(host_total_number_of_events_t, uint);
     HOST_OUTPUT(host_event_list_t, uint);
     HOST_OUTPUT(host_number_of_selected_events_t, uint);
     DEVICE_OUTPUT(dev_event_list_t, uint) dev_event_list;
@@ -22,6 +27,10 @@ namespace host_init_event_list {
     {
       const auto event_start = std::get<0>(runtime_options.event_interval);
       const auto event_end = std::get<1>(runtime_options.event_interval);
+      
+      set_size<host_total_number_of_events_t>(arguments, 1);
+      set_size<host_number_of_selected_events_t>(arguments, 1);
+      set_size<host_event_list_t>(arguments, event_end - event_start);
       set_size<dev_event_list_t>(arguments, event_end - event_start);
     }
 
@@ -38,6 +47,7 @@ namespace host_init_event_list {
       const auto number_of_events = event_end - event_start;
 
       // Initialize buffers
+      begin<host_total_number_of_events_t>(arguments)[0] = number_of_events;
       begin<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
       for (uint i = 0; i < number_of_events; ++i) {
         begin<host_event_list_t>(arguments)[i] = i;

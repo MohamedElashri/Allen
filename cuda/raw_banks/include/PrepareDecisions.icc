@@ -1,6 +1,6 @@
 template<typename T>
-__global__ void prepare_decisions::prepare_decisions(
-  prepare_decisions::Parameters parameters,
+__global__ void prepare_raw_banks::prepare_decisions(
+  prepare_raw_banks::Parameters parameters,
   const uint selected_number_of_events,
   const uint event_start)
 {

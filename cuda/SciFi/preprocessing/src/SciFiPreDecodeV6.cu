@@ -12,7 +12,7 @@ __device__ void store_sorted_cluster_reference_v6(
   uint32_t* shared_mat_count,
   const int raw_bank,
   const int it,
-  SciFi::Hits& hits,
+  uint32_t* cluster_references,
   const int condition,
   const int delta)
 {
@@ -33,7 +33,7 @@ __device__ void store_sorted_cluster_reference_v6(
   assert(uniqueGroupOrMat < SciFi::Constants::n_mat_groups_and_mats);
   hitIndex += shared_mat_offsets[uniqueGroupOrMat];
 
-  hits.cluster_reference(hitIndex) =
+  cluster_references[hitIndex] =
     (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition & 0x07) << 13 | (delta & 0xFF);
 }
 
@@ -41,7 +41,6 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   scifi_pre_decode_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const int number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
@@ -49,8 +48,6 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   const auto event =
     SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  Hits hits {parameters.dev_scifi_hits,
-             parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
@@ -91,7 +88,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
           shared_mat_count,
           current_raw_bank,
           it_number,
-          hits,
+          parameters.dev_cluster_references,
           condition,
           delta);
       };
@@ -133,14 +130,10 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
   scifi_pre_decode_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const int number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
   SciFiGeometry geom(scifi_geometry);
-
-  Hits hits {parameters.dev_scifi_hits,
-             parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
@@ -184,7 +177,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
           shared_mat_count,
           i,
           it_number,
-          hits,
+          parameters.dev_cluster_references,
           condition,
           delta);
       };

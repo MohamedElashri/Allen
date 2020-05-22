@@ -11,12 +11,12 @@ namespace package_sel_reports {
     HOST_INPUT(host_number_of_sel_rep_words_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
-    DEVICE_OUTPUT(dev_sel_rb_hits_t, uint) dev_sel_rb_hits;
-    DEVICE_OUTPUT(dev_sel_rb_stdinfo_t, uint) dev_sel_rb_stdinfo;
-    DEVICE_OUTPUT(dev_sel_rb_objtyp_t, uint) dev_sel_rb_objtyp;
-    DEVICE_OUTPUT(dev_sel_rb_substr_t, uint) dev_sel_rb_substr;
+    DEVICE_INPUT(dev_sel_rb_hits_t, uint) dev_sel_rb_hits;
+    DEVICE_INPUT(dev_sel_rb_stdinfo_t, uint) dev_sel_rb_stdinfo;
+    DEVICE_INPUT(dev_sel_rb_objtyp_t, uint) dev_sel_rb_objtyp;
+    DEVICE_INPUT(dev_sel_rb_substr_t, uint) dev_sel_rb_substr;
+    DEVICE_INPUT(dev_sel_rep_offsets_t, uint) dev_sel_rep_offsets;
     DEVICE_OUTPUT(dev_sel_rep_raw_banks_t, uint) dev_sel_rep_raw_banks;
-    DEVICE_OUTPUT(dev_sel_rep_offsets_t, uint) dev_sel_rep_offsets;
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X");
   };
 
@@ -61,8 +61,8 @@ namespace package_sel_reports {
                     begin<dev_sel_rb_stdinfo_t>(arguments),
                     begin<dev_sel_rb_objtyp_t>(arguments),
                     begin<dev_sel_rb_substr_t>(arguments),
-                    begin<dev_sel_rep_raw_banks_t>(arguments),
-                    begin<dev_sel_rep_offsets_t>(arguments)},
+                    begin<dev_sel_rep_offsets_t>(arguments),
+                    begin<dev_sel_rep_raw_banks_t>(arguments)},
         total_number_of_events,
         value<host_number_of_selected_events_t>(arguments),
         event_start);
