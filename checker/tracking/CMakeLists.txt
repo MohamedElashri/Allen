@@ -20,12 +20,12 @@ add_library(TrackChecking STATIC
 )
 target_include_directories(TrackChecking PUBLIC ${CPPGSL_INCLUDE_DIR})
 
-if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
+find_package(Filesystem)
+if(NOT Filesystem_FOUND)
   find_package(Boost COMPONENTS filesystem)
   target_compile_definitions(TrackChecking PRIVATE USE_BOOST_FILESYSTEM)
   target_link_libraries(TrackChecking PRIVATE Boost::filesystem)
 else()
-  find_package(Filesystem)
   target_link_libraries(TrackChecking PRIVATE std::filesystem)
 endif()
 
