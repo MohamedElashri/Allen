@@ -4,8 +4,8 @@
 #include "KalmanChecker.h"
 #include "PrepareKalmanTracks.h"
 
-template<typename T, char... S>
-struct SequenceVisitor<kalman_filter::kalman_filter_t<T, S...>> {
+template<>
+struct SequenceVisitor<kalman_filter::kalman_filter_t> {
   static void
   check(HostBuffers& host_buffers, const Constants& constants, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
   {
@@ -45,8 +45,8 @@ struct SequenceVisitor<kalman_filter::kalman_filter_t<T, S...>> {
   }
 };
 
-template<typename T, char... S>
-struct SequenceVisitor<kalman_velo_only::kalman_velo_only_t<T, S...>> {
+template<>
+struct SequenceVisitor<kalman_velo_only::kalman_velo_only_t> {
   static void
   check(HostBuffers& host_buffers, const Constants& constants, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
   {

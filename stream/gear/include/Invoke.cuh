@@ -1,4 +1,7 @@
+#pragma once
+
 #include "CudaCommon.h"
+#include "Logger.h"
 
 /**
  * @brief      Invokes a function specified by its function and arguments.
@@ -18,7 +21,7 @@ void invoke_impl(
   Fn&& function,
   const dim3& grid_dim,
   const dim3& block_dim,
-  cudaStream_t* stream,
+  cudaStream_t stream,
   const Tuple& invoke_arguments,
   std::index_sequence<I...>)
 {
@@ -41,9 +44,11 @@ void invoke_impl(
       }
     }
   }
-#elif defined(TARGET_DEVICE_HIP)
-  hipLaunchKernelGGL(function, grid_dim, block_dim, 0, *stream, std::get<I>(invoke_arguments)...);
+#elif defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))
+  hipLaunchKernelGGL(function, grid_dim, block_dim, 0, stream, std::get<I>(invoke_arguments)...);
+#elif (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__))
+  function<<<grid_dim, block_dim, 0, stream>>>(std::get<I>(invoke_arguments)...);
 #else
-  function<<<grid_dim, block_dim, 0, *stream>>>(std::get<I>(invoke_arguments)...);
+  error_cout << "Global function invoked with unexpected backend.\n";
 #endif
 }

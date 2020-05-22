@@ -6,8 +6,8 @@
  * @brief Specialization for any Velo reconstruction algorithm invoking
  *        consolidate_ut_tracks_t as last step.
  */
-template<typename T, char... S>
-struct SequenceVisitor<ut_consolidate_tracks::ut_consolidate_tracks_t<T, S...>> {
+template<>
+struct SequenceVisitor<ut_consolidate_tracks::ut_consolidate_tracks_t> {
   static void check(
     HostBuffers& host_buffers,
     const Constants&,

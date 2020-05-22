@@ -5,7 +5,7 @@
 #include <set>
 #include <algorithm>
 #include <cmath>
-#include "../../../x86/velo/clustering/include/Clustering.h"
+#include "Clustering.h"
 
 void checkClustering(
   const std::vector<char>& geometry,

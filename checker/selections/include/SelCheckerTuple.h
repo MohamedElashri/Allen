@@ -43,18 +43,17 @@ public:
     const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_mf_sv_decisions[line_name].clear();
     };
-    Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(
-      lambda_velo_ut_two_track_fn);
+    Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine>::traverse(lambda_velo_ut_two_track_fn);
 
     const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_sv_decisions[line_name].clear();
     };
-    Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+    Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine>::traverse(lambda_two_track_fn);
 
     const auto lambda_one_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_trk_decisions[line_name].clear();
     };
-    Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+    Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine>::traverse(lambda_one_track_fn);
   }
 
   void make_branch(
@@ -81,18 +80,17 @@ public:
       const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
         make_branch(line_name, "mf_sv_pass_", m_mf_sv_decisions);
       };
-      Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(
-        lambda_velo_ut_two_track_fn);
+      Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine>::traverse(lambda_velo_ut_two_track_fn);
 
       const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
         make_branch(line_name, "sv_pass_", m_sv_decisions);
       };
-      Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+      Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine>::traverse(lambda_two_track_fn);
 
       const auto lambda_one_track_fn = [&](const unsigned long, const std::string& line_name) {
         make_branch(line_name, "trk_pass_", m_trk_decisions);
       };
-      Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+      Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine>::traverse(lambda_one_track_fn);
     }
 
     for (size_t i_event = 0; i_event < mc_events.size(); ++i_event) {
@@ -131,7 +129,7 @@ public:
             const bool* decs = sel_results + sel_results_offsets[i_line] + track_offsets[i_event];
             m_trk_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
           };
-          Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+          Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine>::traverse(lambda_one_track_fn);
         }
       }
 
@@ -150,7 +148,7 @@ public:
           const bool* decs = sel_results + sel_results_offsets[i_line] + sv_offsets[i_event];
           m_sv_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
         };
-        Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+        Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine>::traverse(lambda_two_track_fn);
       }
       // TODO: Loop over VeloUT SVs.
     }

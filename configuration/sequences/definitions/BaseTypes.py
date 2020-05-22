@@ -110,9 +110,16 @@ def compatible_parameter_assignment(a, b):
 
 
 def check_input_parameter(parameter, assign_class, typename):
-    assert compatible_parameter_assignment(parameter.__class__, assign_class)
-    assert parameter.type() == Type(typename)
-    return assign_class(parameter.name(), parameter.type(), parameter.producer())
+    if typename == "int" or parameter.type() == Type("int"):
+        # If the type is int, unfortunately it is not possible to distinguish whether
+        # the parser parsed an unknown type or not, so just accept it
+        return assign_class(parameter.name(), parameter.type(),
+                            parameter.producer())
+    else:
+        assert compatible_parameter_assignment(type(parameter), assign_class)
+        assert parameter.type() == Type(typename)
+        return assign_class(parameter.name(), parameter.type(),
+                            parameter.producer())
 
 
 class HostInput(HostParameter, InputParameter):
@@ -134,7 +141,8 @@ class HostInput(HostParameter, InputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "HostInput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "HostInput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class HostOutput(HostParameter, OutputParameter):
@@ -156,7 +164,8 @@ class HostOutput(HostParameter, OutputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "HostOutput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "HostOutput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class DeviceInput(DeviceParameter, InputParameter):
@@ -178,7 +187,8 @@ class DeviceInput(DeviceParameter, InputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "DeviceInput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "DeviceInput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class DeviceOutput(DeviceParameter, OutputParameter):
@@ -200,7 +210,8 @@ class DeviceOutput(DeviceParameter, OutputParameter):
         return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "DeviceOutput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
+        return "DeviceOutput(\"" + self.__name + "\", " + repr(
+            self.__type) + ", " + self.__producer + ")"
 
 
 class Property():
@@ -268,7 +279,8 @@ class Sequence():
                     algorithm.parameters().items()):
                 if issubclass(parameter.__class__, OutputParameter):
                     if parameter.fullname() in output_names:
-                        output_names[parameter.fullname()].append(algorithm.name())
+                        output_names[parameter.fullname()].append(
+                            algorithm.name())
                     else:
                         output_names[parameter.fullname()] = [algorithm.name()]
 
@@ -337,20 +349,18 @@ class Sequence():
 
     def generate(self,
                  output_filename="Sequence.h",
+                 configured_lines_filename="ConfiguredLines.h",
                  json_configuration_filename="Sequence.json",
                  prefix_includes="../../"):
         # Check that sequence is valid
         print("Validating sequence...")
         if self.validate():
-            print("Generating sequence file...")
             # Add all the includes
-            s = "#pragma once\n\n#include <tuple>\n"
-            s += "#include \"" + prefix_includes + "cuda/selections/Hlt1/include/LineTraverser.cuh\"\n"
+            s = "#pragma once\n\n#include <tuple>\n#include \"" + configured_lines_filename + "\"\n"
+            s += "#include \"" + prefix_includes + "stream/gear/include/ArgumentManager.cuh\"\n"
             for _, algorithm in iter(self.__sequence.items()):
                 s += "#include \"" + prefix_includes + algorithm.filename(
                 ) + "\"\n"
-            for _, line in iter(self.__lines.items()):
-                s += "#include \"" + prefix_includes + line.filename() + "\"\n"
             s += "\n"
             # Generate all parameters
             parameters = OrderedDict([])
@@ -362,12 +372,13 @@ class Sequence():
                             (algorithm.name(), algorithm.namespace(),
                              parameter_t))
                     else:
-                        parameters[parameter.fullname()] = [(algorithm.name(),
-                                                         algorithm.namespace(),
-                                                         parameter_t)]
-            # Generate configuration
-            for paramenter_name, v in iter(parameters.items()):
-                s += "struct " + paramenter_name + " : "
+                        parameters[parameter.fullname()] = [
+                            (algorithm.name(), algorithm.namespace(),
+                             parameter_t)
+                        ]
+            # Generate arguments
+            for parameter_name, v in iter(parameters.items()):
+                s += "struct " + parameter_name + " : "
                 inheriting_classes = []
                 for algorithm_name, algorithm_namespace, parameter_t in v:
                     parameter = algorithm_namespace + "::Parameters::" + parameter_t
@@ -376,14 +387,21 @@ class Sequence():
                 for inheriting_class in inheriting_classes:
                     s += inheriting_class + ", "
                 s = s[:-2]
-                s += " { constexpr static auto name {\"" + paramenter_name + "\"}; size_t size; char* offset; };\n"
-            # Generate lines
-            s += "\nusing configured_lines_t = std::tuple<"
-            for _, line in iter(self.__lines.items()):
-                s += line.namespace() + "::" + line.name() + ", "
-            if len(self.__lines) > 0:
-                s = s[:-2]
-            s += ">;\n"
+                s += " { \
+void set_size(size_t size) override { m_size = size; } \
+size_t size() const override { return m_size; } \
+std::string name() const override { return \"" + parameter_name + "\"; } \
+void set_offset(char* offset) override { m_offset = offset; } \
+char* offset() const override { return m_offset; } \
+private: \
+    size_t m_size = 0; \
+    char* m_offset = nullptr; };\n"
+
+            # Generate argument tuple
+            s += "\nusing configured_arguments_t = std::tuple<\n"
+            for parameter_name in parameters.keys():
+                s += prefix(1) + parameter_name + ",\n"
+            s = s[:-2] + ">;\n"
             # Generate sequence
             s += "\nusing configured_sequence_t = std::tuple<\n"
             i_alg = 0
@@ -391,36 +409,56 @@ class Sequence():
                 i_alg += 1
                 # Add algorithm namespace::name
                 s += prefix(1) + algorithm.namespace(
-                ) + "::" + algorithm.original_name() + "<std::tuple<"
+                ) + "::" + algorithm.original_name()
                 i = 0
-                # Add parameters
+                if i_alg != len(self.__sequence):
+                    s += ",\n"
+            s += ">;\n\n"
+            # Generate argument tuple for each step of the sequence
+            s += "using configured_sequence_arguments_t = std::tuple<\n"
+            for _, algorithm in iter(self.__sequence.items()):
+                s += prefix(1) + "std::tuple<"
+                i = 0
                 for parameter_t, parameter in iter(
                         algorithm.parameters().items()):
-                    i += 1
                     s += parameter.fullname()
+                    i += 1
                     if i != len(algorithm.parameters()):
                         s += ", "
-                s += ">, "
-                i = 0
-                # In case it is needed, pass the lines as an argument to the template
-                if algorithm.requires_lines():
-                    s += "configured_lines_t, "
-                # Add name
-                for c in algorithm.name():
-                    i += 1
-                    s += "'" + c + "'"
-                    if i != len(algorithm.name()):
-                        s += ", "
-                s += ">"
-                if i_alg != len(self.__sequence):
-                    s += ","
-                s += "\n"
-            s += ">;\n"
+                    else:
+                        s += ">"
+                s += ",\n"
+            s = s[:-2] + ">;\n\n"
+            # Generate populate_sequence_algorithm_names function
+            s += "void inline populate_sequence_algorithm_names(configured_sequence_t& sequence) {\n"
+            i = 0
+            for _, algorithm in iter(self.__sequence.items()):
+                s += prefix(1) + "std::get<" + str(
+                    i) + ">(sequence).set_name(\"" + algorithm.name(
+                    ) + "\");\n"
+                i += 1
+            s += "}\n"
             f = open(output_filename, "w")
             f.write(s)
             f.close()
             print("Generated sequence file " + output_filename)
-            print("Generating JSON configuration file...")
+            s = "#pragma once\n\n#include <tuple>\n"
+            s += "#include \"" + prefix_includes + "device/selections/Hlt1/include/LineTraverser.cuh\"\n"
+            for _, line in iter(self.__lines.items()):
+                s += "#include \"" + prefix_includes + line.filename() + "\"\n"
+            s += "\n"
+            # Generate lines
+            s += "using configured_lines_t = std::tuple<"
+            for _, line in iter(self.__lines.items()):
+                s += line.namespace() + "::" + line.name() + ", "
+            if len(self.__lines) > 0:
+                s = s[:-2]
+            s += ">;\n"
+            f = open(configured_lines_filename, "w")
+            f.write(s)
+            f.close()
+            print("Generated line configuration file " +
+                  configured_lines_filename)
             s = "{\n"
             i = 1
             for _, algorithm in iter(self.__sequence.items()):

@@ -320,7 +320,7 @@ extern "C" int allen(
   number_of_buffers = number_of_threads + n_mon + 1;
 
   // Print configured sequence
-  print_configured_sequence();
+  // print_configured_sequence();
 
   // Set a sane default for the number of events per input slice
   if (!events_per_slice && number_of_events_requested != 0) {

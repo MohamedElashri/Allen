@@ -2,9 +2,10 @@
 #include "SelCheckerTuple.h"
 #include "PrepareKalmanTracks.h"
 #include "RunHlt1.cuh"
+#include "ConfiguredLines.h"
 
-template<typename T, typename U, char... S>
-struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
+template<>
+struct SequenceVisitor<run_hlt1::run_hlt1_t> {
   static void check(
     HostBuffers& host_buffers,
     [[maybe_unused]] const Constants& constants,
@@ -12,7 +13,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
     [[maybe_unused]] MCEvents const& mc_events)
   {
     auto& checker = checker_invoker.checker<RateChecker>("HLT1 rates:");
-    checker.accumulate<U>(
+    checker.accumulate<configured_lines_t>(
       host_buffers.host_sel_results,
       host_buffers.host_sel_results_atomics,
       host_buffers.host_atomics_scifi,
@@ -46,7 +47,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
 
     auto& ntuple =
       checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
-    ntuple.accumulate<U>(
+    ntuple.accumulate<configured_lines_t>(
       mc_events,
       tracks,
       host_buffers.host_secondary_vertices,

@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Configuration.cuh"
+#include "Algorithm.cuh"
+#include "Property.cuh"
 #include "CudaCommon.h"
 #include "Logger.h"
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
-#include "HostFunction.cuh"
+#include "Property.cuh"
 #include "Argument.cuh"
 
 // Note: For the moment, a HostAlgorithm does not

@@ -2,7 +2,9 @@
 
 #include <vector>
 #include "BankTypes.h"
-#include "InputProvider.h"
+
+// Forward declare IInputProvider to avoid including "InputProvider.h" from device code
+struct IInputProvider;
 
 /**
  * @brief Runtime options singleton.

@@ -11,14 +11,14 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
 * CPU target: Any modern compiler can be used, such as gcc greater than 7.0:
     
-    ```shell
+    ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     ```
     
 * CUDA target: The latest supported compilers are gcc-8 and clang-6. CUDA is
   available in cvmfs as well:
 
-    ```shell
+    ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     ```
@@ -28,14 +28,11 @@ we show a proposed development setup with CVMFS and CentOS 7:
 * CUDACLANG target: A version of the clang compiler with ptx support is required,
   alongside a local installation of CUDA 10.1 (currently latest supported release):
 
-    ```shell
+    ```console
     source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
     ```
 
-Optionally you can compile the project with ROOT. Then, trees will be filled with variables to check when running the UT tracking or SciFi tracking algorithms on x86 architecture.
-In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
-
-[Building and running inside Docker](readme_docker.md)
+Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
 
 Where to find input
 ---------------------
@@ -56,7 +53,7 @@ If other inputs are required, follow these instructions for producing them:
 
 Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
 
-```shell
+```console
 python3 scripts/makeODIN.py /path/to/data/banks/
 ```
 
@@ -71,17 +68,22 @@ The build process doesn't differ from standard cmake projects:
 
     mkdir build
     cd build
-    cmake ..
+    cmake -DSTANDALONE=ON ..
     make
 
-There are some cmake options to configure the build process:
+The build process can be configured with cmake options. For a complete list of options and for editing them we suggest using the `ccmake` tool.
 
-* The sequence can be configured by specifying `-DSEQUENCE=<name_of_sequence>`. For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.h`, ie. `-DSEQUENCE=VeloPVUTSciFiDecoding`.
-* The build type can be specified to `RelWithDebInfo`, `Release` or `Debug`, e.g. `cmake -DCMAKE_BUILD_TYPE=Debug ..`
-* ROOT can be enabled to generate monitoring plots using `-DUSE_ROOT=ON`
-* If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
-* If multiple versions of CUDA are installed the desired CUDA version can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
-* Compilation for CPU can be chosen with `-DTARGET_DEVICE=CPU`, other available targets are `CUDA`, `HIP` and `CUDACLANG`. 
+    ccmake .
+
+Alternatively, cmake options can be passed with `-D` when invoking the cmake command (eg. `cmake -D<option>=<value> ..`). Here is a brief explanation of some options:
+
+* `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
+* `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU` (default), `CUDA`, `HIP` (experimental) and `CUDACLANG` (experimental).
+* `SEQUENCE` - Selects the sequence to be compiled (the sequence must be selected at compile time). For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.py` extension, ie. `-DSEQUENCE=VeloPVUTSciFiDecoding`.
+* `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo` (default), `Release` or `Debug`.
+* `USE_ROOT` - Configure to run with / without ROOT. `OFF` by default.
+* `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation. It only has effect if the target device is either `CUDA` or `CUDACLANG`.
+* `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
 
 ### As a Gaudi/LHCb project
 Two ways of calling Allen with Gaudi exist:
@@ -175,13 +177,13 @@ How to run it
 Some binary input files are included with the project for testing.
 A run of the program with the help option `-h` will let you know the basic options:
 
-    Usage: ./Allen -h
+    Usage: ./Allen
     -f, --folder {folder containing data directories}=../input/minbias/
-     -g, --geometry {folder containing detector configuration}=../input/detector_configuration/down/
+    -g, --geometry {folder containing detector configuration}=../input/detector_configuration/down/
     --mdf {comma-separated list of MDF files to use as input}
     --mep {comma-separated list of MEP files to use as input}
     --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)
-    --configuration {path to json file containing values of configurable algorithm constants}=../configuration/constants/default.json
+    --configuration {path to json file containing values of configurable algorithm constants}=Sequence.json
     --print-status {show status of buffer and socket}=0
     --print-config {show current algorithm configuration}=0
     --write-configuration {write current algorithm configuration to file}=0
@@ -204,53 +206,45 @@ A run of the program with the help option `-h` will let you know the basic optio
     --mpi-number-of-slices {Number of MPI network slices}=6
     -h {show this help}
 
-
 Here are some example run options:
 
-    # Run all input files once with the tracking validation
+    # Run all input files shipped with Allen once with the tracking validation
     ./Allen
 
     # Specify input files, run once over all of them with tracking validation
     ./Allen -f ../input/minbias/
 
-    # Run a total of 1000 events, round robin over the existing ones, without tracking validation
+    # Run a total of 1000 events once without tracking validation. If less than 1000 events are
+    # provided, the existing ones will be reused in round-robin.
     ./Allen -c 0 -n 1000
 
-    # Run four streams, each with 4000 events, 20 repetitions
+    # Run four streams, each with 4000 events, 20 repetitions, and no validation
     ./Allen -t 4 -n 4000 -r 20 -c 0
 
-    # Run one stream and print all memory allocations
-    ./Allen -n 5000 -p
+    # Run one stream with 5000 events and print all memory allocations
+    ./Allen -n 5000 -p 1
     
-Which GPU to use
----------------------
-For development purposes, a server with eight GTX 2080 Ti GPUs is set up in the online network.
-An online account is required to access it. If you need to create one, please send a request to lbonsupp@cern.ch.
+Where to develop for GPUs
+-------------------------
+
+For development purposes, a server with eight GeForce RTX 2080 Ti GPUs is set up in the online network.
+An online account is required to access it. If you need to create one, please send a request to [mailto:lbonsupp@cern.ch](lbonsupp@cern.ch).
 Enter the online network from lxplus with `ssh lbgw`. Then `ssh n4050101` to reach the GPU server.
-Allen input data is available in `/scratch/dcampora/allen_data/201907`.
 
+* Upon login, a GPU node will be automatically assigned to you.
+* A development environment is set (`gcc 8.2.0`, `cmake 3.14`, ROOT, NVIDIA binary path is added).
+* Allen input data is available locally under `/scratch/allen_data/201907`.
 
-How to measure throughput
-----------------------------
+### How to measure throughput
+
 Every merge request in Allen will automatically be tested in the CI system. As part of the tests, the throughput is measured on a number of different GPUs and a CPU.
-The result of the tests is published in this [mattermost channel][https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput].
+The results of the tests are published in this [mattermost channel](https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput).
 
 For local throughput measurements, we recommend the following settings in Allen standalone mode:
+
+```console
+nvprof ./Allen -f /scratch/allen_data/201907/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
 ```
-./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
-```
-
-
-How to profile it
-------------------
-For profiling, Nvidia's nvprof can be used.
-Since CUDA version 10.1, profiling was limited to the root user by default for security reasons. However, the system administrator of a GPU server can add a kernel module option such that regular users can use the profiler by following these instructions:
-
-Add a file containing "option nvidia NVreg_RestrictProfilingToAdminUsers=0" to the `/etc/modprobe.d/` directory and reboot the machine. This will load the nvidia kernel module with "NVreg_RestrictProfilingToAdminUsers=0".
-
-As a quick workaround one can also use the older version of nvprof:
-
-    /usr/local/cuda-10.0/bin/nvprof ./Allen -c 0 -n 1000
 
 
 ### Links to more readmes
@@ -260,3 +254,10 @@ The following readmes explain various aspects of Allen:
 * [This readme](selections.md ) explains how to add a new HLT1 line to Allen.
 * [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
 * [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore and Brunel.
+* [Building and running inside Docker](readme_docker.md).
+
+### Mattermost discussion channels
+
+* [Allen developers](https://mattermost.web.cern.ch/lhcb/channels/allen-developers) - Channel for any Allen algorithm development discussion.
+* [Allen core](https://mattermost.web.cern.ch/lhcb/channels/allen-core) - Discussion of Allen core features.
+* [AllenPR throughput](https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput) - Throughput reports from nightlies and MRs.

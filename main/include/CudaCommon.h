@@ -1,10 +1,7 @@
 #pragma once
 
 #include <stdexcept>
-#include <iostream>
 #include <cassert>
-
-#include "BankTypes.h"
 #include "LoggerCommon.h"
 
 #if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
@@ -397,20 +394,3 @@ struct ForwardType<const T, U> {
 };
 
 std::tuple<bool, int> get_device_id(std::string pci_bus_id);
-
-template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
-void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream)
-{
-  auto offset = args.template begin<DATA_ARG>();
-  for (gsl::span<char const> data_span : std::get<0>(bno)) {
-    cudaCheck(cudaMemcpyAsync(offset, data_span.data(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
-    offset += data_span.size_bytes();
-  }
-
-  cudaCheck(cudaMemcpyAsync(
-    args.template begin<OFFSET_ARG>(),
-    std::get<2>(bno).data(),
-    std::get<2>(bno).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-}
