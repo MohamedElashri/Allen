@@ -1,27 +1,33 @@
-#include "MuonSortByStation.cuh"
+#include "MuonPopulateHits.cuh"
 
-__global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station::Parameters parameters)
+__global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Parameters parameters)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
-  const auto number_of_hits = parameters.dev_atomics_muon[number_of_events + event_number];
+
+  const auto total_number_of_hits =
+    parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];
   const auto station_ocurrences_offset =
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
-  const auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
-  const auto storage_tdc_value =
-    parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
-  const auto muon_compact_hit = parameters.dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
-  auto permutation_station = parameters.dev_permutation_station.get() + event_number * Muon::Constants::max_numhits_per_event;
-  auto event_muon_hits = parameters.dev_muon_hits.get() + event_number;
 
-  // Populate number of hits per station and offsets
-  // TODO: There should be no need to re-populate this
-  for (uint i = threadIdx.x; i < Muon::Constants::n_stations; i += blockDim.x) {
-    event_muon_hits->station_offsets[i] = station_ocurrences_offset[i];
-    event_muon_hits->number_of_hits_per_station[i] = station_ocurrences_offset[i + 1] - station_ocurrences_offset[i];
-  }
+  const auto event_offset_hits = station_ocurrences_offset[0];
+  const auto number_of_hits = station_ocurrences_offset[Muon::Constants::n_stations] - event_offset_hits;
 
-  // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
+  const auto storage_station_region_quarter_offsets =
+    parameters.dev_storage_station_region_quarter_offsets + event_number * Muon::Constants::n_layouts *
+                                                              Muon::Constants::n_stations * Muon::Constants::n_regions *
+                                                              Muon::Constants::n_quarters;
+  const auto event_offset_tiles = storage_station_region_quarter_offsets[0];
+
+  const auto muon_compact_hit =
+    parameters.dev_muon_compact_hit + Muon::Constants::compact_hit_allocate_factor * event_offset_tiles;
+  const auto storage_tile_id = parameters.dev_storage_tile_id + event_offset_tiles;
+  const auto storage_tdc_value = parameters.dev_storage_tdc_value + event_offset_tiles;
+
+  auto permutation_station = parameters.dev_permutation_station.get() + event_offset_hits;
+  auto event_muon_hits = Muon::Hits {parameters.dev_muon_hits, total_number_of_hits, event_offset_hits};
+
+  // Create a permutation according to station
   const auto get_station = [&muon_compact_hit](const uint a, const uint b) {
     const auto muon_compact_hit_a = muon_compact_hit[a] & 0xF;
     const auto muon_compact_hit_b = muon_compact_hit[b] & 0xF;
@@ -48,7 +54,6 @@ __global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station:
     float y = 0.f;
     float dy = 0.f;
     float z = 0.f;
-    float dz = 0.f;
     int delta_time;
     int id;
     int region;
@@ -79,20 +84,15 @@ __global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station:
       delta_time = storage_tdc_value[digitsOneIndex_index];
     }
 
-    setAtIndex(
-      event_muon_hits,
-      i,
-      id,
-      x,
-      dx,
-      y,
-      dy,
-      z,
-      dz,
-      uncrossed,
-      storage_tdc_value[digitsOneIndex_index],
-      delta_time,
-      0,
-      region);
+    event_muon_hits.x(i) = x;
+    event_muon_hits.dx(i) = dx;
+    event_muon_hits.y(i) = y;
+    event_muon_hits.dy(i) = dy;
+    event_muon_hits.z(i) = z;
+    event_muon_hits.time(i) = storage_tdc_value[digitsOneIndex_index];
+    event_muon_hits.tile(i) = id;
+    event_muon_hits.uncrossed(i) = uncrossed;
+    event_muon_hits.delta_time(i) = delta_time;
+    event_muon_hits.region(i) = region;
   }
 }

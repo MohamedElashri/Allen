@@ -22,7 +22,8 @@ namespace muon_catboost_features_extraction {
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
+    DEVICE_INPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;
+    DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
     DEVICE_OUTPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
@@ -61,6 +62,7 @@ namespace muon_catboost_features_extraction {
                                  begin<dev_scifi_qop_t>(arguments),
                                  begin<dev_scifi_states_t>(arguments),
                                  begin<dev_scifi_track_ut_indices_t>(arguments),
+                                 begin<dev_station_ocurrences_offset_t>(arguments),
                                  begin<dev_muon_hits_t>(arguments),
                                  begin<dev_muon_catboost_features_t>(arguments)});
     }
