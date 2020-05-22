@@ -101,7 +101,7 @@ else()
     ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_lines.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredLines.h" &&
     ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.json" "${PROJECT_BINARY_DIR}/Sequence.json"
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h"
+    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_sequence.h"
     COMMENT "Configuring sequence ${SEQUENCE}"
     VERBATIM
   )
