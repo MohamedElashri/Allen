@@ -25,4 +25,26 @@
 #include "../../device/selections/lines/include/D2PiPiLine.cuh"
 #include "../../device/selections/lines/include/D2KKLine.cuh"
 
-using configured_lines_t = std::tuple<ErrorEvent::ErrorEvent_t, PassThrough::PassThrough_t, NoBeams::NoBeams_t, BeamOne::BeamOne_t, BeamTwo::BeamTwo_t, BothBeams::BothBeams_t, ODINNoBias::ODINNoBias_t, ODINLumi::ODINLumi_t, GECPassthrough::GECPassthrough_t, VeloMicroBias::VeloMicroBias_t, TrackMVA::TrackMVA_t, TrackMuonMVA::TrackMuonMVA_t, SingleHighPtMuon::SingleHighPtMuon_t, LowPtMuon::LowPtMuon_t, TwoTrackMVA::TwoTrackMVA_t, DiMuonHighMass::DiMuonHighMass_t, DiMuonLowMass::DiMuonLowMass_t, LowPtDiMuon::LowPtDiMuon_t, DiMuonSoft::DiMuonSoft_t, D2KPi::D2KPi_t, D2PiPi::D2PiPi_t, D2KK::D2KK_t>;
+using configured_lines_t = std::tuple<
+  ErrorEvent::ErrorEvent_t,
+  PassThrough::PassThrough_t,
+  NoBeams::NoBeams_t,
+  BeamOne::BeamOne_t,
+  BeamTwo::BeamTwo_t,
+  BothBeams::BothBeams_t,
+  ODINNoBias::ODINNoBias_t,
+  ODINLumi::ODINLumi_t,
+  GECPassthrough::GECPassthrough_t,
+  VeloMicroBias::VeloMicroBias_t,
+  TrackMVA::TrackMVA_t,
+  TrackMuonMVA::TrackMuonMVA_t,
+  SingleHighPtMuon::SingleHighPtMuon_t,
+  LowPtMuon::LowPtMuon_t,
+  TwoTrackMVA::TwoTrackMVA_t,
+  DiMuonHighMass::DiMuonHighMass_t,
+  DiMuonLowMass::DiMuonLowMass_t,
+  LowPtDiMuon::LowPtDiMuon_t,
+  DiMuonSoft::DiMuonSoft_t,
+  D2KPi::D2KPi_t,
+  D2PiPi::D2PiPi_t,
+  D2KK::D2KK_t>;
