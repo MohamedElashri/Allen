@@ -27,7 +27,7 @@ AllenDecReportsToTES::AllenDecReportsToTES(const std::string& name, ISvcLocator*
     // Inputs
     {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
     // Outputs
-    {KeyValue {"OutputDecReports", "Allen/Out/DecReports"}})
+    {KeyValue {"OutputDecReports", "Allen/Out/RawDecReports"}})
 {}
 
 StatusCode AllenDecReportsToTES::initialize()

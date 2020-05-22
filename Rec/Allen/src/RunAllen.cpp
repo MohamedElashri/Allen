@@ -40,7 +40,7 @@ RunAllen::RunAllen(const std::string& name, ISvcLocator* pSvcLocator) :
     // Inputs
     {KeyValue {"AllenRawInput", "Allen/Raw/Input"}, KeyValue {"ODINLocation", LHCb::ODINLocation::Default}},
     // Outputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}})
+    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}, KeyValue {"DecReportsLocation", "Allen/Out/DecReports"}})
 {}
 
 StatusCode RunAllen::initialize()
@@ -119,6 +119,15 @@ StatusCode RunAllen::initialize()
     new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
       number_of_slices, events_per_slice, n_events));
 
+  // Get HLT1 selection names from configuration and initialize rate counters
+  m_line_names = configuration_reader.params()["configured_lines"];
+  m_hlt1_line_rates.reserve(m_stream_wrapper->number_of_hlt1_lines);
+  for (uint i = 0; i < m_stream_wrapper->number_of_hlt1_lines; ++i) {
+    const auto it = m_line_names.find(std::to_string(i));
+    const std::string name = "Hlt1" + it->second + "Decision";
+    m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
+  }
+
   // Set verbosity level
   logger::setVerbosity(6 - this->msgLevel());
 
@@ -127,7 +136,7 @@ StatusCode RunAllen::initialize()
 
 /** Calls Allen for one event
  */
-std::tuple<bool, HostBuffers> RunAllen::operator()(
+std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
   const LHCb::ODIN&) const
 {
@@ -163,8 +172,27 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   if (m_filter_hlt1.value()) {
     filter = buffer->host_passing_event_list[0];
   }
+
+  // Get line decisions from DecReports
+  // First two words contain the TCK and taskID, then one word per HLT1 line
+  LHCb::HltDecReports reports {};
+  reports.reserve(buffer->host_number_of_hlt1_lines);
+  uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
+  for (int i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
+    const uint32_t line_report = buffer->host_dec_reports[2 + i];
+    const bool dec = line_report & dec_mask;
+    const auto it = m_line_names.find(std::to_string(i));
+    const std::string name = it->second;
+    m_hlt1_line_rates[i].buffer() += int(dec);
+    // Note: the line index in a DecReport cannot be zero -> start at 1
+    const int dec_rep_index = i + 1;
+    verbose() << "Adding Allen line " << dec_rep_index << " with name " << name << " to HltDecReport with decision "
+              << int(dec) << endmsg;
+
+    reports.insert(name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
+  }
   if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << uint(filter) << endmsg;
-  return std::make_tuple(filter, *buffer);
+  return std::make_tuple(filter, *buffer, reports);
 }
 
 StatusCode RunAllen::finalize()
