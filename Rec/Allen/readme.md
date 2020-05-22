@@ -1,6 +1,10 @@
 Call Allen from Gaudi, event loop directed by Brunel or Moore
 =============================
 
+The software can be compiled either based on the nightlies or by compiling the full stack. The nightlies method is described [here](readme.md#using-the-nightlies), the stack setup [here](readme.md#using-the-stack-setup).
+
+Using the nightlies
+=======================
 This readme explains how to setup Allen as Gaudi project, calling Allen either from Brunel or Moore. This means that Allen is called one event at a time and the event loop is governed by Brunel or Moore.
 The described setup works on lxplus.
 
@@ -34,26 +38,6 @@ make install
 
 Note that this setup uses the nightlies from Tuesday. Adopt the day of the nightly build according to when you are building. Possibly check that the nightly build was successful.
 
-
-Call Allen from Brunel
----------------------------
-Brunel is the configuration package used to call the LHCb baseline reconstruction sequence. Since recently, Moore is being used for preferentially.
-Clone `Brunel` into the directory `Allen_Gaudi_integration` as well.
-
-In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec/BrunelCache` directory, then:
-```
-cd Brunel
-lb-project-init
-make configure
-make install
-```
-
-The calls to `lb-project-init` are only required when setting up the directories for the first time.
-
-Call the executable from within the Brunel directory:
-```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py ../Allen/Online/AllenIntegration/options/run_allen_in_brunel.py ../Rec/GPU/BinaryDumpers/options/upgrade-minbias-magdown-scifi-v5.py
-```
 
 Call Allen from Moore
 -------------------------
@@ -95,6 +79,26 @@ To check the muon identification efficiency and misID efficiency:
 
 The scripts in `Moore/Hlt/RecoConf/scripts/` can be used to produce plots of the various efficiencies and resolutions from the ROOT files produced by one of the previous calls to Moore.
 
+
+Call Allen from Brunel
+---------------------------
+Clone `Brunel` into the directory `Allen_Gaudi_integration` as well.
+
+In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec/BrunelCache` directory, then:
+```
+cd Brunel
+lb-project-init
+make configure
+make install
+```
+
+The calls to `lb-project-init` are only required when setting up the directories for the first time.
+
+Call the executable from within the Brunel directory:
+```
+./build.x86_64-centos7-gcc9-opt/run gaudirun.py ../Allen/Online/AllenIntegration/options/run_allen_in_brunel.py ../Rec/GPU/BinaryDumpers/options/upgrade-minbias-magdown-scifi-v5.py
+```
+
 Call HLT1 selection efficiency script
 ------------------------------
 The [mooreanalysis](https://gitlab.cern.ch/lhcb/mooreanalysis) repository contains the HLT efficiency checking script.
@@ -115,4 +119,6 @@ If this was not the case, change it accordingly and `make install` Moore before 
 This will run on minimum bias data. mooreanalysis/HltEfficiencyChecker/scripts/HltEfficiencyChecker.py contains a dictionary with all the files that can be used. If SciFi raw bank version 6 is used, make sure the Allen sequence is configured to decode that version. The default in Allen is SciFi raw bank version 4.
 `Hlt1SingleMuonLine` indicates which line should be analyzed. The efficiency script still needs to be adopted for the Allen lines.
 
-
+Using the stack setup
+===========================
+Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself. If the branch `dovombru_Allen_Moore_integration` is checked out in Moore, one can call the scripts described above for studies of Allen called from Moore.
