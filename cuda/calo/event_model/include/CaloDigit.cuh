@@ -2,7 +2,9 @@
 
 #include "CudaCommon.h"
 
-#define MAX_CLUST 15
+// Technically the maximum number of clusters for a single cell is 40,
+// however the maximum found number in the data was 11.
+#define MAX_CLUST 15 
 
 struct CaloDigit {
   uint16_t adc;

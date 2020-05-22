@@ -1,15 +1,37 @@
 #include <CaloFindClusters.cuh>
 
-__host__ __device__ void add_to_cluster(uint start, uint16_t cellid, uint16_t cluster, uint16_t adc,
+// These functions have been split into a host and device version.
+// Even though they are exactly the same 'nvcc' would complain because of calling
+// a device function (atomicAdd) from a __host__ function.
+#ifdef CPU
+__host__ void add_to_cluster(uint start, uint16_t cellid, uint16_t cluster, uint16_t adc,
     CaloCluster* clusters, CaloGeometry geometry) {
+  // Find the cluster to add to.
   uint cur = start;
   while (clusters[cur].center_id != cluster) {
     cur++;
   }
+  // Add energy and position data.
   atomicAdd(&(clusters[cur].e), adc);
-  atomicAdd(&(clusters[cur].x), adc * (geometry.xy[cellid * XY_SIZE] - clusters[cur].refX));
-  atomicAdd(&(clusters[cur].y), adc * (geometry.xy[cellid * XY_SIZE + 1] - clusters[cur].refY));
+  atomicAdd(&(clusters[cur].x), adc * (geometry.getX(cellid) - clusters[cur].refX));
+  atomicAdd(&(clusters[cur].y), adc * (geometry.getY(cellid) - clusters[cur].refY));
 }
+
+#else
+
+__device__ void add_to_cluster(uint start, uint16_t cellid, uint16_t cluster, uint16_t adc,
+  CaloCluster* clusters, CaloGeometry geometry) {
+  // Find the cluster to add to.
+  uint cur = start;
+  while (clusters[cur].center_id != cluster) {
+    cur++;
+  }
+  // Add energy and position data.
+  atomicAdd(&(clusters[cur].e), adc);
+  atomicAdd(&(clusters[cur].x), adc * (geometry.getX(cellid) - clusters[cur].refX));
+  atomicAdd(&(clusters[cur].y), adc * (geometry.getY(cellid) - clusters[cur].refY));
+}
+#endif
 
 
 __global__ void calo_find_clusters::calo_find_clusters(

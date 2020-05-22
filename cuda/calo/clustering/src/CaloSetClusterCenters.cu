@@ -27,9 +27,11 @@ __global__ void calo_set_cluster_centers::calo_set_cluster_centers(
           }
           c++;
         }
+        c--; // To counter the last c++;
+
         parameters.dev_ecal_clusters[parameters.dev_ecal_cluster_offsets[event_number] + i] =
-          CaloCluster(c - 1, parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + c].adc,
-          ecal_geometry.xy[c * XY_SIZE], ecal_geometry.xy[c * XY_SIZE + 1]);
+          CaloCluster(c, parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + c].adc,
+          ecal_geometry.getX(c), ecal_geometry.getY(c));
       }
 
       // Hcal
@@ -46,9 +48,11 @@ __global__ void calo_set_cluster_centers::calo_set_cluster_centers(
           }
           c++;
         }
+        c--; // To counter the last c++;
+        
         parameters.dev_hcal_clusters[parameters.dev_hcal_cluster_offsets[event_number] + i] =
-          CaloCluster(c - 1, parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + c].adc,
-          hcal_geometry.xy[c * XY_SIZE], hcal_geometry.xy[c * XY_SIZE + 1]);
+          CaloCluster(c, parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + c].adc,
+          hcal_geometry.getX(c), hcal_geometry.getY(c));
       }
     }
   }
