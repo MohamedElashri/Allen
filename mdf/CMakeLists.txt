@@ -1,3 +1,6 @@
+find_package(Boost REQUIRED COMPONENTS iostreams)
+
+include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 set(mdf_sources

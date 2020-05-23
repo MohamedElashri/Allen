@@ -522,7 +522,7 @@ endif()
 
 set(EXTERNAL_DIR "external")
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS iostreams)
 
 add_subdirectory(device)
 add_subdirectory(stream)
