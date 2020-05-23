@@ -258,6 +258,6 @@ The following readmes explain various aspects of Allen:
 
 ### Mattermost discussion channels
 
-* [Allen developers](https://mattermost.web.cern.ch/lhcb/channels/allen-developers)
-* [Allen core](https://mattermost.web.cern.ch/lhcb/channels/allen-core)
-* [AllenPR throughput](https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput)
+* [Allen developers](https://mattermost.web.cern.ch/lhcb/channels/allen-developers) - Channel for any Allen algorithm development discussion.
+* [Allen core](https://mattermost.web.cern.ch/lhcb/channels/allen-core) - Discussion of Allen core features.
+* [AllenPR throughput](https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput) - Throughput reports from nightlies and MRs.

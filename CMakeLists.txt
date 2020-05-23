@@ -111,7 +111,7 @@ macro(allen_project)
     gaudi_project(Allen v0r9 USE Rec HEAD Online HEAD)
 
 #Use the lowest - common - denominator cpu arch
-    set(CPU_ARCH "host-64 -msse4.2")
+    set(CPU_ARCH "x86-64 -msse4.2")
 
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
@@ -607,12 +607,12 @@ allen_add_host_library(Common STATIC ${common_sources})
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
 add_library(allen_fs INTERFACE)
-if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
+find_package(Filesystem)
+if(NOT Filesystem_FOUND)
   find_package(Boost COMPONENTS filesystem REQUIRED)
   target_compile_definitions(allen_fs INTERFACE USE_BOOST_FILESYSTEM)
   target_link_libraries(allen_fs INTERFACE Boost::filesystem)
 else()
-  find_package(Filesystem REQUIRED)
   target_link_libraries(allen_fs INTERFACE std::filesystem)
 endif()
 target_link_libraries(Common mdf allen_fs)
