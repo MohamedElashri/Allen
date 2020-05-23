@@ -171,7 +171,7 @@ $> ./build.${CMTCONFIG}/run bindings/Allen.py
 ```
 
 
-How to run it
+How to run the standalone project
 -------------
 
 Some binary input files are included with the project for testing.
