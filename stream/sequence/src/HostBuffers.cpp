@@ -158,7 +158,8 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
     host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-    host_event_list_mf = reinterpret_cast<decltype(host_event_list_mf)>(malloc(max_number_of_events * sizeof(unsigned)));
+    host_event_list_mf =
+      reinterpret_cast<decltype(host_event_list_mf)>(malloc(max_number_of_events * sizeof(unsigned)));
     host_match_upstream_muon = reinterpret_cast<decltype(host_match_upstream_muon)>(
       malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(bool)));
 

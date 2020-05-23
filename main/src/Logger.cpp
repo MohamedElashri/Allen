@@ -10,7 +10,7 @@
 namespace logger {
   static std::unique_ptr<Logger> ll;
   static std::unique_ptr<boost::iostreams::stream<boost::iostreams::null_sink>> nullOstream;
-}
+} // namespace logger
 
 void logger::setVerbosity(int level)
 {
@@ -34,7 +34,8 @@ std::ostream& logger::logger(int requestedLogLevel)
     logger::ll.reset(new logger::Logger {});
   }
   if (!logger::nullOstream) {
-    logger::nullOstream.reset(new boost::iostreams::stream<boost::iostreams::null_sink>{boost::iostreams::null_sink()});
+    logger::nullOstream.reset(
+      new boost::iostreams::stream<boost::iostreams::null_sink> {boost::iostreams::null_sink()});
   }
   if (logger::ll->verbosityLevel >= requestedLogLevel) {
     return std::cout;

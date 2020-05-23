@@ -29,8 +29,12 @@ struct MonitorManager {
   void freeMonitor(size_t i_mon);
 
 private:
-  void
-  init(unsigned n_mon_thread, HostBuffersManager* buffers_manager, unsigned number_of_hlt1_lines, int time_step, int offset);
+  void init(
+    unsigned n_mon_thread,
+    HostBuffersManager* buffers_manager,
+    unsigned number_of_hlt1_lines,
+    int time_step,
+    int offset);
 
   std::vector<std::vector<BufferMonitor*>> m_monitors;
 

@@ -540,8 +540,8 @@ extern "C" int allen(
 
   // Lambda with the execution of the monitoring thread
   const auto mon_thread = [&](unsigned thread_id, unsigned mon_id) {
-    return std::make_tuple(std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id},
-                       std::optional<zmq::socket_t> {});
+    return std::make_tuple(
+      std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id}, std::optional<zmq::socket_t> {});
   };
 
   using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(unsigned, unsigned)>;

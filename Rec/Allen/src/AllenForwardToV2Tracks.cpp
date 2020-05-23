@@ -62,8 +62,10 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
   // Make the consolidated tracks.
   const unsigned i_event = 0;
   const unsigned number_of_events = 1;
-  const Velo::Consolidated::Tracks velo_tracks {
-    (unsigned*) host_buffers.host_atomics_velo, (unsigned*) host_buffers.host_velo_track_hit_number, i_event, number_of_events};
+  const Velo::Consolidated::Tracks velo_tracks {(unsigned*) host_buffers.host_atomics_velo,
+                                                (unsigned*) host_buffers.host_velo_track_hit_number,
+                                                i_event,
+                                                number_of_events};
   const UT::Consolidated::ConstExtendedTracks ut_tracks {(unsigned*) host_buffers.host_atomics_ut,
                                                          (unsigned*) host_buffers.host_ut_track_hit_number,
                                                          (float*) host_buffers.host_ut_qop,

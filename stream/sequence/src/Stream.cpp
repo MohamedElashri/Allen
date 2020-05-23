@@ -52,7 +52,10 @@ cudaError_t StreamWrapper::run_stream(const unsigned i, const unsigned buf_idx, 
   return streams[i]->run_sequence(buf_idx, runtime_options);
 }
 
-std::vector<bool> StreamWrapper::reconstructed_events(const unsigned i) const { return streams[i]->reconstructed_events(); }
+std::vector<bool> StreamWrapper::reconstructed_events(const unsigned i) const
+{
+  return streams[i]->reconstructed_events();
+}
 
 void StreamWrapper::run_monte_carlo_test(
   unsigned const i,

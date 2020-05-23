@@ -119,7 +119,8 @@ void host_global_event_cut::host_global_event_cut_mep(
 
     for (unsigned i = 0; i < number_of_scifi_raw_banks; ++i) {
       unsigned const offset_index = 2 + number_of_scifi_raw_banks * (1 + event_number);
-      unsigned bank_size = scifi_offsets[offset_index + i + number_of_scifi_raw_banks] - scifi_offsets[offset_index + i];
+      unsigned bank_size =
+        scifi_offsets[offset_index + i + number_of_scifi_raw_banks] - scifi_offsets[offset_index + i];
       // std::cout << "scifi " << std::setw(4) << event_number << " " << std::setw(3) << i << " " << bank_size << "\n";
       n_SciFi_clusters += bank_size;
     }

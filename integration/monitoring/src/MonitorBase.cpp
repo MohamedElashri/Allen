@@ -37,7 +37,8 @@ void MonitorBase::saveHistograms(std::string file_name, bool append) const
 
   file->Close();
 #else
-void MonitorBase::saveHistograms(std::string, bool) const {
+void MonitorBase::saveHistograms(std::string, bool) const
+{
 #endif
 }
 

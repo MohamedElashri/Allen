@@ -38,8 +38,10 @@ std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuff
   const unsigned i_event = 0;
   const unsigned number_of_events = 1;
 
-  const Velo::Consolidated::Tracks velo_tracks {
-    (unsigned*) host_buffers.host_atomics_velo, (unsigned*) host_buffers.host_velo_track_hit_number, i_event, number_of_events};
+  const Velo::Consolidated::Tracks velo_tracks {(unsigned*) host_buffers.host_atomics_velo,
+                                                (unsigned*) host_buffers.host_velo_track_hit_number,
+                                                i_event,
+                                                number_of_events};
   const Velo::Consolidated::States velo_states(
     host_buffers.host_kalmanvelo_states, velo_tracks.total_number_of_tracks());
   const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
