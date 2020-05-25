@@ -86,6 +86,7 @@ Alternatively, cmake options can be passed with `-D` when invoking the cmake com
 * `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
 
 ### As a Gaudi/LHCb project
+
 Two ways of calling Allen with Gaudi exist:
 
 1. Use Gaudi to update non-event data such as alignment and configuration constants and use Moore to steer the event loop and call Allen one event at a time (this method will be used for the simulation workflow and efficiency studies)
@@ -145,7 +146,7 @@ any other Gaudi/LHCb project:
     make install
 
 ##### Build options
-By default the `DefaultSequence` is selected, Allen is built with
+By default the `hlt1_pp_default` sequence is selected, Allen is built with
 CUDA, and the CUDA stack is searched for in `/usr/local/cuda`. These
 defaults (and other cmake variables) can be changed by adding the same
 flags that you would pass to a standalone build to the `CMAKEFLAGS`
@@ -231,9 +232,9 @@ For development purposes, a server with eight GeForce RTX 2080 Ti GPUs is set up
 An online account is required to access it. If you need to create one, please send a request to [mailto:lbonsupp@cern.ch](lbonsupp@cern.ch).
 Enter the online network from lxplus with `ssh lbgw`. Then `ssh n4050101` to reach the GPU server.
 
-* Upon login, a GPU node will be automatically assigned to you.
+* Upon login, a GPU will be automatically assigned to you.
 * A development environment is set (`gcc 8.2.0`, `cmake 3.14`, ROOT, NVIDIA binary path is added).
-* Allen input data is available locally under `/scratch/allen_data/201907`.
+* Allen input data is available locally under `/scratch/allen_data`.
 
 ### How to measure throughput
 
@@ -243,7 +244,7 @@ The results of the tests are published in this [mattermost channel](https://matt
 For local throughput measurements, we recommend the following settings in Allen standalone mode:
 
 ```console
-nvprof ./Allen -f /scratch/allen_data/201907/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
+nvprof ./Allen -f /scratch/allen_data/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
 ```
 
 

@@ -225,13 +225,12 @@ void saxpy::saxpy_t::set_arguments_size(
 }
 ```
 
-To do that, arguments provides several methods:
+To do that, one may use the following functions:
 
-* `set_size<T>(const size_t)`: Sets the size of _name_ `T`. The `sizeof(T)` is implicit, so eg. `set_size<T>(10)` will actually allocate space for `10 * sizeof(T)`.
-* `size<T>()`: Gets the size of _name_ `T`.
-* `data<T>()`: Gets the pointer to the beginning of `T`.
-* `first<T>()`: Gets the first element of `T`.
-* `name<T>()`: Gets the name of `T`.
+* `void set_size<T>(arguments, const size_t)`: Sets the size of _name_ `T`. The `sizeof(T)` is implicit, so eg. `set_size<T>(10)` will actually allocate space for `10 * sizeof(T)`.
+* `size_t size<T>(arguments)`: Gets the size of _name_ `T`.
+* `T* data<T>(arguments)`: Gets the pointer to the beginning of `T`.
+* `T first<T>(arguments)`: Gets the first element of `T`.
 
 Next, `operator()` should be defined:
 
@@ -253,6 +252,7 @@ void saxpy::saxpy_t::operator()(
 
 In order to invoke host and global functions, wrapper methods `host_function` and `global_function` should be used. The syntax is as follows:
 
+    host_function(<host_function_identifier>)(<parameters of function>)
     global_function(<global_function_identifier>)(<grid_size>, <block_size>, <stream>)(<parameters of function>)
 
 `global_function` wraps a function identifier, such as `saxpy`. The object it returns can be used to invoke a _global kernel_ following a syntax that is similar to [CUDA's kernel invocation syntax](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels). It expects:
