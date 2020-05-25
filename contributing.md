@@ -200,7 +200,7 @@ An algorithm `saxpy_t` has been declared. It is a `DeviceAlgorithm`, and for con
 Since this is a DeviceAlgorithm, one would like the work to actually be done on the device. In order to run code on the device, a _global kernel_ has to be defined. The syntax used is standard CUDA:
 
 ```
-__global__ void saxpy(Parameters);
+__global__ void saxpy(Parameters, const uint number_of_events);
 ```
 
 ##### SAXPY_example.cu
@@ -244,9 +244,9 @@ void saxpy::saxpy_t::operator()(
   cudaEvent_t&) const
 {
   global_function(saxpy)(
-    dim3(first<host_number_of_selected_events_t>(arguments) / property<block_dim_t>().get().x),
+    dim3(1),
     property<block_dim_t>(),
-    cuda_stream)(arguments);
+    cuda_stream)(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 ```
 
@@ -271,18 +271,16 @@ Finally, the kernel is defined:
  * @brief SAXPY example algorithm
  * @detail Calculates for every event y = a*x + x, where x is the number of velo tracks in one event
  */
-__global__ void saxpy::saxpy(saxpy::Parameters parameters)
+__global__ void saxpy::saxpy(saxpy::Parameters parameters, const uint number_of_events)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x * blockDim.x + threadIdx.x;
-
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
 
-  if (event_number < number_of_events)
+  for (uint event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
     parameters.dev_saxpy_output[event_number] =
       parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+  }
 }
 ```
 

@@ -33,5 +33,5 @@ namespace saxpy {
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
   };
 
-  __global__ void saxpy(Parameters);
+  __global__ void saxpy(Parameters, const uint number_of_events);
 } // namespace saxpy
