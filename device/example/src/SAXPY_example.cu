@@ -17,26 +17,22 @@ void saxpy::saxpy_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  global_function(saxpy)(
-    dim3(first<host_number_of_selected_events_t>(arguments) / property<block_dim_t>().get().x),
-    property<block_dim_t>(),
-    cuda_stream)(arguments);
+  global_function(saxpy)(dim3(1), property<block_dim_t>(), cuda_stream)(
+    arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
 /**
  * @brief SAXPY example algorithm
  * @detail Calculates for every event y = a*x + x, where x is the number of velo tracks in one event
  */
-__global__ void saxpy::saxpy(saxpy::Parameters parameters)
+__global__ void saxpy::saxpy(saxpy::Parameters parameters, const uint number_of_events)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x * blockDim.x + threadIdx.x;
+  for (uint event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
+    Velo::Consolidated::ConstTracks velo_tracks {
+      parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+    const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
 
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-
-  if (event_number < number_of_events)
     parameters.dev_saxpy_output[event_number] =
       parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+  }
 }
