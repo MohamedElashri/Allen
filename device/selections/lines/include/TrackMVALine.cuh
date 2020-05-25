@@ -19,6 +19,10 @@ namespace TrackMVA {
   constexpr float param3 = 1.248f;
   constexpr float alpha = 0.f;
 
+  // (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
+  // const ParKalmanFilter::FittedTrack* event_tracks =
+  //   parameters.dev_kf_tracks + parameters.dev_offsets_forward_tracks[selected_event_number];
+
   struct TrackMVA_t : public Hlt1::OneTrackLine {
     constexpr static auto name {"TrackMVA"};
 

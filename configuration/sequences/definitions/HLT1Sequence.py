@@ -131,64 +131,66 @@ def HLT1Sequence(initialize_lists,
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
         dev_offsets_all_velo_tracks_t())
 
-    prepare_raw_banks = prepare_raw_banks_t(
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
-        host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
-        host_total_sum_holder_t(),
-        host_number_of_svs_t=prefix_sum_secondary_vertices.
-        host_total_sum_holder_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t(),
-        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-        dev_offsets_all_velo_tracks_t(),
-        dev_offsets_velo_track_hit_number_t=
-        prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-        dev_velo_track_hits_t=velo_consolidate_tracks.dev_velo_track_hits_t(),
-        dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
-        dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
-        dev_output_buffer_t(),
-        dev_ut_qop_t=ut_consolidate_tracks.dev_ut_qop_t(),
-        dev_ut_track_velo_indices_t=ut_consolidate_tracks.
-        dev_ut_track_velo_indices_t(),
-        dev_offsets_scifi_track_hit_number_t=prefix_sum_scifi_track_hit_number.
-        dev_output_buffer_t(),
-        dev_scifi_qop_t=scifi_consolidate_tracks.dev_scifi_qop_t(),
-        dev_scifi_states_t=scifi_consolidate_tracks.dev_scifi_states_t(),
-        dev_scifi_track_ut_indices_t=scifi_consolidate_tracks.
-        dev_scifi_track_ut_indices_t(),
-        dev_ut_track_hits_t=ut_consolidate_tracks.dev_ut_track_hits_t(),
-        dev_scifi_track_hits_t=scifi_consolidate_tracks.
-        dev_scifi_track_hits_t(),
-        dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
-        dev_consolidated_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
-        dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
-        dev_output_buffer_t(),
-        dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t(),
-        dev_sel_results_t=run_hlt1.dev_sel_results_t(),
-        dev_sel_results_offsets_t=run_hlt1.dev_sel_results_offsets_t())
+    # prepare_raw_banks = prepare_raw_banks_t(
+    #     host_number_of_selected_events_t=initialize_lists.
+    #     host_number_of_selected_events_t(),
+    #     host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
+    #     host_total_sum_holder_t(),
+    #     host_number_of_svs_t=prefix_sum_secondary_vertices.
+    #     host_total_sum_holder_t(),
+    #     dev_event_list_t=initialize_lists.dev_event_list_t(),
+    #     dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
+    #     dev_offsets_all_velo_tracks_t(),
+    #     dev_offsets_velo_track_hit_number_t=
+    #     prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
+    #     dev_velo_track_hits_t=velo_consolidate_tracks.dev_velo_track_hits_t(),
+    #     dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
+    #     dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
+    #     dev_output_buffer_t(),
+    #     dev_ut_qop_t=ut_consolidate_tracks.dev_ut_qop_t(),
+    #     dev_ut_track_velo_indices_t=ut_consolidate_tracks.
+    #     dev_ut_track_velo_indices_t(),
+    #     dev_offsets_scifi_track_hit_number_t=prefix_sum_scifi_track_hit_number.
+    #     dev_output_buffer_t(),
+    #     dev_scifi_qop_t=scifi_consolidate_tracks.dev_scifi_qop_t(),
+    #     dev_scifi_states_t=scifi_consolidate_tracks.dev_scifi_states_t(),
+    #     dev_scifi_track_ut_indices_t=scifi_consolidate_tracks.
+    #     dev_scifi_track_ut_indices_t(),
+    #     dev_ut_track_hits_t=ut_consolidate_tracks.dev_ut_track_hits_t(),
+    #     dev_scifi_track_hits_t=scifi_consolidate_tracks.
+    #     dev_scifi_track_hits_t(),
+    #     dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
+    #     dev_consolidated_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+    #     dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
+    #     dev_output_buffer_t(),
+    #     dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t(),
+    #     dev_sel_results_t=run_hlt1.dev_sel_results_t(),
+    #     dev_sel_results_offsets_t=run_hlt1.dev_sel_results_offsets_t())
 
-    prefix_sum_sel_reps = host_prefix_sum_t(
-        name="prefix_sum_sel_reps",
-        dev_input_buffer_t=prepare_raw_banks.dev_sel_rep_sizes_t())
+    # prefix_sum_sel_reps = host_prefix_sum_t(
+    #     name="prefix_sum_sel_reps",
+    #     dev_input_buffer_t=prepare_raw_banks.dev_sel_rep_sizes_t())
 
-    package_sel_reports = package_sel_reports_t(
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
-        host_number_of_sel_rep_words_t=prefix_sum_sel_reps.
-        host_total_sum_holder_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t(),
-        dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
-        dev_output_buffer_t(),
-        dev_sel_rb_hits_t=prepare_raw_banks.dev_sel_rb_hits_t(),
-        dev_sel_rb_stdinfo_t=prepare_raw_banks.dev_sel_rb_stdinfo_t(),
-        dev_sel_rb_objtyp_t=prepare_raw_banks.dev_sel_rb_objtyp_t(),
-        dev_sel_rb_substr_t=prepare_raw_banks.dev_sel_rb_substr_t(),
-        dev_sel_rep_offsets_t=prefix_sum_sel_reps.dev_output_buffer_t())
+    # package_sel_reports = package_sel_reports_t(
+    #     host_number_of_selected_events_t=initialize_lists.
+    #     host_number_of_selected_events_t(),
+    #     host_number_of_sel_rep_words_t=prefix_sum_sel_reps.
+    #     host_total_sum_holder_t(),
+    #     dev_event_list_t=initialize_lists.dev_event_list_t(),
+    #     dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
+    #     dev_output_buffer_t(),
+    #     dev_sel_rb_hits_t=prepare_raw_banks.dev_sel_rb_hits_t(),
+    #     dev_sel_rb_stdinfo_t=prepare_raw_banks.dev_sel_rb_stdinfo_t(),
+    #     dev_sel_rb_objtyp_t=prepare_raw_banks.dev_sel_rb_objtyp_t(),
+    #     dev_sel_rb_substr_t=prepare_raw_banks.dev_sel_rb_substr_t(),
+    #     dev_sel_rep_offsets_t=prefix_sum_sel_reps.dev_output_buffer_t())
 
     hlt1_sequence = Sequence(
         velo_pv_ip, kalman_velo_only, filter_tracks,
         prefix_sum_secondary_vertices, fit_secondary_vertices, odin_banks,
-        run_hlt1, prepare_raw_banks, prefix_sum_sel_reps, package_sel_reports)
+        run_hlt1)
+
+    # , prepare_raw_banks, prefix_sum_sel_reps, package_sel_reports
 
     if add_default_lines:
         ErrorEvent_line = ErrorEvent_t()
@@ -201,7 +203,7 @@ def HLT1Sequence(initialize_lists,
         ODINLumi_line = ODINLumi_t()
         GECPassthrough_line = GECPassthrough_t()
         VeloMicroBias_line = VeloMicroBias_t()
-        TrackMVA_line = TrackMVA_t()
+        
         TrackMuonMVA_line = TrackMuonMVA_t()
         SingleHighPtMuon_line = SingleHighPtMuon_t()
         LowPtMuon_line = LowPtMuon_t()
