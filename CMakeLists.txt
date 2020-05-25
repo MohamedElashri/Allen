@@ -481,6 +481,8 @@ if (USE_ROOT)
    else()
      if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+     elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})        
      elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
      else()
