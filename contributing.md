@@ -143,7 +143,7 @@ In the `saxpy` namespace the parameters and properties are specified. Parameters
 
 Some parameter examples:
 
-* `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _uint_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
+* `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _unsigned_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
 * `(DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output)`: Defines an output parameter on _device memory_, with name `dev_saxpy_output_t` and identifier `dev_saxpy_output`. Its underlying type is `float*`.
 * `(HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events)`: Defines an input parameter on _host memory_, with name `host_number_of_selected_events_t` and identifier `host_number_of_selected_events`. Its underlying type is `const unsigned*`.
 
@@ -200,7 +200,7 @@ An algorithm `saxpy_t` has been declared. It is a `DeviceAlgorithm`, and for con
 Since this is a DeviceAlgorithm, one would like the work to actually be done on the device. In order to run code on the device, a _global kernel_ has to be defined. The syntax used is standard CUDA:
 
 ```
-__global__ void saxpy(Parameters);
+__global__ void saxpy(Parameters, const unsigned number_of_events);
 ```
 
 ##### SAXPY_example.cu
@@ -244,9 +244,9 @@ void saxpy::saxpy_t::operator()(
   cudaEvent_t&) const
 {
   global_function(saxpy)(
-    dim3(first<host_number_of_selected_events_t>(arguments) / property<block_dim_t>().get().x),
+    dim3(1),
     property<block_dim_t>(),
-    cuda_stream)(arguments);
+    cuda_stream)(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 ```
 
@@ -271,18 +271,16 @@ Finally, the kernel is defined:
  * @brief SAXPY example algorithm
  * @detail Calculates for every event y = a*x + x, where x is the number of velo tracks in one event
  */
-__global__ void saxpy::saxpy(saxpy::Parameters parameters)
+__global__ void saxpy::saxpy(saxpy::Parameters parameters, const unsigned number_of_events)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x;
-
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-
-  if (event_number < number_of_events)
+  for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
+    Velo::Consolidated::ConstTracks velo_tracks {
+      parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+    const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+    
     parameters.dev_saxpy_output[event_number] =
-      parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+        parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+  }
 }
 ```
 
