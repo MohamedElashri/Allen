@@ -45,8 +45,6 @@ struct OneTrackLine {
     cudaStream_t& stream,
     cudaEvent_t&) const
   {
-    initialize<typename Params::decisions_t>(arguments, 0, stream);
-
     static_cast<const Derived*>(this)->global_function(onetrackline<Derived, Params>)(
       first<typename Params::host_number_of_selected_events_t>(arguments), block_dim_x, stream)(
       data<typename Params::dev_kf_tracks_t>(arguments),
