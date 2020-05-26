@@ -20,12 +20,12 @@ __global__ void onetrackline(
 
   // Do the selection and store the decision
   for (unsigned i = threadIdx.x; i < number_of_tracks_in_event; i += blockDim.x) {
-    decisions[i] = line.doline(parameters, event_tracks[i]);
+    decisions[i] = line.select(parameters, event_tracks[i]);
   }
 }
 
 template<typename Derived, typename Params>
-struct OneTrackLine : public DeviceAlgorithm, Params {
+struct OneTrackLine {
   constexpr static unsigned block_dim_x = 256;
 
   void set_arguments_size(
@@ -47,7 +47,7 @@ struct OneTrackLine : public DeviceAlgorithm, Params {
   {
     initialize<typename Params::decisions_t>(arguments, 0, stream);
 
-    global_function(onetrackline<Derived, Params>)(
+    static_cast<const Derived*>(this)->global_function(onetrackline<Derived, Params>)(
       first<typename Params::host_number_of_selected_events_t>(arguments), block_dim_x, stream)(
       data<typename Params::dev_kf_tracks_t>(arguments),
       data<typename Params::dev_track_offsets_t>(arguments),
@@ -64,7 +64,7 @@ namespace track_mva_line_algorithm {
     (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
     (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
     (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
-    (DEVICE_OUTPUT(decisions_t, bool), decisions), // is that right?
+    (DEVICE_OUTPUT(decisions_t, bool), decisions),
     (PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float), maxChi2Ndof),
     (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
     (PROPERTY(maxPt_t, "maxPt", "maxPt description", float), maxPt),
@@ -74,8 +74,8 @@ namespace track_mva_line_algorithm {
     (PROPERTY(param3_t, "param3", "param3 description", float), param3),
     (PROPERTY(alpha_t, "alpha", "alpha description", float), alpha))
 
-  struct track_mva_line_algorithm_t : public OneTrackLine<track_mva_line_algorithm_t, Parameters> {
-    __device__ bool doline(const Parameters& ps, const ParKalmanFilter::FittedTrack& track) const;
+  struct track_mva_line_algorithm_t : public DeviceAlgorithm, Parameters, OneTrackLine<track_mva_line_algorithm_t, Parameters> {
+    __device__ bool select(const Parameters& ps, const ParKalmanFilter::FittedTrack& track) const;
 
   private:
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 2.5f};

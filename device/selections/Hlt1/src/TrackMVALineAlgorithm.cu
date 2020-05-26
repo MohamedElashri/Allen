@@ -1,6 +1,6 @@
 #include "TrackMVALineAlgorithm.cuh"
 
-__device__ bool track_mva_line_algorithm::track_mva_line_algorithm_t::doline(
+__device__ bool track_mva_line_algorithm::track_mva_line_algorithm_t::select(
   const Parameters& ps,
   const ParKalmanFilter::FittedTrack& track) const
 {

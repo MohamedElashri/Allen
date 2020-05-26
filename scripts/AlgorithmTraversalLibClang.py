@@ -201,7 +201,7 @@ class AlgorithmTraversal():
         if c.kind == cindex.CursorKind.CXX_BASE_SPECIFIER:
             if c.type.spelling in AlgorithmTraversal.__algorithm_tokens:
                 return ("AlgorithmClass", c.kind, c.type.spelling)
-            else:
+            elif "Parameters" in c.type.spelling:
                 return AlgorithmTraversal.traverse_children(
                     c.get_definition(), AlgorithmTraversal.parameters)
         else:

@@ -76,15 +76,6 @@ namespace Allen {
 
     std::string name() const { return m_name; }
 
-  protected:
-    BaseProperty const* get_prop(const std::string& prop_name) const override
-    {
-      if (m_properties.find(prop_name) != m_properties.end()) {
-        return m_properties.at(prop_name);
-      }
-      return 0;
-    }
-
     template<typename R, typename... T>
     HostFunction<const Allen::Algorithm*, R, T...> host_function(R(f)(T...)) const
     {
@@ -95,6 +86,15 @@ namespace Allen {
     GlobalFunction<const Allen::Algorithm*, R, T...> global_function(R(f)(T...)) const
     {
       return GlobalFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
+    }
+    
+  protected:
+    BaseProperty const* get_prop(const std::string& prop_name) const override
+    {
+      if (m_properties.find(prop_name) != m_properties.end()) {
+        return m_properties.at(prop_name);
+      }
+      return 0;
     }
 
   private:
