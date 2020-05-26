@@ -51,19 +51,18 @@ add_subdirectory(raw_banks)
 add_subdirectory(example)
 ```
 
-Inside the `test` folder we will create the following structure:
+Inside the `example` folder we will create the following structure:
 
 ```console
-├── test
+├── example
 │   ├── CMakeLists.txt
-│   └── example
-│       ├── include
-│       │   └── Saxpy_example.cuh
-│       └── src
-│           └── Saxpy_example.cu
+│   ├── include
+│   │   └── Saxpy_example.cuh
+│   └── src
+│       └── Saxpy_example.cu
 ```
 
-The newly created `test/CMakeLists.txt` file should reflect the project we are creating. We can do that by populating it like so:
+The newly created `example/CMakeLists.txt` file should reflect the project we are creating. We can do that by populating it like so:
 
 ```cmake
 file(GLOB saxpy_sources "src/*cu")
