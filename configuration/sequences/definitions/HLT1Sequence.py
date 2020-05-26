@@ -36,6 +36,7 @@ def HLT1Sequence(initialize_lists,
         dev_number_of_multi_fit_vertices_t())
 
     kalman_velo_only = kalman_velo_only_t(
+        name = "kalman_velo_only",
         host_number_of_selected_events_t=initialize_lists.
         host_number_of_selected_events_t(),
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
@@ -113,23 +114,23 @@ def HLT1Sequence(initialize_lists,
 
     odin_banks = data_provider_t(name="populate_odin_banks", bank_type="ODIN")
 
-    run_hlt1 = run_hlt1_t(
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
-        host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
-        host_total_sum_holder_t(),
-        host_number_of_svs_t=prefix_sum_secondary_vertices.
-        host_total_sum_holder_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t(),
-        dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
-        dev_consolidated_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
-        dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
-        dev_output_buffer_t(),
-        dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t(),
-        dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
-        dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
-        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-        dev_offsets_all_velo_tracks_t())
+    # run_hlt1 = run_hlt1_t(
+    #     host_number_of_selected_events_t=initialize_lists.
+    #     host_number_of_selected_events_t(),
+    #     host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
+    #     host_total_sum_holder_t(),
+    #     host_number_of_svs_t=prefix_sum_secondary_vertices.
+    #     host_total_sum_holder_t(),
+    #     dev_event_list_t=initialize_lists.dev_event_list_t(),
+    #     dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
+    #     dev_consolidated_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+    #     dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
+    #     dev_output_buffer_t(),
+    #     dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t(),
+    #     dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+    #     dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+    #     dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
+    #     dev_offsets_all_velo_tracks_t())
 
     # prepare_raw_banks = prepare_raw_banks_t(
     #     host_number_of_selected_events_t=initialize_lists.
@@ -187,10 +188,9 @@ def HLT1Sequence(initialize_lists,
 
     hlt1_sequence = Sequence(
         velo_pv_ip, kalman_velo_only, filter_tracks,
-        prefix_sum_secondary_vertices, fit_secondary_vertices, odin_banks,
-        run_hlt1)
+        prefix_sum_secondary_vertices, fit_secondary_vertices, odin_banks)
 
-    # , prepare_raw_banks, prefix_sum_sel_reps, package_sel_reports
+    # run_hlt1, prepare_raw_banks, prefix_sum_sel_reps, package_sel_reports
 
     if add_default_lines:
         ErrorEvent_line = ErrorEvent_t()

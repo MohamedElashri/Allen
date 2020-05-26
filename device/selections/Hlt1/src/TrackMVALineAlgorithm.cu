@@ -1,35 +1,14 @@
 #include "TrackMVALineAlgorithm.cuh"
 
-void track_mva_line_algorithm::track_mva_line_algorithm_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+__device__ bool track_mva_line_algorithm::track_mva_line_algorithm_t::doline(
+  const Parameters& ps,
+  const ParKalmanFilter::FittedTrack& track) const
 {
-  set_size<decisions_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-}
-
-void track_mva_line_algorithm::track_mva_line_algorithm_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
-{
-  initialize<decisions_t>(arguments, 0, stream);
-
-  std::vector<decisions_t::type> a;
-
-  // print<decisions_t>(arguments);
-
-  global_function(onetrackline<decltype(*this), Parameters>)(
-    first<host_number_of_selected_events_t>(arguments),
-    dim3(property<block_dim_x_t>()),
-    stream
-  )(
-    data<dev_kf_tracks_t>(arguments), data<dev_track_offsets_t>(arguments), *this, arguments,
-    decisions);
-
-  // print<decisions_t>(arguments);
+  const auto ptShift = (track.pt() - ps.alpha) / Gaudi::Units::GeV;
+  const bool decision = track.chi2 / track.ndof < ps.maxChi2Ndof &&
+                        ((ptShift > ps.maxPt && track.ipChi2 > ps.minIPChi2) ||
+                         (ptShift > ps.minPt && ptShift < ps.maxPt &&
+                          logf(track.ipChi2) > ps.param1 / (ptShift - ps.param2) / (ptShift - ps.param2) +
+                                                 ps.param3 / ps.maxPt * (ps.maxPt - ptShift) + logf(ps.minIPChi2)));
+  return decision;
 }

@@ -204,13 +204,41 @@ template<typename Arg, typename Args>
 struct SingleArgumentOverloadResolution<
   Arg,
   Args,
-  typename std::enable_if<std::is_base_of<host_datatype, Arg>::value>::type> {
+  typename std::enable_if<
+    std::is_base_of<host_datatype, Arg>::value &&
+    (std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
+     std::is_same<typename Arg::type, unsigned char>::value ||
+     std::is_same<typename Arg::type, signed char>::value)>::type> {
   constexpr static void initialize(const Args& arguments, const int value, cudaStream_t)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments));
   }
 
-  constexpr static void print(const Args& arguments)
+  static void print(const Args& arguments)
+  {
+    const auto array = data<Arg>(arguments);
+    for (unsigned i = 0; i < size<Arg>(arguments) / sizeof(typename Arg::type); ++i) {
+      info_cout << ((int) array[i]) << ", ";
+    }
+    info_cout << "\n";
+  }
+};
+
+template<typename Arg, typename Args>
+struct SingleArgumentOverloadResolution<
+  Arg,
+  Args,
+  typename std::enable_if<
+    std::is_base_of<host_datatype, Arg>::value &&
+    !(std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
+      std::is_same<typename Arg::type, unsigned char>::value ||
+      std::is_same<typename Arg::type, signed char>::value)>::type> {
+  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t)
+  {
+    std::memset(data<Arg>(arguments), value, size<Arg>(arguments));
+  }
+
+  static void print(const Args& arguments)
   {
     const auto array = data<Arg>(arguments);
     for (unsigned i = 0; i < size<Arg>(arguments) / sizeof(typename Arg::type); ++i) {
@@ -224,13 +252,43 @@ template<typename Arg, typename Args>
 struct SingleArgumentOverloadResolution<
   Arg,
   Args,
-  typename std::enable_if<std::is_base_of<device_datatype, Arg>::value>::type> {
+  typename std::enable_if<
+    std::is_base_of<device_datatype, Arg>::value &&
+    (std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
+     std::is_same<typename Arg::type, unsigned char>::value ||
+     std::is_same<typename Arg::type, signed char>::value)>::type> {
   constexpr static void initialize(const Args& arguments, const int value, cudaStream_t stream)
   {
     cudaCheck(cudaMemsetAsync(data<Arg>(arguments), value, size<Arg>(arguments), stream));
   }
 
-  constexpr static void print(const Args& arguments)
+  static void print(const Args& arguments)
+  {
+    std::vector<char> v(size<Arg>(arguments));
+    cudaCheck(cudaMemcpy(v.data(), data<Arg>(arguments), size<Arg>(arguments), cudaMemcpyDeviceToHost));
+
+    for (const auto& i : v) {
+      info_cout << ((int) i) << ", ";
+    }
+    info_cout << "\n";
+  }
+};
+
+template<typename Arg, typename Args>
+struct SingleArgumentOverloadResolution<
+  Arg,
+  Args,
+  typename std::enable_if<
+    std::is_base_of<device_datatype, Arg>::value &&
+    !(std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
+      std::is_same<typename Arg::type, unsigned char>::value ||
+      std::is_same<typename Arg::type, signed char>::value)>::type> {
+  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t stream)
+  {
+    cudaCheck(cudaMemsetAsync(data<Arg>(arguments), value, size<Arg>(arguments), stream));
+  }
+
+  static void print(const Args& arguments)
   {
     std::vector<typename Arg::type> v(size<Arg>(arguments) / sizeof(typename Arg::type));
     cudaCheck(cudaMemcpy(v.data(), data<Arg>(arguments), size<Arg>(arguments), cudaMemcpyDeviceToHost));

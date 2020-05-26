@@ -24,6 +24,39 @@ __global__ void onetrackline(
   }
 }
 
+template<typename Derived, typename Params>
+struct OneTrackLine : public DeviceAlgorithm, Params {
+  constexpr static unsigned block_dim_x = 256;
+
+  void set_arguments_size(
+    ArgumentReferences<Params> arguments,
+    const RuntimeOptions&,
+    const Constants&,
+    const HostBuffers&) const
+  {
+    set_size<typename Params::decisions_t>(arguments, first<typename Params::host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  }
+
+  void operator()(
+    const ArgumentReferences<Params>& arguments,
+    const RuntimeOptions&,
+    const Constants&,
+    HostBuffers&,
+    cudaStream_t& stream,
+    cudaEvent_t&) const
+  {
+    initialize<typename Params::decisions_t>(arguments, 0, stream);
+
+    global_function(onetrackline<Derived, Params>)(
+      first<typename Params::host_number_of_selected_events_t>(arguments), block_dim_x, stream)(
+      data<typename Params::dev_kf_tracks_t>(arguments),
+      data<typename Params::dev_track_offsets_t>(arguments),
+      *static_cast<const Derived*>(this),
+      arguments,
+      data<typename Params::decisions_t>(arguments));
+  }
+};
+
 namespace track_mva_line_algorithm {
   DEFINE_PARAMETERS(
     Parameters,
@@ -39,37 +72,10 @@ namespace track_mva_line_algorithm {
     (PROPERTY(param1_t, "param1", "param1 description", float), param1),
     (PROPERTY(param2_t, "param2", "param2 description", float), param2),
     (PROPERTY(param3_t, "param3", "param3 description", float), param3),
-    (PROPERTY(alpha_t, "alpha", "alpha description", float), alpha),
-    (PROPERTY(block_dim_x_t, "block_dim_x", "block_dim_x description", unsigned), block_dim_x))
+    (PROPERTY(alpha_t, "alpha", "alpha description", float), alpha))
 
-  struct track_mva_line_algorithm_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants&,
-      const HostBuffers&) const;
-
-    void operator()(
-      const ArgumentReferences<Parameters>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants&,
-      HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
-      cudaEvent_t&) const;
-
-    __device__ bool doline(const Parameters& ps, const ParKalmanFilter::FittedTrack& track) const
-    {
-      float ptShift = (track.pt() - ps.alpha) / Gaudi::Units::GeV;
-      const bool decision =
-        track.chi2 / track.ndof < ps.maxChi2Ndof &&
-        ((ptShift > ps.maxPt && track.ipChi2 > ps.minIPChi2) ||
-         (ptShift > ps.minPt && ptShift < ps.maxPt &&
-          logf(track.ipChi2) >
-            ps.param1 / (ptShift - ps.param2) / (ptShift - ps.param2) +
-              ps.param3 / ps.maxPt * (ps.maxPt - ptShift) +
-              logf(ps.minIPChi2)));
-      return decision;
-    }
+  struct track_mva_line_algorithm_t : public OneTrackLine<track_mva_line_algorithm_t, Parameters> {
+    __device__ bool doline(const Parameters& ps, const ParKalmanFilter::FittedTrack& track) const;
 
   private:
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 2.5f};
@@ -80,6 +86,5 @@ namespace track_mva_line_algorithm {
     Property<param2_t> m_param2 {this, 2.0f};
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 0.f};
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
   };
 } // namespace track_mva_line_algorithm

@@ -4,7 +4,7 @@ from definitions.UTSequence import UTSequence
 from definitions.ForwardSequence import ForwardSequence
 from definitions.MuonSequence import MuonSequence
 from definitions.HLT1Sequence import HLT1Sequence
-from definitions.algorithms import compose_sequences, TrackMVA_t, Sequence
+from definitions import algorithms
 
 velo_sequence = VeloSequence()
 
@@ -59,7 +59,12 @@ hlt1_sequence = HLT1Sequence(
     is_muon=muon_sequence["is_muon_t"],
     add_default_lines=False)
 
-TrackMVA_line = Sequence(TrackMVA_t())
+track_mva_line_algorithm = algorithms.track_mva_line_algorithm_t(
+    host_number_of_selected_events_t=velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
+    host_number_of_reconstructed_scifi_tracks_t=forward_sequence["prefix_sum_forward_tracks"].host_total_sum_holder_t(),
+    dev_kf_tracks_t=hlt1_sequence["kalman_velo_only"].dev_kf_tracks_t(),
+    dev_track_offsets_t=forward_sequence["prefix_sum_forward_tracks"].dev_output_buffer_t()
+)
 
-compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
-                  muon_sequence, hlt1_sequence, TrackMVA_line).generate()
+algorithms.extend_sequence(algorithms.compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
+                  muon_sequence, hlt1_sequence), track_mva_line_algorithm).generate()
