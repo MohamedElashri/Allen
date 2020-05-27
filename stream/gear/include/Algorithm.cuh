@@ -94,7 +94,7 @@ namespace Allen {
       if (m_properties.find(prop_name) != m_properties.end()) {
         return m_properties.at(prop_name);
       }
-      return 0;
+      return nullptr;
     }
 
   private:

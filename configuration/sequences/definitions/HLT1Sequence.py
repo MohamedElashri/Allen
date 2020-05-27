@@ -90,6 +90,7 @@ def HLT1Sequence(initialize_lists,
         dev_input_buffer_t=filter_tracks.dev_sv_atomics_t())
 
     fit_secondary_vertices = fit_secondary_vertices_t(
+        name = "fit_secondary_vertices",
         host_number_of_selected_events_t=initialize_lists.
         host_number_of_selected_events_t(),
         host_number_of_svs_t=prefix_sum_secondary_vertices.

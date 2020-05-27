@@ -130,11 +130,11 @@ template<>
 struct property_datatype<DeviceDimensions> {
   using t = DeviceDimensions;
 
-  constexpr property_datatype(const t& value) : m_value(value) {}
-  constexpr property_datatype() {}
-  operator t() const { return this->m_value; }
-  t get() const { return this->m_value; }
-  operator dim3() const { return {this->m_value.x, this->m_value.y, this->m_value.z}; }
+  __host__ __device__ constexpr property_datatype(const t& value) : m_value(value) {}
+  __host__ __device__ constexpr property_datatype() {}
+  __host__ __device__ operator t() const { return this->m_value; }
+  __host__ __device__ t get() const { return this->m_value; }
+  __host__ __device__ operator dim3() const { return {this->m_value.x, this->m_value.y, this->m_value.z}; }
 
 protected:
   t m_value;

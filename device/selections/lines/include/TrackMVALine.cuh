@@ -3,38 +3,37 @@
 \*****************************************************************************/
 #pragma once
 
-#include "LineInfo.cuh"
-#include "ParKalmanDefinitions.cuh"
-#include "SystemOfUnits.h"
+#include "DeviceAlgorithm.cuh"
+#include "OneTrackLine.cuh"
 
-namespace TrackMVA {
-  // One track parameters.
-  constexpr float maxChi2Ndof =
-    2.5f; // Large for now until we better understand the parameterized Kalman fit quality.
-  constexpr float minPt = 2000.0f / Gaudi::Units::GeV;
-  constexpr float maxPt = 26000.0f / Gaudi::Units::GeV;
-  constexpr float minIPChi2 = 7.4f;
-  constexpr float param1 = 1.0f;
-  constexpr float param2 = 2.0f;
-  constexpr float param3 = 1.248f;
-  constexpr float alpha = 0.f;
+namespace track_mva_line {
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack), dev_tracks),
+    (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
+    (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float), maxChi2Ndof),
+    (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
+    (PROPERTY(maxPt_t, "maxPt", "maxPt description", float), maxPt),
+    (PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float), minIPChi2),
+    (PROPERTY(param1_t, "param1", "param1 description", float), param1),
+    (PROPERTY(param2_t, "param2", "param2 description", float), param2),
+    (PROPERTY(param3_t, "param3", "param3 description", float), param3),
+    (PROPERTY(alpha_t, "alpha", "alpha description", float), alpha))
 
-  // (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
-  // const ParKalmanFilter::FittedTrack* event_tracks =
-  //   parameters.dev_kf_tracks + parameters.dev_offsets_forward_tracks[selected_event_number];
+  struct track_mva_line_t : public DeviceAlgorithm, Parameters, OneTrackLine<track_mva_line_t, Parameters> {
+    __device__ bool select(const Parameters& ps, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
 
-  struct TrackMVA_t : public Hlt1::OneTrackLine {
-    constexpr static auto name {"TrackMVA"};
-
-    static __device__ bool function(const ParKalmanFilter::FittedTrack& track)
-    {
-      float ptShift = (track.pt() - alpha) / Gaudi::Units::GeV;
-      const bool decision = track.chi2 / track.ndof < maxChi2Ndof &&
-                            ((ptShift > maxPt && track.ipChi2 > minIPChi2) ||
-                             (ptShift > minPt && ptShift < maxPt &&
-                              logf(track.ipChi2) > param1 / (ptShift - param2) / (ptShift - param2) +
-                                                     param3 / maxPt * (maxPt - ptShift) + logf(minIPChi2)));
-      return decision;
-    }
+  private:
+    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 2.5f};
+    Property<minPt_t> m_minPt {this, 2000.0f};
+    Property<maxPt_t> m_maxPt {this, 26000.0f};
+    Property<minIPChi2_t> m_minIPChi2 {this, 7.4f};
+    Property<param1_t> m_param1 {this, 1.0f};
+    Property<param2_t> m_param2 {this, 2.0f};
+    Property<param3_t> m_param3 {this, 1.248f};
+    Property<alpha_t> m_alpha {this, 0.f};
   };
-} // namespace TrackMVA
+} // namespace track_mva_line

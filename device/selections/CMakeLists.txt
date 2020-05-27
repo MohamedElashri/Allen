@@ -3,6 +3,7 @@
 ###############################################################################
 include_directories(Hlt1/include)
 include_directories(lines/include)
+include_directories(line_types/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/velo/include)
@@ -31,9 +32,11 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB selections_src "Hlt1/src/*cu")
+file(GLOB lines_src "lines/src/*cu")
 
 allen_add_device_library(Selections STATIC
   ${selections_src}
+  ${lines_src}
 )
 
 add_dependencies(Selections configured_sequence)
