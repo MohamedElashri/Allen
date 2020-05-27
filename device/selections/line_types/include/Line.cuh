@@ -18,8 +18,6 @@
  */
 template<typename Derived, typename Parameters>
 struct Line {
-  constexpr static unsigned block_dim_x = 256;
-
   void set_arguments_size(
     ArgumentReferences<Parameters> arguments,
     const RuntimeOptions&,
@@ -37,6 +35,21 @@ struct Line {
     HostBuffers&,
     cudaStream_t&,
     cudaEvent_t&) const;
+
+  /**
+   * @brief Grid dimension of kernel call. By default, get_grid_dim returns the number of events.
+   */
+  virtual unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments) const
+  {
+    return first<typename Parameters::host_number_of_events_t>(arguments);
+  }
+
+  /**
+   * @brief Default block dim x of kernel call.
+   */
+  virtual unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 256; }
+
+  virtual ~Line() {}
 };
 
 // This #if statement means: If compiling with the device compiler
@@ -64,8 +77,8 @@ void Line<Derived, Parameters>::operator()(
 {
   auto derived_instance = static_cast<const Derived*>(this);
   derived_instance->global_function(process_line<Derived, Parameters>)(
-    first<typename Parameters::host_number_of_events_t>(arguments), block_dim_x, stream)(
-    *static_cast<const Derived*>(this), arguments);
+    derived_instance->get_grid_dim_x(arguments), derived_instance->get_block_dim_x(arguments), stream)(
+    *derived_instance, arguments);
 }
 
 #endif
