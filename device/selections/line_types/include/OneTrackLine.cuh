@@ -20,25 +20,25 @@ template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
   unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const override { return 64; }
 
-  inline void set_decisions_size(ArgumentReferences<Parameters>& arguments) const
+  void set_decisions_size(ArgumentReferences<Parameters>& arguments) const
   {
     set_size<typename Parameters::dev_decisions_t>(
       arguments, first<typename Parameters::host_number_of_reconstructed_scifi_tracks_t>(arguments));
   }
 
-  __device__ inline unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
+  __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
   {
     const auto number_of_tracks_in_event =
       parameters.dev_track_offsets[event_number + 1] - parameters.dev_track_offsets[event_number];
     return number_of_tracks_in_event;
   }
 
-  __device__ inline bool* get_decision(const Parameters& parameters, const unsigned event_number) const
+  __device__ bool* get_decision(const Parameters& parameters, const unsigned event_number) const
   {
     return parameters.dev_decisions + parameters.dev_track_offsets[event_number];
   }
 
-  __device__ inline std::tuple<const ParKalmanFilter::FittedTrack&>
+  __device__ std::tuple<const ParKalmanFilter::FittedTrack&>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const
   {
     const ParKalmanFilter::FittedTrack* event_tracks =

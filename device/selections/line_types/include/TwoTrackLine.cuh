@@ -18,25 +18,25 @@
  */
 template<typename Derived, typename Parameters>
 struct TwoTrackLine : public Line<Derived, Parameters> {
-  inline void set_decisions_size(ArgumentReferences<Parameters>& arguments) const
+  void set_decisions_size(ArgumentReferences<Parameters>& arguments) const
   {
     set_size<typename Parameters::dev_decisions_t>(
       arguments, first<typename Parameters::host_number_of_svs_t>(arguments));
   }
 
-  __device__ inline unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
+  __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
   {
     const auto number_of_vertices_event =
       parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
     return number_of_vertices_event;
   }
 
-  __device__ inline bool* get_decision(const Parameters& parameters, const unsigned event_number) const
+  __device__ bool* get_decision(const Parameters& parameters, const unsigned event_number) const
   {
     return parameters.dev_decisions + parameters.dev_sv_offsets[event_number];
   }
 
-  __device__ inline std::tuple<const VertexFit::TrackMVAVertex&>
+  __device__ std::tuple<const VertexFit::TrackMVAVertex&>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const
   {
     const VertexFit::TrackMVAVertex* event_vertices = parameters.dev_svs + parameters.dev_sv_offsets[event_number];
