@@ -1,4 +1,3 @@
-file(GLOB calo_event "event_model/src/*cu")
 file(GLOB calo_decoding "decoding/src/*cu")
 file(GLOB calo_clustering "clustering/src/*cu")
 
@@ -18,7 +17,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
 endif()
 
 allen_add_device_library(Calo STATIC
-  ${calo_event}
   ${calo_decoding}
   ${calo_clustering}
 )

@@ -6,41 +6,34 @@
 #include "CaloDigit.cuh"
 #include "DeviceAlgorithm.cuh"
 
-#define ECAL_BANKS 28
-#define HCAL_BANKS 8
 #define CARD_CHANNELS 32
 #define ECAL_MAX_CELLID 0b11000000000000
 #define HCAL_MAX_CELLID 0b10000000000000
 // Max distance based on CellIDs is 64 steps away, so the iteration in which a cell is clustered can never be more than 64.
-#define UNCLUSTERED 65 
+#define UNCLUSTERED 65
 
 
-namespace calo_get_digits {
-  struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_OUTPUT(dev_ecal_raw_input_t, char) dev_ecal_raw_input;
-    DEVICE_OUTPUT(dev_ecal_raw_input_offsets_t, uint) dev_ecal_raw_input_offsets;
-    DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
-    DEVICE_OUTPUT(dev_hcal_raw_input_t, char) dev_hcal_raw_input;
-    DEVICE_OUTPUT(dev_hcal_raw_input_offsets_t, uint) dev_hcal_raw_input_offsets;
-    DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit) dev_hcal_digits;
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X", 32);
-  };
+namespace calo_decode {
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_selected_events_t, uint) host_number_of_selected_events),
+    (DEVICE_INPUT(dev_event_list_t, uint) dev_event_list),
+    (DEVICE_OUTPUT(dev_ecal_raw_input_t, char) dev_ecal_raw_input),
+    (DEVICE_OUTPUT(dev_ecal_raw_input_offsets_t, uint) dev_ecal_raw_input_offsets),
+    (DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits),
+    (DEVICE_OUTPUT(dev_hcal_raw_input_t, char) dev_hcal_raw_input),
+    (DEVICE_OUTPUT(dev_hcal_raw_input_offsets_t, uint) dev_hcal_raw_input_offsets),
+    (DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit) dev_hcal_digits),
+    (PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X", 32) block_dim))
 
   // Global function
-  __global__ void calo_get_digits(Parameters parameters, const uint number_of_events,
+  __global__ void calo_decode(Parameters parameters, const uint number_of_events,
                                   const char* dev_ecal_geometry, const char* dev_hcal_geometry);
-  __global__ void calo_get_digits_mep(Parameters parameters, const uint number_of_events,
+  __global__ void calo_decode_mep(Parameters parameters, const uint number_of_events,
                                       const char* dev_ecal_geometry, const char* dev_hcal_geometry);
 
   // Algorithm
-  template<typename T, char... S>
-  struct calo_get_digits_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name = Name<S...>::s;
-    decltype(global_function(calo_get_digits)) function {calo_get_digits};
-    decltype(global_function(calo_get_digits_mep)) function_mep {
-      calo_get_digits_mep};
+  struct calo_decode_t : public DeviceAlgorithm, Parameters {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -88,7 +81,7 @@ namespace calo_get_digits {
                                   begin<dev_hcal_raw_input_t>(arguments),
                                   begin<dev_hcal_raw_input_offsets_t>(arguments),
                                   begin<dev_hcal_digits_t>(arguments)};
-      
+
       if (runtime_options.mep_layout) {
         function_mep(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
           parameters, value<host_number_of_selected_events_t>(arguments),

@@ -8,13 +8,25 @@
 #define XY_SIZE 2 * 4 // 8 to accomodate for 2 64 bit doubles as uint16_ts
 
 struct CaloGeometry {
-  uint16_t code_offset;
+  uint32_t code_offset;
   uint16_t* channels;
   uint16_t* neighbors;
-  uint16_t* xy; // We have to use 16 bits ints here instead of doubles as using doubles caused a misaligned address bug.
+  float* xy; // We have to use 16 bits ints here instead of doubles as using doubles caused a misaligned address bug.
+  const unsigned max_cellid;
 
-  __device__ __host__ CaloGeometry(const char* raw_geometry);
-
-  __device__ __host__ double getX(uint16_t cellid);
-  __device__ __host__ double getY(uint16_t cellid);
+  __device__ __host__ CaloGeometry(const char* raw_geometry, const unsigned max)
+  : max_cellid{max}
+  {
+    const char* p = raw_geometry;
+    uint32_t neigh_offset = *((uint32_t*) p);
+    p = p + sizeof(uint32_t); // Skip neighbors offset.
+    uint32_t xy_offset = *((uint32_t*) p);
+    p = p + sizeof(uint32_t); // Skip xy offset.
+    code_offset = *((uint32_t*) p);
+    p = p + sizeof(uint32_t); // Skip code offset.
+    channels = (uint16_t*) p;
+    neighbors = (uint16_t*) (p + neigh_offset);
+    // printf("XY offset: %d\n", xy_offset);
+    xy = (float*) (p + xy_offset);
+  }
 };
