@@ -43,17 +43,16 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   // 192 cards -> 192 codes.
   // Could maintain list of sourceID to number of cards and then use this to get index of code respective to sourceID.
   // Or use max size (which is 8 now, but should be considered a variable) and use this to find code index.
-  // 
+  //
   // Idea: use code as index (technically code - min(codes) * 32). The 32 channels associated with this card
   // start at this index. Using the num we can further index these 32 channels.
-  // Wasted space: 32 * 16 bits per missing card code 
+  // Wasted space: 32 * 16 bits per missing card code
 
   std::vector<int> cards{};
-  std::vector<int> curCards{};
   // Get all card indices for every source ID.
   for (int i = 0; i < det.nTell1s(); i++) {
-    curCards = det.tell1ToCards(i);
-    cards.insert(cards.end(), curCards.begin(), curCards.end());
+    auto tell1Cards = det.tell1ToCards(i);
+    cards.insert(cards.end(), tell1Cards.begin(), tell1Cards.end());
   }
 
   // Determine Minimum and maximum card Codes.
@@ -110,7 +109,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   for (uint16_t chan : allChannels) {
     output.write(chan);
   }
-  
+
   for (uint16_t neigh : neighbors) {
     output.write(neigh);
   }
