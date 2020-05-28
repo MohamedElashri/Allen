@@ -18,10 +18,9 @@
  */
 template<typename Derived, typename Parameters>
 struct TwoTrackLine : public Line<Derived, Parameters> {
-  void set_decisions_size(ArgumentReferences<Parameters>& arguments) const
+  unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const
   {
-    set_size<typename Parameters::dev_decisions_t>(
-      arguments, first<typename Parameters::host_number_of_svs_t>(arguments));
+    return first<typename Parameters::host_number_of_svs_t>(arguments);
   }
 
   __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const

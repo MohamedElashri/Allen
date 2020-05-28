@@ -13,8 +13,9 @@
 /**
  * A generic Line.
  *
- * Assumes the line has one parameter of name host_number_of_events_t:
+ * Assumes the line has the following parameters:
  *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+ *  (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
  */
 template<typename Derived, typename Parameters>
 struct Line {
@@ -25,7 +26,7 @@ struct Line {
     const HostBuffers&) const
   {
     auto derived_instance = static_cast<const Derived*>(this);
-    derived_instance->set_decisions_size(arguments);
+    set_size<typename Parameters::dev_decisions_t>(arguments, derived_instance->get_decisions_size(arguments));
   }
 
   void operator()(
@@ -49,6 +50,9 @@ struct Line {
    */
   virtual unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 256; }
 
+  /**
+   * @brief Virtual destructor.
+   */
   virtual ~Line() {}
 };
 
@@ -56,6 +60,10 @@ struct Line {
 #if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))) || \
   ((defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__)))
 
+/**
+ * @brief Processes a line by iterating over all events and all "get_input_size" (ie. tracks, vertices, etc.).
+ *        The way process line parallelizes is highly configurable.
+ */
 template<typename Line, typename Parameters>
 __global__ void process_line(Line line, Parameters parameters)
 {

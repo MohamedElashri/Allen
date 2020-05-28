@@ -11,7 +11,6 @@
  *  (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
  *  (DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack), dev_tracks),
  *  (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
- *  (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
  *
  * It also assumes the OneTrackLine will be defined as:
  *  __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
@@ -20,10 +19,9 @@ template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
   unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const override { return 64; }
 
-  void set_decisions_size(ArgumentReferences<Parameters>& arguments) const
+  unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const
   {
-    set_size<typename Parameters::dev_decisions_t>(
-      arguments, first<typename Parameters::host_number_of_reconstructed_scifi_tracks_t>(arguments));
+    return first<typename Parameters::host_number_of_reconstructed_scifi_tracks_t>(arguments);
   }
 
   __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
