@@ -24,9 +24,7 @@ StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
     info() << "Registering " << path << endmsg;
     updMgrSvc->registerCondition(&m_daqHelper, path, &MuonDAQHelper::updateLUT);
   }
-  auto sc = updMgrSvc->update(&m_daqHelper);
-
-  return sc;
+  return updMgrSvc->update(&m_daqHelper);
 }
 
 DumpUtils::Dumps DumpMuonGeometry::dumpGeometry() const
