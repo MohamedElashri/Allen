@@ -23,7 +23,7 @@ namespace track_mva_line {
     (PROPERTY(param3_t, "param3", "param3 description", float), param3),
     (PROPERTY(alpha_t, "alpha", "alpha description", float), alpha))
 
-  struct track_mva_line_t : public DeviceAlgorithm, Parameters, OneTrackLine<track_mva_line_t, Parameters> {
+  struct track_mva_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<track_mva_line_t, Parameters> {
     __device__ bool select(const Parameters& ps, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
 
   private:

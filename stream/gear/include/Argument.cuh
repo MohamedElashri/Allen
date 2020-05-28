@@ -26,7 +26,7 @@
 #endif
 
 // Datatypes can be host or device.
-// Note: These structs need to be not templated.
+// Note: These structs need to be not templated (libClang).
 struct host_datatype {
   virtual void set_size(size_t) {}
   virtual size_t size() const { return 0; }
@@ -43,6 +43,11 @@ struct device_datatype {
   virtual void set_offset(char*) {}
   virtual char* offset() const { return nullptr; }
   virtual ~device_datatype() {}
+};
+
+// Datatypes can also be aggregates.
+// Note: This structs need to be not templated (libClang).
+struct aggregate_datatype {
 };
 
 // A generic datatype* data holder.
@@ -99,6 +104,19 @@ struct output_datatype : datatype<internal_t> {
   struct ARGUMENT_NAME : public host_datatype, output_datatype<__VA_ARGS__> { \
     using output_datatype<__VA_ARGS__>::output_datatype;                      \
     void inline parameter(__VA_ARGS__) {}                                     \
+  }
+
+// Support for multiparameters
+#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
+  struct ARGUMENT_NAME : public aggregate_datatype, device_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                                             \
+    void inline parameter(__VA_ARGS__) const {}                                                    \
+  }
+
+#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
+  struct ARGUMENT_NAME : public aggregate_datatype, host_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                                           \
+    void inline parameter(__VA_ARGS__) const {}                                                  \
   }
 
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.

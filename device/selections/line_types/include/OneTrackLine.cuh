@@ -17,7 +17,7 @@
  */
 template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
-  unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const override { return 64; }
+  unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 64; }
 
   unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const
   {

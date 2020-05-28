@@ -73,5 +73,9 @@ two_track_mva_line = algorithms.two_track_mva_line_t(
     dev_svs_t=hlt1_sequence["fit_secondary_vertices"].dev_consolidated_svs_t(),
     dev_sv_offsets_t=hlt1_sequence["prefix_sum_secondary_vertices"].dev_output_buffer_t())
 
+gather_selections = algorithms.gather_selections_t(
+    name="gather_selections",
+    dev_input_selections_t = (track_mva_line.dev_decisions_t(), two_track_mva_line.dev_decisions_t()))
+
 algorithms.extend_sequence(algorithms.compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
-                  muon_sequence, hlt1_sequence), track_mva_line, two_track_mva_line).generate()
+                  muon_sequence, hlt1_sequence), track_mva_line, two_track_mva_line, gather_selections).generate()

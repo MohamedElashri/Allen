@@ -1,11 +1,18 @@
 #pragma once
 
 #include "HostAlgorithm.cuh"
-#include "ConfiguredLines.h"
+
+// Note: This include is required when aggregates are used in the parameter list (ie. DEVICE_INPUTS, HOST_INPUTS).
+//       This also requires that the relevant CMakeLists.txt depend on configured_sequence, ie.
+//       add_dependencies(Selections configured_sequence)
+#include "ConfiguredInputAggregates.h"
 
 namespace gather_selections {
   DEFINE_PARAMETERS(
     Parameters,
+    (DEVICE_INPUT_AGGREGATE(dev_input_selections_t, gather_selections::dev_input_selections_t::tuple_t),
+     dev_input_selections),
+    (HOST_OUTPUT(host_selections_offsets_t, unsigned), host_selections_offsets),
     (DEVICE_OUTPUT(dev_selections_t, bool), dev_selections),
     (DEVICE_OUTPUT(dev_selections_offsets_t, unsigned), dev_selections_offsets))
 
@@ -14,10 +21,7 @@ namespace gather_selections {
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const
-    {
-      set_gather_selection_size(arguments);
-    }
+      const HostBuffers&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -25,9 +29,6 @@ namespace gather_selections {
       const Constants&,
       HostBuffers&,
       cudaStream_t& stream,
-      cudaEvent_t&) const
-    {
-      gather_selection_operator(arguments, stream);
-    }
+      cudaEvent_t&) const;
   };
 } // namespace gather_selections

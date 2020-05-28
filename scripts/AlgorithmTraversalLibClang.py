@@ -27,9 +27,10 @@ class Property():
 
 
 class Parameter():
-    def __init__(self, typename, datatype, is_input, typedef):
+    def __init__(self, typename, datatype, is_input, typedef, aggregate):
         self.typename = typename
         self.typedef = typedef
+        self.aggregate = aggregate
         if datatype == "host_datatype" and is_input:
             self.kind = "HostInput"
         elif datatype == "host_datatype" and not is_input:
@@ -67,8 +68,9 @@ def make_parsed_algorithms(filename, data):
                     datatype = t[2]
                     is_input = t[3]
                     typedef = t[4]
+                    aggregate = t[5]
                     parameters.append(
-                        Parameter(typename, datatype, is_input, typedef))
+                        Parameter(typename, datatype, is_input, typedef, aggregate))
             parsed_algorithms.append(
                 ParsedAlgorithm(name, scope, filename, namespace, parameters,
                                 properties))
@@ -89,7 +91,11 @@ class AlgorithmTraversal():
     In addition, the Parameters class must be defined in the same header file."""
 
     # Accepted tokens for algorithm definitions
-    __algorithm_tokens = ["HostAlgorithm", "DeviceAlgorithm"]
+    __algorithm_tokens = ["HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm"]
+
+    # Accepted tokens for parameter parsing
+    __parameter_io_datatypes = ["device_datatype", "host_datatype"]
+    __parameter_aggregate = ["aggregate_datatype"]
 
     # Ignored namespaces. Definition of algorithms start by looking into namespaces,
     # therefore ignoring some speeds up the traversal.
@@ -155,9 +161,12 @@ class AlgorithmTraversal():
             kind = None
             io = None
             typedef = None
+            aggregate = False
             for child in c.get_children():
-                if child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER:
+                if child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER and child.type.spelling in AlgorithmTraversal.__parameter_io_datatypes:
                     kind = child.type.spelling
+                elif child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER and child.type.spelling in AlgorithmTraversal.__parameter_aggregate:
+                    aggregate = True
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
@@ -167,7 +176,7 @@ class AlgorithmTraversal():
                 # This happens if the type cannot be parsed
                 typedef = "int"
             if kind and typedef and io != None:
-                return ("Parameter", typename, kind, io, typedef)
+                return ("Parameter", typename, kind, io, typedef, aggregate)
         elif is_property:
             # - There is a function (property) which captures:
             #   * f.type.spelling: The type (restricted to POD types)

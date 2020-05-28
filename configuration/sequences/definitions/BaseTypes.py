@@ -84,6 +84,11 @@ class DeviceAlgorithm(Algorithm):
         pass
 
 
+class SelectionAlgorithm(Algorithm):
+    def __init__(self):
+        pass
+
+
 class HostParameter():
     def __init__(self):
         pass
@@ -254,6 +259,12 @@ def prefix(indentation_level, indent_by=2):
     return "".join([" "] * indentation_level * indent_by)
 
 
+def parameter_tuple(parameter):
+    if type(parameter) == tuple:
+        return parameter
+    return (parameter,)
+
+
 class Sequence():
     def __init__(self, *args):
         self.__sequence = OrderedDict()
@@ -306,34 +317,32 @@ class Sequence():
         # Check the inputs of all algorithms
         output_parameters = OrderedDict([])
         for _, algorithm in iter(self.__sequence.items()):
-            for parameter_name, parameter in iter(
+            for parameter_name, current_parameter in iter(
                     algorithm.parameters().items()):
-                if issubclass(type(parameter), InputParameter):
-                    # Check the input is not orphaned (ie. that there is a previous Output that generated it)
-                    if parameter.fullname() not in output_parameters:
-                        print("Error: Parameter " + repr(parameter) + " of algorithm " + algorithm.name() + \
-                          " is an InputParameter not provided by any previous OutputParameter.")
-                        errors += 1
-                # Note: Whenever we enforce InputParameters to come from OutputParameters always,
-                #       then we can move the following two if statements to be included in the
-                #       "if issubclass(type(parameter), InputParameter):".
-                # Check that the input and output types correspond
-                if parameter.fullname() in output_parameters and \
-                  output_parameters[parameter.fullname()]["parameter"].type() != parameter.type():
-                    print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.fullname()]["parameter"].type()) + ") " \
-                      + "between " + algorithm.name() + "::" + repr(parameter) \
-                      + " and " + output_parameters[parameter.fullname()]["algorithm"].name() \
-                      + "::" + repr(output_parameters[parameter.fullname()]["parameter"]))
-                    errors += 1
-                # Check the scope (Device, Host) of the input and output parameters matches
-                if parameter.fullname() in output_parameters and \
-                  ((issubclass(parameter.__class__, DeviceParameter) and \
-                    issubclass(output_parameters[parameter.fullname()]["parameter"].__class__, HostParameter)) or \
-                  (issubclass(parameter.__class__, HostParameter) and \
-                    issubclass(output_parameters[parameter.fullname()]["parameter"].__class__, DeviceParameter))):
-                    print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.fullname()]["parameter"].__class__ + ") " \
-                      + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
-                    errors += 1
+                for parameter in parameter_tuple(current_parameter):
+                    if issubclass(type(parameter), InputParameter):
+                        # Check the input is not orphaned (ie. that there is a previous Output that generated it)
+                        if parameter.fullname() not in output_parameters:
+                            print("Error: Parameter " + repr(parameter) + " of algorithm " + algorithm.name() + \
+                              " is an InputParameter not provided by any previous OutputParameter.")
+                            errors += 1
+                        # Check that the input and output types correspond
+                        if parameter.fullname() in output_parameters and \
+                          output_parameters[parameter.fullname()]["parameter"].type() != parameter.type():
+                            print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.fullname()]["parameter"].type()) + ") " \
+                              + "between " + algorithm.name() + "::" + repr(parameter) \
+                              + " and " + output_parameters[parameter.fullname()]["algorithm"].name() \
+                              + "::" + repr(output_parameters[parameter.fullname()]["parameter"]))
+                            errors += 1
+                        # Check the scope (Device, Host) of the input and output parameters matches
+                        if parameter.fullname() in output_parameters and \
+                          ((issubclass(parameter.__class__, DeviceParameter) and \
+                            issubclass(output_parameters[parameter.fullname()]["parameter"].__class__, HostParameter)) or \
+                          (issubclass(parameter.__class__, HostParameter) and \
+                            issubclass(output_parameters[parameter.fullname()]["parameter"].__class__, DeviceParameter))):
+                            print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.fullname()]["parameter"].__class__ + ") " \
+                              + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
+                            errors += 1
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
                 if issubclass(parameter.__class__, OutputParameter):
@@ -353,6 +362,7 @@ class Sequence():
     def generate(self,
                  output_filename="Sequence.h",
                  configured_lines_filename="ConfiguredLines.h",
+                 aggregate_input_filename="ConfiguredInputAggregates.h",
                  json_configuration_filename="Sequence.json",
                  prefix_includes="../../"):
         # Check that sequence is valid
@@ -368,17 +378,18 @@ class Sequence():
             # Generate all parameters
             parameters = OrderedDict([])
             for _, algorithm in iter(self.__sequence.items()):
-                for parameter_t, parameter in iter(
+                for parameter_t, current_parameter in iter(
                         algorithm.parameters().items()):
-                    if parameter.fullname() in parameters:
-                        parameters[parameter.fullname()].append(
-                            (algorithm.name(), algorithm.namespace(),
-                             parameter_t))
-                    else:
-                        parameters[parameter.fullname()] = [
-                            (algorithm.name(), algorithm.namespace(),
-                             parameter_t)
-                        ]
+                    for parameter in parameter_tuple(current_parameter):
+                        if parameter.fullname() in parameters:
+                            parameters[parameter.fullname()].append(
+                                (algorithm.name(), algorithm.namespace(),
+                                 parameter_t))
+                        else:
+                            parameters[parameter.fullname()] = [
+                                (algorithm.name(), algorithm.namespace(),
+                                 parameter_t)
+                            ]
             # Generate arguments
             for parameter_name, v in iter(parameters.items()):
                 s += "struct " + parameter_name + " : "
@@ -422,15 +433,13 @@ private: \
             for _, algorithm in iter(self.__sequence.items()):
                 s += prefix(1) + "std::tuple<"
                 i = 0
-                for parameter_t, parameter in iter(
+                for parameter_t, current_parameter in iter(
                         algorithm.parameters().items()):
-                    s += parameter.fullname()
-                    i += 1
-                    if i != len(algorithm.parameters()):
+                    for parameter in parameter_tuple(current_parameter):
+                        s += parameter.fullname()
+                        i += 1
                         s += ", "
-                    else:
-                        s += ">"
-                s += ",\n"
+                s = s[:-2] + ">,\n"
             s = s[:-2] + ">;\n\n"
             # Generate populate_sequence_algorithm_names function
             s += "void inline populate_sequence_algorithm_names(configured_sequence_t& sequence) {\n"
@@ -445,12 +454,32 @@ private: \
             f.write(s)
             f.close()
             print("Generated sequence file " + output_filename)
+            # Generate MultipleInputConfiguration
+            s = "#pragma once\n\n#include <tuple>\n"
+            for _, algorithm in iter(self.__sequence.items()):
+                for parameter_t, parameter_tup in iter(algorithm.parameters().items()):
+                    if type(parameter_tup) == tuple:
+                        for parameter in parameter_tup:
+                            s += "#include \"" + prefix_includes + self.__sequence[parameter.producer()].filename() + "\"\n"
+            s += "\n"
+            for _, algorithm in iter(self.__sequence.items()):
+                for parameter_t, parameter_tup in iter(algorithm.parameters().items()):
+                    if type(parameter_tup) == tuple:
+                        s += "namespace " + algorithm.namespace() + " { namespace " + parameter_t + " { using tuple_t = std::tuple<"
+                        for parameter in parameter_tup:
+                            s += self.__sequence[parameter.producer()].namespace() + "::Parameters::" + parameter.name() + ", "
+                        s = s[:-2] + ">; }}\n"
+            f = open(aggregate_input_filename, "w")
+            f.write(s)
+            f.close()
+            print("Generated multiple input configuration file " +
+                  aggregate_input_filename)
+            # Generate lines
             s = "#pragma once\n\n#include <tuple>\n"
             s += "#include \"" + prefix_includes + "device/selections/Hlt1/include/LineTraverser.cuh\"\n"
             for _, line in iter(self.__lines.items()):
                 s += "#include \"" + prefix_includes + line.filename() + "\"\n"
             s += "\n"
-            # Generate lines
             s += "using configured_lines_t = std::tuple<"
             for _, line in iter(self.__lines.items()):
                 s += line.namespace() + "::" + line.name() + ", "

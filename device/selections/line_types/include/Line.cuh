@@ -11,11 +11,29 @@
     cudaEvent_t&) const;
 
 /**
- * A generic Line.
- *
- * Assumes the line has the following parameters:
+ * @brief A generic Line.
+ * @detail It assumes the line has the following parameters:
  *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
  *  (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+ * 
+ * The inheriting line must also provide the following methods:
+ *
+ *     __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const;
+ *
+ *     __device__ bool* get_decision(const Parameters& parameters, const unsigned event_number) const;
+ *
+ *     unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
+ *
+ *     __device__ std::tuple<const ParKalmanFilter::FittedTrack&>
+ *     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
+ * 
+ *     __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+ *
+ * The following methods can optionally be defined in an inheriting class:
+ *
+ *     unsigned get_grid_dim_x(const ArgumentReferences<Parameters>&) const;
+ *
+ *     unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const;
  */
 template<typename Derived, typename Parameters>
 struct Line {
@@ -40,7 +58,7 @@ struct Line {
   /**
    * @brief Grid dimension of kernel call. By default, get_grid_dim returns the number of events.
    */
-  virtual unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments) const
+  unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments) const
   {
     return first<typename Parameters::host_number_of_events_t>(arguments);
   }
@@ -48,12 +66,7 @@ struct Line {
   /**
    * @brief Default block dim x of kernel call.
    */
-  virtual unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 256; }
-
-  /**
-   * @brief Virtual destructor.
-   */
-  virtual ~Line() {}
+  unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 256; }
 };
 
 // This #if statement means: If compiling with the device compiler

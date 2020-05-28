@@ -24,7 +24,7 @@ namespace two_track_mva_line {
     (PROPERTY(minFDChi2_t, "minFDChi2", "minFDChi2 description", float), minFDChi2), // Placeholder. To be replaced with MVA selection.
     (PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float), minTrackIPChi2))
 
-  struct two_track_mva_line_t : public DeviceAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
+  struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
     __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
   private:

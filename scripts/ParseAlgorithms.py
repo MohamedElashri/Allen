@@ -189,6 +189,8 @@ class AllenConf():
             if "Output" in var.kind:
                 s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + var.kind \
                   + "(\"" + var.typename + "\", \"" + var.typedef + "\", self.__name)),"
+            elif var.aggregate:
+                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + var.typename + "),"
             else:
                 s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", check_input_parameter(" + var.typename \
                   + ", " + var.kind + ", \"" + var.typedef + "\")),"
