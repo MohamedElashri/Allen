@@ -11,7 +11,6 @@
 #define ECAL_MAX_CELLID 0b11000000000000
 #define HCAL_MAX_CELLID 0b10000000000000
 
-
 namespace calo_set_cluster_centers {
   DEFINE_PARAMETERS(
     Parameters,
@@ -21,15 +20,15 @@ namespace calo_set_cluster_centers {
     (DEVICE_INPUT(dev_event_list_t, uint), dev_event_list),
     (DEVICE_INPUT(dev_ecal_cluster_offsets_t, uint), dev_ecal_cluster_offsets),
     (DEVICE_INPUT(dev_hcal_cluster_offsets_t, uint), dev_hcal_cluster_offsets),
-    (DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit), dev_ecal_digits),
-    (DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit), dev_hcal_digits),
+    (DEVICE_INPUT(dev_ecal_digits_t, CaloDigit), dev_ecal_digits),
+    (DEVICE_INPUT(dev_hcal_digits_t, CaloDigit), dev_hcal_digits),
     (DEVICE_OUTPUT(dev_ecal_clusters_t, CaloCluster), dev_ecal_clusters),
     (DEVICE_OUTPUT(dev_hcal_clusters_t, CaloCluster), dev_hcal_clusters),
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned), block_dim))
 
   // Global function
-  __global__ void calo_set_cluster_centers(Parameters parameters, const uint number_of_events,
-    const char* raw_ecal_geometry, const char* raw_hcal_geometry);
+  __global__ void
+  calo_set_cluster_centers(Parameters parameters, const char* raw_ecal_geometry, const char* raw_hcal_geometry);
 
   // Algorithm
   struct calo_set_cluster_centers_t : public DeviceAlgorithm, Parameters {

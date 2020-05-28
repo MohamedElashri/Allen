@@ -11,7 +11,6 @@
 #define HCAL_MAX_CELLID 0b10000000000000
 #define CLUST_ITERATIONS 10
 
-
 namespace calo_find_clusters {
   DEFINE_PARAMETERS(
     Parameters,
@@ -28,18 +27,14 @@ namespace calo_find_clusters {
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim))
 
   // Global function
-  __global__ void calo_find_clusters(Parameters parameters, const uint number_of_events,
-    const char* raw_ecal_geometry, const char* raw_hcal_geometry);
+  __global__ void
+  calo_find_clusters(Parameters parameters, const char* raw_ecal_geometry, const char* raw_hcal_geometry);
 
   // Algorithm
   struct calo_find_clusters_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters>,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const
-    {
-    }
+    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&, const HostBuffers&)
+      const
+    {}
 
     __host__ void operator()(
       const ArgumentReferences<Parameters>& arguments,

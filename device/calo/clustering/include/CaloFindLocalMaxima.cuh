@@ -10,7 +10,6 @@
 #define ECAL_MAX_CELLID 0b11000000000000
 #define HCAL_MAX_CELLID 0b10000000000000
 
-
 namespace calo_find_local_maxima {
   DEFINE_PARAMETERS(
     Parameters,
@@ -23,8 +22,8 @@ namespace calo_find_local_maxima {
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim))
 
   // Global function
-  __global__ void calo_find_local_maxima(Parameters parameters, const uint number_of_events,
-    const char* raw_ecal_geometry, const char* raw_hcal_geometry);
+  __global__ void
+  calo_find_local_maxima(Parameters parameters, const char* raw_ecal_geometry, const char* raw_hcal_geometry);
 
   // Algorithm
   struct calo_find_local_maxima_t : public DeviceAlgorithm, Parameters {

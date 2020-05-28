@@ -11,12 +11,6 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${Boost_INCLUDE_DIRS})
 
-if(TARGET_DEVICE STREQUAL "CPU")
-  foreach(source_file ${calo_event} ${calo_decoding} ${calo_clustering})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
 allen_add_device_library(Calo STATIC
   ${calo_decoding}
   ${calo_clustering}

@@ -9,9 +9,9 @@
 #define CARD_CHANNELS 32
 #define ECAL_MAX_CELLID 0b11000000000000
 #define HCAL_MAX_CELLID 0b10000000000000
-// Max distance based on CellIDs is 64 steps away, so the iteration in which a cell is clustered can never be more than 64.
+// Max distance based on CellIDs is 64 steps away, so the iteration in which a cell is clustered can never be more
+// than 64.
 #define UNCLUSTERED 65
-
 
 namespace calo_decode {
   DEFINE_PARAMETERS(
@@ -27,14 +27,11 @@ namespace calo_decode {
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim))
 
   // Global function
-  __global__ void calo_decode(Parameters parameters, const uint number_of_events,
-                                  const char* dev_ecal_geometry, const char* dev_hcal_geometry);
-  __global__ void calo_decode_mep(Parameters parameters, const uint number_of_events,
-                                      const char* dev_ecal_geometry, const char* dev_hcal_geometry);
+  __global__ void calo_decode(Parameters parameters, const char* dev_ecal_geometry, const char* dev_hcal_geometry);
+  __global__ void calo_decode_mep(Parameters parameters, const char* dev_ecal_geometry, const char* dev_hcal_geometry);
 
   // Algorithm
   struct calo_decode_t : public DeviceAlgorithm, Parameters {
-
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
@@ -52,4 +49,4 @@ namespace calo_decode {
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 32};
   };
-} // namespace calo_get_digits
+} // namespace calo_decode
