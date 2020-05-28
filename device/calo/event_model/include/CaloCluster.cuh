@@ -5,8 +5,8 @@
 struct CaloCluster {
   uint16_t center_id;
   uint32_t e; // Is a double in the original algorithm, but is still integer here?
-  double refX, refY;
-  double x, y;
+  float refX, refY;
+  float x, y;
 
   __device__ __host__ CaloCluster() {
       center_id = 0;

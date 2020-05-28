@@ -6,7 +6,7 @@
 template<typename Event>
 __device__ void decode(const char* event_data, const uint32_t* offsets,
                        const unsigned* event_list,
-                       unsigned* digits,
+                       CaloDigit* digits,
                        const unsigned number_of_events,
                        const CaloGeometry& geometry)
 {
@@ -19,14 +19,14 @@ __device__ void decode(const char* event_data, const uint32_t* offsets,
 
     const auto selected_event_number = event_list[event_number];
 
-    auto raw_event = Event{raw_input, offsets};
+    auto raw_event = Event{event_data, offsets};
     for (auto bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
-      auto raw_bank = raw_event.bank(bank_number);
+      auto raw_bank = raw_event.bank(selected_event_number, bank_number);
       unsigned offset = 0; // To skip the source ID.
       int card = 0;
       // Loop over all cards in this raw bank.
       while (offset < raw_bank.size) {
-        raw_bank.update(length);
+        raw_bank.update(offset);
         uint64_t cur_data = ((uint64_t) raw_bank.data[1] << 32) + raw_bank.data[0]; // Use 64 bit integers in case of 12 bits coding at border regions.
         int offset = 0;
         int item = 0; // Have to use an item count instead of pointer because of "misaligned address" bug.
@@ -109,12 +109,11 @@ __global__ void calo_decode::calo_decode_mep(
                        number_of_events, hcal_geometry);
 }
 
-
 void calo_decode::calo_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
-  const HostBuffers&) const;
+  const HostBuffers&) const
 {
   set_size<dev_ecal_digits_t>(arguments, ECAL_MAX_CELLID * first<host_number_of_selected_events_t>(arguments));
   set_size<dev_hcal_digits_t>(arguments, HCAL_MAX_CELLID * first<host_number_of_selected_events_t>(arguments));
@@ -133,7 +132,7 @@ void calo_decode::calo_decode_t::operator()(
 
   // Enough blocks to cover all events
   const auto grid_size = dim3(
-    (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
   if (runtime_options.mep_layout) {
     global_function(calo_decode_mep)(

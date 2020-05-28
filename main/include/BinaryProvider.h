@@ -6,10 +6,12 @@
 #include <sys/stat.h>
 
 #include <regex>
+#include <condition_variable>
 #include <InputProvider.h>
 #include <InputTools.h>
 #include <BankTypes.h>
 #include <TransposeTypes.h>
+#include <Transpose.h>
 
 namespace {
   using namespace Allen::Units;

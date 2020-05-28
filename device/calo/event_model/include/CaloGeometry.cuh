@@ -29,4 +29,13 @@ struct CaloGeometry {
     // printf("XY offset: %d\n", xy_offset);
     xy = (float*) (p + xy_offset);
   }
+
+  __device__ __host__ float getX(uint16_t cellid) const {
+    return xy[2 * cellid];
+  }
+
+  __device__ __host__ float getY(uint16_t cellid) const {
+    return xy[2 * cellid + 1];
+  }
+
 };

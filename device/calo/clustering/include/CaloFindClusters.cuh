@@ -18,14 +18,14 @@ namespace calo_find_clusters {
     (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
     (HOST_INPUT(host_ecal_number_of_clusters_t, uint), host_ecal_number_of_clusters),
     (HOST_INPUT(host_hcal_number_of_clusters_t, uint), host_hcal_number_of_clusters),
-    (DEVICE_INPUT(dev_event_list_t, uint) dev_event_list),
-    (DEVICE_INPUT(dev_ecal_cluster_offsets_t, uint) dev_ecal_cluster_offsets),
-    (DEVICE_INPUT(dev_hcal_cluster_offsets_t, uint) dev_hcal_cluster_offsets),
-    (DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits),
-    (DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit) dev_hcal_digits),
-    (DEVICE_OUTPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters),
-    (DEVICE_OUTPUT(dev_hcal_clusters_t, CaloCluster) dev_hcal_clusters),
-    (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", DeviceDimensions), block_dim))
+    (DEVICE_INPUT(dev_event_list_t, uint), dev_event_list),
+    (DEVICE_INPUT(dev_ecal_cluster_offsets_t, uint), dev_ecal_cluster_offsets),
+    (DEVICE_INPUT(dev_hcal_cluster_offsets_t, uint), dev_hcal_cluster_offsets),
+    (DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit), dev_ecal_digits),
+    (DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit), dev_hcal_digits),
+    (DEVICE_OUTPUT(dev_ecal_clusters_t, CaloCluster), dev_ecal_clusters),
+    (DEVICE_OUTPUT(dev_hcal_clusters_t, CaloCluster), dev_hcal_clusters),
+    (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim))
 
   // Global function
   __global__ void calo_find_clusters(Parameters parameters, const uint number_of_events,
@@ -34,8 +34,8 @@ namespace calo_find_clusters {
   // Algorithm
   struct calo_find_clusters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
+      ArgumentReferences<Parameters>,
+      const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const
     {
@@ -50,6 +50,6 @@ namespace calo_find_clusters {
       cudaEvent_t&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this};
+    Property<block_dim_x_t> m_block_dim_x {this, 32};
   };
 } // namespace calo_find_clusters

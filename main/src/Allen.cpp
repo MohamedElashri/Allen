@@ -39,6 +39,7 @@
 #include "Tools.h"
 #include "InputTools.h"
 #include "InputReader.h"
+#include "BinaryProvider.h"
 #include "MDFProvider.h"
 #include "MEPProvider.h"
 #include "Timer.h"

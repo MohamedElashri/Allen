@@ -5,54 +5,82 @@ __global__ void calo_set_cluster_centers::calo_set_cluster_centers(
   const uint number_of_events,
   const char* raw_ecal_geometry,
   const char* raw_hcal_geometry)
-  {
-    // Get proper geometry.
-    auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
-    auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
+{
+  // Get proper geometry.
+  auto ecal_geometry = CaloGeometry(raw_ecal_geometry, ECAL_MAX_CELLID);
+  auto hcal_geometry = CaloGeometry(raw_hcal_geometry, HCAL_MAX_CELLID);
 
-    for (auto event_number = blockIdx.x * blockDim.x; event_number < number_of_events;
-      event_number += blockDim.x * gridDim.x) {
+  for (auto event_number = blockIdx.x * blockDim.x; event_number < number_of_events;
+    event_number += blockDim.x * gridDim.x) {
 
-      // Ecal
-      uint num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - 
-                          parameters.dev_ecal_cluster_offsets[event_number];
-      // Loop over all clusters in this event.
-      for (uint i = threadIdx.x; i < num_clusters; i += blockDim.x) {
-        // Find the right cluster center cell ID.
-        uint count = i + 1;
-        uint c = 1;
-        while (count > 0) {
-          if (parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + c].clusters[0] == c) {
-            count--;
-          }
-          c++;
+    // Ecal
+    uint num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] -
+                        parameters.dev_ecal_cluster_offsets[event_number];
+    // Loop over all clusters in this event.
+    for (uint i = threadIdx.x; i < num_clusters; i += blockDim.x) {
+      // Find the right cluster center cell ID.
+      uint count = i + 1;
+      uint c = 1;
+      while (count > 0) {
+        if (parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + c].clusters[0] == c) {
+          count--;
         }
-        c--; // To counter the last c++;
-
-        parameters.dev_ecal_clusters[parameters.dev_ecal_cluster_offsets[event_number] + i] =
-          CaloCluster(c, parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + c].adc,
-          ecal_geometry.getX(c), ecal_geometry.getY(c));
+        c++;
       }
+      c--; // To counter the last c++;
 
-      // Hcal
-      num_clusters = parameters.dev_hcal_cluster_offsets[event_number + 1] - 
-                     parameters.dev_hcal_cluster_offsets[event_number];
-      // Loop over all clusters in this event.
-      for (uint i = threadIdx.x; i < num_clusters; i += blockDim.x) {
-        // Find the right cluster center cell ID.
-        uint count = i + 1;
-        uint c = 1;
-        while (count > 0) {
-          if (parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + c].clusters[0] == c) {
-            count--;
-          }
-          c++;
+      parameters.dev_ecal_clusters[parameters.dev_ecal_cluster_offsets[event_number] + i] =
+        CaloCluster(c, parameters.dev_ecal_digits[event_number * ECAL_MAX_CELLID + c].adc,
+        ecal_geometry.getX(c), ecal_geometry.getY(c));
+    }
+
+    // Hcal
+    num_clusters = parameters.dev_hcal_cluster_offsets[event_number + 1] -
+                   parameters.dev_hcal_cluster_offsets[event_number];
+    // Loop over all clusters in this event.
+    for (uint i = threadIdx.x; i < num_clusters; i += blockDim.x) {
+      // Find the right cluster center cell ID.
+      uint count = i + 1;
+      uint c = 1;
+      while (count > 0) {
+        if (parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + c].clusters[0] == c) {
+          count--;
         }
-        c--; // To counter the last c++;
-        
-        parameters.dev_hcal_clusters[parameters.dev_hcal_cluster_offsets[event_number] + i] =
-          CaloCluster(c, parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + c].adc,
-          hcal_geometry.getX(c), hcal_geometry.getY(c));
+        c++;
       }
+      c--; // To counter the last c++;
+
+      parameters.dev_hcal_clusters[parameters.dev_hcal_cluster_offsets[event_number] + i] =
+        CaloCluster(c, parameters.dev_hcal_digits[event_number * HCAL_MAX_CELLID + c].adc,
+        hcal_geometry.getX(c), hcal_geometry.getY(c));
     }
   }
+}
+
+void calo_set_cluster_centers::calo_set_cluster_centers_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
+{
+  set_size<dev_ecal_clusters_t>(arguments, first<host_ecal_number_of_clusters_t>(arguments));
+  set_size<dev_hcal_clusters_t>(arguments, first<host_hcal_number_of_clusters_t>(arguments));
+}
+
+void calo_set_cluster_centers::calo_set_cluster_centers_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants& constants,
+  HostBuffers&,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t&) const
+{
+  // Enough blocks to cover all events
+  const auto grid_size = dim3(
+    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+
+  // Set cluster centers.
+  global_function(calo_set_cluster_centers)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    arguments, first<host_number_of_selected_events_t>(arguments),
+    constants.dev_ecal_geometry, constants.dev_hcal_geometry);
+}
