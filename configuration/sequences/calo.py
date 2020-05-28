@@ -1,5 +1,5 @@
 from definitions.GECSequence import GECSequence
-from definitions.VeloSequence import CaloSequence
+from definitions.CaloSequence import CaloSequence
 from definitions.algorithms import compose_sequences
 
 gec_sequence = GECSequence()

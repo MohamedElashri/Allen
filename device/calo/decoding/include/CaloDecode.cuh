@@ -18,11 +18,11 @@ namespace calo_decode {
     Parameters,
     (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
     (DEVICE_INPUT(dev_event_list_t, uint), dev_event_list),
-    (DEVICE_OUTPUT(dev_ecal_raw_input_t, char), dev_ecal_raw_input),
-    (DEVICE_OUTPUT(dev_ecal_raw_input_offsets_t, uint), dev_ecal_raw_input_offsets),
+    (DEVICE_INPUT(dev_ecal_raw_input_t, char), dev_ecal_raw_input),
+    (DEVICE_INPUT(dev_ecal_raw_input_offsets_t, uint), dev_ecal_raw_input_offsets),
+    (DEVICE_INPUT(dev_hcal_raw_input_t, char), dev_hcal_raw_input),
+    (DEVICE_INPUT(dev_hcal_raw_input_offsets_t, uint), dev_hcal_raw_input_offsets),
     (DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit), dev_ecal_digits),
-    (DEVICE_OUTPUT(dev_hcal_raw_input_t, char), dev_hcal_raw_input),
-    (DEVICE_OUTPUT(dev_hcal_raw_input_offsets_t, uint), dev_hcal_raw_input_offsets),
     (DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit), dev_hcal_digits),
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim))
 
