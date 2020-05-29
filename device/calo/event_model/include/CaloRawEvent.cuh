@@ -2,7 +2,7 @@
 
 #include "CudaCommon.h"
 #include "CaloRawBanks.cuh"
-#include <MEPTools.h>
+#include "MEPTools.h"
 
 struct CaloRawEvent {
   uint32_t number_of_raw_banks;
