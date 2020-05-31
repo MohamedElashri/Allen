@@ -12,7 +12,7 @@ void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
   const auto number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-  set_size<host_number_of_events_t>(arguments, 1);
+  set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<host_number_of_events_t>(arguments, 1);
   set_size<host_event_list_t>(arguments, number_of_events);
   set_size<dev_event_list_t>(arguments, number_of_events);
@@ -50,11 +50,11 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   copy<dev_event_list_t, host_event_list_t>(arguments, stream);
 
   // Reduce the size of the event lists to the selected events
-  reduce_size<host_event_list_t>(arguments, first<host_number_of_events_t>(arguments));
-  reduce_size<dev_event_list_t>(arguments, first<host_number_of_events_t>(arguments));
+  reduce_size<host_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  reduce_size<dev_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 
   // TODO: Remove whenever the checker uses variables
-  host_buffers.host_number_of_events[0] = first<host_number_of_events_t>(arguments);
+  host_buffers.host_number_of_selected_events[0] = first<host_number_of_selected_events_t>(arguments);
   for (unsigned i = 0; i < number_of_events; ++i) {
     host_buffers.host_event_list[i] = event_start + data<host_event_list_t>(arguments)[i];
   }
@@ -116,7 +116,6 @@ void host_global_event_cut::host_global_event_cut_mep(
   auto const scifi_offsets = *parameters.scifi_offsets;
 
   unsigned insert_index = 0;
-  unsigned reverse_insert_index = number_of_events - 1;
   for (unsigned event_number = 0; event_number < number_of_events; ++event_number) {
     // Check SciFi clusters
 

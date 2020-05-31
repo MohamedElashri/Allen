@@ -198,7 +198,7 @@ struct DoubleArgumentOverloadResolution<
   constexpr static void copy(const Args& arguments, cudaStream_t)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
-    std::memcpy(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(B::type));
+    std::memcpy(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(typename B::type));
   }
 
   constexpr static void
@@ -207,7 +207,7 @@ struct DoubleArgumentOverloadResolution<
     assert(
       (size<A>(arguments) - offset_a) >= count &&
       (size<B>(arguments) - offset_b) >= count);
-    std::memcpy(data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(B::type));
+    std::memcpy(data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(typename B::type));
   }
 };
 
@@ -225,7 +225,7 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     cudaCheck(
-      cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(B::type), cudaMemcpyDeviceToHost, stream));
+      cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(typename B::type), cudaMemcpyDeviceToHost, stream));
   }
 
   constexpr static void copy(
@@ -239,7 +239,7 @@ struct DoubleArgumentOverloadResolution<
       (size<A>(arguments) - offset_a) >= count &&
       (size<B>(arguments) - offset_b) >= count);
     cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(B::type), cudaMemcpyDeviceToHost, stream));
+      data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(typename B::type), cudaMemcpyDeviceToHost, stream));
   }
 };
 
@@ -257,7 +257,7 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     cudaCheck(
-      cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(B::type), cudaMemcpyHostToDevice, stream));
+      cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(typename B::type), cudaMemcpyHostToDevice, stream));
   }
 
   constexpr static void copy(
@@ -271,7 +271,7 @@ struct DoubleArgumentOverloadResolution<
       (size<A>(arguments) - offset_a) >= count &&
       (size<B>(arguments) - offset_b) >= count);
     cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(B::type), cudaMemcpyHostToDevice, stream));
+      data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(typename B::type), cudaMemcpyHostToDevice, stream));
   }
 };
 
@@ -289,7 +289,7 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(B::type), cudaMemcpyDeviceToDevice, stream));
+      data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(typename B::type), cudaMemcpyDeviceToDevice, stream));
   }
 
   constexpr static void copy(
@@ -303,7 +303,7 @@ struct DoubleArgumentOverloadResolution<
       (size<A>(arguments) - offset_a) >= count &&
       (size<B>(arguments) - offset_b) >= count);
     cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(B::type), cudaMemcpyDeviceToDevice, stream));
+      data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(typename B::type), cudaMemcpyDeviceToDevice, stream));
   }
 };
 

@@ -103,6 +103,6 @@ namespace Allen {
   private:
     std::map<std::string, BaseProperty*> m_properties;
     std::string m_name = "";
-    Property<verbosity_t> m_verbosity {this, 3};
+    Property<verbosity_t> m_verbosity = {this, 3};
   };
 } // namespace Allen

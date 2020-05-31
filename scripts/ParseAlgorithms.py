@@ -103,8 +103,18 @@ class AllenConf():
 
     @staticmethod
     def write_preamble(i=0):
-        s = "from definitions.BaseTypes import *\n\n"
+        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
+        s = f.read()
+        f.close()
+        s += "\n"
         return s
+
+    @staticmethod
+    def write_postamble(i=0):
+        f = open(prefix_project_folder + "/scripts/Sequence.py")
+        s = f.read()
+        f.close()
+        return "\n" + s
 
     @staticmethod
     def write_line_code(line, i=0):
@@ -140,6 +150,22 @@ class AllenConf():
         return s
 
     @staticmethod
+    def write_aggregate_algorithms(algorithms, i=0):
+        s = "def algorithms_with_aggregates():\n"
+        i += 1
+        s += AllenConf.prefix(i) + "return ["
+        algorithms_with_aggregates = []
+        for algorithm in algorithms:
+            if len([var for var in algorithm.parameters if var.aggregate]):
+                algorithms_with_aggregates.append(algorithm)
+        if len(algorithms_with_aggregates):
+            for algorithm in algorithms_with_aggregates:
+                s += algorithm.name + ", "
+            s = s[:-2]
+        s += "]\n\n"
+        return s
+
+    @staticmethod
     def write_algorithm_code(algorithm, i=0):
         s = AllenConf.prefix(
             i
@@ -162,7 +188,13 @@ class AllenConf():
         for prop in algorithm.properties:
             s += "\n" + AllenConf.prefix(i) + "\"" + prop.name[1:-1] + "\","
         i -= 1
-        s += ")\n\n"
+        s += ")\n" + AllenConf.prefix(i) + "aggregates = ("
+        i += 1
+        for param in algorithm.parameters:
+            if param.aggregate:
+                s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
+        i -= 1
+        s += ")\n" + AllenConf.prefix(i) + "namespace = \"" + algorithm.namespace + "\"\n\n"
         s += AllenConf.prefix(i) + "def __init__(self"
         i += 1
         for var in algorithm.parameters:
@@ -181,8 +213,6 @@ class AllenConf():
         s += AllenConf.prefix(i) + "self.__name = name\n"
         s += AllenConf.prefix(
             i) + "self.__original_name = \"" + algorithm.name + "\"\n"
-        s += AllenConf.prefix(
-            i) + "self.__namespace = \"" + algorithm.namespace + "\"\n"
         s += AllenConf.prefix(i) + "self.__ordered_parameters = OrderedDict(["
         i += 1
         for var in algorithm.parameters:
@@ -216,11 +246,6 @@ class AllenConf():
         s += AllenConf.prefix(i) + "def filename(self):\n"
         i += 1
         s += AllenConf.prefix(i) + "return self.__filename\n\n"
-        i -= 1
-
-        s += AllenConf.prefix(i) + "def namespace(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__namespace\n\n"
         i -= 1
 
         s += AllenConf.prefix(i) + "def original_name(self):\n"
@@ -439,8 +464,10 @@ if __name__ == '__main__':
         s = AllenConf().write_preamble()
         for algorithm in parsed_algorithms:
             s += AllenConf().write_algorithm_code(algorithm)
-        for line in parsed_lines:
-            s += AllenConf().write_line_code(line)
+        # Write a function that returns all algorithms that
+        # require input aggregates
+        s += AllenConf().write_aggregate_algorithms(parsed_algorithms)
+        s += AllenConf().write_postamble()
 
     f = open(args.filename, "w")
     f.write(s)

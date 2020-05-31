@@ -51,7 +51,7 @@ struct MemoryManager {
   {
     // Tag and requested size
     const auto tag = argument_manager.template name<Argument>();
-    size_t requested_size = argument_manager.template size<Argument>() * sizeof(Argument::type);
+    size_t requested_size = argument_manager.template size<Argument>() * sizeof(typename Argument::type);
 
     // Size requested should be greater than zero
     if (requested_size == 0) {

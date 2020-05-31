@@ -28,6 +28,7 @@ namespace VertexFit {
 struct HostBuffers {
   // Pinned host datatypes
   unsigned host_number_of_events;
+  unsigned* host_number_of_selected_events;
   unsigned* host_event_list;
   unsigned* host_prefix_sum_buffer;
   bool* host_passing_event_list;
