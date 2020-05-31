@@ -23,7 +23,7 @@ __device__ float get_tukey_weight(float trchi2, int iter);
 namespace fit_seeds {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_OUTPUT(dev_vertex_t, PV::Vertex), dev_vertex),
     (DEVICE_OUTPUT(dev_number_vertex_t, int), dev_number_vertex),
     (DEVICE_INPUT(dev_seeds_t, PatPV::XYZPoint), dev_seeds),
@@ -47,7 +47,7 @@ namespace fit_seeds {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

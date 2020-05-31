@@ -28,7 +28,7 @@ namespace host_init_event_list {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t& cuda_generic_event) const;
   };
 } // namespace host_init_event_list

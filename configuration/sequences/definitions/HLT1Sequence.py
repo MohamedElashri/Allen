@@ -22,8 +22,8 @@ def HLT1Sequence(initialize_lists,
     velo_pv_ip = velo_pv_ip_t(
         host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
         host_number_of_reconstructed_velo_tracks_t(),
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_velo_kalman_beamline_states_t=velo_kalman_filter.
         dev_velo_kalman_beamline_states_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -37,8 +37,8 @@ def HLT1Sequence(initialize_lists,
 
     kalman_velo_only = kalman_velo_only_t(
         name = "kalman_velo_only",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
         host_total_sum_holder_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -68,8 +68,8 @@ def HLT1Sequence(initialize_lists,
         dev_is_muon_t=is_muon.dev_is_muon_t())
 
     filter_tracks = filter_tracks_t(
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
         dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
         dev_output_buffer_t(),
@@ -91,8 +91,8 @@ def HLT1Sequence(initialize_lists,
 
     fit_secondary_vertices = fit_secondary_vertices_t(
         name = "fit_secondary_vertices",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_number_of_svs_t=prefix_sum_secondary_vertices.
         host_total_sum_holder_t(),
         dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
@@ -116,8 +116,8 @@ def HLT1Sequence(initialize_lists,
     odin_banks = data_provider_t(name="populate_odin_banks", bank_type="ODIN")
 
     # run_hlt1 = run_hlt1_t(
-    #     host_number_of_selected_events_t=initialize_lists.
-    #     host_number_of_selected_events_t(),
+    #     host_number_of_events_t=initialize_lists.
+    #     host_number_of_events_t(),
     #     host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
     #     host_total_sum_holder_t(),
     #     host_number_of_svs_t=prefix_sum_secondary_vertices.
@@ -134,8 +134,8 @@ def HLT1Sequence(initialize_lists,
     #     dev_offsets_all_velo_tracks_t())
 
     # prepare_raw_banks = prepare_raw_banks_t(
-    #     host_number_of_selected_events_t=initialize_lists.
-    #     host_number_of_selected_events_t(),
+    #     host_number_of_events_t=initialize_lists.
+    #     host_number_of_events_t(),
     #     host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
     #     host_total_sum_holder_t(),
     #     host_number_of_svs_t=prefix_sum_secondary_vertices.
@@ -174,8 +174,8 @@ def HLT1Sequence(initialize_lists,
     #     dev_input_buffer_t=prepare_raw_banks.dev_sel_rep_sizes_t())
 
     # package_sel_reports = package_sel_reports_t(
-    #     host_number_of_selected_events_t=initialize_lists.
-    #     host_number_of_selected_events_t(),
+    #     host_number_of_events_t=initialize_lists.
+    #     host_number_of_events_t(),
     #     host_number_of_sel_rep_words_t=prefix_sum_sel_reps.
     #     host_total_sum_holder_t(),
     #     dev_event_list_t=initialize_lists.dev_event_list_t(),

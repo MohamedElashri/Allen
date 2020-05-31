@@ -15,8 +15,8 @@ def UTSequence(initialize_lists,
         name="ut_calculate_number_of_hits",
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t(),
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t(),
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
     prefix_sum_ut_hits = host_prefix_sum_t(
@@ -25,8 +25,8 @@ def UTSequence(initialize_lists,
 
     ut_pre_decode = ut_pre_decode_t(
         name="ut_pre_decode",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
         host_total_sum_holder_t(),
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t(),
@@ -36,8 +36,8 @@ def UTSequence(initialize_lists,
 
     ut_find_permutation = ut_find_permutation_t(
         name="ut_find_permutation",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
         host_total_sum_holder_t(),
         dev_ut_pre_decoded_hits_t=ut_pre_decode.dev_ut_pre_decoded_hits_t(),
@@ -45,8 +45,8 @@ def UTSequence(initialize_lists,
 
     ut_decode_raw_banks_in_order = ut_decode_raw_banks_in_order_t(
         name="ut_decode_raw_banks_in_order",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
         host_total_sum_holder_t(),
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t(),
@@ -59,8 +59,8 @@ def UTSequence(initialize_lists,
 
     ut_select_velo_tracks = ut_select_velo_tracks_t(
         name="ut_select_velo_tracks",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
         host_number_of_reconstructed_velo_tracks_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -76,8 +76,8 @@ def UTSequence(initialize_lists,
     if restricted:
         ut_search_windows = ut_search_windows_t(
             name="ut_search_windows",
-            host_number_of_selected_events_t=initialize_lists.
-            host_number_of_selected_events_t(),
+            host_number_of_events_t=initialize_lists.
+            host_number_of_events_t(),
             host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
             .host_number_of_reconstructed_velo_tracks_t(),
             dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
@@ -96,8 +96,8 @@ def UTSequence(initialize_lists,
 
         ut_select_velo_tracks_with_windows = ut_select_velo_tracks_with_windows_t(
             name="ut_select_velo_tracks_with_windows",
-            host_number_of_selected_events_t=initialize_lists.
-            host_number_of_selected_events_t(),
+            host_number_of_events_t=initialize_lists.
+            host_number_of_events_t(),
             host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
             .host_number_of_reconstructed_velo_tracks_t(),
             dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -116,8 +116,8 @@ def UTSequence(initialize_lists,
 
         compass_ut = compass_ut_t(
             name="compass_ut",
-            host_number_of_selected_events_t=initialize_lists.
-            host_number_of_selected_events_t(),
+            host_number_of_events_t=initialize_lists.
+            host_number_of_events_t(),
             dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
             dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t(),
             dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -139,8 +139,8 @@ def UTSequence(initialize_lists,
     else:
         ut_search_windows = ut_search_windows_t(
             name="ut_search_windows",
-            host_number_of_selected_events_t=initialize_lists.
-            host_number_of_selected_events_t(),
+            host_number_of_events_t=initialize_lists.
+            host_number_of_events_t(),
             host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
             .host_number_of_reconstructed_velo_tracks_t(),
             dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
@@ -159,8 +159,8 @@ def UTSequence(initialize_lists,
 
         ut_select_velo_tracks_with_windows = ut_select_velo_tracks_with_windows_t(
             name="ut_select_velo_tracks_with_windows",
-            host_number_of_selected_events_t=initialize_lists.
-            host_number_of_selected_events_t(),
+            host_number_of_events_t=initialize_lists.
+            host_number_of_events_t(),
             host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
             .host_number_of_reconstructed_velo_tracks_t(),
             dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -179,8 +179,8 @@ def UTSequence(initialize_lists,
 
         compass_ut = compass_ut_t(
             name="compass_ut",
-            host_number_of_selected_events_t=initialize_lists.
-            host_number_of_selected_events_t(),
+            host_number_of_events_t=initialize_lists.
+            host_number_of_events_t(),
             dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
             dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t(),
             dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -206,8 +206,8 @@ def UTSequence(initialize_lists,
 
     ut_copy_track_hit_number = ut_copy_track_hit_number_t(
         name="ut_copy_track_hit_number",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t(),
         dev_ut_tracks_t=compass_ut.dev_ut_tracks_t(),
@@ -224,8 +224,8 @@ def UTSequence(initialize_lists,
         host_total_sum_holder_t(),
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t(),
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_accumulated_number_of_hits_in_ut_tracks_t=
         prefix_sum_ut_track_hit_number.host_total_sum_holder_t(),
         dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),

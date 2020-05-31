@@ -11,8 +11,8 @@ void velo_estimate_input_size::velo_estimate_input_size_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_estimated_input_size_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
-  set_size<dev_module_candidate_num_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
+  set_size<dev_module_candidate_num_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_cluster_candidates_t>(arguments, first<host_number_of_cluster_candidates_t>(arguments));
 }
 
@@ -21,19 +21,19 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_estimated_input_size_t>(arguments, 0, cuda_stream);
-  initialize<dev_module_candidate_num_t>(arguments, 0, cuda_stream);
+  initialize<dev_estimated_input_size_t>(arguments, 0, stream);
+  initialize<dev_module_candidate_num_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
     global_function(velo_estimate_input_size_mep)(
-      dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
   }
   else {
     global_function(velo_estimate_input_size)(
-      dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
   }
 }
 

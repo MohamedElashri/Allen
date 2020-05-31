@@ -20,19 +20,14 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(velo_kalman_filter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_kalmanvelo_states,
-      data<dev_velo_kalman_beamline_states_t>(arguments),
-      size<dev_velo_kalman_beamline_states_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_kalmanvelo_states, arguments, stream);
   }
 }
 

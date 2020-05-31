@@ -17,26 +17,15 @@ void consolidate_svs::consolidate_svs_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(consolidate_svs)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_secondary_vertices,
-      data<dev_consolidated_svs_t>(arguments),
-      size<dev_consolidated_svs_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_sv_atomics,
-      data<dev_sv_offsets_t>(arguments),
-      size<dev_sv_offsets_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_consolidated_svs_t>(host_buffers.host_secondary_vertices, arguments, stream);
+    assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_atomics, arguments, stream);
   }
 }
 

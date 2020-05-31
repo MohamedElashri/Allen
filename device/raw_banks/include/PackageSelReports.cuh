@@ -11,7 +11,7 @@
 namespace package_sel_reports {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_number_of_sel_rep_words_t, unsigned), host_number_of_sel_rep_words),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_offsets_forward_tracks),
@@ -37,7 +37,7 @@ namespace package_sel_reports {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

@@ -10,7 +10,7 @@ void pv_get_seeds::pv_get_seeds_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_seeds_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
-  set_size<dev_number_seeds_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_number_seeds_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void pv_get_seeds::pv_get_seeds_t::operator()(
@@ -18,19 +18,14 @@ void pv_get_seeds::pv_get_seeds_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(pv_get_seeds)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_number_of_seeds,
-      data<dev_number_seeds_t>(arguments),
-      size<dev_number_seeds_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_number_seeds_t>(host_buffers.host_number_of_seeds, arguments, stream);
   }
 }
 

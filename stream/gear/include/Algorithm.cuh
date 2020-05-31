@@ -8,6 +8,7 @@
 #include "BaseTypes.cuh"
 #include "HostFunction.cuh"
 #include "GlobalFunction.cuh"
+#include "Argument.cuh"
 
 namespace Allen {
   // Forward declare to use in Algorithm
@@ -89,6 +90,8 @@ namespace Allen {
     }
     
   protected:
+    PROPERTY(verbosity_t, "verbosity", "verbosity of algorithm", int);
+
     BaseProperty const* get_prop(const std::string& prop_name) const override
     {
       if (m_properties.find(prop_name) != m_properties.end()) {
@@ -100,5 +103,6 @@ namespace Allen {
   private:
     std::map<std::string, BaseProperty*> m_properties;
     std::string m_name = "";
+    Property<verbosity_t> m_verbosity {this, 3};
   };
 } // namespace Allen

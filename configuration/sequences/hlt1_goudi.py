@@ -61,14 +61,14 @@ hlt1_sequence = HLT1Sequence(
 
 track_mva_line = algorithms.track_mva_line_t(
     name = "track_mva_line",
-    host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
+    host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
     host_number_of_reconstructed_scifi_tracks_t=forward_sequence["prefix_sum_forward_tracks"].host_total_sum_holder_t(),
     dev_tracks_t=hlt1_sequence["kalman_velo_only"].dev_kf_tracks_t(),
     dev_track_offsets_t=forward_sequence["prefix_sum_forward_tracks"].dev_output_buffer_t())
 
 two_track_mva_line = algorithms.two_track_mva_line_t(
     name = "two_track_mva_line",
-    host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
+    host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
     host_number_of_svs_t=hlt1_sequence["prefix_sum_secondary_vertices"].host_total_sum_holder_t(),
     dev_svs_t=hlt1_sequence["fit_secondary_vertices"].dev_consolidated_svs_t(),
     dev_sv_offsets_t=hlt1_sequence["prefix_sum_secondary_vertices"].dev_output_buffer_t())

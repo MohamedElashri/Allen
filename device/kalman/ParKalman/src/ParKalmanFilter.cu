@@ -17,20 +17,15 @@ void kalman_filter::kalman_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(kalman_filter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_kf_tracks,
-      data<dev_kf_tracks_t>(arguments),
-      size<dev_kf_tracks_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, stream);
   }
 }
 

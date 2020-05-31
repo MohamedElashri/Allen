@@ -123,39 +123,39 @@ private:
   size_t m_size = 0;
   char* m_offset = nullptr;
 };
-struct initialize_lists__host_number_of_selected_events_t
-  : host_global_event_cut::Parameters::host_number_of_selected_events_t,
-    velo_calculate_number_of_candidates::Parameters::host_number_of_selected_events_t,
-    velo_estimate_input_size::Parameters::host_number_of_selected_events_t,
-    velo_masked_clustering::Parameters::host_number_of_selected_events_t,
-    velo_calculate_phi_and_sort::Parameters::host_number_of_selected_events_t,
-    velo_search_by_triplet::Parameters::host_number_of_selected_events_t,
-    velo_three_hit_tracks_filter::Parameters::host_number_of_selected_events_t,
-    velo_copy_track_hit_number::Parameters::host_number_of_selected_events_t,
-    velo_consolidate_tracks::Parameters::host_number_of_selected_events_t,
-    ut_calculate_number_of_hits::Parameters::host_number_of_selected_events_t,
-    ut_pre_decode::Parameters::host_number_of_selected_events_t,
-    ut_find_permutation::Parameters::host_number_of_selected_events_t,
-    ut_decode_raw_banks_in_order::Parameters::host_number_of_selected_events_t,
-    ut_select_velo_tracks::Parameters::host_number_of_selected_events_t,
-    ut_search_windows::Parameters::host_number_of_selected_events_t,
-    ut_select_velo_tracks_with_windows::Parameters::host_number_of_selected_events_t,
-    compass_ut::Parameters::host_number_of_selected_events_t,
-    ut_copy_track_hit_number::Parameters::host_number_of_selected_events_t,
-    ut_consolidate_tracks::Parameters::host_number_of_selected_events_t,
-    scifi_calculate_cluster_count_v4::Parameters::host_number_of_selected_events_t,
-    scifi_pre_decode_v4::Parameters::host_number_of_selected_events_t,
-    scifi_raw_bank_decoder_v4::Parameters::host_number_of_selected_events_t,
-    lf_search_initial_windows::Parameters::host_number_of_selected_events_t,
-    lf_triplet_seeding::Parameters::host_number_of_selected_events_t,
-    lf_create_tracks::Parameters::host_number_of_selected_events_t,
-    lf_quality_filter_length::Parameters::host_number_of_selected_events_t,
-    lf_quality_filter::Parameters::host_number_of_selected_events_t,
-    scifi_copy_track_hit_number::Parameters::host_number_of_selected_events_t,
-    scifi_consolidate_tracks::Parameters::host_number_of_selected_events_t {
+struct initialize_lists__host_number_of_events_t
+  : host_global_event_cut::Parameters::host_number_of_events_t,
+    velo_calculate_number_of_candidates::Parameters::host_number_of_events_t,
+    velo_estimate_input_size::Parameters::host_number_of_events_t,
+    velo_masked_clustering::Parameters::host_number_of_events_t,
+    velo_calculate_phi_and_sort::Parameters::host_number_of_events_t,
+    velo_search_by_triplet::Parameters::host_number_of_events_t,
+    velo_three_hit_tracks_filter::Parameters::host_number_of_events_t,
+    velo_copy_track_hit_number::Parameters::host_number_of_events_t,
+    velo_consolidate_tracks::Parameters::host_number_of_events_t,
+    ut_calculate_number_of_hits::Parameters::host_number_of_events_t,
+    ut_pre_decode::Parameters::host_number_of_events_t,
+    ut_find_permutation::Parameters::host_number_of_events_t,
+    ut_decode_raw_banks_in_order::Parameters::host_number_of_events_t,
+    ut_select_velo_tracks::Parameters::host_number_of_events_t,
+    ut_search_windows::Parameters::host_number_of_events_t,
+    ut_select_velo_tracks_with_windows::Parameters::host_number_of_events_t,
+    compass_ut::Parameters::host_number_of_events_t,
+    ut_copy_track_hit_number::Parameters::host_number_of_events_t,
+    ut_consolidate_tracks::Parameters::host_number_of_events_t,
+    scifi_calculate_cluster_count_v4::Parameters::host_number_of_events_t,
+    scifi_pre_decode_v4::Parameters::host_number_of_events_t,
+    scifi_raw_bank_decoder_v4::Parameters::host_number_of_events_t,
+    lf_search_initial_windows::Parameters::host_number_of_events_t,
+    lf_triplet_seeding::Parameters::host_number_of_events_t,
+    lf_create_tracks::Parameters::host_number_of_events_t,
+    lf_quality_filter_length::Parameters::host_number_of_events_t,
+    lf_quality_filter::Parameters::host_number_of_events_t,
+    scifi_copy_track_hit_number::Parameters::host_number_of_events_t,
+    scifi_consolidate_tracks::Parameters::host_number_of_events_t {
   void set_size(size_t size) override { m_size = size; }
   size_t size() const override { return m_size; }
-  std::string name() const override { return "initialize_lists__host_number_of_selected_events_t"; }
+  std::string name() const override { return "initialize_lists__host_number_of_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
 
@@ -1524,7 +1524,7 @@ using configured_arguments_t = std::tuple<
   host_scifi_banks__host_raw_offsets_t,
   initialize_lists__host_total_number_of_events_t,
   initialize_lists__host_event_list_t,
-  initialize_lists__host_number_of_selected_events_t,
+  initialize_lists__host_number_of_events_t,
   initialize_lists__dev_event_list_t,
   velo_banks__dev_raw_banks_t,
   velo_banks__dev_raw_offsets_t,
@@ -1681,11 +1681,11 @@ using configured_sequence_arguments_t = std::tuple<
     host_scifi_banks__host_raw_offsets_t,
     initialize_lists__host_total_number_of_events_t,
     initialize_lists__host_event_list_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     initialize_lists__dev_event_list_t>,
   std::tuple<velo_banks__dev_raw_banks_t, velo_banks__dev_raw_offsets_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     initialize_lists__dev_event_list_t,
     velo_banks__dev_raw_banks_t,
     velo_banks__dev_raw_offsets_t,
@@ -1695,7 +1695,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_calculate_number_of_candidates__dev_number_of_candidates_t,
     prefix_sum_offsets_velo_candidates__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_velo_candidates__host_total_sum_holder_t,
     initialize_lists__dev_event_list_t,
     prefix_sum_offsets_velo_candidates__dev_output_buffer_t,
@@ -1710,7 +1710,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t>,
   std::tuple<
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_banks__dev_raw_banks_t,
     velo_banks__dev_raw_offsets_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
@@ -1721,7 +1721,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_masked_clustering__dev_module_cluster_num_t,
     velo_masked_clustering__dev_velo_cluster_container_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
     velo_masked_clustering__dev_module_cluster_num_t,
@@ -1730,7 +1730,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_calculate_phi_and_sort__dev_hit_permutation_t,
     velo_calculate_phi_and_sort__dev_hit_phi_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
     velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
@@ -1749,7 +1749,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_search_by_triplet__dev_number_of_velo_tracks_t,
     prefix_sum_offsets_velo_tracks__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
     velo_search_by_triplet__dev_three_hit_tracks_t,
@@ -1762,7 +1762,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t,
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
@@ -1779,7 +1779,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t,
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     velo_search_by_triplet__dev_tracks_t,
@@ -1792,7 +1792,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_consolidate_tracks__dev_velo_track_hits_t>,
   std::tuple<ut_banks__dev_raw_banks_t, ut_banks__dev_raw_offsets_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     initialize_lists__dev_event_list_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -1802,7 +1802,7 @@ using configured_sequence_arguments_t = std::tuple<
     ut_calculate_number_of_hits__dev_ut_hit_sizes_t,
     prefix_sum_ut_hits__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_hits__host_total_sum_holder_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -1811,13 +1811,13 @@ using configured_sequence_arguments_t = std::tuple<
     ut_pre_decode__dev_ut_pre_decoded_hits_t,
     ut_pre_decode__dev_ut_hit_count_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_hits__host_total_sum_holder_t,
     ut_pre_decode__dev_ut_pre_decoded_hits_t,
     prefix_sum_ut_hits__dev_output_buffer_t,
     ut_find_permutation__dev_ut_hit_permutations_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_hits__host_total_sum_holder_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -1827,7 +1827,7 @@ using configured_sequence_arguments_t = std::tuple<
     ut_decode_raw_banks_in_order__dev_ut_hits_t,
     ut_find_permutation__dev_ut_hit_permutations_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
@@ -1836,7 +1836,7 @@ using configured_sequence_arguments_t = std::tuple<
     ut_select_velo_tracks__dev_ut_number_of_selected_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
     ut_decode_raw_banks_in_order__dev_ut_hits_t,
     prefix_sum_ut_hits__dev_output_buffer_t,
@@ -1847,7 +1847,7 @@ using configured_sequence_arguments_t = std::tuple<
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t,
     ut_search_windows__dev_ut_windows_layers_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
@@ -1859,7 +1859,7 @@ using configured_sequence_arguments_t = std::tuple<
     ut_select_velo_tracks_with_windows__dev_ut_number_of_selected_velo_tracks_with_windows_t,
     ut_select_velo_tracks_with_windows__dev_ut_selected_velo_tracks_with_windows_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     ut_decode_raw_banks_in_order__dev_ut_hits_t,
     prefix_sum_ut_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
@@ -1875,7 +1875,7 @@ using configured_sequence_arguments_t = std::tuple<
     compass_ut__dev_atomics_ut_t,
     prefix_sum_ut_tracks__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_tracks__host_total_sum_holder_t,
     compass_ut__dev_ut_tracks_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
@@ -1887,7 +1887,7 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<
     prefix_sum_ut_hits__host_total_sum_holder_t,
     prefix_sum_ut_tracks__host_total_sum_holder_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_track_hit_number__host_total_sum_holder_t,
     ut_decode_raw_banks_in_order__dev_ut_hits_t,
     prefix_sum_ut_hits__dev_output_buffer_t,
@@ -1902,7 +1902,7 @@ using configured_sequence_arguments_t = std::tuple<
     compass_ut__dev_ut_tracks_t>,
   std::tuple<scifi_banks__dev_raw_banks_t, scifi_banks__dev_raw_offsets_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     initialize_lists__dev_event_list_t,
     scifi_banks__dev_raw_banks_t,
     scifi_banks__dev_raw_offsets_t,
@@ -1912,7 +1912,7 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_calculate_cluster_count_v4_t__dev_scifi_hit_count_t,
     prefix_sum_scifi_hits__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_scifi_hits__host_total_sum_holder_t,
     scifi_banks__dev_raw_banks_t,
     scifi_banks__dev_raw_offsets_t,
@@ -1920,7 +1920,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_scifi_hits__dev_output_buffer_t,
     scifi_pre_decode_v4_t__dev_cluster_references_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_scifi_hits__host_total_sum_holder_t,
     scifi_banks__dev_raw_banks_t,
     scifi_banks__dev_raw_offsets_t,
@@ -1929,7 +1929,7 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,
     initialize_lists__dev_event_list_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_tracks__host_total_sum_holder_t,
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,
     prefix_sum_scifi_hits__dev_output_buffer_t,
@@ -1947,7 +1947,7 @@ using configured_sequence_arguments_t = std::tuple<
     lf_search_initial_windows_t__dev_ut_states_t,
     lf_search_initial_windows_t__dev_scifi_lf_process_track_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_tracks__host_total_sum_holder_t,
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,
     prefix_sum_scifi_hits__dev_output_buffer_t,
@@ -1963,7 +1963,7 @@ using configured_sequence_arguments_t = std::tuple<
     lf_triplet_seeding_t__dev_scifi_lf_found_triplets_t,
     lf_triplet_seeding_t__dev_scifi_lf_number_of_found_triplets_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_tracks__host_total_sum_holder_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     prefix_sum_ut_track_hit_number__dev_output_buffer_t,
@@ -1984,7 +1984,7 @@ using configured_sequence_arguments_t = std::tuple<
     lf_create_tracks_t__dev_scifi_lf_parametrization_t,
     lf_search_initial_windows_t__dev_ut_states_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_tracks__host_total_sum_holder_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     prefix_sum_ut_track_hit_number__dev_output_buffer_t,
@@ -1995,7 +1995,7 @@ using configured_sequence_arguments_t = std::tuple<
     lf_create_tracks_t__dev_scifi_lf_parametrization_t,
     lf_quality_filter_length_t__dev_scifi_lf_parametrization_length_filter_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_ut_tracks__host_total_sum_holder_t,
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,
     prefix_sum_scifi_hits__dev_output_buffer_t,
@@ -2019,7 +2019,7 @@ using configured_sequence_arguments_t = std::tuple<
     lf_quality_filter_t__dev_atomics_scifi_t,
     prefix_sum_forward_tracks__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_forward_tracks__host_total_sum_holder_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     lf_quality_filter_t__dev_scifi_tracks_t,
@@ -2030,7 +2030,7 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_copy_track_hit_number_t__dev_scifi_track_hit_number_t,
     prefix_sum_scifi_track_hit_number__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_scifi_track_hit_number__host_total_sum_holder_t,
     prefix_sum_forward_tracks__host_total_sum_holder_t,
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,

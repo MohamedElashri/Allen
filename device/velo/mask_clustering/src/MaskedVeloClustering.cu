@@ -11,7 +11,7 @@ void velo_masked_clustering::velo_masked_clustering_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_module_cluster_num_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
+    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
   set_size<dev_velo_cluster_container_t>(
     arguments, first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
 }
@@ -21,15 +21,15 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_module_cluster_num_t>(arguments, 0, cuda_stream);
+  initialize<dev_module_cluster_num_t>(arguments, 0, stream);
 
   // Selector from layout
   if (runtime_options.mep_layout) {
     global_function(velo_masked_clustering_mep)(
-      dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_velo_geometry,
       constants.dev_velo_sp_patterns.data(),
@@ -38,7 +38,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   }
   else {
     global_function(velo_masked_clustering)(
-      dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_velo_geometry,
       constants.dev_velo_sp_patterns.data(),

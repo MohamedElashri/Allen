@@ -10,7 +10,7 @@ namespace consolidate_svs {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
     (DEVICE_INPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex), dev_secondary_vertices),
     (DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex), dev_consolidated_svs),
@@ -30,7 +30,7 @@ namespace consolidate_svs {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

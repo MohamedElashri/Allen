@@ -10,7 +10,7 @@
 namespace run_hlt1 {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
     (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
@@ -47,7 +47,7 @@ namespace run_hlt1 {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

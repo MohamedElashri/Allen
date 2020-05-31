@@ -38,7 +38,7 @@ struct Stream {
   scheduler_t scheduler;
 
   // Stream datatypes
-  cudaStream_t cuda_stream;
+  cudaStream_t stream;
   cudaEvent_t cuda_generic_event;
 
   // Launch options

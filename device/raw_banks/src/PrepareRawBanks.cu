@@ -13,7 +13,7 @@ void prepare_raw_banks::prepare_raw_banks_t::set_arguments_size(
   const auto total_number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-  const auto padding_size = 3 * first<host_number_of_selected_events_t>(arguments);
+  const auto padding_size = 3 * first<host_number_of_events_t>(arguments);
   const auto hits_size =
     ParKalmanFilter::nMaxMeasurements * first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
   set_size<dev_sel_rb_hits_t>(arguments, hits_size + padding_size);
@@ -43,58 +43,47 @@ void prepare_raw_banks::prepare_raw_banks_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   const auto event_start = std::get<0>(runtime_options.event_interval);
   const auto total_number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-  initialize<dev_sel_rb_hits_t>(arguments, 0, cuda_stream);
-  initialize<dev_sel_rb_stdinfo_t>(arguments, 0, cuda_stream);
-  initialize<dev_sel_rb_objtyp_t>(arguments, 0, cuda_stream);
-  initialize<dev_sel_rb_substr_t>(arguments, 0, cuda_stream);
-  initialize<dev_sel_rep_sizes_t>(arguments, 0, cuda_stream);
-  initialize<dev_passing_event_list_t>(arguments, 0, cuda_stream);
-  initialize<dev_candidate_lists_t>(arguments, 0, cuda_stream);
-  initialize<dev_candidate_counts_t>(arguments, 0, cuda_stream);
-  initialize<dev_dec_reports_t>(arguments, 0, cuda_stream);
-  initialize<dev_save_track_t>(arguments, -1, cuda_stream);
-  initialize<dev_save_sv_t>(arguments, -1, cuda_stream);
-  initialize<dev_sel_atomics_t>(arguments, 0, cuda_stream);
+  initialize<dev_sel_rb_hits_t>(arguments, 0, stream);
+  initialize<dev_sel_rb_stdinfo_t>(arguments, 0, stream);
+  initialize<dev_sel_rb_objtyp_t>(arguments, 0, stream);
+  initialize<dev_sel_rb_substr_t>(arguments, 0, stream);
+  initialize<dev_sel_rep_sizes_t>(arguments, 0, stream);
+  initialize<dev_passing_event_list_t>(arguments, 0, stream);
+  initialize<dev_candidate_lists_t>(arguments, 0, stream);
+  initialize<dev_candidate_counts_t>(arguments, 0, stream);
+  initialize<dev_dec_reports_t>(arguments, 0, stream);
+  initialize<dev_save_track_t>(arguments, -1, stream);
+  initialize<dev_save_sv_t>(arguments, -1, stream);
+  initialize<dev_sel_atomics_t>(arguments, 0, stream);
 
 #ifdef CPU
   const unsigned grid_dim = 1;
   const unsigned block_dim = 1;
 #else
   unsigned grid_dim =
-    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>();
+    (first<host_number_of_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>();
   if (grid_dim == 0) {
     grid_dim = 1;
   }
   const unsigned block_dim = property<block_dim_x_t>().get();
 #endif
 
-  global_function(prepare_decisions)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
-    arguments, first<host_number_of_selected_events_t>(arguments), event_start);
+  global_function(prepare_decisions)(dim3(grid_dim), dim3(block_dim), stream)(
+    arguments, first<host_number_of_events_t>(arguments), event_start);
 
-  global_function(prepare_raw_banks)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
-    arguments, first<host_number_of_selected_events_t>(arguments), total_number_of_events, event_start);
+  global_function(prepare_raw_banks)(dim3(grid_dim), dim3(block_dim), stream)(
+    arguments, first<host_number_of_events_t>(arguments), total_number_of_events, event_start);
 
   // Copy raw bank data.
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_dec_reports,
-    data<dev_dec_reports_t>(arguments),
-    size<dev_dec_reports_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
-
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_passing_event_list,
-    data<dev_passing_event_list_t>(arguments),
-    size<dev_passing_event_list_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, stream);
+  assign_to_host_buffer<dev_passing_event_list_t>(host_buffers.host_passing_event_list, arguments, stream);
 }
 
 __global__ void prepare_raw_banks::prepare_raw_banks(

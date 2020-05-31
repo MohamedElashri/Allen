@@ -13,7 +13,7 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::set_arguments_size(
   set_size<dev_muon_raw_to_hits_t>(arguments, 1);
   set_size<dev_storage_station_region_quarter_sizes_t>(
     arguments,
-    first<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations * Muon::Constants::n_regions *
+    first<host_number_of_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations * Muon::Constants::n_regions *
       Muon::Constants::n_quarters);
 }
 
@@ -22,7 +22,7 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   // FIXME: this should be done as part of the consumers, but
@@ -35,21 +35,21 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
     &muonRawToHits,
     sizeof(muonRawToHits),
     cudaMemcpyHostToDevice,
-    cuda_stream));
+    stream));
 
-  initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, cuda_stream);
+  initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
     global_function(muon_calculate_srq_size_mep)(
-      first<host_number_of_selected_events_t>(arguments),
+      first<host_number_of_events_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      cuda_stream)(arguments);
+      stream)(arguments);
   }
   else {
     global_function(muon_calculate_srq_size)(
-      first<host_number_of_selected_events_t>(arguments),
+      first<host_number_of_events_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      cuda_stream)(arguments);
+      stream)(arguments);
   }
 }
 

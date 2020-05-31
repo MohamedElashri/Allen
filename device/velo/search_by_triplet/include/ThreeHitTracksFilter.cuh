@@ -10,7 +10,8 @@
 namespace velo_three_hit_tracks_filter {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char), dev_sorted_velo_cluster_container),
     (DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned), dev_offsets_estimated_input_size),
     (DEVICE_INPUT(dev_three_hit_tracks_input_t, Velo::TrackletHits), dev_three_hit_tracks_input),
@@ -40,7 +41,7 @@ namespace velo_three_hit_tracks_filter {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

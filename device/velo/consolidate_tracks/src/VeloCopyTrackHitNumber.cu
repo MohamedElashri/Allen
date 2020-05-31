@@ -16,7 +16,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::set_arguments_siz
       first<host_number_of_three_hit_tracks_filtered_t>(arguments));
 
   // Note: Size is "+ 1" due to it storing offsets.
-  set_size<dev_offsets_all_velo_tracks_t>(arguments, first<host_number_of_selected_events_t>(arguments) + 1);
+  set_size<dev_offsets_all_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
 }
 
 void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
@@ -24,21 +24,21 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, cuda_stream);
+  initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, stream);
 
   global_function(velo_copy_track_hit_number)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(arguments);
 
   cudaCheck(cudaMemcpyAsync(
     data<host_number_of_reconstructed_velo_tracks_t>(arguments),
-    data<dev_offsets_all_velo_tracks_t>(arguments) + (size<dev_offsets_all_velo_tracks_t>(arguments) / sizeof(unsigned)) -
+    data<dev_offsets_all_velo_tracks_t>(arguments) + size<dev_offsets_all_velo_tracks_t>(arguments) -
       1,
     sizeof(unsigned), // Note: Only the last element needs to be copied here.
     cudaMemcpyDeviceToHost,
-    cuda_stream));
+    stream));
 }
 
 /**
@@ -47,8 +47,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
 __global__ void velo_copy_track_hit_number::velo_copy_track_hit_number(
   velo_copy_track_hit_number::Parameters parameters)
 {
-
-  const auto event_number = blockIdx.x;
+  const auto event_number = parameters.dev_event_list[blockIdx.x];
   const auto event_tracks = parameters.dev_tracks + event_number * Velo::Constants::max_tracks;
   const auto number_of_tracks =
     parameters.dev_offsets_velo_tracks[event_number + 1] - parameters.dev_offsets_velo_tracks[event_number];

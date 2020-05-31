@@ -10,7 +10,7 @@
 namespace scifi_calculate_cluster_count_v6 {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_scifi_raw_input_t, char), dev_scifi_raw_input),
     (DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned), dev_scifi_raw_input_offsets),
@@ -32,7 +32,7 @@ namespace scifi_calculate_cluster_count_v6 {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
   };
 } // namespace scifi_calculate_cluster_count_v6

@@ -15,7 +15,7 @@ void ut_pre_decode::ut_pre_decode_t::set_arguments_size(
     first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
   set_size<dev_ut_hit_count_t>(
     arguments,
-    first<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
 }
 
 void ut_pre_decode::ut_pre_decode_t::operator()(
@@ -23,13 +23,13 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_ut_hit_count_t>(arguments, 0, cuda_stream);
+  initialize<dev_ut_hit_count_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
-    global_function(ut_pre_decode_mep)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    global_function(ut_pre_decode_mep)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -38,7 +38,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
       constants.dev_unique_x_sector_offsets.data());
   }
   else {
-    global_function(ut_pre_decode)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    global_function(ut_pre_decode)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),

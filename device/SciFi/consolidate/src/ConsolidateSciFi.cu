@@ -21,48 +21,20 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(scifi_consolidate_tracks)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   // Transmission device to host of Scifi consolidated tracks
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_atomics_scifi,
-    data<dev_offsets_forward_tracks_t>(arguments),
-    size<dev_offsets_forward_tracks_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, stream);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_scifi_track_hit_number,
-      data<dev_offsets_scifi_track_hit_number_t>(arguments),
-      size<dev_offsets_scifi_track_hit_number_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_scifi_track_hits,
-      data<dev_scifi_track_hits_t>(arguments),
-      size<dev_scifi_track_hits_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_scifi_qop,
-      data<dev_scifi_qop_t>(arguments),
-      size<dev_scifi_qop_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_scifi_track_ut_indices,
-      data<dev_scifi_track_ut_indices_t>(arguments),
-      size<dev_scifi_track_ut_indices_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_offsets_scifi_track_hit_number_t>(host_buffers.host_scifi_track_hit_number, arguments, stream);
+    assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, stream);
+    assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, stream);
+    assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, stream);
   }
 }
 

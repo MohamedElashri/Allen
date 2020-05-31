@@ -19,13 +19,13 @@ void muon_catboost_features_extraction::muon_catboost_features_extraction_t::ope
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(muon_catboost_features_extraction)(
-    dim3(first<host_number_of_selected_events_t>(arguments), Muon::Constants::n_stations),
+    dim3(first<host_number_of_events_t>(arguments), Muon::Constants::n_stations),
     property<block_dim_t>(),
-    cuda_stream)(arguments);
+    stream)(arguments);
 }
 
 __global__ void muon_catboost_features_extraction::muon_catboost_features_extraction(

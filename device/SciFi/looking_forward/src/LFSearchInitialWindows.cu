@@ -26,13 +26,13 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, cuda_stream);
+  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, stream);
 
   global_function(lf_search_initial_windows)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
     arguments,
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,

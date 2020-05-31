@@ -11,7 +11,7 @@ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_v6_t::set_a
   const HostBuffers&) const
 {
   set_size<dev_scifi_hit_count_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
+    arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
 }
 
 void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_v6_t::operator()(
@@ -19,19 +19,19 @@ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_v6_t::opera
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_scifi_hit_count_t>(arguments, 0, cuda_stream);
+  initialize<dev_scifi_hit_count_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
     global_function(scifi_calculate_cluster_count_v6_mep)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_calculate_cluster_count_v6)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
 }

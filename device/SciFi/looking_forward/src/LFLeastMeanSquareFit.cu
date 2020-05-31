@@ -15,11 +15,11 @@ void lf_least_mean_square_fit::lf_least_mean_square_fit_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(lf_least_mean_square_fit)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_looking_forward_constants);
 }
 

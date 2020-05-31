@@ -20,17 +20,17 @@ void scifi_pre_decode_v6::scifi_pre_decode_v6_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   if (runtime_options.mep_layout) {
     global_function(scifi_pre_decode_v6_mep)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_pre_decode_v6)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
 }

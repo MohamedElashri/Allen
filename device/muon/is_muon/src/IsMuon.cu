@@ -20,23 +20,18 @@ void is_muon::is_muon_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_muon_track_occupancies_t>(arguments, 0, cuda_stream);
+  initialize<dev_muon_track_occupancies_t>(arguments, 0, stream);
 
   global_function(is_muon)(
-    dim3(first<host_number_of_selected_events_t>(arguments)),
+    dim3(first<host_number_of_events_t>(arguments)),
     dim3(property<block_dim_x_t>().get(), Muon::Constants::n_stations),
-    cuda_stream)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+    stream)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_is_muon,
-      data<dev_is_muon_t>(arguments),
-      size<dev_is_muon_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, stream);
   }
 }
 
@@ -146,9 +141,8 @@ __global__ void is_muon::is_muon(
   // Due to parameters.dev_muon_track_occupancies
   __syncthreads();
 
-  for (unsigned track_id = threadIdx.x * blockDim.y + threadIdx.y;
-    track_id < number_of_tracks_event;
-    track_id += blockDim.x * blockDim.y) {
+  for (unsigned track_id = threadIdx.x * blockDim.y + threadIdx.y; track_id < number_of_tracks_event;
+       track_id += blockDim.x * blockDim.y) {
     const float momentum = 1 / fabsf(scifi_tracks.qop(track_id));
     const unsigned track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
 

@@ -10,7 +10,7 @@
 namespace ut_decode_raw_banks_in_order {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_accumulated_number_of_ut_hits_t, unsigned), host_accumulated_number_of_ut_hits),
     (DEVICE_INPUT(dev_ut_raw_input_t, char), dev_ut_raw_input),
     (DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned), dev_ut_raw_input_offsets),
@@ -47,7 +47,7 @@ namespace ut_decode_raw_banks_in_order {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

@@ -12,8 +12,8 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
         name="velo_kalman_filter",
         host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
         host_number_of_reconstructed_velo_tracks_t(),
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
         dev_offsets_all_velo_tracks_t(),
         dev_offsets_velo_track_hit_number_t=
@@ -25,8 +25,8 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
         name="pv_beamline_extrapolate",
         host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
         host_number_of_reconstructed_velo_tracks_t(),
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_velo_kalman_beamline_states_t=velo_kalman_filter.
         dev_velo_kalman_beamline_states_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -36,8 +36,8 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
 
     pv_beamline_histo = pv_beamline_histo_t(
         name="pv_beamline_histo",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
         dev_offsets_all_velo_tracks_t(),
         dev_offsets_velo_track_hit_number_t=
@@ -46,14 +46,14 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
 
     pv_beamline_peak = pv_beamline_peak_t(
         name="pv_beamline_peak",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_zhisto_t=pv_beamline_histo.dev_zhisto_t())
 
     pv_beamline_calculate_denom = pv_beamline_calculate_denom_t(
         name="pv_beamline_calculate_denom",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
         host_number_of_reconstructed_velo_tracks_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -66,8 +66,8 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
 
     pv_beamline_multi_fitter = pv_beamline_multi_fitter_t(
         name="pv_beamline_multi_fitter",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
         host_number_of_reconstructed_velo_tracks_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
@@ -83,8 +83,8 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
 
     pv_beamline_cleanup = pv_beamline_cleanup_t(
         name="pv_beamline_cleanup",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
+        host_number_of_events_t=initialize_lists.
+        host_number_of_events_t(),
         dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
         dev_multi_fit_vertices_t(),
         dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.

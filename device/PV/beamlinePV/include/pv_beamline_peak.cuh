@@ -17,7 +17,7 @@
 namespace pv_beamline_peak {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_INPUT(dev_zhisto_t, float), dev_zhisto),
     (DEVICE_OUTPUT(dev_zpeaks_t, float), dev_zpeaks),
     (DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned), dev_number_of_zpeaks),
@@ -38,7 +38,7 @@ namespace pv_beamline_peak {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

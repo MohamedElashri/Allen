@@ -11,7 +11,7 @@ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::s
   const HostBuffers&) const
 {
   set_size<dev_ut_number_of_selected_velo_tracks_with_windows_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments));
+    arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_selected_velo_tracks_with_windows_t>(
     arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
 }
@@ -21,13 +21,13 @@ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::o
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, 0, cuda_stream);
+  initialize<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, 0, stream);
 
   global_function(ut_select_velo_tracks_with_windows)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 //=========================================================================

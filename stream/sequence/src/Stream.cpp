@@ -98,7 +98,7 @@ cudaError_t Stream::initialize(
   const Constants& param_constants)
 {
   // Set stream and events
-  cudaCheck(cudaStreamCreate(&cuda_stream));
+  cudaCheck(cudaStreamCreate(&stream));
   cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
 
   // Set stream options
@@ -161,7 +161,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
             runtime_options,
             constants,
             *host_buffers,
-            cuda_stream,
+            stream,
             cuda_generic_event);
 
         // deterministic injection of ~random memory failures
@@ -178,7 +178,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
         }
 
         // Synchronize CUDA device
-        cudaEventRecord(cuda_generic_event, cuda_stream);
+        cudaEventRecord(cuda_generic_event, stream);
         cudaEventSynchronize(cuda_generic_event);
       } catch (const MemoryException& e) {
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
@@ -193,7 +193,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
 std::vector<bool> Stream::reconstructed_events() const
 {
   std::vector<bool> mask(number_of_input_events, false);
-  for (unsigned i = 0; i < host_buffers->host_number_of_selected_events[0]; ++i) {
+  for (unsigned i = 0; i < host_buffers->host_number_of_events[0]; ++i) {
     mask[host_buffers->host_event_list[i]] = true;
   }
   return mask;

@@ -23,7 +23,7 @@ void run_hlt1::run_hlt1_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   const auto event_start = std::get<0>(runtime_options.event_interval);
@@ -55,7 +55,7 @@ void run_hlt1::run_hlt1_t::operator()(
     lambda_special_fn);
 
   const auto lambda_velo_fn = [&](const unsigned long i_line) {
-    host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_selected_events_t>(arguments);
+    host_buffers.host_sel_results_atomics[i_line] = first<host_number_of_events_t>(arguments);
   };
   Hlt1::TraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse(lambda_velo_fn);
 
@@ -66,26 +66,26 @@ void run_hlt1::run_hlt1_t::operator()(
   cudaCheck(cudaMemcpyAsync(
     data<dev_sel_results_offsets_t>(arguments),
     host_buffers.host_sel_results_atomics,
-    size<dev_sel_results_offsets_t>(arguments),
+    size<dev_sel_results_offsets_t>(arguments) * sizeof(dev_sel_results_offsets_t::type),
     cudaMemcpyHostToDevice,
-    cuda_stream));
+    stream));
 
-  initialize<dev_sel_results_t>(arguments, 0, cuda_stream);
+  initialize<dev_sel_results_t>(arguments, 0, stream);
 
-  global_function(run_hlt1)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+  global_function(run_hlt1)(dim3(total_number_of_events), property<block_dim_t>(), stream)(
     arguments,
-    first<host_number_of_selected_events_t>(arguments),
+    first<host_number_of_events_t>(arguments),
     event_start);
 
   // // Run the postscaler.
-  // global_function(run_postscale)(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+  // global_function(run_postscale)(dim3(total_number_of_events), property<block_dim_t>(), stream)(
   //   arguments,
-  //   first<host_number_of_selected_events_t>(arguments),
+  //   first<host_number_of_events_t>(arguments),
   //   event_start);
 
   // if (runtime_options.do_check) {
   //   safe_assign_to_host_buffer<dev_sel_results_t>(
-  //     host_buffers.host_sel_results, host_buffers.host_sel_results_size, arguments, cuda_stream);
+  //     host_buffers.host_sel_results, host_buffers.host_sel_results_size, arguments, stream);
   // }
 }
 

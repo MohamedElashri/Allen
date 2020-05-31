@@ -25,16 +25,16 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
 
   // Enough blocks to cover all events
   const auto grid_size = dim3(
-    (length<dev_event_list_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+    (size<dev_event_list_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
   if (runtime_options.mep_layout) {
     global_function(velo_calculate_number_of_candidates_mep)(
       grid_size, dim3(property<block_dim_x_t>().get()), stream)(
-      arguments, length<dev_event_list_t>(arguments));
+      arguments, size<dev_event_list_t>(arguments));
   }
   else {
     global_function(velo_calculate_number_of_candidates)(grid_size, dim3(property<block_dim_x_t>().get()), stream)(
-      arguments, length<dev_event_list_t>(arguments));
+      arguments, size<dev_event_list_t>(arguments));
   }
 }
 

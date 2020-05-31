@@ -10,8 +10,8 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_multi_fit_vertices_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
-  set_size<dev_number_of_multi_fit_vertices_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+    arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
+  set_size<dev_number_of_multi_fit_vertices_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_pvtracks_denom_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
 }
 
@@ -20,10 +20,10 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, cuda_stream);
+  initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, stream);
 
 #ifdef TARGET_DEVICE_CUDA
   const auto block_dimension = dim3(32, property<block_dim_y_t>());
@@ -32,7 +32,7 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
 #endif
 
   global_function(pv_beamline_multi_fitter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), block_dimension, cuda_stream)(
+    dim3(first<host_number_of_events_t>(arguments)), block_dimension, stream)(
     arguments, constants.dev_beamline.data());
 }
 

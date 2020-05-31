@@ -12,9 +12,9 @@ void FilterTracks::filter_tracks_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_sv_atomics_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_svs_trk1_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_svs_trk2_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_sv_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_trk1_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_trk2_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
 }
 
 void FilterTracks::filter_tracks_t::operator()(
@@ -22,13 +22,13 @@ void FilterTracks::filter_tracks_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_sv_atomics_t>(arguments, 0, cuda_stream);
+  initialize<dev_sv_atomics_t>(arguments, 0, stream);
 
   global_function(filter_tracks)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)

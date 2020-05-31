@@ -12,7 +12,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_s
 {
   set_size<dev_ut_hit_sizes_t>(
     arguments,
-    first<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
 }
 
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
@@ -20,20 +20,20 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_ut_hit_sizes_t>(arguments, 0, cuda_stream);
+  initialize<dev_ut_hit_sizes_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
-    global_function(ut_calculate_number_of_hits_mep)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    global_function(ut_calculate_number_of_hits_mep)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
       constants.dev_unique_x_sector_offsets.data());
   } else {
-    global_function(ut_calculate_number_of_hits)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    global_function(ut_calculate_number_of_hits)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),

@@ -9,7 +9,7 @@ void saxpy::saxpy_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_saxpy_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_saxpy_output_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void saxpy::saxpy_t::operator()(
@@ -17,7 +17,7 @@ void saxpy::saxpy_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(saxpy)(dim3(1), property<block_dim_t>(), cuda_stream)(

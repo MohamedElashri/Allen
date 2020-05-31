@@ -13,8 +13,8 @@ void compass_ut::compass_ut_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_ut_tracks_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
-  set_size<dev_atomics_ut_t>(arguments, first<host_number_of_selected_events_t>(arguments) * UT::num_atomics);
+    arguments, first<host_number_of_events_t>(arguments) * UT::Constants::max_num_tracks);
+  set_size<dev_atomics_ut_t>(arguments, first<host_number_of_events_t>(arguments) * UT::num_atomics);
 }
 
 void compass_ut::compass_ut_t::operator()(
@@ -22,13 +22,13 @@ void compass_ut::compass_ut_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_atomics_ut_t>(arguments, 0, cuda_stream);
+  initialize<dev_atomics_ut_t>(arguments, 0, stream);
 
   global_function(compass_ut)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
+    dim3(first<host_number_of_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), stream)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),

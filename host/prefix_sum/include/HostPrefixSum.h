@@ -29,7 +29,7 @@ namespace host_prefix_sum {
     size_t& host_allocated_prefix_sum_space,
     const size_t dev_input_buffer_size,
     const size_t dev_output_buffer_size,
-    cudaStream_t& cuda_stream,
+    cudaStream_t& stream,
     cudaEvent_t& cuda_generic_event,
     Parameters parameters);
 
@@ -45,7 +45,7 @@ namespace host_prefix_sum {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t& cuda_generic_event) const;
   };
 } // namespace host_prefix_sum

@@ -21,23 +21,23 @@ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   if (runtime_options.mep_layout) {
     global_function(scifi_raw_bank_decoder_v4_mep)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), stream)(
       arguments, constants.dev_scifi_geometry);
     global_function(scifi_direct_decoder_v4_mep)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), property<direct_decoder_block_dim_t>(), stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_raw_bank_decoder_v4)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), property<raw_bank_decoder_block_dim_t>(), stream)(
       arguments, constants.dev_scifi_geometry);
     global_function(scifi_direct_decoder_v4)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), property<direct_decoder_block_dim_t>(), cuda_stream)(
+      dim3(first<host_number_of_events_t>(arguments)), property<direct_decoder_block_dim_t>(), stream)(
       arguments, constants.dev_scifi_geometry);
   }
 }

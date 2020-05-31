@@ -128,7 +128,7 @@ The Velo include is only required if Velo objects are used in the algorithm. `De
 namespace saxpy {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
@@ -144,7 +144,7 @@ Some parameter examples:
 
 * `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _unsigned_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
 * `(DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output)`: Defines an output parameter on _device memory_, with name `dev_saxpy_output_t` and identifier `dev_saxpy_output`. Its underlying type is `float*`.
-* `(HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events)`: Defines an input parameter on _host memory_, with name `host_number_of_selected_events_t` and identifier `host_number_of_selected_events`. Its underlying type is `const unsigned*`.
+* `(HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events)`: Defines an input parameter on _host memory_, with name `host_number_of_events_t` and identifier `host_number_of_events`. Its underlying type is `const unsigned*`.
 
 Properties of algorithms define constants can be configured prior to running the application. They are defined in two parts. First, they should be defined in the `DEFINE_PARAMETERS` macro following the convention:
 
@@ -220,7 +220,7 @@ void saxpy::saxpy_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_saxpy_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_saxpy_output_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 ```
 
@@ -239,7 +239,7 @@ void saxpy::saxpy_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(saxpy)(

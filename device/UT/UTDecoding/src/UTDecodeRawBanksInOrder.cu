@@ -18,14 +18,14 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   if (runtime_options.mep_layout) {
     global_function(ut_decode_raw_banks_in_order_mep)(
-      dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+      dim3(first<host_number_of_events_t>(arguments), UT::Constants::n_layers),
       property<block_dim_t>(),
-      cuda_stream)(
+      stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -34,9 +34,9 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   }
   else {
     global_function(ut_decode_raw_banks_in_order)(
-      dim3(first<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+      dim3(first<host_number_of_events_t>(arguments), UT::Constants::n_layers),
       property<block_dim_t>(),
-      cuda_stream)(
+      stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),

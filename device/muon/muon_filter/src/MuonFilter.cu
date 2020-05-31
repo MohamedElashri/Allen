@@ -9,11 +9,11 @@ void MuonFilter::muon_filter_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_event_list_mf_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_event_list_mf_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_selected_events_mf_t>(arguments, 1);
   set_size<host_selected_events_mf_t>(arguments, 1);
-  set_size<dev_mf_decisions_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_mf_track_atomics_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_mf_decisions_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_mf_track_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void MuonFilter::muon_filter_t::operator()(
@@ -21,39 +21,23 @@ void MuonFilter::muon_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_event_list_mf_t>(arguments, 0, cuda_stream);
-  initialize<dev_selected_events_mf_t>(arguments, 0, cuda_stream);
-  initialize<dev_mf_decisions_t>(arguments, 0, cuda_stream);
-  initialize<dev_mf_track_atomics_t>(arguments, 0, cuda_stream);
+  initialize<dev_event_list_mf_t>(arguments, 0, stream);
+  initialize<dev_selected_events_mf_t>(arguments, 0, stream);
+  initialize<dev_mf_decisions_t>(arguments, 0, stream);
+  initialize<dev_mf_track_atomics_t>(arguments, 0, stream);
 
   global_function(muon_filter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
-  // copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, cuda_stream);
-  cudaCheck(cudaMemcpyAsync(
-    data<host_selected_events_mf_t>(arguments),
-    data<dev_selected_events_mf_t>(arguments),
-    size<dev_selected_events_mf_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, stream);
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_selected_events_mf,
-    data<dev_selected_events_mf_t>(arguments),
-    size<dev_selected_events_mf_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  assign_to_host_buffer<dev_selected_events_mf_t>(host_buffers.host_selected_events_mf, arguments, stream);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_event_list_mf,
-      data<dev_event_list_mf_t>(arguments),
-      size<dev_event_list_mf_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_event_list_mf_t>(host_buffers.host_event_list_mf, arguments, stream);
   }
 }
 

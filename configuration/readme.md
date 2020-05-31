@@ -52,7 +52,7 @@ One can see the input and output parameters and properties of an algorithm by ju
 ```sh
 >>> algorithms.velo_calculate_number_of_candidates_t
 class AlgorithmRepr : DeviceAlgorithm
- inputs: ('host_number_of_selected_events_t', 'dev_event_list_t', 'dev_velo_raw_input_t', 'dev_velo_raw_input_offsets_t')
+ inputs: ('host_number_of_events_t', 'dev_event_list_t', 'dev_velo_raw_input_t', 'dev_velo_raw_input_offsets_t')
  outputs: ('dev_number_of_candidates_t',)
  properties: ('block_dim_x',)
 ```
@@ -86,7 +86,7 @@ We should now add the SAXPY algorithm. We can use the interactive session to exp
 ```sh
 >>> saxpy_t
 class AlgorithmRepr : DeviceAlgorithm
- inputs: ('host_number_of_selected_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
+ inputs: ('host_number_of_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
  outputs: ('dev_saxpy_output_t',)
  properties: ('saxpy_scale_factor', 'block_dim')
 ```
@@ -96,7 +96,7 @@ The inputs should be passed into our sequence to be able to instantiate `saxpy_t
 ```sh
 saxpy = saxpy_t(
   name = "saxpy",
-  host_number_of_selected_events_t = velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
+  host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
   dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
 ```
@@ -117,7 +117,7 @@ velo_sequence = VeloSequence()
 
 saxpy = saxpy_t(
   name = "saxpy",
-  host_number_of_selected_events_t = velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
+  host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
   dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
 

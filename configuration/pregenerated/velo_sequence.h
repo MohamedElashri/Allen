@@ -95,19 +95,19 @@ private:
   size_t m_size = 0;
   char* m_offset = nullptr;
 };
-struct initialize_lists__host_number_of_selected_events_t
-  : host_global_event_cut::Parameters::host_number_of_selected_events_t,
-    velo_calculate_number_of_candidates::Parameters::host_number_of_selected_events_t,
-    velo_estimate_input_size::Parameters::host_number_of_selected_events_t,
-    velo_masked_clustering::Parameters::host_number_of_selected_events_t,
-    velo_calculate_phi_and_sort::Parameters::host_number_of_selected_events_t,
-    velo_search_by_triplet::Parameters::host_number_of_selected_events_t,
-    velo_three_hit_tracks_filter::Parameters::host_number_of_selected_events_t,
-    velo_copy_track_hit_number::Parameters::host_number_of_selected_events_t,
-    velo_consolidate_tracks::Parameters::host_number_of_selected_events_t {
+struct initialize_lists__host_number_of_events_t
+  : host_global_event_cut::Parameters::host_number_of_events_t,
+    velo_calculate_number_of_candidates::Parameters::host_number_of_events_t,
+    velo_estimate_input_size::Parameters::host_number_of_events_t,
+    velo_masked_clustering::Parameters::host_number_of_events_t,
+    velo_calculate_phi_and_sort::Parameters::host_number_of_events_t,
+    velo_search_by_triplet::Parameters::host_number_of_events_t,
+    velo_three_hit_tracks_filter::Parameters::host_number_of_events_t,
+    velo_copy_track_hit_number::Parameters::host_number_of_events_t,
+    velo_consolidate_tracks::Parameters::host_number_of_events_t {
   void set_size(size_t size) override { m_size = size; }
   size_t size() const override { return m_size; }
-  std::string name() const override { return "initialize_lists__host_number_of_selected_events_t"; }
+  std::string name() const override { return "initialize_lists__host_number_of_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
 
@@ -623,7 +623,7 @@ using configured_arguments_t = std::tuple<
   host_scifi_banks__host_raw_offsets_t,
   initialize_lists__host_total_number_of_events_t,
   initialize_lists__host_event_list_t,
-  initialize_lists__host_number_of_selected_events_t,
+  initialize_lists__host_number_of_events_t,
   initialize_lists__dev_event_list_t,
   velo_banks__dev_raw_banks_t,
   velo_banks__dev_raw_offsets_t,
@@ -692,11 +692,11 @@ using configured_sequence_arguments_t = std::tuple<
     host_scifi_banks__host_raw_offsets_t,
     initialize_lists__host_total_number_of_events_t,
     initialize_lists__host_event_list_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     initialize_lists__dev_event_list_t>,
   std::tuple<velo_banks__dev_raw_banks_t, velo_banks__dev_raw_offsets_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     initialize_lists__dev_event_list_t,
     velo_banks__dev_raw_banks_t,
     velo_banks__dev_raw_offsets_t,
@@ -706,7 +706,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_calculate_number_of_candidates__dev_number_of_candidates_t,
     prefix_sum_offsets_velo_candidates__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_velo_candidates__host_total_sum_holder_t,
     initialize_lists__dev_event_list_t,
     prefix_sum_offsets_velo_candidates__dev_output_buffer_t,
@@ -721,7 +721,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t>,
   std::tuple<
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_banks__dev_raw_banks_t,
     velo_banks__dev_raw_offsets_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
@@ -732,7 +732,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_masked_clustering__dev_module_cluster_num_t,
     velo_masked_clustering__dev_velo_cluster_container_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
     velo_masked_clustering__dev_module_cluster_num_t,
@@ -741,7 +741,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_calculate_phi_and_sort__dev_hit_permutation_t,
     velo_calculate_phi_and_sort__dev_hit_phi_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
     velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
@@ -760,7 +760,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_search_by_triplet__dev_number_of_velo_tracks_t,
     prefix_sum_offsets_velo_tracks__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t,
     prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
     velo_search_by_triplet__dev_three_hit_tracks_t,
@@ -773,7 +773,7 @@ using configured_sequence_arguments_t = std::tuple<
     velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t>,
   std::tuple<
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t,
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
@@ -790,7 +790,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t,
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_number_of_events_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     velo_search_by_triplet__dev_tracks_t,

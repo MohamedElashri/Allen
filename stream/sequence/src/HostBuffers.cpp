@@ -24,7 +24,7 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
 {
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
-  cudaCheck(cudaMallocHost((void**) &host_number_of_selected_events, sizeof(unsigned)));
+  cudaCheck(cudaMallocHost((void**) &host_number_of_events, sizeof(unsigned)));
   cudaCheck(cudaMallocHost((void**) &host_total_number_of_velo_clusters, sizeof(unsigned)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_reconstructed_velo_tracks, sizeof(unsigned)));
   cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_velo_tracks, sizeof(unsigned)));

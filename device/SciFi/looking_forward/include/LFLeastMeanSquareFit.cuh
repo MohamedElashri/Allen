@@ -12,7 +12,7 @@
 namespace lf_least_mean_square_fit {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_INPUT(dev_scifi_hits_t, char), dev_scifi_hits),
     (DEVICE_INPUT(dev_scifi_hit_count_t, unsigned), dev_scifi_hit_count),
     (DEVICE_INPUT(dev_atomics_ut_t, unsigned), dev_atomics_ut),
@@ -35,7 +35,7 @@ namespace lf_least_mean_square_fit {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

@@ -97,7 +97,7 @@ namespace velo_kalman_filter {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_offsets_all_velo_tracks),
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
     (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
@@ -119,7 +119,7 @@ namespace velo_kalman_filter {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

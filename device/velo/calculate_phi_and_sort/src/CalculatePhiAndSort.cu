@@ -26,16 +26,16 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
+  initialize<dev_hit_permutation_t>(arguments, 0, stream);
 
-  global_function(velo_calculate_phi_and_sort)(dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+  global_function(velo_calculate_phi_and_sort)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments);
 
   if (property<verbosity_t>() >= logger::debug) {
-    printf("After velo_calculate_phi_and_sort:\n");
+    debug_cout << "After velo_calculate_phi_and_sort:\n";
     print_velo_clusters<dev_sorted_velo_cluster_container_t,
       dev_offsets_estimated_input_size_t,
       dev_module_cluster_num_t,

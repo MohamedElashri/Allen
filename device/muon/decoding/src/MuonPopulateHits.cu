@@ -19,13 +19,13 @@ void muon_populate_hits::muon_populate_hits_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_permutation_station_t>(arguments, 0, cuda_stream);
+  initialize<dev_permutation_station_t>(arguments, 0, stream);
 
   global_function(muon_populate_hits)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Parameters parameters)

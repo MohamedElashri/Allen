@@ -9,9 +9,9 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_number_of_three_hit_tracks_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_number_of_three_hit_tracks_output_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_three_hit_tracks_output_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
+    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_tracks);
 }
 
 void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
@@ -19,13 +19,13 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_number_of_three_hit_tracks_output_t>(arguments, 0, cuda_stream);
+  initialize<dev_number_of_three_hit_tracks_output_t>(arguments, 0, stream);
 
   global_function(velo_three_hit_tracks_filter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(arguments);
 }
 
 /**
@@ -121,7 +121,7 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   velo_three_hit_tracks_filter::Parameters parameters)
 {
   // Data initialization
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = gridDim.x;
   const unsigned tracks_offset = event_number * Velo::Constants::max_tracks;
 

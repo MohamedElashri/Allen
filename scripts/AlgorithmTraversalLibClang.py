@@ -131,7 +131,7 @@ class AlgorithmTraversal():
         """Traverses parameter / property c.
 
         For a parameter, we are searching for:
-        * typename: Name of the class (ie. host_number_of_selected_events_t).
+        * typename: Name of the class (ie. host_number_of_events_t).
         * kind: host / device.
         * io: input / output.
         * typedef: Type that it holds (ie. unsigned).

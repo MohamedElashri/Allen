@@ -23,70 +23,22 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(ut_consolidate_tracks)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
   if (runtime_options.do_check) {
-    // Transmission device to host of UT consolidated tracks
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_atomics_ut,
-      data<dev_offsets_ut_tracks_t>(arguments),
-      size<dev_offsets_ut_tracks_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_ut_track_hit_number,
-      data<dev_offsets_ut_track_hit_number_t>(arguments),
-      size<dev_offsets_ut_track_hit_number_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_ut_track_hits,
-      data<dev_ut_track_hits_t>(arguments),
-      size<dev_ut_track_hits_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_ut_qop,
-      data<dev_ut_qop_t>(arguments),
-      size<dev_ut_qop_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_ut_x,
-      data<dev_ut_x_t>(arguments),
-      size<dev_ut_x_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_ut_tx,
-      data<dev_ut_tx_t>(arguments),
-      size<dev_ut_tx_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_ut_z,
-      data<dev_ut_z_t>(arguments),
-      size<dev_ut_z_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_ut_track_velo_indices,
-      data<dev_ut_track_velo_indices_t>(arguments),
-      size<dev_ut_track_velo_indices_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, stream);
+    assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, stream);
+    assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, stream);
+    assign_to_host_buffer<dev_ut_qop_t>(host_buffers.host_ut_qop, arguments, stream);
+    assign_to_host_buffer<dev_ut_x_t>(host_buffers.host_ut_x, arguments, stream);
+    assign_to_host_buffer<dev_ut_tx_t>(host_buffers.host_ut_tx, arguments, stream);
+    assign_to_host_buffer<dev_ut_z_t>(host_buffers.host_ut_z, arguments, stream);
+    assign_to_host_buffer<dev_ut_track_velo_indices_t>(host_buffers.host_ut_track_velo_indices, arguments, stream);
   }
 }
 

@@ -16,7 +16,8 @@ namespace velo_consolidate_tracks {
     (HOST_INPUT(host_accumulated_number_of_hits_in_velo_tracks_t, unsigned), host_accumulated_number_of_hits_in_velo_tracks),
     (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
     (HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, unsigned), host_number_of_three_hit_tracks_filtered),
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_OUTPUT(dev_accepted_velo_tracks_t, bool), dev_accepted_velo_tracks),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_offsets_all_velo_tracks),
     (DEVICE_INPUT(dev_tracks_t, Velo::TrackHits), dev_tracks),
@@ -43,7 +44,7 @@ namespace velo_consolidate_tracks {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

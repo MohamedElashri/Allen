@@ -17,8 +17,8 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::set_argumen
   set_size<dev_muon_tile_used_t>(
     arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
   set_size<dev_station_ocurrences_sizes_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
-  set_size<dev_atomics_index_insert_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+    arguments, first<host_number_of_events_t>(arguments) * Muon::Constants::n_stations);
+  set_size<dev_atomics_index_insert_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
@@ -26,16 +26,16 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_muon_compact_hit_t>(arguments, 0, cuda_stream);
-  initialize<dev_muon_tile_used_t>(arguments, 0, cuda_stream);
-  initialize<dev_station_ocurrences_sizes_t>(arguments, 0, cuda_stream);
-  initialize<dev_atomics_index_insert_t>(arguments, 0, cuda_stream);
+  initialize<dev_muon_compact_hit_t>(arguments, 0, stream);
+  initialize<dev_muon_tile_used_t>(arguments, 0, stream);
+  initialize<dev_station_ocurrences_sizes_t>(arguments, 0, stream);
+  initialize<dev_atomics_index_insert_t>(arguments, 0, stream);
 
   global_function(muon_add_coords_crossing_maps)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(

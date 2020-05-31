@@ -27,38 +27,19 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(velo_consolidate_tracks)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+    dim3(first<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   // Set all found tracks to accepted
-  initialize<dev_accepted_velo_tracks_t>(arguments, 1, cuda_stream);
+  initialize<dev_accepted_velo_tracks_t>(arguments, 1, stream);
 
   if (runtime_options.do_check) {
-    // Transmission device to host
-    // Velo tracks
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_atomics_velo,
-      data<dev_offsets_all_velo_tracks_t>(arguments),
-      size<dev_offsets_all_velo_tracks_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_velo_track_hit_number,
-      data<dev_offsets_velo_track_hit_number_t>(arguments),
-      size<dev_offsets_velo_track_hit_number_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_velo_track_hits,
-      data<dev_velo_track_hits_t>(arguments),
-      size<dev_velo_track_hits_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, stream);
+    assign_to_host_buffer<dev_offsets_velo_track_hit_number_t>(host_buffers.host_velo_track_hit_number, arguments, stream);
+    assign_to_host_buffer<dev_velo_track_hits_t>(host_buffers.host_velo_track_hits, arguments, stream);
   }
 }
 
@@ -130,7 +111,7 @@ __device__ void populate(const Velo::TrackHits* track, const unsigned number_of_
 __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidate_tracks::Parameters parameters)
 {
   const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const Velo::TrackHits* event_tracks = parameters.dev_tracks + event_number * Velo::Constants::max_tracks;
   const Velo::TrackletHits* three_hit_tracks =

@@ -36,7 +36,7 @@ namespace muon_catboost_evaluator {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

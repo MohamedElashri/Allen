@@ -17,29 +17,23 @@ void package_sel_reports::package_sel_reports_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   const auto event_start = std::get<0>(runtime_options.event_interval);
   const auto total_number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-  initialize<dev_sel_rep_raw_banks_t>(arguments, 0, cuda_stream);
+  initialize<dev_sel_rep_raw_banks_t>(arguments, 0, stream);
 
   const auto grid_size = dim3((total_number_of_events + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
-  global_function(package_sel_reports)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
-    arguments, total_number_of_events, first<host_number_of_selected_events_t>(arguments), event_start);
+  global_function(package_sel_reports)(grid_size, dim3(property<block_dim_x_t>().get()), stream)(
+    arguments, total_number_of_events, first<host_number_of_events_t>(arguments), event_start);
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_sel_rep_offsets,
-    data<dev_sel_rep_offsets_t>(arguments),
-    size<dev_sel_rep_offsets_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
-
+  assign_to_host_buffer<dev_sel_rep_offsets_t>(host_buffers.host_sel_rep_offsets, arguments, stream);
   safe_assign_to_host_buffer<dev_sel_rep_raw_banks_t>(
-    host_buffers.host_sel_rep_raw_banks, host_buffers.host_sel_rep_raw_banks_size, arguments, cuda_stream);
+    host_buffers.host_sel_rep_raw_banks, host_buffers.host_sel_rep_raw_banks_size, arguments, stream);
 }
 
 __global__ void package_sel_reports::package_sel_reports(

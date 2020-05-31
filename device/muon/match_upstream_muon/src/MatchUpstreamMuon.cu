@@ -17,26 +17,21 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_match_upstream_muon_t>(arguments, 0, cuda_stream);
+  initialize<dev_match_upstream_muon_t>(arguments, 0, stream);
 
   global_function(match_upstream_muon)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
     arguments,
     constants.dev_magnet_polarity.data(),
     constants.dev_muonmatch_search_muon_chambers,
     constants.dev_muonmatch_search_windows,
-    first<host_number_of_selected_events_t>(arguments));
+    first<host_number_of_events_t>(arguments));
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_match_upstream_muon,
-      data<dev_match_upstream_muon_t>(arguments),
-      size<dev_match_upstream_muon_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, stream);
   }
 }
 
