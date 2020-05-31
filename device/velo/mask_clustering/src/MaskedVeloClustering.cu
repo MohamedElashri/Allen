@@ -29,7 +29,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   // Selector from layout
   if (runtime_options.mep_layout) {
     global_function(velo_masked_clustering_mep)(
-      dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
+      dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(
       arguments,
       constants.dev_velo_geometry,
       constants.dev_velo_sp_patterns.data(),
@@ -38,7 +38,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   }
   else {
     global_function(velo_masked_clustering)(
-      dim3(data<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
+      dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(
       arguments,
       constants.dev_velo_geometry,
       constants.dev_velo_sp_patterns.data(),
@@ -469,10 +469,9 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   const float* dev_velo_sp_fy)
 {
   const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
+  const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
   const unsigned* module_pair_cluster_start =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
   unsigned* module_pair_cluster_num =
@@ -535,8 +534,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
   const float* dev_velo_sp_fy)
 {
   const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned* module_pair_cluster_start =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
@@ -563,7 +561,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
 
     // Read raw bank
     const auto raw_bank = MEP::raw_bank<VeloRawBank>(
-      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
+      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
     no_neighbour_sp(
       module_pair_cluster_start,
       dev_velo_sp_patterns,
@@ -587,7 +585,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
     assert(raw_bank_number < Velo::Constants::n_sensors);
 
     const auto raw_bank = MEP::raw_bank<VeloRawBank>(
-      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
+      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
 
     rest_of_clusters(
       module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);

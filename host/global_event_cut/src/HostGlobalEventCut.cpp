@@ -9,13 +9,13 @@ void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  const auto event_start = std::get<0>(runtime_options.event_interval);
-  const auto event_end = std::get<1>(runtime_options.event_interval);
+  const auto number_of_events =
+    std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-  set_size<host_total_number_of_events_t>(arguments, 1);
   set_size<host_number_of_selected_events_t>(arguments, 1);
-  set_size<host_event_list_t>(arguments, event_end - event_start);
-  set_size<dev_event_list_t>(arguments, event_end - event_start);
+  set_size<host_number_of_events_t>(arguments, 1);
+  set_size<host_event_list_t>(arguments, number_of_events);
+  set_size<dev_event_list_t>(arguments, number_of_events);
 }
 
 void host_global_event_cut::host_global_event_cut_t::operator()(
@@ -30,13 +30,15 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   const auto event_end = std::get<1>(runtime_options.event_interval);
   const auto number_of_events = event_end - event_start;
 
+  // Initialize number of events
+  data<host_number_of_events_t>(arguments)[0] = number_of_events;
+
   // Initialize host event list
-  data<host_total_number_of_events_t>(arguments)[0] = number_of_events;
-  data<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
   for (unsigned i = 0; i < number_of_events; ++i) {
-    data<host_event_list_t>(arguments)[i] = event_start + i;
+    data<host_event_list_t>(arguments)[i] = i;
   }
 
+  // Do the host global event cut
   if (runtime_options.mep_layout) {
     host_function(host_global_event_cut_mep)(number_of_events, arguments);
   }
@@ -44,12 +46,17 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
     host_function(host_global_event_cut)(number_of_events, arguments);
   }
 
+  // Copy data to the device
   copy<dev_event_list_t, host_event_list_t>(arguments, cuda_stream);
+
+  // Reduce the size of the event lists to the selected events
+  reduce_size<host_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  reduce_size<dev_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 
   // TODO: Remove whenever the checker uses variables
   host_buffers.host_number_of_selected_events[0] = first<host_number_of_selected_events_t>(arguments);
   for (unsigned i = 0; i < number_of_events; ++i) {
-    host_buffers.host_event_list[i] = data<host_event_list_t>(arguments)[i];
+    host_buffers.host_event_list[i] = event_start + data<host_event_list_t>(arguments)[i];
   }
 }
 
@@ -61,7 +68,6 @@ void host_global_event_cut::host_global_event_cut(
   auto const scifi_offsets = *parameters.scifi_offsets;
 
   unsigned insert_index = 0;
-  unsigned reverse_insert_index = number_of_events - 1;
   unsigned first_event = parameters.host_event_list[0];
   for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
     unsigned event_number = first_event + event_index;
@@ -96,9 +102,6 @@ void host_global_event_cut::host_global_event_cut(
       num_combined_clusters < parameters.max_scifi_ut_clusters &&
       num_combined_clusters > parameters.min_scifi_ut_clusters) {
       parameters.host_event_list[insert_index++] = event_number;
-    }
-    else {
-      parameters.host_event_list[reverse_insert_index--] = event_number;
     }
   }
 
@@ -153,9 +156,6 @@ void host_global_event_cut::host_global_event_cut_mep(
       num_combined_clusters < parameters.max_scifi_ut_clusters &&
       num_combined_clusters > parameters.min_scifi_ut_clusters) {
       parameters.host_event_list[insert_index++] = event_number;
-    }
-    else {
-      parameters.host_event_list[reverse_insert_index--] = event_number;
     }
   }
 

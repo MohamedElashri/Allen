@@ -3,24 +3,63 @@
 #include <tuple>
 #include "BankTypes.h"
 
+/**
+ * @brief Sets the size of a container to the specified size.
+ */
 template<typename Arg, typename Args>
 void set_size(Args arguments, const size_t size)
 {
   arguments.template set_size<Arg>(size);
 }
 
+/**
+ * @brief Reduces the size of the container.
+ * @details Reducing the size can be done after the data has
+ *          been allocated (such as in the operator() of an 
+ *          algorithm). It reduces the exposed size of an
+ *          argument.
+ *          
+ *          Note however that this does not impact the amount
+ *          of allocated memory of the container, which remains unchanged.
+ */
+template<typename Arg, typename Args>
+void reduce_size(const Args& arguments, const size_t size)
+{
+  assert(size <= arguments.template size<Arg>());
+  const_cast<Args&>(arguments).template set_size<Arg>(size);
+}
+
+
+/**
+ * @brief Returns the size of a container (length * sizeof(T)).
+ */
 template<typename Arg, typename Args>
 size_t size(const Args& arguments)
 {
   return arguments.template size<Arg>();
 }
 
+/**
+ * @brief Returns the length of a container.
+ */
+template<typename Arg, typename Args>
+size_t length(const Args& arguments)
+{
+  return arguments.template size<Arg>() / Arg::type;
+}
+
+/**
+ * @brief Returns a pointer to the container with the container type.
+ */
 template<typename Arg, typename Args>
 auto data(const Args& arguments)
 {
   return Arg {arguments.template data<Arg>()};
 }
 
+/**
+ * @brief Returns the first element in the container.
+ */
 template<typename Arg, typename Args>
 auto first(const Args& arguments)
 {
@@ -298,7 +337,7 @@ void print(const Args& arguments)
 
 /**
  * @brief Copies B into A.
- * @details A and B may be host or device arguments (the four options).
+ * @details A and B may be host or device arguments.
  */
 template<typename A, typename B, typename Args>
 void copy(const Args& arguments, cudaStream_t stream)
@@ -308,7 +347,7 @@ void copy(const Args& arguments, cudaStream_t stream)
 
 /**
  * @brief Copies count bytes of B into A.
- * @details A and B may be host or device arguments (the four options).
+ * @details A and B may be host or device arguments.
  */
 template<typename A, typename B, typename Args>
 void copy(

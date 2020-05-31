@@ -10,13 +10,7 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   const Constants&,
   const HostBuffers&) const
 {
-  // using parameter_tuple = ParameterTuple<Parameters>::t;
-  // printf("Size: %i\n", std::tuple_size<parameter_tuple>());
-
-  if (logger::verbosity() >= logger::debug) {
-    debug_cout << "# of events = " << first<host_number_of_selected_events_t>(arguments) << "\n";
-  }
-  set_size<dev_number_of_candidates_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_number_of_candidates_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t::operator()(
@@ -24,21 +18,23 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
+  initialize<dev_number_of_candidates_t>(arguments, 0, stream);
+
   // Enough blocks to cover all events
   const auto grid_size = dim3(
-    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+    (length<dev_event_list_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
   if (runtime_options.mep_layout) {
     global_function(velo_calculate_number_of_candidates_mep)(
-      grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
-      arguments, first<host_number_of_selected_events_t>(arguments));
+      grid_size, dim3(property<block_dim_x_t>().get()), stream)(
+      arguments, length<dev_event_list_t>(arguments));
   }
   else {
-    global_function(velo_calculate_number_of_candidates)(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
-      arguments, first<host_number_of_selected_events_t>(arguments));
+    global_function(velo_calculate_number_of_candidates)(grid_size, dim3(property<block_dim_x_t>().get()), stream)(
+      arguments, length<dev_event_list_t>(arguments));
   }
 }
 
@@ -46,11 +42,11 @@ __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_ca
   velo_calculate_number_of_candidates::Parameters parameters,
   const unsigned number_of_events)
 {
-  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
-    const auto selected_event_number = parameters.dev_event_list[event_number];
+  for (auto event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_events;
+       event_index += blockDim.x * gridDim.x) {
+    const auto event_number = parameters.dev_event_list[event_index];
     const char* raw_input =
-      parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
+      parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
 
     // Read raw event
     const auto raw_event = VeloRawEvent(raw_input);

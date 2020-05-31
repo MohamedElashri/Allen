@@ -31,8 +31,16 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
 {
   initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
 
-  global_function(velo_calculate_phi_and_sort)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  global_function(velo_calculate_phi_and_sort)(dim3(length<dev_event_list_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    arguments);
+
+  if (property<verbosity_t>() >= logger::debug) {
+    printf("After velo_calculate_phi_and_sort:\n");
+    print_velo_clusters<dev_sorted_velo_cluster_container_t,
+      dev_offsets_estimated_input_size_t,
+      dev_module_cluster_num_t,
+      host_total_number_of_velo_clusters_t>(arguments);
+  }
 }
 
 /**
@@ -45,7 +53,7 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
 
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = gridDim.x;
 
   // Pointers to data within the event
