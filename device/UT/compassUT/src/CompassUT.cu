@@ -28,7 +28,7 @@ void compass_ut::compass_ut_t::operator()(
   initialize<dev_atomics_ut_t>(arguments, 0, stream);
 
   global_function(compass_ut)(
-    dim3(first<host_number_of_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), stream)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),
@@ -43,8 +43,8 @@ __global__ void compass_ut::compass_ut(
   const float* dev_ut_dxDy,
   const unsigned* dev_unique_x_sector_layer_offsets) // prefixsum to point to the x hit of the sector, per layer
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];

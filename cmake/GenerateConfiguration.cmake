@@ -94,10 +94,10 @@ if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_
   endif()
 else()
   if (Python3_FOUND)
-    message(STATUS "Sequence generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
-    message(STATUS "A pregenerated sequence will be used instead.")
+    message(WARNING "Sequence generation with LLVM - Failed. Please note that cvmfs (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
+    message(WARNING "A pregenerated sequence will be used instead.")
   else()
-    message(STATUS "Failed to generate sequence. Please note Python 3 AND (CVMFS (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
+    message(WARNING "Failed to generate sequence. Please note that Python 3 AND (cmvfs (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
   endif()
 
   add_custom_command(

@@ -27,7 +27,7 @@ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::o
   initialize<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, 0, stream);
 
   global_function(ut_select_velo_tracks_with_windows)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 //=========================================================================
@@ -70,8 +70,8 @@ found_active_windows(const short* dev_windows_layers, const int number_of_tracks
 __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows(
   ut_select_velo_tracks_with_windows::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {

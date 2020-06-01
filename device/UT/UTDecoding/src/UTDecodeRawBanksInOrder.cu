@@ -23,7 +23,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
 {
   if (runtime_options.mep_layout) {
     global_function(ut_decode_raw_banks_in_order_mep)(
-      dim3(first<host_number_of_events_t>(arguments), UT::Constants::n_layers),
+      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers),
       property<block_dim_t>(),
       stream)(
       arguments,
@@ -34,7 +34,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   }
   else {
     global_function(ut_decode_raw_banks_in_order)(
-      dim3(first<host_number_of_events_t>(arguments), UT::Constants::n_layers),
+      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers),
       property<block_dim_t>(),
       stream)(
       arguments,
@@ -118,12 +118,10 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   const unsigned* dev_ut_region_offsets,
   const unsigned* dev_unique_x_sector_layer_offsets)
 {
-  const uint32_t number_of_events = gridDim.x;
-  const uint32_t event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
-
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned layer_number = blockIdx.y;
-  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[selected_event_number];
+  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
@@ -160,10 +158,8 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
   const unsigned* dev_ut_region_offsets,
   const unsigned* dev_unique_x_sector_layer_offsets)
 {
-  const uint32_t number_of_events = gridDim.x;
-  const uint32_t event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
-
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned layer_number = blockIdx.y;
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
@@ -190,7 +186,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
 
     // Create UT raw bank from MEP layout
     const auto raw_bank = MEP::raw_bank<UTRawBank>(
-      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, selected_event_number, raw_bank_index);
+      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
 
     decode_raw_bank(dev_ut_region_offsets, geometry, boards, raw_bank, hit_index, raw_bank_hit_index, ut_hits);
   }

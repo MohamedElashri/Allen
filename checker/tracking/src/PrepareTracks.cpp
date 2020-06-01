@@ -25,7 +25,7 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   const unsigned* event_list)
 {
   /* Tracks to be checked, save in format for checker */
-  std::vector<Checker::Tracks> checker_tracks(event_list_size); // all tracks from all events
+  std::vector<Checker::Tracks> checker_tracks(event_list_size); // all tracks from the selected events
   for (unsigned i = 0; i < event_list_size; i++) {
     const auto event_number = event_list[i];
 
@@ -61,18 +61,23 @@ std::vector<Checker::Tracks> prepareUTTracks(
   const char* ut_track_hits,
   const unsigned* ut_track_velo_indices,
   const float* ut_qop,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list)
 {
-  std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
-  for (unsigned i_event = 0; i_event < number_of_events; i_event++) {
+  std::vector<Checker::Tracks> checker_tracks; // all tracks from the selected events
+  checker_tracks.reserve(event_list_size);
+  for (unsigned i = 0; i < event_list_size; i++) {
+    const auto event_number = event_list[i];
+
     Checker::Tracks tracks; // all tracks within one event
 
-    Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, i_event, number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, event_number, number_of_events};
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
-    const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
+    const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
     UT::Consolidated::ConstExtendedTracks ut_tracks {
-      ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, i_event, number_of_events};
-    const unsigned number_of_tracks_event = ut_tracks.number_of_tracks(i_event);
+      ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, event_number, number_of_events};
+    const unsigned number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
 
     for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
       const int velo_track_index = ut_tracks.velo_track(i_track);

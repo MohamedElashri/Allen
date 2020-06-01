@@ -29,7 +29,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
   initialize<dev_ut_hit_count_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
-    global_function(ut_pre_decode_mep)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    global_function(ut_pre_decode_mep)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -38,7 +38,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
       constants.dev_unique_x_sector_offsets.data());
   }
   else {
-    global_function(ut_pre_decode)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    global_function(ut_pre_decode)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -151,11 +151,9 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets)
 {
-  const uint32_t number_of_events = gridDim.x;
-  const uint32_t event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
-
-  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[selected_event_number];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
@@ -203,9 +201,7 @@ __global__ void ut_pre_decode::ut_pre_decode_mep(
   const unsigned* dev_unique_x_sector_offsets)
 {
   const uint32_t number_of_events = gridDim.x;
-  const uint32_t event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
-
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
   uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
@@ -222,7 +218,7 @@ __global__ void ut_pre_decode::ut_pre_decode_mep(
 
     // Create UT raw bank from MEP layout
     const auto raw_bank = MEP::raw_bank<UTRawBank>(
-      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, selected_event_number, raw_bank_index);
+      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
 
     pre_decode_raw_bank(
       dev_ut_region_offsets,

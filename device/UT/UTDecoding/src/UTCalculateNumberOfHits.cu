@@ -26,14 +26,14 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   initialize<dev_ut_hit_sizes_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
-    global_function(ut_calculate_number_of_hits_mep)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    global_function(ut_calculate_number_of_hits_mep)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
       constants.dev_unique_x_sector_offsets.data());
   } else {
-    global_function(ut_calculate_number_of_hits)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    global_function(ut_calculate_number_of_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
@@ -79,10 +79,9 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets)
 {
-  const uint32_t event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[selected_event_number];
+  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
   uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
 
@@ -106,8 +105,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_mep(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets)
 {
-  const uint32_t event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
   uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
@@ -119,7 +117,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_mep(
 
     // Construct UT raw bank from MEP layout
     const auto raw_bank = MEP::raw_bank<UTRawBank>(
-      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, selected_event_number, raw_bank_index);
+      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
 
     calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_bank);
   }
