@@ -35,7 +35,7 @@ struct SequenceVisitor<scifi_consolidate_tracks::scifi_consolidate_tracks_t> {
       constants.host_inv_clus_res,
       host_buffers.host_muon_catboost_output,
       host_buffers.host_is_muon,
-      host_buffers.host_number_of_selected_events[0]);
+      host_buffers.host_number_of_selected_events);
 
     auto& checker = checker_invoker.checker<TrackCheckerForward>("Forward tracks:", "PrCheckerPlots.root");
     checker.accumulate<TrackCheckerForward>(mc_events, tracks);

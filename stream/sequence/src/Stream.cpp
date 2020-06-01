@@ -193,7 +193,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
 std::vector<bool> Stream::reconstructed_events() const
 {
   std::vector<bool> mask(number_of_input_events, false);
-  for (unsigned i = 0; i < host_buffers->host_number_of_selected_events[0]; ++i) {
+  for (unsigned i = 0; i < host_buffers->host_number_of_selected_events; ++i) {
     mask[host_buffers->host_event_list[i]] = true;
   }
   return mask;

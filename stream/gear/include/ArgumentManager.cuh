@@ -64,7 +64,7 @@ struct ArgumentManager {
   template<typename T>
   void set_size(const size_t size)
   {
-    tuple_ref_by_inheritance<T>(arguments_tuple).set_size(size * sizeof(typename T::type));
+    tuple_ref_by_inheritance<T>(arguments_tuple).set_size(size);
   }
 };
 
@@ -103,7 +103,7 @@ struct ArgumentRefManager {
   template<typename T>
   void set_size(const size_t size)
   {
-    std::get<T&>(m_arguments).set_size(size * sizeof(typename T::type));
+    std::get<T&>(m_arguments).set_size(size);
   }
 
   template<typename T>

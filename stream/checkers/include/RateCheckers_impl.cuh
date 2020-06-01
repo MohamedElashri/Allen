@@ -22,7 +22,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t> {
       host_buffers.host_atomics_scifi,
       host_buffers.host_sv_offsets,
       host_buffers.host_number_of_events,
-      host_buffers.host_number_of_selected_events[0]);
+      host_buffers.host_number_of_selected_events);
 
 #ifdef WITH_ROOT
     const auto tracks = prepareKalmanTracks(
@@ -46,7 +46,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t> {
       host_buffers.host_kalmanvelo_states,
       host_buffers.host_reconstructed_multi_pvs,
       host_buffers.host_number_of_multivertex,
-      host_buffers.host_number_of_selected_events[0]);
+      host_buffers.host_number_of_selected_events);
 
     auto& ntuple =
       checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
@@ -59,7 +59,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t> {
       host_buffers.host_atomics_scifi,
       host_buffers.host_sv_offsets,
       host_buffers.host_mf_sv_offsets,
-      host_buffers.host_number_of_events[0]);
+      host_buffers.host_number_of_selected_events);
 #endif
   }
 };

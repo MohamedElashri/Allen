@@ -26,8 +26,8 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   host_prefix_sum(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
-    size<dev_input_buffer_t>(arguments),
-    size<dev_output_buffer_t>(arguments),
+    size<dev_input_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
+    size<dev_output_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
     stream,
     cuda_generic_event,
     Parameters {data<host_total_sum_holder_t>(arguments),

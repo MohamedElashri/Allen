@@ -27,7 +27,7 @@ struct SequenceVisitor<ut_consolidate_tracks::ut_consolidate_tracks_t> {
       host_buffers.host_ut_track_hits,
       host_buffers.host_ut_track_velo_indices,
       host_buffers.host_ut_qop,
-      host_buffers.host_number_of_selected_events[0]);
+      host_buffers.host_number_of_selected_events);
 
     auto& checker = checker_invoker.checker<TrackCheckerVeloUT>("Velo+UT tracks:", "PrCheckerPlots.root");
     checker.accumulate<TrackCheckerVeloUT>(mc_events, tracks);

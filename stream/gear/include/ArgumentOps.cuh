@@ -98,6 +98,8 @@ struct SingleArgumentOverloadResolution<
   static void print(const Args& arguments)
   {
     const auto array = data<Arg>(arguments);
+
+    info_cout << arguments.template name<Arg>() << ": ";
     for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
       info_cout << ((int) array[i]) << ", ";
     }
@@ -122,6 +124,8 @@ struct SingleArgumentOverloadResolution<
   static void print(const Args& arguments)
   {
     const auto array = data<Arg>(arguments);
+
+    info_cout << arguments.template name<Arg>() << ": ";
     for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
       info_cout << array[i] << ", ";
     }
@@ -148,6 +152,7 @@ struct SingleArgumentOverloadResolution<
     std::vector<char> v(size<Arg>(arguments));
     cudaCheck(cudaMemcpy(v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), cudaMemcpyDeviceToHost));
 
+    info_cout << arguments.template name<Arg>() << ": ";
     for (const auto& i : v) {
       info_cout << ((int) i) << ", ";
     }
@@ -174,6 +179,7 @@ struct SingleArgumentOverloadResolution<
     std::vector<typename Arg::type> v(size<Arg>(arguments));
     cudaCheck(cudaMemcpy(v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), cudaMemcpyDeviceToHost));
 
+    info_cout << arguments.template name<Arg>() << ": ";
     for (const auto& i : v) {
       info_cout << i << ", ";
     }

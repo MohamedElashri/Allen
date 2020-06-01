@@ -171,7 +171,7 @@ __device__ void print_array_64(const uint64_t p, const int row = -1, const int c
 __device__ void no_neighbour_sp(
   unsigned const* module_pair_cluster_start,
   uint8_t const* dev_velo_sp_patterns,
-  Velo::Clusters velo_cluster_container,
+  Velo::Clusters& velo_cluster_container,
   unsigned* module_pair_cluster_num,
   const float* dev_velo_sp_fx,
   const float* dev_velo_sp_fy,
