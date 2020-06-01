@@ -53,9 +53,12 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<dev_selections_t>(
     arguments, TupleTraits<ArgumentReferences<Parameters>, dev_input_selections_t::type>::get_size(arguments));
 
-  // printf("Sizes: %lu, %u\n",
-  //   std::tuple_size<dev_input_selections_t::type>::value + 1,
-  //   TupleTraits<ArgumentReferences<Parameters>, dev_input_selections_t::type>::get_size(arguments));
+  if (property<verbosity_t>() >= logger::debug) {
+    info_cout << "Sizes of gather_selections datatypes: "
+      << size<host_selections_offsets_t>(arguments) << ", "
+      << size<dev_selections_offsets_t>(arguments) << ", "
+      << size<dev_selections_t>(arguments) << "\n";
+  }
 }
 
 void gather_selections::gather_selections_t::operator()(

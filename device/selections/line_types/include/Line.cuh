@@ -13,7 +13,9 @@
 /**
  * @brief A generic Line.
  * @detail It assumes the line has the following parameters:
+ * 
  *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+ *  (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
  *  (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
  * 
  * The inheriting line must also provide the following methods:
@@ -56,11 +58,11 @@ struct Line {
     cudaEvent_t&) const;
 
   /**
-   * @brief Grid dimension of kernel call. By default, get_grid_dim returns the number of events.
+   * @brief Grid dimension of kernel call. By default, get_grid_dim returns the size of the event list.
    */
   unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments) const
   {
-    return first<typename Parameters::host_number_of_events_t>(arguments);
+    return size<typename Parameters::dev_event_list_t>(arguments);
   }
 
   /**
@@ -80,7 +82,7 @@ struct Line {
 template<typename Line, typename Parameters>
 __global__ void process_line(Line line, Parameters parameters)
 {
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   for (unsigned i = threadIdx.x; i < line.get_input_size(parameters, event_number); i += blockDim.x) {
     line.get_decision(parameters, event_number)[i] =
       line.select(parameters, line.get_input(parameters, event_number, i));
@@ -96,6 +98,8 @@ void Line<Derived, Parameters>::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
+  initialize<typename Parameters::dev_decisions_t>(arguments, 0, stream);
+
   auto derived_instance = static_cast<const Derived*>(this);
   derived_instance->global_function(process_line<Derived, Parameters>)(
     derived_instance->get_grid_dim_x(arguments), derived_instance->get_block_dim_x(arguments), stream)(

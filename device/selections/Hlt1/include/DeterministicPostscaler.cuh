@@ -32,7 +32,7 @@ struct DeterministicPostscaler {
   __device__ DeterministicPostscaler(unsigned initial, float frac) :
     initial_value(initial), scale_factor(frac),
     accept_threshold(
-      frac >= 1.f ? std::numeric_limits<uint32_t>::max() : uint32_t(frac * static_cast<float>(std::numeric_limits<uint32_t>::max())))
+      frac >= 1.f ? std::numeric_limits<uint32_t>::max() : uint32_t(frac * static_cast<float>(std::numeric_limits<int32_t>::max())))
   {}
 
   __device__ void operator()(

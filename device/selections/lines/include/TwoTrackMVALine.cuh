@@ -13,6 +13,7 @@ namespace two_track_mva_line {
     (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
     (DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex), dev_svs),
     (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
     (PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float), minComboPt),
     (PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float), maxVertexChi2),

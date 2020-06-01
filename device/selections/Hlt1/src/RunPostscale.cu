@@ -12,7 +12,7 @@ run_hlt1::run_postscale(run_hlt1::Parameters parameters, const unsigned selected
 {
   const auto event_number = blockIdx.x;
 
-  const unsigned hdr_size(8);
+  const unsigned hdr_size = 8;
   const unsigned int* odinData = reinterpret_cast<const unsigned*>(
     parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number] + hdr_size);
 
