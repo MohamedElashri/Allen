@@ -46,9 +46,6 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   initialize<dev_hit_used_t>(arguments, 0, stream);
   initialize<dev_number_of_velo_tracks_t>(arguments, 0, stream);
 
-  // TODO: Needed?
-  initialize<dev_three_hit_tracks_t>(arguments, 0, stream);
-
   global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), stream)(
     arguments, constants.dev_velo_geometry);
 

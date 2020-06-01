@@ -26,17 +26,19 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
     property<block_dim_x_t>().get());
 
   global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), stream)(
-    arguments, first<host_number_of_events_t>(arguments));
+    arguments);
 }
 
-__global__ void pv_beamline_peak::pv_beamline_peak(
-  pv_beamline_peak::Parameters parameters,
-  const unsigned number_of_events)
+__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters)
 {
   // At least parallelize over events, even if it's
   // one event on each thread
-  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  for (auto event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_events;
+       event_index += blockDim.x * gridDim.x) {
+
+    const unsigned event_number = parameters.dev_event_list[event_index];
+
     const float* zhisto = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
     float* zpeaks = parameters.dev_zpeaks + PV::max_number_vertices * event_number;
     unsigned number_of_peaks = 0;

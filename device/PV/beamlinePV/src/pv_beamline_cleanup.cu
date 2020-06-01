@@ -25,7 +25,7 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
   initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, stream);
 
   global_function(pv_beamline_cleanup)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   // Retrieve result
   assign_to_host_buffer<dev_multi_final_vertices_t>(host_buffers.host_reconstructed_multi_pvs, arguments, stream);
@@ -40,7 +40,7 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Pa
 
   __syncthreads();
 
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const PV::Vertex* vertices = parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
   PV::Vertex* final_vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;

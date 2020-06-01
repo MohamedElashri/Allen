@@ -18,9 +18,10 @@ void PVChecker::accumulate(
   MCEvents const& mc_events,
   PV::Vertex* rec_vertex,
   int* number_of_vertex,
-  unsigned n_selected_events)
+  const unsigned event_list_size,
+  const unsigned* event_list)
 {
-  passed += n_selected_events;
+  passed += event_list_size;
 
   std::vector<RecPVInfo> vec_all_rec;
 
@@ -57,11 +58,13 @@ void PVChecker::accumulate(
   std::vector<double> vec_mc_z;
 
   // loop over selected events
-  for (unsigned i_event = 0; i_event < n_selected_events; ++i_event) {
+  for (unsigned event_index = 0; event_index < event_list_size; ++event_index) {
     std::vector<PV::Vertex*> vecOfVertices;
+    const auto event_number = event_list[event_index];
+
     // first fill vector with vertices
-    for (int i = 0; i < number_of_vertex[i_event]; i++) {
-      int index = i_event * PatPV::max_number_vertices + i;
+    for (int i = 0; i < number_of_vertex[event_number]; i++) {
+      int index = event_number * PatPV::max_number_vertices + i;
       vecOfVertices.push_back(&(rec_vertex[index]));
     }
     // Fill reconstucted PV info
@@ -119,7 +122,7 @@ void PVChecker::accumulate(
     // vector with MCPVinfo
     std::vector<MCPVInfo> mcpvvec;
 
-    for (auto const& mc_vertex : mc_events[i_event].m_mcvs) {
+    for (auto const& mc_vertex : mc_events[event_index].m_mcvs) {
 
       MCPVInfo mcprimvert;
       mcprimvert.pMCPV = &mc_vertex;

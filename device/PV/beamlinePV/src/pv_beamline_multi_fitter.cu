@@ -32,7 +32,7 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
 #endif
 
   global_function(pv_beamline_multi_fitter)(
-    dim3(first<host_number_of_events_t>(arguments)), block_dimension, stream)(
+    dim3(size<dev_event_list_t>(arguments)), block_dimension, stream)(
     arguments, constants.dev_beamline.data());
 }
 
@@ -40,8 +40,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   pv_beamline_multi_fitter::Parameters parameters,
   const float* dev_beamline)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   unsigned* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
   Velo::Consolidated::ConstTracks velo_tracks {

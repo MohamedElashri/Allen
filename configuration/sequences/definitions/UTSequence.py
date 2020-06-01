@@ -59,7 +59,8 @@ def UTSequence(initialize_lists,
         dev_ut_pre_decoded_hits_t=ut_pre_decode.dev_ut_pre_decoded_hits_t(),
         dev_ut_hit_permutations_t=ut_find_permutation.
         dev_ut_hit_permutations_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     ut_select_velo_tracks = ut_select_velo_tracks_t(
         name="ut_select_velo_tracks",

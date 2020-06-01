@@ -24,7 +24,7 @@ void pv_beamline_histo::pv_beamline_histo_t::operator()(
   cudaEvent_t&) const
 {
   global_function(pv_beamline_histo)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_beamline.data());
 }
 
@@ -40,8 +40,8 @@ __device__ float gauss_integral(float x)
 
 __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Parameters parameters, float* dev_beamline)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};

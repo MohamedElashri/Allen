@@ -18,12 +18,14 @@ namespace pv_beamline_calculate_denom {
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_INPUT(dev_pvtracks_t, PVTrack), dev_pvtracks),
-    (DEVICE_OUTPUT(dev_pvtracks_denom_t, float), dev_pvtracks_denom),
     (DEVICE_INPUT(dev_zpeaks_t, float), dev_zpeaks),
     (DEVICE_INPUT(dev_number_of_zpeaks_t, unsigned), dev_number_of_zpeaks),
+    (DEVICE_OUTPUT(dev_pvtracks_denom_t, float), dev_pvtracks_denom),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void pv_beamline_calculate_denom(Parameters);

@@ -24,7 +24,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   cudaEvent_t&) const
 {
   global_function(velo_kalman_filter)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_kalmanvelo_states, arguments, stream);
@@ -73,8 +73,8 @@ __device__ void velo_kalman_filter::velo_kalman_filter_step(
 
 __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Consolidated datatypes
   const Velo::Consolidated::Tracks velo_tracks {
