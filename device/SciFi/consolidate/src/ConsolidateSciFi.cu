@@ -25,7 +25,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   cudaEvent_t&) const
 {
   global_function(scifi_consolidate_tracks)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   // Transmission device to host of Scifi consolidated tracks
   assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, stream);
@@ -49,8 +49,8 @@ __device__ void populate(const SciFi::TrackHits& track, const F& assign)
 
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consolidate_tracks::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {

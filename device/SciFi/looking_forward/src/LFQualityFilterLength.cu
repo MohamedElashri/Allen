@@ -32,13 +32,13 @@ void lf_quality_filter_length::lf_quality_filter_length_t::operator()(
   initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, stream);
 
   global_function(lf_quality_filter_length)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void lf_quality_filter_length::lf_quality_filter_length(lf_quality_filter_length::Parameters parameters)
 {
-  const auto event_number = blockIdx.x;
-  const auto number_of_events = gridDim.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {

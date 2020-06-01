@@ -65,4 +65,6 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const std::array<float, 9>& host_inv_clus_res,
   const float* muon_catboost_output,
   const bool* is_muon,
-  const unsigned number_of_events);
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list);

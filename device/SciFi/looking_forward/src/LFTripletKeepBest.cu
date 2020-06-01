@@ -12,8 +12,8 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
   __shared__ int found_triplets
     [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
 
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {

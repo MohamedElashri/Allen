@@ -137,31 +137,36 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const std::array<float, 9>&,
   const float* muon_catboost_output,
   const bool* is_muon,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list)
 {
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
-  std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
+  std::vector<Checker::Tracks> checker_tracks; // all tracks from the selected events
   int n_is_muon = 0;
   int n_total_tracks = 0;
   float n_hits_per_track_events = 0;
-  for (unsigned i_event = 0; i_event < number_of_events; i_event++) {
+
+  checker_tracks.reserve(event_list_size);
+  for (unsigned i = 0; i < event_list_size; i++) {
+    const auto event_number = event_list[i];
     Checker::Tracks tracks; // all tracks within one event
 
-    Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, i_event, number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, event_number, number_of_events};
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
-    const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
+    const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
     UT::Consolidated::ConstExtendedTracks ut_tracks {
-      ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, i_event, number_of_events};
+      ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, event_number, number_of_events};
 
     SciFi::Consolidated::ConstTracks scifi_tracks {scifi_track_atomics,
                                                    scifi_track_hit_number,
                                                    scifi_qop,
                                                    scifi_states,
                                                    scifi_track_ut_indices,
-                                                   i_event,
+                                                   event_number,
                                                    number_of_events};
-    const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
-    const unsigned event_offset = scifi_tracks.tracks_offset(i_event);
+    const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
+    const unsigned event_offset = scifi_tracks.tracks_offset(event_number);
 
     float n_hits_per_track = 0;
 

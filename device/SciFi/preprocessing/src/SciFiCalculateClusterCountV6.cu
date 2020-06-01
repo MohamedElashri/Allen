@@ -26,12 +26,12 @@ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_v6_t::opera
 
   if (runtime_options.mep_layout) {
     global_function(scifi_calculate_cluster_count_v6_mep)(
-      dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_calculate_cluster_count_v6)(
-      dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
 }
@@ -42,11 +42,10 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
   scifi_calculate_cluster_count_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const SciFiRawEvent event(
-    parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
+    parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[event_number]);
   const SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
@@ -104,8 +103,7 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
   scifi_calculate_cluster_count_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
@@ -119,7 +117,7 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
 
     // Create SciFi raw bank from MEP layout
     auto const rawbank = MEP::raw_bank<SciFiRawBank>(
-      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, i);
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number, i);
 
     uint16_t* it = rawbank.data + 2;
     uint16_t* last = rawbank.last;

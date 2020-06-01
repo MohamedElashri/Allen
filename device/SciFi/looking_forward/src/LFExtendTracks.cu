@@ -8,8 +8,8 @@ __global__ void lf_create_tracks::lf_extend_tracks(
   lf_create_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  const auto number_of_events = gridDim.x;
-  const auto event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
     // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {
