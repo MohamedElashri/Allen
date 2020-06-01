@@ -21,7 +21,9 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   const unsigned* track_atomics,
   const unsigned* track_hit_number,
   const char* track_hits,
-  const unsigned number_of_events);
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list);
 
 /**
  * @brief Prepares tracks for Velo, UT consolidated datatypes.

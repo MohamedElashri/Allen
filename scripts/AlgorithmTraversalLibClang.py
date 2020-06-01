@@ -43,6 +43,11 @@ class Parameter():
             raise
 
 
+# TODO: Parse these from Algorithm.cuh
+def make_default_algorithm_properties():
+    return [Property("verbosity_t", "int", "\"verbosity\"", "\"verbosity of algorithm\"")]
+
+
 def make_parsed_algorithms(filename, data):
     parsed_algorithms = []
     for namespace_data in data:
@@ -54,6 +59,9 @@ def make_parsed_algorithms(filename, data):
             scope = algorithm_data[2]
             parameters = []
             properties = []
+            # Add default properties
+            for default_property in make_default_algorithm_properties():
+                properties.append(default_property)
             for t in algorithm_data[3]:
                 kind = t[0]
                 if kind == "Property":

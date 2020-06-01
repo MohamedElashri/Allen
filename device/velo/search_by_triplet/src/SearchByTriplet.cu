@@ -46,8 +46,16 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   initialize<dev_hit_used_t>(arguments, 0, stream);
   initialize<dev_number_of_velo_tracks_t>(arguments, 0, stream);
 
+  // TODO: Needed?
+  initialize<dev_three_hit_tracks_t>(arguments, 0, stream);
+
   global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), stream)(
     arguments, constants.dev_velo_geometry);
+
+  if (property<verbosity_t>() >= logger::debug) {
+    info_cout << "VELO tracks found:\n";
+    print_velo_tracks<dev_tracks_t, dev_number_of_velo_tracks_t, dev_three_hit_tracks_t, dev_atomics_velo_t>(arguments);
+  }
 }
 
 /**
@@ -104,7 +112,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 
   // Initialize event number and number of events based on kernel invoking parameters
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = gridDim.x;
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Pointers to data within the event
   const unsigned tracks_offset = event_number * Velo::Constants::max_tracks;
@@ -130,7 +138,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   unsigned short* h1_rel_indices =
     parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module_pair;
 
-  unsigned* dev_atomics_velo = parameters.dev_atomics_velo + blockIdx.x * Velo::num_atomics;
+  unsigned* dev_atomics_velo = parameters.dev_atomics_velo + event_number * Velo::num_atomics;
   const int16_t phi_tolerance = hit_phi_float_to_16(parameters.phi_tolerance);
 
   unsigned first_module_pair = Velo::Constants::n_module_pairs - 1;
@@ -210,7 +218,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       parameters.dev_number_of_velo_tracks,
       phi_tolerance,
       parameters.max_scatter,
-      parameters.max_skipped_modules);
+      parameters.max_skipped_modules,
+      event_number);
 
     // Due to module data reading
     __syncthreads();
@@ -431,7 +440,8 @@ __device__ void track_forwarding(
   unsigned* dev_number_of_velo_tracks,
   const int16_t phi_tolerance,
   const float max_scatter,
-  const unsigned max_skipped_modules)
+  const unsigned max_skipped_modules,
+  const unsigned event_number)
 {
   // Assign a track to follow to each thread
   for (unsigned ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
@@ -538,7 +548,7 @@ __device__ void track_forwarding(
 
         // If it is a track made out of less than or equal to 4 hits,
         // we have to allocate it in the tracks pointer
-        track_number = atomicAdd(dev_number_of_velo_tracks + blockIdx.x, 1);
+        track_number = atomicAdd(dev_number_of_velo_tracks + event_number, 1);
         tracks[track_number].hits[0] = t->hits[0];
         tracks[track_number].hits[1] = t->hits[1];
         tracks[track_number].hits[2] = t->hits[2];

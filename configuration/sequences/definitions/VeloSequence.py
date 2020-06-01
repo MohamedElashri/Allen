@@ -74,7 +74,8 @@ def VeloSequence(doGEC=True):
         dev_cluster_candidates_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t(),
         dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
-        dev_output_buffer_t())
+        dev_output_buffer_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     velo_calculate_phi_and_sort = velo_calculate_phi_and_sort_t(
         name="velo_calculate_phi_and_sort",
@@ -89,7 +90,8 @@ def VeloSequence(doGEC=True):
         dev_module_cluster_num_t=velo_masked_clustering.
         dev_module_cluster_num_t(),
         dev_velo_cluster_container_t=velo_masked_clustering.
-        dev_velo_cluster_container_t())
+        dev_velo_cluster_container_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     velo_search_by_triplet = velo_search_by_triplet_t(
         name="velo_search_by_triplet",
@@ -105,7 +107,8 @@ def VeloSequence(doGEC=True):
         prefix_sum_offsets_estimated_input_size.dev_output_buffer_t(),
         dev_module_cluster_num_t=velo_masked_clustering.
         dev_module_cluster_num_t(),
-        dev_hit_phi_t=velo_calculate_phi_and_sort.dev_hit_phi_t())
+        dev_hit_phi_t=velo_calculate_phi_and_sort.dev_hit_phi_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     prefix_sum_offsets_velo_tracks = host_prefix_sum_t(
         name="prefix_sum_offsets_velo_tracks",
@@ -125,7 +128,8 @@ def VeloSequence(doGEC=True):
         dev_atomics_velo_t=velo_search_by_triplet.dev_atomics_velo_t(),
         dev_hit_used_t=velo_search_by_triplet.dev_hit_used_t(),
         dev_three_hit_tracks_input_t=velo_search_by_triplet.
-        dev_three_hit_tracks_t())
+        dev_three_hit_tracks_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     prefix_sum_offsets_number_of_three_hit_tracks_filtered = host_prefix_sum_t(
         name="prefix_sum_offsets_number_of_three_hit_tracks_filtered",
@@ -134,8 +138,6 @@ def VeloSequence(doGEC=True):
 
     velo_copy_track_hit_number = velo_copy_track_hit_number_t(
         name="velo_copy_track_hit_number",
-        dev_event_list_t=initialize_lists.
-        dev_event_list_t(),
         host_number_of_events_t=initialize_lists.
         host_number_of_events_t(),
         host_number_of_velo_tracks_at_least_four_hits_t=
@@ -181,7 +183,8 @@ def VeloSequence(doGEC=True):
         dev_three_hit_tracks_output_t(),
         dev_offsets_number_of_three_hit_tracks_filtered_t=
         prefix_sum_offsets_number_of_three_hit_tracks_filtered.
-        dev_output_buffer_t())
+        dev_output_buffer_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     velo_sequence = Sequence(
         host_ut_banks, host_scifi_banks, initialize_lists, velo_banks,

@@ -15,6 +15,7 @@ void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
   set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<host_number_of_events_t>(arguments, 1);
   set_size<host_event_list_t>(arguments, number_of_events);
+  set_size<dev_number_of_events_t>(arguments, 1);
   set_size<dev_event_list_t>(arguments, number_of_events);
 }
 
@@ -32,6 +33,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
 
   // Initialize number of events
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
+  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, stream);
 
   // Initialize host event list
   for (unsigned i = 0; i < number_of_events; ++i) {
@@ -55,7 +57,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
 
   // TODO: Remove whenever the checker uses variables
   host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);
-  for (unsigned i = 0; i < number_of_events; ++i) {
+  for (unsigned i = 0; i < size<host_event_list_t>(arguments); ++i) {
     host_buffers.host_event_list[i] = event_start + data<host_event_list_t>(arguments)[i];
   }
 }

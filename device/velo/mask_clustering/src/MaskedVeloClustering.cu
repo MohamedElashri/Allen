@@ -468,7 +468,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   const float* dev_velo_sp_fx,
   const float* dev_velo_sp_fy)
 {
-  const unsigned number_of_events = gridDim.x;
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
@@ -533,7 +533,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
   const float* dev_velo_sp_fx,
   const float* dev_velo_sp_fy)
 {
-  const unsigned number_of_events = gridDim.x;
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned* module_pair_cluster_start =

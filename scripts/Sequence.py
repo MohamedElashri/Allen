@@ -115,19 +115,16 @@ class Sequence():
                         algorithm.parameters().items()):
                     for parameter in parameter_tuple(current_parameter):
                         if parameter.fullname() in parameters:
-                            parameters[parameter.fullname()]["inherit_list"].append(
+                            parameters[parameter.fullname()].append(
                                 (algorithm.name(), algorithm.namespace,
                                  parameter_t))
                         else:
-                            parameters[parameter.fullname()] = {
-                                "type": parameter.type(),
-                                "inherit_list": [(algorithm.name(), algorithm.namespace, parameter_t)]
-                            }
+                            parameters[parameter.fullname()] = [(algorithm.name(), algorithm.namespace, parameter_t)]
             # Generate arguments
             for parameter_name, v in iter(parameters.items()):
                 s += "struct " + parameter_name + " : "
                 inheriting_classes = []
-                for algorithm_name, algorithm_namespace, parameter_t in v["inherit_list"]:
+                for algorithm_name, algorithm_namespace, parameter_t in v:
                     parameter = algorithm_namespace + "::Parameters::" + parameter_t
                     if parameter not in inheriting_classes:
                         inheriting_classes.append(parameter)
@@ -135,7 +132,7 @@ class Sequence():
                     s += inheriting_class + ", "
                 s = s[:-2]
                 s += " { \
-using type = " + str(v["type"]) + "; \
+using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; \
 void set_size(size_t size) override { m_size = size; } \
 size_t size() const override { return m_size; } \
 std::string name() const override { return \"" + parameter_name + "\"; } \
@@ -235,6 +232,7 @@ char* m_offset = nullptr; };\n"
             f.close()
             print("Generated line configuration file " +
                   configured_lines_filename)
+            # Generate runtime configuration (JSON)
             s = "{\n"
             i = 1
             for _, algorithm in iter(self.__sequence.items()):

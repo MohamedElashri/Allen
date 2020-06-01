@@ -2,6 +2,7 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "ThreeHitTracksFilter.cuh"
+#include "VeloTools.cuh"
 
 void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -26,6 +27,11 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
 
   global_function(velo_three_hit_tracks_filter)(
     size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(arguments);
+
+  if (property<verbosity_t>() >= logger::debug) {
+    info_cout << "VELO three hit tracks found:\n";
+    print_velo_three_hit_tracks<dev_three_hit_tracks_output_t, dev_number_of_three_hit_tracks_output_t>(arguments);
+  }
 }
 
 /**
@@ -122,7 +128,7 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
 {
   // Data initialization
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = gridDim.x;
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned tracks_offset = event_number * Velo::Constants::max_tracks;
 
   // Pointers to data within the event

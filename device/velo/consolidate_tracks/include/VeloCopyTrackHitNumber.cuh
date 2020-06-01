@@ -11,7 +11,6 @@ namespace velo_copy_track_hit_number {
     (HOST_INPUT(host_number_of_velo_tracks_at_least_four_hits_t, unsigned), host_number_of_velo_tracks_at_least_four_hits),
     (HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, unsigned), host_number_of_three_hit_tracks_filtered),
     (HOST_OUTPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_tracks_t, Velo::TrackHits), dev_tracks),
     (DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned), dev_offsets_velo_tracks),
     (DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned), dev_offsets_number_of_three_hit_tracks_filtered),

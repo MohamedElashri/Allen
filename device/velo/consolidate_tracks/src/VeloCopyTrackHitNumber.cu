@@ -30,7 +30,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
   initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, stream);
 
   global_function(velo_copy_track_hit_number)(
-    size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(arguments);
+    first<host_number_of_events_t>(arguments), property<block_dim_t>(), stream)(arguments);
 
   cudaCheck(cudaMemcpyAsync(
     data<host_number_of_reconstructed_velo_tracks_t>(arguments),
@@ -39,6 +39,10 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
     sizeof(unsigned), // Note: Only the last element needs to be copied here.
     cudaMemcpyDeviceToHost,
     stream));
+
+  if (property<verbosity_t>() >= logger::debug) {
+    print<dev_offsets_all_velo_tracks_t>(arguments);
+  }
 }
 
 /**
@@ -47,7 +51,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
 __global__ void velo_copy_track_hit_number::velo_copy_track_hit_number(
   velo_copy_track_hit_number::Parameters parameters)
 {
-  const auto event_number = parameters.dev_event_list[blockIdx.x];
+  const auto event_number = blockIdx.x;
   const auto event_tracks = parameters.dev_tracks + event_number * Velo::Constants::max_tracks;
   const auto number_of_tracks =
     parameters.dev_offsets_velo_tracks[event_number + 1] - parameters.dev_offsets_velo_tracks[event_number];

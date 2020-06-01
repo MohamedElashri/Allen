@@ -14,6 +14,7 @@ namespace host_init_event_list {
     (HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>), scifi_offsets),
     (HOST_OUTPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_OUTPUT(host_event_list_t, unsigned), host_event_list),
+    (DEVICE_OUTPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_OUTPUT(dev_event_list_t, unsigned), dev_event_list))
 
   // Algorithm

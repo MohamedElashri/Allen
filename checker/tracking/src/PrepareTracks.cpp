@@ -20,15 +20,20 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   const unsigned* track_atomics,
   const unsigned* track_hit_number,
   const char* track_hits,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list)
 {
   /* Tracks to be checked, save in format for checker */
-  std::vector<Checker::Tracks> checker_tracks(number_of_events); // all tracks from all events
-  for (unsigned i_event = 0; i_event < number_of_events; i_event++) {
-    auto& tracks = checker_tracks[i_event]; // all tracks within one event
+  std::vector<Checker::Tracks> checker_tracks(event_list_size); // all tracks from all events
+  for (unsigned i = 0; i < event_list_size; i++) {
+    const auto event_number = event_list[i];
 
-    Velo::Consolidated::ConstTracks velo_tracks {track_atomics, track_hit_number, i_event, number_of_events};
-    const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(i_event);
+    // TODO: (dcampora) How does this work? How and where is the event chosen to match this object?
+    auto& tracks = checker_tracks[i]; // all tracks within one event
+
+    Velo::Consolidated::ConstTracks velo_tracks {track_atomics, track_hit_number, event_number, number_of_events};
+    const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
 
     tracks.resize(number_of_tracks_event);
 
