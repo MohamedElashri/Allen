@@ -28,13 +28,14 @@ void FilterTracks::filter_tracks_t::operator()(
   initialize<dev_sv_atomics_t>(arguments, 0, stream);
 
   global_function(filter_tracks)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+
   const unsigned idx_offset = event_number * 10 * VertexFit::max_svs;
   unsigned* event_sv_number = parameters.dev_sv_atomics + event_number;
   unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;

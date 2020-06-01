@@ -67,8 +67,8 @@ __device__ void associate_and_muon_id(
 
 __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Consolidated SciFi tracks
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,

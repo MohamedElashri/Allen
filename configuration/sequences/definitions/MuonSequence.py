@@ -46,7 +46,8 @@ def MuonSequence(initialize_lists, prefix_sum_forward_tracks,
         dev_storage_tile_id_t=muon_populate_tile_and_tdc.
         dev_storage_tile_id_t(),
         dev_muon_raw_to_hits_t=muon_calculate_srq_size.
-        dev_muon_raw_to_hits_t())
+        dev_muon_raw_to_hits_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     muon_station_ocurrence_prefix_sum = host_prefix_sum_t(
         name="muon_station_ocurrence_prefix_sum",
@@ -69,7 +70,9 @@ def MuonSequence(initialize_lists, prefix_sum_forward_tracks,
         dev_muon_raw_to_hits_t=muon_calculate_srq_size.
         dev_muon_raw_to_hits_t(),
         dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
-        dev_output_buffer_t())
+        dev_output_buffer_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     is_muon = is_muon_t(
         host_number_of_events_t=initialize_lists.
@@ -86,7 +89,9 @@ def MuonSequence(initialize_lists, prefix_sum_forward_tracks,
         dev_scifi_track_ut_indices_t(),
         dev_station_ocurrences_offset_t=muon_station_ocurrence_prefix_sum.
         dev_output_buffer_t(),
-        dev_muon_hits_t=muon_populate_hits.dev_muon_hits_t())
+        dev_muon_hits_t=muon_populate_hits.dev_muon_hits_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     return Sequence(muon_banks, muon_calculate_srq_size, muon_srq_prefix_sum,
                     muon_populate_tile_and_tdc, muon_add_coords_crossing_maps,

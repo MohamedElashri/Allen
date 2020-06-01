@@ -23,11 +23,11 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   cudaEvent_t&) const
 {
   global_function(kalman_velo_only)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_scifi_geometry);
 
   global_function(kalman_pv_ipchi2)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, stream);
 }
@@ -363,8 +363,8 @@ __global__ void kalman_velo_only::kalman_velo_only(
   kalman_velo_only::Parameters parameters,
   const char* dev_scifi_geometry)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Create velo tracks.
   Velo::Consolidated::Tracks const velo_tracks {

@@ -32,13 +32,13 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
 
   if (runtime_options.mep_layout) {
     global_function(muon_populate_tile_and_tdc_mep)(
-      first<host_number_of_events_t>(arguments),
+      size<dev_event_list_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       stream)(arguments);
   }
   else {
     global_function(muon_populate_tile_and_tdc)(
-      first<host_number_of_events_t>(arguments),
+      size<dev_event_list_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       stream)(arguments);
   }
@@ -95,9 +95,8 @@ __device__ void decode_muon_bank(
 __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
   muon_populate_tile_and_tdc::Parameters parameters)
 {
-  const auto event_number = blockIdx.x;
-  const auto event_id = parameters.dev_event_list[blockIdx.x];
-  const auto raw_event = Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[event_id]);
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const auto raw_event = Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[event_number]);
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -129,8 +128,7 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
 __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
   muon_populate_tile_and_tdc::Parameters parameters)
 {
-  const auto event_number = blockIdx.x;
-  const auto event_id = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -147,7 +145,7 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
     const auto batch_index = i & batches_per_bank_mask;
 
     const auto raw_bank =
-      MEP::raw_bank<Muon::MuonRawBank>(parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_id, bank_index);
+      MEP::raw_bank<Muon::MuonRawBank>(parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number, bank_index);
 
     decode_muon_bank(
       parameters.dev_muon_raw_to_hits,

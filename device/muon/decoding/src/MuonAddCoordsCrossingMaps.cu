@@ -35,13 +35,13 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
   initialize<dev_atomics_index_insert_t>(arguments, 0, stream);
 
   global_function(muon_add_coords_crossing_maps)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   muon_add_coords_crossing_maps::Parameters parameters)
 {
-  const auto event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets + event_number * Muon::Constants::n_layouts *

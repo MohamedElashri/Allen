@@ -33,7 +33,9 @@ def HLT1Sequence(initialize_lists,
         dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
         dev_multi_fit_vertices_t(),
         dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_number_of_multi_fit_vertices_t())
+        dev_number_of_multi_fit_vertices_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     kalman_velo_only = kalman_velo_only_t(
         name = "kalman_velo_only",
@@ -65,7 +67,9 @@ def HLT1Sequence(initialize_lists,
         dev_multi_fit_vertices_t(),
         dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
         dev_number_of_multi_fit_vertices_t(),
-        dev_is_muon_t=is_muon.dev_is_muon_t())
+        dev_is_muon_t=is_muon.dev_is_muon_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     filter_tracks = filter_tracks_t(
         host_number_of_events_t=initialize_lists.
@@ -83,7 +87,9 @@ def HLT1Sequence(initialize_lists,
         dev_multi_fit_vertices_t(),
         dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
         dev_number_of_multi_fit_vertices_t(),
-        dev_kalman_pv_ipchi2_t=kalman_velo_only.dev_kalman_pv_ipchi2_t())
+        dev_kalman_pv_ipchi2_t=kalman_velo_only.dev_kalman_pv_ipchi2_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     prefix_sum_secondary_vertices = host_prefix_sum_t(
         name="prefix_sum_secondary_vertices",
@@ -111,7 +117,9 @@ def HLT1Sequence(initialize_lists,
         dev_kalman_pv_ipchi2_t=kalman_velo_only.dev_kalman_pv_ipchi2_t(),
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t(),
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t(),
-        dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t())
+        dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     odin_banks = data_provider_t(name="populate_odin_banks", bank_type="ODIN")
 

@@ -26,9 +26,8 @@ void is_muon::is_muon_t::operator()(
   initialize<dev_muon_track_occupancies_t>(arguments, 0, stream);
 
   global_function(is_muon)(
-    dim3(first<host_number_of_events_t>(arguments)),
-    dim3(property<block_dim_x_t>().get(), Muon::Constants::n_stations),
-    stream)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get(), Muon::Constants::n_stations), stream)(
+    arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, stream);
@@ -87,8 +86,8 @@ __global__ void is_muon::is_muon(
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const auto muon_total_number_of_hits =
     parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];

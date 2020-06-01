@@ -41,13 +41,13 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
 
   if (runtime_options.mep_layout) {
     global_function(muon_calculate_srq_size_mep)(
-      first<host_number_of_events_t>(arguments),
+      size<dev_event_list_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       stream)(arguments);
   }
   else {
     global_function(muon_calculate_srq_size)(
-      first<host_number_of_events_t>(arguments),
+      size<dev_event_list_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       stream)(arguments);
   }
@@ -99,9 +99,8 @@ __device__ void calculate_srq_size(
 
 __global__ void muon_calculate_srq_size::muon_calculate_srq_size(muon_calculate_srq_size::Parameters parameters)
 {
-  const auto event_number = blockIdx.x;
-  const auto event_id = parameters.dev_event_list[blockIdx.x];
-  const auto raw_event = Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[event_id]);
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const auto raw_event = Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[event_number]);
   unsigned* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
                                                event_number * Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                                  Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -122,8 +121,7 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size(muon_calculate_
 
 __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calculate_srq_size::Parameters parameters)
 {
-  const auto event_number = blockIdx.x;
-  const auto event_id = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   unsigned* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
                                                event_number * Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                                  Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -137,7 +135,7 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calcul
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
     const auto raw_bank =
-      MEP::raw_bank<Muon::MuonRawBank>(parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_id, bank_index);
+      MEP::raw_bank<Muon::MuonRawBank>(parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number, bank_index);
 
     calculate_srq_size(parameters.dev_muon_raw_to_hits, batch_index, raw_bank, storage_station_region_quarter_sizes);
   }
