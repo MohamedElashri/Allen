@@ -11,9 +11,13 @@
 namespace gather_selections {
   DEFINE_PARAMETERS(
     Parameters,
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (HOST_OUTPUT(host_selections_events_offsets_t, unsigned), host_selections_events_offsets),
+    (HOST_OUTPUT(host_selections_offsets_t, unsigned), host_selections_offsets),
     (DEVICE_INPUT_AGGREGATE(dev_input_selections_t, gather_selections::dev_input_selections_t::tuple_t),
      dev_input_selections),
-    (HOST_OUTPUT(host_selections_offsets_t, unsigned), host_selections_offsets),
+    (DEVICE_INPUT_AGGREGATE(dev_input_selections_offsets_t, gather_selections::dev_input_selections_offsets_t::tuple_t),
+     dev_input_selections_offsets),
     (DEVICE_OUTPUT(dev_selections_t, bool), dev_selections),
     (DEVICE_OUTPUT(dev_selections_offsets_t, unsigned), dev_selections_offsets))
 

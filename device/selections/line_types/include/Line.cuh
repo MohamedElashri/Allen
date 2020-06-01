@@ -13,11 +13,12 @@
 /**
  * @brief A generic Line.
  * @detail It assumes the line has the following parameters:
- * 
+ *
  *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
  *  (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
  *  (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
- * 
+ *  (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+ *
  * The inheriting line must also provide the following methods:
  *
  *     __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const;
@@ -28,8 +29,9 @@
  *
  *     __device__ std::tuple<const ParKalmanFilter::FittedTrack&>
  *     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
- * 
- *     __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+ *
+ *     __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input)
+ * const;
  *
  * The following methods can optionally be defined in an inheriting class:
  *
@@ -47,6 +49,8 @@ struct Line {
   {
     auto derived_instance = static_cast<const Derived*>(this);
     set_size<typename Parameters::dev_decisions_t>(arguments, derived_instance->get_decisions_size(arguments));
+    set_size<typename Parameters::dev_decisions_offsets_t>(
+      arguments, first<typename Parameters::host_number_of_events_t>(arguments));
   }
 
   void operator()(
@@ -83,8 +87,9 @@ template<typename Line, typename Parameters>
 __global__ void process_line(Line line, Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  parameters.dev_decisions_offsets[event_number] = line.offset(parameters, event_number);
   for (unsigned i = threadIdx.x; i < line.get_input_size(parameters, event_number); i += blockDim.x) {
-    line.get_decision(parameters, event_number)[i] =
+    parameters.dev_decisions[line.offset(parameters, event_number) + i] =
       line.select(parameters, line.get_input(parameters, event_number, i));
   }
 }

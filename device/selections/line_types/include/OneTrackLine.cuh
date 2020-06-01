@@ -24,16 +24,16 @@ struct OneTrackLine : public Line<Derived, Parameters> {
     return first<typename Parameters::host_number_of_reconstructed_scifi_tracks_t>(arguments);
   }
 
+  __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const
+  {
+    return parameters.dev_track_offsets[event_number];
+  }
+
   __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
   {
     const auto number_of_tracks_in_event =
       parameters.dev_track_offsets[event_number + 1] - parameters.dev_track_offsets[event_number];
     return number_of_tracks_in_event;
-  }
-
-  __device__ bool* get_decision(const Parameters& parameters, const unsigned event_number) const
-  {
-    return parameters.dev_decisions + parameters.dev_track_offsets[event_number];
   }
 
   __device__ std::tuple<const ParKalmanFilter::FittedTrack&>

@@ -20,7 +20,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   const Constants&,
   HostBuffers& host_buffers,
   cudaStream_t& stream,
-  cudaEvent_t& cuda_generic_event) const
+  cudaEvent_t& event) const
 {
   // Invokes the function
   host_prefix_sum(
@@ -29,7 +29,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
     size<dev_input_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
     size<dev_output_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
     stream,
-    cuda_generic_event,
+    event,
     Parameters {data<host_total_sum_holder_t>(arguments),
                 data<dev_input_buffer_t>(arguments),
                 data<dev_output_buffer_t>(arguments)});
@@ -64,7 +64,7 @@ void host_prefix_sum::host_prefix_sum(
   const size_t dev_input_buffer_size,
   [[maybe_unused]] const size_t dev_output_buffer_size,
   cudaStream_t& stream,
-  cudaEvent_t& cuda_generic_event,
+  cudaEvent_t& event,
   host_prefix_sum::Parameters parameters)
 {
   assert(dev_output_buffer_size == (dev_input_buffer_size + 1 * sizeof(unsigned)));
@@ -81,7 +81,7 @@ void host_prefix_sum::host_prefix_sum(
 
 #ifdef CPU
   _unused(stream);
-  _unused(cuda_generic_event);
+  _unused(event);
 
   // Copy directly data to the output buffer
   std::memcpy(parameters.dev_output_buffer, parameters.dev_input_buffer, dev_input_buffer_size);
@@ -94,8 +94,8 @@ void host_prefix_sum::host_prefix_sum(
     host_prefix_sum_buffer, parameters.dev_input_buffer, dev_input_buffer_size, cudaMemcpyDeviceToHost, stream));
 
   // Synchronize
-  cudaEventRecord(cuda_generic_event, stream);
-  cudaEventSynchronize(cuda_generic_event);
+  cudaEventRecord(event, stream);
+  cudaEventSynchronize(event);
 
   // Perform the prefix sum
   host_prefix_sum_impl(host_prefix_sum_buffer, input_number_of_elements, parameters.host_total_sum_holder);

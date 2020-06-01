@@ -15,6 +15,7 @@ namespace two_track_mva_line {
     (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
     (PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float), minComboPt),
     (PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float), maxVertexChi2),
     (PROPERTY(minMCor_t, "minMCor", "minMCor description", float), minMCor),

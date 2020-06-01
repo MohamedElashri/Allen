@@ -23,16 +23,16 @@ struct TwoTrackLine : public Line<Derived, Parameters> {
     return first<typename Parameters::host_number_of_svs_t>(arguments);
   }
 
+  __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const
+  {
+    return parameters.dev_sv_offsets[event_number];
+  }
+
   __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
   {
     const auto number_of_vertices_event =
       parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
     return number_of_vertices_event;
-  }
-
-  __device__ bool* get_decision(const Parameters& parameters, const unsigned event_number) const
-  {
-    return parameters.dev_decisions + parameters.dev_sv_offsets[event_number];
   }
 
   __device__ std::tuple<const VertexFit::TrackMVAVertex&>

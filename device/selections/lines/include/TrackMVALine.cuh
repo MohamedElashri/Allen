@@ -15,6 +15,7 @@ namespace track_mva_line {
     (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
     (PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float), maxChi2Ndof),
     (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
     (PROPERTY(maxPt_t, "maxPt", "maxPt description", float), maxPt),

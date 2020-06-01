@@ -77,7 +77,9 @@ two_track_mva_line = algorithms.two_track_mva_line_t(
 
 gather_selections = algorithms.gather_selections_t(
     name="gather_selections",
-    dev_input_selections_t = (track_mva_line.dev_decisions_t(), two_track_mva_line.dev_decisions_t()))
+    host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
+    dev_input_selections_t=(track_mva_line.dev_decisions_t(), two_track_mva_line.dev_decisions_t()),
+    dev_input_selections_offsets_t=(track_mva_line.dev_decisions_offsets_t(), two_track_mva_line.dev_decisions_offsets_t()),)
 
 algorithms.extend_sequence(algorithms.compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
                   muon_sequence, hlt1_sequence), track_mva_line, two_track_mva_line, gather_selections).generate()
