@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdint>
 #include <cstdlib>
+#include "CudaCommon.h"
 
 // Forward declarations
 namespace PV {
@@ -111,9 +112,14 @@ struct HostBuffers {
   // Selections
   unsigned host_number_of_hlt1_lines;
   unsigned* host_sel_results_atomics;
-
   unsigned host_sel_results_size;
   bool* host_sel_results;
+
+  // New selection datatypes
+  std::string host_names_of_lines;
+  unsigned host_number_of_lines;
+  cuda::span<bool> host_selections = {};
+  cuda::span<unsigned> host_selections_offsets = {};
 
   // Non pinned datatypes: CPU algorithms
   std::vector<char> host_velo_states;

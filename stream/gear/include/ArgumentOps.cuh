@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include "BankTypes.h"
+#include "CudaCommon.h"
 
 /**
  * @brief Sets the size of a container to the specified size.
@@ -61,13 +62,28 @@ template<typename Arg, typename Args, typename T>
 void safe_assign_to_host_buffer(T* array, unsigned& size, const Args& arguments, cudaStream_t stream)
 {
   if (arguments.template size<Arg>() > size) {
-    size = arguments.template size<Arg>() * 1.2f;
+    size = arguments.template size<Arg>() * sizeof(typename Arg::type);
     cudaCheck(cudaFreeHost(array));
     cudaCheck(cudaMallocHost((void**) &array, size));
   }
 
   cudaCheck(cudaMemcpyAsync(
     array, arguments.template data<Arg>(), arguments.template size<Arg>() * sizeof(typename Arg::type), cudaMemcpyDeviceToHost, stream));
+}
+
+template<typename Arg, typename Args, typename T>
+void safe_assign_to_host_buffer(cuda::span<T>& span, const Args& arguments, cudaStream_t stream)
+{
+  if (arguments.template size<Arg>() > span.size()) {
+    span.m_size = arguments.template size<Arg>() * sizeof(typename Arg::type);
+    if (span.m_ptr != nullptr) {
+      cudaCheck(cudaFreeHost(span.m_ptr));
+    }
+    cudaCheck(cudaMallocHost((void**) &span.m_ptr, span.size()));
+  }
+
+  cudaCheck(cudaMemcpyAsync(
+    span.m_ptr, arguments.template data<Arg>(), arguments.template size<Arg>() * sizeof(typename Arg::type), cudaMemcpyDeviceToHost, stream));
 }
 
 template<typename Arg, typename Args, typename T>
