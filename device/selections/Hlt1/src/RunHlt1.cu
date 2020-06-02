@@ -77,16 +77,16 @@ void run_hlt1::run_hlt1_t::operator()(
     first<host_number_of_events_t>(arguments),
     event_start);
 
-  // // Run the postscaler.
-  // global_function(run_postscale)(dim3(total_number_of_events), property<block_dim_t>(), stream)(
-  //   arguments,
-  //   first<host_number_of_events_t>(arguments),
-  //   event_start);
+  // Run the postscaler.
+  global_function(run_postscale)(dim3(total_number_of_events), property<block_dim_t>(), stream)(
+    arguments,
+    first<host_number_of_events_t>(arguments),
+    event_start);
 
-  // if (runtime_options.do_check) {
-  //   safe_assign_to_host_buffer<dev_sel_results_t>(
-  //     host_buffers.host_sel_results, host_buffers.host_sel_results_size, arguments, stream);
-  // }
+  if (runtime_options.do_check) {
+    safe_assign_to_host_buffer<dev_sel_results_t>(
+      host_buffers.host_sel_results, host_buffers.host_sel_results_size, arguments, stream);
+  }
 }
 
 __global__ void

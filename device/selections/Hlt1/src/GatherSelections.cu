@@ -1,5 +1,7 @@
 #include "GatherSelections.cuh"
-#include <numeric>
+#include "SelectionsEventModel.cuh"
+#include "DeterministicPostscaler.cuh"
+#include "Event/ODIN.h"
 
 // Helper traits to traverse dev_input_selections_t
 template<typename Arguments, typename Tuple>
@@ -47,10 +49,12 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   }
 
   template<typename AssignType, typename NumberOfEvents, typename Stream>
-  static void populate_selection_offsets(const Arguments& arguments, Stream& stream) {
-    TupleTraits<Arguments, std::tuple<R...>>::template populate_selection_offsets<AssignType, NumberOfEvents, Stream>(arguments, stream);
+  static void populate_selection_offsets(const Arguments& arguments, Stream& stream)
+  {
+    TupleTraits<Arguments, std::tuple<R...>>::template populate_selection_offsets<AssignType, NumberOfEvents, Stream>(
+      arguments, stream);
     copy<AssignType, T>(arguments, size<T>(arguments), stream, first<NumberOfEvents>(arguments) * (i - 1), 0);
-    
+
     // There should be as many elements as number of events
     assert(first<NumberOfEvents>(arguments) == size<T>(arguments));
   }
@@ -62,18 +66,18 @@ void gather_selections::gather_selections_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<host_selections_events_offsets_t>(arguments, std::tuple_size<dev_input_selections_t::type>::value + 1);
-  set_size<host_selections_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
-  set_size<dev_selections_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
+  set_size<host_selections_lines_offsets_t>(arguments, std::tuple_size<dev_input_selections_t::type>::value + 1);
+  set_size<host_selections_offsets_t>(
+    arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
+  set_size<dev_selections_offsets_t>(
+    arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
   set_size<dev_selections_t>(
     arguments, TupleTraits<ArgumentReferences<Parameters>, dev_input_selections_t::type>::get_size(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {
-    info_cout << "Sizes of gather_selections datatypes: "
-      << size<host_selections_offsets_t>(arguments) << ", "
-      << size<host_selections_events_offsets_t>(arguments) << ", "
-      << size<dev_selections_offsets_t>(arguments) << ", "
-      << size<dev_selections_t>(arguments) << "\n";
+    info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
+              << size<host_selections_lines_offsets_t>(arguments) << ", " << size<dev_selections_offsets_t>(arguments)
+              << ", " << size<dev_selections_t>(arguments) << "\n";
   }
 }
 
@@ -85,15 +89,15 @@ void gather_selections::gather_selections_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t& event) const
 {
-  // Calculate offsets in host_selections_events_offsets_t
-  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::template populate_event_offsets<
-    host_selections_events_offsets_t>(arguments);
+  // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
+  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
+    template populate_event_offsets<host_selections_lines_offsets_t>(arguments);
 
   // Populate dev_selections_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
-    template populate_selections<host_selections_events_offsets_t, dev_selections_t>(arguments, stream);
+    template populate_selections<host_selections_lines_offsets_t, dev_selections_t>(arguments, stream);
 
-  // Copy dev_input_selections_offsets_t onto host_selections_events_offsets_t
+  // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_offsets_t::type>::t>::
     template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, stream);
 
@@ -101,15 +105,97 @@ void gather_selections::gather_selections_t::operator()(
   cudaEventRecord(event, stream);
   cudaEventSynchronize(event);
 
-  // Do prefix sum
-  unsigned temp = 0;
-  unsigned temp_sum = 0;
-  for (unsigned i = 0; i < size<host_selections_offsets_t>(arguments); ++i) {
-    temp_sum += data<host_selections_offsets_t>(arguments)[i];
-    data<host_selections_offsets_t>(arguments)[i] = temp;
-    temp = temp_sum;
+  // [0, 10, 30]
+  // line 0: [event 0: 0, event 1: 0, event 2: 4, 6, 8], [0, 4, 8, 12, 16]
+  // ->
+  // [0, 2, 4, 6, 8, 10 + 0, 10 + 4, 10 + 8, 10 + 12, 10 + 16]
+  // gather_selections__host_selections_offsets_t: 0, 0, 10, 34, 65, 123, 135, 153, 194, 247, 0, 0, 0, 15, 18, 33, 33,
+  // 36, 43, 67, 0, gather_selections__host_selections_offsets_t: 0, 0, 10, 34, 65, 123, 135, 153, 194, 247, 315, 315,
+  // 315, 330, 333, 348, 348, 351, 358, 382, 553,
+
+  // Add partial sums from host_selections_lines_offsets_t to host_selections_offsets_t
+  for (unsigned line_index = 1; line_index < std::tuple_size<dev_input_selections_t::type>::value; ++line_index) {
+    const auto line_offset = data<host_selections_lines_offsets_t>(arguments)[line_index];
+    for (unsigned i = 0; i < first<host_number_of_events_t>(arguments); ++i) {
+      data<host_selections_offsets_t>(arguments)[line_index * first<host_number_of_events_t>(arguments) + i] +=
+        line_offset;
+    }
   }
+
+  // Add to last element the total sum
+  data<host_selections_offsets_t>(
+    arguments)[std::tuple_size<dev_input_selections_t::type>::value * first<host_number_of_events_t>(arguments)] =
+    data<host_selections_lines_offsets_t>(arguments)[std::tuple_size<dev_input_selections_t::type>::value];
 
   // Copy host_selections_offsets_t onto dev_selections_offsets_t
   copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, stream);
+  
+  initialize<dev_selections_t>(arguments, 1, stream);
+  
+  // Run the postscaler
+  global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), stream)(
+    data<dev_selections_t>(arguments),
+    data<dev_selections_offsets_t>(arguments),
+    data<dev_odin_raw_input_t>(arguments),
+    data<dev_odin_raw_input_offsets_t>(arguments),
+    std::tuple_size<dev_input_selections_t::type>::value,
+    property<scale_factor_t>());
+
+  if (property<verbosity_t>() >= logger::debug) {
+    std::vector<uint8_t> host_selections (size<dev_selections_t>(arguments));
+    assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, stream);
+    copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, stream);
+
+    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()), data<host_selections_offsets_t>(arguments), first<host_number_of_events_t>(arguments)};
+
+    std::vector<uint8_t> event_decisions{};
+    for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
+      bool dec = false;
+      for (auto j = 0u; j < std::tuple_size<dev_input_selections_t::type>::value; ++j) {
+        auto decs = sels.get_span(j, i);
+        std::cout << "Size of span (event " << i << ", line " << j << "): " << decs.size() << "\n";
+        for (auto k = 0u; k < decs.size(); ++k) {
+          dec |= decs[k];
+        }
+      }
+      event_decisions.emplace_back(dec);
+    }
+
+    const float sum_events = std::accumulate(event_decisions.begin(), event_decisions.end(), 0);
+    std::cout << sum_events / event_decisions.size() << std::endl;
+
+    const float sum = std::accumulate(host_selections.begin(), host_selections.end(), 0);
+    std::cout << sum / host_selections.size() << std::endl;
+  }
+}
+
+__global__ void gather_selections::postscaler(
+  bool* dev_selections,
+  const unsigned* dev_selections_offsets,
+  const char* dev_odin_raw_input,
+  const unsigned* dev_odin_raw_input_offsets,
+  const unsigned number_of_lines,
+  const float scale_factor)
+{
+  const auto number_of_events = gridDim.x;
+  const auto event_number = blockIdx.x;
+
+  Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
+
+  const unsigned hdr_size = 8;
+  const unsigned int* odinData =
+    reinterpret_cast<const unsigned*>(dev_odin_raw_input + dev_odin_raw_input_offsets[event_number] + hdr_size);
+
+  const uint32_t run_no = odinData[LHCb::ODIN::Data::RunNumber];
+  const uint32_t evt_hi = odinData[LHCb::ODIN::Data::L0EventIDHi];
+  const uint32_t evt_lo = odinData[LHCb::ODIN::Data::L0EventIDLo];
+  const uint32_t gps_hi = odinData[LHCb::ODIN::Data::GPSTimeHi];
+  const uint32_t gps_lo = odinData[LHCb::ODIN::Data::GPSTimeLo];
+
+  for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
+    auto span = sels.get_span(i, event_number);
+
+    DeterministicPostscaler ps {i, scale_factor};
+    ps(span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  }
 }

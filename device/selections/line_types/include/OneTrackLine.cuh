@@ -29,13 +29,6 @@ struct OneTrackLine : public Line<Derived, Parameters> {
     return parameters.dev_track_offsets[event_number];
   }
 
-  __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const
-  {
-    const auto number_of_tracks_in_event =
-      parameters.dev_track_offsets[event_number + 1] - parameters.dev_track_offsets[event_number];
-    return number_of_tracks_in_event;
-  }
-
   __device__ std::tuple<const ParKalmanFilter::FittedTrack&>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const
   {

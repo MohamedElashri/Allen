@@ -21,9 +21,7 @@
  *
  * The inheriting line must also provide the following methods:
  *
- *     __device__ unsigned get_input_size(const Parameters& parameters, const unsigned event_number) const;
- *
- *     __device__ bool* get_decision(const Parameters& parameters, const unsigned event_number) const;
+ *     __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const;
  *
  *     unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
  *
@@ -87,8 +85,10 @@ template<typename Line, typename Parameters>
 __global__ void process_line(Line line, Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned input_size = line.offset(parameters, event_number + 1) - line.offset(parameters, event_number);
+  
   parameters.dev_decisions_offsets[event_number] = line.offset(parameters, event_number);
-  for (unsigned i = threadIdx.x; i < line.get_input_size(parameters, event_number); i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
     parameters.dev_decisions[line.offset(parameters, event_number) + i] =
       line.select(parameters, line.get_input(parameters, event_number, i));
   }
@@ -104,8 +104,9 @@ void Line<Derived, Parameters>::operator()(
   cudaEvent_t&) const
 {
   initialize<typename Parameters::dev_decisions_t>(arguments, 0, stream);
+  initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, stream);
 
-  auto derived_instance = static_cast<const Derived*>(this);
+  auto const* derived_instance = static_cast<const Derived*>(this);
   derived_instance->global_function(process_line<Derived, Parameters>)(
     derived_instance->get_grid_dim_x(arguments), derived_instance->get_block_dim_x(arguments), stream)(
     *derived_instance, arguments);

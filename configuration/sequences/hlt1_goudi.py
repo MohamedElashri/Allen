@@ -6,7 +6,7 @@ from definitions.MuonSequence import MuonSequence
 from definitions.HLT1Sequence import HLT1Sequence
 from definitions import algorithms
 
-velo_sequence = VeloSequence()
+velo_sequence = VeloSequence(doGEC=False)
 
 pv_sequence = PVSequence(
     initialize_lists=velo_sequence["initialize_lists"],
@@ -77,9 +77,13 @@ two_track_mva_line = algorithms.two_track_mva_line_t(
 
 gather_selections = algorithms.gather_selections_t(
     name="gather_selections",
+    scale_factor=".5",
+    verbosity="5",
     host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
     dev_input_selections_t=(track_mva_line.dev_decisions_t(), two_track_mva_line.dev_decisions_t()),
-    dev_input_selections_offsets_t=(track_mva_line.dev_decisions_offsets_t(), two_track_mva_line.dev_decisions_offsets_t()),)
+    dev_input_selections_offsets_t=(track_mva_line.dev_decisions_offsets_t(), two_track_mva_line.dev_decisions_offsets_t()),
+    dev_odin_raw_input_t=hlt1_sequence["populate_odin_banks"].dev_raw_banks_t(),
+    dev_odin_raw_input_offsets_t=hlt1_sequence["populate_odin_banks"].dev_raw_offsets_t())
 
 algorithms.extend_sequence(algorithms.compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
                   muon_sequence, hlt1_sequence), track_mva_line, two_track_mva_line, gather_selections).generate()
