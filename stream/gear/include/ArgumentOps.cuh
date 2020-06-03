@@ -46,7 +46,7 @@ size_t size(const Args& arguments)
 template<typename Arg, typename Args>
 auto data(const Args& arguments)
 {
-  return Arg {arguments.template data<Arg>()};
+  return arguments.template data<Arg>();
 }
 
 /**

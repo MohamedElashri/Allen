@@ -115,7 +115,7 @@ cudaError_t Stream::initialize(
 
   // Prepare scheduler
   scheduler.initialize(
-    do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 10 * 1024 * 1024, host_base_pointer);
+    do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 200 * 1024 * 1024, host_base_pointer);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);

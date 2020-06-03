@@ -103,6 +103,7 @@ class Sequence():
         if self.validate():
             # Add all the includes
             s = "#pragma once\n\n#include <tuple>\n#include \"" + configured_lines_filename + "\"\n"
+            s += "#include \"" + aggregate_input_filename + "\"\n"
             s += "#include \"" + prefix_includes + "stream/gear/include/ArgumentManager.cuh\"\n"
             for _, algorithm in iter(self.__sequence.items()):
                 s += "#include \"" + prefix_includes + algorithm.filename(
@@ -110,6 +111,7 @@ class Sequence():
             s += "\n"
             # Generate all parameters
             parameters = OrderedDict([])
+            parameters_part_of_aggregates = OrderedDict([])
             for _, algorithm in iter(self.__sequence.items()):
                 for parameter_t, parameter in iter(
                         algorithm.parameters().items()):
@@ -118,18 +120,22 @@ class Sequence():
                             parameters[parameter.fullname()].append((algorithm.name(), algorithm.namespace, parameter_t))
                         else:
                             parameters[parameter.fullname()] = [(algorithm.name(), algorithm.namespace, parameter_t)]
+                    else:
+                        for p in parameter:
+                            parameters_part_of_aggregates[p.fullname()] = p
             # Generate arguments
             for parameter_name, v in iter(parameters.items()):
-                s += "struct " + parameter_name + " : "
-                inheriting_classes = []
-                for algorithm_name, algorithm_namespace, parameter_t in v:
-                    parameter = algorithm_namespace + "::Parameters::" + parameter_t
-                    if parameter not in inheriting_classes:
-                        inheriting_classes.append(parameter)
-                for inheriting_class in inheriting_classes:
-                    s += inheriting_class + ", "
-                s = s[:-2]
-                s += " { \
+                if parameter_name not in parameters_part_of_aggregates:
+                    s += "struct " + parameter_name + " : "
+                    inheriting_classes = []
+                    for algorithm_name, algorithm_namespace, parameter_t in v:
+                        parameter = algorithm_namespace + "::Parameters::" + parameter_t
+                        if parameter not in inheriting_classes:
+                            inheriting_classes.append(parameter)
+                    for inheriting_class in inheriting_classes:
+                        s += inheriting_class + ", "
+                    s = s[:-2]
+                    s += " { \
 using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; \
 void set_size(size_t size) override { m_size = size; } \
 size_t size() const override { return m_size; } \
@@ -183,14 +189,34 @@ char* m_offset = nullptr; };\n"
             f.close()
             print("Generated sequence file " + output_filename)
             # Generate input aggregates file
-            algorithms_with_aggregates_list = algorithms_with_aggregates()
             s = "#pragma once\n\n#include <tuple>\n"
-            for _, algorithm in self.__sequence.items():
-                if type(algorithm) in algorithms_with_aggregates_list:
-                    for parameter_t, parameter_tup in iter(algorithm.parameters().items()):
-                        if type(parameter_tup) == tuple:
-                            for parameter in parameter_tup:
-                                s += "#include \"" + prefix_includes + self.__sequence[parameter.producer()].filename() + "\"\n"
+            algorithms_with_aggregates_list = algorithms_with_aggregates()
+            parameter_producers = set([])
+            for producer_filename in set([self.__sequence[parameter.producer()].filename() for _, parameter in parameters_part_of_aggregates.items()]):
+                s += "#include \"" + prefix_includes + producer_filename + "\"\n"
+            s += "\n"
+            # Generate typenames that participate in aggregates
+            for parameter_name in parameters_part_of_aggregates:
+                v = parameters[parameter_name]
+                s += "struct " + parameter_name + " : "
+                inheriting_classes = []
+                for algorithm_name, algorithm_namespace, parameter_t in v:
+                    parameter = algorithm_namespace + "::Parameters::" + parameter_t
+                    if parameter not in inheriting_classes:
+                        inheriting_classes.append(parameter)
+                for inheriting_class in inheriting_classes:
+                    s += inheriting_class + ", "
+                s = s[:-2]
+                s += " { \
+using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; \
+void set_size(size_t size) override { m_size = size; } \
+size_t size() const override { return m_size; } \
+std::string name() const override { return \"" + parameter_name + "\"; } \
+void set_offset(char* offset) override { m_offset = offset; } \
+char* offset() const override { return m_offset; } \
+private: \
+size_t m_size = 0; \
+char* m_offset = nullptr; };\n"
             s += "\n"
             for algorithm_with_aggregate_class in algorithms_with_aggregates_list:
                 instance_of_alg_class = [alg for _, alg in self.__sequence.items() if type(alg) == algorithm_with_aggregate_class]
@@ -200,7 +226,7 @@ char* m_offset = nullptr; };\n"
                             if type(parameter_tup) == tuple:
                                 s += "namespace " + algorithm.namespace + " { namespace " + parameter_t + " { using tuple_t = std::tuple<"
                                 for parameter in parameter_tup:
-                                    s += self.__sequence[parameter.producer()].namespace + "::Parameters::" + parameter.name() + ", "
+                                    s += parameter.fullname() + ", "
                                 s = s[:-2] + ">; }}\n"
                 else:
                     # Since there are no instances of that algorithm,

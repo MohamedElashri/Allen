@@ -99,7 +99,7 @@ beam_two_line = algorithms.beam_crossing_line_t(
     dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
     beam_crossing_type="2")
 
-lines = (track_mva_line, two_track_mva_line, no_beam_line)
+lines = (track_mva_line, two_track_mva_line, no_beam_line, beam_one_line, beam_two_line)
 gatherer = make_selection_gatherer(lines, velo_sequence["initialize_lists"], hlt1_sequence["odin_banks"], name="gather_selections")
 
 algorithms.extend_sequence(algorithms.compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
