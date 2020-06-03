@@ -6,13 +6,6 @@
 #include "CaloDigit.cuh"
 #include "DeviceAlgorithm.cuh"
 
-#define CARD_CHANNELS 32
-#define ECAL_MAX_CELLID 0b11000000000000
-#define HCAL_MAX_CELLID 0b10000000000000
-// Max distance based on CellIDs is 64 steps away, so the iteration in which a cell is clustered can never be more
-// than 64.
-#define UNCLUSTERED 65
-
 namespace calo_decode {
   DEFINE_PARAMETERS(
     Parameters,

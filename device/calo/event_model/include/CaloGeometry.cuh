@@ -2,11 +2,6 @@
 
 #include "CudaCommon.h"
 
-#define MAX_NEIGH 9
-#define AREA_SIZE 64 * 64 * MAX_NEIGH // 4096 * 9
-#define ROW_SIZE 64 * MAX_NEIGH
-#define XY_SIZE 2 * 4 // 8 to accomodate for 2 64 bit doubles as uint16_ts
-
 struct CaloGeometry {
   uint32_t code_offset;
   uint16_t* channels;

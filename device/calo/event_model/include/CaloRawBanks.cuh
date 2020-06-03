@@ -10,7 +10,7 @@ struct CaloRawBank {
   uint32_t* data;
 
   // For Allen format
-  __device__ __host__ CaloRawBank(const char* raw_bank, const unsigned s)
+  __device__ CaloRawBank(const char* raw_bank, const unsigned s)
   : size{s}
   {
     const char* p = raw_bank;
@@ -28,7 +28,7 @@ struct CaloRawBank {
   }
 
   // For MEP format
-  __device__ __host__ CaloRawBank(const uint32_t sid, const char* fragment, const char* end)
+  __device__ CaloRawBank(const uint32_t sid, const char* fragment, const char* end)
   {
     source_id = sid;
     size = (uint32_t*)end - (uint32_t*)fragment;
@@ -44,7 +44,7 @@ struct CaloRawBank {
   }
 
 
-  __device__ __host__ void update(int length)
+  __device__ void update(int length)
   {
     char* p = (char*) (data + length);
     uint32_t trig_size = *((uint32_t*) p) & 0x7F;
@@ -57,12 +57,13 @@ struct CaloRawBank {
     data = (uint32_t*) (p + sizeof(uint32_t));
   }
 
-  __device__ __host__ int get_length()
+  __device__ int get_length()
   {
-    int length = 0;
-    for (int i = 0; i < 32; i++) {
-      length += 4 + 8 * ((pattern >> i) & 0x1);
-    }
-    return length;
+    #ifdef __CUDACC__
+    int c = __popc(pattern);
+    #else
+    int c = __builtin_popcount(pattern);
+    #endif
+    return 12 * c + 4 * (32 - c);
   }
 };

@@ -2,26 +2,43 @@
 
 #include "CudaCommon.h"
 
-struct CaloCluster {
-  uint16_t center_id;
-  uint32_t e; // Is a double in the original algorithm, but is still integer here?
-  float refX, refY;
-  float x, y;
+struct CaloDigitClusters {
+  uint16_t clustered_at_iteration = 0;
+  uint16_t clusters[Calo::Constants::digit_max_clusters];
 
-  __device__ __host__ CaloCluster() {
-      center_id = 0;
-      e = 0;
-      x = y = 0;
-      refX = refY = 0;
+  __device__ __host__ CaloDigitClusters() {
+    for (int i = 0; i < Calo::Constants::digit_max_clusters; i++) {
+      clusters[i] = 0;
+    }
+  }
+};
+
+struct CaloCluster {
+  uint32_t center_id = 0;
+  uint32_t e = 0; // Is a double in the original algorithm, but is still integer here?
+  float x = 0.f, y = 0.f;
+
+  __device__ __host__ CaloCluster(uint16_t cellid, uint16_t adc, float rX, float rY)
+    : center_id{cellid},
+      e{adc},
+      x{rX},
+      y{rY}
+  {
   }
 
-  __device__ __host__ CaloCluster(uint16_t cellid, uint16_t adc, double rX, double rY) {
-    center_id = cellid;
-    e = adc;
-    refX = rX;
-    refY = rY;
-    x = 0;
-    y = 0;
+};
+
+struct CaloSeedCluster {
+  uint16_t id = 0;
+  uint16_t adc = 0; // Is a double in the original algorithm, but is still integer here?
+  float x = 0.f, y = 0.f;
+
+  __device__ __host__ CaloSeedCluster(uint16_t cellid, uint16_t a, float rX, float rY)
+    : id{cellid},
+      adc{a},
+      x{rX},
+      y{rY}
+  {
   }
 
 };
