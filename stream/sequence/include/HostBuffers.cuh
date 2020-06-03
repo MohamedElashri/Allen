@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdint>
 #include <cstdlib>
+#include <string>
 #include "CudaCommon.h"
 
 // Forward declarations
