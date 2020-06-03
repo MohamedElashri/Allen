@@ -1,4 +1,3 @@
-#include <CaloConstants.cuh>
 #include <CaloCluster.cuh>
 #include <CaloFindClusters.cuh>
 
@@ -91,9 +90,6 @@ __global__ void calo_find_clusters::calo_find_clusters(
   const char* raw_hcal_geometry,
   const unsigned iterations)
 {
-  const auto number_of_events = gridDim.x;
-  const auto event_number = blockIdx.x;
-
   // Get proper geometry.
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry, Calo::Constants::ecal_max_cellid);
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry, Calo::Constants::hcal_max_cellid);
@@ -154,7 +150,7 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
 {
   // Find clusters.
   global_function(calo_find_clusters)(
-    first<host_number_of_selected_events_t>(arguments), property<block_dim_x_t>(), cuda_stream)(
+    first<host_number_of_selected_events_t>(arguments), dim3(property<block_dim_x_t>().get()), cuda_stream)(
     arguments,
     constants.dev_ecal_geometry,
     constants.dev_hcal_geometry,

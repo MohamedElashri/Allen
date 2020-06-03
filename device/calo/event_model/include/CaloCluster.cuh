@@ -1,6 +1,7 @@
 #pragma once
 
-#include "CudaCommon.h"
+#include <CudaCommon.h>
+#include "CaloConstants.cuh"
 
 struct CaloDigitClusters {
   uint16_t clustered_at_iteration = 0;
