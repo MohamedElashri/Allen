@@ -98,55 +98,50 @@ __global__ void calo_find_clusters::calo_find_clusters(
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry, Calo::Constants::ecal_max_cellid);
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry, Calo::Constants::hcal_max_cellid);
 
+  unsigned const event_number = blockIdx.x;
+
+  // Initialize digit clusters from seed clusters
   // Ecal
-  fill_clusters(
-    &parameters.dev_ecal_digits[event_number * ecal_geometry.max_cellid],
-    &parameters.dev_ecal_clusters[parameters.dev_ecal_cluster_offsets[event_number]],
-    ecal_geometry);
+  unsigned const ecal_offset = parameters.dev_ecal_cluster_offsets[event_number];
+  unsigned const ecal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_offset;
+  init_clusters(parameters.dev_ecal_digits + (event_number * ecal_geometry.max_cellid),
+                parameters.dev_ecal_seed_clusters + ecal_offset,
+                parameters.dev_ecal_digits_clusters + (event_number * ecal_geometry.max_cellid),
+                ecal_num_clusters, ecal_geometry.max_cellid);
+  // Hcal
+  unsigned const hcal_offset = parameters.dev_ecal_cluster_offsets[event_number];
+  unsigned const hcal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_offset;
+  init_clusters(&parameters.dev_hcal_digits[event_number * hcal_geometry.max_cellid],
+                &parameters.dev_hcal_seed_clusters[hcal_offset],
+                &parameters.dev_hcal_digits_clusters[event_number * hcal_geometry.max_cellid],
+                hcal_num_clusters, hcal_geometry.max_cellid);
 
-    // Initialize digit clusters from seed clusters
-    // Ecal
-    unsigned const ecal_offset = parameters.dev_ecal_cluster_offsets[event_number];
-    unsigned const ecal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_offset;
-    init_clusters(&parameters.dev_ecal_digits[event_number * ecal_geometry.max_cellid],
-                  &parameters.dev_ecal_seed_clusters[ecal_offset],
-                  &parameters.dev_ecal_digits_clusters[event_number * ecal_geometry.max_cellid],
-                  ecal_num_clusters, ecal_geometry.max_cellid);
-    // Hcal
-    unsigned const hcal_offset = parameters.dev_ecal_cluster_offsets[event_number];
-    unsigned const hcal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_offset;
-    init_clusters(&parameters.dev_hcal_digits[event_number * hcal_geometry.max_cellid],
-                  &parameters.dev_hcal_seed_clusters[hcal_offset],
-                  &parameters.dev_hcal_digits_clusters[event_number * hcal_geometry.max_cellid],
-                  hcal_num_clusters, hcal_geometry.max_cellid);
+  __syncthreads();
 
-    __syncthreads();
+  // Find clusters
+  // Ecal
+  find_clusters(&parameters.dev_ecal_digits[event_number * ecal_geometry.max_cellid],
+                &parameters.dev_ecal_seed_clusters[ecal_offset],
+                &parameters.dev_ecal_digits_clusters[event_number * ecal_geometry.max_cellid],
+                &parameters.dev_ecal_clusters[ecal_offset],
+                ecal_geometry, iterations);
 
-    // Find clusters
-    // Ecal
-    find_clusters(&parameters.dev_ecal_digits[event_number * ecal_geometry.max_cellid],
-                  &parameters.dev_ecal_seed_clusters[ecal_offset],
-                  &parameters.dev_ecal_digits_clusters[event_number * ecal_geometry.max_cellid],
-                  &parameters.dev_ecal_clusters[ecal_offset],
-                  ecal_geometry, iterations);
+  // Hcal
+  find_clusters(&parameters.dev_hcal_digits[event_number * hcal_geometry.max_cellid],
+                &parameters.dev_hcal_seed_clusters[hcal_offset],
+                &parameters.dev_hcal_digits_clusters[event_number * hcal_geometry.max_cellid],
+                &parameters.dev_hcal_clusters[hcal_offset],
+                hcal_geometry, iterations);
 
-    // Hcal
-    find_clusters(&parameters.dev_hcal_digits[event_number * hcal_geometry.max_cellid],
-                  &parameters.dev_hcal_seed_clusters[hcal_offset],
-                  &parameters.dev_hcal_digits_clusters[event_number * hcal_geometry.max_cellid],
-                  &parameters.dev_hcal_clusters[hcal_offset],
-                  hcal_geometry, iterations);
+  __syncthreads();
 
-    __syncthreads();
-
-    // Determine the final cluster positions.
-    // Ecal
-    cluster_position(&parameters.dev_ecal_seed_clusters[ecal_offset],
-                     &parameters.dev_ecal_clusters[ecal_offset], ecal_num_clusters);
-    // Hcal
-    cluster_position(&parameters.dev_hcal_seed_clusters[hcal_offset],
-                     &parameters.dev_hcal_clusters[hcal_offset], hcal_num_clusters);
-  }
+  // Determine the final cluster positions.
+  // Ecal
+  cluster_position(&parameters.dev_ecal_seed_clusters[ecal_offset],
+                   &parameters.dev_ecal_clusters[ecal_offset], ecal_num_clusters);
+  // Hcal
+  cluster_position(&parameters.dev_hcal_seed_clusters[hcal_offset],
+                   &parameters.dev_hcal_clusters[hcal_offset], hcal_num_clusters);
 }
 
 __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
@@ -158,9 +153,10 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   cudaEvent_t&) const
 {
   // Find clusters.
-  global_function(calo_find_clusters)(grid_size, property<block_dim_x_t>(), cuda_stream)(
+  global_function(calo_find_clusters)(
+    first<host_number_of_selected_events_t>(arguments), property<block_dim_x_t>(), cuda_stream)(
     arguments,
-    first<host_number_of_selected_events_t>(arguments),
     constants.dev_ecal_geometry,
-    constants.dev_hcal_geometry, property<iterations_t>().get());
+    constants.dev_hcal_geometry,
+    property<iterations_t>().get());
 }

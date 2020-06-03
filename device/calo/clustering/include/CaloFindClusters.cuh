@@ -26,8 +26,9 @@ namespace calo_find_clusters {
     (PROPERTY(iterations_t, "iterations", "number of clustering iterations", unsigned), iterations))
 
   // Global function
-  __global__ void calo_find_clusters(Parameters parameters, const unsigned number_of_events,
-                                     const char* raw_ecal_geometry, const char* raw_hcal_geometry,
+  __global__ void calo_find_clusters(Parameters parameters,
+                                     const char* raw_ecal_geometry,
+                                     const char* raw_hcal_geometry,
                                      const unsigned iterations);
 
   // Algorithm
