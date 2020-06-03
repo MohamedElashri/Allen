@@ -138,7 +138,8 @@ extern "C" int allen(
   bool write_config = false;
   // By default, do_check will be true when mc_check is enabled
   bool do_check = true;
-  size_t reserve_mb = 1024;
+  size_t reserve_mb = 1000;
+  size_t reserve_host_mb = 200;
   // MPI options
   bool with_mpi = false;
   std::map<std::string, int> receivers = {{"mem", 1}};
@@ -217,6 +218,9 @@ extern "C" int allen(
     }
     else if (flag_in({"m", "memory"})) {
       reserve_mb = atoi(arg.c_str());
+    }
+    else if (flag_in({"host-memory"})) {
+      reserve_host_mb = atoi(arg.c_str());
     }
     else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
@@ -454,7 +458,7 @@ extern "C" int allen(
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, print_memory_usage, start_event_offset, reserve_mb, constants, configuration_reader->params());
+    number_of_threads, print_memory_usage, start_event_offset, reserve_mb, reserve_host_mb, constants, configuration_reader->params());
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(

@@ -43,6 +43,7 @@ struct StreamWrapper {
     const bool print_memory_usage,
     const unsigned start_event_offset,
     const size_t reserve_mb,
+    const size_t reserve_host_mb,
     const Constants& constants,
     const std::map<std::string, std::map<std::string, std::string>>& config);
 

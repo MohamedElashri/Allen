@@ -28,6 +28,7 @@ void StreamWrapper::initialize_streams(
   const bool print_memory_usage,
   const unsigned start_event_offset,
   const size_t reserve_mb,
+  const size_t reserve_host_mb,
   const Constants& constants,
   const std::map<std::string, std::map<std::string, std::string>>& config)
 {
@@ -36,7 +37,7 @@ void StreamWrapper::initialize_streams(
   }
 
   for (size_t i = 0; i < streams.size(); ++i) {
-    streams[i]->initialize(print_memory_usage, start_event_offset, reserve_mb, constants);
+    streams[i]->initialize(print_memory_usage, start_event_offset, reserve_mb, reserve_host_mb, constants);
 
     // Configuration of the algorithms must happen after stream initialization
     streams[i]->configure_algorithms(config);
@@ -95,6 +96,7 @@ cudaError_t Stream::initialize(
   const bool param_do_print_memory_manager,
   const unsigned param_start_event_offset,
   const size_t reserve_mb,
+  const size_t reserve_host_mb,
   const Constants& param_constants)
 {
   // Set stream and events
@@ -107,15 +109,14 @@ cudaError_t Stream::initialize(
   constants = param_constants;
 
   // Malloc a configurable reserved memory on the host
-  // TODO: Make configurable
-  cudaCheck(cudaMallocHost((void**) &host_base_pointer, 10 * 1024 * 1024));
+  cudaCheck(cudaMallocHost((void**) &host_base_pointer, reserve_host_mb * 1000 * 1000));
 
   // Malloc a configurable reserved memory on the device
-  cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1024 * 1024));
+  cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1000 * 1000));
 
   // Prepare scheduler
   scheduler.initialize(
-    do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 200 * 1024 * 1024, host_base_pointer);
+    do_print_memory_manager, reserve_mb * 1000 * 1000, dev_base_pointer, reserve_host_mb * 1000 * 1000, host_base_pointer);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);
