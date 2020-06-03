@@ -4,6 +4,17 @@
 from definitions.algorithms import *
 
 
+def make_selection_gatherer(lines, initialize_lists, populate_odin_banks, **kwargs):
+    return gather_selections_t(
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+        dev_input_selections_t=tuple(line.dev_decisions_t() for line in lines),
+        dev_input_selections_offsets_t=tuple(line.dev_decisions_offsets_t() for line in lines),
+        dev_odin_raw_input_t=populate_odin_banks.dev_raw_banks_t(),
+        dev_odin_raw_input_offsets_t=populate_odin_banks.dev_raw_offsets_t(),
+        names_of_active_lines=",".join([line.name() for line in lines]),
+        **kwargs)
+
+
 def HLT1Sequence(initialize_lists,
                  velo_copy_track_hit_number,
                  velo_kalman_filter,
@@ -121,25 +132,7 @@ def HLT1Sequence(initialize_lists,
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
-    odin_banks = data_provider_t(name="populate_odin_banks", bank_type="ODIN")
-
-    # run_hlt1 = run_hlt1_t(
-    #     host_number_of_events_t=initialize_lists.
-    #     host_number_of_events_t(),
-    #     host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
-    #     host_total_sum_holder_t(),
-    #     host_number_of_svs_t=prefix_sum_secondary_vertices.
-    #     host_total_sum_holder_t(),
-    #     dev_event_list_t=initialize_lists.dev_event_list_t(),
-    #     dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
-    #     dev_consolidated_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
-    #     dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
-    #     dev_output_buffer_t(),
-    #     dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t(),
-    #     dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
-    #     dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
-    #     dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-    #     dev_offsets_all_velo_tracks_t())
+    odin_banks = data_provider_t(name="odin_banks", bank_type="ODIN")
 
     # prepare_raw_banks = prepare_raw_banks_t(
     #     host_number_of_events_t=initialize_lists.

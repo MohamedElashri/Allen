@@ -68,7 +68,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<host_number_of_active_lines_t>(arguments, 1);
-  set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>()).size());
+  set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size());
   set_size<host_selections_lines_offsets_t>(arguments, std::tuple_size<dev_input_selections_t::type>::value + 1);
   set_size<host_selections_offsets_t>(
     arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
@@ -106,7 +106,7 @@ void gather_selections::gather_selections_t::operator()(
   // Populate dev_selections_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
     template populate_selections<host_selections_lines_offsets_t, dev_selections_t>(arguments, stream);
-
+  
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_offsets_t::type>::t>::
     template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, stream);

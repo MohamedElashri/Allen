@@ -111,13 +111,11 @@ class Sequence():
             # Generate all parameters
             parameters = OrderedDict([])
             for _, algorithm in iter(self.__sequence.items()):
-                for parameter_t, current_parameter in iter(
+                for parameter_t, parameter in iter(
                         algorithm.parameters().items()):
-                    for parameter in parameter_tuple(current_parameter):
+                    if type(parameter) != tuple:
                         if parameter.fullname() in parameters:
-                            parameters[parameter.fullname()].append(
-                                (algorithm.name(), algorithm.namespace,
-                                 parameter_t))
+                            parameters[parameter.fullname()].append((algorithm.name(), algorithm.namespace, parameter_t))
                         else:
                             parameters[parameter.fullname()] = [(algorithm.name(), algorithm.namespace, parameter_t)]
             # Generate arguments

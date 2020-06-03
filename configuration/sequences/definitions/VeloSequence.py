@@ -26,6 +26,13 @@ def VeloSequence(doGEC=True):
             host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t(),
             host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t())
 
+    full_event_list = host_init_event_list_t(
+        name="full_event_list",
+        host_ut_raw_banks_t=host_ut_banks.host_raw_banks_t(),
+        host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t(),
+        host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t(),
+        host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t())
+
     velo_banks = data_provider_t(name="velo_banks", bank_type="VP")
 
     velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
@@ -187,8 +194,8 @@ def VeloSequence(doGEC=True):
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     velo_sequence = Sequence(
-        host_ut_banks, host_scifi_banks, initialize_lists, velo_banks,
-        velo_calculate_number_of_candidates,
+        host_ut_banks, host_scifi_banks, initialize_lists, full_event_list,
+        velo_banks, velo_calculate_number_of_candidates,
         prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
         prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
         velo_calculate_phi_and_sort, velo_search_by_triplet,

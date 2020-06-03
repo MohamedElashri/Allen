@@ -129,13 +129,15 @@ struct DeviceDimensions {
   constexpr DeviceDimensions(const std::array<unsigned, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
 };
 
-// A property datatype data holder.
+/**
+ * @brief A property datatype data holder.
+ */
 template<typename T>
 struct property_datatype {
   using t = T;
 
-  __host__ __device__ constexpr property_datatype(const t& value) : m_value(value) {}
-  __host__ __device__ constexpr property_datatype() {}
+  constexpr property_datatype(const t& value) : m_value(value) {}
+  constexpr property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
   __host__ __device__ operator dim3() const;
@@ -144,12 +146,37 @@ protected:
   t m_value;
 };
 
+/**
+ * @brief std::string properties cannot be accessed on the device,
+ *        as any retrieval of the value results in a copy constructor
+ *        invocation, which is not header only.
+ */
+template<>
+struct property_datatype<std::string> {
+  using t = std::string;
+
+  // Constructors cannot be constexpr for std::string
+  property_datatype(const t& value) : m_value(value) {}
+  property_datatype() {}
+  operator t() const { return this->m_value; }
+  t get() const { return this->m_value; }
+
+protected:
+  t m_value;
+};
+
+/**
+ * @brief DeviceDimension specialization.
+ * 
+ *        A separate specialization is provided for DeviceDimensions to support
+ *        conversion to dim3.
+ */
 template<>
 struct property_datatype<DeviceDimensions> {
   using t = DeviceDimensions;
 
-  __host__ __device__ constexpr property_datatype(const t& value) : m_value(value) {}
-  __host__ __device__ constexpr property_datatype() {}
+  constexpr property_datatype(const t& value) : m_value(value) {}
+  constexpr property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
   __host__ __device__ operator dim3() const { return {this->m_value.x, this->m_value.y, this->m_value.z}; }
