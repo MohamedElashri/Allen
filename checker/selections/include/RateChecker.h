@@ -6,9 +6,6 @@
 #include <Common.h>
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
-#include "RawBanksDefinitions.cuh"
-#include "LineInfo.cuh"
-#include "LineTraverser.cuh"
 #include "CudaCommon.h"
 
 void checkHlt1Rate(

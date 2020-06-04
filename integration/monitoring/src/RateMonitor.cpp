@@ -6,10 +6,6 @@
 #include "HostBuffersManager.cuh"
 #include "Logger.h"
 
-#include "HltDecReport.cuh"
-#include "RawBanksDefinitions.cuh"
-#include "LineInfo.cuh"
-
 #ifdef WITH_ROOT
 void RateMonitor::fill(unsigned i_buf, bool useWallTime)
 {

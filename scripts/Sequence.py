@@ -1,19 +1,14 @@
 class Sequence():
     def __init__(self, *args):
         self.__sequence = OrderedDict()
-        self.__lines = OrderedDict()
         if type(args[0]) == list:
             for item in args[0]:
                 if issubclass(type(item), Algorithm):
                     self.__sequence[item.name()] = item
-                elif issubclass(type(item), Line):
-                    self.__lines[item.name()] = item
         else:
             for item in args:
                 if issubclass(type(item), Algorithm):
                     self.__sequence[item.name()] = item
-                elif issubclass(type(item), Line):
-                    self.__lines[item.name()] = item
 
     def validate(self):
         warnings = 0
@@ -94,7 +89,6 @@ class Sequence():
 
     def generate(self,
                  output_filename="Sequence.h",
-                 configured_lines_filename="ConfiguredLines.h",
                  aggregate_input_filename="ConfiguredInputAggregates.h",
                  json_configuration_filename="Sequence.json",
                  prefix_includes="../../"):
@@ -102,7 +96,7 @@ class Sequence():
         print("Validating sequence...")
         if self.validate():
             # Add all the includes
-            s = "#pragma once\n\n#include <tuple>\n#include \"" + configured_lines_filename + "\"\n"
+            s = "#pragma once\n\n#include <tuple>\n"
             s += "#include \"" + aggregate_input_filename + "\"\n"
             s += "#include \"" + prefix_includes + "stream/gear/include/ArgumentManager.cuh\"\n"
             for _, algorithm in iter(self.__sequence.items()):
@@ -239,23 +233,6 @@ char* m_offset = nullptr; };\n"
             f.close()
             print("Generated multiple input configuration file " +
                   aggregate_input_filename)
-            # Generate lines
-            s = "#pragma once\n\n#include <tuple>\n"
-            s += "#include \"" + prefix_includes + "device/selections/Hlt1/include/LineTraverser.cuh\"\n"
-            for _, line in iter(self.__lines.items()):
-                s += "#include \"" + prefix_includes + line.filename() + "\"\n"
-            s += "\n"
-            s += "using configured_lines_t = std::tuple<"
-            for _, line in iter(self.__lines.items()):
-                s += line.namespace + "::" + line.name() + ", "
-            if len(self.__lines) > 0:
-                s = s[:-2]
-            s += ">;\n"
-            f = open(configured_lines_filename, "w")
-            f.write(s)
-            f.close()
-            print("Generated line configuration file " +
-                  configured_lines_filename)
             # Generate runtime configuration (JSON)
             s = "{\n"
             i = 1
@@ -275,9 +252,12 @@ char* m_offset = nullptr; };\n"
                     s = s[:-2]
                     s += "},\n"
             s += prefix(i) + "\"configured_lines\": ["
-            for _, line in iter(self.__lines.items()):
-                s += "\"" + line.namespace + "\", "
-            if len(self.__lines) > 0:
+            selection_algorithms = []
+            for _, algorithm in iter(self.__sequence.items()):
+                if type(algorithm) == SelectionAlgorithm:
+                    selection_algorithms.append(algorithm)
+                    s += "\"" + selection_algorithms.name() + "\", "
+            if len(selection_algorithms):
                 s = s[:-2]
             s += "]\n}\n"
             f = open(json_configuration_filename, "w")
@@ -307,8 +287,6 @@ char* m_offset = nullptr; };\n"
     def __iter__(self):
         for _, algorithm in iter(self.__sequence.items()):
             yield algorithm
-        for _, line in iter(self.__lines.items()):
-            yield line
 
     def __getitem__(self, value):
         return self.__sequence[value]

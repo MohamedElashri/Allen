@@ -2,7 +2,6 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "RateChecker.h"
-#include "SelCheckerTuple.h"
 #include "PrepareKalmanTracks.h"
 #include "GatherSelections.cuh"
 
@@ -50,19 +49,6 @@ struct SequenceVisitor<gather_selections::gather_selections_t> {
       host_buffers.host_kalmanvelo_states,
       host_buffers.host_reconstructed_multi_pvs,
       host_buffers.host_number_of_multivertex,
-      host_buffers.host_number_of_selected_events);
-
-    auto& ntuple =
-      checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
-    ntuple.accumulate<configured_lines_t>(
-      mc_events,
-      tracks,
-      host_buffers.host_secondary_vertices,
-      host_buffers.host_sel_results,
-      host_buffers.host_sel_results_atomics,
-      host_buffers.host_atomics_scifi,
-      host_buffers.host_sv_offsets,
-      host_buffers.host_mf_sv_offsets,
       host_buffers.host_number_of_selected_events);
 #endif
   }

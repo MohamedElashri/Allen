@@ -100,7 +100,6 @@ target_link_libraries(Stream PRIVATE
   UT
   Kalman
   VertexFitter
-  RawBanks
   Selections
   SciFi
   HostGEC

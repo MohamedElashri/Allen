@@ -3,12 +3,6 @@
 \*****************************************************************************/
 #include "HostBuffersManager.cuh"
 #include "HostBuffers.cuh"
-
-#include "HltDecReport.cuh"
-#include "HltSelReport.cuh"
-#include "RawBanksDefinitions.cuh"
-#include "LineInfo.cuh"
-
 #include "Logger.h"
 
 void HostBuffersManager::init(size_t nBuffers)
@@ -106,27 +100,6 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
   buf->host_number_of_selected_events = 0u;
   buf->host_passing_event_list[0] = true;
   buf->host_number_of_multivertex[0] = 0u;
-  // create DecReport
-  buf->host_dec_reports[0] = Hlt1::TCK;
-  buf->host_dec_reports[1] = Hlt1::taskID;
-  for (unsigned i_line = 0; i_line < m_number_of_hlt1_lines; i_line++) {
-    HltDecReport dec_report;
-    dec_report.setDecision(false);
-    dec_report.setErrorBits(0);
-    dec_report.setNumberOfCandidates(0);
-    dec_report.setIntDecisionID(i_line);
-    dec_report.setExecutionStage(1);
-    if (i_line == m_errorevent_line) {
-      dec_report.setDecision(true);
-      dec_report.setNumberOfCandidates(1);
-    }
-    buf->host_dec_reports[i_line + 2] = dec_report.getDecReport();
-  }
-  // create SelReport
-  HltSelRepRawBank(buf->host_sel_rep_raw_banks, HltSelRepRawBank::kHeaderSize);
-  buf->host_sel_rep_offsets[0] = 0u;
-  buf->host_sel_rep_offsets[1] = HltSelRepRawBank::kHeaderSize;
-  returnBufferFilled(b);
 }
 
 std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>>

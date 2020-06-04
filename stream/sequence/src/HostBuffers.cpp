@@ -16,9 +16,6 @@
 #include "VertexDefinitions.cuh"
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
-#include "RawBanksDefinitions.cuh"
-#include "LineInfo.cuh"
-#include "HltSelReport.cuh"
 
 void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_check, const unsigned number_of_hlt1_lines)
 {
@@ -58,15 +55,6 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
   host_sel_results_size = max_number_of_events * 1000 * number_of_hlt1_lines * sizeof(bool);
   cudaCheck(cudaMallocHost((void**) &host_sel_results, host_sel_results_size));
 
-  // Buffer for saving raw banks.
-  cudaCheck(
-    cudaMallocHost((void**) &host_dec_reports, (number_of_hlt1_lines + 2) * max_number_of_events * sizeof(unsigned)));
-
-  host_sel_rep_raw_banks_size =
-    4 * HltSelRepRawBank::DefaultAllocation::kDefaultAllocation * max_number_of_events * sizeof(unsigned);
-  cudaCheck(cudaMallocHost((void**) &host_sel_rep_raw_banks, host_sel_rep_raw_banks_size));
-  cudaCheck(cudaMallocHost((void**) &host_sel_rep_offsets, (2 * max_number_of_events + 1) * sizeof(unsigned)));
-
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated
   host_allocated_prefix_sum_space = 10000000;
@@ -88,11 +76,6 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
     max_number_of_events * SciFi::Constants::max_tracks * 10 * sizeof(VertexFit::TrackMVAVertex);
   cudaCheck(cudaMallocHost((void**) &host_secondary_vertices, host_secondary_vertices_size));
   cudaCheck(cudaMallocHost((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(unsigned)));
-
-  host_mf_secondary_vertices_size =
-    max_number_of_events * UT::Constants::max_num_tracks * 10 * sizeof(VertexFit::TrackMVAVertex);
-  cudaCheck(cudaMallocHost((void**) &host_mf_secondary_vertices, host_mf_secondary_vertices_size));
-  cudaCheck(cudaMallocHost((void**) &host_mf_sv_offsets, (max_number_of_events + 1) * sizeof(unsigned)));
 
   if (do_check) {
     // Datatypes to be reserved only if checking is on

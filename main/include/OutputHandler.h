@@ -2,12 +2,11 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #pragma once
-#include <vector>
 
+#include <vector>
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Timer.h>
-
 #include <zmq/zmq.hpp>
 
 struct IInputProvider;

@@ -71,7 +71,6 @@ if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore" &&
         ${MOORE_RUN} ${SEQUENCE_DEFINITION_DIR}/allenrun.py ${SEQUENCE}.py &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-        ${CMAKE_COMMAND} -E copy_if_different "ConfiguredLines.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredLines.h" &&
         ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
@@ -85,7 +84,6 @@ if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen" &&
         python3 ${SEQUENCE}.py &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-        ${CMAKE_COMMAND} -E copy_if_different "ConfiguredLines.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredLines.h" &&
         ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
@@ -103,7 +101,7 @@ else()
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-    ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_lines.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredLines.h" &&
+    ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_input_aggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
     ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.json" "${PROJECT_BINARY_DIR}/Sequence.json"
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_sequence.h"

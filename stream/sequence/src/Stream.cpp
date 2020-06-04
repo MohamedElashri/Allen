@@ -12,16 +12,7 @@
 #include "KalmanSequenceCheckers_impl.cuh"
 #include "RateCheckers_impl.cuh"
 
-StreamWrapper::StreamWrapper()
-{
-  number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
-  unsigned errorevent_line_index = number_of_hlt1_lines;
-  const auto lambda_fn = [&](const unsigned long i, const std::string& line_name) {
-    if (line_name == "ErrorEvent") errorevent_line_index = i;
-  };
-  Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine>::traverse(lambda_fn);
-  errorevent_line = errorevent_line_index;
-}
+StreamWrapper::StreamWrapper() {}
 
 void StreamWrapper::initialize_streams(
   const unsigned n,

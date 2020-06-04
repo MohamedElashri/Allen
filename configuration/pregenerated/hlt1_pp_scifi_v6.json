@@ -7,6 +7,10 @@
   "compass_ut": {"min_momentum_final": "2500.0", "min_pt_final": "425.0", "max_considered_before_found": "6"},
   "scifi_banks": {"bank_type": "FTCluster"},
   "muon_banks": {"bank_type": "Muon"},
-  "populate_odin_banks": {"bank_type": "ODIN"},
-  "configured_lines": ["ErrorEvent", "PassThrough", "NoBeams", "BeamOne", "BeamTwo", "BothBeams", "ODINNoBias", "ODINLumi", "GECPassthrough", "VeloMicroBias", "TrackMVA", "TrackMuonMVA", "SingleHighPtMuon", "LowPtMuon", "TwoTrackMVA", "DiMuonHighMass", "DiMuonLowMass", "LowPtDiMuon", "DiMuonSoft", "D2KPi", "D2PiPi", "D2KK"]
+  "odin_banks": {"bank_type": "ODIN"},
+  "no_beam_line": {"beam_crossing_type": "0"},
+  "beam_one_line": {"beam_crossing_type": "1"},
+  "beam_two_line": {"beam_crossing_type": "2"},
+  "gather_selections": {"names_of_active_lines": "track_mva_line,two_track_mva_line,no_beam_line,beam_one_line,beam_two_line"},
+  "configured_lines": []
 }

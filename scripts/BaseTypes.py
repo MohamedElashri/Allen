@@ -1,36 +1,6 @@
 from collections import OrderedDict
 
 
-class Line():
-    def __init__(self):
-        pass
-
-
-class SpecialLine(Line):
-    def __init__(self):
-        pass
-
-
-class VeloLine(Line):
-    def __init__(self):
-        pass
-
-
-class OneTrackLine(Line):
-    def __init__(self):
-        pass
-
-
-class TwoTrackLine(Line):
-    def __init__(self):
-        pass
-
-
-class VeloUTTwoTrackLine(Line):
-    def __init__(self):
-        pass
-
-
 class Type():
     def __init__(self, vtype):
         if vtype.__class__ == Type:
