@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "SelectionAlgorithm.cuh"
 #include "TwoTrackLine.cuh"
 
 namespace two_track_mva_line {

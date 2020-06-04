@@ -3,14 +3,13 @@
 
 1.  [Allen: Adding a new selection](#orgec93f80)
     1.  [Types of selections](#orgf63e834)
-        1.  [`SpecialLine`](#org17c80a2)
-        2.  [`OneTrackLine`](#org219209d)
-        3.  [`TwoTrackLine`](#org1e461fd)
-        4.  [`ThreeTrackLine`](#orgd5c01cf)
-        5.  [`FourTrackLine`](#org20a5021)
+        1.  [`OneTrackLine`](#org219209d)
+        2.  [`TwoTrackLine`](#org1e461fd)
+        3.  [`ODINLine`](#orgd5c01cf)
+        4.  [Custom selections](#orgd5c01de)
     2.  [Adding a new selection](#org9dddbc8)
-        1.  [Writing the CUDA code](#org14eaf8f)
-        2.  [Adding your selection to the Allen sequence](#org3fe70a8)
+        1.  [Writing the selection code](#org14eaf8f)
+        2.  [Adding your selection algorithm to the Allen sequence](#org3fe70a8)
 
 
 <a id="orgec93f80"></a>
@@ -18,23 +17,15 @@
 # Allen: Adding a new selection
 
 This tutorial will cover adding trigger selections to Allen using the
-main reconstruction sequence. Selections requiring special
-reconstructions will not be covered.
-
+main reconstruction sequence.
 
 <a id="orgf63e834"></a>
 
 ## Types of selections
 
+Selections are fully configurable algorithms in Allen. However, for ease of use, some predefined selection "types" exist that make writing new selections easier. The types of selections are discussed below.
 
-<a id="org17c80a2"></a>
-
-### `SpecialLine`
-
-These make trigger selections based on event-level information. Right
-now this includes the ODIN raw bank and the number of reconstructed
-velo tracks in the event. This includes minimum bias and lumi lines.
-
+Bear in mind that if the selection you want to write does not adhere to any of the types below, you can always create a new [custom selection](#orgd5c01de).
 
 <a id="org219209d"></a>
 
@@ -43,7 +34,7 @@ velo tracks in the event. This includes minimum bias and lumi lines.
 These trigger on single Kalman filtered long (Velo-UT-SciFi)
 tracks. These are stored in the device buffer type
 `dev_kf_tracks_t`. The structure of these tracks is defined in
-`cuda/kalman/ParKalman/include/ParKalmanDefinitions.cuh`. This
+`device/kalman/ParKalman/include/ParKalmanDefinitions.cuh`. This
 includes muon ID information.
 
 1.  Available selection criteria
@@ -67,7 +58,7 @@ includes muon ID information.
 
 These trigger on secondary vertices constructed from 2 Kalman filtered
 long tracks defined in
-`cuda/vertex_fit/common/include/VertexDefinitions.cuh`. These tracks
+`device/vertex_fit/common/include/VertexDefinitions.cuh`. These tracks
 are filtered using loose requirements on IP chi2 and pT before the
 secondary vertex fit. No IP chi2 requirement is imposed on dimuon
 candidates so that their reconstruction is independent of PV
@@ -102,123 +93,197 @@ reconstruction. These vertices in the device buffer with type
     -   `m(float m1, float m2)`: vertex mass assuming mass hypotheses
         `m1` and `m2` for the constituent tracks
 
-
 <a id="orgd5c01cf"></a>
 
-### `ThreeTrackLine`
+### `ODINLine`
 
-Coming soon.
+These make trigger selections based on event-level information. Right
+now this includes the ODIN raw bank. This includes minimum bias and lumi lines.
 
+<a id="orgd5c01de"></a>
 
-<a id="org20a5021"></a>
+### Custom selections
 
-### `FourTrackLine`
-
-Coming soon.
-
+A custom selection can trigger on any input data, and can either be based on event-level information, or on more specific information.
 
 <a id="org9dddbc8"></a>
 
 ## Adding a new selection
 
-
 <a id="org14eaf8f"></a>
 
-### Writing the CUDA code
+### Creating a selection
 
-The python parser requires that each selection has exactly one
-corresponding header file in `cuda/selections/lines/include`. Each
-selection is defined within a namespace that holds relevant
-parameters. The line itself is a struct inheriting from the
-corresponding line type defined in
-`cuda/selections/Hlt1/include/LineInfo.cuh`. This struct has a data
-member name that stores the name of the line. Optionally it will also
-have a data member `scale_factor` that determines the line's
-postscale. If this is not present, the line will have a postscale
-of 1. Finally the struct includes a device member function function
-that takes the trigger candidate as an argument and returns a bool.
+Selections are `SelectionAlgorithm`s, that must in addition inherit from a line type.
+
+Like with any other `Algorithm`, a `SelectionAlgorithm` can have inputs,
+outputs and properties. However, certain inputs and outputs are assumed and must be defined:
+
+* `(HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events)`: (Total) number of events.
+* `(DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list)`: Event list that will be applied the selection.
+* `(DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions)`: Will contain the results of the selection.
+* `(DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets)`: Will contain the offsets to each event decisions.
+
+In order to define a selection algorithm, one must define a struct as follows:
+
+    struct "name_of_algorithm" : public SelectionAlgorithm, Parameters, "line_type"<"name_of_algorithm", Parameters>
+
+In the above, `"name_of_algorithm"` is the name of the algorithm, and `"line_type"` can be either `Line` for a completely customizable line, or any of the predefined line types (such as `OneTrackLine`, `TwoTrackLine`, `ODINLine`, etc.). Please note that `"name_of_algorithm"` appears twice in the selection algorithm definition.
+
+A `SelectionAlgorithm` can contain the following:
+
+* `using iteration_t = LineIteration::event_iteration_tag;`: Used if each selection is to be applied exactly once per event (eg. a lumi line).
+* `unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const { ... }`: A function that returns the size of the decisions container.
+* `__device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const { ... }`: A function that returns the `event_number`th offset of the decisions container.
+* ```c++
+  __device__ std::tuple<"configurable_types">
+  get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const {
+      ...
+      return std::forward_as_tuple("instances");
+  }
+  ```
+  A function that gets the `i`th input of `event_number`, and returns it as a tuple. The `"configurable_types"` can be anything. The return statement of the function is suggested to be a `return std::forward_as_tuple()` with the `"instances"` of the desired objects. The return type of this function will be used as the input of the `select` function.
+* ```c++
+  __device__ bool select(
+      const Parameters& parameters,
+      std::tuple<"configurable_types"> input) const
+  {
+      ...
+      return [true/false];
+  }
+  ```
+  The function that performs the selection for a single input. The type of the input must match the `"configurable_types"` of the `get_input` function. It returns a boolean with the decision output.
+* Optional: `unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { ... }`: Defines the number of threads the selection will be performed with.
+
+In addition, lines must be instantiated in their source file definition:
+
+* `INSTANTIATE_LINE("name_of_algorithm", "parameters_of_algorithm")`
+
+Below are two examples of lines.
 
 1.  Example: High-pT displaced track selection
 
     As an example, we'll create a line that triggers on highly displaced,
-    high-pT single tracks and has a postscale of 0.5. We will create the
-    file `cuda/selections/lines/include/ExampleOneTrack.cuh`.
-    
-        #pragma once
+    high-pT single tracks. It will be of type `OneTrackLine`. We will create the
+    header `device/selections/lines/include/ExampleOneTrack.cuh`.
         
-        #include "LineInfo.cuh"
-        #include "ParKalmanDefinitions.cuh"
-        #include "SystemOfUnits.h"
-        
-        namespace ExampleOneTrack {
-        
-          // Parameters.
-          constexpr float minPt = 10000.0f / Gaudi::Units::MeV;
-          constexpr float minIPChi2 = 25.0f;
-        
-          // Line struct.
-          struct ExampleOneTrack_t : public Hlt1::OneTrackLine {
-        
-            // Name of the line.
-            constexpr static auto name {"ExampleOneTrack"};
-        
-            // Postscale.
-            constexpr static auto scale_factor = 0.5f;
-        
-            // Selection function.
-            static __device__ bool function(const ParKalmanFilter::FittedTrack& track)
-            {
-              const bool decision = track.pt() > minPt && track.ipChi2 > minIPChi2;
-              return decision;
-            }
-        
-          };
-        
-        } // namespace ExampleOneTrack
+    ```c++
+    #pragma once
+
+    #include "SelectionAlgorithm.cuh"
+    #include "OneTrackLine.cuh"
+
+    namespace example_one_track_line {
+      DEFINE_PARAMETERS(
+        Parameters,
+        (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+        (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
+        (DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack), dev_tracks),
+        (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
+        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+        (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
+        (PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float), minIPChi2))
+
+      // SelectionAlgorithm definition
+      struct example_one_track_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<example_one_track_line_t, Parameters> {
+        // Selection function.
+        __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+
+      private:
+        Property<minPt_t> m_minPt {this, 10000.0f / Gaudi::Units::GeV};
+        Property<minIPChi2_t> m_minIPChi2 {this, 25.0f};
+      };
+    } // namespace example_one_track_line
+    ```
+
+    And the source in `device/selections/lines/src/ExampleOneTrack.cu`:
+
+    ```c++
+    #include "ExampleOneTrack.cuh"
+
+    // Explicit instantiation of the line
+    INSTANTIATE_LINE(example_one_track_line::example_one_track_line_t, example_one_track_line::Parameters)
+
+    __device__ bool example_one_track_line::example_one_track_line_t::select(
+      const Parameters& parameters,
+      std::tuple<const ParKalmanFilter::FittedTrack&> input) const
+    {
+      const auto& track = std::get<0>(input);
+      const bool decision = track.pt() > minPt && track.ipChi2 > minIPChi2;
+      return decision;
+    }
+
+    ```
+
+    Note that since the type of this line was preexisting (`OneTrackLine`), it was not
+    necessary to define any function other than `select`.
 
 2.  Example: Displaced 2-body selection
 
     Here we'll create an example 2-track line that selects displaced
-    secondary vertices with no postscale. We'll put this in
-    `cuda/selections/lines/include/ExampleTwoTrack.cuh`.
+    secondary vertices with no postscale. We'll create a header in
+    `device/selections/lines/include/ExampleTwoTrack.cuh` with the following contents:
     
-        #pragma once
-        
-        #include "LineInfo.cuh"
-        #include "VertexDefinitions.cuh"
-        #include "SystemOfUnits.h"
-        
-        namespace ExampleTwoTrack {
-        
-          // Parameters.
-          constexpr float minComboPt = 2000.0f / Gaudi::Units::MeV;
-          constexpr float minTrackPt = 500.0f / Gaudi::Units::MeV;
-          constexpr float minTrackIPChi2 = 25.0f;
-        
-          // Line struct.
-          struct ExampleTwoTrack_t : public Hlt1::TwoTrackLine {
-        
-            // Name of the line.
-            constexpr static auto name {"ExampleTwoTrack"};
-        
-            // Selection function.
-            static __device__ bool function(const VertexFit::TrackMVAVertex vertex)
-            {
-              // Make sure the vertex fit succeeded.
-              if (vertex.chi2 < 0) {
-                return false;
-              }
-        
-              const bool decision = vertex.pt() > minComboPt && 
-                vertex.minpt > minTrackPt &&
-                vertex.minipchi2 > minTrackIPChi2;
-              return decision;
-            }
-        
-          };
-        
-        } // namespace ExampleTwoTrack
+    ```c++
+    #pragma once
 
+    #include "SelectionAlgorithm.cuh"
+    #include "TwoTrackLine.cuh"
+
+    namespace example_two_track_line {
+      DEFINE_PARAMETERS(
+        Parameters,
+        (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+        (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
+        (DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex), dev_svs),
+        (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
+        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+        (PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float), minComboPt),
+        (PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float), minTrackPt),
+        (PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float), minTrackIPChi2))
+
+      // SelectionAlgorithm definition
+      struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
+        // Selection function.
+        __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
+
+      private:
+        Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::GeV};
+        Property<minTrackPt_t> m_minTrackPt {this, 500.0f / Gaudi::Units::MeV};
+        Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 25.0f};
+      };
+
+    } // namespace example_two_track_line
+    ```
+
+    And a source in `device/selections/lines/src/ExampleTwoTrack.cu` with the following:
+
+    ```c++
+    #include "ExampleTwoTrackLine.cuh"
+
+    INSTANTIATE_LINE(example_two_track_line::example_two_track_line_t, example_two_track_line::Parameters)
+
+    __device__ bool example_two_track_line::example_two_track_line_t::select(
+      const Parameters& parameters,
+      std::tuple<const VertexFit::TrackMVAVertex&> input) const
+    {
+      const auto& vertex = std::get<0>(input);
+
+      // Make sure the vertex fit succeeded.
+      if (vertex.chi2 < 0) {
+        return false;
+      }
+
+      const bool decision = vertex.pt() > minComboPt && 
+        vertex.minpt > minTrackPt &&
+        vertex.minipchi2 > minTrackIPChi2;
+      return decision;
+    }
+    ```
 
 <a id="org3fe70a8"></a>
 
@@ -228,14 +293,6 @@ Selections are added to the Allen sequence similarly to
 algorithms. After creating the selection source code, a new sequence
 must be generated. Head to `configuration/sequences` and add a new
 configuration file.
-
-The selection can then be added to a sequence. The sequence header file
-can then be generated in the usual way. The line will automatically be
-included in a tuple of selections, which will be accessed using the
-`LineTraverser`. The traverser evaluates the selections on candidates
-stored in the buffers corresponding to the line type. In addition, the
-traverser will handle adding the selection information to the rate
-checker, DecReports, and SelReports.
 
 1.  Example: A minimal HLT1 sequence
 
@@ -248,34 +305,60 @@ checker, DecReports, and SelReports.
     Modify the argument list to `HLT1Sequence` by adding the keyword argument
     `add_default_lines = False`, and add the lines:
 
-        hlt1_sequence = HLT1Sequence(
-            initialize_lists=velo_sequence["initialize_lists"],
-            velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
-            velo_kalman_filter=pv_sequence["velo_kalman_filter"],
-            prefix_sum_offsets_velo_track_hit_number=velo_sequence[
-                "prefix_sum_offsets_velo_track_hit_number"],
-            pv_beamline_multi_fitter=pv_sequence["pv_beamline_multi_fitter"],
-            prefix_sum_forward_tracks=forward_sequence["prefix_sum_forward_tracks"],
-            velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
-            prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],
-            prefix_sum_ut_track_hit_number=ut_sequence[
-                "prefix_sum_ut_track_hit_number"],
-            ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"],
-            prefix_sum_scifi_track_hit_number=forward_sequence[
-                "prefix_sum_scifi_track_hit_number"],
-            scifi_consolidate_tracks=forward_sequence["scifi_consolidate_tracks_t"],
-            is_muon=muon_sequence["is_muon_t"],
-            # Disable default lines
-            add_default_lines=False)
+    ```python
+    hlt1_sequence = HLT1Sequence(
+        initialize_lists=velo_sequence["initialize_lists"],
+        velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
+        velo_kalman_filter=pv_sequence["velo_kalman_filter"],
+        prefix_sum_offsets_velo_track_hit_number=velo_sequence[
+            "prefix_sum_offsets_velo_track_hit_number"],
+        pv_beamline_multi_fitter=pv_sequence["pv_beamline_multi_fitter"],
+        prefix_sum_forward_tracks=forward_sequence["prefix_sum_forward_tracks"],
+        velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
+        prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],
+        prefix_sum_ut_track_hit_number=ut_sequence[
+            "prefix_sum_ut_track_hit_number"],
+        ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"],
+        prefix_sum_scifi_track_hit_number=forward_sequence[
+            "prefix_sum_scifi_track_hit_number"],
+        scifi_consolidate_tracks=forward_sequence["scifi_consolidate_tracks_t"],
+        is_muon=muon_sequence["is_muon_t"],
+        # Disable default lines
+        add_default_lines=False)
 
-        # New lines
-        ExampleOneTrack_line = ExampleOneTrack_t()
-        ExampleTwoTrack_line = ExampleTwoTrack_t()
+    # New lines
+    from HLT1Sequence import make_selection_gatherer
+    import algorithms
 
-        # Compose final sequence with lines
-        compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
-                          muon_sequence, hlt1_sequence, ExampleOneTrack_line,
-                          ExampleTwoTrack_line).generate()
+    track_mva_line = algorithms.example_one_track_line_t(
+        name="track_mva_line",
+        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
+        host_number_of_reconstructed_scifi_tracks_t=
+        forward_sequence["prefix_sum_forward_tracks"].host_total_sum_holder_t(),
+        dev_tracks_t=hlt1_sequence["kalman_velo_only"].dev_kf_tracks_t(),
+        dev_event_list_t=velo_sequence["initialize_lists"].dev_event_list_t(),
+        dev_track_offsets_t=forward_sequence["prefix_sum_forward_tracks"].
+        dev_output_buffer_t())
+
+    two_track_mva_line = algorithms.example_two_track_line_t(
+        name="two_track_mva_line",
+        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
+        host_number_of_svs_t=hlt1_sequence["prefix_sum_secondary_vertices"].
+        host_total_sum_holder_t(),
+        dev_svs_t=hlt1_sequence["fit_secondary_vertices"].dev_consolidated_svs_t(),
+        dev_event_list_t=velo_sequence["initialize_lists"].dev_event_list_t(),
+        dev_sv_offsets_t=hlt1_sequence["prefix_sum_secondary_vertices"].
+        dev_output_buffer_t())
+
+    lines = (track_mva_line, two_track_mva_line, no_beam_line,
+             beam_one_line, beam_two_line)
+    gatherer = make_selection_gatherer(
+        lines, velo_sequence["initialize_lists"], hlt1_sequence["odin_banks"], name="gather_selections")
+
+    # Compose final sequence with lines
+    extend_sequence(compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
+                      muon_sequence, hlt1_sequence), *lines, gatherer).generate()
+    ```
 
     Now, you should be able to build and run the newly generated `custom_sequence`.
     

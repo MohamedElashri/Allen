@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "SelectionAlgorithm.cuh"
 #include "ODINLine.cuh"
 
 namespace beam_crossing_line {

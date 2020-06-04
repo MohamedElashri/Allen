@@ -66,7 +66,6 @@ You may reuse what exists already in `definitions` and extend that instead. In o
 
 * Instantiate (ie. _with parentheses_) algorithms. Algorithm inputs must be assigned other algorithm outputs.
 * Create a `Sequence` object with the desired algorithm instances in order of execution.
-* The `Sequence` class also accepts line objects.
 * `Sequences` can also be composed or extended.
 * Generate the configuration with the `generate()` method of the `Sequence` instance.
 
