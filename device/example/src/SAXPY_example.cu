@@ -20,8 +20,8 @@ void saxpy::saxpy_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(saxpy)(dim3(1), property<block_dim_t>(), cuda_stream)(
-    arguments, first<host_number_of_selected_events_t>(arguments));
+  global_function(saxpy)(dim3(1), property<block_dim_t>(), stream)(
+    arguments, first<host_number_of_events_t>(arguments));
 }
 
 /**
