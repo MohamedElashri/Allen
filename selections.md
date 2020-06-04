@@ -330,8 +330,8 @@ configuration file.
     from HLT1Sequence import make_selection_gatherer
     import algorithms
 
-    track_mva_line = algorithms.example_one_track_line_t(
-        name="track_mva_line",
+    example_one_track_line = algorithms.example_one_track_line_t(
+        name="example_one_track_line",
         host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
         host_number_of_reconstructed_scifi_tracks_t=
         forward_sequence["prefix_sum_forward_tracks"].host_total_sum_holder_t(),
@@ -340,8 +340,8 @@ configuration file.
         dev_track_offsets_t=forward_sequence["prefix_sum_forward_tracks"].
         dev_output_buffer_t())
 
-    two_track_mva_line = algorithms.example_two_track_line_t(
-        name="two_track_mva_line",
+    example_two_track_line = algorithms.example_two_track_line_t(
+        name="example_two_track_line",
         host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
         host_number_of_svs_t=hlt1_sequence["prefix_sum_secondary_vertices"].
         host_total_sum_holder_t(),
@@ -350,8 +350,7 @@ configuration file.
         dev_sv_offsets_t=hlt1_sequence["prefix_sum_secondary_vertices"].
         dev_output_buffer_t())
 
-    lines = (track_mva_line, two_track_mva_line, no_beam_line,
-             beam_one_line, beam_two_line)
+    lines = (example_one_track_line, example_two_track_line)
     gatherer = make_selection_gatherer(
         lines, velo_sequence["initialize_lists"], hlt1_sequence["odin_banks"], name="gather_selections")
 
