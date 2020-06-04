@@ -563,7 +563,7 @@ test_run_changes:
     - IFS=${PREVIOUS_IFS}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BREAKDOWN_DEVICE_ID=${JOB_NAME_SPLIT[2]}
-    - cat output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
+    - cat output_*/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
     - cat output_*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs.txt
     - cat devices.txt
     - cat throughputs.txt
@@ -582,7 +582,7 @@ test_run_changes:
       - merge_requests
   stage: publish
   script:
-    - cat output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
+    - cat output_*/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
     - cat output_*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs.txt
     - cat devices.txt
     - cat throughputs.txt
