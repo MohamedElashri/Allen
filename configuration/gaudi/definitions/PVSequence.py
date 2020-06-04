@@ -12,8 +12,7 @@ def run_velo_kalman_filter(**kwargs):
         "host_number_of_reconstructed_velo_tracks"]
 
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_events = initalized_lists[
-        "host_number_of_events"]
+    host_number_of_events = initalized_lists["host_number_of_events"]
     dev_velo_states = velo_tracks["dev_velo_states"]
     dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
     dev_offsets_velo_track_hit_number = velo_tracks[
@@ -39,8 +38,7 @@ def run_velo_kalman_filter(**kwargs):
 
 def make_pvs(**kwargs):
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_events = initalized_lists[
-        "host_number_of_events"]
+    host_number_of_events = initalized_lists["host_number_of_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
     velo_tracks = make_velo_tracks(**kwargs)

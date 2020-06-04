@@ -24,8 +24,7 @@ def run_selections(**kwargs):
         name="velo_pv_ip",
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
             "host_number_of_reconstructed_velo_tracks"],
-        host_number_of_events_t=initialized_lists[
-            "host_number_of_events"],
+        host_number_of_events_t=initialized_lists["host_number_of_events"],
         dev_velo_kalman_beamline_states_t=velo_kalman_filter[
             "dev_velo_kalman_beamline_states"],
         dev_offsets_all_velo_tracks_t=velo_tracks[
@@ -39,8 +38,7 @@ def run_selections(**kwargs):
     kalman_velo_only = Algorithm(
         kalman_velo_only_t,
         name="kalman_velo_only",
-        host_number_of_events_t=initialized_lists[
-            "host_number_of_events"],
+        host_number_of_events_t=initialized_lists["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_offsets_all_velo_tracks_t=velo_tracks[
@@ -70,8 +68,7 @@ def run_selections(**kwargs):
     filter_tracks = Algorithm(
         filter_tracks_t,
         name="filter_tracks",
-        host_number_of_events_t=initialized_lists[
-            "host_number_of_events"],
+        host_number_of_events_t=initialized_lists["host_number_of_events"],
         dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t,
         dev_offsets_forward_tracks_t=forward_tracks[
             "dev_offsets_forward_tracks"],
@@ -94,8 +91,7 @@ def run_selections(**kwargs):
     fit_secondary_vertices = Algorithm(
         fit_secondary_vertices_t,
         name="fit_secondary_vertices",
-        host_number_of_events_t=initialized_lists[
-            "host_number_of_events"],
+        host_number_of_events_t=initialized_lists["host_number_of_events"],
         host_number_of_svs_t=prefix_sum_secondary_vertices.
         host_total_sum_holder_t,
         dev_kf_tracks_t=kalman_velo_only.dev_kf_tracks_t,
@@ -121,8 +117,7 @@ def run_selections(**kwargs):
     run_hlt1 = Algorithm(
         run_hlt1_t,
         name="run_hlt1",
-        host_number_of_events_t=initialized_lists[
-            "host_number_of_events"],
+        host_number_of_events_t=initialized_lists["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         host_number_of_svs_t=prefix_sum_secondary_vertices.
@@ -141,8 +136,7 @@ def run_selections(**kwargs):
     prepare_raw_banks = Algorithm(
         prepare_raw_banks_t,
         name="prepare_raw_banks",
-        host_number_of_events_t=initialized_lists[
-            "host_number_of_events"],
+        host_number_of_events_t=initialized_lists["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         host_number_of_svs_t=prefix_sum_secondary_vertices.
@@ -182,8 +176,7 @@ def run_selections(**kwargs):
     package_sel_reports = Algorithm(
         package_sel_reports_t,
         name="package_sel_reports",
-        host_number_of_events_t=initialized_lists[
-            "host_number_of_events"],
+        host_number_of_events_t=initialized_lists["host_number_of_events"],
         host_number_of_sel_rep_words_t=prefix_sum_sel_reps.
         host_total_sum_holder_t,
         dev_event_list_t=initialized_lists["dev_event_list"],

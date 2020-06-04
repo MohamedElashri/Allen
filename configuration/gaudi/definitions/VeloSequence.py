@@ -31,17 +31,14 @@ def initialize_lists(doGEC=True, **kwargs):
             host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t)
 
     return {
-        "host_number_of_events":
-        initialize_lists.host_number_of_events_t,
-        "dev_event_list":
-        initialize_lists.dev_event_list_t
+        "host_number_of_events": initialize_lists.host_number_of_events_t,
+        "dev_event_list": initialize_lists.dev_event_list_t
     }
 
 
 def decode_velo(**kwargs):
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_events = initalized_lists[
-        "host_number_of_events"]
+    host_number_of_events = initalized_lists["host_number_of_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
     velo_banks = Algorithm(data_provider_t, name="velo_banks", bank_type="VP")
@@ -109,8 +106,7 @@ def decode_velo(**kwargs):
 
 def make_velo_tracks(**kwargs):
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_events = initalized_lists[
-        "host_number_of_events"]
+    host_number_of_events = initalized_lists["host_number_of_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
     decoded_velo = decode_velo(**kwargs)

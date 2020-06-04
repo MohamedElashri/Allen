@@ -111,9 +111,14 @@ class Sequence():
                         algorithm.parameters().items()):
                     if type(parameter) != tuple:
                         if parameter.fullname() in parameters:
-                            parameters[parameter.fullname()].append((algorithm.name(), algorithm.namespace, parameter_t))
+                            parameters[parameter.fullname()].append(
+                                (algorithm.name(), algorithm.namespace,
+                                 parameter_t))
                         else:
-                            parameters[parameter.fullname()] = [(algorithm.name(), algorithm.namespace, parameter_t)]
+                            parameters[parameter.fullname()] = [
+                                (algorithm.name(), algorithm.namespace,
+                                 parameter_t)
+                            ]
                     else:
                         for p in parameter:
                             parameters_part_of_aggregates[p.fullname()] = p
@@ -151,7 +156,9 @@ char* m_offset = nullptr; };\n"
             for _, algorithm in iter(self.__sequence.items()):
                 i_alg += 1
                 # Add algorithm namespace::name
-                s += prefix(1) + algorithm.namespace + "::" + algorithm.original_name()
+                s += prefix(
+                    1) + algorithm.namespace + "::" + algorithm.original_name(
+                    )
                 i = 0
                 if i_alg != len(self.__sequence):
                     s += ",\n"
@@ -186,7 +193,10 @@ char* m_offset = nullptr; };\n"
             s = "#pragma once\n\n#include <tuple>\n"
             algorithms_with_aggregates_list = algorithms_with_aggregates()
             parameter_producers = set([])
-            for producer_filename in set([self.__sequence[parameter.producer()].filename() for _, parameter in parameters_part_of_aggregates.items()]):
+            for producer_filename in set([
+                    self.__sequence[parameter.producer()].filename()
+                    for _, parameter in parameters_part_of_aggregates.items()
+            ]):
                 s += "#include \"" + prefix_includes + producer_filename + "\"\n"
             s += "\n"
             # Generate typenames that participate in aggregates
@@ -211,12 +221,17 @@ char* offset() const override { return m_offset; } \
 private: \
 size_t m_size = 0; \
 char* m_offset = nullptr; };\n"
+
             s += "\n"
             for algorithm_with_aggregate_class in algorithms_with_aggregates_list:
-                instance_of_alg_class = [alg for _, alg in self.__sequence.items() if type(alg) == algorithm_with_aggregate_class]
+                instance_of_alg_class = [
+                    alg for _, alg in self.__sequence.items()
+                    if type(alg) == algorithm_with_aggregate_class
+                ]
                 if len(instance_of_alg_class):
                     for algorithm in instance_of_alg_class:
-                        for parameter_t, parameter_tup in iter(algorithm.parameters().items()):
+                        for parameter_t, parameter_tup in iter(
+                                algorithm.parameters().items()):
                             if type(parameter_tup) == tuple:
                                 s += "namespace " + algorithm.namespace + " { namespace " + parameter_t + " { using tuple_t = std::tuple<"
                                 for parameter in parameter_tup:
@@ -307,4 +322,3 @@ def compose_sequences(*args):
         for item in sequence:
             new_sequence.append(item)
     return Sequence(new_sequence)
-

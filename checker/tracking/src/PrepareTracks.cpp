@@ -72,7 +72,8 @@ std::vector<Checker::Tracks> prepareUTTracks(
 
     Checker::Tracks tracks; // all tracks within one event
 
-    Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, event_number, number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {
+      velo_track_atomics, velo_track_hit_number, event_number, number_of_events};
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
     UT::Consolidated::ConstExtendedTracks ut_tracks {
@@ -152,7 +153,8 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
     const auto event_number = event_list[i];
     Checker::Tracks tracks; // all tracks within one event
 
-    Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, event_number, number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {
+      velo_track_atomics, velo_track_hit_number, event_number, number_of_events};
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
     UT::Consolidated::ConstExtendedTracks ut_tracks {

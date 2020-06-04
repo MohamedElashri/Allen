@@ -229,11 +229,10 @@ def prefix(indentation_level, indent_by=2):
 def parameter_tuple(parameter):
     if type(parameter) == tuple:
         return parameter
-    return (parameter,)
+    return (parameter, )
 
 
 class AlgorithmRepr(type):
     def __repr__(cls):
         return "class " + cls.__class__.__name__ + " : " + cls.__bases__[0].__name__ + "\n inputs: " + \
             str(cls.inputs) + "\n outputs: " + str(cls.outputs) + "\n properties: " + str(cls.props) + "\n"
-

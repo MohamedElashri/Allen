@@ -458,7 +458,13 @@ extern "C" int allen(
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, print_memory_usage, start_event_offset, reserve_mb, reserve_host_mb, constants, configuration_reader->params());
+    number_of_threads,
+    print_memory_usage,
+    start_event_offset,
+    reserve_mb,
+    reserve_host_mb,
+    constants,
+    configuration_reader->params());
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(

@@ -33,8 +33,7 @@ def ForwardSequence(initialize_lists,
     scifi_calculate_cluster_count = scifi_calculate_cluster_count_algorithm(
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t(),
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t(),
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
     prefix_sum_scifi_hits = host_prefix_sum_t(
@@ -43,8 +42,7 @@ def ForwardSequence(initialize_lists,
         dev_scifi_hit_count_t())
 
     scifi_pre_decode = scifi_pre_decode_algorithm(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t(),
         host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
         host_total_sum_holder_t(),
@@ -53,8 +51,7 @@ def ForwardSequence(initialize_lists,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t())
 
     scifi_raw_bank_decoder = scifi_raw_bank_decoder_algorithm(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
         host_total_sum_holder_t(),
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t(),
@@ -65,8 +62,7 @@ def ForwardSequence(initialize_lists,
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     lf_search_initial_windows = lf_search_initial_windows_t(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t(),
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t(),
@@ -89,8 +85,7 @@ def ForwardSequence(initialize_lists,
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
     lf_triplet_seeding = lf_triplet_seeding_t(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t(),
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t(),
@@ -113,8 +108,7 @@ def ForwardSequence(initialize_lists,
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
     lf_create_tracks = lf_create_tracks_t(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t(),
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t(),
@@ -143,8 +137,7 @@ def ForwardSequence(initialize_lists,
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
     lf_quality_filter_length = lf_quality_filter_length_t(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t(),
         dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
@@ -158,8 +151,7 @@ def ForwardSequence(initialize_lists,
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
     lf_quality_filter = lf_quality_filter_t(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t(),
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t(),
@@ -189,8 +181,7 @@ def ForwardSequence(initialize_lists,
         dev_input_buffer_t=lf_quality_filter.dev_atomics_scifi_t())
 
     scifi_copy_track_hit_number = scifi_copy_track_hit_number_t(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
         host_total_sum_holder_t(),
         dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
@@ -204,8 +195,7 @@ def ForwardSequence(initialize_lists,
         dev_scifi_track_hit_number_t())
 
     scifi_consolidate_tracks = scifi_consolidate_tracks_t(
-        host_number_of_events_t=initialize_lists.
-        host_number_of_events_t(),
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_accumulated_number_of_hits_in_scifi_tracks_t=
         prefix_sum_scifi_track_hit_number.host_total_sum_holder_t(),
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.

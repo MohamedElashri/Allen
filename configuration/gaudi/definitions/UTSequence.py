@@ -8,8 +8,7 @@ from VeloSequence import initialize_lists, make_velo_tracks
 
 def make_ut_tracks(restricted=True, **kwargs):
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_events_t = initalized_lists[
-        "host_number_of_events"]
+    host_number_of_events_t = initalized_lists["host_number_of_events"]
     dev_event_list_t = initalized_lists["dev_event_list"]
 
     velo_tracks = make_velo_tracks(**kwargs)

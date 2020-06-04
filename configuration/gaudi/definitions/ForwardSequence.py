@@ -10,8 +10,7 @@ from UTSequence import make_ut_tracks
 def make_forward_tracks(forward_decoding="v4", **kwargs):
 
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_events = initalized_lists[
-        "host_number_of_events"]
+    host_number_of_events = initalized_lists["host_number_of_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
     velo_tracks = make_velo_tracks(**kwargs)

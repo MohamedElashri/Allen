@@ -45,7 +45,10 @@ class Parameter():
 
 # TODO: Parse these from Algorithm.cuh
 def make_default_algorithm_properties():
-    return [Property("verbosity_t", "int", "\"verbosity\"", "\"verbosity of algorithm\"")]
+    return [
+        Property("verbosity_t", "int", "\"verbosity\"",
+                 "\"verbosity of algorithm\"")
+    ]
 
 
 def make_parsed_algorithms(filename, data):
@@ -78,7 +81,8 @@ def make_parsed_algorithms(filename, data):
                     typedef = t[4]
                     aggregate = t[5]
                     parameters.append(
-                        Parameter(typename, datatype, is_input, typedef, aggregate))
+                        Parameter(typename, datatype, is_input, typedef,
+                                  aggregate))
             parsed_algorithms.append(
                 ParsedAlgorithm(name, scope, filename, namespace, parameters,
                                 properties))
@@ -99,7 +103,9 @@ class AlgorithmTraversal():
     In addition, the Parameters class must be defined in the same header file."""
 
     # Accepted tokens for algorithm definitions
-    __algorithm_tokens = ["HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm"]
+    __algorithm_tokens = [
+        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm"
+    ]
 
     # Accepted tokens for parameter parsing
     __parameter_io_datatypes = ["device_datatype", "host_datatype"]

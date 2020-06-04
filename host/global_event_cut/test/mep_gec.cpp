@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
                                             event_list.data(),
                                             0,
                                             9750};
-    
+
     host_global_event_cut::host_global_event_cut_mep(interval, pars);
 
     cout << "selected " << number_of_selected_events << " events" << endl;

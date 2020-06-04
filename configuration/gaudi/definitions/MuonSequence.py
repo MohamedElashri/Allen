@@ -9,8 +9,7 @@ from VeloSequence import initialize_lists
 
 def is_muon(**kwargs):
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_events = initalized_lists[
-        "host_number_of_events"]
+    host_number_of_events = initalized_lists["host_number_of_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
     forward_tracks = make_forward_tracks(**kwargs)

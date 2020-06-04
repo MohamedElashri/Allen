@@ -149,7 +149,8 @@ class AllenConf():
             if param.aggregate:
                 s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
         i -= 1
-        s += ")\n" + AllenConf.prefix(i) + "namespace = \"" + algorithm.namespace + "\"\n\n"
+        s += ")\n" + AllenConf.prefix(
+            i) + "namespace = \"" + algorithm.namespace + "\"\n\n"
         s += AllenConf.prefix(i) + "def __init__(self"
         i += 1
         for var in algorithm.parameters:
@@ -175,7 +176,8 @@ class AllenConf():
                 s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + var.kind \
                   + "(\"" + var.typename + "\", \"" + var.typedef + "\", self.__name)),"
             elif var.aggregate:
-                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + var.typename + "),"
+                s += "\n" + AllenConf.prefix(
+                    i) + "(\"" + var.typename + "\", " + var.typename + "),"
             else:
                 s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", check_input_parameter(" + var.typename \
                   + ", " + var.kind + ", \"" + var.typedef + "\")),"
