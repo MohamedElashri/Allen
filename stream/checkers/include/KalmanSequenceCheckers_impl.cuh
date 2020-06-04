@@ -35,7 +35,7 @@ struct SequenceVisitor<kalman_filter::kalman_filter_t> {
       host_buffers.host_kalmanvelo_states,
       host_buffers.host_reconstructed_multi_pvs,
       host_buffers.host_number_of_multivertex,
-      host_buffers.host_number_of_selected_events[0]);
+      host_buffers.host_number_of_selected_events);
 
     auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
     checker.accumulate(mc_events, tracks);
@@ -76,7 +76,7 @@ struct SequenceVisitor<kalman_velo_only::kalman_velo_only_t> {
       host_buffers.host_kalmanvelo_states,
       host_buffers.host_reconstructed_multi_pvs,
       host_buffers.host_number_of_multivertex,
-      host_buffers.host_number_of_events[0]);
+      host_buffers.host_number_of_events);
 
     auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
     checker.accumulate(mc_events, tracks);

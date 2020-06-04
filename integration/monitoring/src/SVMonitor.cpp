@@ -15,7 +15,7 @@ void SVMonitor::fill(unsigned i_buf, bool)
 {
   HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
 
-  unsigned nevt = buf->host_number_of_events[0];
+  unsigned nevt = buf->host_number_of_events;
 
   for (unsigned ievt = 0; ievt < nevt; ++ievt) {
     int sv_offset = buf->host_sv_offsets[ievt];

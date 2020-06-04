@@ -23,20 +23,21 @@ void RateMonitor::fill(unsigned i_buf, bool useWallTime)
 
   unsigned nevt = buf->host_number_of_events;
 
-  for (unsigned ievt = 0; ievt < nevt; ++ievt) {
-    auto dec_reports = buf->host_dec_reports + 2 + ievt * (2 + m_number_of_hlt1_lines);
+  // TODO
+  // for (unsigned ievt = 0; ievt < nevt; ++ievt) {
+  //   auto dec_reports = buf->host_dec_reports + 2 + ievt * (2 + m_number_of_hlt1_lines);
 
-    bool pass(false);
+  //   bool pass(false);
 
-    for (unsigned i_line = 0; i_line < m_number_of_hlt1_lines; ++i_line) {
-      if (dec_reports[i_line] & HltDecReport::decisionMask) {
-        m_histograms[LineRatesStart + i_line]->Fill(time, 1. / m_time_step);
-        pass = true;
-      }
-    }
+  //   for (unsigned i_line = 0; i_line < m_number_of_hlt1_lines; ++i_line) {
+  //     if (dec_reports[i_line] & HltDecReport::decisionMask) {
+  //       m_histograms[LineRatesStart + i_line]->Fill(time, 1. / m_time_step);
+  //       pass = true;
+  //     }
+  //   }
 
-    if (pass) m_histograms[InclusiveRate]->Fill(time, 1. / m_time_step);
-  }
+  //  if (pass) m_histograms[InclusiveRate]->Fill(time, 1. / m_time_step);
+  // }
 }
 
 void RateMonitor::init()
