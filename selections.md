@@ -159,7 +159,7 @@ In addition, lines must be instantiated in their source file definition:
 
 * `INSTANTIATE_LINE("name_of_algorithm", "parameters_of_algorithm")`
 
-Below are two examples of lines.
+Below are three examples of lines.
 
 1.  Example: High-pT displaced track selection
 
@@ -285,6 +285,78 @@ Below are two examples of lines.
     }
     ```
 
+3. Example: Velo micro bias line
+
+    Finally we'll define a line that selects events with at least 1 reconstructed VELO track.
+
+    This time, we will need to define not only the `select` function, but also the `get_input` function, as we need custom data to feed into our line (the number of tracks in an event).
+
+    The header `VeloMicroBiasLine.cuh` is as follows:
+
+    ```c++
+    #pragma once
+
+    #include "SelectionAlgorithm.cuh"
+    #include "EventLine.cuh"
+    #include "VeloConsolidated.cuh"
+
+    namespace velo_micro_bias_line {
+      DEFINE_PARAMETERS(
+        Parameters,
+        (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+        (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
+        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+        (DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned), dev_offsets_velo_tracks),
+        (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
+        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+        (PROPERTY(min_velo_tracks_t, "min_velo_tracks", "Minimum number of VELO tracks", unsigned), min_velo_tracks))
+
+      struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
+        __device__ std::tuple<const unsigned>
+        get_input(const Parameters& parameters, const unsigned event_number) const;
+
+        __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+
+      private:
+        Property<min_velo_tracks_t> m_min_velo_tracks {this, 1};
+      };
+    } // namespace velo_micro_bias_line
+    ```
+
+    Note that we have added three inputs to obtain VELO track information (`dev_offsets_velo_tracks_t`, `dev_offsets_velo_track_hit_number_t` and `dev_number_of_events_t`). Also, the line will run only once per events, so `velo_micro_bias_line_t` inherits from `EventLine<velo_micro_bias_line_t, Parameters>` (instead of `Line`). Finally, `get_input` is declared as well, which we will have to define in the source file. `get_input` will return a `std::tuple<const unsigned>`, which is the type of the `input` argument in `select`.
+
+    The source file looks as follows:
+
+    ```c++
+    #include "VeloMicroBiasLine.cuh"
+
+    // Explicit instantiation
+    INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_line::Parameters)
+
+    __device__ std::tuple<const unsigned>
+    velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parameters, const unsigned event_number) const
+    {
+      Velo::Consolidated::ConstTracks velo_tracks {
+        parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, parameters.dev_number_of_events[0]};
+      const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
+      return std::forward_as_tuple(number_of_velo_tracks);
+    }
+
+    __device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
+      const Parameters& parameters,
+      std::tuple<const unsigned> input) const
+    {
+      const auto number_of_velo_tracks = std::get<0>(input);
+      return number_of_velo_tracks >= parameters.min_velo_tracks;
+    }
+
+    ```
+
+    `get_input` gets the number of VELO tracks and returns it, and `select` will select only events with VELO tracks.
+
+
+
 <a id="org3fe70a8"></a>
 
 ### Adding your selection to the Allen sequence
@@ -350,7 +422,15 @@ configuration file.
         dev_sv_offsets_t=hlt1_sequence["prefix_sum_secondary_vertices"].
         dev_output_buffer_t())
 
-    lines = (example_one_track_line, example_two_track_line)
+    velo_micro_bias_line = velo_micro_bias_line_t(
+        name="velo_micro_bias_line",
+        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
+        dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
+        dev_event_list_t=velo_sequence["full_event_list"].dev_event_list_t(),
+        dev_offsets_velo_tracks_t=velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
+        dev_offsets_velo_track_hit_number_t=velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
+
+    lines = (example_one_track_line, example_two_track_line, velo_micro_bias_line)
     gatherer = make_selection_gatherer(
         lines, velo_sequence["initialize_lists"], hlt1_sequence["odin_banks"], name="gather_selections")
 
