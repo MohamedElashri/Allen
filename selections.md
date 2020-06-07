@@ -211,7 +211,7 @@ Below are two examples of lines.
       std::tuple<const ParKalmanFilter::FittedTrack&> input) const
     {
       const auto& track = std::get<0>(input);
-      const bool decision = track.pt() > minPt && track.ipChi2 > minIPChi2;
+      const bool decision = track.pt() > parameters.minPt && track.ipChi2 > parameters.minIPChi2;
       return decision;
     }
 
@@ -278,9 +278,9 @@ Below are two examples of lines.
         return false;
       }
 
-      const bool decision = vertex.pt() > minComboPt && 
-        vertex.minpt > minTrackPt &&
-        vertex.minipchi2 > minTrackIPChi2;
+      const bool decision = vertex.pt() > parameters.minComboPt && 
+        vertex.minpt > parameters.minTrackPt &&
+        vertex.minipchi2 > parameters.minTrackIPChi2;
       return decision;
     }
     ```

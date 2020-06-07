@@ -182,8 +182,24 @@ def HLT1Sequence(initialize_lists,
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
             beam_crossing_type="2")
 
+        both_beams_line = beam_crossing_line_t(
+            name="both_beams_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_event_list_t=full_event_list.dev_event_list_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            beam_crossing_type="3")
+
+        velo_micro_bias_line = velo_micro_bias_line_t(
+            name="velo_micro_bias_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+            dev_event_list_t=full_event_list.dev_event_list_t(),
+            dev_offsets_velo_tracks_t=velo_copy_track_hit_number.dev_offsets_all_velo_tracks_t(),
+            dev_offsets_velo_track_hit_number_t=prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t())
+
         lines = (track_mva_line, two_track_mva_line, no_beam_line,
-                 beam_one_line, beam_two_line)
+                 beam_one_line, beam_two_line, both_beams_line, velo_micro_bias_line)
         gatherer = make_selection_gatherer(
             lines, initialize_lists, odin_banks, name="gather_selections")
 
