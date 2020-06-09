@@ -403,10 +403,10 @@ test_run_changes:
   script:
     - exit 0
   dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_run_changes
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_no_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_physics_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_physics_no_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes
+    - x862630v4:CPU:hlt1_pp_default:run_with_run_changes
+    - x862630v4:CPU:hlt1_pp_default:run_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
