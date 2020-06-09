@@ -104,9 +104,9 @@ size_t MEP::allen_offsets(
           }
           else if (odin.runNumber() != run_number) {
             event_end = i;
-	    break;
+            break;
           }
-	}
+        }
         // Anticipate offset structure already here, i.e. don't assign to the first one
         auto idx = i - event_start + 1;
         auto& event_offsets = std::get<2>(slices[allen_type][slice_index]);
