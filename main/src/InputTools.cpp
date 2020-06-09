@@ -212,7 +212,7 @@ void read_folder(
     }
   }
 
-  for (auto const event_id : requested_events) {
+  for (auto const& event_id : requested_events) {
     auto missing = !tracks_files.count(event_id);
     if (missing) {
       error_cout << "Missing file for event " << std::get<0>(event_id) << " " << std::get<1>(event_id) << "\n";

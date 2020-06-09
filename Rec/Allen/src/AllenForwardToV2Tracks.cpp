@@ -55,36 +55,6 @@ StatusCode AllenForwardToV2Tracks::initialize()
   return StatusCode::SUCCESS;
 }
 
-LHCb::State propagate_state_from_first_measurement_to_beam(const LHCb::State state)
-{
-  const float t2 = sqrt(state.tx() * state.tx() + state.ty() * state.ty());
-
-  const float scat2RFFoil =
-    m_scatterFoilParameters[0] * (1.0 + m_scatterFoilParameters[1] * t2) * state.qOverP() * state.qOverP();
-  LHCb::State beamline_state;
-  beamline_state.covariance()(2, 2) = state.covariance()(2, 2) + scat2RFFoil;
-  beamline_state.covariance()(3, 3) = state.covariance()(3, 3) + scat2RFFoil;
-
-  float zBeam = state.z();
-  float denom = state.tx() * state.tx() + state.ty() * state.ty();
-  zBeam = (denom < 0.001f * 0.001f) ? zBeam : state.z() - (state.x() * state.tx() + state.y() * state.ty()) / denom;
-
-  const float dz = zBeam - state.z();
-  const float dz2 = dz * dz;
-
-  beamline_state.covariance()(0, 0) =
-    state.covariance()(0, 0) + dz2 * state.covariance()(2, 2) + 2 * dz * state.covariance()(0, 2);
-  beamline_state.covariance()(0, 2) = state.covariance()(0, 2) + dz * state.covariance()(2, 2);
-  beamline_state.covariance()(1, 1) =
-    state.covariance()(1, 1) + dz2 * state.covariance()(3, 3) + 2 * dz * state.covariance()(1, 3);
-  beamline_state.covariance()(1, 3) = state.covariance()(1, 3) + dz * state.covariance()(3, 3);
-
-  beamline_state.setState(
-    state.x() + dz * state.tx(), state.y() + dz * state.ty(), zBeam, state.tx(), state.ty(), state.qOverP());
-
-  return beamline_state;
-}
-
 std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track>> AllenForwardToV2Tracks::operator()(
   const HostBuffers& host_buffers) const
 {
@@ -111,7 +81,7 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
   // Do the conversion
   ParKalmanFilter::FittedTrack* kf_tracks = host_buffers.host_kf_tracks;
   const uint number_of_tracks = scifi_tracks.number_of_tracks(i_event);
-  debug() << "Number of SciFi tracks to convert = " << number_of_tracks << endmsg;
+  if (msgLevel(MSG::DEBUG)) debug() << "Number of SciFi tracks to convert = " << number_of_tracks << endmsg;
 
   std::vector<LHCb::Event::v2::Track> forward_tracks;
   forward_tracks.reserve(number_of_tracks);
@@ -131,21 +101,6 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
     float qopError = m_covarianceValues[4] * qop * qop;
 
     // closest to beam state
-    // LHCb::State first_measurement_state;
-    // first_measurement_state.setState(
-    //   track.state[0], track.state[1], track.z, track.state[2], track.state[3], track.state[4]);
-
-    // first_measurement_state.covariance()(0, 0) = track.cov(0, 0);
-    // first_measurement_state.covariance()(0, 2) = track.cov(2, 0);
-    // first_measurement_state.covariance()(2, 2) = track.cov(2, 2);
-    // first_measurement_state.covariance()(1, 1) = track.cov(1, 1);
-    // first_measurement_state.covariance()(1, 3) = track.cov(3, 1);
-    // first_measurement_state.covariance()(3, 3) = track.cov(3, 3);
-    // first_measurement_state.covariance()(4, 4) = qopError;
-
-    // LHCb::State closesttobeam_state = propagate_state_from_first_measurement_to_beam(first_measurement_state);
-
-    // NOTE: Propagation now handled in the Allen Kalman filter.
     LHCb::State closesttobeam_state;
     closesttobeam_state.setState(
       track.state[0], track.state[1], track.z, track.state[2], track.state[3], track.state[4]);

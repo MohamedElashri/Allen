@@ -1,0 +1,9 @@
+{
+  "host_ut_banks": {"bank_type": "UT"},
+  "host_scifi_banks": {"bank_type": "FTCluster"},
+  "velo_banks": {"bank_type": "VP"},
+  "ut_banks": {"bank_type": "UT"},
+  "ut_search_windows": {"min_momentum": "1500.0", "min_pt": "300.0"},
+  "compass_ut": {"min_momentum_final": "2500.0", "min_pt_final": "425.0", "max_considered_before_found": "6"},
+  "configured_lines": []
+}

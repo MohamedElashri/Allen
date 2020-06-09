@@ -1,9 +1,10 @@
 #include "Tools.h"
 #include "CudaCommon.h"
+#include <iomanip>
 
 void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffer, size)); }
 
-#ifdef CPU
+#ifdef TARGET_DEVICE_CPU
 
 #include <fstream>
 #include <regex>

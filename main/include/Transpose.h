@@ -16,16 +16,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <CudaCommon.h>
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Event/RawBank.h>
-
-#ifndef NO_CUDA
-#include <CudaCommon.h>
-#endif
 
 #include "TransposeTypes.h"
 
@@ -372,13 +369,9 @@ Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>
       char* events_mem = nullptr;
       uint* offsets_mem = nullptr;
 
-#ifndef NO_CUDA
       if (n_bytes) cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
       if (n_offsets) cudaCheck(cudaMallocHost((void**) &offsets_mem, (n_offsets + 1) * sizeof(uint)));
-#else
-      if (n_bytes) events_mem = static_cast<char*>(malloc(n_bytes));
-      if (n_offsets) offsets_mem = static_cast<uint*>(malloc((n_offsets + 1) * sizeof(uint)));
-#endif
+
       for (size_t i = 0; i < n_offsets + 1; ++i) {
         offsets_mem[i] = 0;
       }

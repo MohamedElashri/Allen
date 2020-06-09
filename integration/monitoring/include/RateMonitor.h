@@ -20,6 +20,5 @@ private:
   void init();
 
   HostBuffersManager* m_buffers_manager;
-
   const uint m_number_of_hlt1_lines;
 };

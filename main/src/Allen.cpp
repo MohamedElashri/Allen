@@ -119,13 +119,13 @@ extern "C" int allen(
   const std::string folder_rawdata = "banks/";
   // Folder containing detector configuration and catboost model
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
-  std::string json_constants_configuration_file = "../configuration/constants/default.json";
+  std::string json_constants_configuration_file = "Sequence.json";
 
   std::string folder_name_imported_forward_tracks = "";
   uint number_of_slices = 0;
   uint number_of_buffers = 0;
   long number_of_events_requested = 0;
-  std::optional<uint> events_per_slice;
+  auto events_per_slice = boost::make_optional(false, uint {});
   uint start_event_offset = 0;
   uint number_of_threads = 1;
   uint number_of_repetitions = 1;
@@ -332,7 +332,7 @@ extern "C" int allen(
   number_of_buffers = number_of_threads + n_mon + 1;
 
   // Print configured sequence
-  print_configured_sequence();
+  // print_configured_sequence();
 
   // Set a sane default for the number of events per input slice
   if (!events_per_slice && number_of_events_requested != 0) {
@@ -357,7 +357,7 @@ extern "C" int allen(
   std::unique_ptr<IInputProvider> input_provider {};
 
   // Number of requested events as an optional
-  std::optional<size_t> n_events;
+  boost::optional<size_t> n_events;
   if (number_of_events_requested != 0) {
     n_events = number_of_events_requested;
   }

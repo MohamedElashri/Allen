@@ -256,11 +256,8 @@ void run_stream(
       auto status = wrapper->run_stream(
         stream_id,
         buf,
-        {input_provider->banks(BankTypes::VP, *idx),
-         input_provider->banks(BankTypes::UT, *idx),
-         input_provider->banks(BankTypes::FT, *idx),
-         input_provider->banks(BankTypes::MUON, *idx),
-         input_provider->banks(BankTypes::ODIN, *idx),
+        {input_provider,
+         *idx,
          {static_cast<uint>(first), static_cast<uint>(last)},
          n_reps,
          do_check,

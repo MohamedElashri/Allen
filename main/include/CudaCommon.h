@@ -1,13 +1,10 @@
 #pragma once
 
 #include <stdexcept>
-#include <iostream>
 #include <cassert>
-
-#include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#if defined(CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
+#if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
 
 #include <cmath>
 #include <cstring>
@@ -30,8 +27,10 @@ using std::signbit;
 #define cudaStream_t int
 #define cudaSuccess 0
 #define cudaErrorMemoryAllocation 2
+#define __popc __builtin_popcount
 #define __popcll __builtin_popcountll
 #define __ffs __builtin_ffs
+#define __clz __builtin_clz
 #define cudaEventBlockingSync 0x01
 #define __forceinline__ inline
 
@@ -117,6 +116,8 @@ cudaError_t cudaMemcpyToSymbol(
   size_t count,
   size_t offset = 0,
   enum cudaMemcpyKind kind = cudaMemcpyDefault);
+cudaError_t cudaHostUnregister(void* ptr);
+cudaError_t cudaHostRegister(void* ptr, size_t size, unsigned int flags);
 
 // CUDA accepts more bindings to cudaMemcpyTo/FromSymbol
 template<class T>
@@ -191,7 +192,6 @@ public:
   half_t(const half_t&) = default;
   half_t(const float value);
   operator float() const;
-  uint16_t get() const;
 
   bool operator>(const half_t&) const;
   bool operator<(const half_t&) const;
@@ -217,7 +217,6 @@ public:
   half_t(const half_t&) = default;
   half_t(const float value);
   operator float() const;
-  int16_t get() const;
 };
 #endif
 
@@ -239,18 +238,22 @@ public:
     }                                                            \
   }
 
-#elif defined(HIP)
+#elif defined(TARGET_DEVICE_HIP)
 
 // ---------------
 // Support for HIP
 // ---------------
 
-#if defined(__HCC__) || defined(__HIP__) || defined(__NVCC__) || defined(__CUDACC__)
-#include <hip/hip_runtime.h>
-#else
+#if !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
 #include <hip/hip_runtime_api.h>
+#else
+#include <hip/hip_runtime.h>
+#include <hip/math_functions.h>
 #endif
+
+#include <hip/hip_fp16.h>
+#define half_t half
 
 // Support for CUDA to HIP conversion
 #define cudaMalloc hipMalloc
@@ -272,19 +275,21 @@ public:
 #define cudaSetDevice hipSetDevice
 #define cudaGetDeviceProperties hipGetDeviceProperties
 #define cudaDeviceProp hipDeviceProp_t
-
 #define cudaError_t hipError_t
 #define cudaEvent_t hipEvent_t
 #define cudaStream_t hipStream_t
 #define cudaSuccess hipSuccess
 #define cudaErrorMemoryAllocation hipErrorMemoryAllocation
 #define cudaEventBlockingSync hipEventBlockingSync
-
 #define cudaMemcpyHostToHost hipMemcpyHostToHost
 #define cudaMemcpyHostToDevice hipMemcpyHostToDevice
 #define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
 #define cudaMemcpyDeviceToDevice hipMemcpyDeviceToDevice
 #define cudaMemcpyDefault hipMemcpyDefault
+#define cudaFuncCachePreferL1 hipFuncCachePreferL1
+#define cudaDeviceGetByPCIBusId hipDeviceGetByPCIBusId
+#define cudaDeviceSetCacheConfig hipDeviceSetCacheConfig
+#define cudaHostUnregister hipHostUnregister
 
 #define cudaCheck(stmt)                                                                                           \
   {                                                                                                               \
@@ -306,16 +311,16 @@ public:
     }                                                                                                             \
   }
 
-#define half_t short
-
-__device__ __host__ half_t __float2half(float value);
-
 #else
 
 // ------------
 // CUDA support
 // ------------
-#include <cuda_runtime.h>
+
+#if !defined(__CUDACC__)
+#include <cuda_runtime_api.h>
+#endif
+
 #include <cuda_fp16.h>
 #define half_t half
 
@@ -389,20 +394,3 @@ struct ForwardType<const T, U> {
 };
 
 std::tuple<bool, int> get_device_id(std::string pci_bus_id);
-
-template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
-void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream)
-{
-  auto offset = args.template begin<DATA_ARG>();
-  for (gsl::span<char const> data_span : std::get<0>(bno)) {
-    cudaCheck(cudaMemcpyAsync(offset, data_span.data(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
-    offset += data_span.size_bytes();
-  }
-
-  cudaCheck(cudaMemcpyAsync(
-    args.template begin<OFFSET_ARG>(),
-    std::get<2>(bno).data(),
-    std::get<2>(bno).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-}

@@ -19,15 +19,13 @@
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
+#include <AllenUnits.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Event/RawBank.h>
 #include <eb_header.hpp>
 #include "TransposeTypes.h"
-
-#ifndef NO_CUDA
 #include <CudaCommon.h>
-#endif
 
 namespace {
   using namespace Allen::Units;

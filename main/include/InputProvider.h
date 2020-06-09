@@ -6,14 +6,16 @@
 #include <cmath>
 #include <mutex>
 
+#include <boost/optional.hpp>
 #include <gsl/gsl>
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Common.h>
+#include <AllenUnits.h>
 
 struct IInputProvider {
 
-  /// Descturctor
+  /// Desctructor
   virtual ~IInputProvider() noexcept(false) {};
 
   /**
@@ -23,7 +25,7 @@ struct IInputProvider {
    *
    * @return     event ids
    */
-  virtual EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+  virtual EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
     const = 0;
 
   /**
@@ -41,7 +43,7 @@ struct IInputProvider {
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
   virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) = 0;
+    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) = 0;
 
   /**
    * @brief      Get banks and offsets of a given type
@@ -71,7 +73,7 @@ class InputProvider;
 template<template<BankTypes...> typename Derived, BankTypes... Banks>
 class InputProvider<Derived<Banks...>> : public IInputProvider {
 public:
-  explicit InputProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
+  explicit InputProvider(size_t n_slices, size_t events_per_slice, boost::optional<size_t> n_events) :
     m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {banks_set<Banks...>()}
   {}
 
@@ -95,20 +97,11 @@ public:
   /**
    * @brief      Get the maximum number of events per slice
    *
-   * @details    This is also used when estimating how much slice
-   *             memory to allocate. To allow fast checks if a slice
-   *             is full, the size of the full event may be used if
-   *             the size of a set of banks is not yet known. That
-   *             is an overestimation of the required space and to
-   *             avoid issues with very few events being filled when
-   *             small number of events is requested per slice, a
-   *             minimum is enforced.
-   *
    * @return     number of events per slice
    */
   size_t events_per_slice() const { return m_events_per_slice; }
 
-  std::optional<size_t> const& n_events() const { return m_nevents; }
+  boost::optional<size_t> const& n_events() const { return m_nevents; }
 
   /**
    * @brief      Get event ids in a given slice
@@ -117,7 +110,7 @@ public:
    *
    * @return     event ids
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+  EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
     const override
   {
     return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index, first, last);
@@ -131,7 +124,7 @@ public:
    * @return     tuple of (succes, eof, timed_out, slice_index, n_filled)
    */
   std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
+    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     return static_cast<Derived<Banks...>*>(this)->get_slice(timeout);
   }
@@ -177,7 +170,7 @@ public:
 
 protected:
   template<typename MSG>
-  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const
+  void debug_output(const MSG& msg, boost::optional<size_t> const thread_id = {}) const
   {
     if (logger::verbosity() >= logger::debug) {
       std::unique_lock<std::mutex> lock {m_output_mut};
@@ -193,7 +186,7 @@ private:
   const size_t m_events_per_slice = 0;
 
   // Optional total number of events to be provided
-  const std::optional<size_t> m_nevents;
+  const boost::optional<size_t> m_nevents;
 
   // BankTypes provided by this provider
   const std::unordered_set<BankTypes> m_types;

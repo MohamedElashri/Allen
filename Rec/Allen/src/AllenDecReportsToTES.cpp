@@ -27,7 +27,7 @@ AllenDecReportsToTES::AllenDecReportsToTES(const std::string& name, ISvcLocator*
     // Inputs
     {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
     // Outputs
-    {KeyValue {"OutputDecReports", "Allen/Out/DecReports"}})
+    {KeyValue {"OutputDecReports", "Allen/Out/RawDecReports"}})
 {}
 
 StatusCode AllenDecReportsToTES::initialize()
@@ -48,11 +48,11 @@ LHCb::RawEvent AllenDecReportsToTES::operator()(const HostBuffers& host_buffers)
   dec_reports.reserve(2 + host_buffers.host_number_of_hlt1_lines);
   for (uint i = 0; i < 2 + host_buffers.host_number_of_hlt1_lines; i++) {
     dec_reports.push_back(host_buffers.host_dec_reports[i]);
-    // std::cout << "adding " << std::hex << host_buffers.host_dec_reports[i] << " to dec report" << std::dec <<
-    //   std::endl;
   }
   LHCb::RawEvent raw_event;
   // SourceID_Hlt1 = 1, SourceID_BitShift = 13, VersionNumber = 2
+  // defined in: https://gitlab.cern.ch/lhcb/LHCb/-/blob/master/Hlt/HltDAQ/src/component/HltDecReportsWriter.h
+  // to do: make header in LHCb available for inclusion from other projects
   raw_event.addBank(int(1 << 13), LHCb::RawBank::HltDecReports, 2u, dec_reports);
 
   return raw_event;

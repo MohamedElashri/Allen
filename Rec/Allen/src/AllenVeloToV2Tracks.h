@@ -29,9 +29,6 @@ public:
   /// Standard constructor
   AllenVeloToV2Tracks(const std::string& name, ISvcLocator* pSvcLocator);
 
-  /// initialization
-  StatusCode initialize() override;
-
   /// Algorithm execution
   std::vector<LHCb::Event::v2::Track> operator()(const HostBuffers&) const override;
 

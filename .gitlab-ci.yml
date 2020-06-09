@@ -6,10 +6,8 @@ stages:
 
 check-formatting:
   stage: build
-  image: ubuntu:latest
+  image: gitlab-registry.cern.ch/lhcb-docker/style-checker
   script:
-    - apt update && apt install -y clang-format-8 python-pip git curl
-    - pip install yapf==0.24.0 whichcraft
     - if [ ! -e .clang-format ] ; then
     -   curl -o .clang-format "https://gitlab.cern.ch/lhcb-parallelization/Allen/raw/master/.clang-format?inline=false"
     -   echo '.clang-format' >> .gitignore
@@ -42,16 +40,17 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG=${OVERRIDE_CUDA_ARCH_FLAG} ${ADDITIONAL_OPTIONS} ..
-    - make -j
+    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
+    - ninja -j 8
   artifacts:
     expire_in: 2 hrs
     paths:
       - build*/*Allen*
+      - build*/Sequence.json
       - input
   retry: 1
 
@@ -73,12 +72,12 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DBUILD_TESTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG=${OVERRIDE_CUDA_ARCH_FLAG} ${ADDITIONAL_OPTIONS} ..
-    - make -j
+    - cmake -DSTANDALONE=ON -G Ninja -DBUILD_TESTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
+    - ninja -j 8
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -104,17 +103,30 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-clang8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-clang8-opt
+    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG=${OVERRIDE_CUDA_ARCH_FLAG} ${ADDITIONAL_OPTIONS} ..
-    - make -j
+    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
+    - ninja -j 8
   artifacts:
     expire_in: 2 hrs
     paths:
       - build*/*Allen*
+      - build*/Sequence.json
       - input
   retry: 1
+
+docker_image:build:
+  stage: build
+  only:
+    refs:
+      - master
+  tags:
+    - docker-image-build
+  script: "echo 'Building Allen dev docker image"
+  variables:
+    TO: $CI_REGISTRY_IMAGE:latest
 
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
   only:
@@ -130,14 +142,15 @@ check-formatting:
     - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
     - IFS=${PREVIOUS_IFS}
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
+    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
     - RUN_OPTIONS="-n 1000 -m 700"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir validation_output
     - ln -s validation_output output # Needed by Root build
     - cd build_${TARGET}
@@ -165,18 +178,19 @@ check-formatting:
     - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
     - IFS=${PREVIOUS_IFS}
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
+    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -208,7 +222,7 @@ check-formatting:
     - THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
     - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -235,24 +249,27 @@ check-formatting:
     - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
     - IFS=${PREVIOUS_IFS}
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
+    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} nvprof ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
+    - NVPROF_TMPDIR=`mktemp -d`
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=${NVPROF_TMPDIR} nvprof ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
+    - rm -rf ${NVPROF_TMPDIR}
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -d ${TOPLEVEL}
   artifacts:
     expire_in: 2 hrs
@@ -276,11 +293,9 @@ check-formatting:
     - IFS=${PREVIOUS_IFS}
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
-    - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
-    # - python3 checker/plotting/csv_plotter.py -t "Algorithm Groups of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "%" -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_summary.csv
 
 test_physics_efficiency:
   only:
@@ -295,14 +310,14 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n97 ${i} | head -n94 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n97 ${i} | head -n94 > efficiency_${i}; diff -u ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
-    - rtx2080ti:CUDA:DefaultSequence:run_physics_efficiency
-    - x862630v4:CPU:DefaultSequence:run_physics_efficiency
+    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_default:run_physics_efficiency
   tags:
-    - x86 # Note: colordiff must be installed
+    - cvmfs
   allow_failure: true
 
 # run_built_tests:
@@ -317,7 +332,7 @@ test_physics_efficiency:
 #     - cd build_CUDA
 #     - ctest -V
 #   dependencies:
-#     - CUDA:DefaultSequence:Debug::build
+#     - CUDA:hlt1_pp_default:Debug::build
 #   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
@@ -340,8 +355,8 @@ test_physics_efficiency:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
-    # - python3 checker/plotting/csv_plotter.py -t "Throughput of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
 
 .throughput_speedup_job: &publish_speedup_job_def
@@ -359,158 +374,153 @@ test_physics_efficiency:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
-# Build for all platforms
-CUDA:DefaultSequence:RelWithDebInfo::build:
+# =====
+# Build
+# =====
+
+CUDA:hlt1_pp_default:RelWithDebInfo::build:
   <<: *build_job_def
   tags:
-    - cuda
+    - cvmfs
 
-CPU:DefaultSequence:Debug::build:
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build:
+  <<: *build_job_def
+  tags:
+    - cvmfs
+
+CPU:hlt1_pp_default:Debug::build:
   <<: *build_test_job_def
   tags:
-    - x86
+    - cvmfs
 
-CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build:
   <<: *build_job_def
   tags:
-    - x86
+    - cvmfs
 
-CPU:DefaultSequence:RelWithDebInfo::build_x86:
+CPU:hlt1_pp_default:RelWithDebInfo::build:
   <<: *build_job_def
   tags:
-    - x86
+    - cvmfs
 
-CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
+CPU:hlt1_pp_default:RelWithDebInfo::build_clang:
   <<: *build_clang_job_def
   tags:
-    - x86
+    - cvmfs
 
-# Run on all platforms
-# Performance runs
-rtx2080ti:CUDA:DefaultSequence:run_throughput:
+# ===
+# Run
+# ===
+
+# Throughput runs
+
+geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput:
   <<: *run_throughput_job_def
   tags:
-    - rtx2080ti
+    - geforcertx2080ti
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
-rtx6000:CUDA:DefaultSequence:run_throughput:
+quadrortx6000:CUDA:hlt1_pp_default:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
-    - rtx6000
+    - quadrortx6000
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
-v100:CUDA:DefaultSequence:run_throughput:
+# teslav100:CUDA:hlt1_pp_default:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - teslav100
+#   dependencies:
+#     - CUDA:hlt1_pp_default:RelWithDebInfo::build
+
+teslat4:CUDA:hlt1_pp_default:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
-    - v100
+    - teslat4
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
-t4:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - t4
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
-
-# gtx10606g:CUDA:DefaultSequence:run_throughput:
+# Note: Add -gencode=arch=compute_61,code=sm_61
+#       to the configuration if these cards are enabled.
+ 
+# geforcegtx10606g:CUDA:hlt1_pp_default:run_throughput:
 #   <<: *run_throughput_job_no_profiling_def
 #   tags:
-#     - gtx10606g
+#     - geforcegtx10606g
 #   dependencies:
-#     - CUDA:DefaultSequence:RelWithDebInfo::build
+#     - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
-# gtx680:CUDA:DefaultSequence:run_throughput:
+# geforcegtx1080ti:CUDA:hlt1_pp_default:run_throughput:
 #   <<: *run_throughput_job_no_profiling_def
 #   tags:
-#     - gtx680
+#     - geforcegtx1080ti
 #   dependencies:
-#     - CUDA:DefaultSequence:RelWithDebInfo::build
+#     - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
-# gtxtitanx:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtxtitanx
-#   dependencies:
-#     - CUDA:DefaultSequence:RelWithDebInfo::build
-
-x862630v4:CPU:DefaultSequence:run_throughput_cpu:
+x862630v4:CPU:hlt1_pp_default:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
     - x862630v4
   dependencies:
-    - CPU:DefaultSequence:RelWithDebInfo::build_x86
+    - CPU:hlt1_pp_default:RelWithDebInfo::build
 
-# gtx670:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx670
-#   dependencies:
-#     - CUDA:DefaultSequence:RelWithDebInfo::build
+# Physics efficiency runs
 
-# gtx1080ti:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx1080ti
-#   dependencies:
-#     - CUDA:DefaultSequence:RelWithDebInfo::build
-
-# Physics runs
-
-rtx2080ti:CUDA:DefaultSequence:run_physics_efficiency:
+geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
-    - rtx2080ti
+    - geforcertx2080ti
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
-x862630v4:CPU:DefaultSequence:run_physics_efficiency:
+x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x862630v4
   dependencies:
-    - CPU:DefaultSequence:RelWithDebInfo::build_x86
+    - CPU:hlt1_pp_default:RelWithDebInfo::build
 
-x86:CPU:DefaultSequence:run_physics_efficiency_debug:
+# Test runs
+
+geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - geforcertx2080ti
+  dependencies:
+    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build
+
+x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
   dependencies:
-    - CPU:DefaultSequence:Debug::build
+    - CPU:hlt1_pp_default:Debug::build
 
-x86:CPU:DefaultSequence:run_physics_efficiency_debug_root:
+x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
   dependencies:
-    - CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build
 
+# =======
 # Publish
+# =======
 
-# Plain results to mattermost
-# rtx2080ti:DefaultSequence:publish_algo_breakdown_plot:
-#   <<: *publish_algo_breakdown_plot_def
-#   tags:
-#     - gpu
-#   dependencies:
-#     - rtx2080ti:CUDA:DefaultSequence:run_throughput
-
-throughput:DefaultSequence:rtx2080ti:publish_throughput:
+throughput:hlt1_pp_default:geforcertx2080ti:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
-    - gpu
+    - x86
   dependencies:
-    - rtx2080ti:CUDA:DefaultSequence:run_throughput
-    - rtx6000:CUDA:DefaultSequence:run_throughput
-    - v100:CUDA:DefaultSequence:run_throughput
-    - t4:CUDA:DefaultSequence:run_throughput
-    - x862630v4:CPU:DefaultSequence:run_throughput_cpu
-    # - gtx1080ti:CUDA:DefaultSequence:run_throughput
-    # - gtxtitanx:CUDA:DefaultSequence:run_throughput
-    # - gtx670:CUDA:DefaultSequence:run_throughput
-    # - gtx10606g:CUDA:DefaultSequence:run_throughput
-    # - gtx680:CUDA:DefaultSequence:run_throughput
+    - geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_default:run_throughput
+    - teslat4:CUDA:hlt1_pp_default:run_throughput
+    - x862630v4:CPU:hlt1_pp_default:run_throughput_cpu
+    # - teslav100:CUDA:hlt1_pp_default:run_throughput
+    # - geforcegtx1080ti:CUDA:hlt1_pp_default:run_throughput
+    # - geforcegtx10606g:CUDA:hlt1_pp_default:run_throughput

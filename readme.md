@@ -4,38 +4,38 @@ Allen
 Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
-----------
-The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++17.
+----------------
+The project requires CMake 3.12, Python3 and a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support).
+Further requirements depend on the device chosen as target. For each target,
+we show a proposed development setup with CVMFS and CentOS 7:
 
-If you are working from a node with CVMFS and CentOS 7, we suggest the following setup:
+* CPU target: Any modern compiler can be used, such as gcc greater than 7.0:
+    
+    ```console
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    ```
+    
+* CUDA target: The latest supported compilers are gcc-8 and clang-6. CUDA is
+  available in cvmfs as well:
 
-```shell
-source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
-export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
-export PATH=/usr/local/cuda/bin:$PATH
-```
-Regardless of the OS you are running on, you can check your compiler versions as follows:
+    ```console
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
+    ```
+    
+* HIP target: A local installation of ROCm at least version 3.3.0 is required.
 
-```shell
-$ g++ --version
-g++ (GCC) 8.2.0
+* CUDACLANG target: A version of the clang compiler with ptx support is required,
+  alongside a local installation of CUDA 10.1 (currently latest supported release):
 
-$ nvcc --version
-Cuda compilation tools, release 10.1, V10.1.243
+    ```console
+    source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
+    ```
 
-$ cmake --version
-cmake version 3.14.2
-```
-
-You can check your compiler standard compatibility by scrolling to the `C++17 features` chart [here](https://en.cppreference.com/w/cpp/compiler_support).
-
-Optionally you can compile the project with ROOT. Then, trees will be filled with variables to check when running the UT tracking or SciFi tracking algorithms on x86 architecture.
-In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
-
-[Building and running inside Docker](readme_docker.md)
+Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
 
 Where to find input
--------------
+---------------------
 Input from 5k events for each of the following decay modes can be found here:
 
 * minimum bias, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/minbias_mag_down.tar.gz`
@@ -53,7 +53,7 @@ If other inputs are required, follow these instructions for producing them:
 
 Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
 
-```shell
+```console
 python3 scripts/makeODIN.py /path/to/data/banks/
 ```
 
@@ -62,80 +62,79 @@ This will create a random ODIN bank for each bank in `/path/to/data/banks/VP`.
 How to build it
 ---------------
 
+### As standalone project
+
 The build process doesn't differ from standard cmake projects:
 
     mkdir build
     cd build
-    cmake ..
+    cmake -DSTANDALONE=ON ..
     make
 
-There are some cmake options to configure the build process:
+The build process can be configured with cmake options. For a complete list of options and for editing them we suggest using the `ccmake` tool.
 
-* The sequence can be configured by specifying `-DSEQUENCE=<name_of_sequence>`. For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.h`, ie. `-DSEQUENCE=VeloPVUTSciFiDecoding`.
-* The build type can be specified to `RelWithDebInfo`, `Release` or `Debug`, e.g. `cmake -DCMAKE_BUILD_TYPE=Debug ..`
-* ROOT can be enabled to generate monitoring plots using `-DUSE_ROOT=ON`
-* If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
-* If multiple versions of CUDA are installed and CUDA 10.0 is not the default, it can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
-* The MC validation is standalone, it was written by Manuel Schiller, Rainer Schwemmer, Daniel Cámpora and Dorothea vom Bruch.
+    ccmake .
 
-How to run it
--------------
+Alternatively, cmake options can be passed with `-D` when invoking the cmake command (eg. `cmake -D<option>=<value> ..`). Here is a brief explanation of some options:
 
-Some binary input files are included with the project for testing.
-A run of the program with no arguments will let you know the basic options:
+* `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
+* `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU` (default), `CUDA`, `HIP` (experimental) and `CUDACLANG` (experimental).
+* `SEQUENCE` - Selects the sequence to be compiled (the sequence must be selected at compile time). For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.py` extension, ie. `-DSEQUENCE=velo`.
+* `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo` (default), `Release` or `Debug`.
+* `USE_ROOT` - Configure to run with / without ROOT. `OFF` by default.
+* `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation. It only has effect if the target device is either `CUDA` or `CUDACLANG`.
+* `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
 
-    Usage: ./Allen
-    -f {folder containing directories with raw bank binaries for every sub-detector}
-    -b {folder containing .bin files with muon common hits}
-    --mdf {use MDF files as input instead of binary files}
-    -g {folder containing detector configuration}
-    -d {folder containing .bin files with MC truth information}
-    -n {number of events to process}=0 (all)
-    -o {offset of events from which to start}=0 (beginning)
-    -t {number of threads / streams}=1
-    -r {number of repetitions per thread / stream}=1
-    -c {run checkers}=0
-    -m {reserve Megabytes}=1024
-    -v {verbosity}=3 (info)
-    -p {print memory usage}=0
-    -a {run only data preparation algorithms: decoding, clustering, sorting}=0
+### As a Gaudi/LHCb project
 
-Here are some example run options:
+Two ways of calling Allen with Gaudi exist:
 
-    # Run all input files once with the tracking validation
-    ./Allen
+1. Use Gaudi to update non-event data such as alignment and configuration constants and use Moore to steer the event loop and call Allen one event at a time (this method will be used for the simulation workflow and efficiency studies)
+2. Use Gaudi to update non-event data such as alignment and configuration constants and use Allen to steer the event loop, where batches of events (O(1000)) are processed together (this method will be used for data-taking)
 
-    # Specify input files, run once over all of them with tracking validation
-    ./Allen -f ../input/minbias/
+#### Call Allen with Gaudi, steer event loop from Moore
+The software can be compiled either based on the nightlies or by compiling the full stack. Both methods are described below.
 
-    # Run a total of 1000 events, round robin over the existing ones, without tracking validation
-    ./Allen -c 0 -n 1000
+Instructions on how to call Allen from Moore can be found in [this readme](Rec/Allen/readme.md).
 
-    # Run four streams, each with 4000 events, 20 repetitions
-    ./Allen -t 4 -n 4000 -r 20 -c 0
 
-    # Run one stream and print all memory allocations
-    ./Allen -n 5000 -p
+##### Using the stack setup
+Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself. If lhcb/Moore!388 is not yet merged, the branch `dovombru_Allen_Moore_integration` is required in Moore.
 
-How to enable Nvidia persistenced mode
------------------------------------------
-Enabling Nvidia [persistenced mode](https://docs.nvidia.com/deploy/driver-persistence/index.html) will increase the throughput of Allen, as the GPU will remain initialized even when no process is running. To enable:
-`sudo systemctl enable nvidia-persistenced`, reboot the machine.
 
-How to profile it
-------------------
-For profiling, Nvidia's nvprof can be used.
-Since CUDA version 10.1, profiling was limited to the root user by default for security reasons. However, the system administrator of a GPU server can add a kernel module option such that regular users can use the profiler by following these instructions:
+##### Using the nightlies
 
-Add a file containing "option nvidia NVreg_RestrictProfilingToAdminUsers=0" to the `/etc/modprobe.d/` directory and reboot the machine. This will load the nvidia kernel module with "NVreg_RestrictProfilingToAdminUsers=0".
+```
+lb-set-platform x86_64-centos7-gcc9-opt
+export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
+```
 
-As a quick workaround one can also use the older version of nvprof:
+Create a new directory `Allen_Gaudi_integration` and clone both `Allen` and `Moore` into this new directory. 
+```
+ls Allen_Gaudi_integration
+Allen Moore
+export CMAKE_PREFIX_PATH=/path/to/user/directory/Allen_Gaudi_integration:$CMAKE_PREFIX_PATH
+```
 
-    /usr/local/cuda-10.0/bin/nvprof ./Allen -c 0 -n 1000
+Compile both `Allen` and `Moore`.
+```
+cd Allen
+lb-project-init
+make configure
+make install
 
-Building as a Gaudi/LHCb project
---------------------------------
+cd ..
+cd Moore
+lb-project-init
+make configure
+make install
+```
 
+If a specific version of [Rec](https://gitlab.cern.ch/lhcb/Rec) is needed, Rec needs to be compiled as well. 
+Note that this setup uses the nightlies from Tuesday. Adopt the day of the nightly build according to when you are building. Possibly check that the nightly build was successful.
+
+#### Call Allen with Gaudi, steer event loop from Allen
 Allen can also be built as a Gaudi/LHCb cmake project; it then depends
 on Rec and Online. To build Allen like this, is the same as building
 any other Gaudi/LHCb project:
@@ -146,8 +145,8 @@ any other Gaudi/LHCb project:
     make configure
     make install
 
-### Build options
-By default the `DefaultSequence` is selected, Allen is built with
+##### Build options
+By default the `hlt1_pp_default` sequence is selected, Allen is built with
 CUDA, and the CUDA stack is searched for in `/usr/local/cuda`. These
 defaults (and other cmake variables) can be changed by adding the same
 flags that you would pass to a standalone build to the `CMAKEFLAGS`
@@ -158,7 +157,7 @@ For example, to specify another CUDA stack to be used set:
 $> export CMAKEFLAGS="-DCMAKE_CUDA_COMPILER=/path/to/alternative/nvcc"
 ```
 
-### Runtime environment:
+##### Runtime environment:
 To setup the runtime environment for Allen, the same tools as for
 other Gaudi/LHCb projects can be used:
 ```console
@@ -166,10 +165,100 @@ $> cd Allen
 $> ./build.${BINARY_TAG}/run Allen ...
 ```
 
-### Run Allen using the Python entry point:
+##### Run Allen using the Python entry point:
 ```console
 $> cd Allen
 $> ./build.${CMTCONFIG}/run bindings/Allen.py
 ```
 
-[This readme](contributing.md) explains how to add a new algorithm to the sequence and how to use the memory scheduler to define global memory variables for this sequence and pass on the dependencies. It also explains which checks to do before placing a merge request with your changes.
+
+How to run the standalone project
+-------------
+
+Some binary input files are included with the project for testing.
+A run of the program with the help option `-h` will let you know the basic options:
+
+    Usage: ./Allen
+    -f, --folder {folder containing data directories}=../input/minbias/
+    -g, --geometry {folder containing detector configuration}=../input/detector_configuration/down/
+    --mdf {comma-separated list of MDF files to use as input}
+    --mep {comma-separated list of MEP files to use as input}
+    --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)
+    --configuration {path to json file containing values of configurable algorithm constants}=Sequence.json
+    --print-status {show status of buffer and socket}=0
+    --print-config {show current algorithm configuration}=0
+    --write-configuration {write current algorithm configuration to file}=0
+    -n, --number-of-events {number of events to process}=0 (all)
+    -s, --number-of-slices {number of input slices to allocate}=0 (one more than the number of threads)
+    --events-per-slice {number of events per slice}=1000
+    -t, --threads {number of threads / streams}=1
+    -r, --repetitions {number of repetitions per thread / stream}=1
+    -c, --validate {run validation / checkers}=1
+    -m, --memory {memory to reserve per thread / stream (megabytes)}=1024
+    -v, --verbosity {verbosity [0-5]}=3 (info)
+    -p, --print-memory {print memory usage}=0
+    -i, --import-tracks {import forward tracks dumped from Brunel}
+    --cpu-offload {offload part of the computation to CPU}=1
+    --output-file {Write selected event to output file}
+    --device {select device to use}=0
+    --non-stop {Runs the program indefinitely}=0
+    --with-mpi {Read events with MPI}
+    --mpi-window-size {Size of MPI sliding window}=4
+    --mpi-number-of-slices {Number of MPI network slices}=6
+    -h {show this help}
+
+Here are some example run options:
+
+    # Run all input files shipped with Allen once with the tracking validation
+    ./Allen
+
+    # Specify input files, run once over all of them with tracking validation
+    ./Allen -f ../input/minbias/
+
+    # Run a total of 1000 events once without tracking validation. If less than 1000 events are
+    # provided, the existing ones will be reused in round-robin.
+    ./Allen -c 0 -n 1000
+
+    # Run four streams, each with 4000 events, 20 repetitions, and no validation
+    ./Allen -t 4 -n 4000 -r 20 -c 0
+
+    # Run one stream with 5000 events and print all memory allocations
+    ./Allen -n 5000 -p 1
+    
+Where to develop for GPUs
+-------------------------
+
+For development purposes, a server with eight GeForce RTX 2080 Ti GPUs is set up in the online network.
+An online account is required to access it. If you need to create one, please send a request to [mailto:lbonsupp@cern.ch](lbonsupp@cern.ch).
+Enter the online network from lxplus with `ssh lbgw`. Then `ssh n4050101` to reach the GPU server.
+
+* Upon login, a GPU will be automatically assigned to you.
+* A development environment is set (`gcc 8.2.0`, `cmake 3.14`, ROOT, NVIDIA binary path is added).
+* Allen input data is available locally under `/scratch/allen_data`.
+
+### How to measure throughput
+
+Every merge request in Allen will automatically be tested in the CI system. As part of the tests, the throughput is measured on a number of different GPUs and a CPU.
+The results of the tests are published in this [mattermost channel](https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput).
+
+For local throughput measurements, we recommend the following settings in Allen standalone mode:
+
+```console
+nvprof ./Allen -f /scratch/allen_data/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
+```
+
+
+### Links to more readmes
+The following readmes explain various aspects of Allen:
+
+* [This readme](contributing.md) explains how to add a new algorithm to Allen.
+* [This readme](selections.md ) explains how to add a new HLT1 line to Allen.
+* [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
+* [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore and Brunel.
+* [Building and running inside Docker](readme_docker.md).
+
+### Mattermost discussion channels
+
+* [Allen developers](https://mattermost.web.cern.ch/lhcb/channels/allen-developers) - Channel for any Allen algorithm development discussion.
+* [Allen core](https://mattermost.web.cern.ch/lhcb/channels/allen-core) - Discussion of Allen core features.
+* [AllenPR throughput](https://mattermost.web.cern.ch/lhcb/channels/allenpr-throughput) - Throughput reports from nightlies and MRs.

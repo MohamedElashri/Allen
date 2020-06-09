@@ -1,0 +1,23 @@
+#pragma once
+
+#include "MuonTables.cuh"
+#include "MuonRaw.cuh"
+#include "MuonGeometry.cuh"
+#include "MuonDefinitions.cuh"
+
+namespace Muon {
+  struct Digit {
+    MuonTileID tile;
+    unsigned int tdc;
+  };
+
+  struct MuonRawToHits {
+    MuonTables* muonTables;
+    MuonGeometry* muonGeometry;
+  };
+
+  __device__ inline uint regionAndQuarter(const Digit& i)
+  {
+    return i.tile.region() * Constants::n_quarters + i.tile.quarter();
+  }
+} // namespace Muon
