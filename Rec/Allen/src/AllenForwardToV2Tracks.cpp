@@ -21,10 +21,6 @@
 
 DECLARE_COMPONENT(AllenForwardToV2Tracks)
 
-namespace {
-  const float m_scatterFoilParameters[2] = {1.67, 20.};
-}
-
 AllenForwardToV2Tracks::AllenForwardToV2Tracks(const std::string& name, ISvcLocator* pSvcLocator) :
   MultiTransformer(
     name,
@@ -52,7 +48,7 @@ StatusCode AllenForwardToV2Tracks::initialize()
   m_histos["ndof"] = book1D("ndof", -0.5, 49.5, 500);
   m_histos["ndof_newTrack"] = book1D("ndof_newTrack", -0.5, 49.5, 500);
 
-  return StatusCode::SUCCESS;
+  return sc;
 }
 
 std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track>> AllenForwardToV2Tracks::operator()(

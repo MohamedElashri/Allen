@@ -39,4 +39,6 @@ if(ROOT_FOUND)
   target_include_directories(AllenMonitoring SYSTEM BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
+  # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
 endif()

@@ -18,5 +18,5 @@ struct PVMonitor : public BufferMonitor {
 private:
   void init();
 
-  HostBuffersManager* m_buffers_manager;
+  HostBuffersManager* m_buffers_manager = nullptr;
 };

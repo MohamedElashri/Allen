@@ -26,7 +26,7 @@ void TrackMonitor::fill(unsigned i_buf, bool)
       m_histograms[KalmanTrackP]->Fill(track.p());
       m_histograms[KalmanTrackPt]->Fill(track.pt());
       m_histograms[KalmanTrackEta]->Fill(track.eta());
-      m_histograms[KalmanTrackIPChi2]->Fill(log(track.ipChi2));
+      m_histograms[KalmanTrackIPChi2]->Fill(std::log(track.ipChi2));
     }
   }
 }
@@ -41,7 +41,7 @@ void TrackMonitor::init()
   m_histograms.emplace(KalmanTrackEta, new TH1D("trackEta", "", nBins, 0., 7.));
   m_histograms.emplace(KalmanTrackIPChi2, new TH1D("trackLogIPChi2", "", nBins, -10., 10.));
 
-  for (auto kv : m_histograms) {
+  for (auto& kv : m_histograms) {
     kv.second->SetDirectory(nullptr);
     kv.second->Sumw2();
   }

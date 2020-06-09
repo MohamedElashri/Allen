@@ -53,7 +53,7 @@ void SVMonitor::init()
   m_histograms.emplace(SecondaryVertexMDiMu, new TH1D("SVMdimu", "", nBins, 0., 1e5));
   m_histograms.emplace(SecondaryVertexMCor, new TH1D("SVMcor", "", nBins, 0., 1e5));
 
-  for (auto kv : m_histograms) {
+  for (auto& kv : m_histograms) {
     kv.second->SetDirectory(nullptr);
     kv.second->Sumw2();
   }

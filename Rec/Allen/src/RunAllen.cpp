@@ -178,7 +178,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   LHCb::HltDecReports reports {};
   reports.reserve(buffer->host_number_of_hlt1_lines);
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
-  for (int i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
+  for (unsigned int i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
     const uint32_t line_report = buffer->host_dec_reports[2 + i];
     const bool dec = line_report & dec_mask;
     const auto it = m_line_names.find(std::to_string(i));

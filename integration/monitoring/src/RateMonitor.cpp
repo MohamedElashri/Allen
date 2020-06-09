@@ -54,7 +54,7 @@ void RateMonitor::init()
     m_histograms.emplace(LineRatesStart + i_line, new TH1D(name, "", nBins, 0., max));
   }
 
-  for (auto kv : m_histograms) {
+  for (auto& kv : m_histograms) {
     kv.second->SetDirectory(nullptr);
     kv.second->Sumw2();
   }

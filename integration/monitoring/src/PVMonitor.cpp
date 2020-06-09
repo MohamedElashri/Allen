@@ -40,7 +40,7 @@ void PVMonitor::init()
   m_histograms.emplace(PrimaryVertexY, new TH1D("PVY", "", nBins, -200., 200.));
   m_histograms.emplace(PrimaryVertexZ, new TH1D("PVZ", "", nBins, -500., 1000.));
 
-  for (auto kv : m_histograms) {
+  for (auto& kv : m_histograms) {
     kv.second->SetDirectory(nullptr);
     kv.second->Sumw2();
   }

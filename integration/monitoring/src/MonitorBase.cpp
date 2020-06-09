@@ -16,8 +16,8 @@ void MonitorBase::saveHistograms(std::string file_name, bool append) const
     dir = static_cast<TDirectory*>(file->Get(m_name.c_str()));
   }
 
-  for (auto kv : m_histograms) {
-    TH1* h = kv.second;
+  for (auto& kv : m_histograms) {
+    auto h = kv.second.get();
 
     dir->cd();
     if (append) {

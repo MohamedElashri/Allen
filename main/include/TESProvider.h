@@ -63,7 +63,7 @@ public:
       auto data_size = static_cast<data_span::index_type>(banks[bank].size());
       span<char const> b {banks[bank].data(), data_size};
 
-      m_banks_and_offsets[allen_bank_index] = {{std::move(b)}, data_size, std::move(offsets)};
+      m_banks_and_offsets[allen_bank_index] = {{std::move(b)}, static_cast<std::size_t>(data_size), std::move(offsets)};
     }
 
     return 0;

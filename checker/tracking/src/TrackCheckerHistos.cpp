@@ -2,7 +2,7 @@
 
 namespace {
   using Checker::HistoCategory;
-}
+} // namespace
 
 TrackCheckerHistos::TrackCheckerHistos(
   CheckerInvoker const* invoker,
