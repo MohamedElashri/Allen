@@ -164,6 +164,78 @@ docker_image:build:
   allow_failure: true
   retry: 1
 
+.run_with_run_changes_job: &run_with_run_changes_job_def
+  only:
+    refs:
+      - master
+      - schedules
+      - web
+      - merge_requests
+  stage: run
+  script:
+    - TOPLEVEL=${PWD}
+    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
+    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
+    - PREVIOUS_IFS=${IFS}
+    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
+    - IFS=${PREVIOUS_IFS}
+    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
+    - TARGET=${JOB_NAME_SPLIT[1]}
+    - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
+    - RUN_OPTIONS="-n 1000 -m 700 -v5 --disable-run-changes 0"
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - mkdir run_changes_output
+    - ln -s run_changes_output output # Needed by Root build
+    - cd build_${TARGET}
+    - ls
+    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf ${RUN_OPTIONS} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
+  artifacts:
+    expire_in: 2 hrs
+    paths:
+      - run_changes_output/*
+  allow_failure: true
+  retry: 1
+
+.run_no_run_changes_job: &run_no_run_changes_job_def
+  only:
+    refs:
+      - master
+      - schedules
+      - web
+      - merge_requests
+  stage: run
+  script:
+    - TOPLEVEL=${PWD}
+    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
+    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
+    - PREVIOUS_IFS=${IFS}
+    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
+    - IFS=${PREVIOUS_IFS}
+    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
+    - TARGET=${JOB_NAME_SPLIT[1]}
+    - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
+    - RUN_OPTIONS="-n 1000 -m 700 -v5 --disable-run-changes 1"
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - mkdir no_run_changes_output
+    - ln -s no_run_changes_output output # Needed by Root build
+    - cd build_${TARGET}
+    - ls
+    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf ${RUN_OPTIONS} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
+  artifacts:
+    expire_in: 2 hrs
+    paths:
+      - no_run_changes_output/*
+  allow_failure: true
+  retry: 1
+
 .run_throughput_job_no_profiling: &run_throughput_job_no_profiling_def
   only:
     refs:
@@ -316,6 +388,25 @@ test_physics_efficiency:
   dependencies:
     - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency
     - x862630v4:CPU:hlt1_pp_default:run_physics_efficiency
+  tags:
+    - cvmfs
+  allow_failure: true
+
+test_run_changes:
+  only:
+    refs:
+      - master
+      - schedules
+      - web
+      - merge_requests
+  stage: test
+  script:
+    - exit 0
+  dependencies:
+    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_no_run_changes
+    - x862630v4:CPU:hlt1_pp_default:run_physics_run_changes
+    - x862630v4:CPU:hlt1_pp_default:run_physics_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
@@ -507,6 +598,36 @@ x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
     - x86
   dependencies:
     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build
+
+# check run changes
+
+geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
+  <<: *run_with_run_changes_job_def
+  tags:
+    - geforcertx2080ti
+  dependencies:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+
+x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
+  <<: *run_with_run_changes_job_def
+  tags:
+    - x862630v4
+  dependencies:
+    - CPU:hlt1_pp_default:RelWithDebInfo::build
+
+geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
+  <<: *run_no_run_changes_job_def
+  tags:
+    - geforcertx2080ti
+  dependencies:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+
+x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
+  <<: *run_no_run_changes_job_def
+  tags:
+    - x862630v4
+  dependencies:
+    - CPU:hlt1_pp_default:RelWithDebInfo::build
 
 # =======
 # Publish
