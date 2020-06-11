@@ -1150,6 +1150,8 @@ loop_error:
 
   if (!output_file.empty()) {
     info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_file << "\n";
+  } else {
+    info_cout << "Selected " << n_events_output << "/" << n_events_processed << " events\n";
   }
 
   // Reset device

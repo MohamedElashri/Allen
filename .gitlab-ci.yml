@@ -401,7 +401,13 @@ test_run_changes:
       - merge_requests
   stage: test
   script:
-    - exit 0
+    - TOPLEVEL=${PWD}
+    - ls run_changes_output
+    - ls no_run_changes_output
+    - cd run_changes_output
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n4 ${i} | head -n1 > run_changes_${i}; tail -n4 ${TOPLEVEL}/no_run_changes_output/${i} | head -n1 > no_run_changes_${i}; diff -u no_run_changes_${i} run_changes_${i} | tee ${i}_diff || true; done
+    - cat *_diff > alldiffs
+    - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
   dependencies:
     - geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes
     - geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes
