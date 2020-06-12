@@ -20,11 +20,11 @@ option(STANDALONE "Build Allen standalone" OFF)
 
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Allows making a shared object
 
 if(STANDALONE)
   set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
   set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
   set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
