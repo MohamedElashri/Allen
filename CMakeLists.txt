@@ -114,9 +114,6 @@ macro(allen_project)
 #Declare project name and version
     gaudi_project(Allen v0r9 USE Rec HEAD Online HEAD)
 
-#Use the lowest - common - denominator cpu arch
-    set(CPU_ARCH "x86-64 -msse4.2")
-
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
 
