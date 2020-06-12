@@ -1,5 +1,5 @@
 stages:
-  - check-env # Ensures the CI environment valid
+  - check-env # Ensures the CI environment is valid
   - build     # Builds all projects
   - run       # Runs the tests across architectures
   - test      # Runs various tests of the software
@@ -12,7 +12,7 @@ check-env:
   script:
     - |
       echo "The Allen CI depends on custom GitLab runners and therefore tests"
-      echo "running on forks will fail. Please create a branch in tha main"
+      echo "running on forks will fail. Please create a branch in the main"
       echo "repository at https://gitlab.cern.ch/lhcb/Allen/"
     - exit 1
 
