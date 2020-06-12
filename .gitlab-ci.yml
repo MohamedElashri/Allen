@@ -184,7 +184,7 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
-    - RUN_OPTIONS="-n 1000 -m 700 -v5 --disable-run-changes 0"
+    - RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 0"
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir run_changes_output
@@ -192,7 +192,7 @@ docker_image:build:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf ${RUN_OPTIONS} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -220,7 +220,7 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
-    - RUN_OPTIONS="-n 1000 -m 700 -v5 --disable-run-changes 1"
+    - RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 1"
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir no_run_changes_output
@@ -228,7 +228,7 @@ docker_image:build:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf ${RUN_OPTIONS} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -382,7 +382,7 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n97 ${i} | head -n94 > efficiency_${i}; diff -u ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n98 ${i} | head -n94 > efficiency_${i}; diff -u ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
@@ -405,7 +405,7 @@ test_run_changes:
     - ls run_changes_output
     - ls no_run_changes_output
     - cd run_changes_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n4 ${i} | head -n1 > run_changes_${i}; tail -n4 ${TOPLEVEL}/no_run_changes_output/${i} | head -n1 > no_run_changes_${i}; diff -u no_run_changes_${i} run_changes_${i} | tee ${i}_diff || true; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n98 ${i} | head -n94 > run_changes_${i}; tail -n98 ${TOPLEVEL}/no_run_changes_output/${i} | head -n94 > no_run_changes_${i}; diff -u no_run_changes_${i} run_changes_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
   dependencies:
