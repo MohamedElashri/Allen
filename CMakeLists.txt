@@ -36,10 +36,12 @@ set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
 set(TARGET_DEVICE CPU CACHE STRING "Target architecture of the device")
 set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CPU CUDA HIP CUDACLANG)
 
-# Build type
-set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
-message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+# Build type (builds based on Gaudi are setting CMAKE_BUILD_TYPE in gaudi_project)
+if(STANDALONE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
+  message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+endif()
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
