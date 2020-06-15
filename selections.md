@@ -224,7 +224,7 @@ Below are three examples of lines.
 
     Here we'll create an example 2-track line that selects displaced
     secondary vertices with no postscale. We'll create a header in
-    `device/selections/lines/include/ExampleTwoTrack.cuh` with the following contents:
+    `device/selections/lines/include/ExampleTwoTrackLine.cuh` with the following contents:
     
     ```c++
     #pragma once
@@ -395,14 +395,15 @@ configuration file.
             "prefix_sum_scifi_track_hit_number"],
         scifi_consolidate_tracks=forward_sequence["scifi_consolidate_tracks_t"],
         is_muon=muon_sequence["is_muon_t"],
+	full_event_list=velo_sequence["full_event_list"],
         # Disable default lines
         add_default_lines=False)
 
     # New lines
-    from HLT1Sequence import make_selection_gatherer
-    import algorithms
+    from definitions.HLT1Sequence import make_selection_gatherer
+    from definitions.algorithms import *
 
-    example_one_track_line = algorithms.example_one_track_line_t(
+    example_one_track_line = definitions.algorithms.example_one_track_line_t(
         name="example_one_track_line",
         host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
         host_number_of_reconstructed_scifi_tracks_t=
