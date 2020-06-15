@@ -11,7 +11,7 @@ namespace BeamTwo {
 
   struct BeamTwo_t : public Hlt1::SpecialLine {
     constexpr static auto name {"BeamTwo"};
-    constexpr static auto scale_factor = 1e-3f;
+    constexpr static auto scale_factor = 0.5f;
 
     static __device__ bool function(const char* odin)
     {

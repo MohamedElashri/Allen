@@ -11,7 +11,7 @@ namespace VeloMicroBias {
 
   struct VeloMicroBias_t : public Hlt1::VeloLine {
     constexpr static auto name {"VeloMicroBias"};
-    constexpr static auto scale_factor = 1e-3f;
+    constexpr static auto scale_factor = 0.5f;
 
     static __device__ bool function(const unsigned n_velo_tracks) {return n_velo_tracks >= min_velo_tracks;}
   };
