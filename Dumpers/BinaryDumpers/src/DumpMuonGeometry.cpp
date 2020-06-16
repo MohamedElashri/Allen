@@ -32,9 +32,7 @@ StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
     info() << "Registering " << path << endmsg;
     updMgrSvc->registerCondition(&m_daqHelper, path, &MuonDAQHelper::updateLUT);
   }
-  updMgrSvc->update(&m_daqHelper);
-
-  return StatusCode::SUCCESS;
+  return updMgrSvc->update(&m_daqHelper);
 }
 
 DumpUtils::Dumps DumpMuonGeometry::dumpGeometry() const
