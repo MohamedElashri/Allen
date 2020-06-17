@@ -1,8 +1,10 @@
 #include "PVCheckerHistos.h"
 
+#ifdef WITH_ROOT
 namespace {
   float binomial_error(float k, float N) { return sqrtf(k * (1 - k / N)) / N; }
 } // namespace
+#endif
 
 PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
 {

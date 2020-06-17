@@ -427,8 +427,6 @@ extern "C" int allen(
   // Register all consumers
   register_consumers(updater, constants);
 
-  printf("2");
-
   // Run all registered produces and consumers
   updater->update(0);
 
@@ -446,8 +444,6 @@ extern "C" int allen(
     stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
-
-  printf("3");
 
   if (print_status) {
     buffer_manager->printStatus();
