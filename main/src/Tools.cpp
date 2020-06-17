@@ -32,7 +32,7 @@ std::map<std::string, float> calcResults(std::vector<float>& times)
   return results;
 }
 
-std::vector<Checker::Tracks> read_forward_tracks(const char* events, const uint* event_offsets, const int n_events)
+std::vector<Checker::Tracks> read_forward_tracks(const char* events, const unsigned* event_offsets, const int n_events)
 {
 
   std::vector<Checker::Tracks> all_tracks;
@@ -42,7 +42,7 @@ std::vector<Checker::Tracks> read_forward_tracks(const char* events, const uint*
     const uint32_t n_tracks = *((uint32_t*) raw_input);
     raw_input += sizeof(uint32_t);
     Checker::Tracks tracks_event;
-    for (uint i_track = 0; i_track < n_tracks; ++i_track) {
+    for (unsigned i_track = 0; i_track < n_tracks; ++i_track) {
       Checker::Track track;
       track.eta = *((float*) raw_input);
       raw_input += sizeof(float);
@@ -53,7 +53,7 @@ std::vector<Checker::Tracks> read_forward_tracks(const char* events, const uint*
 
       const uint32_t n_IDs = *((uint32_t*) raw_input);
       raw_input += sizeof(uint32_t);
-      for (uint i_ID = 0; i_ID < n_IDs; ++i_ID) {
+      for (unsigned i_ID = 0; i_ID < n_IDs; ++i_ID) {
         const uint32_t ID = *((uint32_t*) raw_input);
         raw_input += sizeof(uint32_t);
         track.addId(ID);

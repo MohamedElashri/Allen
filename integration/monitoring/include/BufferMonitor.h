@@ -7,5 +7,5 @@ struct BufferMonitor : public MonitorBase {
 
   virtual ~BufferMonitor() = default;
 
-  virtual void fill(uint i_buf, bool useWallTime = true) = 0;
+  virtual void fill(unsigned i_buf, bool useWallTime = true) = 0;
 };

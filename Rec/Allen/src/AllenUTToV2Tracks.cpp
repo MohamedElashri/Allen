@@ -35,23 +35,25 @@ std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuff
 {
 
   // Make the consolidated tracks.
-  const uint i_event = 0;
-  const uint number_of_events = 1;
+  const unsigned i_event = 0;
+  const unsigned number_of_events = 1;
 
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) host_buffers.host_atomics_velo, (uint*) host_buffers.host_velo_track_hit_number, i_event, number_of_events};
+  const Velo::Consolidated::Tracks velo_tracks {(unsigned*) host_buffers.host_atomics_velo,
+                                                (unsigned*) host_buffers.host_velo_track_hit_number,
+                                                i_event,
+                                                number_of_events};
   const Velo::Consolidated::States velo_states(
     host_buffers.host_kalmanvelo_states, velo_tracks.total_number_of_tracks());
-  const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
+  const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
 
-  const UT::Consolidated::ConstExtendedTracks ut_tracks {(uint*) host_buffers.host_atomics_ut,
-                                                         (uint*) host_buffers.host_ut_track_hit_number,
+  const UT::Consolidated::ConstExtendedTracks ut_tracks {(unsigned*) host_buffers.host_atomics_ut,
+                                                         (unsigned*) host_buffers.host_ut_track_hit_number,
                                                          (float*) host_buffers.host_ut_qop,
-                                                         (uint*) host_buffers.host_ut_track_velo_indices,
+                                                         (unsigned*) host_buffers.host_ut_track_velo_indices,
                                                          i_event,
                                                          number_of_events};
 
-  const uint number_of_tracks = ut_tracks.number_of_tracks(i_event);
+  const unsigned number_of_tracks = ut_tracks.number_of_tracks(i_event);
   std::vector<LHCb::Event::v2::Track> output;
   output.reserve(number_of_tracks);
 
@@ -77,7 +79,7 @@ std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuff
     }
 
     // set state at beamline
-    const uint velo_state_index = velo_event_tracks_offset + velo_track_index;
+    const unsigned velo_state_index = velo_event_tracks_offset + velo_track_index;
     const VeloState velo_state = velo_states.get(velo_state_index);
     LHCb::State closesttobeam_state;
     const float qop = ut_tracks.qop(t);

@@ -47,7 +47,7 @@ struct EventReader : public Reader {
     }
   }
 
-  gsl::span<uint> offsets(BankTypes type)
+  gsl::span<unsigned> offsets(BankTypes type)
   {
     auto it = m_events.find(type);
     if (it == end(m_events)) {
@@ -62,8 +62,8 @@ struct EventReader : public Reader {
    * @brief Reads files from the specified folder, starting from an event offset.
    */
   virtual std::vector<std::tuple<unsigned int, unsigned long>> read_events(
-    uint number_of_events_requested = 0,
-    uint start_event_offset = 0);
+    unsigned number_of_events_requested = 0,
+    unsigned start_event_offset = 0);
 
   /**
    * @brief Checks the consistency of the read buffers.
@@ -71,8 +71,8 @@ struct EventReader : public Reader {
   virtual bool check_events(
     BankTypes type,
     const std::vector<char>& events,
-    const std::vector<uint>& event_offsets,
-    uint number_of_events_requested) const;
+    const std::vector<unsigned>& event_offsets,
+    unsigned number_of_events_requested) const;
 
 protected:
   std::string folder(BankTypes type) const
@@ -95,14 +95,14 @@ protected:
     return r;
   }
 
-  bool add_events(BankTypes type, gsl::span<char> events, gsl::span<uint> offsets)
+  bool add_events(BankTypes type, gsl::span<char> events, gsl::span<unsigned> offsets)
   {
     auto r = m_events.emplace(type, std::make_pair(std::move(events), std::move(offsets)));
     return r.second;
   }
 
 private:
-  std::map<BankTypes, std::pair<gsl::span<char>, gsl::span<uint>>> m_events;
+  std::map<BankTypes, std::pair<gsl::span<char>, gsl::span<unsigned>>> m_events;
   std::map<BankTypes, std::string> m_folders;
 };
 

@@ -62,14 +62,14 @@ update_velo_only(const Velo::Consolidated::Hits& hits, int nHit, Vector5& x, Sym
 
 __device__ void velo_only_fit(
   const Velo::Consolidated::Hits& velo_hits,
-  const uint n_velo_hits,
+  const unsigned n_velo_hits,
   const KalmanFloat init_qop,
   const KalmanParametrizations* kalman_params,
   FittedTrack& track);
 
 __device__ void simplified_fit(
   const Velo::Consolidated::Hits& velo_hits,
-  const uint n_velo_hits,
+  const unsigned n_velo_hits,
   const KalmanFloat init_qop,
   FittedTrack& track);
 
@@ -78,24 +78,24 @@ __device__ void propagate_to_beamline(FittedTrack& track);
 namespace kalman_velo_only {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint), host_number_of_reconstructed_scifi_tracks),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
-    (DEVICE_INPUT(dev_offsets_ut_tracks_t, uint), dev_atomics_ut),
-    (DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint), dev_ut_track_hit_number),
+    (DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned), dev_atomics_ut),
+    (DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned), dev_ut_track_hit_number),
     (DEVICE_INPUT(dev_ut_qop_t, float), dev_ut_qop),
-    (DEVICE_INPUT(dev_ut_track_velo_indices_t, uint), dev_ut_track_velo_indices),
-    (DEVICE_INPUT(dev_offsets_forward_tracks_t, uint), dev_atomics_scifi),
-    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, uint), dev_scifi_track_hit_number),
+    (DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned), dev_ut_track_velo_indices),
+    (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_atomics_scifi),
+    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned), dev_scifi_track_hit_number),
     (DEVICE_INPUT(dev_scifi_qop_t, float), dev_scifi_qop),
     (DEVICE_INPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
-    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint), dev_scifi_track_ut_indices),
+    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned), dev_scifi_track_ut_indices),
     (DEVICE_INPUT(dev_velo_pv_ip_t, char), dev_velo_pv_ip),
     (DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
     (DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex), dev_multi_fit_vertices),
-    (DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint), dev_number_of_multi_fit_vertices),
+    (DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, unsigned), dev_number_of_multi_fit_vertices),
     (DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char), dev_kalman_pv_ipchi2),
     (DEVICE_INPUT(dev_is_muon_t, bool), dev_is_muon),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))

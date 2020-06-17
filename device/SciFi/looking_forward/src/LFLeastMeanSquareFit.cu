@@ -24,14 +24,14 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
   lf_least_mean_square_fit::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   const auto ut_event_tracks_offset = parameters.dev_atomics_ut[number_of_events + event_number];
   const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits
-  const uint total_number_of_hits =
+  const unsigned total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
 
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
@@ -50,7 +50,7 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
   float b1 = 0.f;
   float b2 = 0.f;
 
-  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     SciFi::TrackHits& track = parameters.dev_scifi_tracks[scifi_track_index];
@@ -67,7 +67,7 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
       parameters.dev_scifi_lf_parametrization_x_filter
         [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
 
-    for (uint i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
+    for (unsigned i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
       const auto hit_index = event_offset + track.hits[i_hit];
       const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
       const auto x = scifi_hits.x0(hit_index);
@@ -118,7 +118,7 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
 
     // Update track quality
     track.quality = 0.f;
-    for (uint i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
+    for (unsigned i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
       const auto hit_index = event_offset + track.hits[i_hit];
       const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
       const auto x = scifi_hits.x0(hit_index);

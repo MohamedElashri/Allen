@@ -622,7 +622,7 @@ void allocate_storage(size_t i_read)
     }
   };
   m_slices = allocate_slices<Banks...>(this->n_slices(), size_fun);
-  m_slice_to_buffer = std::vector(this->n_slices(), std::tuple {-1, 0ul, 0ul});
+  m_slice_to_buffer = std::vector<std::tuple<int, size_t, size_t>>(this->n_slices(), std::make_tuple(-1, 0ul, 0ul));
 
   if (!count_success) {
     error_cout << "Failed to determine bank counts\n";

@@ -6,9 +6,9 @@
 namespace saxpy {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
     (PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float), saxpy_scale_factor),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
@@ -33,5 +33,5 @@ namespace saxpy {
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
   };
 
-  __global__ void saxpy(Parameters, const uint number_of_events);
+  __global__ void saxpy(Parameters, const unsigned number_of_events);
 } // namespace saxpy

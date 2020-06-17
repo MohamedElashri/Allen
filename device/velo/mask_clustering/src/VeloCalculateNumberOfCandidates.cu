@@ -41,7 +41,7 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
 
 __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates(
   velo_calculate_number_of_candidates::Parameters parameters,
-  const uint number_of_events)
+  const unsigned number_of_events)
 {
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
@@ -52,8 +52,8 @@ __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_ca
     // Read raw event
     const auto raw_event = VeloRawEvent(raw_input);
 
-    uint number_of_candidates = 0;
-    for (uint raw_bank_number = 0; raw_bank_number < raw_event.number_of_raw_banks; ++raw_bank_number) {
+    unsigned number_of_candidates = 0;
+    for (unsigned raw_bank_number = 0; raw_bank_number < raw_event.number_of_raw_banks; ++raw_bank_number) {
       // Read raw bank
       const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
       number_of_candidates += raw_bank.sp_count;
@@ -66,15 +66,15 @@ __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_ca
 
 __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_mep(
   velo_calculate_number_of_candidates::Parameters parameters,
-  const uint number_of_events)
+  const unsigned number_of_events)
 {
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    const uint selected_event_number = parameters.dev_event_list[event_number];
+    const unsigned selected_event_number = parameters.dev_event_list[event_number];
     auto const number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
 
-    uint number_of_candidates = 0;
-    for (uint raw_bank_number = 0; raw_bank_number < number_of_raw_banks; ++raw_bank_number) {
+    unsigned number_of_candidates = 0;
+    for (unsigned raw_bank_number = 0; raw_bank_number < number_of_raw_banks; ++raw_bank_number) {
       // Create raw bank from MEP layout
       const auto raw_bank = MEP::raw_bank<VeloRawBank>(
         parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);

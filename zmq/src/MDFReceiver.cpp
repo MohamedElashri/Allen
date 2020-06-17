@@ -21,6 +21,10 @@
 #include <raw_helpers.hpp>
 #include <zmq/svc.h>
 
+#ifndef O_DIRECT
+#define O_DIRECT 00040000
+#endif
+
 namespace {
   using namespace std::string_literals;
   using namespace zmq;

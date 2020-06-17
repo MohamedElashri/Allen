@@ -41,7 +41,7 @@ std::tuple<bool, bool, EB::Header, gsl::span<char const>> MEP::read_mep(Allen::I
     cerr << "Failed to read header " << strerror(errno) << "\n";
     return {false, false, {}, {}};
   }
-  uint header_version = mdf_header->headerVersion();
+  unsigned header_version = mdf_header->headerVersion();
   auto hdr_size = LHCb::MDFHeader::sizeOf(header_version);
   assert((hdr_size - sizeof(LHCb::MDFHeader)) == mdf_header->subheaderLength());
   // read subheader

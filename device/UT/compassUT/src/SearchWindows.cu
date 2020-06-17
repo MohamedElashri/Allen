@@ -39,21 +39,21 @@ __global__ void ut_search_windows::ut_search_windows(
   ut_search_windows::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_ut_dxDy,
-  const uint* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
+  const unsigned* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
   const float* dev_unique_sector_xs)             // list of xs that define the groups
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const uint total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
@@ -65,13 +65,13 @@ __global__ void ut_search_windows::ut_search_windows(
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
 
-  for (uint layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
-    const uint layer_offset = ut_hit_offsets.layer_offset(layer);
+  for (unsigned layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
+    const unsigned layer_offset = ut_hit_offsets.layer_offset(layer);
 
-    for (uint i = threadIdx.y; i < ut_number_of_selected_tracks; i += blockDim.y) {
+    for (unsigned i = threadIdx.y; i < ut_number_of_selected_tracks; i += blockDim.y) {
       const auto current_velo_track = ut_selected_velo_tracks[i];
 
-      const uint current_track_offset = event_tracks_offset + current_velo_track;
+      const unsigned current_track_offset = event_tracks_offset + current_velo_track;
       const MiniState velo_state = velo_states.getMiniState(current_track_offset);
 
       const auto candidates = calculate_windows(
@@ -167,7 +167,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const UT::HitOffsets& ut_hit_offsets,
   const float* ut_dxDy,
   const float* dev_unique_sector_xs,
-  const uint* dev_unique_x_sector_layer_offsets,
+  const unsigned* dev_unique_x_sector_layer_offsets,
   const float y_tol,
   const float y_tol_slope,
   const float min_pt,
@@ -359,7 +359,7 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
   const float dx_max = max(xx_at_left_sector - x_track, xx_at_right_sector - x_track);
 
   const float tol = y_tol + y_tol_slope * fabsf(dx_max * invNormFact);
-  const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group);
+  const unsigned sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group);
 
   int number_of_candidates = 0;
 

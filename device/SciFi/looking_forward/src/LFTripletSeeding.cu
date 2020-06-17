@@ -41,13 +41,13 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
 {
   __shared__ float shared_precalc_expected_x1[2 * LookingForward::max_number_of_hits_in_window];
 
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // Velo consolidated types
   Velo::Consolidated::ConstStates velo_states {
     parameters.dev_velo_states, parameters.dev_atomics_velo[number_of_events]};
-  const uint velo_tracks_offset_event = parameters.dev_atomics_velo[event_number];
+  const unsigned velo_tracks_offset_event = parameters.dev_atomics_velo[event_number];
 
   // UT consolidated tracks
   UT::Consolidated::ConstExtendedTracks ut_tracks {
@@ -63,13 +63,13 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
 
   // SciFi hits
-  const uint total_number_of_hits =
+  const unsigned total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  for (uint ut_track_number = blockIdx.y; ut_track_number < ut_event_number_of_tracks; ut_track_number += gridDim.y) {
+  for (unsigned ut_track_number = blockIdx.y; ut_track_number < ut_event_number_of_tracks; ut_track_number += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + ut_track_number;
 
     if (parameters.dev_scifi_lf_process_track[current_ut_track_index]) {
@@ -77,12 +77,12 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
       const auto qop = ut_tracks.qop(ut_track_number);
       const int* initial_windows = parameters.dev_scifi_lf_initial_windows + current_ut_track_index;
 
-      const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
+      const unsigned velo_states_index = velo_tracks_offset_event + velo_track_index;
       const auto x_at_z_magnet =
         velo_states.x(velo_states_index) +
         (LookingForward::z_magnet - velo_states.z(velo_states_index)) * velo_states.tx(velo_states_index);
 
-      for (uint triplet_seed = threadIdx.y; triplet_seed < LookingForward::n_triplet_seeds;
+      for (unsigned triplet_seed = threadIdx.y; triplet_seed < LookingForward::n_triplet_seeds;
            triplet_seed += blockDim.y) {
         const auto layer_0 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
         const auto layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
@@ -133,9 +133,9 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
 
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
-  const uint layer_0,
-  const uint layer_1,
-  const uint layer_2,
+  const unsigned layer_0,
+  const unsigned layer_1,
+  const unsigned layer_2,
   const int l0_size,
   const int l1_size,
   const int l2_size,
@@ -143,7 +143,7 @@ __device__ void lf_triplet_seeding_impl(
   const float z1,
   const float z2,
   const int* initial_windows,
-  const uint ut_total_number_of_tracks,
+  const unsigned ut_total_number_of_tracks,
   const float qop,
   const float ut_tx,
   const float velo_tx,
@@ -151,7 +151,7 @@ __device__ void lf_triplet_seeding_impl(
   float* shared_x1,
   int* scifi_lf_found_triplets,
   int8_t* scifi_lf_number_of_found_triplets,
-  const uint triplet_seed)
+  const unsigned triplet_seed)
 {
   const int l0_start =
     initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
@@ -182,7 +182,7 @@ __device__ void lf_triplet_seeding_impl(
   // Due to shared_x1
   __syncthreads();
 
-  for (uint tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
+  for (unsigned tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
     uint16_t number_of_found_triplets = 0;
 
     // Treat central window iteration

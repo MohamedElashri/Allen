@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
   auto bank_ids = ::bank_ids();
   MEP::Blocks blocks;
 
-  vector<uint> scifi_block_ids, ut_block_ids;
+  vector<unsigned> scifi_block_ids, ut_block_ids;
 
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
@@ -121,8 +121,8 @@ int main(int argc, char* argv[])
         auto const& sizes = std::get<0>(blocks[scifi_block_ids[i_block]]).sizes;
         [[maybe_unused]] auto fragment_size = sizes[event];
 
-        uint const offset_index = 2 + n_scifi_fragments * (1 + event);
-        [[maybe_unused]] uint bank_size =
+        unsigned const offset_index = 2 + n_scifi_fragments * (1 + event);
+        [[maybe_unused]] unsigned bank_size =
           scifi_offsets[offset_index + i_block + n_scifi_fragments] - scifi_offsets[offset_index + i_block];
         assert(bank_size == fragment_size);
       }
@@ -146,10 +146,10 @@ int main(int argc, char* argv[])
     auto ut_banks = slice_to_banks(0, BankTypes::UT);
     auto scifi_banks = slice_to_banks(0, BankTypes::FT);
 
-    vector<uint> host_total_number_of_events(interval, 0);
-    vector<uint> host_event_list(interval, 0);
-    vector<uint> event_list(interval, 0);
-    uint number_of_selected_events = 0;
+    vector<unsigned> host_total_number_of_events(interval, 0);
+    vector<unsigned> host_event_list(interval, 0);
+    vector<unsigned> event_list(interval, 0);
+    unsigned number_of_selected_events = 0;
 
     host_global_event_cut::Parameters pars {std::get<0>(ut_banks).data(),
                                             &std::get<2>(ut_banks),

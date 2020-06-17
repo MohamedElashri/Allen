@@ -72,7 +72,7 @@ float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& v
 
 float ipVelo(
   Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
@@ -86,7 +86,7 @@ float ipVelo(
 
 float ipxVelo(
   Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
@@ -98,7 +98,7 @@ float ipxVelo(
 
 float ipyVelo(
   Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
@@ -110,7 +110,7 @@ float ipyVelo(
 
 float ipChi2Velo(
   Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
@@ -146,7 +146,7 @@ float ipChi2Velo(
 
 float veloDOCAz(
   Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex)
 {
   float dx = velo_kalman_states.x(state_index) - vertex.position.x;
@@ -157,18 +157,18 @@ float veloDOCAz(
 }
 
 std::vector<Checker::Tracks> prepareKalmanTracks(
-  const uint* velo_track_atomics,
-  const uint* velo_track_hit_number,
+  const unsigned* velo_track_atomics,
+  const unsigned* velo_track_hit_number,
   const char* velo_track_hits,
-  const uint* ut_track_atomics,
-  const uint* ut_track_hit_number,
+  const unsigned* ut_track_atomics,
+  const unsigned* ut_track_hit_number,
   const char* ut_track_hits,
-  const uint* ut_track_velo_indices,
+  const unsigned* ut_track_velo_indices,
   const float* ut_qop,
-  const uint* scifi_track_atomics,
-  const uint* scifi_track_hit_number,
+  const unsigned* scifi_track_atomics,
+  const unsigned* scifi_track_hit_number,
   const char* scifi_track_hits,
-  const uint* scifi_track_ut_indices,
+  const unsigned* scifi_track_ut_indices,
   const float* scifi_qop,
   const MiniState* scifi_states,
   const char* scifi_geometry,
@@ -177,14 +177,14 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
   char* velo_states_base,
   PV::Vertex* rec_vertex,
   const int* number_of_vertex,
-  const uint number_of_events)
+  const unsigned number_of_events)
 {
 
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
   std::vector<Checker::Tracks> checker_tracks;
 
   // Loop over events.
-  for (uint i_event = 0; i_event < number_of_events; i_event++) {
+  for (unsigned i_event = 0; i_event < number_of_events; i_event++) {
     Checker::Tracks tracks; // All tracks from one event.
 
     // Get the vertices.
@@ -207,34 +207,34 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
                                                    number_of_events};
 
     // Make the VELO states.
-    const uint event_velo_tracks_offset = velo_tracks.tracks_offset(i_event);
+    const unsigned event_velo_tracks_offset = velo_tracks.tracks_offset(i_event);
     Velo::Consolidated::ConstKalmanStates velo_states {velo_states_base, velo_tracks.total_number_of_tracks()};
 
     // Loop over tracks.
-    const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
-    for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
+    const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
+    for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
       Checker::Track t;
 
       // Add SciFi hits.
-      const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
+      const unsigned scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
       SciFi::Consolidated::ConstHits track_hits_scifi = scifi_tracks.get_hits(scifi_track_hits, i_track);
-      for (uint i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
+      for (unsigned i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_scifi.id(i_hit));
       }
 
       // Add UT hits.
-      const uint UT_track_index = scifi_tracks.ut_track(i_track);
-      const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
+      const unsigned UT_track_index = scifi_tracks.ut_track(i_track);
+      const unsigned ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
       UT::Consolidated::ConstHits track_hits_ut = ut_tracks.get_hits(ut_track_hits, UT_track_index);
-      for (uint i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
+      for (unsigned i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_ut.id(i_hit));
       }
 
       // Add Velo hits.
       const int velo_track_index = ut_tracks.velo_track(UT_track_index);
-      const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
+      const unsigned velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
       Velo::Consolidated::ConstHits track_hits_velo = velo_tracks.get_hits(velo_track_hits, velo_track_index);
-      for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
+      for (unsigned i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_velo.id(i_hit));
       }
 

@@ -25,8 +25,8 @@ struct StreamWrapper {
   //       needing to know the size of the allocated object
   std::vector<Stream*> streams;
   bool do_check;
-  uint number_of_hlt1_lines;
-  uint errorevent_line;
+  unsigned number_of_hlt1_lines;
+  unsigned errorevent_line;
 
   StreamWrapper();
 
@@ -36,9 +36,9 @@ struct StreamWrapper {
    * @brief Initializes n streams
    */
   void initialize_streams(
-    const uint n,
+    const unsigned n,
     const bool print_memory_usage,
-    const uint start_event_offset,
+    const unsigned start_event_offset,
     const size_t reserve_mb,
     const Constants& constants,
     const std::map<std::string, std::map<std::string, std::string>>& config);
@@ -46,12 +46,12 @@ struct StreamWrapper {
   /**
    * @brief Runs stream.
    */
-  cudaError_t run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options);
+  cudaError_t run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options);
 
   /**
    * @brief Mask of the events selected by the stream
    */
-  std::vector<bool> reconstructed_events(const uint i) const;
+  std::vector<bool> reconstructed_events(const unsigned i) const;
 
   /**
    * @brief Initializes the host buffers managers of all streams.
@@ -62,7 +62,7 @@ struct StreamWrapper {
    * @brief Runs Monte Carlo test. Stream must be run beforehand.
    */
   void run_monte_carlo_test(
-    uint const i,
+    unsigned const i,
     CheckerInvoker& invoker,
     MCEvents const& mc_events,
     std::vector<Checker::Tracks> const& forward_tracks);

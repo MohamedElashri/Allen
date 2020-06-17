@@ -71,8 +71,8 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   scifi_pre_decode_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   SciFiGeometry geom(scifi_geometry);
   const auto event =
@@ -83,7 +83,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
 
-  for (uint i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
     shared_mat_offsets[i] = *hit_count.mat_offsets_p(i);
     shared_mat_count[i] = 0;
   }
@@ -91,8 +91,8 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   __syncthreads();
 
   // Main execution loop
-  for (uint i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
-    const uint current_raw_bank = getRawBankIndexOrderedByX(i);
+  for (unsigned i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
+    const unsigned current_raw_bank = getRawBankIndexOrderedByX(i);
 
     auto rawbank = event.getSciFiRawBank(current_raw_bank);
     const uint16_t* starting_it = rawbank.data + 2;
@@ -101,8 +101,8 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
 
     if (starting_it >= last) continue;
 
-    const uint number_of_iterations = last - starting_it;
-    for (uint it_number = 0; it_number < number_of_iterations; ++it_number) {
+    const unsigned number_of_iterations = last - starting_it;
+    for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
       const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
@@ -160,8 +160,8 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
   scifi_pre_decode_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   SciFiGeometry geom(scifi_geometry);
   ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
@@ -169,7 +169,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
 
-  for (uint i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
     shared_mat_offsets[i] = *hit_count.mat_offsets_p(i);
     shared_mat_count[i] = 0;
   }
@@ -179,7 +179,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
   auto const n_scifi_banks = parameters.dev_scifi_raw_input_offsets[0];
 
   // Main execution loop
-  for (uint i = threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
     // Create SciFi raw bank from MEP layout
     auto const rawbank = MEP::raw_bank<SciFiRawBank>(
       parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, i);
@@ -190,8 +190,8 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
 
     if (starting_it >= last) continue;
 
-    const uint number_of_iterations = last - starting_it;
-    for (uint it_number = 0; it_number < number_of_iterations; ++it_number) {
+    const unsigned number_of_iterations = last - starting_it;
+    for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
       const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);

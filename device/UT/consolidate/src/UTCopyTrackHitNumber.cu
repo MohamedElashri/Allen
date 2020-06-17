@@ -32,10 +32,10 @@ __global__ void ut_copy_track_hit_number::ut_copy_track_hit_number(ut_copy_track
   const auto number_of_tracks = parameters.dev_atomics_ut[event_number + 1] - parameters.dev_atomics_ut[event_number];
 
   // Pointer to ut_track_hit_number of current event.
-  uint* ut_track_hit_number = parameters.dev_ut_track_hit_number + accumulated_tracks;
+  unsigned* ut_track_hit_number = parameters.dev_ut_track_hit_number + accumulated_tracks;
 
   // Loop over tracks.
-  for (uint element = threadIdx.x; element < number_of_tracks; ++element) {
+  for (unsigned element = threadIdx.x; element < number_of_tracks; ++element) {
     ut_track_hit_number[element] = event_tracks[element].hits_num;
   }
 }

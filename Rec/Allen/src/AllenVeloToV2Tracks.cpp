@@ -52,15 +52,17 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
 {
 
   // Make the consolidated tracks.
-  const uint i_event = 0;
-  const uint number_of_events = 1;
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) host_buffers.host_atomics_velo, (uint*) host_buffers.host_velo_track_hit_number, i_event, number_of_events};
+  const unsigned i_event = 0;
+  const unsigned number_of_events = 1;
+  const Velo::Consolidated::Tracks velo_tracks {(unsigned*) host_buffers.host_atomics_velo,
+                                                (unsigned*) host_buffers.host_velo_track_hit_number,
+                                                i_event,
+                                                number_of_events};
   const Velo::Consolidated::KalmanStates velo_states(
     host_buffers.host_kalmanvelo_states, velo_tracks.total_number_of_tracks());
-  const uint event_tracks_offset = velo_tracks.tracks_offset(i_event);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(i_event);
 
-  const uint number_of_tracks = velo_tracks.number_of_tracks(i_event);
+  const unsigned number_of_tracks = velo_tracks.number_of_tracks(i_event);
   std::vector<LHCb::Event::v2::Track> output;
   output.reserve(number_of_tracks);
 
@@ -74,20 +76,20 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
     for (const auto id : velo_ids) {
       const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);
       newTrack.addToLhcbIDs(lhcbid);
-      if (msgLevel(MSG::DEBUG)) debug() << "Adding LHCbID " << std::hex << id << std::dec << endmsg; 
+      if (msgLevel(MSG::DEBUG)) debug() << "Adding LHCbID " << std::hex << id << std::dec << endmsg;
     }
 
     // set state at beamline
-    const uint current_track_offset = event_tracks_offset + t;
+    const unsigned current_track_offset = event_tracks_offset + t;
     const KalmanVeloState velo_state = velo_states.get(current_track_offset);
     LHCb::State closesttobeam_state;
     closesttobeam_state.setState(velo_state.x, velo_state.y, velo_state.z, velo_state.tx, velo_state.ty, 0.f);
-    closesttobeam_state.covariance()(0,0) = velo_state.c00;
-    closesttobeam_state.covariance()(1,1) = velo_state.c11; 
-    closesttobeam_state.covariance()(0,2) = velo_state.c20; 
-    closesttobeam_state.covariance()(2,2) = velo_state.c22; 
-    closesttobeam_state.covariance()(1,3) = velo_state.c31; 
-    closesttobeam_state.covariance()(3,3) = velo_state.c33; 
+    closesttobeam_state.covariance()(0, 0) = velo_state.c00;
+    closesttobeam_state.covariance()(1, 1) = velo_state.c11;
+    closesttobeam_state.covariance()(0, 2) = velo_state.c20;
+    closesttobeam_state.covariance()(2, 2) = velo_state.c22;
+    closesttobeam_state.covariance()(1, 3) = velo_state.c31;
+    closesttobeam_state.covariance()(3, 3) = velo_state.c33;
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 

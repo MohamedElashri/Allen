@@ -1,9 +1,9 @@
 #include "MetaMonitor.h"
 
 #ifdef WITH_ROOT
-void MetaMonitor::fill(bool successful, uint monitoringLevel)
+void MetaMonitor::fill(bool successful, unsigned monitoringLevel)
 {
-  uint time = getWallTimeBin();
+  unsigned time = getWallTimeBin();
 
   if (successful) {
     m_histograms[MonitoringSuccess]->Fill(time);
@@ -24,7 +24,7 @@ void MetaMonitor::fill(bool successful, uint monitoringLevel)
 
 void MetaMonitor::fillSplit()
 {
-  uint time = getWallTimeBin();
+  unsigned time = getWallTimeBin();
 
   m_histograms[SplitSlices]->Fill(time);
 }
@@ -32,7 +32,7 @@ void MetaMonitor::fillSplit()
 void MetaMonitor::init()
 {
   // set number of bins such that histograms cover approximately 80 minutes
-  uint nBins = 80 * 60 / m_time_step;
+  unsigned nBins = 80 * 60 / m_time_step;
   double max = nBins * m_time_step;
 
   m_histograms.emplace(MonitoringSuccess, new TH1D("monitoringSuccess", "", nBins, 0., max));
@@ -50,7 +50,7 @@ void MetaMonitor::init()
   }
 }
 #else
-void MetaMonitor::fill(bool, uint) {}
+void MetaMonitor::fill(bool, unsigned) {}
 void MetaMonitor::fillSplit() {}
 void MetaMonitor::init() {}
 #endif

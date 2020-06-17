@@ -128,9 +128,9 @@ The Velo include is only required if Velo objects are used in the algorithm. `De
 namespace saxpy {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
     (PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float), saxpy_scale_factor),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
@@ -142,9 +142,9 @@ In the `saxpy` namespace the parameters and properties are specified. Parameters
 
 Some parameter examples:
 
-* `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _uint_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `uint`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const uint*`. Its identifier is `dev_atomics_velo`.
+* `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _unsigned_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
 * `(DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output)`: Defines an output parameter on _device memory_, with name `dev_saxpy_output_t` and identifier `dev_saxpy_output`. Its underlying type is `float*`.
-* `(HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events)`: Defines an input parameter on _host memory_, with name `host_number_of_selected_events_t` and identifier `host_number_of_selected_events`. Its underlying type is `const uint*`.
+* `(HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events)`: Defines an input parameter on _host memory_, with name `host_number_of_selected_events_t` and identifier `host_number_of_selected_events`. Its underlying type is `const unsigned*`.
 
 Properties of algorithms define constants can be configured prior to running the application. They are defined in two parts. First, they should be defined in the `DEFINE_PARAMETERS` macro following the convention:
 
@@ -199,7 +199,7 @@ An algorithm `saxpy_t` has been declared. It is a `DeviceAlgorithm`, and for con
 Since this is a DeviceAlgorithm, one would like the work to actually be done on the device. In order to run code on the device, a _global kernel_ has to be defined. The syntax used is standard CUDA:
 
 ```
-__global__ void saxpy(Parameters, const uint number_of_events);
+__global__ void saxpy(Parameters, const unsigned number_of_events);
 ```
 
 ##### SAXPY_example.cu
@@ -270,12 +270,12 @@ Finally, the kernel is defined:
  * @brief SAXPY example algorithm
  * @detail Calculates for every event y = a*x + x, where x is the number of velo tracks in one event
  */
-__global__ void saxpy::saxpy(saxpy::Parameters parameters, const uint number_of_events)
+__global__ void saxpy::saxpy(saxpy::Parameters parameters, const unsigned number_of_events)
 {
-  for (uint event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
+  for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
     Velo::Consolidated::ConstTracks velo_tracks {
       parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-    const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+    const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
     
     parameters.dev_saxpy_output[event_number] =
         parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
@@ -293,8 +293,8 @@ The kernel accepts a single parameter of type `saxpy::Parameters`. It is now pos
 
 In other words, in the code above:
 
-* `parameters.dev_atomics_velo` decays to `const uint*`.
-* `parameters.dev_velo_track_hit_number` decays to `const uint*`.
+* `parameters.dev_atomics_velo` decays to `const unsigned*`.
+* `parameters.dev_velo_track_hit_number` decays to `const unsigned*`.
 * `parameters.dev_saxpy_output` decays to `float*`.
 * `parameters.saxpy_scale_factor` decays to `float`, and has default value `2.f`.
 

@@ -43,21 +43,21 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
 __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Parameters parameters)
 {
 
-  __shared__ uint tmp_number_vertices[1];
+  __shared__ unsigned tmp_number_vertices[1];
   *tmp_number_vertices = 0;
 
   __syncthreads();
 
-  const uint event_number = blockIdx.x;
+  const unsigned event_number = blockIdx.x;
 
   const PV::Vertex* vertices = parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
   PV::Vertex* final_vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;
-  const uint number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices[event_number];
+  const unsigned number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices[event_number];
   // loop over all rec PVs, check if another one is within certain sigma range, only fill if not
-  for (uint i_pv = threadIdx.x; i_pv < number_of_multi_fit_vertices; i_pv += blockDim.x) {
+  for (unsigned i_pv = threadIdx.x; i_pv < number_of_multi_fit_vertices; i_pv += blockDim.x) {
     bool unique = true;
     PV::Vertex vertex1 = vertices[i_pv];
-    for (uint j_pv = 0; j_pv < number_of_multi_fit_vertices; j_pv++) {
+    for (unsigned j_pv = 0; j_pv < number_of_multi_fit_vertices; j_pv++) {
       if (i_pv == j_pv) continue;
       PV::Vertex vertex2 = vertices[j_pv];
       float z1 = vertex1.position.z;

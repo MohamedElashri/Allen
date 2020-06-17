@@ -80,20 +80,20 @@ __global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
   beamspot.y = 0;
   beamspot.z = 0;
 
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstKalmanStates velo_states {
     parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   PatPV::vtxCluster vclusters[Velo::Constants::max_tracks];
 
   int counter_number_of_clusters = 0;
-  for (uint i = 0; i < number_of_tracks_event; i++) {
+  for (unsigned i = 0; i < number_of_tracks_event; i++) {
     float sigsq;
     float zclu;
     KalmanVeloState trk = velo_states.get(event_tracks_offset + i);

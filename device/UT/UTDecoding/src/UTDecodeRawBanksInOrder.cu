@@ -43,15 +43,15 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
 }
 
 __device__ void decode_raw_bank(
-  uint const* dev_ut_region_offsets,
+  unsigned const* dev_ut_region_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
   UTRawBank const& raw_bank,
-  uint const hit_index,
-  uint const raw_bank_hit_index,
+  unsigned const hit_index,
+  unsigned const raw_bank_hit_index,
   UT::Hits& ut_hits)
 {
-  const uint hit_index_inside_raw_bank = raw_bank_hit_index & 0xFFFFFF;
+  const unsigned hit_index_inside_raw_bank = raw_bank_hit_index & 0xFFFFFF;
 
   const uint16_t value = raw_bank.data[hit_index_inside_raw_bank];
   const uint32_t nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
@@ -112,17 +112,17 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   ut_decode_raw_banks_in_order::Parameters parameters,
   const char* ut_boards,
   const char* ut_geometry,
-  const uint* dev_ut_region_offsets,
-  const uint* dev_unique_x_sector_layer_offsets)
+  const unsigned* dev_ut_region_offsets,
+  const unsigned* dev_unique_x_sector_layer_offsets)
 {
   const uint32_t number_of_events = gridDim.x;
   const uint32_t event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
-  const uint layer_number = blockIdx.y;
+  const unsigned layer_number = blockIdx.y;
   const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[selected_event_number];
 
-  const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
@@ -136,13 +136,13 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
-  const uint layer_offset = ut_hit_offsets.layer_offset(layer_number);
-  const uint layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
+  const unsigned layer_offset = ut_hit_offsets.layer_offset(layer_number);
+  const unsigned layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
 
-  for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
-    const uint hit_index = layer_offset + i;
-    const uint raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
-    const uint raw_bank_index = raw_bank_hit_index >> 24;
+  for (unsigned i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
+    const unsigned hit_index = layer_offset + i;
+    const unsigned raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
+    const unsigned raw_bank_index = raw_bank_hit_index >> 24;
 
     const UTRawBank raw_bank = raw_event.getUTRawBank(raw_bank_index);
 
@@ -154,16 +154,16 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
   ut_decode_raw_banks_in_order::Parameters parameters,
   const char* ut_boards,
   const char* ut_geometry,
-  const uint* dev_ut_region_offsets,
-  const uint* dev_unique_x_sector_layer_offsets)
+  const unsigned* dev_ut_region_offsets,
+  const unsigned* dev_unique_x_sector_layer_offsets)
 {
   const uint32_t number_of_events = gridDim.x;
   const uint32_t event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
-  const uint layer_number = blockIdx.y;
+  const unsigned layer_number = blockIdx.y;
 
-  const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
@@ -176,14 +176,14 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
-  const uint layer_offset = ut_hit_offsets.layer_offset(layer_number);
-  const uint layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
+  const unsigned layer_offset = ut_hit_offsets.layer_offset(layer_number);
+  const unsigned layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
 
-  for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
 
-    const uint hit_index = layer_offset + i;
-    const uint raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
-    const uint raw_bank_index = raw_bank_hit_index >> 24;
+    const unsigned hit_index = layer_offset + i;
+    const unsigned raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
+    const unsigned raw_bank_index = raw_bank_hit_index >> 24;
 
     // Create UT raw bank from MEP layout
     const auto raw_bank = MEP::raw_bank<UTRawBank>(

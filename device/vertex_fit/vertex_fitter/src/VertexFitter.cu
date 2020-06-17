@@ -33,13 +33,13 @@ void VertexFit::fit_secondary_vertices_t::operator()(
 
 __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint sv_offset = parameters.dev_sv_offsets[event_number];
-  const uint n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
-  const uint idx_offset = 10 * VertexFit::max_svs * event_number;
-  const uint* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
-  const uint* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned sv_offset = parameters.dev_sv_offsets[event_number];
+  const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
+  const unsigned idx_offset = 10 * VertexFit::max_svs * event_number;
+  const unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
+  const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
 
   // Consolidated SciFi tracks.
   SciFi::Consolidated::ConstTracks scifi_tracks {
@@ -50,7 +50,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     parameters.dev_scifi_track_ut_indices,
     event_number,
     number_of_events};
-  const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
+  const unsigned event_tracks_offset = scifi_tracks.tracks_offset(event_number);
 
   // Track-PV association table.
   Associate::Consolidated::ConstTable kalman_pv_ipchi2 {
@@ -61,7 +61,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
 
   // Primary vertices.
-  const uint n_pvs_event = *(parameters.dev_number_of_multi_fit_vertices + event_number);
+  const unsigned n_pvs_event = *(parameters.dev_number_of_multi_fit_vertices + event_number);
   cuda::span<PV::Vertex const> vertices {
     parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
 
@@ -69,7 +69,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_consolidated_svs + sv_offset;
 
   // Loop over svs.
-  for (uint i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
+  for (unsigned i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
     event_secondary_vertices[i_sv].chi2 = -1;
     event_secondary_vertices[i_sv].minipchi2 = 0;
     auto i_track = event_svs_trk1_idx[i_sv];

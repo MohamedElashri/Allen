@@ -13,7 +13,7 @@ struct PVMonitor : public BufferMonitor {
 
   virtual ~PVMonitor() = default;
 
-  void fill(uint i_buf, bool useWallTime = true) override;
+  void fill(unsigned i_buf, bool useWallTime = true) override;
 
 private:
   void init();

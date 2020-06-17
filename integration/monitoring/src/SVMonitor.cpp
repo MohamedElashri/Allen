@@ -8,19 +8,19 @@
 #include <cmath>
 
 #ifdef WITH_ROOT
-void SVMonitor::fill(uint i_buf, bool)
+void SVMonitor::fill(unsigned i_buf, bool)
 {
   HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
 
-  uint nevt = buf->host_number_of_selected_events[0];
+  unsigned nevt = buf->host_number_of_selected_events[0];
 
-  for (uint ievt = 0; ievt < nevt; ++ievt) {
+  for (unsigned ievt = 0; ievt < nevt; ++ievt) {
     int sv_offset = buf->host_sv_offsets[ievt];
-    uint nsv = buf->host_sv_offsets[ievt + 1] - sv_offset;
+    unsigned nsv = buf->host_sv_offsets[ievt + 1] - sv_offset;
 
     m_histograms[SecondaryVertexN]->Fill(nsv);
 
-    for (uint isv = 0; isv < nsv; ++isv) {
+    for (unsigned isv = 0; isv < nsv; ++isv) {
       const auto& sv = buf->host_secondary_vertices[sv_offset + isv];
 
       m_histograms[SecondaryVertexX]->Fill(sv.x);
@@ -39,7 +39,7 @@ void SVMonitor::fill(uint i_buf, bool)
 
 void SVMonitor::init()
 {
-  uint nBins = 1000;
+  unsigned nBins = 1000;
 
   m_histograms.emplace(SecondaryVertexN, new TH1D("NSVs", "", 200, 0., 200.));
   m_histograms.emplace(SecondaryVertexX, new TH1D("SVX", "", nBins, -200., 200.));
@@ -59,6 +59,6 @@ void SVMonitor::init()
   }
 }
 #else
-void SVMonitor::fill(uint, bool) {}
+void SVMonitor::fill(unsigned, bool) {}
 void SVMonitor::init() {}
 #endif

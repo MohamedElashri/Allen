@@ -37,11 +37,12 @@ void MonitorBase::saveHistograms(std::string file_name, bool append) const
 
   file->Close();
 #else
-void MonitorBase::saveHistograms(std::string, bool) const {
+void MonitorBase::saveHistograms(std::string, bool) const
+{
 #endif
 }
 
-uint MonitorBase::getWallTimeBin()
+unsigned MonitorBase::getWallTimeBin()
 {
   if (m_offset <= 0) m_offset = time(0);
 

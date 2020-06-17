@@ -39,15 +39,15 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
 }
 
 __device__ void estimate_raw_bank_size(
-  uint* estimated_input_size,
+  unsigned* estimated_input_size,
   uint32_t* cluster_candidates,
-  uint* event_candidate_num,
-  uint raw_bank_number,
+  unsigned* event_candidate_num,
+  unsigned raw_bank_number,
   VeloRawBank const& raw_bank)
 {
-  uint* estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_index / 8);
-  uint found_cluster_candidates = 0;
-  for (uint sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
+  unsigned* estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_index / 8);
+  unsigned found_cluster_candidates = 0;
+  for (unsigned sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
     const uint32_t sp_word = raw_bank.sp_word[sp_index];
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
@@ -77,10 +77,10 @@ __device__ void estimate_raw_bank_size(
       //  o  o
       // (x  x)
       const bool pattern_1 = (sp & 0xCC) && !(sp & 0x22) && (sp & 0x11);
-      const uint number_of_clusters = (pattern_0 | pattern_1) ? 2 : 1;
+      const unsigned number_of_clusters = (pattern_0 | pattern_1) ? 2 : 1;
 
       // Add the found clusters
-      [[maybe_unused]] const uint current_estimated_module_pair_size =
+      [[maybe_unused]] const unsigned current_estimated_module_pair_size =
         atomicAdd(estimated_module_pair_size, number_of_clusters);
       assert(current_estimated_module_pair_size < Velo::Constants::max_numhits_in_module_pair);
     }
@@ -123,7 +123,7 @@ __device__ void estimate_raw_bank_size(
       const uint32_t sp_row = sp_addr & 0x3FU;
       const uint32_t sp_col = sp_addr >> 6;
 
-      for (uint k = 0; k < raw_bank.sp_count; ++k) {
+      for (unsigned k = 0; k < raw_bank.sp_count; ++k) {
         const uint32_t other_sp_word = raw_bank.sp_word[k];
         const uint32_t other_no_sp_neighbours = sp_word & 0x80000000U;
 
@@ -221,7 +221,7 @@ __device__ void estimate_raw_bank_size(
 
   // Add the found cluster candidates
   if (found_cluster_candidates > 0) {
-    [[maybe_unused]] const uint current_estimated_module_pair_size =
+    [[maybe_unused]] const unsigned current_estimated_module_pair_size =
       atomicAdd(estimated_module_pair_size, found_cluster_candidates);
     assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module_pair);
   }
@@ -233,14 +233,14 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size(velo_estimate
   const auto selected_event_number = parameters.dev_event_list[event_number];
 
   const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
-  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
+  unsigned* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
+  unsigned* event_candidate_num = parameters.dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
   const auto raw_event = VeloRawEvent(raw_input);
 
-  for (uint raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
+  for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
        raw_bank_number += blockDim.y) {
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
@@ -250,17 +250,17 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size(velo_estimate
 
 __global__ void velo_estimate_input_size::velo_estimate_input_size_mep(velo_estimate_input_size::Parameters parameters)
 {
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
-  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
+  unsigned* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
+  unsigned* event_candidate_num = parameters.dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
   auto const number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
 
-  for (uint raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.y) {
+  for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.y) {
 
     // Create raw bank from MEP layout
     const auto raw_bank = MEP::raw_bank<VeloRawBank>(

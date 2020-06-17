@@ -100,7 +100,7 @@ struct PVTrackInVertex : PVTrack {
 void findPVs(
   char* kalmanvelo_states,
   int* velo_atomics,
-  uint* velo_track_hit_number,
+  unsigned* velo_track_hit_number,
   PV::Vertex* reconstructed_pvs,
   int* number_of_pvs,
-  const uint number_of_events);
+  const unsigned number_of_events);

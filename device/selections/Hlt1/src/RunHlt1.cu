@@ -29,7 +29,7 @@ void run_hlt1::run_hlt1_t::operator()(
 
   // TODO: Do this on the GPU, or rather remove completely
   // Prepare prefix sum of sizes of number of tracks and number of secondary vertices
-  for (uint i_line = 0; i_line < std::tuple_size<configured_lines_t>::value; i_line++) {
+  for (unsigned i_line = 0; i_line < std::tuple_size<configured_lines_t>::value; i_line++) {
     host_buffers.host_sel_results_atomics[i_line] = 0;
   }
 
@@ -87,9 +87,9 @@ void run_hlt1::run_hlt1_t::operator()(
 }
 
 __global__ void
-run_hlt1::run_hlt1(run_hlt1::Parameters parameters, const uint selected_number_of_events, const uint event_start)
+run_hlt1::run_hlt1(run_hlt1::Parameters parameters, const unsigned selected_number_of_events, const unsigned event_start)
 {
-  const uint total_number_of_events = gridDim.x;
+  const unsigned total_number_of_events = gridDim.x;
 
   // Run all events through the Special line traverser with the last block
   if (blockIdx.x == gridDim.x - 1) {
@@ -103,9 +103,9 @@ run_hlt1::run_hlt1(run_hlt1::Parameters parameters, const uint selected_number_o
 
   if (blockIdx.x < selected_number_of_events) {
     // Run all events that passed the filter (GEC) through the other line traversers
-    const uint selected_event_number = blockIdx.x;
+    const unsigned selected_event_number = blockIdx.x;
     // TODO: Revisit when making composable lists
-    const uint event_number = parameters.dev_event_list[blockIdx.x] - event_start;
+    const unsigned event_number = parameters.dev_event_list[blockIdx.x] - event_start;
 
     // Fetch tracks
     const ParKalmanFilter::FittedTrack* event_tracks =
@@ -123,7 +123,7 @@ run_hlt1::run_hlt1(run_hlt1::Parameters parameters, const uint selected_number_o
     const char* event_odin_data = parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number];
 
     // Fetch number of velo tracks.
-    const uint n_velo_tracks =
+    const unsigned n_velo_tracks =
       parameters.dev_velo_offsets[selected_event_number + 1] - parameters.dev_velo_offsets[selected_event_number];
 
     // Process all lines

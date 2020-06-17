@@ -31,18 +31,18 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   pv_beamline_multi_fitter::Parameters parameters,
   const float* dev_beamline)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  uint* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  unsigned* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
-  const uint number_of_tracks = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const float* zseeds = parameters.dev_zpeaks + event_number * PV::max_number_vertices;
-  const uint number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
+  const unsigned number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
 
   const PVTrack* tracks = parameters.dev_pvtracks + event_tracks_offset;
 
@@ -55,8 +55,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   // Find out the tracks we have to process
   // Exploit the fact tracks are sorted by z
   int first_track_in_range = -1;
-  uint number_of_tracks_in_range = 0;
-  for (uint i = 0; i < number_of_tracks; i++) {
+  unsigned number_of_tracks_in_range = 0;
+  for (unsigned i = 0; i < number_of_tracks; i++) {
     const auto z = parameters.dev_pvtrack_z[event_tracks_offset + i];
     if (BeamlinePVConstants::Common::zmin < z && z < BeamlinePVConstants::Common::zmax) {
       if (first_track_in_range == -1) {
@@ -67,7 +67,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   }
 
   // make sure that we have one thread per seed
-  for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
+  for (unsigned i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
 
     bool converged = false;
     bool accept = true;
@@ -79,8 +79,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
     auto vtxpos_z = seed_pos_z;
     float chi2tot = 0.f;
     float sum_weights = 0.f;
-    uint nselectedtracks = 0;
-    for (uint iter = 0;
+    unsigned nselectedtracks = 0;
+    for (unsigned iter = 0;
          (iter < BeamlinePVConstants::MultiFitter::maxFitIter || iter < BeamlinePVConstants::MultiFitter::minFitIter) &&
          !converged;
          ++iter) {
@@ -97,7 +97,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       float local_chi2tot = 0.f;
       float local_sum_weights = 0.f;
 
-      for (uint i = threadIdx.y; i < number_of_tracks_in_range; i += blockDim.y) {
+      for (unsigned i = threadIdx.y; i < number_of_tracks_in_range; i += blockDim.y) {
         // compute the chi2
         const PVTrackInVertex& trk = tracks[first_track_in_range + i];
 
@@ -223,7 +223,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       if (
         nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex &&
         beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
-        uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
+        unsigned vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }
     }

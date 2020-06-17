@@ -9,8 +9,8 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
   __shared__ int found_triplets
     [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
 
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {
@@ -20,7 +20,7 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
   const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
   const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
 
-  for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
+  for (unsigned i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
 
     if (parameters.dev_scifi_lf_process_track[current_ut_track_index]) {
@@ -29,7 +29,7 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
       __syncthreads();
 
       // Populate parameters.dev_scifi_lf_total_number_of_found_triplets and found_triplets
-      for (uint j = threadIdx.x; j < 2 * LookingForward::triplet_seeding_block_dim_x; j += blockDim.x) {
+      for (unsigned j = threadIdx.x; j < 2 * LookingForward::triplet_seeding_block_dim_x; j += blockDim.x) {
         const auto triplet_seed = j / LookingForward::triplet_seeding_block_dim_x;
         const auto triplet_index = j % LookingForward::triplet_seeding_block_dim_x;
 
@@ -55,7 +55,7 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
       }
 
       // Initialize best_triplets to -1
-      for (uint j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
+      for (unsigned j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
         best_triplets[j] = -1;
       }
 
@@ -69,16 +69,16 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
       // Note: if the number of tracks is less than LookingForward::maximum_number_of_candidates_per_ut_track
       //       then just store them all in best_triplets
       if (number_of_tracks < LookingForward::maximum_number_of_candidates_per_ut_track) {
-        for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
+        for (unsigned j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
           best_triplets[j] = found_triplets[j];
         }
       }
       else {
-        for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
+        for (unsigned j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
           const auto chi2 = found_triplets[j];
 
           int insert_position = 0;
-          for (uint k = 0; k < number_of_tracks; ++k) {
+          for (unsigned k = 0; k < number_of_tracks; ++k) {
             const auto other_chi2 = found_triplets[k];
             insert_position += chi2 > other_chi2 || (chi2 == other_chi2 && j < k);
           }

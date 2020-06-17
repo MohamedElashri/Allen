@@ -7,19 +7,19 @@
 namespace run_hlt1 {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint), host_number_of_reconstructed_scifi_tracks),
-    (HOST_INPUT(host_number_of_svs_t, uint), host_number_of_svs),
-    (DEVICE_INPUT(dev_event_list_t, uint), dev_event_list),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
+    (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
     (DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex), dev_consolidated_svs),
-    (DEVICE_INPUT(dev_offsets_forward_tracks_t, uint), dev_offsets_forward_tracks),
-    (DEVICE_INPUT(dev_sv_offsets_t, uint), dev_sv_offsets),
+    (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_offsets_forward_tracks),
+    (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
     (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
-    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, uint), dev_odin_raw_input_offsets),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_velo_offsets),
+    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_velo_offsets),
     (DEVICE_OUTPUT(dev_sel_results_t, bool), dev_sel_results),
-    (DEVICE_OUTPUT(dev_sel_results_offsets_t, uint), dev_sel_results_offsets),
+    (DEVICE_OUTPUT(dev_sel_results_offsets_t, unsigned), dev_sel_results_offsets),
     (PROPERTY(factor_one_track_t, "factor_one_track", "postscale for one-track line", float), factor_one_track),
     (PROPERTY(factor_single_muon_t, "factor_single_muon", "postscale for single-muon line", float), factor_single_muon),
     (PROPERTY(factor_two_tracks_t, "factor_two_tracks", "postscale for two-track line", float), factor_two_tracks),
@@ -28,9 +28,9 @@ namespace run_hlt1 {
     (PROPERTY(factor_dimuon_soft_t, "factor_dimuon_soft", "postscale for soft-dimuon line", float), factor_dimuon_soft),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
-  __global__ void run_hlt1(Parameters parameters, const uint selected_number_of_events, const uint event_start);
+  __global__ void run_hlt1(Parameters parameters, const unsigned selected_number_of_events, const unsigned event_start);
 
-  __global__ void run_postscale(Parameters, const uint selected_number_of_events, const uint event_start);
+  __global__ void run_postscale(Parameters, const unsigned selected_number_of_events, const unsigned event_start);
 
   struct run_hlt1_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(

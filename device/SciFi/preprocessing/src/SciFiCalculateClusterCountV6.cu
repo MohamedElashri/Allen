@@ -39,8 +39,8 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
   scifi_calculate_cluster_count_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiRawEvent event(
     parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
@@ -49,8 +49,8 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
 
   // NO version checking. Be careful, as v6 is assumed.
 
-  for (uint i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
-    const uint current_raw_bank = getRawBankIndexOrderedByX(i);
+  for (unsigned i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
+    const unsigned current_raw_bank = getRawBankIndexOrderedByX(i);
     uint32_t* hits_module;
     const auto rawbank = event.getSciFiRawBank(current_raw_bank);
     uint16_t* it = rawbank.data + 2;
@@ -64,7 +64,7 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
 
       const auto chid = SciFiChannelID(ch);
       const uint32_t uniqueMat = chid.correctedUniqueMat();
-      uint uniqueGroupOrMat;
+      unsigned uniqueGroupOrMat;
       if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
         uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
       else
@@ -101,8 +101,8 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
   scifi_calculate_cluster_count_v6::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
@@ -111,7 +111,7 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
 
   // NO version checking. Be careful, as v6 is assumed.
 
-  for (uint i = threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
     uint32_t* hits_module;
 
     // Create SciFi raw bank from MEP layout

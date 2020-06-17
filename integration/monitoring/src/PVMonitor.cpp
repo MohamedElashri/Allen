@@ -8,19 +8,19 @@
 #include <cmath>
 
 #ifdef WITH_ROOT
-void PVMonitor::fill(uint i_buf, bool)
+void PVMonitor::fill(unsigned i_buf, bool)
 {
   HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
 
-  uint nevt = buf->host_number_of_selected_events[0];
+  unsigned nevt = buf->host_number_of_selected_events[0];
   int pv_offset(0);
 
-  for (uint ievt = 0; ievt < nevt; ++ievt) {
-    uint npv = buf->host_number_of_multivertex[ievt];
+  for (unsigned ievt = 0; ievt < nevt; ++ievt) {
+    unsigned npv = buf->host_number_of_multivertex[ievt];
 
     m_histograms[PrimaryVertexN]->Fill(npv);
 
-    for (uint ipv = 0; ipv < npv; ++ipv) {
+    for (unsigned ipv = 0; ipv < npv; ++ipv) {
       const auto& pv = buf->host_reconstructed_multi_pvs[pv_offset + ipv];
 
       m_histograms[PrimaryVertexX]->Fill(pv.position.x);
@@ -33,7 +33,7 @@ void PVMonitor::fill(uint i_buf, bool)
 
 void PVMonitor::init()
 {
-  uint nBins = 1000;
+  unsigned nBins = 1000;
 
   m_histograms.emplace(PrimaryVertexN, new TH1D("NPVs", "", 50, 0., 50.));
   m_histograms.emplace(PrimaryVertexX, new TH1D("PVX", "", nBins, -200., 200.));
@@ -46,6 +46,6 @@ void PVMonitor::init()
   }
 }
 #else
-void PVMonitor::fill(uint, bool) {}
+void PVMonitor::fill(unsigned, bool) {}
 void PVMonitor::init() {}
 #endif

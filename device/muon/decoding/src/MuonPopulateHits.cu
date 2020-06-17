@@ -52,7 +52,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
   auto event_muon_hits = Muon::Hits {parameters.dev_muon_hits, total_number_of_hits, event_offset_hits};
 
   // Create a permutation according to station
-  const auto get_station = [&muon_compact_hit](const uint a, const uint b) {
+  const auto get_station = [&muon_compact_hit](const unsigned a, const unsigned b) {
     const auto muon_compact_hit_a = muon_compact_hit[a] & 0xF;
     const auto muon_compact_hit_b = muon_compact_hit[b] & 0xF;
 
@@ -64,14 +64,14 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
   __syncthreads();
 
   // Do actual decoding
-  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     const uint64_t compact_hit = muon_compact_hit[permutation_station[i]];
 
     const uint8_t uncrossed = compact_hit >> 63;
-    const uint digitsOneIndex_index = (compact_hit >> 48) & 0x7FFF;
-    const uint digitsTwoIndex = (compact_hit >> 32) & 0xFFFF;
-    const uint thisGridX = (compact_hit >> 18) & 0x3FFF;
-    const uint otherGridY_condition = (compact_hit >> 4) & 0x3FFF;
+    const unsigned digitsOneIndex_index = (compact_hit >> 48) & 0x7FFF;
+    const unsigned digitsTwoIndex = (compact_hit >> 32) & 0xFFFF;
+    const unsigned thisGridX = (compact_hit >> 18) & 0x3FFF;
+    const unsigned otherGridY_condition = (compact_hit >> 4) & 0x3FFF;
 
     float x = 0.f;
     float dx = 0.f;

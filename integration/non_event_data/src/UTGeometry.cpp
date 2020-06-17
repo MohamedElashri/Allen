@@ -47,11 +47,11 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   const ::UTGeometry geometry {data};
 
   // Offset for each station / layer
-  const std::array<uint, UT::Constants::n_layers + 1> offsets {host_ut_region_offsets[0],
-                                                               host_ut_region_offsets[3],
-                                                               host_ut_region_offsets[6],
-                                                               host_ut_region_offsets[9],
-                                                               host_ut_region_offsets[12]};
+  const std::array<unsigned, UT::Constants::n_layers + 1> offsets {host_ut_region_offsets[0],
+                                                                   host_ut_region_offsets[3],
+                                                                   host_ut_region_offsets[6],
+                                                                   host_ut_region_offsets[9],
+                                                                   host_ut_region_offsets[12]};
   auto current_sector_offset = 0;
   auto& host_unique_x_sector_layer_offsets = m_constants.get().host_unique_x_sector_layer_offsets;
   auto& host_unique_x_sector_offsets = m_constants.get().host_unique_x_sector_offsets;
@@ -59,7 +59,7 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   host_unique_x_sector_offsets[current_sector_offset];
   host_unique_x_sector_layer_offsets[0] = 0;
 
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto offset = offsets[i];
     const auto size = offsets[i + 1] - offsets[i];
 

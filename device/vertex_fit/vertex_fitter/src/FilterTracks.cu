@@ -30,12 +30,12 @@ void FilterTracks::filter_tracks_t::operator()(
 
 __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint idx_offset = event_number * 10 * VertexFit::max_svs;
-  uint* event_sv_number = parameters.dev_sv_atomics + event_number;
-  uint* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
-  uint* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned idx_offset = event_number * 10 * VertexFit::max_svs;
+  unsigned* event_sv_number = parameters.dev_sv_atomics + event_number;
+  unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
+  unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
 
   // Consolidated SciFi tracks.
   SciFi::Consolidated::ConstTracks scifi_tracks {
@@ -46,8 +46,8 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
     parameters.dev_scifi_track_ut_indices,
     event_number,
     number_of_events};
-  const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
-  const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = scifi_tracks.tracks_offset(event_number);
+  const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
 
   // Track-PV association table.
   Associate::Consolidated::ConstTable kalman_pv_ipchi2 {
@@ -58,7 +58,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
   const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
 
   // Loop over tracks.
-  for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
+  for (unsigned i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     // Filter first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
@@ -69,7 +69,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       continue;
     }
 
-    for (uint j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
+    for (unsigned j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
 
       // Filter second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
@@ -87,7 +87,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
         continue;
       }
 
-      uint vertex_idx = atomicAdd(event_sv_number, 1);
+      unsigned vertex_idx = atomicAdd(event_sv_number, 1);
       event_svs_trk1_idx[vertex_idx] = i_track;
       event_svs_trk2_idx[vertex_idx] = j_track;
     }

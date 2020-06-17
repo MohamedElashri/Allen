@@ -5,7 +5,7 @@
 struct HostBuffersManager;
 
 struct RateMonitor : public BufferMonitor {
-  RateMonitor(HostBuffersManager* buffers_manager, uint number_of_hlt1_lines, int timeStep = 30, int offset = 0) :
+  RateMonitor(HostBuffersManager* buffers_manager, unsigned number_of_hlt1_lines, int timeStep = 30, int offset = 0) :
     BufferMonitor("hltRates", timeStep, offset), m_buffers_manager(buffers_manager),
     m_number_of_hlt1_lines(number_of_hlt1_lines)
   {
@@ -14,11 +14,11 @@ struct RateMonitor : public BufferMonitor {
 
   virtual ~RateMonitor() = default;
 
-  void fill(uint i_buf, bool useWallTime = true) override;
+  void fill(unsigned i_buf, bool useWallTime = true) override;
 
 private:
   void init();
 
   HostBuffersManager* m_buffers_manager;
-  const uint m_number_of_hlt1_lines;
+  const unsigned m_number_of_hlt1_lines;
 };
