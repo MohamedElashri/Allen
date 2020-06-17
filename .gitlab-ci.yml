@@ -1,8 +1,20 @@
 stages:
-  - build   # Builds all projects
-  - run     # Runs the tests across architectures
-  - test    # Runs various tests of the software
-  - publish # Publishes the results of the tests and runs in channels and grafana
+  - check-env # Ensures the CI environment is valid
+  - build     # Builds all projects
+  - run       # Runs the tests across architectures
+  - test      # Runs various tests of the software
+  - publish   # Publishes the results of the tests and runs in channels and grafana
+
+check-env:
+  stage: check-env
+  except:
+    - /.*/@lhcb/Allen
+  script:
+    - |
+      echo "The Allen CI depends on custom GitLab runners and therefore tests"
+      echo "running on forks will fail. Please create a branch in the main"
+      echo "repository at https://gitlab.cern.ch/lhcb/Allen/"
+    - exit 1
 
 check-formatting:
   stage: build
