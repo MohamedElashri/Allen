@@ -23,10 +23,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Allows making a shared object
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
-set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO CACHE STRING "-O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE CACHE STRING "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG CACHE STRING "-O0 -g -DALLEN_DEBUG")
 
 # -----------------------
 # Multiple-choice options
@@ -36,10 +35,12 @@ set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
 set(TARGET_DEVICE CPU CACHE STRING "Target architecture of the device")
 set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CPU CUDA HIP CUDACLANG)
 
-# Build type
-set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
-message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+# Build type (builds based on Gaudi are setting CMAKE_BUILD_TYPE in gaudi_project)
+if(STANDALONE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
+  message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+endif()
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
@@ -637,6 +638,8 @@ else()
   allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
 endif()
 
+find_package(Threads REQUIRED)
+
 target_link_libraries(AllenLib PUBLIC
   Stream
   Common
@@ -647,7 +650,8 @@ target_link_libraries(AllenLib PUBLIC
   SelChecking
   AllenMonitoring
   NonEventData
-  AllenZMQ)
+  AllenZMQ
+  Threads::Threads)
 
 if (USE_MPI AND MPI_FOUND)
   get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)

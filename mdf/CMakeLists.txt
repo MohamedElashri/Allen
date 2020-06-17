@@ -75,11 +75,13 @@ function(test_program)
   cmake_parse_arguments(PARSED_ARGS "" "NAME" "" ${ARGN})
   add_executable(${PARSED_ARGS_NAME} test/${PARSED_ARGS_NAME}.cpp)
 
+  find_package(Threads REQUIRED)
+
   target_include_directories(${PARSED_ARGS_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads)
 
   if (USE_MPI AND MPI_FOUND)
     target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)
