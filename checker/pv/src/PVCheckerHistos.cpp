@@ -1,6 +1,8 @@
 #include "PVCheckerHistos.h"
 
-float binomial_error(float k, float N) { return sqrtf(k * (1 - k / N)) / N; }
+namespace {
+  float binomial_error(float k, float N) { return sqrtf(k * (1 - k / N)) / N; }
+} // namespace
 
 PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
 {
@@ -102,7 +104,7 @@ void PVCheckerHistos::accumulate(
   for (size_t i = 0; i < vec_mcpv_mult.size(); i++) {
     eff_vs_z->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
     eff_vs_mult->Fill(vec_mcpv_mult.at(i), vec_mcpv_recd.at(i));
-    if ( vec_mcpv_recd.at(i) ) {
+    if (vec_mcpv_recd.at(i)) {
       eff_matched_vs_z->Fill(vec_mcpv_zpos.at(i));
       eff_matched_vs_mult->Fill(vec_mcpv_mult.at(i));
     }

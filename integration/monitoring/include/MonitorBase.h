@@ -3,6 +3,7 @@
 #include <deque>
 #include <map>
 #include <string>
+#include <memory>
 
 #include "ROOTHeaders.h"
 
@@ -54,9 +55,9 @@ protected:
   std::string m_name;
 
 #ifdef WITH_ROOT
-  std::map<unsigned, TH1*> m_histograms;
+  std::map<unsigned, std::unique_ptr<TH1>> m_histograms;
 #endif
 
-  unsigned m_time_step;
-  unsigned m_offset;
+  unsigned m_time_step{};
+  unsigned m_offset{};
 };

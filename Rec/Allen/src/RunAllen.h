@@ -70,7 +70,6 @@ private:
   const unsigned m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
   const unsigned m_n_buffers = 1;
-  unsigned m_number_of_hlt1_lines = 0;
   const bool m_do_check = true;
 
   std::unique_ptr<StreamWrapper> m_stream_wrapper;

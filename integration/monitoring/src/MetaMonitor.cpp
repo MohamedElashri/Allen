@@ -45,7 +45,7 @@ void MetaMonitor::init()
   m_histograms.emplace(MonitoringLevel5P, new TH1D("monitoringLevel5p", "", nBins, 0., max));
   m_histograms.emplace(SplitSlices, new TH1D("splitSlices", "", nBins, 0., max));
 
-  for (auto kv : m_histograms) {
+  for (auto& kv : m_histograms) {
     kv.second->SetDirectory(nullptr);
   }
 }

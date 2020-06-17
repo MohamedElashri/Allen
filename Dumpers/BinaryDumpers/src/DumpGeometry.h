@@ -219,7 +219,7 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
   }
 
   // m_buffer will be filled and identifiers known
-  updMgrSvc->update(this);
+  sc = updMgrSvc->update(this);
 
   auto svc = service(m_updaterName, true);
   if (!svc) {
