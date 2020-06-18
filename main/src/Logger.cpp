@@ -9,7 +9,17 @@
 
 namespace logger {
   static std::unique_ptr<Logger> ll;
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-copy"
+#endif
+  
   static std::unique_ptr<boost::iostreams::stream<boost::iostreams::null_sink>> nullOstream;
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 } // namespace logger
 
 void logger::setVerbosity(int level)

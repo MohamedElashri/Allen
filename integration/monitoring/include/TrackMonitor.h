@@ -5,11 +5,19 @@
 struct HostBuffersManager;
 
 struct TrackMonitor : public BufferMonitor {
+#ifdef WITH_ROOT
   TrackMonitor(HostBuffersManager* buffers_manager, int timeStep = 30, int offset = 0) :
     BufferMonitor("kalmanTracks", timeStep, offset), m_buffers_manager(buffers_manager)
   {
     init();
   };
+#else
+  TrackMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) :
+    BufferMonitor("kalmanTracks", timeStep, offset)
+  {
+    init();
+  };
+#endif
 
   virtual ~TrackMonitor() = default;
 

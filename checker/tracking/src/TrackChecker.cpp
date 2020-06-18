@@ -486,7 +486,7 @@ void TrackChecker::operator()(
 
   // Iterator over MCPs
   // Check which ones were matched to a track
-  for (const auto mcp : mc_event.m_mcps) {
+  for (const auto& mcp : mc_event.m_mcps) {
     const auto key = mcp.key;
 
     // Muon stats
