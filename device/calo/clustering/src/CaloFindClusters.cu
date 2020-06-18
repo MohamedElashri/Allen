@@ -6,21 +6,21 @@ __device__ void simple_clusters(CaloDigit const* digits,
                                 CaloSeedCluster const* seed_clusters,
                                 CaloCluster* clusters,
                                 unsigned const num_clusters,
-                                const CaloGeometry& geometry) {
+                                const CaloGeometry& calo) {
   for (unsigned c = threadIdx.x; c < num_clusters; c += blockDim.x) {
     auto const& seed_cluster = seed_clusters[c];
     auto& cluster = clusters[c];
     cluster.center_id = seed_cluster.id;
-    cluster.e = seed_cluster.adc;
+    cluster.e = calo.pedestal + seed_cluster.adc * calo.gain[seed_cluster.id];
     cluster.x = seed_cluster.x;
     cluster.y = seed_cluster.y;
 
-    uint16_t const* neighbors = &(geometry.neighbors[seed_cluster.id * Calo::Constants::max_neighbours]);
+    uint16_t const* neighbors = &(calo.neighbors[seed_cluster.id * Calo::Constants::max_neighbours]);
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
       auto const n_id = neighbors[n];
       int16_t adc = digits[n_id].adc;
       if (n_id != 0 && (adc != SHRT_MAX)) {
-        cluster.e += adc;
+        cluster.e += calo.pedestal + adc * calo.gain[n_id];
         cluster.digits[n] = n_id;
       } else {
         cluster.digits[n] = 0;

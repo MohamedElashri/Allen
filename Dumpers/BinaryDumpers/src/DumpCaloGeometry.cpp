@@ -97,6 +97,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   // Check if 'E'cal or 'H'cal
   std::vector<uint16_t> neighbors(indexSize * max_neighbors, 0);
   std::vector<float> xy(indexSize * 2, 0);
+  std::vector<float> gain(indexSize, 0.f);
   // Create neighbours per cellID.
   for (auto const& param : det.cellParams()) {
     auto const caloIndex = LHCb::CaloIndex{param.cellID()};
@@ -114,43 +115,24 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     }
     xy[idx * 2] = param.x();
     xy[idx * 2 + 1] = param.y();
+    gain[idx] = det.cellGain(param.cellID());
   }
 
   // Write the neighbors offset, the xy offset, minimum card code, array of CellIDs,
   // the array of neighbors and the array of xy values.
   DumpUtils::Writer output {};
   output.write(static_cast<uint32_t>(min));
-  debug() << "code offset " << min << endmsg;
-
   output.write(static_cast<uint32_t>(indexSize));
-  debug() << "index size " << indexSize << endmsg;
-
-  debug() << "allChannels size " << allChannels.size() << endmsg;
-  for (size_t i = 0; i < 10; ++i) {
-    debug() << "channel   " << std::setw(3) << i << " " << std::setw(8) << allChannels[i] << endmsg;
-  }
-
+  float pedestal = det.pedestalShift();
+  output.write(pedestal);
   output.write(static_cast<uint32_t>(allChannels.size()));
   output.write(allChannels);
-
-  debug() << "neighbors size " << neighbors.size() << endmsg;
-  for (size_t i = 0; i < 10 * max_neighbors; ++i) {
-    debug() << "neighbour " << std::setw(3) << i << " " << std::setw(8) << neighbors[i] << endmsg;
-  }
-
   output.write(static_cast<uint32_t>(neighbors.size()));
   output.write(neighbors);
-
-  debug() << "xy size " << xy.size() << endmsg;
-  for (size_t i = 0; i < 10; ++i) {
-    debug() << "xy        " << std::setw(3) << i
-            << std::setw(9) << std::setprecision(2) << std::fixed << xy[2 * i]
-            << " " << std::setw(9) << std::setprecision(2)
-            << std::fixed << xy[2 * i + 1] << endmsg;
-  }
-
   output.write(static_cast<uint32_t>(xy.size()));
   output.write(xy);
+  output.write(static_cast<uint32_t>(gain.size()));
+  output.write(gain);
 
   auto id = ids.find(det.caloName());
   if (id == ids.end()) {
