@@ -26,6 +26,8 @@ __device__ void simple_clusters(CaloDigit const* digits,
         cluster.digits[n] = 0;
       }
     }
+
+    // Code to update position, double check
     // for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
     //   auto const n_id = neighbors[n];
     //   if (n_id != 0 && ((auto const adc = digits[n_id].adc) != SHRT_MAX)) {
@@ -57,15 +59,6 @@ __global__ void calo_find_clusters::calo_find_clusters(
                   parameters.dev_ecal_seed_clusters + ecal_geometry.max_index * event_number,
                   parameters.dev_ecal_clusters + ecal_offset,
                   ecal_num_clusters, ecal_geometry);
-
-  // for (unsigned c = 0; c < ecal_num_clusters; ++c) {
-  //   auto const& cluster = parameters.dev_ecal_clusters[ecal_offset + c];
-  //   std::cout << "cluster " << std::setw(4) << event_number
-  //             << " " << std::setw(4) << cluster.center_id
-  //             << " " << std::setw(6) << cluster.e
-  //             << " " << std::setw(9) << std::setprecision(2) << std::fixed << cluster.x
-  //             << " " << std::setw(9) << std::setprecision(2) << std::fixed << cluster.y << "\n";
-  // }
 
   // Hcal
   unsigned const hcal_offset = parameters.dev_hcal_cluster_offsets[event_number];

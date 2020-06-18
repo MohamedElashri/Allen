@@ -60,7 +60,7 @@ __device__ void decode(const char* event_data, const uint32_t* offsets,
          }
 
         uint16_t index = geometry.channels[(code - geometry.code_offset) * Calo::Constants::card_channels + bit_num];
-        // Some cell IDs have an area of 3 without any neighbors etc. ignore these.
+        // Ignore cells with invalid indices
         if (index < geometry.max_index) {
           digits[event_number * geometry.max_index + index].adc = adc;
         }
@@ -144,33 +144,4 @@ void calo_decode::calo_decode_t::operator()(
       first<host_number_of_selected_events_t>(arguments), dim3(property<block_dim_x_t>().get()), cuda_stream)(
       arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }
-
-  size_t const ecal_ds = Calo::Constants::ecal_max_index * first<host_number_of_selected_events_t>(arguments);
-  size_t const hcal_ds = Calo::Constants::hcal_max_index * first<host_number_of_selected_events_t>(arguments);
-  using digits_tuple_t = std::tuple<std::vector<CaloDigit>, CaloDigit const*, std::string>;
-  std::array<digits_tuple_t, 2> host_digits = {digits_tuple_t{std::vector<CaloDigit>(ecal_ds), data<dev_ecal_digits_t>(arguments), "Ecal"},
-                                               digits_tuple_t{std::vector<CaloDigit>(hcal_ds), data<dev_hcal_digits_t>(arguments), "Hcal"}};
-  for (decltype(host_digits)::value_type& digits : host_digits) {
-    cudaCheck(cudaMemcpyAsync(
-      &(std::get<0>(digits)[0]), std::get<1>(digits), std::get<0>(digits).size() * sizeof(CaloDigit),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
-
-  // cudaEvent_t cuda_generic_event;
-  // cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
-
-  // synchronise to wait for result
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
-
-  // for (auto const& [digits, device_digits, c] : host_digits) {
-  //   std::cout << "Digits for " << c << "\n";
-  //   for (size_t index = 0; index < digits.size(); ++index) {
-  //     auto const adc = digits[index].adc;
-  //     if (adc != SHRT_MAX) {
-  //       std::cout << std::setw(5) << index << " " << std::setw(4) << adc << "\n";
-  //     }
-  //   }
-  // }
 }

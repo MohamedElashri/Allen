@@ -44,16 +44,6 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
                 parameters.dev_ecal_num_clusters + event_number,
                 ecal_geometry, ecal_min_adc);
 
-  // auto const num_clusters = parameters.dev_ecal_num_clusters[event_number];
-  // for (unsigned c = 0; c < num_clusters; ++c) {
-  //   auto const& cluster = parameters.dev_ecal_seed_clusters[ecal_geometry.max_index * event_number + c];
-  //   std::cout << "seed    " << std::setw(4) << event_number
-  //             << " " << std::setw(4) << cluster.id
-  //             << " " << std::setw(6) << cluster.adc
-  //             << " " << std::setw(9) << std::setprecision(2) << std::fixed << cluster.x
-  //             << " " << std::setw(9) << std::setprecision(2) << std::fixed << cluster.y << "\n";
-  // }
-
   // HCal
   seed_clusters(parameters.dev_hcal_digits + (event_number * hcal_geometry.max_index),
                 parameters.dev_hcal_seed_clusters + hcal_geometry.max_index * event_number,
