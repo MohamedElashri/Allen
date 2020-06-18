@@ -38,7 +38,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include/)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CPPGSL_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 allen_add_device_library(Muon STATIC
   ${muon_filtering}

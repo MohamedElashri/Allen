@@ -107,3 +107,4 @@ if (BUILD_TESTS)
 endif()
 
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
