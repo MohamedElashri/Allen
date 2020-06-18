@@ -1,23 +1,25 @@
 #include <CaloSeedClusters.cuh>
+#include <iostream>
 
 __device__ void seed_clusters(CaloDigit const* digits,
                               CaloSeedCluster* clusters,
                               unsigned* num_clusters,
                               const CaloGeometry& geometry,
-                              const uint16_t min_adc) {
+                              const int16_t min_adc) {
   // Loop over all CellIDs.
-  for (uint i = threadIdx.x; i < geometry.max_cellid; i += blockDim.x) {
-    uint16_t adc = digits[i].adc;
-    if (adc == 0) {
+  for (unsigned i = threadIdx.x; i < geometry.max_index; i += blockDim.x) {
+    int16_t adc = digits[i].adc;
+    if (adc == SHRT_MAX || adc < min_adc) {
       continue;
     }
     uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
     bool is_max = true;
-    for (uint n = 0; n < Calo::Constants::max_neighbours; n++) {
-      is_max = is_max && (adc > digits[neighbors[n]].adc);
+    for (unsigned n = 0; n < Calo::Constants::max_neighbours; n++) {
+      auto const neighbor_adc = digits[neighbors[n]].adc;
+      is_max = is_max && (neighbor_adc == SHRT_MAX || adc > neighbor_adc);
     }
-    if (is_max && digits[i].adc > min_adc) {
-      auto id = atomicAdd(num_clusters, 1);
+    if (is_max) {
+      auto const id = atomicAdd(num_clusters, 1);
       clusters[id] = CaloSeedCluster(i, digits[i].adc, geometry.getX(i), geometry.getY(i));
     }
   }
@@ -27,24 +29,34 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
   calo_seed_clusters::Parameters parameters,
   const char* raw_ecal_geometry,
   const char* raw_hcal_geometry,
-  const uint16_t ecal_min_adc,
-  const uint16_t hcal_min_adc)
+  const int16_t ecal_min_adc,
+  const int16_t hcal_min_adc)
 {
   unsigned const event_number = blockIdx.x;
 
   // Get geometry.
-  auto ecal_geometry = CaloGeometry(raw_ecal_geometry, Calo::Constants::ecal_max_cellid);
-  auto hcal_geometry = CaloGeometry(raw_hcal_geometry, Calo::Constants::hcal_max_cellid);
+  auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
+  auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
 
   // ECal
-  seed_clusters(parameters.dev_ecal_digits + (event_number * ecal_geometry.max_cellid),
-                parameters.dev_ecal_seed_clusters + event_number,
+  seed_clusters(parameters.dev_ecal_digits + (event_number * ecal_geometry.max_index),
+                parameters.dev_ecal_seed_clusters + ecal_geometry.max_index * event_number,
                 parameters.dev_ecal_num_clusters + event_number,
                 ecal_geometry, ecal_min_adc);
 
+  // auto const num_clusters = parameters.dev_ecal_num_clusters[event_number];
+  // for (unsigned c = 0; c < num_clusters; ++c) {
+  //   auto const& cluster = parameters.dev_ecal_seed_clusters[ecal_geometry.max_index * event_number + c];
+  //   std::cout << "seed    " << std::setw(4) << event_number
+  //             << " " << std::setw(4) << cluster.id
+  //             << " " << std::setw(6) << cluster.adc
+  //             << " " << std::setw(9) << std::setprecision(2) << std::fixed << cluster.x
+  //             << " " << std::setw(9) << std::setprecision(2) << std::fixed << cluster.y << "\n";
+  // }
+
   // HCal
-  seed_clusters(parameters.dev_hcal_digits + (event_number * hcal_geometry.max_cellid),
-                parameters.dev_hcal_seed_clusters + event_number,
+  seed_clusters(parameters.dev_hcal_digits + (event_number * hcal_geometry.max_index),
+                parameters.dev_hcal_seed_clusters + hcal_geometry.max_index * event_number,
                 parameters.dev_hcal_num_clusters + event_number,
                 hcal_geometry, hcal_min_adc);
 }

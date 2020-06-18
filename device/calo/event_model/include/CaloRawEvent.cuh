@@ -21,7 +21,7 @@ struct CaloRawEvent {
     const char* event_data = data + offsets[event];
     uint32_t* bank_offsets = ((uint32_t*)event_data) + 1;
     return CaloRawBank{event_data + (number_of_raw_banks + 2) * sizeof(uint32_t) + bank_offsets[n],
-        bank_offsets[n + 1] - bank_offsets[n]};
+                       bank_offsets[n + 1] - bank_offsets[n]};
   }
 };
 

@@ -14,13 +14,10 @@
 #include <tuple>
 #include <vector>
 
+#include <Kernel/CaloCellID.h>
+#include <Kernel/CaloCellCode.h>
 #include "DumpCaloGeometry.h"
 #include "Utils.h"
-
-#define MIN(a, b) (a < b ? a : b)
-#define MAX(a, b) (a > b ? a : b)
-#define MAX_NEIGH 9
-#define AREA_SIZE 64 * 64 // 4096
 
 DECLARE_COMPONENT(DumpCaloGeometry)
 
@@ -28,6 +25,7 @@ namespace {
   const std::map<std::string, std::string> ids = {{"EcalDet", Allen::NonEventData::ECalGeometry::id},
                                                   {"HcalDet", Allen::NonEventData::HCalGeometry::id}};
   using namespace std::string_literals;
+  constexpr unsigned max_neighbors = 9;
 }
 
 DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
@@ -55,14 +53,27 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     cards.insert(cards.end(), tell1Cards.begin(), tell1Cards.end());
   }
 
+  // Determine offset and size of the global dense index;
+  unsigned indexOffset = 0, indexSize = 0;
+  namespace IndexDetails = LHCb::Calo::DenseIndex::details;
+  unsigned int hcalOuterOffset = IndexDetails::Constants
+    <CaloCellCode::CaloIndex::HcalCalo,
+     IndexDetails::Area::Outer>::global_offset;
+  if (det.caloName()[0] == 'E') {
+    indexSize = hcalOuterOffset;
+  } else {
+    indexOffset = hcalOuterOffset;
+    indexSize = LHCb::CaloIndex::max() - indexOffset;
+  }
+
   // Determine Minimum and maximum card Codes.
   int min = det.cardCode(cards.at(0)); // Initialize to any value within possibilities.
   int max = 0;
-  int curCode;
+  int curCode = 0;
   for (int card : cards) {
     curCode = det.cardCode(card);
-    min = MIN(curCode, min);
-    max = MAX(curCode, max);
+    min = std::min(curCode, min);
+    max = std::max(curCode, max);
   }
 
   // Initialize array to size (max - min) * 32.
@@ -74,50 +85,72 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     int index = (code - min) * 32;
     auto channels = det.cardChannels(card);
     for (size_t i = 0; i < channels.size(); i++) {
-      allChannels[index + i] = (uint16_t) channels.at(i).index();
+      LHCb::CaloIndex const caloIndex{channels.at(i)};
+      if (caloIndex) {
+        allChannels[index + i] = static_cast<uint16_t>(caloIndex - indexOffset);
+      } else {
+        allChannels[index + i] = static_cast<uint16_t>(indexSize);
+      }
     }
   }
 
-  // Create neighbours per cellID.
-  const CaloVector<CellParam>& params = det.cellParams();
   // Check if 'E'cal or 'H'cal
-  uint levels = det.caloName()[0] == 'E' ? 3 : 2;
-  std::vector<uint16_t> neighbors(levels * AREA_SIZE * MAX_NEIGH, 0);
-  std::vector<double> xy(levels * AREA_SIZE * 2, 0);
-  for (auto param : params) {
-    auto cid = param.cellID();
-    if(cid.area() >= levels) {
+  std::vector<uint16_t> neighbors(indexSize * max_neighbors, 0);
+  std::vector<float> xy(indexSize * 2, 0);
+  // Create neighbours per cellID.
+  for (auto const& param : det.cellParams()) {
+    auto const caloIndex = LHCb::CaloIndex{param.cellID()};
+    if(!caloIndex) {
       continue;
     }
-    auto ns = param.neighbors();
+    auto const idx = caloIndex - indexOffset;
+    auto const& ns = param.neighbors();
     for (size_t i = 0; i < ns.size(); i++) {
       // Use 4D indexing based on Area, row, column and neighbor index.
-      neighbors[cid.index() * MAX_NEIGH + i] = (uint16_t) ns.at(i).index();
+      LHCb::CaloIndex const neighborIndex{ns.at(i)};
+      if (neighborIndex) {
+        neighbors[idx * max_neighbors + i] = static_cast<uint16_t>(neighborIndex - indexOffset);
+      }
     }
-    xy[cid.index() * 2] = param.x();
-    xy[cid.index() * 2 + 1] = param.y();
+    xy[idx * 2] = param.x();
+    xy[idx * 2 + 1] = param.y();
   }
-
-
 
   // Write the neighbors offset, the xy offset, minimum card code, array of CellIDs,
   // the array of neighbors and the array of xy values.
   DumpUtils::Writer output {};
-  output.write((uint32_t) (allChannels.size() * sizeof(uint16_t)));
-  output.write((uint32_t) (allChannels.size() * sizeof(uint16_t) + neighbors.size() * sizeof(uint16_t)));
-  output.write((uint16_t) min);
-  for (uint16_t chan : allChannels) {
-    output.write(chan);
+  output.write(static_cast<uint32_t>(min));
+  debug() << "code offset " << min << endmsg;
+
+  output.write(static_cast<uint32_t>(indexSize));
+  debug() << "index size " << indexSize << endmsg;
+
+  debug() << "allChannels size " << allChannels.size() << endmsg;
+  for (size_t i = 0; i < 10; ++i) {
+    debug() << "channel   " << std::setw(3) << i << " " << std::setw(8) << allChannels[i] << endmsg;
   }
 
-  for (uint16_t neigh : neighbors) {
-    output.write(neigh);
+  output.write(static_cast<uint32_t>(allChannels.size()));
+  output.write(allChannels);
+
+  debug() << "neighbors size " << neighbors.size() << endmsg;
+  for (size_t i = 0; i < 10 * max_neighbors; ++i) {
+    debug() << "neighbour " << std::setw(3) << i << " " << std::setw(8) << neighbors[i] << endmsg;
   }
 
-  for (double xory : xy) {
-    output.write(xory);
+  output.write(static_cast<uint32_t>(neighbors.size()));
+  output.write(neighbors);
+
+  debug() << "xy size " << xy.size() << endmsg;
+  for (size_t i = 0; i < 10; ++i) {
+    debug() << "xy        " << std::setw(3) << i
+            << std::setw(9) << std::setprecision(2) << std::fixed << xy[2 * i]
+            << " " << std::setw(9) << std::setprecision(2)
+            << std::fixed << xy[2 * i + 1] << endmsg;
   }
 
+  output.write(static_cast<uint32_t>(xy.size()));
+  output.write(xy);
 
   auto id = ids.find(det.caloName());
   if (id == ids.end()) {

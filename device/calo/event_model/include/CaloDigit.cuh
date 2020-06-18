@@ -1,9 +1,10 @@
 #pragma once
 
 #include "CudaCommon.h"
+#include <climits>
 
 struct CaloDigit {
-  uint16_t adc = 0;
+  int16_t adc = 0;
 
   __device__ __host__ static uint8_t area(uint16_t cellID) {
     return (cellID >> 12) & 0x3;

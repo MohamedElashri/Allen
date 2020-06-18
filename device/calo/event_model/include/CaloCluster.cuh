@@ -16,10 +16,11 @@ struct CaloDigitClusters {
 
 struct CaloCluster {
   uint32_t center_id = 0;
-  uint32_t e = 0; // Is a double in the original algorithm, but is still integer here?
+  int32_t e = 0; // Is a double in the original algorithm, but is still integer here?
   float x = 0.f, y = 0.f;
+  uint32_t digits[Calo::Constants::max_neighbours];
 
-  __device__ __host__ CaloCluster(uint16_t cellid, uint16_t adc, float rX, float rY)
+  __device__ __host__ CaloCluster(uint16_t cellid, int16_t adc, float rX, float rY)
     : center_id{cellid},
       e{adc},
       x{rX},
@@ -31,10 +32,10 @@ struct CaloCluster {
 
 struct CaloSeedCluster {
   uint16_t id = 0;
-  uint16_t adc = 0; // Is a double in the original algorithm, but is still integer here?
+  int16_t adc = 0; // Is a double in the original algorithm, but is still integer here?
   float x = 0.f, y = 0.f;
 
-  __device__ __host__ CaloSeedCluster(uint16_t cellid, uint16_t a, float rX, float rY)
+  __device__ __host__ CaloSeedCluster(uint16_t cellid, int16_t a, float rX, float rY)
     : id{cellid},
       adc{a},
       x{rX},

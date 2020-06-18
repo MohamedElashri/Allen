@@ -2,6 +2,8 @@
 #include <CaloConstants.cuh>
 #include <CaloDecode.cuh>
 
+#include <iomanip>
+
 // TODO thinks about blocks/threads etc. 1 block per fragment might be best for coalesced memory acces.
 
 template<typename Event>
@@ -10,46 +12,58 @@ __device__ void decode(const char* event_data, const uint32_t* offsets,
                        CaloDigit* digits,
                        const CaloGeometry& geometry)
 {
-  uint16_t const coding_numbers[6] = {0xF, 8, 4, // 4-bit coding values.
-                                      0xFFF, 256, 12 // 12-bit coding values.
-                                     };
-
   unsigned const event_number = blockIdx.x;
   unsigned const selected_event_number = event_list[event_number];
 
   auto raw_event = Event{event_data, offsets};
   for (auto bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
     auto raw_bank = raw_event.bank(selected_event_number, bank_number);
-    unsigned offset = 0; // To skip the source ID.
-    int card = 0;
-    // Loop over all cards in this raw bank.
-    while (offset < raw_bank.size) {
-      raw_bank.update(offset);
-      uint64_t cur_data = ((uint64_t) raw_bank.data[1] << 32) + raw_bank.data[0]; // Use 64 bit integers in case of 12 bits coding at border regions.
-      int offset = 0;
-      int item = 0; // Have to use an item count instead of pointer because of "misaligned address" bug.
-      for (auto hit = 0; hit < Calo::Constants::card_channels; hit++) {
-        if (offset > 31) {
+    while (raw_bank.data < raw_bank.end) {
+      uint32_t word = *raw_bank.data;
+      uint16_t trig_size = word & 0x7F;
+      uint16_t code = ( word >> 14 ) & 0x1FF;
+
+      // Skip header and trigger words
+      raw_bank.data += 1 + (trig_size + 3) / 4;
+
+      // pattern bits
+      unsigned int pattern = *raw_bank.data;
+      // Loop over all cards in this front-env sub-bank.
+      uint32_t last_data =  *(raw_bank.data + 1);
+      raw_bank.data += 2;
+
+      int16_t offset = 0;
+
+      for ( unsigned int bit_num = 0; 32 > bit_num; ++bit_num ) {
+        if ( 31 < offset ) {
           offset -= 32;
-          item++;
-          cur_data = ((uint64_t) raw_bank.data[item + 1] << 32) + raw_bank.data[item];
+          last_data = *raw_bank.data;
+          raw_bank.data += 1;
         }
-        uint16_t adc = 0;
-        int coding = (raw_bank.pattern >> hit) & 0x1;
+        int adc;
+        if ( 0 == ( pattern & ( 1 << bit_num ) ) ) { //.. short coding
+          adc = ( ( last_data >> offset ) & 0xF ) - 8;
+          offset += 4;
+        } else {
+          adc = ( ( last_data >> offset ) & 0xFFF );
+          if ( 24 == offset ) adc &= 0xFF;
+          if ( 28 == offset ) adc &= 0xF; //== clean-up extra bits
+          offset += 12;
+          if ( 32 < offset ) { //.. get the extra bits on next word
+            last_data = *raw_bank.data;
+            raw_bank.data += 1;
+            offset -= 32;
+            int temp = ( last_data << ( 12 - offset ) ) & 0xFFF;
+            adc += temp;
+          }
+          adc -= 256;
+         }
 
-        // Retrieve adc.
-        adc = ((cur_data >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc.
-        offset += coding_numbers[coding * 3 + 2];
-
-        // Store cellid and adc in result array.
-        uint16_t cellid = geometry.channels[(raw_bank.code - geometry.code_offset) * Calo::Constants::card_channels + hit];
-
+        uint16_t index = geometry.channels[(code - geometry.code_offset) * Calo::Constants::card_channels + bit_num];
         // Some cell IDs have an area of 3 without any neighbors etc. ignore these.
-        digits[event_number * geometry.max_cellid + cellid].adc = (cellid >> 12) <= 2 ? adc : 0xffff;
-
-        // Determine where the next card will start.
-        offset = (raw_bank.get_length() + 31) / 32;
-        card++;
+        if (index < geometry.max_index) {
+          digits[event_number * geometry.max_index + index].adc = adc;
+        }
       }
     }
   }
@@ -61,7 +75,7 @@ __global__ void calo_decode::calo_decode(
   const char* raw_hcal_geometry)
 {
   // ECal
-  auto ecal_geometry = CaloGeometry(raw_ecal_geometry, Calo::Constants::ecal_max_cellid);
+  auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   decode<CaloRawEvent>(parameters.dev_ecal_raw_input,
                        parameters.dev_ecal_raw_input_offsets,
                        parameters.dev_event_list,
@@ -69,7 +83,7 @@ __global__ void calo_decode::calo_decode(
                        ecal_geometry);
 
   // HCal
-  auto hcal_geometry = CaloGeometry(raw_hcal_geometry, Calo::Constants::hcal_max_cellid);
+  auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
   decode<CaloRawEvent>(parameters.dev_hcal_raw_input,
                        parameters.dev_hcal_raw_input_offsets,
                        parameters.dev_event_list,
@@ -83,7 +97,7 @@ __global__ void calo_decode::calo_decode_mep(
   const char* raw_hcal_geometry)
 {
   // ECal
-  auto ecal_geometry = CaloGeometry{raw_ecal_geometry, Calo::Constants::ecal_max_cellid};
+  auto ecal_geometry = CaloGeometry{raw_ecal_geometry};
   decode<CaloMepEvent>(parameters.dev_ecal_raw_input,
                        parameters.dev_ecal_raw_input_offsets,
                        parameters.dev_event_list,
@@ -91,7 +105,7 @@ __global__ void calo_decode::calo_decode_mep(
                        ecal_geometry);
 
   // HCal
-  auto hcal_geometry = CaloGeometry{raw_hcal_geometry, Calo::Constants::hcal_max_cellid};
+  auto hcal_geometry = CaloGeometry{raw_hcal_geometry};
   decode<CaloMepEvent>(parameters.dev_hcal_raw_input,
                        parameters.dev_hcal_raw_input_offsets,
                        parameters.dev_event_list,
@@ -105,8 +119,8 @@ void calo_decode::calo_decode_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_ecal_digits_t>(arguments, Calo::Constants::ecal_max_cellid * first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_hcal_digits_t>(arguments, Calo::Constants::hcal_max_cellid * first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_ecal_digits_t>(arguments, Calo::Constants::ecal_max_index * first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_hcal_digits_t>(arguments, Calo::Constants::hcal_max_index * first<host_number_of_selected_events_t>(arguments));
 }
 
 void calo_decode::calo_decode_t::operator()(
@@ -117,8 +131,8 @@ void calo_decode::calo_decode_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
-  initialize<dev_ecal_digits_t>(arguments, 0, cuda_stream);
-  initialize<dev_hcal_digits_t>(arguments, 0, cuda_stream);
+  initialize<dev_ecal_digits_t>(arguments, SHRT_MAX, cuda_stream);
+  initialize<dev_hcal_digits_t>(arguments, SHRT_MAX, cuda_stream);
 
   if (runtime_options.mep_layout) {
     global_function(calo_decode_mep)(
@@ -130,4 +144,33 @@ void calo_decode::calo_decode_t::operator()(
       first<host_number_of_selected_events_t>(arguments), dim3(property<block_dim_x_t>().get()), cuda_stream)(
       arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }
+
+  size_t const ecal_ds = Calo::Constants::ecal_max_index * first<host_number_of_selected_events_t>(arguments);
+  size_t const hcal_ds = Calo::Constants::hcal_max_index * first<host_number_of_selected_events_t>(arguments);
+  using digits_tuple_t = std::tuple<std::vector<CaloDigit>, CaloDigit const*, std::string>;
+  std::array<digits_tuple_t, 2> host_digits = {digits_tuple_t{std::vector<CaloDigit>(ecal_ds), data<dev_ecal_digits_t>(arguments), "Ecal"},
+                                               digits_tuple_t{std::vector<CaloDigit>(hcal_ds), data<dev_hcal_digits_t>(arguments), "Hcal"}};
+  for (decltype(host_digits)::value_type& digits : host_digits) {
+    cudaCheck(cudaMemcpyAsync(
+      &(std::get<0>(digits)[0]), std::get<1>(digits), std::get<0>(digits).size() * sizeof(CaloDigit),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+
+  // cudaEvent_t cuda_generic_event;
+  // cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
+
+  // synchronise to wait for result
+  // cudaEventRecord(cuda_generic_event, cuda_stream);
+  // cudaEventSynchronize(cuda_generic_event);
+
+  // for (auto const& [digits, device_digits, c] : host_digits) {
+  //   std::cout << "Digits for " << c << "\n";
+  //   for (size_t index = 0; index < digits.size(); ++index) {
+  //     auto const adc = digits[index].adc;
+  //     if (adc != SHRT_MAX) {
+  //       std::cout << std::setw(5) << index << " " << std::setw(4) << adc << "\n";
+  //     }
+  //   }
+  // }
 }

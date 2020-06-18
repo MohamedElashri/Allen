@@ -34,8 +34,7 @@ namespace calo_find_clusters {
   // Algorithm
   struct calo_find_clusters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&, const HostBuffers&)
-      const
-    {}
+      const;
 
     __host__ void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -47,6 +46,6 @@ namespace calo_find_clusters {
 
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 32};
-    Property<iterations_t> m_iterations {this, 10};
+    Property<iterations_t> m_iterations {this, 1};
   };
 } // namespace calo_find_clusters

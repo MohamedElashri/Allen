@@ -1,28 +1,54 @@
 #pragma once
+#include <iostream>
+#include <iomanip>
 
+#include "CaloConstants.cuh"
 #include "CudaCommon.h"
 
 struct CaloGeometry {
   uint32_t code_offset;
+  uint32_t max_index;
+  float* xy;
   uint16_t* channels;
   uint16_t* neighbors;
-  float* xy; // We have to use 16 bits ints here instead of doubles as using doubles caused a misaligned address bug.
-  const unsigned max_cellid;
 
-  __device__ __host__ CaloGeometry(const char* raw_geometry, const unsigned max)
-  : max_cellid{max}
+  __device__ __host__ CaloGeometry(const char* raw_geometry)
   {
     const char* p = raw_geometry;
-    uint32_t neigh_offset = *((uint32_t*) p);
-    p = p + sizeof(uint32_t); // Skip neighbors offset.
-    uint32_t xy_offset = *((uint32_t*) p);
-    p = p + sizeof(uint32_t); // Skip xy offset.
     code_offset = *((uint32_t*) p);
-    p = p + sizeof(uint32_t); // Skip code offset.
+    p += sizeof(uint32_t); // Skip code offset.
+    max_index = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip max_index.
+    const auto channels_size = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip channel size
     channels = (uint16_t*) p;
-    neighbors = (uint16_t*) (p + neigh_offset);
-    // printf("XY offset: %d\n", xy_offset);
-    xy = (float*) (p + xy_offset);
+    p += sizeof(uint16_t) * channels_size;
+    const auto neighbors_size = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip neighbours size
+    neighbors = (uint16_t*)p;
+    p += sizeof(uint16_t) * neighbors_size;
+    // const uint32_t xy_size = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip xy size
+    xy = (float*)p;
+
+    // std::cout << "channels size " << channels_size << "\n";
+    // for (size_t i = 0; i < 10; ++i) {
+    //   std::cout << "channel   " << std::setw(2) << i << " " << std::setw(8) << channels[i] << "\n";
+    // }
+
+    // std::cout << "neighbors size " << neighbors_size << "\n";
+    // auto const mn = Calo::Constants::max_neighbours;
+    // for (size_t i = 0; i < 10 * mn; ++i) {
+    //   std::cout << "neighbour " << std::setw(2) << i << " " << std::setw(8) << neighbors[i] << "\n";
+    // }
+
+    // std::cout << "xy size " << xy_size << "\n";
+    // for (size_t i = 0; i < 10; ++i) {
+    //   std::cout << "xy        " << std::setw(2) << i
+    //             << std::setw(9) << std::setprecision(2) << std::fixed << xy[2 * i]
+    //             << " " << std::setw(9) << std::setprecision(2)
+    //             << std::fixed << xy[2 * i + 1] << "\n";
+    // }
   }
 
   __device__ __host__ float getX(uint16_t cellid) const {

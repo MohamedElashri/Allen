@@ -17,13 +17,13 @@ namespace calo_seed_clusters {
     (DEVICE_OUTPUT(dev_ecal_seed_clusters_t, CaloSeedCluster), dev_ecal_seed_clusters),
     (DEVICE_OUTPUT(dev_hcal_seed_clusters_t, CaloSeedCluster), dev_hcal_seed_clusters),
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", uint), block_dim),
-    (PROPERTY(ecal_min_adc_t, "ecal_min_adc", "ECal seed cluster minimum ADC", uint16_t), ecal_min_adc),
-    (PROPERTY(hcal_min_adc_t, "hcal_min_adc", "HCal seed cluster minimum ADC", uint16_t), hcal_min_adc))
+    (PROPERTY(ecal_min_adc_t, "ecal_min_adc", "ECal seed cluster minimum ADC", int16_t), ecal_min_adc),
+    (PROPERTY(hcal_min_adc_t, "hcal_min_adc", "HCal seed cluster minimum ADC", int16_t), hcal_min_adc))
 
   // Global function
   __global__ void calo_seed_clusters(Parameters parameters,
                                      const char* raw_ecal_geometry, const char* raw_hcal_geometry,
-                                     const uint16_t ecal_min_adc, const uint16_t hcal_min_adc);
+                                     const int16_t ecal_min_adc, const int16_t hcal_min_adc);
 
   // Algorithm
   struct calo_seed_clusters_t : public DeviceAlgorithm, Parameters {
