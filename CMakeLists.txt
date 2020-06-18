@@ -150,7 +150,6 @@ macro(allen_project)
       set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
       message(STATUS "Using internal gsl-lite")
     endif()
-
   endif()
 endmacro()
 
@@ -674,6 +673,10 @@ if (GaudiProject_FOUND)
 endif()
 
 allen_add_executable(Allen ${main_cpp_path})
-target_link_libraries(Allen PRIVATE AllenLib)
- 
-  
+
+if (STANDALONE)
+  target_link_libraries(Allen PRIVATE AllenLib)
+else()
+  find_package(fmt REQUIRED)
+  target_link_libraries(Allen PRIVATE AllenLib fmt::fmt)
+endif()
