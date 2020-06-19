@@ -20,7 +20,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
-    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     ```
     
 * HIP target: A local installation of ROCm at least version 3.3.0 is required.
@@ -30,6 +30,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.1/x86_64-centos7/setup.sh
     ```
 
 Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
@@ -224,6 +225,9 @@ Here are some example run options:
 
     # Run one stream with 5000 events and print all memory allocations
     ./Allen -n 5000 -p 1
+
+    # Default throughput test configuration
+    ./Allen -t 16 -n 500 -m 500 -r 1000 -c 0
     
 Where to develop for GPUs
 -------------------------
