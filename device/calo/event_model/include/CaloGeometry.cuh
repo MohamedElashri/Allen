@@ -38,25 +38,6 @@ struct CaloGeometry {
     // const uint32_t gain_size = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip gain size
     gain = (float*)p;
-
-    // std::cout << "channels size " << channels_size << "\n";
-    // for (size_t i = 0; i < 10; ++i) {
-    //   std::cout << "channel   " << std::setw(2) << i << " " << std::setw(8) << channels[i] << "\n";
-    // }
-
-    // std::cout << "neighbors size " << neighbors_size << "\n";
-    // auto const mn = Calo::Constants::max_neighbours;
-    // for (size_t i = 0; i < 10 * mn; ++i) {
-    //   std::cout << "neighbour " << std::setw(2) << i << " " << std::setw(8) << neighbors[i] << "\n";
-    // }
-
-    // std::cout << "xy size " << xy_size << "\n";
-    // for (size_t i = 0; i < 10; ++i) {
-    //   std::cout << "xy        " << std::setw(2) << i
-    //             << std::setw(9) << std::setprecision(2) << std::fixed << xy[2 * i]
-    //             << " " << std::setw(9) << std::setprecision(2)
-    //             << std::fixed << xy[2 * i + 1] << "\n";
-    // }
   }
 
   __device__ __host__ float getX(uint16_t cellid) const {
