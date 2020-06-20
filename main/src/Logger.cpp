@@ -10,7 +10,7 @@
 namespace logger {
   static std::unique_ptr<Logger> ll;
 
-#if defined(__clang__)
+#if defined(__clang__) && __clang_major__ >= 10
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-copy"
 #endif
