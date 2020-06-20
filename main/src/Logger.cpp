@@ -14,7 +14,7 @@ namespace logger {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-copy"
 #endif
-  
+
   static std::unique_ptr<boost::iostreams::stream<boost::iostreams::null_sink>> nullOstream;
 
 #if defined(__clang__)

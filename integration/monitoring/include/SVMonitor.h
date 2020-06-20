@@ -12,8 +12,7 @@ struct SVMonitor : public BufferMonitor {
     init();
   };
 #else
-  SVMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) :
-    BufferMonitor("fittedSVs", timeStep, offset)
+  SVMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) : BufferMonitor("fittedSVs", timeStep, offset)
   {
     init();
   };

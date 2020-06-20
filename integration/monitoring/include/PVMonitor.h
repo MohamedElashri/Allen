@@ -12,8 +12,7 @@ struct PVMonitor : public BufferMonitor {
     init();
   };
 #else
-  PVMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) :
-    BufferMonitor("fittedPVs", timeStep, offset)
+  PVMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) : BufferMonitor("fittedPVs", timeStep, offset)
   {
     init();
   };

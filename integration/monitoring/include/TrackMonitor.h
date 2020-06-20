@@ -12,8 +12,7 @@ struct TrackMonitor : public BufferMonitor {
     init();
   };
 #else
-  TrackMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) :
-    BufferMonitor("kalmanTracks", timeStep, offset)
+  TrackMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) : BufferMonitor("kalmanTracks", timeStep, offset)
   {
     init();
   };
