@@ -231,7 +231,7 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - echo "NUMA node: ${NUMA_NODE}"
+    - echo NUMA node ${NUMA_NODE}
     - RUN_OPTIONS="-n 500 -m 500"
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
@@ -307,7 +307,7 @@ docker_image:build:
     - TOTAL_THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
     - TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - echo "NUMA node: ${NUMA_NODE}"
+    - echo NUMA node ${NUMA_NODE}
     - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     - RUN_OPTIONS="-n 500 -m 500 -r 10 -t ${THREADS} -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
