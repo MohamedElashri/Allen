@@ -17,7 +17,7 @@ namespace logger {
 
   static std::unique_ptr<boost::iostreams::stream<boost::iostreams::null_sink>> nullOstream;
 
-#if defined(__clang__)
+#if defined(__clang__) && __clang_major__ >= 10
 #pragma clang diagnostic pop
 #endif
 } // namespace logger
