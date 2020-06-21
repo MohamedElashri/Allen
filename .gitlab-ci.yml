@@ -560,12 +560,12 @@ teslav100:CUDA:hlt1_pp_default:run_throughput:
   dependencies:
     - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
-teslat4:CUDA:hlt1_pp_default:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - teslat4
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+# teslat4:CUDA:hlt1_pp_default:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - teslat4
+#   dependencies:
+#     - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
 x862630v4:CPU:hlt1_pp_default:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -631,7 +631,7 @@ throughput:hlt1_pp_default:geforcertx2080ti:publish_throughput:
   dependencies:
     - geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput
     - quadrortx6000:CUDA:hlt1_pp_default:run_throughput
-    - teslat4:CUDA:hlt1_pp_default:run_throughput
+    # - teslat4:CUDA:hlt1_pp_default:run_throughput
     - teslav100:CUDA:hlt1_pp_default:run_throughput
     - x862630v4:CPU:hlt1_pp_default:run_throughput_cpu
     - epyc7502:CPU:hlt1_pp_default:run_throughput_cpu
