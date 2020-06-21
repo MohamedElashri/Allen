@@ -26,6 +26,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
+set(TREAT_WARNINGS_AS_ERRORS OFF)
 
 # -----------------------
 # Multiple-choice options
@@ -66,6 +67,12 @@ message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 # Support generating configuration with Allen standalone, and with Moore
 set(MOORE_GENERATOR CACHE BOOL OFF)
 set(MOORE_INSTALL_DIR CACHE STRING "")
+
+# General CMAKE CXX FLAGS option
+if(TREAT_WARNINGS_AS_ERRORS)
+  message(STATUS "Treating compiler warnings as errors")
+  string(APPEND CMAKE_CXX_FLAGS " -Werror")
+endif()
 
 # Deal with device target architecture
 if(NOT STANDALONE)
