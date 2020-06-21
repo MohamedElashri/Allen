@@ -12,6 +12,7 @@ option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
+option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 
 # --------
 # Settings
@@ -26,7 +27,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
-set(TREAT_WARNINGS_AS_ERRORS OFF)
 
 # -----------------------
 # Multiple-choice options

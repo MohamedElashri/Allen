@@ -627,7 +627,7 @@ x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
 throughput:hlt1_pp_default:geforcertx2080ti:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
-    - x86
+    - cvmfs
   dependencies:
     - geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput
     - quadrortx6000:CUDA:hlt1_pp_default:run_throughput
