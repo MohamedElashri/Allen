@@ -16,7 +16,9 @@
 #elif defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wc11-extensions"
+#if __clang_major__ >= 10
 #pragma clang diagnostic ignored "-Wmisleading-indentation"
+#endif
 #endif
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/vector.hpp>
