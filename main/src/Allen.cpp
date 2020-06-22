@@ -277,9 +277,6 @@ extern "C" int allen(
     return -1;
   }
 
-  // Generate CPU ID object
-  cpu_id::reset_cpuid();
-
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);
   logger::setVerbosity(verbosity);
