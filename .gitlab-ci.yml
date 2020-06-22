@@ -196,7 +196,7 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
-    - RUN_OPTIONS="-n 500 -m 500"
+    - RUN_OPTIONS="-n 1000 -m 1000"
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir validation_output
@@ -233,7 +233,7 @@ docker_image:build:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - echo NUMA node ${NUMA_NODE}
-    - RUN_OPTIONS="-n 500 -m 500"
+    - RUN_OPTIONS="-n 1000 -m 1000"
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
     - mkdir validation_output
