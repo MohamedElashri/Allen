@@ -232,7 +232,6 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - echo NUMA node ${NUMA_NODE}
     - RUN_OPTIONS="-n 1000 -m 1000"
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
@@ -308,7 +307,6 @@ docker_image:build:
     - TOTAL_THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
     - TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - echo NUMA node ${NUMA_NODE}
     - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     - RUN_OPTIONS="-n 500 -m 500 -r 10 -t ${THREADS} -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
@@ -494,7 +492,7 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_gcc_warnings_as_errors:
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_gcc_job_def_warnings_as_errors
   tags:
     - cvmfs
@@ -525,7 +523,6 @@ CUDA:hlt1_pp_no_gec:RelWithDebInfo::build:
   only:
     refs:
       - master
-      - merge_requests
 
 CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
   <<: *build_clang_job_def
@@ -534,7 +531,6 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
   only:
     refs:
       - master
-      - merge_requests
 
 # ===
 # Run
@@ -634,7 +630,6 @@ geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
-      - merge_requests
 
 quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -645,7 +640,6 @@ quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
-      - merge_requests
 
 teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -656,7 +650,6 @@ teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
-      - merge_requests
 
 # teslat4:CUDA:hlt1_pp_no_gec:run_throughput:
 #   <<: *run_throughput_job_no_profiling_def
@@ -667,7 +660,6 @@ teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
 #   only:
 #     refs:
 #       - master
-#       - merge_requests
 
 x862630v4:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -678,7 +670,6 @@ x862630v4:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   only:
     refs:
       - master
-      - merge_requests
 
 epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -689,7 +680,6 @@ epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   only:
     refs:
       - master
-      - merge_requests
 
 # =======
 # Publish
@@ -723,4 +713,3 @@ throughput:hlt1_pp_no_gec:geforcertx2080ti:publish_throughput:
   only:
     refs:
       - master
-      - merge_requests
