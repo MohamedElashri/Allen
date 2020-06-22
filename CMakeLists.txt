@@ -12,6 +12,7 @@ option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
+option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 
 # --------
 # Settings
@@ -23,9 +24,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Allows making a shared object
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO CACHE STRING "-O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE CACHE STRING "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG CACHE STRING "-O0 -g -DALLEN_DEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
 
 # -----------------------
 # Multiple-choice options
@@ -66,6 +67,12 @@ message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 # Support generating configuration with Allen standalone, and with Moore
 set(MOORE_GENERATOR CACHE BOOL OFF)
 set(MOORE_INSTALL_DIR CACHE STRING "")
+
+# General CMAKE CXX FLAGS option
+if(TREAT_WARNINGS_AS_ERRORS)
+  message(STATUS "Treating compiler warnings as errors")
+  string(APPEND CMAKE_CXX_FLAGS " -Werror")
+endif()
 
 # Deal with device target architecture
 if(NOT STANDALONE)
@@ -174,7 +181,7 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
     if(CUDA_ARCH STREQUAL "MAX")
       set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
       set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
-      execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
+      execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -std=c++17 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
       if(CUDA_ARCH STREQUAL "MAX")
         set(CHECK_ARGS "-l")
       endif()
@@ -264,7 +271,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
-  if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
@@ -361,10 +368,10 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   allen_project()
   enable_language(CUDA)
 
-  set(CMAKE_CUDA_STANDARD 14)
-  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
-  set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
-  set(CMAKE_CUDA_FLAGS_DEBUG "-G -g -DALLEN_DEBUG")
+  # set(CMAKE_CUDA_STANDARD 17) # 17 not supported by current CMake version
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-std=c++17 -O3 -g -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_RELEASE "-std=c++17 -O3 -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_DEBUG "-std=c++17 -G -g -DALLEN_DEBUG")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
@@ -388,9 +395,8 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      # TODO: Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
-      #       don't link properly. Revisit this and turn off separable compilation once the
-      #       algorithms become non-templated.
+      # Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
+      # don't link properly.
       set_target_properties(${ARGV0} PROPERTIES CUDA_SEPARABLE_COMPILATION ON CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     else()
       set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)

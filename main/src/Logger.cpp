@@ -1,5 +1,16 @@
 #include "Logger.h"
+
+#if defined(__clang__) && __clang_major__ >= 10
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-copy"
+#endif
+
 #include "boost/iostreams/stream.hpp"
+
+#if defined(__clang__) && __clang_major__ >= 10
+#pragma clang diagnostic pop
+#endif
+
 #include "boost/iostreams/device/null.hpp"
 #include <sstream>
 #include <iostream>
@@ -9,17 +20,7 @@
 
 namespace logger {
   static std::unique_ptr<Logger> ll;
-
-#if defined(__clang__) && __clang_major__ >= 10
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-copy"
-#endif
-
   static std::unique_ptr<boost::iostreams::stream<boost::iostreams::null_sink>> nullOstream;
-
-#if defined(__clang__) && __clang_major__ >= 10
-#pragma clang diagnostic pop
-#endif
 } // namespace logger
 
 void logger::setVerbosity(int level)
