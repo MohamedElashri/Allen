@@ -174,6 +174,7 @@ docker_image:build:
   script: "echo 'Building Allen dev docker image"
   variables:
     TO: $CI_REGISTRY_IMAGE:latest
+  allow_failure: true
 
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
   only:
@@ -475,7 +476,7 @@ CUDA:hlt1_pp_default:RelWithDebInfo::build:
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build:
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
@@ -485,7 +486,7 @@ CPU:hlt1_pp_default:RelWithDebInfo::build:
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=on -DBUILD_TESTS=ON:build:
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
@@ -493,44 +494,24 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=on -DBUILD_TESTS=ON:build:
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=on -DBUILD_TESTS=ON:build_gcc_warnings_as_errors:
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_gcc_warnings_as_errors:
   <<: *build_gcc_job_def_warnings_as_errors
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:RelWithDebInfo::build_gcc_warnings_as_errors:
-  <<: *build_gcc_job_def_warnings_as_errors
-  tags:
-    - cvmfs
-
-CUDA:hlt1_pp_default:RelWithDebInfo::build_warnings_as_errors:
-  <<: *build_gcc_job_def_warnings_as_errors
-  tags:
-    - cvmfs
-
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build_warnings_as_errors:
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_gcc_job_def_warnings_as_errors
   tags:
     - cvmfs
 
 # clang:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=on -DBUILD_TESTS=ON:build_warnings_as_errors:
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_clang_job_def_warnings_as_errors
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:RelWithDebInfo::build_warnings_as_errors:
-  <<: *build_clang_job_def_warnings_as_errors
-  tags:
-    - cvmfs
-
-CUDA:hlt1_pp_default:RelWithDebInfo::build_warnings_as_errors:
-  <<: *build_clang_job_def_warnings_as_errors
-  tags:
-    - cvmfs
-
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:build_warnings_as_errors:
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_clang_job_def_warnings_as_errors
   tags:
     - cvmfs
@@ -613,14 +594,14 @@ x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
   tags:
     - x86
   dependencies:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=on -DBUILD_TESTS=ON:build
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
 x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
   <<: *run_physics_efficiency_job_def_cpu
   tags:
     - x86
   dependencies:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=on -DBUILD_TESTS=ON:build
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
 # =======
 # Publish
