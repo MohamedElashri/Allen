@@ -82,7 +82,16 @@ uint16_t __float2half(const float f)
 #if !defined(__APPLE__) && defined(__F16C__)
   // Check at runtime if the processor supports the F16C extension
   if (cpu_id::supports_feature(bit_F16C, cpu_id::CpuIDRegister::ecx)) {
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wc99-extensions"
+#endif
+
     return _cvtss_sh(f, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
   }
   else {
     return __float2half_impl(f);

@@ -81,7 +81,12 @@ function(test_program)
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads)
+  if (STANDALONE)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads)
+  else()
+    find_package(fmt REQUIRED)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads fmt::fmt)
+  endif()
 
   if (USE_MPI AND MPI_FOUND)
     target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)

@@ -5,11 +5,18 @@
 struct HostBuffersManager;
 
 struct SVMonitor : public BufferMonitor {
+#ifdef WITH_ROOT
   SVMonitor(HostBuffersManager* buffers_manager, int timeStep = 30, int offset = 0) :
     BufferMonitor("fittedSVs", timeStep, offset), m_buffers_manager(buffers_manager)
   {
     init();
   };
+#else
+  SVMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) : BufferMonitor("fittedSVs", timeStep, offset)
+  {
+    init();
+  };
+#endif
 
   virtual ~SVMonitor() = default;
 
@@ -18,5 +25,7 @@ struct SVMonitor : public BufferMonitor {
 private:
   void init();
 
+#ifdef WITH_ROOT
   HostBuffersManager* m_buffers_manager;
+#endif
 };
