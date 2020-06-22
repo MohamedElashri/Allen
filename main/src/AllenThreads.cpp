@@ -79,7 +79,7 @@ void run_output(
   const size_t thread_id,
   IZeroMQSvc* zmqSvc,
   OutputHandler* output_handler,
-  HostBuffersManager* buffer_manager)
+  HostBuffersManager*)
 {
   auto* client_socket = output_handler ? output_handler->client_socket() : nullptr;
 

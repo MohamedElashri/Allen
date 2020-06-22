@@ -14,6 +14,8 @@ void HostBuffersManager::init(size_t nBuffers)
     buffer_statuses.push_back(BufferStatus::Empty);
     empty_buffers.push(i);
   }
+
+  _unused(m_errorevent_line);
 }
 
 size_t HostBuffersManager::assignBufferToFill()
