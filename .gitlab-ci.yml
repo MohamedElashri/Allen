@@ -582,26 +582,26 @@ x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
 
 # Test runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
-  <<: *run_physics_efficiency_job_def
-  tags:
-    - geforcertx2080ti
-  dependencies:
-    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+# geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
+#   <<: *run_physics_efficiency_job_def
+#   tags:
+#     - geforcertx2080ti
+#   dependencies:
+#     - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
-x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
-  <<: *run_physics_efficiency_job_def_cpu
-  tags:
-    - x86
-  dependencies:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
+#   <<: *run_physics_efficiency_job_def_cpu
+#   tags:
+#     - x86
+#   dependencies:
+#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
-x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
-  <<: *run_physics_efficiency_job_def_cpu
-  tags:
-    - x86
-  dependencies:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
+#   <<: *run_physics_efficiency_job_def_cpu
+#   tags:
+#     - x86
+#   dependencies:
+#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
 # =======
 # Publish
