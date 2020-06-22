@@ -27,6 +27,4 @@ namespace cpu_id {
   };
 
   bool supports_feature(const unsigned bit, const CpuIDRegister reg_index = CpuIDRegister::ecx);
-
-  void reset_cpuid();
 } // namespace cpu_id
