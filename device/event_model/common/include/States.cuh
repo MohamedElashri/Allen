@@ -59,6 +59,9 @@ struct MiniState {
   __host__ __device__ MiniState(const VeloState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
   {}
 
+  __host__ __device__ MiniState(const KalmanVeloState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
+  {}
+  
   __host__ __device__ MiniState(const MiniState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
   {}
 

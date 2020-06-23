@@ -366,7 +366,7 @@ namespace Velo {
         return m_base_pointer[10 * m_total_number_of_tracks + index];
       }
 
-      __device__ __host__ void set(const unsigned track_number, const KalmanVeloState& state)
+      __host__ __device__ void set(const unsigned track_number, const KalmanVeloState& state)
       {
         assert(track_number < m_total_number_of_tracks);
 
@@ -385,7 +385,7 @@ namespace Velo {
         z(track_number) = state.z;
       }
 
-      __device__ __host__ KalmanVeloState get(const unsigned track_number) const
+      __host__ __device__ KalmanVeloState get(const unsigned track_number) const
       {
         assert(track_number < m_total_number_of_tracks);
 
@@ -403,6 +403,19 @@ namespace Velo {
         state.c31 = c31(track_number);
         state.c33 = c33(track_number);
 
+        state.z = z(track_number);
+
+        return state;
+      }
+
+      __host__ __device__ MiniState getMiniState(const uint track_number) const
+      {
+        MiniState state;
+
+        state.x = x(track_number);
+        state.y = y(track_number);
+        state.tx = tx(track_number);
+        state.ty = ty(track_number);
         state.z = z(track_number);
 
         return state;
