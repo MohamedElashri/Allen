@@ -33,8 +33,7 @@ namespace velo_kalman_filter {
     // backward = state.z > track.hits[0].z;
     const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
-    const float noise2PerLayer =
-      1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
+    const float noise2PerLayer = 1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
 
     // assume the hits are sorted,
     // but don't assume anything on the direction of sorting
@@ -82,13 +81,25 @@ namespace velo_kalman_filter {
       velo_kalman_filter_step(
         state.z, hit_z, hit_y, Velo::Tracking::param_w, state.y, state.ty, state.c11, state.c31, state.c33);
 
-      // update z (note done in the filter, since needed only once)
+      // update z (not done in the filter, since needed only once)
       state.z = hit_z;
     }
 
     // add the noise at the last hit
     state.c22 += noise2PerLayer;
     state.c33 += noise2PerLayer;
+
+    auto delta_z=0.f;
+    if(upstream)
+      // Propagate to the closest point near the beam line
+      delta_z = -(state.x * state.tx + state.y * state.ty) / (state.tx * state.tx + state.ty * state.ty);
+    else
+      // Propagate to the end of the Velo (z=770 mm)
+      delta_z = Velo::Constants::z_endVelo - state.z;
+
+    state.x = state.x + state.tx * delta_z;
+    state.y = state.y + state.ty * delta_z;
+    state.z = state.z + delta_z;
 
     // finally, store the state
     return state;
@@ -103,6 +114,7 @@ namespace velo_kalman_filter {
     (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
     (DEVICE_INPUT(dev_velo_states_t, char), dev_velo_states),
     (DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char), dev_velo_kalman_beamline_states),
+    (DEVICE_OUTPUT(dev_velo_kalman_endvelo_states_t, char), dev_velo_kalman_endvelo_states),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void velo_kalman_filter(Parameters);
