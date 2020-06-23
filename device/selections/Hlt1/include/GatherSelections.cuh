@@ -13,10 +13,12 @@ namespace gather_selections {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (HOST_INPUT(host_mep_layout_t, unsigned), host_mep_layout),
     (HOST_OUTPUT(host_selections_lines_offsets_t, unsigned), host_selections_lines_offsets),
     (HOST_OUTPUT(host_selections_offsets_t, unsigned), host_selections_offsets),
     (HOST_OUTPUT(host_number_of_active_lines_t, unsigned), host_number_of_active_lines),
     (HOST_OUTPUT(host_names_of_active_lines_t, char), host_names_of_active_lines),
+    (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
     (DEVICE_INPUT_AGGREGATE(dev_input_selections_t, gather_selections::dev_input_selections_t::tuple_t),
      dev_input_selections),
     (DEVICE_INPUT_AGGREGATE(dev_input_selections_offsets_t, gather_selections::dev_input_selections_offsets_t::tuple_t),
@@ -49,12 +51,4 @@ namespace gather_selections {
     Property<scale_factor_t> m_scale_factor {this, 1.0f};
     Property<names_of_active_lines_t> m_names_of_active_lines {this, ""};
   };
-
-  __global__ void postscaler(
-    bool* dev_selections,
-    const unsigned* dev_selections_offsets,
-    const char* dev_odin_raw_input,
-    const unsigned* dev_odin_raw_input_offsets,
-    const unsigned number_of_lines,
-    const float scale_factor);
 } // namespace gather_selections

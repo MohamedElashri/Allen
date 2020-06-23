@@ -61,6 +61,38 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   }
 };
 
+namespace gather_selections {
+template<typename ODIN>
+__global__ void postscaler(
+  bool* dev_selections,
+  const unsigned* dev_selections_offsets,
+  const char* dev_odin_raw_input,
+  const unsigned* dev_odin_raw_input_offsets,
+  const unsigned number_of_lines,
+  const float scale_factor)
+{
+  const auto number_of_events = gridDim.x;
+  const auto event_number = blockIdx.x;
+
+  Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
+
+  const unsigned int* odin = ODIN::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+
+  const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
+  const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
+  const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
+  const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
+  const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
+
+  for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
+    auto span = sels.get_span(i, event_number);
+
+    DeterministicPostscaler ps {i, scale_factor};
+    ps(span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  }
+}
+}
+
 void gather_selections::gather_selections_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -106,7 +138,7 @@ void gather_selections::gather_selections_t::operator()(
   // Populate dev_selections_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
     template populate_selections<host_selections_lines_offsets_t, dev_selections_t>(arguments, stream);
-  
+
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_offsets_t::type>::t>::
     template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, stream);
@@ -139,9 +171,11 @@ void gather_selections::gather_selections_t::operator()(
 
   // Copy host_selections_offsets_t onto dev_selections_offsets_t
   copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, stream);
-  
+
   // Run the postscaler
-  global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), stream)(
+  auto postscale_fun = first<host_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), stream) :
+    global_function(postscaler<odin_data_t>)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), stream);
+  postscale_fun(
     data<dev_selections_t>(arguments),
     data<dev_selections_offsets_t>(arguments),
     data<dev_odin_raw_input_t>(arguments),
@@ -182,36 +216,5 @@ void gather_selections::gather_selections_t::operator()(
     host_buffers.host_number_of_lines = first<host_number_of_active_lines_t>(arguments);
     safe_assign_to_host_buffer<dev_selections_t>(host_buffers.host_selections, arguments, stream);
     safe_assign_to_host_buffer<dev_selections_offsets_t>(host_buffers.host_selections_offsets, arguments, stream);
-  }
-}
-
-__global__ void gather_selections::postscaler(
-  bool* dev_selections,
-  const unsigned* dev_selections_offsets,
-  const char* dev_odin_raw_input,
-  const unsigned* dev_odin_raw_input_offsets,
-  const unsigned number_of_lines,
-  const float scale_factor)
-{
-  const auto number_of_events = gridDim.x;
-  const auto event_number = blockIdx.x;
-
-  Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
-
-  const unsigned hdr_size = 8;
-  const unsigned int* odinData =
-    reinterpret_cast<const unsigned*>(dev_odin_raw_input + dev_odin_raw_input_offsets[event_number] + hdr_size);
-
-  const uint32_t run_no = odinData[LHCb::ODIN::Data::RunNumber];
-  const uint32_t evt_hi = odinData[LHCb::ODIN::Data::L0EventIDHi];
-  const uint32_t evt_lo = odinData[LHCb::ODIN::Data::L0EventIDLo];
-  const uint32_t gps_hi = odinData[LHCb::ODIN::Data::GPSTimeHi];
-  const uint32_t gps_lo = odinData[LHCb::ODIN::Data::GPSTimeLo];
-
-  for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
-    auto span = sels.get_span(i, event_number);
-
-    DeterministicPostscaler ps {i, scale_factor};
-    ps(span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
   }
 }

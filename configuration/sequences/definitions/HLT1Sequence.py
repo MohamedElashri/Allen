@@ -4,10 +4,12 @@
 from definitions.algorithms import *
 
 
-def make_selection_gatherer(lines, initialize_lists, populate_odin_banks,
-                            **kwargs):
+def make_selection_gatherer(lines, initialize_lists, layout_provider,
+                            populate_odin_banks, **kwargs):
     return gather_selections_t(
         host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+        host_mep_layout_t=layout_provider.host_mep_layout_t(),
+        dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
         dev_input_selections_t=tuple(line.dev_decisions_t() for line in lines),
         dev_input_selections_offsets_t=tuple(
             line.dev_decisions_offsets_t() for line in lines),
@@ -17,7 +19,8 @@ def make_selection_gatherer(lines, initialize_lists, populate_odin_banks,
         **kwargs)
 
 
-def HLT1Sequence(initialize_lists,
+def HLT1Sequence(layout_provider,
+                 initialize_lists,
                  full_event_list,
                  velo_copy_track_hit_number,
                  velo_kalman_filter,
@@ -161,6 +164,7 @@ def HLT1Sequence(initialize_lists,
         no_beam_line = beam_crossing_line_t(
             name="no_beam_line",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
@@ -169,6 +173,7 @@ def HLT1Sequence(initialize_lists,
         beam_one_line = beam_crossing_line_t(
             name="beam_one_line",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
@@ -177,6 +182,7 @@ def HLT1Sequence(initialize_lists,
         beam_two_line = beam_crossing_line_t(
             name="beam_two_line",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
@@ -185,6 +191,7 @@ def HLT1Sequence(initialize_lists,
         both_beams_line = beam_crossing_line_t(
             name="both_beams_line",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
@@ -201,7 +208,7 @@ def HLT1Sequence(initialize_lists,
         lines = (track_mva_line, two_track_mva_line, no_beam_line,
                  beam_one_line, beam_two_line, both_beams_line, velo_micro_bias_line)
         gatherer = make_selection_gatherer(
-            lines, initialize_lists, odin_banks, name="gather_selections")
+            lines, initialize_lists, layout_provider, odin_banks, name="gather_selections")
 
         return extend_sequence(extend_sequence(hlt1_sequence, *lines), gatherer)
 
