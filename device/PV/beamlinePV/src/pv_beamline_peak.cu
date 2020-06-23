@@ -19,10 +19,10 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   cudaEvent_t&) const
 {
   const auto grid_dim = dim3(
-    (first<host_number_of_selected_events_t>(arguments) + PV::num_threads_pv_beamline_peak_t - 1) /
-    PV::num_threads_pv_beamline_peak_t);
+    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>().get() - 1) /
+    property<block_dim_x_t>().get());
 
-  global_function(pv_beamline_peak)(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
+  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), cuda_stream)(
     arguments, first<host_number_of_selected_events_t>(arguments));
 }
 

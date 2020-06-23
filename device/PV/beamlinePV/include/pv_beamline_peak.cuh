@@ -17,7 +17,8 @@ namespace pv_beamline_peak {
     (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
     (DEVICE_INPUT(dev_zhisto_t, float), dev_zhisto),
     (DEVICE_OUTPUT(dev_zpeaks_t, float), dev_zpeaks),
-    (DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned), dev_number_of_zpeaks))
+    (DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned), dev_number_of_zpeaks),
+    (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned), block_dim_x))
 
   __global__ void
   pv_beamline_peak(Parameters, const unsigned number_of_events);
@@ -36,5 +37,8 @@ namespace pv_beamline_peak {
       HostBuffers&,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const;
+
+  private:
+    Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 } // namespace pv_beamline_peak

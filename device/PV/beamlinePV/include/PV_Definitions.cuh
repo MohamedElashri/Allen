@@ -4,10 +4,6 @@
 #include "SystemOfUnits.h"
 
 namespace PV {
-
-  // Number of threads pv_beamline_peak_t
-  static constexpr unsigned num_threads_pv_beamline_peak_t = 64;
-
   // maximum number of vertices in a event
   static constexpr unsigned max_number_vertices = 32;
 
