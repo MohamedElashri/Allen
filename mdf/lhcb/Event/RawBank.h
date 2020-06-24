@@ -139,10 +139,33 @@ namespace LHCb {
       FTGeneric,        // 74
       FTCalibration,    // 75
       FTNZS,            // 76
+      Calo,              // 77
+      CaloError,         // 78
+      MuonSpecial,       // 79
+      RichCommissioning, // 80
+      RichError,         // 81
+      FTSpecial,         // 82
+ 
       // Add new types here. Don't forget to update also RawBank.cpp
-      LastType // LOOP Marker; add new bank types ONLY before!
+      LastType, // LOOP Marker; add new bank types ONLY before!
+
+      DaqErrorBase = 192, // Lowest DaqError type available in Run 3 (EDMS2100937)
+      // Banks above are reserved for DAQ, add only generic DaqError types below.
+      DaqErrorFragmentThrottled = 250,
+      DaqErrorBXIDCorrupted     = 251,
+      DaqErrorBXIDJump          = 252,
+      DaqErrorFragmentMissing   = 253,
+      DaqErrorFragmentTruncated = 254,
+      DaqErrorInvalid           = 255
+      // 255 is the highest type allowed by the Run 3 raw-data format (8-bit unsigned) 
     };
 
+    /// Get any bank type as a string
+    static std::string typeName( LHCb::RawBank::BankType e );
+
+    /// Get this bank type as a string
+    inline std::string typeName() const { return LHCb::RawBank::typeName( type() ); }
+ 
     /// Magic pattern for Raw bank headers
     enum RawPattern { MagicPattern = 0xCBCB };
 
