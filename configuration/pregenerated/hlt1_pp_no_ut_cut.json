@@ -11,6 +11,7 @@
   "no_beam_line": {"beam_crossing_type": "0"},
   "beam_one_line": {"beam_crossing_type": "1"},
   "beam_two_line": {"beam_crossing_type": "2"},
-  "gather_selections": {"names_of_active_lines": "track_mva_line,two_track_mva_line,no_beam_line,beam_one_line,beam_two_line"},
+  "both_beams_line": {"beam_crossing_type": "3"},
+  "gather_selections": {"names_of_active_lines": "track_mva_line,two_track_mva_line,no_beam_line,beam_one_line,beam_two_line,both_beams_line,velo_micro_bias_line"},
   "configured_lines": []
 }
