@@ -24,7 +24,7 @@ namespace pv_beamline_multi_fitter {
     (DEVICE_OUTPUT(dev_multi_fit_vertices_t, PV::Vertex), dev_multi_fit_vertices),
     (DEVICE_OUTPUT(dev_number_of_multi_fit_vertices_t, unsigned), dev_number_of_multi_fit_vertices),
     (DEVICE_INPUT(dev_pvtrack_z_t, float), dev_pvtrack_z),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+    (PROPERTY(block_dim_y_t, "block_dim_y", "block dimension Y", unsigned), block_dim_y))
 
   __global__ void pv_beamline_multi_fitter(
     Parameters,
@@ -46,6 +46,6 @@ namespace pv_beamline_multi_fitter {
       cudaEvent_t&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Property<block_dim_y_t> m_block_dim_y {this, 4};
   };
 } // namespace pv_beamline_multi_fitter
