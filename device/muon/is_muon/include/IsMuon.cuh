@@ -18,7 +18,8 @@ namespace is_muon {
     (DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned), dev_station_ocurrences_offset),
     (DEVICE_INPUT(dev_muon_hits_t, char), dev_muon_hits),
     (DEVICE_OUTPUT(dev_muon_track_occupancies_t, int), dev_muon_track_occupancies),
-    (DEVICE_OUTPUT(dev_is_muon_t, bool), dev_is_muon))
+    (DEVICE_OUTPUT(dev_is_muon_t, bool), dev_is_muon),
+    (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned), block_dim_x))
 
   __global__ void is_muon(
     Parameters,
@@ -39,5 +40,8 @@ namespace is_muon {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const;
+    
+  private:
+    Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 } // namespace is_muon
