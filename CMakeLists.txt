@@ -24,7 +24,7 @@ option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Allows making a shared object
+# set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Allows making a shared object
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
@@ -283,6 +283,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endfunction()
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
+
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
