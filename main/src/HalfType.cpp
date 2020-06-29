@@ -2,6 +2,7 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "CudaCommon.h"
+#include <iostream>
 
 // If supported, compile and use F16C extensions to convert from / to float16
 #include "CpuID.h"
@@ -22,7 +23,7 @@ __host__ __device__ uint16_t __float2half_impl(const float f)
 {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
-  uint32_t sign_mask = 0x80000000u;
+  constexpr uint32_t sign_mask = 0x80000000u;
   int32_t o;
 
   int32_t fint = intbits(f);
@@ -46,11 +47,12 @@ __host__ __device__ uint16_t __float2half_impl(const float f)
   // anymore for the Inf/NaN case anyway.
 
   // const uint32_t round_mask = ~0xffful;
-  const uint32_t round_mask = ~0xfffu;
-  const int32_t magic = 15ul << 23;
-  const int32_t f16infty = 31ul << 23;
+  // constexpr int32_t magic = 15ul << 23;
+  constexpr float fmagic = 1.92592994439e-34f; // equals 15ul << 23
+  constexpr uint32_t round_mask = ~0xfffu;
+  constexpr int32_t f16infty = 31ul << 23;
 
-  int32_t fint2 = intbits(floatbits(fint & round_mask) * floatbits(magic)) - round_mask;
+  int32_t fint2 = intbits(floatbits(fint & round_mask) * fmagic) - round_mask;
   fint2 = (fint2 > f16infty) ? f16infty : fint2; // Clamp to signed infinity if overflowed
 
   if (fint < f32infty) o = fint2 >> 13; // Take the bits!
@@ -76,6 +78,20 @@ __host__ __device__ float __half2float_impl(const uint16_t h)
 
   o |= ((int32_t)(h & 0x8000)) << 16; // sign bit
   return floatbits(o);
+}
+
+__host__ __device__ float __float_cap_to_half_precision(const float f) {
+  constexpr float fmagic = 1.92592994439e-34f; // equals 15ul << 23
+  constexpr uint32_t signs_mask = 0xC0000000u;
+  constexpr uint32_t round_mask = ~0xfffu;
+  
+  const auto fint = intbits(f);
+  const auto fint2 = intbits(floatbits(fint & round_mask) * fmagic) - round_mask;
+  const auto result = (fint & signs_mask) | (fint2 & 0x07FFE000);
+  const auto fresult = floatbits(result);
+
+  // A good approximation of converting to half and back
+  return fresult;
 }
 
 #if defined(TARGET_DEVICE_CPU)
@@ -118,7 +134,7 @@ bool half_t::operator==(const half_t& a) const { return m_value == a.get(); }
 
 bool half_t::operator!=(const half_t& a) const { return !operator==(a); }
 #else
-half_t::half_t(const float f) { m_value = __half2float(__float2half(f)); }
+half_t::half_t(const float f) { m_value = __half2float_impl(__float2half_impl(f)); }
 
 half_t::operator float() const { return m_value; }
 #endif

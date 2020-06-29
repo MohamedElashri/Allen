@@ -133,7 +133,7 @@ void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
 
 cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
-  CALLGRIND_TOGGLE_COLLECT;
+  // CALLGRIND_TOGGLE_COLLECT;
 
   host_buffers = host_buffers_manager->getBuffers(buf_idx);
   // The sequence is only run if there are events to run on
@@ -191,8 +191,8 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
     }
   }
 
-  CALLGRIND_TOGGLE_COLLECT;
-  CALLGRIND_DUMP_STATS;
+  // CALLGRIND_TOGGLE_COLLECT;
+  // CALLGRIND_DUMP_STATS;
 
   return cudaSuccess;
 }
