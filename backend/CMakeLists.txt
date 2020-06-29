@@ -1,5 +1,5 @@
 include_directories(include)
-include_directories(main/include)
+include_directories(${CMAKE_SOURCE_DIR}/main/include)
 
 file(GLOB backend_sources "src/*cpp")
 

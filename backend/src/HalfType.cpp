@@ -2,25 +2,27 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 
+#ifdef TARGET_DEVICE_CPU
+
 #include "CPUBackend.h"
 #include <iostream>
 
 // If supported, compile and use F16C extensions to convert from / to float16
 #include "CPUID.h"
 
-__host__ __device__ int32_t intbits(const float f)
+int32_t intbits(const float f)
 {
   const int32_t* i_p = reinterpret_cast<const int32_t*>(&f);
   return i_p[0];
 }
 
-__host__ __device__ float floatbits(const int32_t i)
+float floatbits(const int32_t i)
 {
   const float* f_p = reinterpret_cast<const float*>(&i);
   return f_p[0];
 }
 
-__host__ __device__ uint16_t __float2half_impl(const float f)
+uint16_t __float2half_impl(const float f)
 {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
@@ -61,7 +63,7 @@ __host__ __device__ uint16_t __float2half_impl(const float f)
   return (o | (sign >> 16));
 }
 
-__host__ __device__ float __half2float_impl(const uint16_t h)
+float __half2float_impl(const uint16_t h)
 {
   constexpr uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
 
@@ -82,7 +84,7 @@ __host__ __device__ float __half2float_impl(const uint16_t h)
 }
 
 // A good approximation of converting to half and back in a single function
-__host__ __device__ float __float_cap_to_half_precision(const float f) {
+float __float_cap_to_half_precision(const float f) {
   constexpr float fmagic = 1.92592994439e-34f; // equals 15ul << 23
   constexpr uint32_t signs_mask = 0xC0000000u;
   constexpr uint32_t round_mask = ~0xfffu;
@@ -95,10 +97,8 @@ __host__ __device__ float __float_cap_to_half_precision(const float f) {
   return fresult;
 }
 
-#ifndef TARGET_DEVICE_CUDA
+uint16_t __float2half(const float f) { return __float2half_impl(f); }
 
-__host__ __device__ uint16_t __float2half(const float f) { return __float2half_impl(f); }
-
-__host__ __device__ float __half2float(const uint16_t h) { return __half2float_impl(h); }
+float __half2float(const uint16_t h) { return __half2float_impl(h); }
 
 #endif

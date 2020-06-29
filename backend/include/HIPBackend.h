@@ -6,6 +6,8 @@
 
 #ifdef TARGET_DEVICE_HIP
 
+#include "BackendCommonInterface.h"
+
 #if !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
 #include <hip/hip_runtime_api.h>
@@ -55,6 +57,44 @@
 #define cudaDeviceGetByPCIBusId hipDeviceGetByPCIBusId
 #define cudaDeviceSetCacheConfig hipDeviceSetCacheConfig
 #define cudaHostUnregister hipHostUnregister
+
+namespace Allen {
+  template<0>
+  class local_t {
+    constexpr unsigned id() { return threadIdx.x; }
+    constexpr unsigned size() { return blockDim.x; }
+  };
+
+  template<1>
+  class local_t {
+    constexpr unsigned id() { return threadIdx.y; }
+    constexpr unsigned size() { return blockDim.y; }
+  };
+
+  template<2>
+  class local_t {
+    constexpr unsigned id() { return threadIdx.z; }
+    constexpr unsigned size() { return blockDim.z; }
+  };
+
+  template<>
+  class global_t<0> {
+    constexpr unsigned id() { return blockIdx.x; }
+    constexpr unsigned size() { return gridDim.x; }
+  };
+
+  template<>
+  class global_t<1> {
+    constexpr unsigned id() { return blockIdx.y; }
+    constexpr unsigned size() { return gridDim.y; }
+  };
+
+  template<>
+  class global_t<2> {
+    constexpr unsigned id() { return blockIdx.z; }
+    constexpr unsigned size() { return gridDim.z; }
+  };
+} // namespace Allen
 
 #define cudaCheck(stmt)                                                                                           \
   {                                                                                                               \

@@ -4,6 +4,8 @@
 
 #include "BackendCommon.h"
 #include <iomanip>
+#include <iostream>
+#include "Logger.h"
 
 #ifdef TARGET_DEVICE_CPU
 

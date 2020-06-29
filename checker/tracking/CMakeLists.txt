@@ -19,7 +19,7 @@ include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 
 file(GLOB tracking_checker_sources "src/*cpp")
 
-add_library(TrackChecking STATIC
+allen_add_host_library(TrackChecking STATIC
   ${tracking_checker_sources}
 )
 target_include_directories(TrackChecking PUBLIC ${CPPGSL_INCLUDE_DIR})

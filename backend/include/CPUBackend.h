@@ -6,6 +6,7 @@
 
 #ifdef TARGET_DEVICE_CPU
 
+#include "BackendCommonInterface.h"
 #include <stdexcept>
 #include <cassert>
 #include <cmath>
@@ -94,6 +95,44 @@ extern thread_local GridDimensions gridDim;
 extern thread_local BlockIndices blockIdx;
 constexpr BlockDimensions blockDim {1, 1, 1};
 constexpr ThreadIndices threadIdx {0, 0, 0};
+
+namespace Allen {
+  template<>
+  class local_t<0> {
+    constexpr static unsigned id() { return threadIdx.x; }
+    constexpr static unsigned size() { return blockDim.x; }
+  };
+  
+  template<>
+  class local_t<1> {
+    constexpr static unsigned id() { return threadIdx.y; }
+    constexpr static unsigned size() { return blockDim.y; }
+  };
+
+  template<>
+  class local_t<2> {
+    constexpr static unsigned id() { return threadIdx.z; }
+    constexpr static unsigned size() { return blockDim.z; }
+  };
+
+  template<>
+  class global_t<0> {
+    static unsigned id() { return blockIdx.x; }
+    static unsigned size() { return gridDim.x; }
+  };
+
+  template<>
+  class global_t<1> {
+    static unsigned id() { return blockIdx.y; }
+    static unsigned size() { return gridDim.y; }
+  };
+
+  template<>
+  class global_t<2> {
+    static unsigned id() { return blockIdx.z; }
+    static unsigned size() { return gridDim.z; }
+  };
+} // namespace Allen
 
 cudaError_t cudaMalloc(void** devPtr, size_t size);
 cudaError_t cudaMallocHost(void** ptr, size_t size);
@@ -254,4 +293,5 @@ public:
       throw std::invalid_argument("cudaCheckKernelCall failed"); \
     }                                                            \
   }
+
 #endif

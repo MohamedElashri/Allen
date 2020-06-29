@@ -18,7 +18,7 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB pv_checker_sources "src/*cpp")
 
-add_library(PVChecking STATIC
+allen_add_host_library(PVChecking STATIC
   ${pv_checker_sources}
 )
 target_include_directories(PVChecking PUBLIC ${CPPGSL_INCLUDE_DIR})

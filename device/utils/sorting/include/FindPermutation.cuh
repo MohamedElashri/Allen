@@ -24,8 +24,7 @@ __host__ __device__ void find_permutation(
   unsigned* hit_permutations,
   const T& sort_function)
 {
-  for(unsigned i = threadIdx.x; i < number_of_hits; i += blockDim.x)
-  {
+  for (unsigned i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     const unsigned hit_index = hit_start + i;
 
     // Find out local position

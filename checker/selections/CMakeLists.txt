@@ -24,7 +24,7 @@ include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 
 file(GLOB selection_checker_sources "src/*.cpp")
 
-add_library(SelChecking STATIC
+allen_add_host_library(SelChecking STATIC
   ${selection_checker_sources}
 )
 set_target_properties(SelChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)

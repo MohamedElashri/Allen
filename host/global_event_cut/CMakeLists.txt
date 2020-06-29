@@ -84,22 +84,4 @@ allen_add_host_library(HostGEC STATIC
 
 target_link_libraries(HostGEC PUBLIC Backend)
 
-add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
-
-target_include_directories(mep_gec PUBLIC
-  ${CPPGSL_INCLUDE_DIR}
-  ${CMAKE_SOURCE_DIR}/stream/gear/include
-  ${CMAKE_SOURCE_DIR}/host/global_event_cut/include
-  ${CMAKE_SOURCE_DIR}/main/include
-  ${Boost_INCLUDE_DIRS})
-
-if (STANDALONE)
-  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES})
-else()
-  find_package(fmt REQUIRED)
-  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES} fmt::fmt)
-endif()
-
-target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
-
-install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
+include(mep_test.cmake)

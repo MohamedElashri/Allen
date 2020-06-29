@@ -1,6 +1,7 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 # ---------------
@@ -24,7 +25,6 @@ option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
-# set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Allows making a shared object
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
@@ -103,15 +103,7 @@ endif()
 message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
 # Add compile definition for target
-if(TARGET_DEVICE STREQUAL "CPU")
-  add_compile_definitions(TARGET_DEVICE_CPU)
-elseif(TARGET_DEVICE STREQUAL "HIP")
-  add_compile_definitions(TARGET_DEVICE_HIP)
-elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
-  add_compile_definitions(TARGET_DEVICE_CUDACLANG)
-elseif(TARGET_DEVICE STREQUAL "CUDA")
-  add_compile_definitions(TARGET_DEVICE_CUDA)
-endif()
+set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
 #Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
@@ -262,6 +254,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
   function(allen_add_host_library)
     add_library(${ARGV})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION lib OPTIONAL)
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
   endfunction()
 
   function(allen_add_device_library)
@@ -273,12 +266,14 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_library(${ARGV})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -336,6 +331,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -343,12 +339,14 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
@@ -356,6 +354,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -371,11 +370,13 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
     target_compile_options(${ARGV0} PRIVATE -x device --device-path=${device_base_dir} -pthread ${DEVICE_ARCHITECTURE})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
   endfunction()
 
   function(allen_add_executable)
     message(STATUS "Please use nvcc to link the executable.")
     add_executable(${ARGV})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
@@ -402,24 +403,21 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_host_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
   function(allen_add_device_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      # Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
-      # don't link properly.
-      set_target_properties(${ARGV0} PROPERTIES CUDA_SEPARABLE_COMPILATION ON CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-    else()
-      set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
-    endif()
+    set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
+    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
