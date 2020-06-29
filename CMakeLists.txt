@@ -649,14 +649,16 @@ set(allen_lib_sources ${Allen_cpp_path}
                       ${OutputHandler_cpp_path}
                       ${ZMQOutputSender_cpp_path})
 
-if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-#Produce self - contained application
-#Otherwise, HIP doesn't seem to link properly
-  allen_add_device_library(AllenLib STATIC ${allen_lib_sources})
-else()
-#Library containing all the code
-  allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
-endif()
+allen_add_device_library(AllenLib STATIC ${allen_lib_sources})
+
+# if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG")
+# #Produce self - contained application
+# #Otherwise, HIP doesn't seem to link properly
+#   allen_add_device_library(AllenLib STATIC ${allen_lib_sources})
+# else()
+# #Library containing all the code
+#   allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
+# endif()
 
 find_package(Threads REQUIRED)
 

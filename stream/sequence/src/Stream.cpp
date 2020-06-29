@@ -12,6 +12,8 @@
 #include "KalmanSequenceCheckers_impl.cuh"
 #include "RateCheckers_impl.cuh"
 
+#include <valgrind/callgrind.h>
+
 StreamWrapper::StreamWrapper()
 {
   number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
@@ -131,6 +133,8 @@ void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
 
 cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
+  CALLGRIND_TOGGLE_COLLECT;
+
   host_buffers = host_buffers_manager->getBuffers(buf_idx);
   // The sequence is only run if there are events to run on
   auto event_start = std::get<0>(runtime_options.event_interval);
@@ -186,6 +190,9 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
       }
     }
   }
+
+  CALLGRIND_TOGGLE_COLLECT;
+  CALLGRIND_DUMP_STATS;
 
   return cudaSuccess;
 }
