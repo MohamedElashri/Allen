@@ -111,7 +111,7 @@ namespace Allen {
 #endif
       if constexpr (configured_target == std::tuple_size<targets_t>::value) {
         constexpr auto default_target = index_of_v<target::Default, targets_t>;
-        static_assert(default_target != std::tuple_size<targets_t>::value && "No target is available for the current platform.");
+        static_assert(default_target != std::tuple_size<targets_t>::value, "target available for current platform");
         const auto fn = std::get<default_target>(std::tuple<Fns...> {fns...});
         return [fn](auto&&... args) { return fn(args...); };
       }

@@ -5,6 +5,8 @@
 #include "CalculatePhiAndSort.cuh"
 #include "VeloTools.cuh"
 #include "Vector.h"
+#include <numeric>
+#include <algorithm>
 
 using namespace Allen::device;
 
@@ -29,8 +31,8 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
 {
   initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
 
-  global_function(velo_calculate_phi_and_sort)(dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-    arguments);
+  global_function(velo_calculate_phi_and_sort)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
 
   // printf("After velo_calculate_phi_and_sort:\n");
   // print_velo_clusters<dev_sorted_velo_cluster_container_t,
@@ -57,7 +59,8 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
   const unsigned* module_pair_hit_start =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  const unsigned* module_pair_hit_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
+  const unsigned* module_pair_hit_num =
+    parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
   const auto velo_cluster_container =
     Velo::ConstClusters {parameters.dev_velo_cluster_container, total_estimated_number_of_clusters};
@@ -140,6 +143,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
   }
 }
 
+#if defined(TARGET_DEVICE_CPU)
 /**
  * @brief Calculates a phi side
  */
@@ -158,39 +162,60 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
     assert(hit_num < Velo::Constants::max_numhits_in_module_pair);
 
     // Calculate phis
-    for (unsigned hit_rel_id = local_id<0>(); hit_rel_id < hit_num; hit_rel_id += local_size<0>()) {
-      const auto hit_index = hit_start + hit_rel_id;
-      const auto hit_phi_int = hit_phi_16(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index));
-      shared_hit_phis[hit_rel_id] = hit_phi_int;
-    }
+    for (unsigned hit_rel_id = local_id<0>(); hit_rel_id < hit_num; hit_rel_id += local_size<0>() * vector_length()) {
+      if (hit_rel_id + vector_length() <= hit_num) {
+        // Do most iterations vectorized
+        Vector<float> xs;
+        Vector<float> ys;
 
-    // shared_hit_phis
-    barrier();
+        for (unsigned i = 0; i < vector_length(); ++i) {
+          const auto hit_rel_vector_id = hit_rel_id + i;
+          const auto hit_index = hit_start + hit_rel_vector_id;
+          xs[i] = velo_cluster_container.x(hit_index);
+          ys[i] = velo_cluster_container.y(hit_index);
+        }
 
-    // Find the permutations given the phis in shared_hit_phis
-    for (unsigned hit_rel_id = local_id<0>(); hit_rel_id < hit_num; hit_rel_id += local_size<0>()) {
-      const auto hit_index = hit_start + hit_rel_id;
-      const auto phi = shared_hit_phis[hit_rel_id];
+        const auto atan_value = fast_atan2f(ys, xs);
+        const auto float_value = (Velo::Tools::cudart_pi_f_float + atan_value) * Velo::Tools::convert_factor;
 
-      // Find out local position
-      unsigned position = 0;
-      for (unsigned j = 0; j < hit_num; ++j) {
-        const auto other_phi = shared_hit_phis[j];
-        // Stable sorting
-        position += phi > other_phi || (phi == other_phi && hit_rel_id > j);
+        // Cast to uint16
+        Vector<uint16_t> uint16_value;
+        for (unsigned i = 0; i < vector_length(); ++i) {
+          uint16_value[i] = static_cast<uint16_t>(float_value[i]);
+        }
+
+        uint16_value.storea(reinterpret_cast<uint16_t*>(shared_hit_phis + hit_rel_id));
       }
-      assert(position < Velo::Constants::max_numhits_in_module_pair);
-
-      // Store it in hit permutations and in hit_Phis, already ordered
-      const auto global_position = hit_start + position;
-      hit_permutations[global_position] = hit_index;
-      hit_Phis[global_position] = phi;
+      else {
+        // Last iterations sequentially
+        for (unsigned i = hit_rel_id; i < hit_num; ++i) {
+          const auto hit_index = hit_start + i;
+          const auto hit_phi_int = hit_phi_16(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index));
+          shared_hit_phis[i] = hit_phi_int;
+        }
+      }
     }
 
-    // shared_hit_phis
-    barrier();
+    // Sort local_hit_permutations according to shared_hit_phis
+    std::array<unsigned, Velo::Constants::max_numhits_in_module_pair> local_hit_permutations;
+    std::iota(local_hit_permutations.begin(), local_hit_permutations.begin() + hit_num, 0);
+    std::sort(
+      local_hit_permutations.begin(),
+      local_hit_permutations.begin() + hit_num,
+      [&shared_hit_phis](const int a, const int b) {
+        const auto phi = shared_hit_phis[a];
+        const auto other_phi = shared_hit_phis[b];
+        return phi < other_phi || (phi == other_phi && a < b);
+      });
+
+    // Populate sorted hits
+    for (unsigned i = 0; i < hit_num; ++i) {
+      hit_permutations[hit_start + i] = hit_start + local_hit_permutations[i];
+      hit_Phis[hit_start + i] = shared_hit_phis[local_hit_permutations[i]];
+    }
   }
 }
+#endif
 
 /**
  * @brief Sorts all VELO decoded data by phi onto another container.

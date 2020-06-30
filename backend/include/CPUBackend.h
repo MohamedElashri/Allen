@@ -14,6 +14,7 @@
 #include <algorithm>
 
 using std::signbit;
+using std::copysignf;
 
 #define __host__
 #define __device__

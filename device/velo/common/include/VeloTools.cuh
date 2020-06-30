@@ -17,6 +17,27 @@ namespace Velo {
   } // namespace Tools
 } // namespace Velo
 
+template<typename T>
+__device__ inline T fast_atan2f(const T& y, const T& x)
+{
+  // error < 0.07 rad, no 0/0 security
+  const T c1 = Velo::Tools::cudart_pi_f_float / 4.f;
+  const T c2 = 3.f * Velo::Tools::cudart_pi_f_float / 4.f;
+  const T abs_y = fabsf(y);
+
+  const T x_plus_y = x + abs_y;
+  const T x_sub_y = x - abs_y;
+  const T y_sub_x = abs_y - x;
+
+  const T nom = signselect(x, x_sub_y, x_plus_y);
+  const T den = signselect(x, x_plus_y, y_sub_x);
+
+  const T r = nom / den;
+  const T angle = signselect(x, c1, c2) - c1 * r;
+
+  return copysignf(angle, y);
+}
+
 /**
  * @brief Calculates the hit phi in a int16 format.
  * @details The range of the atan2 function is mapped onto the range of the int16,
@@ -28,7 +49,12 @@ __device__ inline int16_t hit_phi_16(const float x, const float y)
   // We have to convert the range {-PI, +PI} into {-2^15, (2^15 - 1)}
   // Simpler: Convert {0, 2 PI} into {0, 2^16},
   //          then reinterpret cast into int16_t
-  const float float_value = (Velo::Tools::cudart_pi_f_float + atan2f(y, x)) * Velo::Tools::convert_factor;
+// #if defined(TARGET_DEVICE_CPU)
+// #else
+//   const auto atan2_value = atan2f(y, x);
+// #endif
+  const auto atan2_value = fast_atan2f(y, x);
+  const float float_value = (Velo::Tools::cudart_pi_f_float + atan2_value) * Velo::Tools::convert_factor;
   const uint16_t uint16_value = static_cast<uint16_t>(float_value);
   const int16_t* int16_pointer = reinterpret_cast<const int16_t*>(&uint16_value);
   return *int16_pointer;
@@ -95,10 +121,7 @@ __host__ inline void print_velo_clusters(Arguments arguments)
 /**
  * @brief Prints the VELO track numbers.
  */
-template<
-  typename VeloTracks,
-  typename NumberOfVeloTracks,
-  typename Arguments>
+template<typename VeloTracks, typename NumberOfVeloTracks, typename Arguments>
 __host__ inline void print_velo_tracks(Arguments arguments)
 {
   // Prints the velo clusters
@@ -107,8 +130,11 @@ __host__ inline void print_velo_tracks(Arguments arguments)
 
   cudaCheck(
     cudaMemcpy(trackhits.data(), data<VeloTracks>(arguments), size<VeloTracks>(arguments), cudaMemcpyDeviceToHost));
-  cudaCheck(
-    cudaMemcpy(number_of_velo_tracks.data(), data<NumberOfVeloTracks>(arguments), size<NumberOfVeloTracks>(arguments), cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(
+    number_of_velo_tracks.data(),
+    data<NumberOfVeloTracks>(arguments),
+    size<NumberOfVeloTracks>(arguments),
+    cudaMemcpyDeviceToHost));
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
@@ -128,10 +154,7 @@ __host__ inline void print_velo_tracks(Arguments arguments)
   }
 }
 
-template<
-  typename VeloTracks,
-  typename NumberOfVeloTracks,
-  typename Arguments>
+template<typename VeloTracks, typename NumberOfVeloTracks, typename Arguments>
 __host__ inline void print_velo_tracklets(Arguments arguments)
 {
   // Prints the velo clusters
@@ -140,11 +163,15 @@ __host__ inline void print_velo_tracklets(Arguments arguments)
 
   cudaCheck(
     cudaMemcpy(trackhits.data(), data<VeloTracks>(arguments), size<VeloTracks>(arguments), cudaMemcpyDeviceToHost));
-  cudaCheck(
-    cudaMemcpy(number_of_velo_tracks.data(), data<NumberOfVeloTracks>(arguments), size<NumberOfVeloTracks>(arguments), cudaMemcpyDeviceToHost));
+  cudaCheck(cudaMemcpy(
+    number_of_velo_tracks.data(),
+    data<NumberOfVeloTracks>(arguments),
+    size<NumberOfVeloTracks>(arguments),
+    cudaMemcpyDeviceToHost));
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size() / Velo::num_atomics; ++event_number) {
-    const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
+    const auto event_number_of_velo_tracks =
+      number_of_velo_tracks[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
     std::cout << "Event #" << event_number << ": " << event_number_of_velo_tracks << " VELO tracklets:\n";
 
     const auto tracks_offset = event_number * Velo::Constants::max_three_hit_tracks;

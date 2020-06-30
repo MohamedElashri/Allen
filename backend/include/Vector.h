@@ -244,8 +244,55 @@ namespace Allen {
 
     // Length of currently configured Vector
     template<typename T = float>
-    constexpr size_t vector_length() {
+    constexpr size_t vector_length()
+    {
       return Vector<T>::length();
+    }
+
+    // Prints a vector
+    template<typename VEC_T>
+    void print_vector(VEC_T const& x)
+    {
+      std::cout << "[";
+      for (unsigned int i = 0; i < VEC_T::length(); i++) {
+        typename UME::SIMD::SIMDTraits<VEC_T>::SCALAR_T x_i = x[i];
+        std::cout << x_i;
+        if (i != VEC_T::length() - 1) {
+          std::cout << ", ";
+        }
+      }
+      std::cout << "]\n";
     }
   } // namespace device
 } // namespace Allen
+
+template<typename T, unsigned I>
+__device__ inline UME::SIMD::SIMDVec_f<T, I> signselect(
+  const UME::SIMD::SIMDVec_f<T, I>& x,
+  const UME::SIMD::SIMDVec_f<T, I>& a,
+  const UME::SIMD::SIMDVec_f<T, I>& b)
+{
+  return a.blend(x.cmple(0.f), b);
+}
+
+template<unsigned I>
+__device__ inline UME::SIMD::SIMDVec_f<float, I> fabsf(const UME::SIMD::SIMDVec_f<float, I>& v)
+{
+  return v.abs();
+}
+
+template<unsigned I>
+__device__ inline UME::SIMD::SIMDVec_f<double, I> abs(const UME::SIMD::SIMDVec_f<double, I>& v)
+{
+  return v.abs();
+}
+
+template<typename T, unsigned I>
+__device__ inline UME::SIMD::SIMDVec_f<T, I> copysignf(
+  const UME::SIMD::SIMDVec_f<T, I>& a,
+  const UME::SIMD::SIMDVec_f<T, I>& b)
+{
+  return a.copysign(b);
+}
+
+__device__ inline float signselect(const float& s, const float& a, const float& b) { return (s > 0) ? a : b; }
