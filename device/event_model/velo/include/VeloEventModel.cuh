@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "BackendCommon.h"
 #include "VeloDefinitions.cuh"
+#include "Vector.h"
 
 namespace Velo {
   struct ModulePair {

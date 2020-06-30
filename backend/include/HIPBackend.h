@@ -58,43 +58,51 @@
 #define cudaDeviceSetCacheConfig hipDeviceSetCacheConfig
 #define cudaHostUnregister hipHostUnregister
 
+#if defined(DEVICE_COMPILER)
 namespace Allen {
-  template<0>
-  class local_t {
-    constexpr unsigned id() { return threadIdx.x; }
-    constexpr unsigned size() { return blockDim.x; }
-  };
+  namespace device {
+    template<0>
+    struct local_t {
+      __device__ unsigned id() { return threadIdx.x; }
+      __device__ unsigned size() { return blockDim.x; }
+    };
 
-  template<1>
-  class local_t {
-    constexpr unsigned id() { return threadIdx.y; }
-    constexpr unsigned size() { return blockDim.y; }
-  };
+    template<1>
+    struct local_t {
+      __device__ unsigned id() { return threadIdx.y; }
+      __device__ unsigned size() { return blockDim.y; }
+    };
 
-  template<2>
-  class local_t {
-    constexpr unsigned id() { return threadIdx.z; }
-    constexpr unsigned size() { return blockDim.z; }
-  };
+    template<2>
+    struct local_t {
+      __device__ unsigned id() { return threadIdx.z; }
+      __device__ unsigned size() { return blockDim.z; }
+    };
 
-  template<>
-  class global_t<0> {
-    constexpr unsigned id() { return blockIdx.x; }
-    constexpr unsigned size() { return gridDim.x; }
-  };
+    template<>
+    struct global_t<0> {
+      __device__ unsigned id() { return blockIdx.x; }
+      __device__ unsigned size() { return gridDim.x; }
+    };
 
-  template<>
-  class global_t<1> {
-    constexpr unsigned id() { return blockIdx.y; }
-    constexpr unsigned size() { return gridDim.y; }
-  };
+    template<>
+    struct global_t<1> {
+      __device__ unsigned id() { return blockIdx.y; }
+      __device__ unsigned size() { return gridDim.y; }
+    };
 
-  template<>
-  class global_t<2> {
-    constexpr unsigned id() { return blockIdx.z; }
-    constexpr unsigned size() { return gridDim.z; }
-  };
+    template<>
+    struct global_t<2> {
+      __device__ unsigned id() { return blockIdx.z; }
+      __device__ unsigned size() { return gridDim.z; }
+    };
+
+    __device__ constexpr static void barrier() {
+      __syncthreads();
+    }
+  } // namespace device
 } // namespace Allen
+#endif
 
 #define cudaCheck(stmt)                                                                                           \
   {                                                                                                               \

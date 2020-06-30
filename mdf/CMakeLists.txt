@@ -4,6 +4,7 @@
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 

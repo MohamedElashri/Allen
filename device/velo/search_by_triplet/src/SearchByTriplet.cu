@@ -6,9 +6,11 @@
 #include "ClusteringDefinitions.cuh"
 #include "SearchByTriplet.cuh"
 #include "VeloTools.cuh"
+#include "Vector.h"
 #include <cstdio>
 
 using namespace Velo::Tracking;
+using namespace Allen::device;
 
 void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -134,7 +136,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 
   // Prepare the first seeding iteration
   // Load shared module information
-  for (unsigned i = threadIdx.x; i < 3; i += blockDim.x) {
+  for (unsigned i = local_id<0>(); i < 3; i += local_size<0>()) {
     const auto module_pair_number = first_module_pair - i;
     module_pair_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
     module_pair_data[i].hit_num = module_hit_num[module_pair_number];
@@ -143,7 +145,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   }
 
   // Due to shared module data initialization
-  __syncthreads();
+  barrier();
 
   // Do first track seeding
   track_seeding(
@@ -165,11 +167,11 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 
   while (first_module_pair > 1) {
     // Due to WAR between track_seeding and population of shared memory.
-    __syncthreads();
+    barrier();
 
     // Iterate in modules
     // Load in shared
-    for (int i = threadIdx.x; i < 3; i += blockDim.x) {
+    for (int i = local_id<0>(); i < 3; i += local_size<0>()) {
       const auto module_pair_number = first_module_pair - i;
       module_pair_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
       module_pair_data[i].hit_num = module_hit_num[module_pair_number];
@@ -187,7 +189,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     dev_atomics_velo[atomics::local_number_of_hits] = 0;
 
     // Due to module data loading
-    __syncthreads();
+    barrier();
 
     // Track Forwarding
     track_forwarding(
@@ -208,7 +210,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       parameters.max_skipped_modules);
 
     // Due to module data reading
-    __syncthreads();
+    barrier();
 
     // Seeding
     track_seeding(
@@ -227,14 +229,14 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   }
 
   // Due to last seeding
-  __syncthreads();
+  barrier();
 
   const auto prev_ttf = last_ttf;
   last_ttf = dev_atomics_velo[atomics::tracks_to_follow];
   const auto diff_ttf = last_ttf - prev_ttf;
 
   // Process the last bunch of track_to_follows
-  for (unsigned ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
+  for (unsigned ttf_element = local_id<0>(); ttf_element < diff_ttf; ttf_element += local_size<0>()) {
     const auto full_track_number = tracks_to_follow[(prev_ttf + ttf_element) % Velo::Constants::max_tracks_to_follow];
     const bool track_flag = (full_track_number & bits::seed) == bits::seed;
 
@@ -266,8 +268,8 @@ __device__ void track_seeding(
   const int16_t phi_tolerance)
 {
   // Add to an array all non-used h1 hits
-  for (unsigned h1_rel_index = threadIdx.x; h1_rel_index < module_pair_data[shared::current_module_pair].hit_num;
-       h1_rel_index += blockDim.x) {
+  for (unsigned h1_rel_index = local_id<0>(); h1_rel_index < module_pair_data[shared::current_module_pair].hit_num;
+       h1_rel_index += local_size<0>()) {
     const auto h1_index = module_pair_data[shared::current_module_pair].hit_start + h1_rel_index;
     if (!hit_used[h1_index]) {
       const auto current_hit = atomicAdd(dev_atomics_velo + atomics::local_number_of_hits, 1);
@@ -276,11 +278,11 @@ __device__ void track_seeding(
   }
 
   // Due to h1_indices
-  __syncthreads();
+  barrier();
 
-  // Assign a h1 to each threadIdx.x
+  // Assign a h1 to each local_id<0>()
   const auto number_of_hits_h1 = dev_atomics_velo[atomics::local_number_of_hits];
-  for (unsigned h1_rel_index = threadIdx.x; h1_rel_index < number_of_hits_h1; h1_rel_index += blockDim.x) {
+  for (unsigned h1_rel_index = local_id<0>(); h1_rel_index < number_of_hits_h1; h1_rel_index += local_size<0>()) {
     // The output we are searching for
     uint16_t best_h0 = 0;
     uint16_t best_h2 = 0;
@@ -288,15 +290,17 @@ __device__ void track_seeding(
 
     // Fetch h1
     const auto h1_index = h1_indices[h1_rel_index];
+
     const Velo::HitBase h1 {
       velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
+
     const auto h1_phi = hit_phi[h1_index];
 
     // Get candidates on previous module
-    unsigned best_h0s[number_of_h0_candidates];
+    std::array<unsigned, number_of_h0_candidates> best_h0s;
 
     // Iterate over previous module until the first n candidates are found
-    int phi_index = binary_search_leftmost(
+    auto phi_index = binary_search_leftmost(
       hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
       module_pair_data[shared::previous_module_pair].hit_num,
       h1_phi);
@@ -427,7 +431,7 @@ __device__ void track_forwarding(
   const unsigned max_skipped_modules)
 {
   // Assign a track to follow to each thread
-  for (unsigned ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
+  for (unsigned ttf_element = local_id<0>(); ttf_element < diff_ttf; ttf_element += local_size<0>()) {
     const auto full_track_number = tracks_to_follow[(prev_ttf + ttf_element) % Velo::Constants::max_tracks_to_follow];
     const bool track_flag = (full_track_number & bits::seed) == bits::seed;
     const auto skipped_modules = (full_track_number & bits::skipped_modules) >> bits::skipped_module_position;

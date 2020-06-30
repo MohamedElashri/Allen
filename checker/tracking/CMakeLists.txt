@@ -16,6 +16,8 @@ include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 
 file(GLOB tracking_checker_sources "src/*cpp")
 

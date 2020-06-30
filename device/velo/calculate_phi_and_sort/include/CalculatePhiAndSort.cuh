@@ -32,6 +32,14 @@ namespace velo_calculate_phi_and_sort {
     int16_t* hit_Phis,
     unsigned* hit_permutations);
 
+  __device__ void calculate_phi_vectorized(
+    int16_t* shared_hit_phis,
+    const unsigned* module_hitStarts,
+    const unsigned* module_hitNums,
+    Velo::ConstClusters& velo_cluster_container,
+    int16_t* hit_Phis,
+    unsigned* hit_permutations);
+
   __device__ void sort_by_phi(
     const unsigned event_hit_start,
     const unsigned event_number_of_hits,

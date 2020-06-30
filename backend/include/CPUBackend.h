@@ -97,41 +97,45 @@ constexpr BlockDimensions blockDim {1, 1, 1};
 constexpr ThreadIndices threadIdx {0, 0, 0};
 
 namespace Allen {
-  template<>
-  class local_t<0> {
-    constexpr static unsigned id() { return threadIdx.x; }
-    constexpr static unsigned size() { return blockDim.x; }
-  };
-  
-  template<>
-  class local_t<1> {
-    constexpr static unsigned id() { return threadIdx.y; }
-    constexpr static unsigned size() { return blockDim.y; }
-  };
+  namespace device {
+    template<>
+    struct local_t<0> {
+      constexpr static unsigned id() { return threadIdx.x; }
+      constexpr static unsigned size() { return blockDim.x; }
+    };
 
-  template<>
-  class local_t<2> {
-    constexpr static unsigned id() { return threadIdx.z; }
-    constexpr static unsigned size() { return blockDim.z; }
-  };
+    template<>
+    struct local_t<1> {
+      constexpr static unsigned id() { return threadIdx.y; }
+      constexpr static unsigned size() { return blockDim.y; }
+    };
 
-  template<>
-  class global_t<0> {
-    static unsigned id() { return blockIdx.x; }
-    static unsigned size() { return gridDim.x; }
-  };
+    template<>
+    struct local_t<2> {
+      constexpr static unsigned id() { return threadIdx.z; }
+      constexpr static unsigned size() { return blockDim.z; }
+    };
 
-  template<>
-  class global_t<1> {
-    static unsigned id() { return blockIdx.y; }
-    static unsigned size() { return gridDim.y; }
-  };
+    template<>
+    struct global_t<0> {
+      static unsigned id() { return blockIdx.x; }
+      static unsigned size() { return gridDim.x; }
+    };
 
-  template<>
-  class global_t<2> {
-    static unsigned id() { return blockIdx.z; }
-    static unsigned size() { return gridDim.z; }
-  };
+    template<>
+    struct global_t<1> {
+      static unsigned id() { return blockIdx.y; }
+      static unsigned size() { return gridDim.y; }
+    };
+
+    template<>
+    struct global_t<2> {
+      static unsigned id() { return blockIdx.z; }
+      static unsigned size() { return gridDim.z; }
+    };
+
+    constexpr static void barrier() {}
+  } // namespace device
 } // namespace Allen
 
 cudaError_t cudaMalloc(void** devPtr, size_t size);

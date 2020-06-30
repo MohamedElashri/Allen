@@ -2,6 +2,9 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "PrefixSum.cuh"
+#include "BackendCommon.h"
+
+using namespace Allen::device;
 
 /**
  * @brief Up-Sweep
@@ -61,7 +64,7 @@ __global__ void prefix_sum_reduce(unsigned* dev_main_array, unsigned* dev_auxili
 
   // Let's do it in blocks of 512 (2^9)
   const unsigned last_block = array_size >> 9;
-  if (blockIdx.x < last_block) {
+  if (global_id<0>() < last_block) {
     const unsigned first_elem = blockIdx.x << 9;
 
     // Load elements into shared memory, add prev_last_elem

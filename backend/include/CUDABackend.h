@@ -8,7 +8,7 @@
 
 #include "BackendCommonInterface.h"
 
-#if !defined(__CUDACC__)
+#if !defined(DEVICE_COMPILER)
 #include <cuda_runtime_api.h>
 #endif
 
@@ -17,56 +17,51 @@
 
 #include "math_constants.h"
 
+#if defined(DEVICE_COMPILER)
 namespace Allen {
-  template<>
-  class local_t<0> {
-    constexpr static unsigned id() {
-#ifdef __CUDA_ARCH__
-      return threadIdx.x;
-#else
-      return 0;
-#endif
+  namespace device {
+    template<>
+    struct local_t<0> {
+      __device__ static unsigned id() { return threadIdx.x; }
+      __device__ static unsigned size() { return blockDim.x; }
+    };
+
+    template<>
+    struct local_t<1> {
+      __device__ static unsigned id() { return threadIdx.y; }
+      __device__ static unsigned size() { return blockDim.y; }
+    };
+
+    template<>
+    struct local_t<2> {
+      __device__ static unsigned id() { return threadIdx.z; }
+      __device__ static unsigned size() { return blockDim.z; }
+    };
+
+    template<>
+    struct global_t<0> {
+      __device__ static unsigned id() { return blockIdx.x; }
+      __device__ static unsigned size() { return gridDim.x; }
+    };
+
+    template<>
+    struct global_t<1> {
+      __device__ static unsigned id() { return blockIdx.y; }
+      __device__ static unsigned size() { return gridDim.y; }
+    };
+
+    template<>
+    struct global_t<2> {
+      __device__ static unsigned id() { return blockIdx.z; }
+      __device__ static unsigned size() { return gridDim.z; }
+    };
+
+    __device__ inline void barrier() {
+      __syncthreads();
     }
-
-    constexpr static unsigned size() {
-#ifdef __CUDA_ARCH__
-      return blockDim.x;
-#else
-      return 0;
-#endif
-    }
-  };
-
-  // template<>
-  // class local_t<1> {
-  //   constexpr static unsigned id() { return threadIdx.y; }
-  //   constexpr static unsigned size() { return blockDim.y; }
-  // };
-
-  // template<>
-  // class local_t<2> {
-  //   constexpr static unsigned id() { return threadIdx.z; }
-  //   constexpr static unsigned size() { return blockDim.z; }
-  // };
-
-  // template<>
-  // class global_t<0> {
-  //   constexpr static unsigned id() { return blockIdx.x; }
-  //   constexpr static unsigned size() { return gridDim.x; }
-  // };
-
-  // template<>
-  // class global_t<1> {
-  //   constexpr static unsigned id() { return blockIdx.y; }
-  //   constexpr static unsigned size() { return gridDim.y; }
-  // };
-
-  // template<>
-  // class global_t<2> {
-  //   constexpr static unsigned id() { return blockIdx.z; }
-  //   constexpr static unsigned size() { return gridDim.z; }
-  // };
+  } // namespace device
 } // namespace Allen
+#endif
 
 /**
  * @brief Macro to check cuda calls.
