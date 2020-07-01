@@ -52,6 +52,8 @@ check-formatting:
   allow_failure: true
 
 .build_job: &build_gcc_job_def_warnings_as_errors
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -85,6 +87,8 @@ check-formatting:
   allow_failure: true
 
 .build_job: &build_clang_job_def_warnings_as_errors
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -118,6 +122,8 @@ check-formatting:
   allow_failure: true
 
 .build_job: &build_gcc_job_def
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -150,6 +156,8 @@ check-formatting:
   retry: 1
 
 .build_job: &build_clang_job_def
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -191,6 +199,7 @@ docker_image:build:
   script: "echo 'Building Allen dev docker image"
   variables:
     TO: $CI_REGISTRY_IMAGE:latest
+    GIT_SUBMODULE_STRATEGY: recursive
   allow_failure: true
 
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
