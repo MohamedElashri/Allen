@@ -1,6 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 stages:
   - check			# Ensures the CI environment is valid
   - build           # Builds all projects
