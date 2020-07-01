@@ -3,7 +3,9 @@
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdouble-promotion"
+#if __clang_major__ >= 10
 #pragma clang diagnostic ignored "-Wdeprecated-copy"
+#endif
 #elif defined(__CUDACC__)
 #pragma push
 #pragma diag_suppress = 3141
