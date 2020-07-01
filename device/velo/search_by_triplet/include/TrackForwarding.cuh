@@ -20,6 +20,30 @@ __device__ void track_seeding(
   const int16_t* hit_phi,
   const int16_t phi_tolerance);
 
+__device__ void track_seeding_vectorized(
+  Velo::ConstClusters& velo_cluster_container,
+  const Velo::ModulePair* module_pair_data,
+  bool* hit_used,
+  Velo::TrackletHits* tracklets,
+  unsigned* tracks_to_follow,
+  unsigned short* h1_rel_indices,
+  unsigned* dev_shifted_atomics_velo,
+  const float max_scatter,
+  const int16_t* hit_phi,
+  const int16_t phi_tolerance);
+
+__device__ void track_seeding_impl(
+  const uint16_t h1_index,
+  Velo::ConstClusters& velo_cluster_container,
+  const Velo::ModulePair* module_pair_data,
+  bool* hit_used,
+  Velo::TrackletHits* tracklets,
+  unsigned* tracks_to_follow,
+  unsigned* dev_shifted_atomics_velo,
+  const float max_scatter,
+  const int16_t* hit_phi,
+  const int16_t phi_tolerance);
+
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
   const int16_t* hit_phi,

@@ -178,13 +178,10 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
         const auto atan_value = fast_atan2f(ys, xs);
         const auto float_value = (Velo::Tools::cudart_pi_f_float + atan_value) * Velo::Tools::convert_factor;
 
-        // Cast to uint16
-        Vector<uint16_t> uint16_value;
+        // Cast to uint16 and store
         for (unsigned i = 0; i < vector_length(); ++i) {
-          uint16_value[i] = static_cast<uint16_t>(float_value[i]);
+          shared_hit_phis[hit_rel_id + i] = static_cast<uint16_t>(float_value[i]);
         }
-
-        uint16_value.storea(reinterpret_cast<uint16_t*>(shared_hit_phis + hit_rel_id));
       }
       else {
         // Last iterations sequentially
@@ -230,15 +227,7 @@ __device__ void velo_calculate_phi_and_sort::sort_by_phi(
   for (unsigned i = local_id<0>(); i < event_number_of_hits; i += local_size<0>()) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
-  }
-
-  for (unsigned i = local_id<0>(); i < event_number_of_hits; i += local_size<0>()) {
-    const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
-  }
-
-  for (unsigned i = local_id<0>(); i < event_number_of_hits; i += local_size<0>()) {
-    const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
   }
 

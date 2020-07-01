@@ -279,7 +279,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
-
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()

@@ -71,7 +71,7 @@ namespace Allen {
     };
     template<>
     struct Vector_t<bool, vector_backend::scalar> {
-      using t = UME::SIMD::SIMDMask1;
+      using t = UME::SIMD::SIMDVecMask<1>;
     };
 
 #if defined(TARGET_DEVICE_CPU)
@@ -119,7 +119,7 @@ namespace Allen {
     };
     template<>
     struct Vector_t<bool, vector_backend::b512> {
-      using t = UME::SIMD::SIMDMask16;
+      using t = UME::SIMD::SIMDVecMask<16>;
     };
 #endif
 #if defined(__AVX__)
@@ -165,7 +165,7 @@ namespace Allen {
     };
     template<>
     struct Vector_t<bool, vector_backend::b256> {
-      using t = UME::SIMD::SIMDMask8;
+      using t = UME::SIMD::SIMDVecMask<8>;
     };
 #endif
 #if defined(__SSE__) || defined(__ALTIVEC__) || defined(__aarch64__)
@@ -211,7 +211,7 @@ namespace Allen {
     };
     template<>
     struct Vector_t<bool, vector_backend::b128> {
-      using t = UME::SIMD::SIMDMask4;
+      using t = UME::SIMD::SIMDVecMask<4>;
     };
 #endif
 #endif
@@ -251,8 +251,11 @@ namespace Allen {
 
     // Prints a vector
     template<typename VEC_T>
-    void print_vector(VEC_T const& x)
+    void print_vector(VEC_T const& x, const std::string& name = "")
     {
+      if (name != "") {
+        std::cout << name << ": ";
+      }
       std::cout << "[";
       for (unsigned int i = 0; i < VEC_T::length(); i++) {
         typename UME::SIMD::SIMDTraits<VEC_T>::SCALAR_T x_i = x[i];
