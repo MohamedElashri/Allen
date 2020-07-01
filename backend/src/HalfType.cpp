@@ -84,11 +84,12 @@ float __half2float_impl(const uint16_t h)
 }
 
 // A good approximation of converting to half and back in a single function
-float __float_cap_to_half_precision(const float f) {
+float __float_cap_to_half_precision(const float f)
+{
   constexpr float fmagic = 1.92592994439e-34f; // equals 15ul << 23
   constexpr uint32_t signs_mask = 0xC0000000u;
   constexpr uint32_t round_mask = ~0xfffu;
-  
+
   const auto fint = intbits(f);
   const auto fint2 = intbits(floatbits(fint & round_mask) * fmagic) - round_mask;
   const auto result = (fint & signs_mask) | (fint2 & 0x07FFE000);

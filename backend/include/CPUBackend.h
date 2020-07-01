@@ -13,8 +13,8 @@
 #include <cstring>
 #include <algorithm>
 
-using std::signbit;
 using std::copysignf;
+using std::signbit;
 
 #define __host__
 #define __device__

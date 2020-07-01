@@ -84,15 +84,15 @@ namespace Allen {
     /**
      * @brief Allows to write several functions specialized per target.
      * @details Usage:
-     * 
+     *
      *          dispatch<target::Default, target::CPU>(fn0, fn1)(arguments...);
-     *          
+     *
      *          The concrete target on the executing platform is sought first. If none is
      *          available, the default one is chosen. If the default doesn't exist, a static_assert
      *          fails.
-     *          
+     *
      *          List of possible targets:
-     *          
+     *
      *          * Default
      *          * CPU
      *          * HIP

@@ -97,9 +97,7 @@ namespace Allen {
       __device__ unsigned size() { return gridDim.z; }
     };
 
-    __device__ constexpr static void barrier() {
-      __syncthreads();
-    }
+    __device__ constexpr static void barrier() { __syncthreads(); }
   } // namespace device
 } // namespace Allen
 #endif
