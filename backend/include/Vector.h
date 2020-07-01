@@ -221,9 +221,9 @@ namespace Allen {
     // * Architecture capability
     // * Target (only consider CPU for vectors of length greater than 1)
 #ifdef TARGET_DEVICE_CPU
-#ifdef STATIC_VECTOR_WIDTH
+#ifdef CPU_STATIC_VECTOR_WIDTH
     template<typename T>
-    using Vector = typename Vector_t<STATIC_VECTOR_WIDTH, T>::t;
+    using Vector = typename Vector_t<T, CPU_STATIC_VECTOR_WIDTH>::t;
 #elif defined(__AVX512F__) || defined(__AVX512__)
     template<typename T>
     using Vector = typename Vector_t<T, vector_backend::b512>::t;

@@ -11,7 +11,7 @@
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
-  bool* hit_used,
+  const bool* hit_used,
   Velo::TrackletHits* tracklets,
   unsigned* tracks_to_follow,
   unsigned short* h1_rel_indices,
@@ -23,7 +23,7 @@ __device__ void track_seeding(
 __device__ void track_seeding_vectorized(
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
-  bool* hit_used,
+  const bool* hit_used,
   Velo::TrackletHits* tracklets,
   unsigned* tracks_to_follow,
   unsigned short* h1_rel_indices,
@@ -36,7 +36,7 @@ __device__ void track_seeding_impl(
   const uint16_t h1_index,
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
-  bool* hit_used,
+  const bool* hit_used,
   Velo::TrackletHits* tracklets,
   unsigned* tracks_to_follow,
   unsigned* dev_shifted_atomics_velo,

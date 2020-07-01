@@ -150,7 +150,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   barrier();
 
   // Do first track seeding
-  dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
+  track_seeding(
     velo_cluster_container,
     module_pair_data,
     hit_used,
@@ -215,7 +215,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     barrier();
 
     // Seeding
-    dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
+    track_seeding(
       velo_cluster_container,
       module_pair_data,
       hit_used,
@@ -260,7 +260,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
-  bool* hit_used,
+  const bool* hit_used,
   Velo::TrackletHits* tracklets,
   unsigned* tracks_to_follow,
   unsigned short* h1_indices,
@@ -310,7 +310,7 @@ __device__ void track_seeding(
 __device__ void track_seeding_vectorized(
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
-  bool* hit_used,
+  const bool* hit_used,
   Velo::TrackletHits* tracklets,
   unsigned* tracks_to_follow,
   uint16_t*,
@@ -350,35 +350,13 @@ __device__ void track_seeding_vectorized(
       }
     }
     else {
-      // Output
-      Vector<uint16_t> best_h0 = 0;
-      Vector<uint16_t> best_h2 = 0;
-      Vector<float> best_fit = max_scatter;
-
-      // There are vector_length() elements to process
-      Vector<float> h1_xs;
-      Vector<float> h1_ys;
-      Vector<float> h1_zs;
-
-      for (unsigned i = 0; i < vector_length(); ++i) {
-        const auto h1_index = h1_indices_local[i];
-        h1_xs[i] = velo_cluster_container.x(h1_index);
-        h1_ys[i] = velo_cluster_container.y(h1_index);
-        h1_zs[i] = velo_cluster_container.z(h1_index);
-      }
-
-      // print_vector(h1_xs, "h1_xs");
-      // print_vector(h1_ys, "h1_ys");
-      // print_vector(h1_zs, "h1_zs");
-
       // Get best h0s to work with
-      std::array<std::array<unsigned, number_of_h0_candidates>, vector_length()> best_h0s_local;
+      std::array<unsigned, vector_length() * number_of_h0_candidates> best_h0s_local;
       std::array<unsigned, vector_length()> found_h0_candidates_local;
       unsigned found_h0_candidates_max = 0;
 
       for (unsigned i_vec = 0; i_vec < vector_length(); ++i_vec) {
         const auto h1_index = h1_indices_local[i_vec];
-        auto& best_h0s = best_h0s_local[i_vec];
         auto& found_h0_candidates = found_h0_candidates_local[i_vec];
 
         // Iterate over previous module until the first n candidates are found
@@ -407,7 +385,8 @@ __device__ void track_seeding_vectorized(
 
           // Discard the candidate if it is used
           if (!hit_used[h0_index]) {
-            best_h0s[found_h0_candidates++] = h0_index;
+            best_h0s_local[vector_length() * found_h0_candidates + i_vec] = h0_index;
+            found_h0_candidates++;
           }
         }
 
@@ -415,6 +394,27 @@ __device__ void track_seeding_vectorized(
           found_h0_candidates_max = found_h0_candidates;
         }
       }
+
+      // Output
+      Vector<uint16_t> best_h0 = 0;
+      Vector<uint16_t> best_h2 = 0;
+      Vector<float> best_fit = max_scatter;
+
+      // There are vector_length() elements to process
+      Vector<float> h1_xs;
+      Vector<float> h1_ys;
+      Vector<float> h1_zs;
+
+      for (unsigned i = 0; i < vector_length(); ++i) {
+        const auto h1_index = h1_indices_local[i];
+        h1_xs[i] = velo_cluster_container.x(h1_index);
+        h1_ys[i] = velo_cluster_container.y(h1_index);
+        h1_zs[i] = velo_cluster_container.z(h1_index);
+      }
+
+      // print_vector(h1_xs, "h1_xs");
+      // print_vector(h1_ys, "h1_ys");
+      // print_vector(h1_zs, "h1_zs");
 
       // Use the candidates found previously (best_h0s) to find the best triplet
       // Since data is sorted, search using a binary search
@@ -425,14 +425,10 @@ __device__ void track_seeding_vectorized(
         Vector<float> h0_xs;
         Vector<float> h0_ys;
         Vector<float> h0_zs;
-        Vector<float> ones_v = 1.f;
-        Vector<bool> h0_execution_mask = false;
 
         for (unsigned i = 0; i < vector_length(); ++i) {
-          if (found_h0_candidates_local[i] >= found_h0_candidates_iteration) {
-            h0_execution_mask.insert(i, true);
-
-            const auto h0_index = best_h0s_local[i][found_h0_candidates_iteration];
+          if (found_h0_candidates_local[i] > found_h0_candidates_iteration) {
+            const auto h0_index = best_h0s_local[vector_length() * found_h0_candidates_iteration + i];
             h0_indices[i] = h0_index;
             h0_xs[i] = velo_cluster_container.x(h0_index);
             h0_ys[i] = velo_cluster_container.y(h0_index);
@@ -446,8 +442,7 @@ __device__ void track_seeding_vectorized(
         // print_vector(h0_zs, "h0_zs");
 
         const auto h1_h0_diff = h1_zs - h0_zs;
-        const auto safe_h1_h0_diff = h1_h0_diff.blend(!h0_execution_mask, ones_v);
-        const auto td = 1.0f / safe_h1_h0_diff;
+        const auto td = 1.0f / h1_h0_diff;
         const auto txn = (h1_xs - h0_xs);
         const auto tyn = (h1_ys - h0_ys);
         const auto tx = txn * td;
@@ -470,10 +465,10 @@ __device__ void track_seeding_vectorized(
         constexpr unsigned number_of_h2_candidates = 3;
         std::array<unsigned, number_of_h2_candidates * vector_length()> best_h2s_local;
         std::array<unsigned, vector_length()> found_h2_candidates_local;
-        std::fill(found_h2_candidates_local.begin(), found_h2_candidates_local.end(), 0);
         unsigned found_h2_candidates_max = 0;
 
         for (unsigned i_vec = 0; i_vec < vector_length(); ++i_vec) {
+          found_h2_candidates_local[i_vec] = 0;
           if (found_h0_candidates_local[i_vec] > found_h0_candidates_iteration) {
             auto& found_h2_candidates = found_h2_candidates_local[i_vec];
 
@@ -511,7 +506,8 @@ __device__ void track_seeding_vectorized(
               }
 
               if (!hit_used[h2_index]) {
-                best_h2s_local[i_vec + vector_length() * found_h2_candidates++] = h2_index;
+                best_h2s_local[vector_length() * found_h2_candidates + i_vec] = h2_index;
+                found_h2_candidates++;
               }
             }
 
@@ -531,12 +527,11 @@ __device__ void track_seeding_vectorized(
           Vector<float> h2_xs;
           Vector<float> h2_ys;
           Vector<float> h2_zs;
-          Vector<bool> h2_execution_mask = false;
+          Vector<bool> active;
 
           for (unsigned i = 0; i < vector_length(); ++i) {
             if (found_h2_candidates_local[i] > found_h2_candidates_iteration) {
-              h2_execution_mask.insert(i, true);
-
+              active.insert(i, true);
               const auto h2_index = best_h2s_local[vector_length() * found_h2_candidates_iteration + i];
               h2_indices[i] = h2_index;
               h2_xs[i] = velo_cluster_container.x(h2_index);
@@ -559,11 +554,11 @@ __device__ void track_seeding_vectorized(
           const auto scatter = dx * dx + dy * dy;
 
           // Keep the best one found
-          const Vector<bool> mask = scatter < best_fit;
+          const Vector<bool> mask = scatter < best_fit && active;
 
-          best_fit.blend(mask, scatter);
-          best_h0.blend(mask, h0_indices);
-          best_h2.blend(mask, h2_indices);
+          best_fit = best_fit.blend(mask, scatter);
+          best_h0 = best_h0.blend(mask, h0_indices);
+          best_h2 = best_h2.blend(mask, h2_indices);
         }
       }
 
@@ -596,7 +591,7 @@ __device__ void track_seeding_impl(
   const uint16_t h1_index,
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
-  bool* hit_used,
+  const bool* hit_used,
   Velo::TrackletHits* tracklets,
   unsigned* tracks_to_follow,
   unsigned* dev_atomics_velo,

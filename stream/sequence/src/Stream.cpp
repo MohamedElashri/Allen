@@ -12,7 +12,7 @@
 #include "KalmanSequenceCheckers_impl.cuh"
 #include "RateCheckers_impl.cuh"
 
-#include <valgrind/callgrind.h>
+// #include <valgrind/callgrind.h>
 
 StreamWrapper::StreamWrapper()
 {

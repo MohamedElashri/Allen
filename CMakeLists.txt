@@ -17,6 +17,7 @@ option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
+option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
 
 # --------
 # Settings
@@ -38,6 +39,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
 # Device target architecture
 set(TARGET_DEVICE CPU CACHE STRING "Target architecture of the device")
 set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CPU CUDA HIP CUDACLANG)
+
+# CPU manual vectorization target
+set(CPU_STATIC_VECTOR_WIDTH OFF CACHE STRING "Define a static vector width for CPU target")
+set_property(CACHE CPU_STATIC_VECTOR_WIDTH PROPERTY STRINGS OFF scalar 128bits 256bits 512bits)
 
 # Build type (builds based on Gaudi are setting CMAKE_BUILD_TYPE in gaudi_project)
 if(STANDALONE)
@@ -63,9 +68,29 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 set(SEQUENCE hlt1_pp_default CACHE STRING "Configured sequence")
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
-#Configured CPU architecture
+# Configured CPU architecture
 set(CPU_ARCH native CACHE STRING "Target CPU architecture")
 message(STATUS "CPU_ARCH: " ${CPU_ARCH})
+
+# CPU static vector width
+if(NOT CPU_STATIC_VECTOR_WIDTH STREQUAL "OFF")
+  message(STATUS "CPU_STATIC_VECTOR_WIDTH: " ${CPU_STATIC_VECTOR_WIDTH})
+  if(CPU_STATIC_VECTOR_WIDTH STREQUAL "scalar")
+    add_compile_definitions(CPU_STATIC_VECTOR_WIDTH=0)
+  elseif(CPU_STATIC_VECTOR_WIDTH STREQUAL "128bits")
+    add_compile_definitions(CPU_STATIC_VECTOR_WIDTH=1)
+  elseif(CPU_STATIC_VECTOR_WIDTH STREQUAL "256bits")
+    add_compile_definitions(CPU_STATIC_VECTOR_WIDTH=2)
+  elseif(CPU_STATIC_VECTOR_WIDTH STREQUAL "512bits")
+    add_compile_definitions(CPU_STATIC_VECTOR_WIDTH=3)
+  endif()
+endif()
+
+# Dispatch configuration
+if(ALWAYS_DISPATCH_TO_DEFAULT)
+  message(STATUS "ALWAYS_DISPATCH_TO_DEFAULT: " ${ALWAYS_DISPATCH_TO_DEFAULT})
+  add_compile_definitions(ALWAYS_DISPATCH_TO_DEFAULT)
+endif()
 
 # Support generating configuration with Allen standalone, and with Moore
 set(MOORE_GENERATOR CACHE BOOL OFF)

@@ -102,6 +102,7 @@ namespace Allen {
     __device__ constexpr auto dispatch(Fns&&... fns)
     {
       using targets_t = std::tuple<Ts...>;
+#if !defined(ALWAYS_DISPATCH_TO_DEFAULT)
 #if defined(TARGET_DEVICE_CPU)
       constexpr auto configured_target = index_of_v<target::CPU, targets_t>;
 #elif defined(TARGET_DEVICE_CUDA)
@@ -110,15 +111,18 @@ namespace Allen {
       constexpr auto configured_target = index_of_v<target::HIP, targets_t>;
 #endif
       if constexpr (configured_target == std::tuple_size<targets_t>::value) {
+#endif
         constexpr auto default_target = index_of_v<target::Default, targets_t>;
         static_assert(default_target != std::tuple_size<targets_t>::value, "target available for current platform");
         const auto fn = std::get<default_target>(std::tuple<Fns...> {fns...});
         return [fn](auto&&... args) { return fn(args...); };
+#if !defined(ALWAYS_DISPATCH_TO_DEFAULT)
       }
       else {
         const auto fn = std::get<configured_target>(std::tuple<Fns...> {fns...});
         return [fn](auto&&... args) { return fn(args...); };
       }
+#endif
     }
   } // namespace device
 } // namespace Allen
