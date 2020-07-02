@@ -553,7 +553,7 @@ __device__ void track_seeding_vectorized(
 
         std::array<int, vector128_length()> h2_candidate_indices;
         std::array<int16_t, vector128_length()> extrapolated_phis;
-        std::array<unsigned, vector128_length()> hit_num_iteration;
+        std::array<int, vector128_length()> hit_num_iteration;
         Vector128<bool> active = false;
 
         for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
@@ -568,24 +568,26 @@ __device__ void track_seeding_vectorized(
 
           h2_candidate_indices[vector_element] = candidate_h2_index_found;
           extrapolated_phis[vector_element] = atan_value_i16;
-          hit_num_iteration[vector_element] = 0;
+          hit_num_iteration[vector_element] = -1;
           active.insert(vector_element, true);
         }
 
-        std::array<uint16_t, vector128_length()> h2_indices_array;
-        while (active.hlor()) {
+        while (true) {
+          std::array<uint16_t, vector128_length()> h2_indices_array;
           for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
             if (active[vector_element]) {
-              if (hit_num_iteration[vector_element] == module_pair_data[shared::next_module_pair].hit_num) {
-                active.insert(vector_element, false);
-              }
 
-              while (hit_num_iteration[vector_element] < module_pair_data[shared::next_module_pair].hit_num) {
+              while (hit_num_iteration[vector_element] < static_cast<int>(module_pair_data[shared::next_module_pair].hit_num)) {
+                hit_num_iteration[vector_element]++;
+                if (hit_num_iteration[vector_element] == static_cast<int>(module_pair_data[shared::next_module_pair].hit_num)) {
+                  active.insert(vector_element, false);
+                  break;
+                }
+
                 const auto index_in_bounds =
                   (h2_candidate_indices[vector_element] + hit_num_iteration[vector_element]) %
                   module_pair_data[shared::next_module_pair].hit_num;
                 const uint16_t h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
-                hit_num_iteration[vector_element]++;
 
                 // Check the phi difference is within the tolerance with modulo arithmetic.
                 const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phis[vector_element];
@@ -606,12 +608,12 @@ __device__ void track_seeding_vectorized(
             }
           }
 
-          const Vector128<uint16_t> h2_indices(h2_indices_array.data());
-          const Vector128<float> h2_xs(contents.data());
-          const Vector128<float> h2_ys(contents.data() + vector128_length());
-          const Vector128<float> h2_zs(contents.data() + 2 * vector128_length());
-
           if (active.hlor()) {
+            const Vector128<uint16_t> h2_indices(h2_indices_array.data());
+            const Vector128<float> h2_xs(contents.data());
+            const Vector128<float> h2_ys(contents.data() + vector128_length());
+            const Vector128<float> h2_zs(contents.data() + 2 * vector128_length());
+
             const auto dz = h2_zs - h0_zs;
             const auto predx = h0_xs + tx * dz;
             const auto predy = h0_ys + ty * dz;
@@ -630,6 +632,8 @@ __device__ void track_seeding_vectorized(
               best_h0 = best_h0s[candidate_batch + best_scatter_vector_index];
               best_h2 = h2_indices[best_scatter_vector_index];
             }
+          } else {
+            break;
           }
         }
       }
