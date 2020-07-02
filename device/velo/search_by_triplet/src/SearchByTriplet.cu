@@ -554,7 +554,7 @@ __device__ void track_seeding_vectorized(
         std::array<int, vector128_length()> h2_candidate_indices;
         std::array<int16_t, vector128_length()> extrapolated_phis;
         std::array<unsigned, vector128_length()> hit_num_iteration;
-        Vector128<bool> active = false;
+        std::array<bool, vector128_length()> active;
 
         for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
           const uint16_t atan_value_u16 = static_cast<uint16_t>(atan_value_f[vector_element]);
@@ -569,7 +569,11 @@ __device__ void track_seeding_vectorized(
           h2_candidate_indices[vector_element] = candidate_h2_index_found;
           extrapolated_phis[vector_element] = atan_value_i16;
           hit_num_iteration[vector_element] = -1;
-          active.insert(vector_element, true);
+          active[vector_element] = true;
+        }
+
+        for (unsigned i = batch_length; i < vector128_length(); ++i) {
+          active[i] = false;
         }
 
         while (true) {
@@ -581,7 +585,7 @@ __device__ void track_seeding_vectorized(
                 // Increment before anything else. As a consequence, hit_num_iteration must be started at -1.
                 hit_num_iteration[vector_element]++;
                 if (hit_num_iteration[vector_element] == module_pair_data[shared::next_module_pair].hit_num) {
-                  active.insert(vector_element, false);
+                  active[vector_element] = false;
                   break;
                 }
 
@@ -595,7 +599,7 @@ __device__ void track_seeding_vectorized(
                 const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phis[vector_element];
                 const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
                 if (abs_phi_diff > phi_tolerance) {
-                  active.insert(vector_element, false);
+                  active[vector_element] = false;
                   break;
                 }
 
@@ -612,7 +616,8 @@ __device__ void track_seeding_vectorized(
           }
 
           // Exit condition: No active vector elements
-          if (!active.hlor()) {
+          const Vector128<bool> active_mask {active.data()};
+          if (!active_mask.hlor()) {
             break;
           }
 
@@ -629,7 +634,7 @@ __device__ void track_seeding_vectorized(
 
           // Scatter
           const auto scatter = dx * dx + dy * dy;
-          const auto mask = scatter < best_fit && active;
+          const auto mask = scatter < best_fit && active_mask;
 
           if (mask.hlor()) {
             // Index of the best scatter in the vector, with mask
