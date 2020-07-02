@@ -162,6 +162,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   barrier();
 
   // Do first track seeding
+  const auto initial_seeding_candidates = initial_seeding_h0_candidates;
   dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
     velo_cluster_container,
     module_pair_data,
@@ -173,7 +174,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     parameters.max_scatter,
     hit_phi,
     phi_tolerance,
-    initial_seeding_h0_candidates);
+    initial_seeding_candidates);
 
   // Prepare forwarding - seeding loop
   // For an explanation on ttf, see below
@@ -228,6 +229,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     barrier();
 
     // Seeding
+    const auto seeding_candidates = seeding_h0_candidates;
     dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
       velo_cluster_container,
       module_pair_data,
@@ -239,7 +241,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       parameters.max_scatter,
       hit_phi,
       phi_tolerance,
-      seeding_h0_candidates);
+      seeding_candidates);
 
     --first_module_pair;
   }
@@ -514,7 +516,8 @@ __device__ void track_seeding_vectorized(
 
       // Process found_h0_candidates in batches of vector128_length
       // Note: Use vector of width 4 - Performance is impacted by Velo::Tracking::seeding_h0_candidates
-      // Note 2: If using Vector here, the highest supported vector width would be used
+      // Note 2: If using Vector here, the highest supported vector width would be used instead, which is not best
+      //         for this use-case.
       for (unsigned candidate_batch = 0; candidate_batch < found_h0_candidates; candidate_batch += vector128_length()) {
         const auto batch_length = candidate_batch + vector128_length() < found_h0_candidates ?
                                     vector128_length() :
