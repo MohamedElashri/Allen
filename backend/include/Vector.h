@@ -124,7 +124,6 @@ namespace Allen {
       using t = UME::SIMD::SIMDVecMask<16>;
     };
 
-
     template<typename T>
     using Vector512 = typename Vector_t<T, vector_backend::b512>::t;
 #else
