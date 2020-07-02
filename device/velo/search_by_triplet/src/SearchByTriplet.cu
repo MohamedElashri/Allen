@@ -150,7 +150,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   barrier();
 
   // Do first track seeding
-  track_seeding(
+  dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
     velo_cluster_container,
     module_pair_data,
     hit_used,
@@ -215,7 +215,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     barrier();
 
     // Seeding
-    track_seeding(
+    dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
       velo_cluster_container,
       module_pair_data,
       hit_used,
@@ -288,313 +288,36 @@ __device__ void track_seeding(
     // Fetch h1
     const auto h1_index = h1_indices[h1_rel_index];
 
-    track_seeding_impl(
+    const auto [best_h0, best_h2, best_fit] = track_seeding_impl(
       h1_index,
       velo_cluster_container,
       module_pair_data,
       hit_used,
-      tracklets,
-      tracks_to_follow,
-      dev_atomics_velo,
       max_scatter,
       hit_phi,
       phi_tolerance);
-  }
-}
 
-#if defined(TARGET_DEVICE_CPU)
-/**
- * @brief Search for compatible triplets in
- *        three neighbouring modules on one side
- */
-__device__ void track_seeding_vectorized(
-  Velo::ConstClusters& velo_cluster_container,
-  const Velo::ModulePair* module_pair_data,
-  const bool* hit_used,
-  Velo::TrackletHits* tracklets,
-  unsigned* tracks_to_follow,
-  uint16_t*,
-  unsigned* dev_atomics_velo,
-  const float max_scatter,
-  const int16_t* hit_phi,
-  const int16_t phi_tolerance)
-{
-  // Iterate over non-used h1 indices
-  std::array<uint16_t, vector_length()> h1_indices_local;
-  unsigned h1_rel_index = 0;
+    if (best_fit < max_scatter) {
+      // Add the track to the container of seeds
+      const auto trackP =
+        atomicAdd(dev_atomics_velo + atomics::number_of_seeds, 1) % Velo::Constants::max_tracks_to_follow;
+      tracklets[trackP] = Velo::TrackletHits {best_h0, h1_index, best_h2};
 
-  while (h1_rel_index < module_pair_data[shared::current_module_pair].hit_num) {
-    unsigned h1_elements_v = 0;
-    while (h1_elements_v < vector_length() && h1_rel_index < module_pair_data[shared::current_module_pair].hit_num) {
-      const auto h1_index = module_pair_data[shared::current_module_pair].hit_start + h1_rel_index;
-      if (!hit_used[h1_index]) {
-        h1_indices_local[h1_elements_v++] = h1_index;
-      }
-      h1_rel_index++;
-    }
-
-    if (h1_elements_v < vector_length()) {
-      // Do these iterations sequentially
-      for (unsigned i = 0; i < h1_elements_v; ++i) {
-        track_seeding_impl(
-          h1_indices_local[i],
-          velo_cluster_container,
-          module_pair_data,
-          hit_used,
-          tracklets,
-          tracks_to_follow,
-          dev_atomics_velo,
-          max_scatter,
-          hit_phi,
-          phi_tolerance);
-      }
-    }
-    else {
-      // Get best h0s to work with
-      std::array<unsigned, vector_length() * number_of_h0_candidates> best_h0s_local;
-      std::array<unsigned, vector_length()> found_h0_candidates_local;
-      unsigned found_h0_candidates_max = 0;
-
-      for (unsigned i_vec = 0; i_vec < vector_length(); ++i_vec) {
-        const auto h1_index = h1_indices_local[i_vec];
-        auto& found_h0_candidates = found_h0_candidates_local[i_vec];
-
-        // Iterate over previous module until the first n candidates are found
-        auto phi_index = binary_search_leftmost(
-          hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
-          module_pair_data[shared::previous_module_pair].hit_num,
-          hit_phi[h1_index]);
-
-        // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
-        // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
-        found_h0_candidates = 0;
-        for (unsigned i = 0; i < module_pair_data[shared::previous_module_pair].hit_num &&
-                             found_h0_candidates < number_of_h0_candidates;
-             ++i) {
-          // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
-          const auto sign = i & 0x01;
-          const int index_diff = sign ? i : -i;
-          phi_index += index_diff;
-
-          const auto index_in_bounds =
-            (phi_index < 0 ? phi_index + module_pair_data[shared::previous_module_pair].hit_num :
-                             (phi_index >= static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) ?
-                                phi_index - static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) :
-                                phi_index));
-          const auto h0_index = module_pair_data[shared::previous_module_pair].hit_start + index_in_bounds;
-
-          // Discard the candidate if it is used
-          if (!hit_used[h0_index]) {
-            best_h0s_local[vector_length() * found_h0_candidates + i_vec] = h0_index;
-            found_h0_candidates++;
-          }
-        }
-
-        if (found_h0_candidates > found_h0_candidates_max) {
-          found_h0_candidates_max = found_h0_candidates;
-        }
-      }
-
-      // Output
-      Vector<uint16_t> best_h0 = 0;
-      Vector<uint16_t> best_h2 = 0;
-      Vector<float> best_fit = max_scatter;
-
-      // There are vector_length() elements to process
-      Vector<float> h1_xs;
-      Vector<float> h1_ys;
-      Vector<float> h1_zs;
-
-      for (unsigned i = 0; i < vector_length(); ++i) {
-        const auto h1_index = h1_indices_local[i];
-        h1_xs[i] = velo_cluster_container.x(h1_index);
-        h1_ys[i] = velo_cluster_container.y(h1_index);
-        h1_zs[i] = velo_cluster_container.z(h1_index);
-      }
-
-      // print_vector(h1_xs, "h1_xs");
-      // print_vector(h1_ys, "h1_ys");
-      // print_vector(h1_zs, "h1_zs");
-
-      // Use the candidates found previously (best_h0s) to find the best triplet
-      // Since data is sorted, search using a binary search
-      for (unsigned found_h0_candidates_iteration = 0; found_h0_candidates_iteration < found_h0_candidates_max;
-           ++found_h0_candidates_iteration) {
-        // Gather h0 x, y and zs, and make execution mask
-        Vector<uint16_t> h0_indices;
-        Vector<float> h0_xs;
-        Vector<float> h0_ys;
-        Vector<float> h0_zs;
-
-        for (unsigned i = 0; i < vector_length(); ++i) {
-          if (found_h0_candidates_local[i] > found_h0_candidates_iteration) {
-            const auto h0_index = best_h0s_local[vector_length() * found_h0_candidates_iteration + i];
-            h0_indices[i] = h0_index;
-            h0_xs[i] = velo_cluster_container.x(h0_index);
-            h0_ys[i] = velo_cluster_container.y(h0_index);
-            h0_zs[i] = velo_cluster_container.z(h0_index);
-          }
-        }
-
-        // print_vector(h0_indices, "h0_indices");
-        // print_vector(h0_xs, "h0_xs");
-        // print_vector(h0_ys, "h0_ys");
-        // print_vector(h0_zs, "h0_zs");
-
-        const auto h1_h0_diff = h1_zs - h0_zs;
-        const auto td = 1.0f / h1_h0_diff;
-        const auto txn = (h1_xs - h0_xs);
-        const auto tyn = (h1_ys - h0_ys);
-        const auto tx = txn * td;
-        const auto ty = tyn * td;
-
-        // Calculate phi extrapolation
-        const auto dz =
-          module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0];
-        const auto predx = tx * dz;
-        const auto predy = ty * dz;
-        const auto x_prediction = h0_xs + predx;
-        const auto y_prediction = h0_ys + predy;
-        const auto atan_value_f =
-          (Velo::Tools::cudart_pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor -
-          phi_tolerance;
-
-        // print_vector(atan_value_f, "atan_value_f");
-
-        // Get h2 candidates
-        constexpr unsigned number_of_h2_candidates = 3;
-        std::array<unsigned, number_of_h2_candidates * vector_length()> best_h2s_local;
-        std::array<unsigned, vector_length()> found_h2_candidates_local;
-        unsigned found_h2_candidates_max = 0;
-
-        for (unsigned i_vec = 0; i_vec < vector_length(); ++i_vec) {
-          found_h2_candidates_local[i_vec] = 0;
-          if (found_h0_candidates_local[i_vec] > found_h0_candidates_iteration) {
-            auto& found_h2_candidates = found_h2_candidates_local[i_vec];
-
-            const uint16_t atan_value_u16 = static_cast<uint16_t>(atan_value_f[i_vec]);
-            const int16_t* atan_value_i16p = reinterpret_cast<const int16_t*>(&atan_value_u16);
-            const int16_t atan_value_i16 = atan_value_i16p[0];
-
-            // printf("atan_value_i16: %i\n", atan_value_i16);
-
-            // Get candidates by performing a binary search in expected phi
-            const auto candidate_h2_index_found = binary_search_leftmost(
-              hit_phi + module_pair_data[shared::next_module_pair].hit_start,
-              module_pair_data[shared::next_module_pair].hit_num,
-              atan_value_i16);
-
-            // First candidate in the next module pair.
-            // Since the buffer is circular, finding the container size means finding the first element.
-            const auto candidate_h2_index =
-              candidate_h2_index_found < static_cast<int>(module_pair_data[shared::next_module_pair].hit_num) ?
-                candidate_h2_index_found :
-                0;
-
-            for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num &&
-                                 found_h2_candidates < number_of_h2_candidates;
-                 ++i) {
-              const auto index_in_bounds =
-                (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
-              const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
-
-              // Check the phi difference is within the tolerance with modulo arithmetic.
-              const int16_t phi_diff = hit_phi[h2_index] - atan_value_i16;
-              const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
-              if (abs_phi_diff > phi_tolerance) {
-                break;
-              }
-
-              if (!hit_used[h2_index]) {
-                best_h2s_local[vector_length() * found_h2_candidates + i_vec] = h2_index;
-                found_h2_candidates++;
-              }
-            }
-
-            if (found_h2_candidates > found_h2_candidates_max) {
-              found_h2_candidates_max = found_h2_candidates;
-            }
-          }
-        }
-
-        // printf("found_h2_candidates_max: %i\n", found_h2_candidates_max);
-
-        // Iterate over h2s
-        for (unsigned found_h2_candidates_iteration = 0; found_h2_candidates_iteration < found_h2_candidates_max;
-             ++found_h2_candidates_iteration) {
-          // Gather h0 x, y and zs, and make execution mask
-          Vector<uint16_t> h2_indices;
-          Vector<float> h2_xs;
-          Vector<float> h2_ys;
-          Vector<float> h2_zs;
-          Vector<bool> active;
-
-          for (unsigned i = 0; i < vector_length(); ++i) {
-            if (found_h2_candidates_local[i] > found_h2_candidates_iteration) {
-              active.insert(i, true);
-              const auto h2_index = best_h2s_local[vector_length() * found_h2_candidates_iteration + i];
-              h2_indices[i] = h2_index;
-              h2_xs[i] = velo_cluster_container.x(h2_index);
-              h2_ys[i] = velo_cluster_container.y(h2_index);
-              h2_zs[i] = velo_cluster_container.z(h2_index);
-            }
-          }
-
-          // print_vector(h2_xs, "h2_xs");
-          // print_vector(h2_ys, "h2_ys");
-          // print_vector(h2_zs, "h2_zs");
-
-          const auto dz = h2_zs - h0_zs;
-          const auto predx = h0_xs + tx * dz;
-          const auto predy = h0_ys + ty * dz;
-          const auto dx = predx - h2_xs;
-          const auto dy = predy - h2_ys;
-
-          // Scatter
-          const auto scatter = dx * dx + dy * dy;
-
-          // Keep the best one found
-          const Vector<bool> mask = scatter < best_fit && active;
-
-          best_fit = best_fit.blend(mask, scatter);
-          best_h0 = best_h0.blend(mask, h0_indices);
-          best_h2 = best_h2.blend(mask, h2_indices);
-        }
-      }
-
-      for (unsigned i = 0; i < vector_length(); ++i) {
-        const auto best_fit_s = best_fit[i];
-        if (best_fit_s < max_scatter) {
-          const auto best_h0_s = best_h0[i];
-          const auto h1_index_s = h1_indices_local[i];
-          const auto best_h2_s = best_h2[i];
-
-          // Add the track to the container of seeds
-          const auto trackP =
-            atomicAdd(dev_atomics_velo + atomics::number_of_seeds, 1) % Velo::Constants::max_tracks_to_follow;
-          tracklets[trackP] = Velo::TrackletHits {best_h0_s, h1_index_s, best_h2_s};
-
-          // Add the tracks to the bag of tracks to_follow
-          // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
-          // and hence it is stored in tracklets
-          const auto ttfP =
-            atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
-          tracks_to_follow[ttfP] = bits::seed | trackP;
-        }
-      }
+      // Add the tracks to the bag of tracks to_follow
+      // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
+      // and hence it is stored in tracklets
+      const auto ttfP =
+        atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
+      tracks_to_follow[ttfP] = bits::seed | trackP;
     }
   }
 }
-#endif
 
-__device__ void track_seeding_impl(
+__device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
   const uint16_t h1_index,
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
   const bool* hit_used,
-  Velo::TrackletHits* tracklets,
-  unsigned* tracks_to_follow,
-  unsigned* dev_atomics_velo,
   const float max_scatter,
   const int16_t* hit_phi,
   const int16_t phi_tolerance)
@@ -649,6 +372,8 @@ __device__ void track_seeding_impl(
     const Velo::HitBase h0 {
       velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
 
+    // printf("h0 x: %f\nh0 y: %f\nh0 z: %f\n", h0.x, h0.y, h0.z);
+
     const auto td = 1.0f / (h1.z - h0.z);
     const auto txn = (h1.x - h0.x);
     const auto tyn = (h1.y - h0.y);
@@ -667,11 +392,10 @@ __device__ void track_seeding_impl(
 
     // First candidate in the next module pair.
     // Since the buffer is circular, finding the container size means finding the first element.
-    const auto candidate_h2_index =
-      std::get<0>(candidate_h2) < static_cast<int>(module_pair_data[shared::next_module_pair].hit_num) ?
-        std::get<0>(candidate_h2) :
-        0;
+    const auto candidate_h2_index = std::get<0>(candidate_h2);
     const auto extrapolated_phi = std::get<1>(candidate_h2);
+
+    // printf("atan_value_i16: %i\n", extrapolated_phi);
 
     for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
       const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
@@ -688,6 +412,8 @@ __device__ void track_seeding_impl(
         const Velo::HitBase h2 {
           velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
 
+        // printf("h2 index: %i\nh2 x: %f\nh2 y: %f\nh2 z: %f\n", h2_index, h2.x, h2.y, h2.z);
+
         const auto dz = h2.z - h0.z;
         const auto predx = h0.x + tx * dz;
         const auto predy = h0.y + ty * dz;
@@ -696,6 +422,8 @@ __device__ void track_seeding_impl(
 
         // Scatter
         const auto scatter = dx * dx + dy * dy;
+
+        // printf("scatter: %f\n", scatter);
 
         // Keep the best one found
         if (scatter < best_fit) {
@@ -707,20 +435,284 @@ __device__ void track_seeding_impl(
     }
   }
 
-  if (best_fit < max_scatter) {
-    // Add the track to the container of seeds
-    const auto trackP =
-      atomicAdd(dev_atomics_velo + atomics::number_of_seeds, 1) % Velo::Constants::max_tracks_to_follow;
-    tracklets[trackP] = Velo::TrackletHits {best_h0, h1_index, best_h2};
+  return {best_h0, best_h2, best_fit};
+}
 
-    // Add the tracks to the bag of tracks to_follow
-    // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
-    // and hence it is stored in tracklets
-    const auto ttfP =
-      atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
-    tracks_to_follow[ttfP] = bits::seed | trackP;
+#if defined(TARGET_DEVICE_CPU)
+/**
+ * @brief Search for compatible triplets in
+ *        three neighbouring modules on one side
+ */
+__device__ void track_seeding_vectorized(
+  Velo::ConstClusters& velo_cluster_container,
+  const Velo::ModulePair* module_pair_data,
+  const bool* hit_used,
+  Velo::TrackletHits* tracklets,
+  unsigned* tracks_to_follow,
+  uint16_t*,
+  unsigned* dev_atomics_velo,
+  const float max_scatter,
+  const int16_t* hit_phi,
+  const int16_t phi_tolerance)
+{
+  for (unsigned h1_rel_index = 0; h1_rel_index < module_pair_data[shared::current_module_pair].hit_num; ++h1_rel_index) {
+    const uint16_t h1_index = module_pair_data[shared::current_module_pair].hit_start + h1_rel_index;
+    if (!hit_used[h1_index]) {
+      // Output
+      uint16_t best_h0 = 0;
+      uint16_t best_h2 = 0;
+      float best_fit = max_scatter;
+
+      const Velo::HitBase h1 {
+        velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
+
+      const auto h1_phi = hit_phi[h1_index];
+
+      // Get candidates on previous module
+      std::array<unsigned, 4> best_h0s;
+
+      // Iterate over previous module until the first n candidates are found
+      auto phi_index = binary_search_leftmost(
+        hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
+        module_pair_data[shared::previous_module_pair].hit_num,
+        h1_phi);
+
+      // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
+      // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
+      unsigned found_h0_candidates = 0;
+      for (unsigned i = 0;
+           i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < 4;
+           ++i) {
+        // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
+        const auto sign = i & 0x01;
+        const int index_diff = sign ? i : -i;
+        phi_index += index_diff;
+
+        const auto index_in_bounds =
+          (phi_index < 0 ? phi_index + module_pair_data[shared::previous_module_pair].hit_num :
+                           (phi_index >= static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) ?
+                              phi_index - static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) :
+                              phi_index));
+        const auto h0_index = module_pair_data[shared::previous_module_pair].hit_start + index_in_bounds;
+
+        // Discard the candidate if it is used
+        if (!hit_used[h0_index]) {
+          best_h0s[found_h0_candidates++] = h0_index;
+        }
+      }
+
+      if (found_h0_candidates != 4) {
+        // Use the candidates found previously (best_h0s) to find the best triplet
+        // Since data is sorted, search using a binary search
+        for (unsigned i = 0; i < found_h0_candidates; ++i) {
+          const auto h0_index = best_h0s[i];
+          const Velo::HitBase h0 {
+            velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
+
+          // printf("h0 x: %f\nh0 y: %f\nh0 z: %f\n", h0.x, h0.y, h0.z);
+
+          const auto td = 1.0f / (h1.z - h0.z);
+          const auto txn = (h1.x - h0.x);
+          const auto tyn = (h1.y - h0.y);
+          const auto tx = txn * td;
+          const auto ty = tyn * td;
+
+          // Get candidates by performing a binary search in expected phi
+          const auto candidate_h2 = find_forward_candidate(
+            module_pair_data[shared::next_module_pair],
+            hit_phi,
+            h0,
+            tx,
+            ty,
+            module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0],
+            phi_tolerance);
+
+          // First candidate in the next module pair.
+          // Since the buffer is circular, finding the container size means finding the first element.
+          const auto candidate_h2_index = std::get<0>(candidate_h2);
+          const auto extrapolated_phi = std::get<1>(candidate_h2);
+
+          // printf("atan_value_i16: %i\n", extrapolated_phi);
+
+          for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
+            const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
+            const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
+
+            // Check the phi difference is within the tolerance with modulo arithmetic.
+            const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+            const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+            if (abs_phi_diff > phi_tolerance) {
+              break;
+            }
+
+            if (!hit_used[h2_index]) {
+              const Velo::HitBase h2 {
+                velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
+
+              // printf("h2 index: %i\nh2 x: %f\nh2 y: %f\nh2 z: %f\n", h2_index, h2.x, h2.y, h2.z);
+
+              const auto dz = h2.z - h0.z;
+              const auto predx = h0.x + tx * dz;
+              const auto predy = h0.y + ty * dz;
+              const auto dx = predx - h2.x;
+              const auto dy = predy - h2.y;
+
+              // Scatter
+              const auto scatter = dx * dx + dy * dy;
+
+              // printf("scatter: %f\n", scatter);
+
+              // Keep the best one found
+              if (scatter < best_fit) {
+                best_fit = scatter;
+                best_h0 = h0_index;
+                best_h2 = h2_index;
+              }
+            }
+          }
+        }
+      } else {
+        // Process found_h0_candidates in batches of vector_length
+        for (unsigned candidate_batch = 0; candidate_batch < found_h0_candidates; candidate_batch += vector_length()) {
+          const auto batch_length = candidate_batch + vector_length() < found_h0_candidates ? vector_length() : found_h0_candidates - candidate_batch;
+
+          std::array<int, number_of_h0_candidates> h2_candidate_indices;
+          std::array<int16_t, number_of_h0_candidates> extrapolated_phis;
+          std::array<unsigned, number_of_h0_candidates> hit_num_iteration;
+          Vector<bool> active = false;
+          Vector<float> h0_xs;
+          Vector<float> h0_ys;
+          Vector<float> h0_zs;
+
+          for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
+            const auto h0_index = best_h0s[candidate_batch + vector_element];
+            active.insert(vector_element, true);
+            h0_xs[vector_element] = velo_cluster_container.x(h0_index);
+            h0_ys[vector_element] = velo_cluster_container.y(h0_index);
+            h0_zs[vector_element] = velo_cluster_container.z(h0_index);
+          }
+
+          // print_vector(h0_xs, "h0_xs");
+          // print_vector(h0_ys, "h0_ys");
+          // print_vector(h0_zs, "h0_zs");
+
+          const auto td = 1.0f / (h1.z - h0_zs);
+          const auto txn = (h1.x - h0_xs);
+          const auto tyn = (h1.y - h0_ys);
+          const auto tx = txn * td;
+          const auto ty = tyn * td;
+
+          // Calculate phi extrapolation
+          const auto dz =
+            module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0];
+          const auto predx = tx * dz;
+          const auto predy = ty * dz;
+          const auto x_prediction = h0_xs + predx;
+          const auto y_prediction = h0_ys + predy;
+          const auto atan_value_f =
+            (Velo::Tools::cudart_pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
+
+          for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
+            const uint16_t atan_value_u16 = static_cast<uint16_t>(atan_value_f[vector_element]);
+            const int16_t* atan_value_i16p = reinterpret_cast<const int16_t*>(&atan_value_u16);
+            const int16_t atan_value_i16 = atan_value_i16p[0];
+
+            // printf("atan_value_i16: %i\n", atan_value_i16);
+
+            const auto candidate_h2_index_found = binary_search_leftmost(
+              hit_phi + module_pair_data[shared::next_module_pair].hit_start,
+              module_pair_data[shared::next_module_pair].hit_num,
+              int16_t(atan_value_i16 - phi_tolerance));
+
+            h2_candidate_indices[vector_element] = candidate_h2_index_found - 1;
+            extrapolated_phis[vector_element] = atan_value_i16;
+            hit_num_iteration[vector_element] = 0;
+          }
+
+          while(active.hlor()) {
+            Vector<uint16_t> h2_indices;
+            Vector<float> h2_xs;
+            Vector<float> h2_ys;
+            Vector<float> h2_zs;
+
+            for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
+              if (active[vector_element]) {
+                if (hit_num_iteration[vector_element] == module_pair_data[shared::next_module_pair].hit_num) {
+                  active.insert(vector_element, false);
+                }
+
+                while (hit_num_iteration[vector_element] < module_pair_data[shared::next_module_pair].hit_num) {
+                  const auto index_in_bounds = (h2_candidate_indices[vector_element] + hit_num_iteration[vector_element]) % module_pair_data[shared::next_module_pair].hit_num;
+                  const uint16_t h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
+                  hit_num_iteration[vector_element]++;
+
+                  // Check the phi difference is within the tolerance with modulo arithmetic.
+                  const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phis[vector_element];
+                  const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+                  if (abs_phi_diff > phi_tolerance) {
+                    active.insert(vector_element, false);
+                    break;
+                  }
+
+                  if (!hit_used[h2_index]) {
+                    h2_indices[vector_element] = h2_index;
+                    h2_xs[vector_element] = velo_cluster_container.x(h2_index);
+                    h2_ys[vector_element] = velo_cluster_container.y(h2_index);
+                    h2_zs[vector_element] = velo_cluster_container.z(h2_index);
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (active.hlor()) {
+              // print_vector(h2_indices, "h2_indices");
+              // print_vector(h2_xs, "h2_xs");
+              // print_vector(h2_ys, "h2_ys");
+              // print_vector(h2_zs, "h2_zs");
+
+              const auto dz = h2_zs - h0_zs;
+              const auto predx = h0_xs + tx * dz;
+              const auto predy = h0_ys + ty * dz;
+              const auto dx = predx - h2_xs;
+              const auto dy = predy - h2_ys;
+
+              // Scatter
+              const auto scatter = dx * dx + dy * dy;
+              const auto mask = scatter < best_fit && active;
+
+              // print_vector(scatter, "scatter");
+
+              if (mask.hlor()) {
+                // Index of the best scatter in the vector, with mask
+                const auto best_scatter_vector_index = scatter.imin(mask);
+
+                best_fit = scatter[best_scatter_vector_index];
+                best_h0 = best_h0s[candidate_batch + best_scatter_vector_index];
+                best_h2 = h2_indices[best_scatter_vector_index];
+              }
+            }
+          }
+        }
+      }
+
+      if (best_fit < max_scatter) {
+        // Add the track to the container of seeds
+        const auto trackP =
+          atomicAdd(dev_atomics_velo + atomics::number_of_seeds, 1) % Velo::Constants::max_tracks_to_follow;
+        tracklets[trackP] = Velo::TrackletHits {best_h0, h1_index, best_h2};
+
+        // Add the tracks to the bag of tracks to_follow
+        // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
+        // and hence it is stored in tracklets
+        const auto ttfP =
+          atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
+        tracks_to_follow[ttfP] = bits::seed | trackP;
+      }
+    }
   }
 }
+#endif
 
 /**
  * @brief Performs the track forwarding of forming tracks
