@@ -28,8 +28,9 @@ DumpVeloUTState::DumpVeloUTState(const std::string& name, ISvcLocator* pSvcLocat
 StatusCode DumpVeloUTState::initialize()
 {
   auto sc = Consumer::initialize();
-  if (!sc.isSuccess()) return sc;
-  if (sc) sc = m_tupleTool.retrieve();
+  if (sc.isSuccess()) {
+    sc = m_tupleTool.retrieve();
+  }
   return sc;
 }
 
@@ -40,8 +41,10 @@ void DumpVeloUTState::operator()(const std::vector<LHCb::Event::v2::Track>& utTr
     for (auto loc : {LHCb::State::Location::AtTT, LHCb::State::Location::EndVelo}) {
       if (track.hasStateAt(loc)) {
         auto const* state = track.stateAt(loc);
-        tup->column("qop", state->qOverP()).ignore();
-        tup->write().ignore();
+        auto sc = tup->column("qop", state->qOverP());
+        if (sc) {
+          sc = tup->write();
+        }
         break;
       }
     }

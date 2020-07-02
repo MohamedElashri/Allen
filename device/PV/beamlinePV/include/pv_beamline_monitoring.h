@@ -1,3 +1,3 @@
 #pragma once
 
-void pv_beamline_monitor(uint n_events, float*);
+void pv_beamline_monitor(unsigned n_events, float*);

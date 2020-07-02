@@ -3,6 +3,7 @@
 #include <deque>
 #include <map>
 #include <string>
+#include <memory>
 
 #include "ROOTHeaders.h"
 
@@ -49,14 +50,14 @@ struct MonitorBase {
   virtual void saveHistograms(std::string file_name, bool append) const;
 
 protected:
-  uint getWallTimeBin();
+  unsigned getWallTimeBin();
 
   std::string m_name;
 
 #ifdef WITH_ROOT
-  std::map<uint, TH1*> m_histograms;
+  std::map<unsigned, std::unique_ptr<TH1>> m_histograms;
 #endif
 
-  uint m_time_step;
-  uint m_offset;
+  unsigned m_time_step{};
+  unsigned m_offset{};
 };

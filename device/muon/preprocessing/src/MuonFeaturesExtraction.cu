@@ -28,9 +28,9 @@ void muon_catboost_features_extraction::muon_catboost_features_extraction_t::ope
 __global__ void muon_catboost_features_extraction::muon_catboost_features_extraction(
   muon_catboost_features_extraction::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_id = blockIdx.x;
-  const uint station_id = blockIdx.y;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_id = blockIdx.x;
+  const unsigned station_id = blockIdx.y;
 
   SciFi::Consolidated::ConstTracks scifi_tracks {
     parameters.dev_atomics_scifi,
@@ -48,9 +48,9 @@ __global__ void muon_catboost_features_extraction::muon_catboost_features_extrac
   const auto muon_event_offset = station_ocurrences_offset[0];
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
-  const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_id);
-  const uint event_offset = scifi_tracks.tracks_offset(event_id);
-  for (uint track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
+  const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_id);
+  const unsigned event_offset = scifi_tracks.tracks_offset(event_id);
+  for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
     float min_dist = 1e10;
     int index_of_closest_hit = -1;
 
@@ -81,7 +81,7 @@ __global__ void muon_catboost_features_extraction::muon_catboost_features_extrac
       }
     }
 
-    const uint tracks_features_offset = (event_offset + track_id) * Muon::Constants::n_catboost_features;
+    const unsigned tracks_features_offset = (event_offset + track_id) * Muon::Constants::n_catboost_features;
     if (index_of_closest_hit > -1) {
       const float common_factor = Muon::Constants::MSFACTOR * fabsf(scifi_tracks.qop(track_id));
 

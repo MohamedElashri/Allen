@@ -12,7 +12,7 @@ void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffe
 void reset() {}
 void print_gpu_memory_consumption() {}
 
-#ifdef linux
+#ifdef __linux__
 #include <ext/stdio_filebuf.h>
 std::tuple<bool, std::string> set_device(int, size_t)
 {
@@ -27,7 +27,7 @@ std::tuple<bool, std::string> set_device(int, size_t)
   std::string processor_name {(std::istreambuf_iterator<char>(cmd_ifstream)), (std::istreambuf_iterator<char>())};
 
   // Clean the string
-  const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))"};
+  const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))|(\n)"};
   processor_name = std::regex_replace(processor_name, regex_to_remove, std::string {});
 
   return {true, processor_name};

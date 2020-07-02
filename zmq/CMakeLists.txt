@@ -94,7 +94,15 @@ function(zmq_program)
   add_executable(${PARSED_ARGS_NAME} ${PARSED_ARGS_SRC})
   target_include_directories(${PARSED_ARGS_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/mdf/include)
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs pthread)
+
+  find_package(Threads REQUIRED)
+  if (STANDALONE)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads)
+  else()
+    find_package(fmt REQUIRED)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads fmt::fmt)
+  endif()
+
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
@@ -107,3 +115,4 @@ if (BUILD_TESTS)
 endif()
 
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})

@@ -38,20 +38,20 @@ __global__ void compass_ut::compass_ut(
   UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
-  const uint* dev_unique_x_sector_layer_offsets) // prefixsum to point to the x hit of the sector, per layer
+  const unsigned* dev_unique_x_sector_layer_offsets) // prefixsum to point to the x hit of the sector, per layer
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
-  const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const uint total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const short* windows_layers =
     parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
@@ -65,7 +65,7 @@ __global__ void compass_ut::compass_ut(
   //   1. # of veloUT tracks
   //   2. # velo tracks in UT acceptance
   // This is to write the final track
-  uint* n_veloUT_tracks_event = parameters.dev_atomics_ut + event_number;
+  unsigned* n_veloUT_tracks_event = parameters.dev_atomics_ut + event_number;
   UT::TrackHits* veloUT_tracks_event = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   // store windows and num candidates in shared mem
@@ -76,7 +76,7 @@ __global__ void compass_ut::compass_ut(
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
 
-  for (uint i = threadIdx.x; i < ut_number_of_selected_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < ut_number_of_selected_tracks; i += blockDim.x) {
     const auto current_velo_track = ut_selected_velo_tracks[i];
     compass_ut_tracking(
       windows_layers,
@@ -104,9 +104,9 @@ __global__ void compass_ut::compass_ut(
 
 __device__ void compass_ut::compass_ut_tracking(
   const short* windows_layers,
-  const uint number_of_tracks_event,
+  const unsigned number_of_tracks_event,
   const int i_track,
-  const uint current_track_offset,
+  const unsigned current_track_offset,
   Velo::Consolidated::ConstStates& velo_states,
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
@@ -114,12 +114,12 @@ __device__ void compass_ut::compass_ut_tracking(
   const float* dev_ut_dxDy,
   const float magnet_polarity,
   short* win_size_shared,
-  uint* n_veloUT_tracks_event,
+  unsigned* n_veloUT_tracks_event,
   UT::TrackHits* veloUT_tracks_event,
   const int event_hit_offset,
   const float min_momentum_final,
   const float min_pt_final,
-  const uint max_considered_before_found,
+  const unsigned max_considered_before_found,
   const float delta_tx_2,
   const float hit_tol_2,
   const float sigma_velo_slope)
@@ -183,8 +183,8 @@ __device__ void compass_ut::fill_shared_windows(
   const auto track_pos = UT::Constants::n_layers * number_of_tracks_event;
   const auto track_pos_sh = UT::Constants::n_layers * UT::Constants::num_thr_compassut;
 
-  for (uint layer = 0; layer < UT::Constants::n_layers; ++layer) {
-    for (uint pos = 0; pos < CompassUT::num_elems; ++pos) {
+  for (unsigned layer = 0; layer < UT::Constants::n_layers; ++layer) {
+    for (unsigned pos = 0; pos < CompassUT::num_elems; ++pos) {
       win_size_shared[pos * track_pos_sh + layer * UT::Constants::num_thr_compassut + threadIdx.x] =
         windows_layers[pos * track_pos + layer * number_of_tracks_event + i_track];
     }
@@ -212,7 +212,7 @@ __device__ void compass_ut::save_track(
   UT::ConstHits& ut_hits,
   const float* ut_dxDy,
   const float magSign,
-  uint* n_veloUT_tracks,        // increment number of tracks
+  unsigned* n_veloUT_tracks,        // increment number of tracks
   UT::TrackHits* VeloUT_tracks, // write the track
   const int event_hit_offset,
   const float min_momentum_final,
@@ -288,7 +288,7 @@ __device__ void compass_ut::save_track(
   // -- evaluate the linear discriminant and reject ghosts
   // -- the values only make sense if the fastfitter is performed
   int nHits = 0;
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     if (best_hits[i] != -1) {
       nHits++;
     }
@@ -298,7 +298,7 @@ __device__ void compass_ut::save_track(
   if (discriminant < UT::Constants::LD3Hits) return;
 
   // the track will be added
-  uint n_tracks = atomicAdd(n_veloUT_tracks, 1u);
+  unsigned n_tracks = atomicAdd(n_veloUT_tracks, 1u);
 
   // // to do: maybe save y from fit
   UT::TrackHits track;
@@ -310,7 +310,7 @@ __device__ void compass_ut::save_track(
   track.hits_num = 0;
 
   // Adding hits to track
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     if (best_hits[i] != -1) {
       track.hits[i] = static_cast<int16_t>(best_hits[i] - event_hit_offset);
       ++track.hits_num;
@@ -335,17 +335,17 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* ut_dxDy,
-  const uint parameter_max_considered_before_found,
+  const unsigned parameter_max_considered_before_found,
   const float delta_tx_2,
   const float hit_tol_2,
   const float sigma_velo_slope,
   const float inv_sigma_velo_slope,
   const int event_hit_offset)
 {
-  uint number_of_candidates = 0;
-  uint candidate_pairs[UT::Constants::max_value_considered_before_found];
+  unsigned number_of_candidates = 0;
+  unsigned candidate_pairs[UT::Constants::max_value_considered_before_found];
 
-  const uint max_considered_before_found =
+  const unsigned max_considered_before_found =
     parameter_max_considered_before_found > UT::Constants::max_value_considered_before_found ?
       UT::Constants::max_value_considered_before_found :
       parameter_max_considered_before_found;
@@ -406,7 +406,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
   }
 
   // Iterate over candidate pairs
-  for (uint i = 0; i < number_of_candidates; ++i) {
+  for (unsigned i = 0; i < number_of_candidates; ++i) {
     const auto pair = candidate_pairs[i];
     const bool forward = pair >> 31;
     const int i_hit0 = event_hit_offset + ((pair >> 16) & 0x7FFF);
@@ -517,7 +517,7 @@ __device__ BestParams compass_ut::pkick_fit(
   // add hits
   float last_z = -10000.f;
 
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
       const float wi = ut_hits.weight(hit_index);
@@ -555,7 +555,7 @@ __device__ BestParams compass_ut::pkick_fit(
   // add chi2
   int total_num_hits = 0;
 
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
       const float zd = ut_hits.zAtYEq0(hit_index);
@@ -623,7 +623,7 @@ __device__ int compass_ut::calc_index(
   const UT::HitOffsets& ut_hit_offsets)
 {
   auto temp_index = index;
-  for (uint i = 0; i < CompassUT::num_sectors; ++i) {
+  for (unsigned i = 0; i < CompassUT::num_sectors; ++i) {
     const auto ranges_size = ranges.get_size(layer, i, threadIdx.x);
     if (temp_index < ranges_size) {
       return temp_index + ut_hit_offsets.layer_offset(layer) + ranges.get_from(layer, i, threadIdx.x);
@@ -647,7 +647,7 @@ __device__ int compass_ut::calc_index(
   const UT::HitOffsets& ut_hit_offsets)
 {
   auto temp_index = index;
-  for (uint i = 0; i < CompassUT::num_sectors; ++i) {
+  for (unsigned i = 0; i < CompassUT::num_sectors; ++i) {
     const auto ranges_size = ranges.get_size(layer0, i, threadIdx.x);
     if (temp_index < ranges_size) {
       return temp_index + ut_hit_offsets.layer_offset(layer0) + ranges.get_from(layer0, i, threadIdx.x);

@@ -8,17 +8,18 @@
 namespace is_muon {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint), host_number_of_reconstructed_scifi_tracks),
-    (DEVICE_INPUT(dev_offsets_forward_tracks_t, uint), dev_atomics_scifi),
-    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number, uint), dev_scifi_track_hit_number),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_atomics_scifi),
+    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number, unsigned), dev_scifi_track_hit_number),
     (DEVICE_INPUT(dev_scifi_qop_t, float), dev_scifi_qop),
     (DEVICE_INPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
-    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint), dev_scifi_track_ut_indices),
-    (DEVICE_INPUT(dev_station_ocurrences_offset_t, uint), dev_station_ocurrences_offset),
+    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned), dev_scifi_track_ut_indices),
+    (DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned), dev_station_ocurrences_offset),
     (DEVICE_INPUT(dev_muon_hits_t, char), dev_muon_hits),
     (DEVICE_OUTPUT(dev_muon_track_occupancies_t, int), dev_muon_track_occupancies),
-    (DEVICE_OUTPUT(dev_is_muon_t, bool), dev_is_muon))
+    (DEVICE_OUTPUT(dev_is_muon_t, bool), dev_is_muon),
+    (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned), block_dim_x))
 
   __global__ void is_muon(
     Parameters,
@@ -39,5 +40,8 @@ namespace is_muon {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const;
+    
+  private:
+    Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 } // namespace is_muon

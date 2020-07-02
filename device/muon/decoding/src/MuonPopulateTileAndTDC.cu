@@ -45,10 +45,10 @@ __device__ void decode_muon_bank(
   Muon::MuonRawToHits const* muon_raw_to_hits,
   int const batch_index,
   Muon::MuonRawBank const& raw_bank,
-  const uint* storage_station_region_quarter_offsets,
-  uint* atomics_muon,
-  uint* dev_storage_tile_id,
-  uint* dev_storage_tdc_value)
+  const unsigned* storage_station_region_quarter_offsets,
+  unsigned* atomics_muon,
+  unsigned* dev_storage_tile_id,
+  unsigned* dev_storage_tdc_value)
 {
   const auto tell_number = raw_bank.sourceID;
   uint16_t* p = raw_bank.data;
@@ -98,14 +98,14 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-  uint* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
+  unsigned* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
                                                        Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (uint i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
@@ -131,14 +131,14 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-  uint* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
+  unsigned* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
                                                        Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (uint i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;

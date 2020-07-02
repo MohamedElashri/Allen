@@ -21,10 +21,6 @@
 
 DECLARE_COMPONENT(AllenForwardToV2Tracks)
 
-namespace {
-  const float m_scatterFoilParameters[2] = {1.67, 20.};
-}
-
 AllenForwardToV2Tracks::AllenForwardToV2Tracks(const std::string& name, ISvcLocator* pSvcLocator) :
   MultiTransformer(
     name,
@@ -52,7 +48,7 @@ StatusCode AllenForwardToV2Tracks::initialize()
   m_histos["ndof"] = book1D("ndof", -0.5, 49.5, 500);
   m_histos["ndof_newTrack"] = book1D("ndof_newTrack", -0.5, 49.5, 500);
 
-  return StatusCode::SUCCESS;
+  return sc;
 }
 
 std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track>> AllenForwardToV2Tracks::operator()(
@@ -60,33 +56,35 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
 {
 
   // Make the consolidated tracks.
-  const uint i_event = 0;
-  const uint number_of_events = 1;
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) host_buffers.host_atomics_velo, (uint*) host_buffers.host_velo_track_hit_number, i_event, number_of_events};
-  const UT::Consolidated::ConstExtendedTracks ut_tracks {(uint*) host_buffers.host_atomics_ut,
-                                                         (uint*) host_buffers.host_ut_track_hit_number,
+  const unsigned i_event = 0;
+  const unsigned number_of_events = 1;
+  const Velo::Consolidated::Tracks velo_tracks {(unsigned*) host_buffers.host_atomics_velo,
+                                                (unsigned*) host_buffers.host_velo_track_hit_number,
+                                                i_event,
+                                                number_of_events};
+  const UT::Consolidated::ConstExtendedTracks ut_tracks {(unsigned*) host_buffers.host_atomics_ut,
+                                                         (unsigned*) host_buffers.host_ut_track_hit_number,
                                                          (float*) host_buffers.host_ut_qop,
-                                                         (uint*) host_buffers.host_ut_track_velo_indices,
+                                                         (unsigned*) host_buffers.host_ut_track_velo_indices,
                                                          i_event,
                                                          number_of_events};
-  const SciFi::Consolidated::ConstTracks scifi_tracks {(uint*) host_buffers.host_atomics_scifi,
-                                                       (uint*) host_buffers.host_scifi_track_hit_number,
+  const SciFi::Consolidated::ConstTracks scifi_tracks {(unsigned*) host_buffers.host_atomics_scifi,
+                                                       (unsigned*) host_buffers.host_scifi_track_hit_number,
                                                        (float*) host_buffers.host_scifi_qop,
                                                        (MiniState*) host_buffers.host_scifi_states,
-                                                       (uint*) host_buffers.host_scifi_track_ut_indices,
+                                                       (unsigned*) host_buffers.host_scifi_track_ut_indices,
                                                        i_event,
                                                        number_of_events};
 
   // Do the conversion
   ParKalmanFilter::FittedTrack* kf_tracks = host_buffers.host_kf_tracks;
-  const uint number_of_tracks = scifi_tracks.number_of_tracks(i_event);
+  const unsigned number_of_tracks = scifi_tracks.number_of_tracks(i_event);
   if (msgLevel(MSG::DEBUG)) debug() << "Number of SciFi tracks to convert = " << number_of_tracks << endmsg;
 
   std::vector<LHCb::Event::v2::Track> forward_tracks;
   forward_tracks.reserve(number_of_tracks);
   std::vector<LHCb::Event::v2::Track> forward_muon_tracks;
-  for (uint t = 0; t < number_of_tracks; t++) {
+  for (unsigned t = 0; t < number_of_tracks; t++) {
     ParKalmanFilter::FittedTrack track = kf_tracks[t];
     auto& newTrack = forward_tracks.emplace_back();
 
@@ -145,7 +143,7 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
     }
 
     // add UT hits
-    const uint UT_track_index = scifi_tracks.ut_track(t);
+    const unsigned UT_track_index = scifi_tracks.ut_track(t);
     std::vector<uint32_t> ut_ids = ut_tracks.get_lhcbids_for_track(host_buffers.host_ut_track_hits, UT_track_index);
     for (const auto id : ut_ids) {
       const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);

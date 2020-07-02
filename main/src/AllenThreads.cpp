@@ -199,7 +199,7 @@ void run_stream(
   IInputProvider const* input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
-  uint n_reps,
+  unsigned n_reps,
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
@@ -250,7 +250,7 @@ void run_stream(
         buf,
         {input_provider,
          *idx,
-         {static_cast<uint>(first), static_cast<uint>(last)},
+         {static_cast<unsigned>(first), static_cast<unsigned>(last)},
          n_reps,
          do_check,
          cpu_offload,
@@ -289,7 +289,7 @@ void run_stream(
             std::vector<Checker::Tracks> forward_tracks;
             if (!folder_name_imported_forward_tracks.empty()) {
               std::vector<char> events_tracks;
-              std::vector<uint> event_tracks_offsets;
+              std::vector<unsigned> event_tracks_offsets;
               read_folder(folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
               forward_tracks = read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
             }
@@ -313,7 +313,7 @@ void run_stream(
  *
  * @return     void
  */
-void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, uint i_monitor)
+void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor)
 {
   zmq::socket_t control = make_control(mon_id, zmqSvc);
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};

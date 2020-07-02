@@ -11,9 +11,9 @@ struct HostBuffersManager;
 
 struct MonitorManager {
   MonitorManager(
-    uint n_mon_thread,
+    unsigned n_mon_thread,
     HostBuffersManager* buffers_manager,
-    uint number_of_hlt1_lines,
+    unsigned number_of_hlt1_lines,
     int time_step = 30,
     int offset = 0) :
     meta_mon(time_step, offset)
@@ -21,7 +21,7 @@ struct MonitorManager {
     init(n_mon_thread, buffers_manager, number_of_hlt1_lines, time_step, offset);
   }
 
-  void fill(uint i_mon, uint i_buf, bool useWallTime = true);
+  void fill(unsigned i_mon, unsigned i_buf, bool useWallTime = true);
   void fillSplit() { meta_mon.fillSplit(); }
   void saveHistograms(std::string file_name);
 
@@ -29,15 +29,19 @@ struct MonitorManager {
   void freeMonitor(size_t i_mon);
 
 private:
-  void
-  init(uint n_mon_thread, HostBuffersManager* buffers_manager, uint number_of_hlt1_lines, int time_step, int offset);
+  void init(
+    unsigned n_mon_thread,
+    HostBuffersManager* buffers_manager,
+    unsigned number_of_hlt1_lines,
+    int time_step,
+    int offset);
 
   std::vector<std::vector<BufferMonitor*>> m_monitors;
 
   std::queue<size_t> free_monitors;
 
   MetaMonitor meta_mon;
-  uint count_processed {0}, count_skipped {0};
-  uint monitoring_level {0};
-  const uint max_monitoring_level {0};
+  unsigned count_processed {0}, count_skipped {0};
+  unsigned monitoring_level {0};
+  const unsigned max_monitoring_level {0};
 };

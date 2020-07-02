@@ -11,7 +11,7 @@ struct IInputProvider;
 
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider, size_t eps, const uint number_of_hlt1_lines) :
+  OutputHandler(IInputProvider const* input_provider, size_t eps, const unsigned number_of_hlt1_lines) :
     m_input_provider {input_provider}, m_sizes(eps), m_number_of_hlt1_lines(number_of_hlt1_lines)
   {}
 
@@ -23,7 +23,7 @@ public:
     gsl::span<bool const> const selected_events,
     gsl::span<uint32_t const> const dec_reports,
     gsl::span<uint32_t const> const sel_reports,
-    gsl::span<uint const> const sel_report_offsets);
+    gsl::span<unsigned const> const sel_report_offsets);
 
   virtual zmq::socket_t* client_socket() { return nullptr; }
 
@@ -37,5 +37,5 @@ protected:
   IInputProvider const* m_input_provider = nullptr;
   std::vector<size_t> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
-  uint m_number_of_hlt1_lines;
+  unsigned m_number_of_hlt1_lines;
 };

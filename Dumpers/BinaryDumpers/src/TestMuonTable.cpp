@@ -218,10 +218,7 @@ void TestMuonTable::operator()(const LHCb::MuonCoords& muonCoords) const
 
   for (auto coord : muonCoords) {
 
-    auto sc = m_det->Tile2XYZ(coord->key(), xp, dxp, yp, dyp, zp, dzp);
-    if (sc.isFailure()) {
-      error() << "Failed to get position for coord with key " << coord->key() << endmsg;
-    }
+    m_det->Tile2XYZ(coord->key(), xp, dxp, yp, dyp, zp, dzp).ignore();
 
     coord_position(coord->key(), m_pad, m_stripX, m_stripY, coord->uncrossed(), xt, dxt, yt, dyt, zt);
 

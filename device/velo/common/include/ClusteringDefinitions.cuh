@@ -35,17 +35,17 @@ namespace Allen {
 } // namespace Allen
 
 namespace VP {
-  static constexpr uint NModules = Velo::Constants::n_modules;
-  static constexpr uint NSensorsPerModule = 4;
-  static constexpr uint NSensors = NModules * NSensorsPerModule;
-  static constexpr uint NChipsPerSensor = 3;
-  static constexpr uint NRows = 256;
-  static constexpr uint NColumns = 256;
-  static constexpr uint NSensorColumns = NColumns * NChipsPerSensor;
-  static constexpr uint NPixelsPerSensor = NSensorColumns * NRows;
-  static constexpr uint ChipColumns = 256;
-  static constexpr uint ChipColumns_division = 8;
-  static constexpr uint ChipColumns_mask = 0xFF;
+  static constexpr unsigned NModules = Velo::Constants::n_modules;
+  static constexpr unsigned NSensorsPerModule = 4;
+  static constexpr unsigned NSensors = NModules * NSensorsPerModule;
+  static constexpr unsigned NChipsPerSensor = 3;
+  static constexpr unsigned NRows = 256;
+  static constexpr unsigned NColumns = 256;
+  static constexpr unsigned NSensorColumns = NColumns * NChipsPerSensor;
+  static constexpr unsigned NPixelsPerSensor = NSensorColumns * NRows;
+  static constexpr unsigned ChipColumns = 256;
+  static constexpr unsigned ChipColumns_division = 8;
+  static constexpr unsigned ChipColumns_mask = 0xFF;
   static constexpr double Pitch = 0.055;
 } // namespace VP
 
@@ -141,7 +141,7 @@ struct VeloGeometry {
   }
 };
 
-__device__ __host__ inline uint32_t get_channel_id(const uint sensor, const uint chip, const uint col, const uint row)
+__device__ __host__ inline uint32_t get_channel_id(const unsigned sensor, const unsigned chip, const unsigned col, const unsigned row)
 {
   return (sensor << Allen::VPChannelID::sensorBits) | (chip << Allen::VPChannelID::chipBits) |
          (col << Allen::VPChannelID::colBits) | row;

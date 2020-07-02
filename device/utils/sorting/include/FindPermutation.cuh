@@ -15,20 +15,20 @@
  */
 template<class T>
 __host__ __device__ void find_permutation(
-  const uint hit_start,
-  const uint hit_permutations_start,
-  const uint number_of_hits,
-  uint* hit_permutations,
+  const unsigned hit_start,
+  const unsigned hit_permutations_start,
+  const unsigned number_of_hits,
+  unsigned* hit_permutations,
   const T& sort_function)
 {
-  FOR_STATEMENT(uint, i, number_of_hits)
+  FOR_STATEMENT(unsigned, i, number_of_hits)
   {
-    const uint hit_index = hit_start + i;
+    const unsigned hit_index = hit_start + i;
 
     // Find out local position
-    uint position = 0;
-    for (uint j = 0; j < number_of_hits; ++j) {
-      const uint other_hit_index = hit_start + j;
+    unsigned position = 0;
+    for (unsigned j = 0; j < number_of_hits; ++j) {
+      const unsigned other_hit_index = hit_start + j;
       const int sort_result = sort_function(hit_index, other_hit_index);
       // Stable sort
       position += sort_result > 0 || (sort_result == 0 && i > j);

@@ -13,6 +13,12 @@
 #ifdef __CLING__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wexpansion-to-defined"
+#elif defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wc11-extensions"
+#if __clang_major__ >= 10
+#pragma clang diagnostic ignored "-Wmisleading-indentation"
+#endif
 #endif
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/vector.hpp>
@@ -25,6 +31,8 @@
 #include <boost/archive/binary_oarchive.hpp>
 #ifdef __CLING__
 #pragma GCC diagnostic pop
+#elif defined(__clang__)
+#pragma clang diagnostic pop
 #endif
 #include <boost/iostreams/device/array.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>

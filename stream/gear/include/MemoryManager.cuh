@@ -7,7 +7,7 @@
 
 struct MemoryManager {
   size_t max_available_memory = (size_t) 8 * 1024 * 1024 * 1024; // 8 GiB
-  constexpr static uint guarantee_alignment = 256;
+  constexpr static unsigned guarantee_alignment = 256;
 
   /**
    * @brief A memory segment is composed of a start
@@ -16,7 +16,7 @@ struct MemoryManager {
    *        which means it is occupied by that argument name.
    */
   struct MemorySegment {
-    uint start;
+    unsigned start;
     size_t size;
     std::string tag;
   };

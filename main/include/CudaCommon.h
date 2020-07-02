@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <algorithm>
 
 // -----------
 // CPU support

@@ -47,17 +47,17 @@ struct Constants {
   VeloGeometry* dev_velo_geometry = nullptr;
 
   std::vector<char> host_ut_geometry;
-  std::vector<uint> host_ut_region_offsets;
+  std::vector<unsigned> host_ut_region_offsets;
   std::vector<float> host_ut_dxDy;
-  std::vector<uint> host_unique_x_sector_layer_offsets;
-  std::vector<uint> host_unique_x_sector_offsets;
+  std::vector<unsigned> host_unique_x_sector_layer_offsets;
+  std::vector<unsigned> host_unique_x_sector_offsets;
   std::vector<float> host_unique_sector_xs;
 
   gsl::span<char> dev_ut_geometry;
   gsl::span<float> dev_ut_dxDy;
-  gsl::span<uint> dev_unique_x_sector_layer_offsets;
-  gsl::span<uint> dev_unique_x_sector_offsets;
-  gsl::span<uint> dev_ut_region_offsets;
+  gsl::span<unsigned> dev_unique_x_sector_layer_offsets;
+  gsl::span<unsigned> dev_unique_x_sector_offsets;
+  gsl::span<unsigned> dev_ut_region_offsets;
   gsl::span<float> dev_unique_sector_xs;
   gsl::span<char> dev_ut_boards;
   UTMagnetTool* dev_ut_magnet_tool = nullptr;

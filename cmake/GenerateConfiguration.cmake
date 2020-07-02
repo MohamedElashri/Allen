@@ -13,7 +13,7 @@ find_package (Python3 COMPONENTS Interpreter QUIET)
 
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this
-set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64)
+set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64:/Library/Developer/CommandLineTools/usr/lib)
 set(REQUIRED_CPLUS_PATH /cvmfs/sft.cern.ch/lcg/views/LCG_97python3/x86_64-centos7-gcc8-opt/include)
 set(DEFAULT_MOORE_RUN "/scratch/dcampora/gaudi_projects/MooreDev_v51r0/run")
 
@@ -89,10 +89,10 @@ if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_
   endif()
 else()
   if (Python3_FOUND)
-    message(WARNING "Sequence generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
-    message(WARNING "A pregenerated sequence will be used instead.")
+    message(STATUS "Sequence generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
+    message(STATUS "A pregenerated sequence will be used instead.")
   else()
-    message(WARNING "Failed to generate sequence. Please note Python 3 AND (CVMFS (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
+    message(STATUS "Failed to generate sequence. Please note Python 3 AND (CVMFS (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
   endif()
 
   add_custom_command(

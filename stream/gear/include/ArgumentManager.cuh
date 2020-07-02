@@ -49,14 +49,14 @@ struct ArgumentManager {
 
   template<typename T>
   typename std::enable_if<std::is_base_of<device_datatype, T>::value>::type
-  set_offset(const uint offset)
+  set_offset(const unsigned offset)
   {
     tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(device_base_pointer + offset);
   }
 
   template<typename T>
   typename std::enable_if<std::is_base_of<host_datatype, T>::value>::type
-  set_offset(const uint offset)
+  set_offset(const unsigned offset)
   {
     tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(host_base_pointer + offset);
   }
@@ -172,7 +172,7 @@ auto first(const Args& arguments) {
 template<typename Arg, typename Args, typename T>
 void safe_assign_to_host_buffer(
   T* array,
-  uint& size,
+  unsigned& size,
   const Args& arguments,
   cudaStream_t cuda_stream) {
   if (arguments.template size<Arg>() > size) {
@@ -207,7 +207,7 @@ struct SingleArgumentOverloadResolution<
   constexpr static void print(const Args& arguments)
   {
     const auto array = data<Arg>(arguments);
-    for (uint i = 0; i < size<Arg>(arguments) / sizeof(typename Arg::type); ++i) {
+    for (unsigned i = 0; i < size<Arg>(arguments) / sizeof(typename Arg::type); ++i) {
       info_cout << array[i] << ", ";
     }
     info_cout << "\n";

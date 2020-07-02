@@ -220,9 +220,6 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
 
   // m_buffer will be filled and identifiers known
   sc = updMgrSvc->update(this);
-  if (!sc) {
-    return sc;
-  }
 
   auto svc = service(m_updaterName, true);
   if (!svc) {

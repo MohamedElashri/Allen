@@ -37,10 +37,10 @@ __global__ void scifi_copy_track_hit_number::scifi_copy_track_hit_number(
     parameters.dev_atomics_scifi[event_number + 1] - parameters.dev_atomics_scifi[event_number];
 
   // Pointer to scifi_track_hit_number of current event.
-  uint* scifi_track_hit_number = parameters.dev_scifi_track_hit_number + accumulated_tracks;
+  unsigned* scifi_track_hit_number = parameters.dev_scifi_track_hit_number + accumulated_tracks;
 
   // Loop over tracks.
-  for (uint element = threadIdx.x; element < number_of_tracks; ++element) {
+  for (unsigned element = threadIdx.x; element < number_of_tracks; ++element) {
     scifi_track_hit_number[element] = event_tracks[element].hitsNum;
   }
 }

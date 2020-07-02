@@ -5,7 +5,7 @@
 namespace PatPV {
 
   // maximum number of vertices in a event
-  static constexpr uint max_number_vertices = 32;
+  static constexpr unsigned max_number_vertices = 32;
 
   // auxiliary class for searching of clusters of tracks
 

@@ -45,11 +45,11 @@ __device__ void associate_and_muon_id(
   cuda::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table)
 {
-  for (uint i = threadIdx.x; i < table.size(); i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
-    for (uint j = 0; j < vertices.size(); ++j) {
+    for (unsigned j = 0; j < vertices.size(); ++j) {
       float val = fabsf(Distance::kalman_ipchi2(tracks[i], *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
@@ -64,8 +64,8 @@ __device__ void associate_and_muon_id(
 
 __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // Consolidated SciFi tracks
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
@@ -76,7 +76,7 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
                                                  event_number,
                                                  number_of_events};
 
-  const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
+  const unsigned event_tracks_offset = scifi_tracks.tracks_offset(event_number);
 
   // The total track-PV association table.
   Associate::Consolidated::Table kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,

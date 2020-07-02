@@ -1,19 +1,5 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-# --------
-# Settings
-# --------
-
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
-set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
-set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
-
 # ---------------
 # Boolean options
 # ---------------
@@ -26,6 +12,21 @@ option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
+option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
+
+# --------
+# Settings
+# --------
+
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Allows making a shared object
+set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
 
 # -----------------------
 # Multiple-choice options
@@ -35,10 +36,12 @@ option(STANDALONE "Build Allen standalone" OFF)
 set(TARGET_DEVICE CPU CACHE STRING "Target architecture of the device")
 set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CPU CUDA HIP CUDACLANG)
 
-# Build type
-set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
-message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+# Build type (builds based on Gaudi are setting CMAKE_BUILD_TYPE in gaudi_project)
+if(STANDALONE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
+  message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+endif()
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
@@ -64,6 +67,12 @@ message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 # Support generating configuration with Allen standalone, and with Moore
 set(MOORE_GENERATOR CACHE BOOL OFF)
 set(MOORE_INSTALL_DIR CACHE STRING "")
+
+# General CMAKE CXX FLAGS option
+if(TREAT_WARNINGS_AS_ERRORS)
+  message(STATUS "Treating compiler warnings as errors")
+  string(APPEND CMAKE_CXX_FLAGS " -Werror")
+endif()
 
 # Deal with device target architecture
 if(NOT STANDALONE)
@@ -110,9 +119,6 @@ macro(allen_project)
 #Declare project name and version
     gaudi_project(Allen v0r9 USE Rec HEAD Online HEAD)
 
-#Use the lowest - common - denominator cpu arch
-    set(CPU_ARCH "x86-64 -msse4.2")
-
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
 
@@ -151,7 +157,6 @@ macro(allen_project)
       set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
       message(STATUS "Using internal gsl-lite")
     endif()
-
   endif()
 endmacro()
 
@@ -176,7 +181,7 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
     if(CUDA_ARCH STREQUAL "MAX")
       set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
       set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
-      execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
+      execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -std=c++17 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
       if(CUDA_ARCH STREQUAL "MAX")
         set(CHECK_ARGS "-l")
       endif()
@@ -266,7 +271,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
-  if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
@@ -363,10 +368,10 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   allen_project()
   enable_language(CUDA)
 
-  set(CMAKE_CUDA_STANDARD 14)
-  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
-  set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
-  set(CMAKE_CUDA_FLAGS_DEBUG "-G -g -DALLEN_DEBUG")
+  # set(CMAKE_CUDA_STANDARD 17) # 17 not supported by current CMake version
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-std=c++17 -O3 -g -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_RELEASE "-std=c++17 -O3 -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_DEBUG "-std=c++17 -G -g -DALLEN_DEBUG")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
@@ -390,9 +395,8 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-      # TODO: Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
-      #       don't link properly. Revisit this and turn off separable compilation once the
-      #       algorithms become non-templated.
+      # Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
+      # don't link properly.
       set_target_properties(${ARGV0} PROPERTIES CUDA_SEPARABLE_COMPILATION ON CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     else()
       set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -481,6 +485,8 @@ if (USE_ROOT)
    else()
      if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+     elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})        
      elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
      else()
@@ -522,7 +528,7 @@ endif()
 
 set(EXTERNAL_DIR "external")
 
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS iostreams)
 
 add_subdirectory(device)
 add_subdirectory(stream)
@@ -637,6 +643,8 @@ else()
   allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
 endif()
 
+find_package(Threads REQUIRED)
+
 target_link_libraries(AllenLib PUBLIC
   Stream
   Common
@@ -647,7 +655,8 @@ target_link_libraries(AllenLib PUBLIC
   SelChecking
   AllenMonitoring
   NonEventData
-  AllenZMQ)
+  AllenZMQ
+  Threads::Threads)
 
 if (USE_MPI AND MPI_FOUND)
   get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
@@ -670,6 +679,10 @@ if (GaudiProject_FOUND)
 endif()
 
 allen_add_executable(Allen ${main_cpp_path})
-target_link_libraries(Allen PRIVATE AllenLib)
- 
-  
+
+if (STANDALONE)
+  target_link_libraries(Allen PRIVATE AllenLib)
+else()
+  find_package(fmt REQUIRED)
+  target_link_libraries(Allen PRIVATE AllenLib fmt::fmt)
+endif()

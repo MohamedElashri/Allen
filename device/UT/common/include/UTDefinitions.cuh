@@ -20,28 +20,28 @@ namespace UT {
     static constexpr int chan_offset = 2;  // channel
     static constexpr int thre_offset = 15; // threshold
 
-    static constexpr uint ut_number_of_sectors_per_board = 6;
-    static constexpr uint ut_number_of_geometry_sectors = 1048;
-    static constexpr uint ut_decoding_in_order_threads_x = 64;
-    static constexpr uint ut_max_hits_shared_sector_group = 256;
+    static constexpr unsigned ut_number_of_sectors_per_board = 6;
+    static constexpr unsigned ut_number_of_geometry_sectors = 1048;
+    static constexpr unsigned ut_decoding_in_order_threads_x = 64;
+    static constexpr unsigned ut_max_hits_shared_sector_group = 256;
 
   } // namespace Decoding
 
   static constexpr int num_atomics = 3;
 
   namespace Constants {
-    static constexpr uint num_thr_compassut = 128;
-    static constexpr uint max_value_considered_before_found = 16;
+    static constexpr unsigned num_thr_compassut = 128;
+    static constexpr unsigned max_value_considered_before_found = 16;
 
     /* Detector description
        There are two stations with two layers each
     */
-    static constexpr uint n_layers = 4;
-    static constexpr uint n_regions_in_layer = 3;
+    static constexpr unsigned n_layers = 4;
+    static constexpr unsigned n_regions_in_layer = 3;
 
     /* Cut-offs */
-    static constexpr uint max_num_tracks = 400; // to do: what is the best / safest value here?
-    static constexpr uint max_track_size = 4;
+    static constexpr unsigned max_num_tracks = 400; // to do: what is the best / safest value here?
+    static constexpr unsigned max_track_size = 4;
 
     // zMidUT is a position of normalization plane which should
     // to be close to z middle of UT ( +- 5 cm ).

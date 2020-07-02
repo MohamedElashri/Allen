@@ -29,7 +29,7 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
 
 namespace Distance {
   __device__ float
-  velo_ip(Velo::Consolidated::ConstKalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+  velo_ip(Velo::Consolidated::ConstKalmanStates& velo_kalman_states, const unsigned state_index, const PV::Vertex& vertex)
   {
     float tx = velo_kalman_states.tx(state_index);
     float ty = velo_kalman_states.ty(state_index);
@@ -41,7 +41,7 @@ namespace Distance {
 
   __device__ float velo_ip_chi2(
     Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-    const uint state_index,
+    const unsigned state_index,
     const PV::Vertex& vertex)
   {
     // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
@@ -81,11 +81,11 @@ __device__ void associate(
   cuda::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table)
 {
-  for (uint i = threadIdx.x; i < table.size(); i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
-    for (uint j = 0; j < vertices.size(); ++j) {
+    for (unsigned j = 0; j < vertices.size(); ++j) {
       float val = fabsf(Distance::velo_ip(velo_kalman_states, i, *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
@@ -98,13 +98,13 @@ __device__ void associate(
 
 __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
 {
-  uint const number_of_events = gridDim.x;
-  uint const event_number = blockIdx.x;
+  unsigned const number_of_events = gridDim.x;
+  unsigned const event_number = blockIdx.x;
 
   // Consolidated Velo tracks for this event
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  uint const event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  unsigned const event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   Associate::Consolidated::Table velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
   velo_pv_ip.cutoff() = Associate::VeloPVIP::baseline;

@@ -52,7 +52,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
   auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
 
-  for (uint i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  for (unsigned i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
        i += blockDim.x) {
 
     // Note: The location of the indices depends on n_layouts.
@@ -64,7 +64,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
       const auto tile = Muon::MuonTileID(storage_tile_id[start_index]);
       const auto station = tile.station();
       const auto region = tile.region();
-      uint number_of_hits_in_station = 0;
+      unsigned number_of_hits_in_station = 0;
 
       const auto x1 = getLayoutX(
         parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
@@ -78,12 +78,12 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
       const auto layout1 = (x1 > x2 ? Muon::MuonLayout {x1, y1} : Muon::MuonLayout {x2, y2});
       const auto layout2 = (x1 > x2 ? Muon::MuonLayout {x2, y2} : Muon::MuonLayout {x1, y1});
 
-      for (uint digitsOneIndex = start_index; digitsOneIndex < mid_index; digitsOneIndex++) {
+      for (unsigned digitsOneIndex = start_index; digitsOneIndex < mid_index; digitsOneIndex++) {
         const unsigned int keyX =
           Muon::MuonTileID::nX(storage_tile_id[digitsOneIndex]) * layout2.xGrid() / layout1.xGrid();
         const unsigned int keyY = Muon::MuonTileID::nY(storage_tile_id[digitsOneIndex]);
 
-        for (uint digitsTwoIndex = mid_index; digitsTwoIndex < end_index; digitsTwoIndex++) {
+        for (unsigned digitsTwoIndex = mid_index; digitsTwoIndex < end_index; digitsTwoIndex++) {
           const unsigned int candidateX = Muon::MuonTileID::nX(storage_tile_id[digitsTwoIndex]);
           const unsigned int candidateY =
             Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]) * layout1.yGrid() / layout2.yGrid();

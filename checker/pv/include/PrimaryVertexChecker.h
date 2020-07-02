@@ -31,7 +31,7 @@ public:
 
   virtual ~PVChecker();
 
-  void accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex, uint n_selected_events);
+  void accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex, unsigned n_selected_events);
 
   void report(size_t n_events) const override;
 

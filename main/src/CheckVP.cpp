@@ -2,7 +2,7 @@
 
 #include "Tools.h"
 
-bool check_velopix_events(const std::vector<char>& events, const std::vector<uint>& event_offsets, size_t n_events)
+bool check_velopix_events(const std::vector<char>& events, const std::vector<unsigned>& event_offsets, size_t n_events)
 {
   int error_count = 0;
   int n_sps_all_events = 0;
@@ -22,7 +22,7 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uin
 
     const auto raw_event = VeloRawEvent(raw_input);
     int n_sps_event = 0;
-    for (uint i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks; i_raw_bank++) {
+    for (unsigned i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks; i_raw_bank++) {
       const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[i_raw_bank]);
       n_sps_event += raw_bank.sp_count;
       if (i_raw_bank != raw_bank.sensor_index) {

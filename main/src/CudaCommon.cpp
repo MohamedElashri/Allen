@@ -88,7 +88,7 @@ unsigned int atomicInc(unsigned int* address, unsigned int val)
 }
 
 namespace Configuration {
-  uint verbosity_level;
+  unsigned verbosity_level;
 }
 
 cudaError_t cudaHostUnregister(void*) { return 0; }

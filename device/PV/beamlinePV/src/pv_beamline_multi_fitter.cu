@@ -22,8 +22,14 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
 {
   initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, cuda_stream);
 
+#ifdef TARGET_DEVICE_CUDA
+  const auto block_dimension = dim3(32, property<block_dim_y_t>());
+#else
+  const auto block_dimension = dim3(1, property<block_dim_y_t>());
+#endif
+
   global_function(pv_beamline_multi_fitter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(first<host_number_of_selected_events_t>(arguments)), block_dimension, cuda_stream)(
     arguments, constants.dev_beamline.data());
 }
 
@@ -31,18 +37,18 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   pv_beamline_multi_fitter::Parameters parameters,
   const float* dev_beamline)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  uint* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  unsigned* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
-  const uint number_of_tracks = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const float* zseeds = parameters.dev_zpeaks + event_number * PV::max_number_vertices;
-  const uint number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
+  const unsigned number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
 
   const PVTrack* tracks = parameters.dev_pvtracks + event_tracks_offset;
 
@@ -55,8 +61,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   // Find out the tracks we have to process
   // Exploit the fact tracks are sorted by z
   int first_track_in_range = -1;
-  uint number_of_tracks_in_range = 0;
-  for (uint i = 0; i < number_of_tracks; i++) {
+  unsigned number_of_tracks_in_range = 0;
+  for (unsigned i = 0; i < number_of_tracks; i++) {
     const auto z = parameters.dev_pvtrack_z[event_tracks_offset + i];
     if (BeamlinePVConstants::Common::zmin < z && z < BeamlinePVConstants::Common::zmax) {
       if (first_track_in_range == -1) {
@@ -67,8 +73,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   }
 
   // make sure that we have one thread per seed
-  for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
-
+  for (unsigned i_thisseed = threadIdx.y; i_thisseed < number_of_seeds; i_thisseed += blockDim.y) {
     bool converged = false;
     bool accept = true;
     float vtxcov[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
@@ -79,8 +84,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
     auto vtxpos_z = seed_pos_z;
     float chi2tot = 0.f;
     float sum_weights = 0.f;
-    uint nselectedtracks = 0;
-    for (uint iter = 0;
+    unsigned nselectedtracks = 0;
+    for (unsigned iter = 0;
          (iter < BeamlinePVConstants::MultiFitter::maxFitIter || iter < BeamlinePVConstants::MultiFitter::minFitIter) &&
          !converged;
          ++iter) {
@@ -97,7 +102,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       float local_chi2tot = 0.f;
       float local_sum_weights = 0.f;
 
-      for (uint i = threadIdx.y; i < number_of_tracks_in_range; i += blockDim.y) {
+      for (unsigned i = threadIdx.x; i < number_of_tracks_in_range; i += blockDim.x) {
         // compute the chi2
         const PVTrackInVertex& trk = tracks[first_track_in_range + i];
 
@@ -144,25 +149,26 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         }
       }
 
-      // __syncthreads();
+#ifdef TARGET_DEVICE_CUDA
+      // Use CUDA warp-level primitives for adding up some numbers onto a single
+      // thread without using any shared memory.
+      // See https://developer.nvidia.com/blog/using-cuda-warp-level-primitives/
+      for (int i = 16; i > 0; i = i / 2) {
+        halfD2Chi2DX2_00 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_00, i);
+        halfD2Chi2DX2_11 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_11, i);
+        halfD2Chi2DX2_20 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_20, i);
+        halfD2Chi2DX2_21 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_21, i);
+        halfD2Chi2DX2_22 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_22, i);
+        halfDChi2DX.x += __shfl_down_sync(0xFFFFFFFF, halfDChi2DX.x, i);
+        halfDChi2DX.y += __shfl_down_sync(0xFFFFFFFF, halfDChi2DX.y, i);
+        halfDChi2DX.z += __shfl_down_sync(0xFFFFFFFF, halfDChi2DX.z, i);
+        local_chi2tot += __shfl_down_sync(0xFFFFFFFF, local_chi2tot, i);
+        local_sum_weights += __shfl_down_sync(0xFFFFFFFF, local_sum_weights, i);
+        nselectedtracks += __shfl_down_sync(0xFFFFFFFF, nselectedtracks, i);
+      }
+#endif
 
-      // for (int i = 16; i > 0; i = i / 2) {
-      //   halfD2Chi2DX2_00 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_00, i);
-      //   halfD2Chi2DX2_11 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_11, i);
-      //   halfD2Chi2DX2_20 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_20, i);
-      //   halfD2Chi2DX2_21 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_21, i);
-      //   halfD2Chi2DX2_22 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_22, i);
-      //   halfDChi2DX.x += __shfl_down_sync(0xFFFFFFFF, halfDChi2DX.x, i);
-      //   halfDChi2DX.y += __shfl_down_sync(0xFFFFFFFF, halfDChi2DX.y, i);
-      //   halfDChi2DX.z += __shfl_down_sync(0xFFFFFFFF, halfDChi2DX.z, i);
-      //   local_chi2tot += __shfl_down_sync(0xFFFFFFFF, chi2tot, i);
-      //   local_sum_weights += __shfl_down_sync(0xFFFFFFFF, sum_weights, i);
-      //   nselectedtracks += __shfl_down_sync(0xFFFFFFFF, nselectedtracks, i);
-      // }
-
-      // __syncthreads();
-
-      if (threadIdx.y == 0) {
+      if (threadIdx.x == 0) {
         chi2tot += local_chi2tot;
         sum_weights += local_sum_weights;
         // printf("sum weights %f\n", sum_weights);
@@ -208,10 +214,17 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         }
       }
 
-      // converged = __any_sync(0xFFFFFFFF, converged);
+#ifdef TARGET_DEVICE_CUDA
+      // Synchronize the value of thread 0 in the warp across the entire warp
+      // See https://developer.nvidia.com/blog/using-cuda-warp-level-primitives/
+      vtxpos_xy.x = __shfl_sync(0xFFFFFFFF, vtxpos_xy.x, 0);
+      vtxpos_xy.y = __shfl_sync(0xFFFFFFFF, vtxpos_xy.y, 0);
+      vtxpos_z = __shfl_sync(0xFFFFFFFF, vtxpos_z, 0);
+      converged = __shfl_sync(0xFFFFFFFF, converged, 0);
+#endif
     } // end iteration loop
 
-    if (accept && threadIdx.y == 0) {
+    if (accept && threadIdx.x == 0) {
       vertex.chi2 = chi2tot;
       vertex.setPosition(vtxpos_xy, vtxpos_z);
       vertex.setCovMatrix(vtxcov);
@@ -223,7 +236,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       if (
         nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex &&
         beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
-        uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
+        unsigned vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }
     }

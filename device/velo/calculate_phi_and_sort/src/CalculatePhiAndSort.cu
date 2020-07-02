@@ -44,23 +44,23 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
 
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
-  const uint event_number = blockIdx.x;
-  const uint number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
 
   // Pointers to data within the event
-  const uint total_estimated_number_of_clusters =
+  const unsigned total_estimated_number_of_clusters =
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
-  const uint* module_pair_hit_start =
+  const unsigned* module_pair_hit_start =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  const uint* module_pair_hit_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
+  const unsigned* module_pair_hit_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
   const auto velo_cluster_container =
     Velo::ConstClusters {parameters.dev_velo_cluster_container, total_estimated_number_of_clusters};
   auto velo_sorted_cluster_container =
     Velo::Clusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
 
-  const uint event_hit_start = module_pair_hit_start[0];
-  const uint event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
+  const unsigned event_hit_start = module_pair_hit_start[0];
+  const unsigned event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
 
   // Calculate phi and populate hit_permutations
   calculate_phi(
@@ -88,20 +88,20 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
  */
 __device__ void velo_calculate_phi_and_sort::calculate_phi(
   int16_t* shared_hit_phis,
-  const uint* module_pair_hit_start,
-  const uint* module_pair_hit_num,
+  const unsigned* module_pair_hit_start,
+  const unsigned* module_pair_hit_num,
   Velo::ConstClusters& velo_cluster_container,
   int16_t* hit_Phis,
-  uint* hit_permutations)
+  unsigned* hit_permutations)
 {
-  for (uint module_pair = 0; module_pair < Velo::Constants::n_module_pairs; ++module_pair) {
+  for (unsigned module_pair = 0; module_pair < Velo::Constants::n_module_pairs; ++module_pair) {
     const auto hit_start = module_pair_hit_start[module_pair];
     const auto hit_num = module_pair_hit_num[module_pair];
 
     assert(hit_num < Velo::Constants::max_numhits_in_module_pair);
 
     // Calculate phis
-    for (uint hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
+    for (unsigned hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
       const auto hit_index = hit_start + hit_rel_id;
       const auto hit_phi_int = hit_phi_16(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index));
       shared_hit_phis[hit_rel_id] = hit_phi_int;
@@ -111,13 +111,13 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
     __syncthreads();
 
     // Find the permutations given the phis in shared_hit_phis
-    for (uint hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
+    for (unsigned hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
       const auto hit_index = hit_start + hit_rel_id;
       const auto phi = shared_hit_phis[hit_rel_id];
 
       // Find out local position
-      uint position = 0;
-      for (uint j = 0; j < hit_num; ++j) {
+      unsigned position = 0;
+      for (unsigned j = 0; j < hit_num; ++j) {
         const auto other_phi = shared_hit_phis[j];
         // Stable sorting
         position += phi > other_phi || (phi == other_phi && hit_rel_id > j);
@@ -139,28 +139,28 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
  * @brief Sorts all VELO decoded data by phi onto another container.
  */
 __device__ void velo_calculate_phi_and_sort::sort_by_phi(
-  const uint event_hit_start,
-  const uint event_number_of_hits,
+  const unsigned event_hit_start,
+  const unsigned event_number_of_hits,
   Velo::ConstClusters& velo_cluster_container,
   Velo::Clusters& velo_sorted_cluster_container,
-  uint* hit_permutations)
+  unsigned* hit_permutations)
 {
-  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
   }
 
-  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
   }
 
-  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
   }
 
-  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
   }

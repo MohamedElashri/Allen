@@ -27,12 +27,12 @@ void ut_find_permutation::ut_find_permutation_t::operator()(
 
 __global__ void ut_find_permutation::ut_find_permutation(
   ut_find_permutation::Parameters parameters,
-  const uint* dev_unique_x_sector_layer_offsets)
+  const unsigned* dev_unique_x_sector_layer_offsets)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint sector_group_number = blockIdx.y;
-  const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned sector_group_number = blockIdx.y;
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
@@ -40,8 +40,8 @@ __global__ void ut_find_permutation::ut_find_permutation(
   UT::ConstPreDecodedHits ut_pre_decoded_hits {
     parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
-  const uint sector_group_number_of_hits = ut_hit_offsets.sector_group_number_of_hits(sector_group_number);
+  const unsigned sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
+  const unsigned sector_group_number_of_hits = ut_hit_offsets.sector_group_number_of_hits(sector_group_number);
 
   // Load yBegin into a shared memory container
   // TODO: Find a proper maximum and cover corner cases
@@ -51,7 +51,7 @@ __global__ void ut_find_permutation::ut_find_permutation(
     __syncthreads();
     assert(sector_group_number_of_hits < UT::Decoding::ut_max_hits_shared_sector_group);
 
-    for (uint i = threadIdx.x; i < sector_group_number_of_hits; i += blockDim.x) {
+    for (unsigned i = threadIdx.x; i < sector_group_number_of_hits; i += blockDim.x) {
       s_y_begin[i] = ut_pre_decoded_hits.sort_key(sector_group_offset + i);
     }
 
