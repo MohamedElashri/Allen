@@ -51,6 +51,18 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
     arguments, constants.dev_velo_geometry);
 }
 
+// template<int... Is>
+// void foo_helper(std::integer_sequence<int, Is...> const&)
+// {
+//   ((std::cout << Is << std::endl), ...);
+// }
+
+// template<int T, typename F>
+// void foo(const F& fn)
+// {
+//   foo_helper(std::make_integer_sequence<int, T> {});
+// }
+
 /**
  * @brief Track forwarding algorithm based on triplet finding.
  *
@@ -160,7 +172,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     dev_atomics_velo,
     parameters.max_scatter,
     hit_phi,
-    phi_tolerance);
+    phi_tolerance,
+    initial_seeding_h0_candidates);
 
   // Prepare forwarding - seeding loop
   // For an explanation on ttf, see below
@@ -225,7 +238,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       dev_atomics_velo,
       parameters.max_scatter,
       hit_phi,
-      phi_tolerance);
+      phi_tolerance,
+      seeding_h0_candidates);
 
     --first_module_pair;
   }
@@ -267,7 +281,8 @@ __device__ void track_seeding(
   unsigned* dev_atomics_velo,
   const float max_scatter,
   const int16_t* hit_phi,
-  const int16_t phi_tolerance)
+  const int16_t phi_tolerance,
+  const unsigned h0_candidates_to_consider)
 {
   // Add to an array all non-used h1 hits
   for (unsigned h1_rel_index = local_id<0>(); h1_rel_index < module_pair_data[shared::current_module_pair].hit_num;
@@ -295,7 +310,8 @@ __device__ void track_seeding(
       hit_used,
       max_scatter,
       hit_phi,
-      phi_tolerance);
+      phi_tolerance,
+      h0_candidates_to_consider);
 
     if (best_fit < max_scatter) {
       // Add the track to the container of seeds
@@ -320,7 +336,8 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
   const bool* hit_used,
   const float max_scatter,
   const int16_t* hit_phi,
-  const int16_t phi_tolerance)
+  const int16_t phi_tolerance,
+  const unsigned h0_candidates_to_consider)
 {
   // The output we are searching for
   uint16_t best_h0 = 0;
@@ -333,7 +350,7 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
   const auto h1_phi = hit_phi[h1_index];
 
   // Get candidates on previous module
-  std::array<unsigned, number_of_h0_candidates> best_h0s;
+  std::array<unsigned, max_h0_candidates> best_h0s;
 
   // Iterate over previous module until the first n candidates are found
   auto phi_index = binary_search_leftmost(
@@ -343,9 +360,9 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
 
   // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
   // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
-  int found_h0_candidates = 0;
+  unsigned found_h0_candidates = 0;
   for (unsigned i = 0;
-       i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < number_of_h0_candidates;
+       i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < h0_candidates_to_consider;
        ++i) {
     // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
     const auto sign = i & 0x01;
@@ -367,7 +384,7 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
 
   // Use the candidates found previously (best_h0s) to find the best triplet
   // Since data is sorted, search using a binary search
-  for (int i = 0; i < found_h0_candidates; ++i) {
+  for (unsigned i = 0; i < found_h0_candidates; ++i) {
     const auto h0_index = best_h0s[i];
     const Velo::HitBase h0 {
       velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
@@ -445,9 +462,11 @@ __device__ void track_seeding_vectorized(
   unsigned* dev_atomics_velo,
   const float max_scatter,
   const int16_t* hit_phi,
-  const int16_t phi_tolerance)
+  const int16_t phi_tolerance,
+  const unsigned h0_candidates_to_consider)
 {
-  for (unsigned h1_rel_index = 0; h1_rel_index < module_pair_data[shared::current_module_pair].hit_num; ++h1_rel_index) {
+  for (unsigned h1_rel_index = 0; h1_rel_index < module_pair_data[shared::current_module_pair].hit_num;
+       ++h1_rel_index) {
     const uint16_t h1_index = module_pair_data[shared::current_module_pair].hit_start + h1_rel_index;
     if (!hit_used[h1_index]) {
       // Output
@@ -461,7 +480,7 @@ __device__ void track_seeding_vectorized(
       const auto h1_phi = hit_phi[h1_index];
 
       // Get candidates on previous module
-      std::array<unsigned, number_of_h0_candidates> best_h0s;
+      std::array<unsigned, max_h0_candidates> best_h0s;
 
       // Iterate over previous module until the first n candidates are found
       auto phi_index = binary_search_leftmost(
@@ -472,8 +491,8 @@ __device__ void track_seeding_vectorized(
       // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
       // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
       unsigned found_h0_candidates = 0;
-      for (unsigned i = 0;
-           i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < number_of_h0_candidates;
+      for (unsigned i = 0; i < module_pair_data[shared::previous_module_pair].hit_num &&
+                           found_h0_candidates < h0_candidates_to_consider;
            ++i) {
         // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
         const auto sign = i & 0x01;
@@ -493,21 +512,25 @@ __device__ void track_seeding_vectorized(
         }
       }
 
-      // Process found_h0_candidates in batches of vector_length
-      for (unsigned candidate_batch = 0; candidate_batch < found_h0_candidates; candidate_batch += vector_length()) {
-        const auto batch_length = candidate_batch + vector_length() < found_h0_candidates ? vector_length() : found_h0_candidates - candidate_batch;
+      // Process found_h0_candidates in batches of vector128_length
+      // Note: Use vector of width 4 - Performance is impacted by Velo::Tracking::seeding_h0_candidates
+      // Note 2: If using Vector here, the highest supported vector width would be used
+      for (unsigned candidate_batch = 0; candidate_batch < found_h0_candidates; candidate_batch += vector128_length()) {
+        const auto batch_length = candidate_batch + vector128_length() < found_h0_candidates ?
+                                    vector128_length() :
+                                    found_h0_candidates - candidate_batch;
 
-        std::array<float, 3 * vector_length()> contents;
+        std::array<float, 3 * vector128_length()> contents;
         for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
           const auto h0_index = best_h0s[candidate_batch + vector_element];
           contents[vector_element] = velo_cluster_container.x(h0_index);
-          contents[vector_length() + vector_element] = velo_cluster_container.y(h0_index);
-          contents[2 * vector_length() + vector_element] = velo_cluster_container.z(h0_index);
+          contents[vector128_length() + vector_element] = velo_cluster_container.y(h0_index);
+          contents[2 * vector128_length() + vector_element] = velo_cluster_container.z(h0_index);
         }
 
-        const Vector<float> h0_xs (contents.data());
-        const Vector<float> h0_ys (contents.data() + vector_length());
-        const Vector<float> h0_zs (contents.data() + 2 * vector_length());
+        const Vector128<float> h0_xs(contents.data());
+        const Vector128<float> h0_ys(contents.data() + vector128_length());
+        const Vector128<float> h0_zs(contents.data() + 2 * vector128_length());
 
         const auto td = 1.0f / (h1.z - h0_zs);
         const auto txn = (h1.x - h0_xs);
@@ -525,10 +548,10 @@ __device__ void track_seeding_vectorized(
         const auto atan_value_f =
           (Velo::Tools::cudart_pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
 
-        std::array<int, number_of_h0_candidates> h2_candidate_indices;
-        std::array<int16_t, number_of_h0_candidates> extrapolated_phis;
-        std::array<unsigned, number_of_h0_candidates> hit_num_iteration;
-        Vector<bool> active = false;
+        std::array<int, vector128_length()> h2_candidate_indices;
+        std::array<int16_t, vector128_length()> extrapolated_phis;
+        std::array<unsigned, vector128_length()> hit_num_iteration;
+        Vector128<bool> active = false;
 
         for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
           const uint16_t atan_value_u16 = static_cast<uint16_t>(atan_value_f[vector_element]);
@@ -546,8 +569,8 @@ __device__ void track_seeding_vectorized(
           active.insert(vector_element, true);
         }
 
-        std::array<uint16_t, vector_length()> h2_indices_array;
-        while(active.hlor()) {
+        std::array<uint16_t, vector128_length()> h2_indices_array;
+        while (active.hlor()) {
           for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
             if (active[vector_element]) {
               if (hit_num_iteration[vector_element] == module_pair_data[shared::next_module_pair].hit_num) {
@@ -555,7 +578,9 @@ __device__ void track_seeding_vectorized(
               }
 
               while (hit_num_iteration[vector_element] < module_pair_data[shared::next_module_pair].hit_num) {
-                const auto index_in_bounds = (h2_candidate_indices[vector_element] + hit_num_iteration[vector_element]) % module_pair_data[shared::next_module_pair].hit_num;
+                const auto index_in_bounds =
+                  (h2_candidate_indices[vector_element] + hit_num_iteration[vector_element]) %
+                  module_pair_data[shared::next_module_pair].hit_num;
                 const uint16_t h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
                 hit_num_iteration[vector_element]++;
 
@@ -570,18 +595,18 @@ __device__ void track_seeding_vectorized(
                 if (!hit_used[h2_index]) {
                   h2_indices_array[vector_element] = h2_index;
                   contents[vector_element] = velo_cluster_container.x(h2_index);
-                  contents[vector_length() + vector_element] = velo_cluster_container.y(h2_index);
-                  contents[2 * vector_length() + vector_element] = velo_cluster_container.z(h2_index);
+                  contents[vector128_length() + vector_element] = velo_cluster_container.y(h2_index);
+                  contents[2 * vector128_length() + vector_element] = velo_cluster_container.z(h2_index);
                   break;
                 }
               }
             }
           }
 
-          const Vector<uint16_t> h2_indices (h2_indices_array.data());
-          const Vector<float> h2_xs (contents.data());
-          const Vector<float> h2_ys (contents.data() + vector_length());
-          const Vector<float> h2_zs (contents.data() + 2 * vector_length());
+          const Vector128<uint16_t> h2_indices(h2_indices_array.data());
+          const Vector128<float> h2_xs(contents.data());
+          const Vector128<float> h2_ys(contents.data() + vector128_length());
+          const Vector128<float> h2_zs(contents.data() + 2 * vector128_length());
 
           if (active.hlor()) {
             const auto dz = h2_zs - h0_zs;

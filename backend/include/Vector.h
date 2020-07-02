@@ -123,6 +123,13 @@ namespace Allen {
     struct Vector_t<bool, vector_backend::b512> {
       using t = UME::SIMD::SIMDVecMask<16>;
     };
+
+
+    template<typename T>
+    using Vector512 = typename Vector_t<T, vector_backend::b512>::t;
+#else
+    template<typename T>
+    using Vector512 = typename Vector_t<T, vector_backend::scalar>::t;
 #endif
 #if defined(__AVX__)
     template<>
@@ -169,6 +176,12 @@ namespace Allen {
     struct Vector_t<bool, vector_backend::b256> {
       using t = UME::SIMD::SIMDVecMask<8>;
     };
+
+    template<typename T>
+    using Vector256 = typename Vector_t<T, vector_backend::b256>::t;
+#else
+    template<typename T>
+    using Vector256 = typename Vector_t<T, vector_backend::scalar>::t;
 #endif
 #if defined(__SSE__) || defined(__ALTIVEC__) || defined(__aarch64__)
     template<>
@@ -215,7 +228,23 @@ namespace Allen {
     struct Vector_t<bool, vector_backend::b128> {
       using t = UME::SIMD::SIMDVecMask<4>;
     };
+
+    template<typename T>
+    using Vector128 = typename Vector_t<T, vector_backend::b128>::t;
+#else
+    template<typename T>
+    using Vector128 = typename Vector_t<T, vector_backend::scalar>::t;
 #endif
+
+#else
+    template<typename T>
+    using Vector512 = typename Vector_t<T, vector_backend::scalar>::t;
+
+    template<typename T>
+    using Vector256 = typename Vector_t<T, vector_backend::scalar>::t;
+
+    template<typename T>
+    using Vector128 = typename Vector_t<T, vector_backend::scalar>::t;
 #endif
 
     // Choose default vector width at compile time
@@ -228,13 +257,13 @@ namespace Allen {
     using Vector = typename Vector_t<T, CPU_STATIC_VECTOR_WIDTH>::t;
 #elif defined(__AVX512F__) || defined(__AVX512__)
     template<typename T>
-    using Vector = typename Vector_t<T, vector_backend::b512>::t;
+    using Vector = Vector512<T>;
 #elif defined(__AVX__)
     template<typename T>
-    using Vector = typename Vector_t<T, vector_backend::b256>::t;
+    using Vector = Vector256<T>;
 #elif defined(__SSE__) || defined(__aarch64__) || defined(__ALTIVEC__)
     template<typename T>
-    using Vector = typename Vector_t<T, vector_backend::b128>::t;
+    using Vector = Vector128<T>;
 #else
     template<typename T>
     using Vector = typename Vector_t<T, vector_backend::scalar>::t;
@@ -249,6 +278,25 @@ namespace Allen {
     constexpr size_t vector_length()
     {
       return Vector<T>::length();
+    }
+
+    // Length of specific vector lengths
+    template<typename T = float>
+    constexpr size_t vector128_length()
+    {
+      return Vector128<T>::length();
+    }
+
+    template<typename T = float>
+    constexpr size_t vector256_length()
+    {
+      return Vector256<T>::length();
+    }
+
+    template<typename T = float>
+    constexpr size_t vector512_length()
+    {
+      return Vector512<T>::length();
     }
 
     // Prints a vector
