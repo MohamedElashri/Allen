@@ -165,15 +165,16 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
     for (unsigned hit_rel_id = local_id<0>(); hit_rel_id < hit_num; hit_rel_id += local_size<0>() * vector_length()) {
       if (hit_rel_id + vector_length() <= hit_num) {
         // Do most iterations vectorized
-        Vector<float> xs;
-        Vector<float> ys;
-
-        for (unsigned i = 0; i < vector_length(); ++i) {
-          const auto hit_rel_vector_id = hit_rel_id + i;
+        std::array<float, 2 * vector_length()> contents;
+        for (unsigned vector_element = 0; vector_element < vector_length(); ++vector_element) {
+          const auto hit_rel_vector_id = hit_rel_id + vector_element;
           const auto hit_index = hit_start + hit_rel_vector_id;
-          xs[i] = velo_cluster_container.x(hit_index);
-          ys[i] = velo_cluster_container.y(hit_index);
+          contents[vector_element] = velo_cluster_container.x(hit_index);
+          contents[vector_length() + vector_element] = velo_cluster_container.y(hit_index);
         }
+
+        const Vector<float> xs (contents.data());
+        const Vector<float> ys (contents.data() + vector_length());
 
         const auto atan_value = fast_atan2f(ys, xs);
         const auto float_value = (Velo::Tools::cudart_pi_f_float + atan_value) * Velo::Tools::convert_factor;

@@ -372,8 +372,6 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
     const Velo::HitBase h0 {
       velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
 
-    // printf("h0 x: %f\nh0 y: %f\nh0 z: %f\n", h0.x, h0.y, h0.z);
-
     const auto td = 1.0f / (h1.z - h0.z);
     const auto txn = (h1.x - h0.x);
     const auto tyn = (h1.y - h0.y);
@@ -395,8 +393,6 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
     const auto candidate_h2_index = std::get<0>(candidate_h2);
     const auto extrapolated_phi = std::get<1>(candidate_h2);
 
-    // printf("atan_value_i16: %i\n", extrapolated_phi);
-
     for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
       const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
       const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
@@ -412,8 +408,6 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
         const Velo::HitBase h2 {
           velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
 
-        // printf("h2 index: %i\nh2 x: %f\nh2 y: %f\nh2 z: %f\n", h2_index, h2.x, h2.y, h2.z);
-
         const auto dz = h2.z - h0.z;
         const auto predx = h0.x + tx * dz;
         const auto predy = h0.y + ty * dz;
@@ -422,8 +416,6 @@ __device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
 
         // Scatter
         const auto scatter = dx * dx + dy * dy;
-
-        // printf("scatter: %f\n", scatter);
 
         // Keep the best one found
         if (scatter < best_fit) {
@@ -469,7 +461,7 @@ __device__ void track_seeding_vectorized(
       const auto h1_phi = hit_phi[h1_index];
 
       // Get candidates on previous module
-      std::array<unsigned, 4> best_h0s;
+      std::array<unsigned, number_of_h0_candidates> best_h0s;
 
       // Iterate over previous module until the first n candidates are found
       auto phi_index = binary_search_leftmost(
@@ -481,7 +473,7 @@ __device__ void track_seeding_vectorized(
       // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
       unsigned found_h0_candidates = 0;
       for (unsigned i = 0;
-           i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < 4;
+           i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < number_of_h0_candidates;
            ++i) {
         // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
         const auto sign = i & 0x01;
@@ -501,196 +493,114 @@ __device__ void track_seeding_vectorized(
         }
       }
 
-      if (found_h0_candidates != 4) {
-        // Use the candidates found previously (best_h0s) to find the best triplet
-        // Since data is sorted, search using a binary search
-        for (unsigned i = 0; i < found_h0_candidates; ++i) {
-          const auto h0_index = best_h0s[i];
-          const Velo::HitBase h0 {
-            velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
+      // Process found_h0_candidates in batches of vector_length
+      for (unsigned candidate_batch = 0; candidate_batch < found_h0_candidates; candidate_batch += vector_length()) {
+        const auto batch_length = candidate_batch + vector_length() < found_h0_candidates ? vector_length() : found_h0_candidates - candidate_batch;
 
-          // printf("h0 x: %f\nh0 y: %f\nh0 z: %f\n", h0.x, h0.y, h0.z);
-
-          const auto td = 1.0f / (h1.z - h0.z);
-          const auto txn = (h1.x - h0.x);
-          const auto tyn = (h1.y - h0.y);
-          const auto tx = txn * td;
-          const auto ty = tyn * td;
-
-          // Get candidates by performing a binary search in expected phi
-          const auto candidate_h2 = find_forward_candidate(
-            module_pair_data[shared::next_module_pair],
-            hit_phi,
-            h0,
-            tx,
-            ty,
-            module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0],
-            phi_tolerance);
-
-          // First candidate in the next module pair.
-          // Since the buffer is circular, finding the container size means finding the first element.
-          const auto candidate_h2_index = std::get<0>(candidate_h2);
-          const auto extrapolated_phi = std::get<1>(candidate_h2);
-
-          // printf("atan_value_i16: %i\n", extrapolated_phi);
-
-          for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
-            const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
-            const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
-
-            // Check the phi difference is within the tolerance with modulo arithmetic.
-            const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
-            const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
-            if (abs_phi_diff > phi_tolerance) {
-              break;
-            }
-
-            if (!hit_used[h2_index]) {
-              const Velo::HitBase h2 {
-                velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
-
-              // printf("h2 index: %i\nh2 x: %f\nh2 y: %f\nh2 z: %f\n", h2_index, h2.x, h2.y, h2.z);
-
-              const auto dz = h2.z - h0.z;
-              const auto predx = h0.x + tx * dz;
-              const auto predy = h0.y + ty * dz;
-              const auto dx = predx - h2.x;
-              const auto dy = predy - h2.y;
-
-              // Scatter
-              const auto scatter = dx * dx + dy * dy;
-
-              // printf("scatter: %f\n", scatter);
-
-              // Keep the best one found
-              if (scatter < best_fit) {
-                best_fit = scatter;
-                best_h0 = h0_index;
-                best_h2 = h2_index;
-              }
-            }
-          }
+        std::array<float, 3 * vector_length()> contents;
+        for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
+          const auto h0_index = best_h0s[candidate_batch + vector_element];
+          contents[vector_element] = velo_cluster_container.x(h0_index);
+          contents[vector_length() + vector_element] = velo_cluster_container.y(h0_index);
+          contents[2 * vector_length() + vector_element] = velo_cluster_container.z(h0_index);
         }
-      } else {
-        // Process found_h0_candidates in batches of vector_length
-        for (unsigned candidate_batch = 0; candidate_batch < found_h0_candidates; candidate_batch += vector_length()) {
-          const auto batch_length = candidate_batch + vector_length() < found_h0_candidates ? vector_length() : found_h0_candidates - candidate_batch;
 
-          std::array<int, number_of_h0_candidates> h2_candidate_indices;
-          std::array<int16_t, number_of_h0_candidates> extrapolated_phis;
-          std::array<unsigned, number_of_h0_candidates> hit_num_iteration;
-          Vector<bool> active = false;
-          Vector<float> h0_xs;
-          Vector<float> h0_ys;
-          Vector<float> h0_zs;
+        const Vector<float> h0_xs (contents.data());
+        const Vector<float> h0_ys (contents.data() + vector_length());
+        const Vector<float> h0_zs (contents.data() + 2 * vector_length());
 
+        const auto td = 1.0f / (h1.z - h0_zs);
+        const auto txn = (h1.x - h0_xs);
+        const auto tyn = (h1.y - h0_ys);
+        const auto tx = txn * td;
+        const auto ty = tyn * td;
+
+        // Calculate phi extrapolation
+        const auto dz =
+          module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0];
+        const auto predx = tx * dz;
+        const auto predy = ty * dz;
+        const auto x_prediction = h0_xs + predx;
+        const auto y_prediction = h0_ys + predy;
+        const auto atan_value_f =
+          (Velo::Tools::cudart_pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
+
+        std::array<int, number_of_h0_candidates> h2_candidate_indices;
+        std::array<int16_t, number_of_h0_candidates> extrapolated_phis;
+        std::array<unsigned, number_of_h0_candidates> hit_num_iteration;
+        Vector<bool> active = false;
+
+        for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
+          const uint16_t atan_value_u16 = static_cast<uint16_t>(atan_value_f[vector_element]);
+          const int16_t* atan_value_i16p = reinterpret_cast<const int16_t*>(&atan_value_u16);
+          const int16_t atan_value_i16 = atan_value_i16p[0];
+
+          const auto candidate_h2_index_found = binary_search_leftmost(
+            hit_phi + module_pair_data[shared::next_module_pair].hit_start,
+            module_pair_data[shared::next_module_pair].hit_num,
+            int16_t(atan_value_i16 - phi_tolerance));
+
+          h2_candidate_indices[vector_element] = candidate_h2_index_found;
+          extrapolated_phis[vector_element] = atan_value_i16;
+          hit_num_iteration[vector_element] = 0;
+          active.insert(vector_element, true);
+        }
+
+        std::array<uint16_t, vector_length()> h2_indices_array;
+        while(active.hlor()) {
           for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
-            const auto h0_index = best_h0s[candidate_batch + vector_element];
-            active.insert(vector_element, true);
-            h0_xs[vector_element] = velo_cluster_container.x(h0_index);
-            h0_ys[vector_element] = velo_cluster_container.y(h0_index);
-            h0_zs[vector_element] = velo_cluster_container.z(h0_index);
-          }
+            if (active[vector_element]) {
+              if (hit_num_iteration[vector_element] == module_pair_data[shared::next_module_pair].hit_num) {
+                active.insert(vector_element, false);
+              }
 
-          // print_vector(h0_xs, "h0_xs");
-          // print_vector(h0_ys, "h0_ys");
-          // print_vector(h0_zs, "h0_zs");
+              while (hit_num_iteration[vector_element] < module_pair_data[shared::next_module_pair].hit_num) {
+                const auto index_in_bounds = (h2_candidate_indices[vector_element] + hit_num_iteration[vector_element]) % module_pair_data[shared::next_module_pair].hit_num;
+                const uint16_t h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
+                hit_num_iteration[vector_element]++;
 
-          const auto td = 1.0f / (h1.z - h0_zs);
-          const auto txn = (h1.x - h0_xs);
-          const auto tyn = (h1.y - h0_ys);
-          const auto tx = txn * td;
-          const auto ty = tyn * td;
-
-          // Calculate phi extrapolation
-          const auto dz =
-            module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0];
-          const auto predx = tx * dz;
-          const auto predy = ty * dz;
-          const auto x_prediction = h0_xs + predx;
-          const auto y_prediction = h0_ys + predy;
-          const auto atan_value_f =
-            (Velo::Tools::cudart_pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
-
-          for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
-            const uint16_t atan_value_u16 = static_cast<uint16_t>(atan_value_f[vector_element]);
-            const int16_t* atan_value_i16p = reinterpret_cast<const int16_t*>(&atan_value_u16);
-            const int16_t atan_value_i16 = atan_value_i16p[0];
-
-            // printf("atan_value_i16: %i\n", atan_value_i16);
-
-            const auto candidate_h2_index_found = binary_search_leftmost(
-              hit_phi + module_pair_data[shared::next_module_pair].hit_start,
-              module_pair_data[shared::next_module_pair].hit_num,
-              int16_t(atan_value_i16 - phi_tolerance));
-
-            h2_candidate_indices[vector_element] = candidate_h2_index_found - 1;
-            extrapolated_phis[vector_element] = atan_value_i16;
-            hit_num_iteration[vector_element] = 0;
-          }
-
-          while(active.hlor()) {
-            Vector<uint16_t> h2_indices;
-            Vector<float> h2_xs;
-            Vector<float> h2_ys;
-            Vector<float> h2_zs;
-
-            for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
-              if (active[vector_element]) {
-                if (hit_num_iteration[vector_element] == module_pair_data[shared::next_module_pair].hit_num) {
+                // Check the phi difference is within the tolerance with modulo arithmetic.
+                const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phis[vector_element];
+                const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+                if (abs_phi_diff > phi_tolerance) {
                   active.insert(vector_element, false);
+                  break;
                 }
 
-                while (hit_num_iteration[vector_element] < module_pair_data[shared::next_module_pair].hit_num) {
-                  const auto index_in_bounds = (h2_candidate_indices[vector_element] + hit_num_iteration[vector_element]) % module_pair_data[shared::next_module_pair].hit_num;
-                  const uint16_t h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
-                  hit_num_iteration[vector_element]++;
-
-                  // Check the phi difference is within the tolerance with modulo arithmetic.
-                  const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phis[vector_element];
-                  const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
-                  if (abs_phi_diff > phi_tolerance) {
-                    active.insert(vector_element, false);
-                    break;
-                  }
-
-                  if (!hit_used[h2_index]) {
-                    h2_indices[vector_element] = h2_index;
-                    h2_xs[vector_element] = velo_cluster_container.x(h2_index);
-                    h2_ys[vector_element] = velo_cluster_container.y(h2_index);
-                    h2_zs[vector_element] = velo_cluster_container.z(h2_index);
-                    break;
-                  }
+                if (!hit_used[h2_index]) {
+                  h2_indices_array[vector_element] = h2_index;
+                  contents[vector_element] = velo_cluster_container.x(h2_index);
+                  contents[vector_length() + vector_element] = velo_cluster_container.y(h2_index);
+                  contents[2 * vector_length() + vector_element] = velo_cluster_container.z(h2_index);
+                  break;
                 }
               }
             }
+          }
 
-            if (active.hlor()) {
-              // print_vector(h2_indices, "h2_indices");
-              // print_vector(h2_xs, "h2_xs");
-              // print_vector(h2_ys, "h2_ys");
-              // print_vector(h2_zs, "h2_zs");
+          const Vector<uint16_t> h2_indices (h2_indices_array.data());
+          const Vector<float> h2_xs (contents.data());
+          const Vector<float> h2_ys (contents.data() + vector_length());
+          const Vector<float> h2_zs (contents.data() + 2 * vector_length());
 
-              const auto dz = h2_zs - h0_zs;
-              const auto predx = h0_xs + tx * dz;
-              const auto predy = h0_ys + ty * dz;
-              const auto dx = predx - h2_xs;
-              const auto dy = predy - h2_ys;
+          if (active.hlor()) {
+            const auto dz = h2_zs - h0_zs;
+            const auto predx = h0_xs + tx * dz;
+            const auto predy = h0_ys + ty * dz;
+            const auto dx = predx - h2_xs;
+            const auto dy = predy - h2_ys;
 
-              // Scatter
-              const auto scatter = dx * dx + dy * dy;
-              const auto mask = scatter < best_fit && active;
+            // Scatter
+            const auto scatter = dx * dx + dy * dy;
+            const auto mask = scatter < best_fit && active;
 
-              // print_vector(scatter, "scatter");
+            if (mask.hlor()) {
+              // Index of the best scatter in the vector, with mask
+              const auto best_scatter_vector_index = scatter.imin(mask);
 
-              if (mask.hlor()) {
-                // Index of the best scatter in the vector, with mask
-                const auto best_scatter_vector_index = scatter.imin(mask);
-
-                best_fit = scatter[best_scatter_vector_index];
-                best_h0 = best_h0s[candidate_batch + best_scatter_vector_index];
-                best_h2 = h2_indices[best_scatter_vector_index];
-              }
+              best_fit = scatter[best_scatter_vector_index];
+              best_h0 = best_h0s[candidate_batch + best_scatter_vector_index];
+              best_h2 = h2_indices[best_scatter_vector_index];
             }
           }
         }
@@ -792,10 +702,7 @@ __device__ void track_forwarding(
 
     // First candidate in the next module pair.
     // Since the buffer is circular, finding the container size means finding the first element.
-    const auto candidate_h2_index =
-      std::get<0>(candidate_h2) < static_cast<int>(module_pair_data[shared::next_module_pair].hit_num) ?
-        std::get<0>(candidate_h2) :
-        0;
+    const auto candidate_h2_index = std::get<0>(candidate_h2);
     const auto extrapolated_phi = std::get<1>(candidate_h2);
 
     for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
