@@ -553,7 +553,7 @@ __device__ void track_seeding_vectorized(
 
         std::array<int, vector128_length()> h2_candidate_indices;
         std::array<int16_t, vector128_length()> extrapolated_phis;
-        std::array<int, vector128_length()> hit_num_iteration;
+        std::array<unsigned, vector128_length()> hit_num_iteration;
         Vector128<bool> active = false;
 
         for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
@@ -577,13 +577,15 @@ __device__ void track_seeding_vectorized(
           for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
             if (active[vector_element]) {
 
-              while (hit_num_iteration[vector_element] < static_cast<int>(module_pair_data[shared::next_module_pair].hit_num)) {
+              while (true) {
+                // Increment before anything else. As a consequence, hit_num_iteration must be started at -1.
                 hit_num_iteration[vector_element]++;
-                if (hit_num_iteration[vector_element] == static_cast<int>(module_pair_data[shared::next_module_pair].hit_num)) {
+                if (hit_num_iteration[vector_element] == module_pair_data[shared::next_module_pair].hit_num) {
                   active.insert(vector_element, false);
                   break;
                 }
 
+                // Convert the index to an index in bounds
                 const auto index_in_bounds =
                   (h2_candidate_indices[vector_element] + hit_num_iteration[vector_element]) %
                   module_pair_data[shared::next_module_pair].hit_num;
@@ -597,6 +599,7 @@ __device__ void track_seeding_vectorized(
                   break;
                 }
 
+                // If the hit is unused, add it as a candidate
                 if (!hit_used[h2_index]) {
                   h2_indices_array[vector_element] = h2_index;
                   contents[vector_element] = velo_cluster_container.x(h2_index);
@@ -608,32 +611,33 @@ __device__ void track_seeding_vectorized(
             }
           }
 
-          if (active.hlor()) {
-            const Vector128<uint16_t> h2_indices(h2_indices_array.data());
-            const Vector128<float> h2_xs(contents.data());
-            const Vector128<float> h2_ys(contents.data() + vector128_length());
-            const Vector128<float> h2_zs(contents.data() + 2 * vector128_length());
-
-            const auto dz = h2_zs - h0_zs;
-            const auto predx = h0_xs + tx * dz;
-            const auto predy = h0_ys + ty * dz;
-            const auto dx = predx - h2_xs;
-            const auto dy = predy - h2_ys;
-
-            // Scatter
-            const auto scatter = dx * dx + dy * dy;
-            const auto mask = scatter < best_fit && active;
-
-            if (mask.hlor()) {
-              // Index of the best scatter in the vector, with mask
-              const auto best_scatter_vector_index = scatter.imin(mask);
-
-              best_fit = scatter[best_scatter_vector_index];
-              best_h0 = best_h0s[candidate_batch + best_scatter_vector_index];
-              best_h2 = h2_indices[best_scatter_vector_index];
-            }
-          } else {
+          // Exit condition: No active vector elements
+          if (!active.hlor()) {
             break;
+          }
+
+          const Vector128<uint16_t> h2_indices(h2_indices_array.data());
+          const Vector128<float> h2_xs(contents.data());
+          const Vector128<float> h2_ys(contents.data() + vector128_length());
+          const Vector128<float> h2_zs(contents.data() + 2 * vector128_length());
+
+          const auto dz = h2_zs - h0_zs;
+          const auto predx = h0_xs + tx * dz;
+          const auto predy = h0_ys + ty * dz;
+          const auto dx = predx - h2_xs;
+          const auto dy = predy - h2_ys;
+
+          // Scatter
+          const auto scatter = dx * dx + dy * dy;
+          const auto mask = scatter < best_fit && active;
+
+          if (mask.hlor()) {
+            // Index of the best scatter in the vector, with mask
+            const auto best_scatter_vector_index = scatter.imin(mask);
+
+            best_fit = scatter[best_scatter_vector_index];
+            best_h0 = best_h0s[candidate_batch + best_scatter_vector_index];
+            best_h2 = h2_indices[best_scatter_vector_index];
           }
         }
       }
