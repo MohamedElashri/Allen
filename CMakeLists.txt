@@ -332,7 +332,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
-#Setup HIPCC compiler
+  # Setup HIPCC compiler
   if(NOT DEFINED HIP_PATH)
     if(NOT DEFINED ENV{HIP_PATH})
       set(HIP_PATH "/opt/rocm/hip" CACHE PATH "Path to which HIP has been installed")
@@ -341,16 +341,11 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     endif()
   endif()
 
-#Set linker location
-  set(HCC_HOME "${HIP_PATH}/../hcc")
-  set(HCC_PATH "${HIP_PATH}/../hcc")
-
-  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
-  include_directories(${HIP_PATH}/include)
-  include_directories(${HIP_PATH}/../hsa/include)
-
   allen_project()
 
+  # Find HIP
+  set(HCC_PATH "${HIP_PATH}/../hcc")
+  set(CMAKE_MODULE_PATH "/opt/rocm/hip/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP QUIET REQUIRED)
   if(HIP_FOUND)
     message(STATUS "Found HIP: " ${HIP_VERSION})
@@ -358,9 +353,14 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable HIP_PATH is set.")
   endif()
 
+  # Set linker - This helps the linking process, which
+  # at the moment fails if we set up hip_add_executable instead
+  set(CMAKE_LINKER "${HIP_PATH}/bin/hipcc_cmake_linker_helper")
+  set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> ${HIP_PATH}/../llvm/bin <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+  set(CMAKE_CXX_CREATE_SHARED_LIBRARY "<CMAKE_LINKER> ${HIP_PATH}/../llvm/bin <CMAKE_SHARED_LIBRARY_CXX_FLAGS> <LANGUAGE_COMPILE_FLAGS> <LINK_FLAGS> <CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS> <SONAME_FLAG><TARGET_SONAME> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
+
   set(HIP_SEPARABLE_COMPILATION OFF)
 
-  string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-result")
 #HCC Options(HIPCC compiler)
 #Other warning options : -Wall - Wno - bitwise - op - parentheses - Wno - unused - variable - Wno - logical - op - \parentheses
   if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
@@ -368,17 +368,25 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-#Note : HIP does not support asserts for now
+  # Note: HIP does not support asserts for now, at least in Allen:
+  #       LLVM ERROR: could not scavenge SGPR to spill in entry function
+  #       PLEASE submit a bug report to https://bugs.llvm.org/ and include the crash backtrace.
     message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   else()
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif()
 
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
+  # To avoid /opt/rocm/hip/include/hip/hcc_detail/hip_runtime_api.h:1695:24: warning: ignoring returned value of type ‘hipError_t’, declared with attribute nodiscard [-Wunused-result]
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-result")
+
+  # Note: The off warnings are there for reasons we cannot control:
+  # clang-11: warning: argument unused during compilation: '--hip-device-lib-path=/local/rocm/rocm-3.5.1/lib' [-Wunused-command-line-argument]
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn -Wno-unused-command-line-argument")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -386,14 +394,14 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 #Define allen_add_device_library and allen_add_executable HIP specializations
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
-    hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    add_executable(${ARGV})
+    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -431,6 +439,8 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
+
+  set (CMAKE_LINKER "/usr/local/cuda/bin/nvcc")
 elseif(TARGET_DEVICE STREQUAL "CUDA")
   allen_project()
   enable_language(CUDA)

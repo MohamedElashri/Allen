@@ -61,43 +61,43 @@
 #if defined(DEVICE_COMPILER)
 namespace Allen {
   namespace device {
-    template<0>
-    struct local_t {
-      __device__ unsigned id() { return threadIdx.x; }
-      __device__ unsigned size() { return blockDim.x; }
+    template<>
+    struct local_t<0> {
+      __device__ static unsigned id() { return threadIdx.x; }
+      __device__ static unsigned size() { return blockDim.x; }
     };
 
-    template<1>
-    struct local_t {
-      __device__ unsigned id() { return threadIdx.y; }
-      __device__ unsigned size() { return blockDim.y; }
+    template<>
+    struct local_t<1> {
+      __device__ static unsigned id() { return threadIdx.y; }
+      __device__ static unsigned size() { return blockDim.y; }
     };
 
-    template<2>
-    struct local_t {
-      __device__ unsigned id() { return threadIdx.z; }
-      __device__ unsigned size() { return blockDim.z; }
+    template<>
+    struct local_t<2> {
+      __device__ static unsigned id() { return threadIdx.z; }
+      __device__ static unsigned size() { return blockDim.z; }
     };
 
     template<>
     struct global_t<0> {
-      __device__ unsigned id() { return blockIdx.x; }
-      __device__ unsigned size() { return gridDim.x; }
+      __device__ static unsigned id() { return blockIdx.x; }
+      __device__ static unsigned size() { return gridDim.x; }
     };
 
     template<>
     struct global_t<1> {
-      __device__ unsigned id() { return blockIdx.y; }
-      __device__ unsigned size() { return gridDim.y; }
+      __device__ static unsigned id() { return blockIdx.y; }
+      __device__ static unsigned size() { return gridDim.y; }
     };
 
     template<>
     struct global_t<2> {
-      __device__ unsigned id() { return blockIdx.z; }
-      __device__ unsigned size() { return gridDim.z; }
+      __device__ static unsigned id() { return blockIdx.z; }
+      __device__ static unsigned size() { return gridDim.z; }
     };
 
-    __device__ constexpr static void barrier() { __syncthreads(); }
+    __device__ static void barrier() { __syncthreads(); }
   } // namespace device
 } // namespace Allen
 #endif
