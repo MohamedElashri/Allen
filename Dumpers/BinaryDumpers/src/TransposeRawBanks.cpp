@@ -123,7 +123,6 @@ private:
     this,
     "BankTypes",
     {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon, LHCb::RawBank::ODIN}};
-  Gaudi::Property<bool> m_dumpToFile {this, "DumpToFile", true};
 
   std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
 };
