@@ -11,7 +11,7 @@
 
 // Host / device compiler identification
 #if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || \
-  (defined(TARGET_DEVICE_CUDACLANG) && defined(__clang__) && defined(__CUDA__)) || \
+  (defined(TARGET_DEVICE_CUDACLANG) && defined(__clang__) && defined(__CUDA__)) ||        \
   (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__)))
 #define DEVICE_COMPILER
 #endif
