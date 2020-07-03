@@ -11,6 +11,7 @@
 
 // Host / device compiler identification
 #if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || \
+  (defined(TARGET_DEVICE_CUDACLANG) && defined(__clang__) && defined(__CUDA__)) || \
   (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__)))
 #define DEVICE_COMPILER
 #endif
@@ -20,7 +21,7 @@
 #include "CPUBackend.h"
 #elif defined(TARGET_DEVICE_HIP)
 #include "HIPBackend.h"
-#elif defined(TARGET_DEVICE_CUDA)
+#elif defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_CUDACLANG)
 #include "CUDABackend.h"
 #endif
 

@@ -282,7 +282,7 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
       endif()
     elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
       foreach(arch ${CUDA_ARCH_LIST})
-        string(APPEND DEVICE_ARCHITECTURE " --device-gpu-arch=sm_${arch}")
+        string(APPEND DEVICE_ARCHITECTURE "--cuda-gpu-arch=sm_${arch} ")
       endforeach()
     endif()
   endif()
@@ -400,13 +400,15 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
   allen_project()
 
+  set(cuda_base_dir /cvmfs/sft.cern.ch/lcg/releases/cuda/10.1-6ddea/x86_64-centos7-gcc62-opt)
+  set(CMAKE_LINKER ${cuda_base_dir}/bin/nvcc)
+
   function(allen_add_host_library)
     add_library(${ARGV})
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_include_directories(${ARGV0} PRIVATE /cvmfs/sft.cern.ch/lcg/releases/cuda/10.1-6ddea/x86_64-centos7-gcc62-opt/include)
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
-
-  set(device_base_dir /usr/local/device-10.1)
 
   function(allen_add_device_library)
     foreach(arg IN LISTS ARGN)
@@ -417,13 +419,15 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
-    target_compile_options(${ARGV0} PRIVATE -x device --device-path=${device_base_dir} -pthread ${DEVICE_ARCHITECTURE})
+    target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} ${DEVICE_ARCHITECTURE})
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    # target_link_libraries(Threads::Threads)
   endfunction()
 
   function(allen_add_executable)
     message(STATUS "Please use nvcc to link the executable.")
     add_executable(${ARGV})
+    target_include_directories(${ARGV0} PRIVATE /cvmfs/sft.cern.ch/lcg/releases/cuda/10.1-6ddea/x86_64-centos7-gcc62-opt/include)
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -714,6 +718,7 @@ allen_add_device_library(AllenLib STATIC ${allen_lib_sources})
 #   allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
 # endif()
 
+# Required packages
 find_package(Threads REQUIRED)
 
 target_link_libraries(AllenLib PUBLIC

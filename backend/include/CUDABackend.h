@@ -4,12 +4,17 @@
 
 #pragma once
 
-#ifdef TARGET_DEVICE_CUDA
+#if defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_CUDACLANG)
 
 #include "BackendCommonInterface.h"
 
 #if !defined(DEVICE_COMPILER)
 #include <cuda_runtime_api.h>
+
+#if defined(TARGET_DEVICE_CUDACLANG)
+inline const char* cudaGetErrorString(cudaError_t error) { return ""; }
+#endif
+
 #endif
 
 #include <cuda_fp16.h>

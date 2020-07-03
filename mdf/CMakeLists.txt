@@ -117,7 +117,7 @@ endfunction()
 foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp)
   list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
 endforeach()
-allen_add_host_library(MdfTestCommon STATIC ${common_sources} ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
+allen_add_host_library(MdfTestCommon STATIC ${common_sources} ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cu)
 target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs)
 
 test_program(NAME mdf_to_mep)
