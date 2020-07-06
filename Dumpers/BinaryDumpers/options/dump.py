@@ -20,10 +20,10 @@ from Configurables import (DumpUTGeometry, DumpFTGeometry, DumpMuonTable,
                            DumpVPGeometry)
 from Configurables import RootHistCnv__PersSvc
 from Configurables import IODataManager
-from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
+from Configurables import (VPClus, createODIN, TransposeRawBanks, DumpRawBanks,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            DumpMagneticField, DumpBeamline, MuonRec,
-                           PrepareMuonHits)
+                           PrepareMuonHits, DumpUTHits)
 from Configurables import TestMuonTable
 
 app = LHCbApp(
@@ -63,7 +63,9 @@ ApplicationMgr().ExtSvc += [
 ]
 
 # Dump raw banks and UT, FT and muon hits
-dump_banks = DumpRawBanks(BankTypes=["VP", "UT", "FTCluster", "Muon"])
+transpose_banks = TransposeRawBanks(BankTypes=["VP", "UT", "FTCluster",
+                                               "Muon", "ODIN"])
+dump_banks = DumpRawBanks()
 dump_ut = DumpUTHits()
 dump_ft = DumpFTHits()
 dump_muon_coords = DumpMuonCoords()
@@ -71,8 +73,8 @@ dump_muon_hits = DumpMuonCommonHits()
 dump_seq = GaudiSequencer("DumpSeq")
 
 dump_seq.Members += [
-    dump_banks, dump_ut, dump_ft, dump_muon_coords, dump_muon_hits,
-    TestMuonTable()
+    transpose_banks, dump_banks, dump_ut, dump_ft,
+    dump_muon_coords, dump_muon_hits, TestMuonTable()
 ]
 
 ApplicationMgr().TopAlg = [dec_seq, dump_seq]

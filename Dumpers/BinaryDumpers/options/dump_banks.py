@@ -19,7 +19,7 @@ from Configurables import DumpUTGeometry
 from Configurables import RootHistCnv__PersSvc
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
-                           MuonRec, PrepareMuonHits)
+                           MuonRec, PrepareMuonHits, TransposeRawBanks)
 
 # new MC in tmp/
 #DDDBtag = "dddb-20171010"
@@ -59,14 +59,12 @@ dec_seq.Members = [
 ApplicationMgr().ExtSvc += [DumpUTGeometry()]
 
 # Dump raw banks and UT, FT and muon hits
-dump_banks = DumpRawBanks(BankTypes=["VP", "UT", "FTCluster", "Muon"])
-#dump_banks.OutputDirectory = "/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/mag_down/banks"
-dump_muon_coords = DumpMuonCoords()
-#dump_muon_coords.OutputDirectory = "/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/mag_down/muon_coords"
-dump_muon_hits = DumpMuonCommonHits()
-#dump_muon_hits.OutputDirectory = "/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/mag_down/muon_common_hits"
+transpose_banks = TransposeRawBanks(
+    BankTypes=["VP", "UT", "FTCluster", "Muon", "ODIN"],
+    RawEventLocations=["DAQ/RawEvent"])
+dump_banks = DumpRawBanks()
 dump_seq = GaudiSequencer("DumpSeq")
-dump_seq.Members += [dump_banks]
+dump_seq.Members += [transpose_banks, dump_banks]
 
 ApplicationMgr().TopAlg = [dec_seq, dump_seq]
 
