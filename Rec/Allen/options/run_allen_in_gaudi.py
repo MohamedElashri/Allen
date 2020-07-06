@@ -15,7 +15,7 @@ from Configurables import (TrackSys, GaudiSequencer)
 from Configurables import FTRawBankDecoder
 from Configurables import NTupleSvc
 from Gaudi.Configuration import appendPostConfigAction
-from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
+from Configurables import (VPClus, createODIN, TransposeRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
 from Configurables import RunAllen, AllenUpdater, AllenForwardToV2Tracks, AllenVeloToV2Tracks, AllenUTToV2Tracks
@@ -33,8 +33,7 @@ from Configurables import HltDecReportsDecoder, HltANNSvc, AllenDecReportsToTES
 import json
 import os
 
-conf_path = os.path.expandvars(
-    "$ALLEN_PROJECT_ROOT/configuration/constants/DefaultSequence.json")
+conf_path = os.path.expandvars("$ALLEN_INSTALL_DIR/constants/Sequence.json")
 lines = []
 with open(conf_path, 'r') as f:
     j = json.load(f)
@@ -156,12 +155,11 @@ NTupleSvc().Output = ["FILE1 DATAFILE='velo_states.root' TYP='ROOT' OPT='NEW'"]
 
 # Save raw banks in Allen format on the TES
 outputdirectory = "dump/"
-dump_banks = DumpRawBanks(
+transpose_banks = TransposeRawBanks(
     BankTypes=["VP", "UT", "FTCluster", "Muon", "ODIN"],
-    DumpToFile=False,
-    OutputDirectory=outputdirectory + "banks")
+    RawEventLocations=["DAQ/RawEvent"])
 dump_seq = GaudiSequencer("RecoAllenPrepareSeq")
-dump_seq.Members += [dump_banks]
+dump_seq.Members += [transpose_banks]
 
 # call Allen
 allen_seq = GaudiSequencer("RecoAllenSeq")
@@ -264,7 +262,7 @@ def addPrCheckerCutsAndPlots():
 
     allenReports = AllenDecReportsToTES()
     reports = HltDecReportsDecoder()
-    reports.RawEventLocations = "Allen/Out/DecReports"
+    reports.RawEventLocations = "Allen/Out/RawDecReports"
     reports.SourceID = 1
     GaudiSequencer("CheckAllenReportsSeq", Members=[allenReports, reports])
     ProcessPhase("Check").DetectorList += ["AllenReports"]
