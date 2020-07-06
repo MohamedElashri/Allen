@@ -7,8 +7,11 @@
 #include <array>
 #include <cstdint>
 #include <memory>
-#include <x86intrin.h>
 #include <cassert>
+
+#ifdef __x86_64__
+#include <x86intrin.h>
+#endif
 
 #ifdef __APPLE__
 #include <CpuID.h>
