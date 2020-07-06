@@ -15,6 +15,8 @@
 #include "Event/RawBank.h"
 #include "raw_helpers.hpp"
 
+#include <Common.h>
+
 #ifdef WITH_ROOT
 #include "root_mdf.hpp"
 #endif
@@ -342,7 +344,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
       hdr->setSize(new_len);
       hdr->setCompression(0);
       hdr->setChecksum(0);
-      return {false, false, {buffer.data(), static_cast<gsl::span<char>::index_type>(bnkSize + new_len)}};
+      return {false, false, {buffer.data(), static_cast<span_size_t<char>>(bnkSize + new_len)}};
     }
     else {
       cerr << "Failed to read compressed data\n";
@@ -367,7 +369,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     }
     return {false,
             false,
-            {buffer.data(), static_cast<gsl::span<char>::index_type>(bnkSize + static_cast<unsigned int>(readSize))}};
+            {buffer.data(), static_cast<span_size_t<char>>(bnkSize + static_cast<unsigned int>(readSize))}};
   }
 }
 

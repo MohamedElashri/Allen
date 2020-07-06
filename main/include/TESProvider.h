@@ -59,10 +59,8 @@ public:
       gsl::span<unsigned int const> offsets {m_offsets.data(), 2};
 
       // bank content
-      using data_span = gsl::span<char const>;
-      auto data_size = banks[bank].size();
-      auto span_size = static_cast<data_span::index_type>(data_size);
-      span<char const> b {banks[bank].data(), span_size};
+      auto data_size = static_cast<span_size_t<char const>>(banks[bank].size());
+      gsl::span<char const> b {banks[bank].data(), data_size};
 
       m_banks_and_offsets[allen_bank_index] = {{std::move(b)}, static_cast<std::size_t>(data_size), std::move(offsets)};
     }

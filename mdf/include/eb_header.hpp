@@ -2,12 +2,13 @@
 
 #include <vector>
 #include <gsl/gsl>
+#include <Common.h>
 
 namespace EB {
 
   namespace detail {
     template<typename T>
-    typename gsl::span<T>::index_type padded_size(uint16_t nf)
+    span_size_t<T> padded_size(uint16_t nf)
     {
       auto p32 = sizeof(int32_t) / sizeof(T);
       return (nf % p32) == 0 ? nf : (nf / p32 + 1) * p32;
@@ -27,7 +28,7 @@ namespace EB {
       auto size = padded_size<T>(nf);
       cont.resize(size);
       cont.assign(size, 0);
-      view = gsl::span<T> {&cont[0], static_cast<typename gsl::span<T>::index_type>(size)};
+      view = gsl::span<T> {&cont[0], static_cast<span_size_t<T>>(size)};
     }
   } // namespace detail
 
