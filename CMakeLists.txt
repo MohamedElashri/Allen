@@ -420,30 +420,32 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments")
 endif()
 
-#Detect target CPU architecture
-include(TargetArch)
-set(TARGET_CPU_ARCHITECTURE "")
-target_architecture(TARGET_CPU_ARCHITECTURE)
-message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
+if(STANDALONE)
+  #Detect target CPU architecture
+  include(TargetArch)
+  set(TARGET_CPU_ARCHITECTURE "")
+  target_architecture(TARGET_CPU_ARCHITECTURE)
+  message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 
-#Specific optimizations for different architectures
-if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
+  #Specific optimizations for different architectures
+  if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
-#x86 family
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
-#PowerPC family
-#More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
-  string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
-elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
+  #x86 family
+    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
+  #PowerPC family
+  #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
+    string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
-#ARM family
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
-#ARM64 family
-#Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
--falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+  #ARM family
+    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
+  #ARM64 family
+  #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
+    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
+    -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+  endif()
 endif()
 
 find_package(ZLIB REQUIRED)
