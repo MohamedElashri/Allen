@@ -11,12 +11,13 @@
 
 #ifdef __x86_64__
 #include <x86intrin.h>
-#endif
 
 #ifdef __APPLE__
 #include <CpuID.h>
 #else
 #include <cpuid.h>
+#endif
+
 #endif
 
 namespace cpu_id {
