@@ -261,25 +261,14 @@ public:
 
   inline bool operator!=(const half_t& a) const { return !operator==(a); }
 };
+
 #else
+
 /**
  * @brief half_t with float backend.
- * @details This class stores a float simulating the lost bits
- *          that would result from a conversion to a half datatype.
- *          It retains the functionality and frontend of the "real half",
- *          but its sizeof() will return 4.
  */
-// struct half_t {
-// private:
-//   float m_value;
-
-// public:
-//   half_t() = default;
-//   half_t(const half_t&) = default;
-//   half_t(const float f) { m_value = __half2float(__float2half(f)); }
-//   inline operator float() const { return m_value; }
-// };
 using half_t = float;
+
 #endif
 
 #define cudaCheck(stmt)                                \
