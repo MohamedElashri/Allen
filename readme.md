@@ -9,17 +9,17 @@ The project requires CMake 3.12, Python3 and a [compiler supporting C++17](https
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
-* CPU target: Any modern compiler can be used, such as gcc greater than 7.0:
+* CPU target: Any modern compiler can be used:
     
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     ```
     
-* CUDA target: The latest supported compilers are gcc-8 and clang-6. CUDA is
+* CUDA target: The latest supported compilers are gcc-9 and clang-10. CUDA is
   available in cvmfs as well:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     ```
     
