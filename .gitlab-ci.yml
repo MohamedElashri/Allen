@@ -56,7 +56,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
+    - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
     - ninja -j 8
   artifacts:
     expire_in: 2 hrs
@@ -89,7 +89,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
+    - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
     - ninja -j 8
   artifacts:
     expire_in: 2 hrs
@@ -122,7 +122,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
+    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
     - ninja -j 8
   artifacts:
     expire_in: 2 hrs
@@ -154,7 +154,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
+    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
     - ninja -j 8
   artifacts:
     expire_in: 2 hrs
