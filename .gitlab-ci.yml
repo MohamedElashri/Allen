@@ -52,7 +52,7 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
@@ -85,7 +85,7 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-clang8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
@@ -118,7 +118,7 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
@@ -150,7 +150,7 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-clang8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
@@ -198,7 +198,7 @@ docker_image:build:
     - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
     - RUN_OPTIONS="-n 1000 -m 1000"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - mkdir validation_output
     - ln -s validation_output output # Needed by Root build
     - cd build_${TARGET}
@@ -234,7 +234,7 @@ docker_image:build:
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - RUN_OPTIONS="-n 1000 -m 1000"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - mkdir validation_output
     - ln -s validation_output output # Needed by Root build
     - cd build_${TARGET}
@@ -274,7 +274,7 @@ docker_image:build:
     -   RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 8 -c 0"
     - fi
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -308,9 +308,9 @@ docker_image:build:
     - TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
-    - RUN_OPTIONS="-n 500 -m 500 -r 10 -t ${THREADS} -c 0"
+    - RUN_OPTIONS="-n 100 -m 100 -r 200 -t ${THREADS} -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -349,7 +349,7 @@ docker_image:build:
     -   RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 8 -c 0"
     - fi
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -382,8 +382,8 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
-    - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
 
 test_physics_efficiency:
   only:
@@ -443,8 +443,8 @@ test_physics_efficiency:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
-    - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
 
 .throughput_speedup_job: &publish_speedup_job_def
@@ -462,7 +462,7 @@ test_physics_efficiency:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # =====
