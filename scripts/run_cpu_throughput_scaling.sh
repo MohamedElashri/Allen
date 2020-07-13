@@ -19,7 +19,7 @@ ITERATIONS=$(($NUM_PROCESSORS / $NUM_NUMA_NODES))
 for i in `seq 1 ${ITERATIONS}`; do
   if [ $i -le 3 ] || [ $(($i % 4)) -eq 0 ]; then
     echo "Running iteration ${i}/${ITERATIONS}..."
-    numactl --cpunodebind=1 ${FOLDER}/Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down -n 200 -r 100 -c 0 -t $i > ${FOLDER}/${OUTPUT_FOLDER}/run_${i}.out
+    numactl --cpunodebind=1 --membind=1 ${FOLDER}/Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down -n 200 -r 100 -c 0 -t $i > ${FOLDER}/${OUTPUT_FOLDER}/run_${i}.out
   fi
 done
 
