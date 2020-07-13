@@ -1,12 +1,12 @@
 #!/bin/bash
 
 FOLDER=$1
-if [ -eq $FOLDER ""]; then
+if [ -z "$FOLDER" ]; then
   FOLDER="."
 fi
 
 OUTPUT_FOLDER=$2
-if [ -eq $OUTPUT_FOLDER ""]; then
+if [ -z "$OUTPUT_FOLDER" ]; then
   OUTPUT_FOLDER="output_`hostname`"
 fi
 
