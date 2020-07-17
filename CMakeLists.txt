@@ -117,7 +117,7 @@ macro(allen_project)
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
-    gaudi_project(Allen v0r9 USE Rec HEAD Online HEAD)
+    gaudi_project(Allen v0r9 USE Rec HEAD)
 
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
