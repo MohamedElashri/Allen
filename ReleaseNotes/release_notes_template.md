@@ -7,7 +7,7 @@
     'Core', 'Conditions', 'Utilities',
     'Simulation',  'Tuples', 'Accelerators',
     'Flavour tagging',
-    'Build',
+    'Build', 'Integration'
     ] -%}
 {% set used_mrs = [] -%}
 {% macro section(labels, mrs=merge_requests, used=used_mrs, indent='', highlight='highlight') -%}
@@ -39,6 +39,10 @@ Built relative to {{project}} [{{project_prev_tag}}](../-/tags/{{project_prev_ta
 ### Enhancements ~enhancement
 
 {{ section(['enhancement']) }}
+
+### Enhancements ~integration
+
+{{ section(['integration']) }}
 
 ### Code cleanups and changes to tests ~modernisation ~cleanup ~testing
 
