@@ -40,7 +40,7 @@ Built relative to {{project}} [{{project_prev_tag}}](../-/tags/{{project_prev_ta
 
 {{ section(['enhancement']) }}
 
-### Enhancements ~integration
+### Integration ~integration
 
 {{ section(['integration']) }}
 
