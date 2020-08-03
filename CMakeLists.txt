@@ -117,7 +117,7 @@ macro(allen_project)
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
-    gaudi_project(Allen v1r0 USE Rec HEAD)
+    gaudi_project(Allen v1r0 USE Rec v31r1)
 
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
@@ -373,7 +373,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   set(CMAKE_CUDA_FLAGS_RELEASE "-std=c++17 -O3 -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_DEBUG "-std=c++17 -G -g -DALLEN_DEBUG")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-  
+
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
   if (CUDA_VERBOSE_BUILD)
     set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
@@ -488,7 +488,7 @@ if (USE_ROOT)
      if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
      elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})        
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
      elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
      else()
