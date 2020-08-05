@@ -41,7 +41,7 @@ __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_ext
 
   for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     const auto s {velo_states.get(event_tracks_offset + index)};
-    parameters.dev_pvtrack_unsorted_z[total_number_of_tracks + event_tracks_offset + index] = s.z;
+    parameters.dev_pvtrack_unsorted_z[event_tracks_offset + index] = s.z;
   }
 
   __syncthreads();
