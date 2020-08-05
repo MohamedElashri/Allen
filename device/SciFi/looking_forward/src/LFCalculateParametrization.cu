@@ -41,7 +41,7 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
     const auto velo_track_index = ut_tracks.velo_track(track.ut_track_index);
 
     const unsigned velo_states_index = velo_tracks_offset_event + velo_track_index;
-    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
+    const MiniState velo_state = velo_states.get(velo_states_index);
 
     // Note: The notation 1, 2, 3 is used here (instead of h0, h1, h2)
     //       to avoid mistakes, as the code is similar to that of Hybrid Seeding

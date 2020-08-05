@@ -72,7 +72,7 @@ __global__ void ut_search_windows::ut_search_windows(
       const auto current_velo_track = ut_selected_velo_tracks[i];
 
       const unsigned current_track_offset = event_tracks_offset + current_velo_track;
-      const MiniState velo_state = velo_states.getMiniState(current_track_offset);
+      const MiniState velo_state = velo_states.get(current_track_offset);
 
       const auto candidates = calculate_windows(
         layer,

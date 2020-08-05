@@ -71,7 +71,7 @@ float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& v
 }
 
 float ipVelo(
-  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
+  Velo::Consolidated::ConstStates& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex)
 {
@@ -85,7 +85,7 @@ float ipVelo(
 }
 
 float ipxVelo(
-  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
+  Velo::Consolidated::ConstStates& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex)
 {
@@ -97,7 +97,7 @@ float ipxVelo(
 }
 
 float ipyVelo(
-  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
+  Velo::Consolidated::ConstStates& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex)
 {
@@ -109,7 +109,7 @@ float ipyVelo(
 }
 
 float ipChi2Velo(
-  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
+  Velo::Consolidated::ConstStates& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex)
 {
@@ -145,7 +145,7 @@ float ipChi2Velo(
 }
 
 float veloDOCAz(
-  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
+  Velo::Consolidated::ConstStates& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex)
 {
@@ -208,7 +208,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
 
     // Make the VELO states.
     const unsigned event_velo_tracks_offset = velo_tracks.tracks_offset(i_event);
-    Velo::Consolidated::ConstKalmanStates velo_states {velo_states_base, velo_tracks.total_number_of_tracks()};
+    Velo::Consolidated::ConstStates velo_states {velo_states_base, velo_tracks.total_number_of_tracks()};
 
     // Loop over tracks.
     const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
