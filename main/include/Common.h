@@ -6,6 +6,7 @@
 #include <iostream>
 #include <utility>
 #include <functional>
+#include <gsl/gsl>
 
 #include "SystemOfUnits.h"
 
@@ -118,3 +119,22 @@ namespace detail {
 
 template<template<class...> class Trait, class... Args>
 using is_detected = typename detail::is_detected<Trait, void, Args...>::type;
+
+using events_span = gsl::span<char>;
+using offsets_span = gsl::span<unsigned int>;
+
+// Wrapper around span size to deal with changes between MS GSL 2.5 and 2.6
+template<typename T>
+struct span_size {
+#if defined(gsl_lite_VERSION) || (GSL_MAJOR_VERSION == 2 && GSL_MINON_VERSION < 6)
+  using type = typename gsl::span<T>::index_type;
+#else
+  using type = typename gsl::span<T>::size_type;
+#endif
+};
+
+template<typename T>
+using span_size_t = typename span_size<T>::type;
+
+using events_size = span_size_t<char>;
+using offsets_size = span_size_t<unsigned int>;

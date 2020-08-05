@@ -183,13 +183,14 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
     const bool dec = line_report & dec_mask;
     const auto it = m_line_names.find(std::to_string(i));
     const std::string name = it->second;
+    const std::string modified_name = "Hlt1" + name + "Decision";
     m_hlt1_line_rates[i].buffer() += int(dec);
     // Note: the line index in a DecReport cannot be zero -> start at 1
     const int dec_rep_index = i + 1;
-    verbose() << "Adding Allen line " << dec_rep_index << " with name " << name << " to HltDecReport with decision "
+    verbose() << "Adding Allen line " << dec_rep_index << " with name " << modified_name << " to HltDecReport with decision "
               << int(dec) << endmsg;
 
-    reports.insert(name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
+    reports.insert(modified_name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
   }
   if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << unsigned(filter) << endmsg;
   return std::make_tuple(filter, *buffer, reports);

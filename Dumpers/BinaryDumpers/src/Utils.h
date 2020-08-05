@@ -15,9 +15,10 @@
 #include <boost/interprocess/streams/vectorstream.hpp>
 
 #include <Kernel/MuonTileID.h>
+#include <Kernel/STLExtensions.h>
 #include <fstream>
 #include <functional>
-#include <gsl/span>
+
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -82,7 +83,7 @@ namespace DumpUtils {
       }
       else {
         static_assert(std::is_trivially_copyable_v<typename T::value_type>);
-        return write(os, as_bytes(gsl::make_span(t)));
+        return write(os, as_bytes(LHCb::make_span(t)));
       }
     }
 

@@ -27,7 +27,7 @@ std::tuple<bool, std::string> set_device(int, size_t)
   std::string processor_name {(std::istreambuf_iterator<char>(cmd_ifstream)), (std::istreambuf_iterator<char>())};
 
   // Clean the string
-  const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))|(\n)"};
+  const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))|(\n)|( Processor)"};
   processor_name = std::regex_replace(processor_name, regex_to_remove, std::string {});
 
   return {true, processor_name};

@@ -243,7 +243,7 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
         }
       });
   }
-  
+
   return sc;
 }
 

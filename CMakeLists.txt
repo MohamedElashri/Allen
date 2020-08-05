@@ -117,7 +117,7 @@ macro(allen_project)
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
-    gaudi_project(Allen v0r9 USE Rec HEAD Online HEAD)
+    gaudi_project(Allen v1r0 USE Rec v31r1)
 
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
@@ -373,7 +373,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   set(CMAKE_CUDA_FLAGS_RELEASE "-std=c++17 -O3 -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_DEBUG "-std=c++17 -G -g -DALLEN_DEBUG")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-  
+
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
   if (CUDA_VERBOSE_BUILD)
     set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
@@ -420,30 +420,32 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments")
 endif()
 
-#Detect target CPU architecture
-include(TargetArch)
-set(TARGET_CPU_ARCHITECTURE "")
-target_architecture(TARGET_CPU_ARCHITECTURE)
-message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
+if(STANDALONE)
+  #Detect target CPU architecture
+  include(TargetArch)
+  set(TARGET_CPU_ARCHITECTURE "")
+  target_architecture(TARGET_CPU_ARCHITECTURE)
+  message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 
-#Specific optimizations for different architectures
-if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
+  #Specific optimizations for different architectures
+  if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
-#x86 family
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
-#PowerPC family
-#More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
-  string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
-elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
+  #x86 family
+    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
+  #PowerPC family
+  #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
+    string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
-#ARM family
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
-#ARM64 family
-#Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
-  string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
--falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+  #ARM family
+    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
+  #ARM64 family
+  #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
+    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
+    -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+  endif()
 endif()
 
 find_package(ZLIB REQUIRED)
@@ -486,7 +488,7 @@ if (USE_ROOT)
      if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
      elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})        
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
      elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
      else()
