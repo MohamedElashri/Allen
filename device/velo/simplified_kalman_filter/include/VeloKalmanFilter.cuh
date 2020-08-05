@@ -92,7 +92,7 @@ namespace velo_kalman_filter {
     state.c33 += noise2PerLayer;
 
     auto delta_z=0.f;
-    if(upstream)
+    if (upstream)
       // Propagate to the closest point near the beam line
       delta_z = -(state.x * state.tx + state.y * state.ty) / (state.tx * state.tx + state.ty * state.ty);
     else
@@ -101,7 +101,19 @@ namespace velo_kalman_filter {
 
     state.x = state.x + state.tx * delta_z;
     state.y = state.y + state.ty * delta_z;
-    state.z = state.z + delta_z;
+
+    // TODO: Understand this logic (coming from the PV finder)
+    if (delta_z * state.c20 >= 0.f && delta_z * state.c31 >= 0.f) {
+      state.z = state.z + delta_z;
+    } else {
+      state.z = -9999.f;
+    }
+
+    // Update the covariance states
+    // TODO: Check correctness of this code
+    const auto dz2 = delta_z * delta_z;
+    state.c00 += dz2 * state.c22 + 2.f * fabsf(delta_z * state.c20);
+    state.c11 += dz2 * state.c33 + 2.f * fabsf(delta_z * state.c31);
 
     // finally, store the state
     return state;
