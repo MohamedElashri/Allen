@@ -10,26 +10,13 @@
 struct PVTrack {
   __host__ __device__ PVTrack() {}
 
-  __host__ __device__ PVTrack(const KalmanVeloState& state, const float dz) :
-    z {state.z + dz}, x {state.x + dz * state.tx, state.y + dz * state.ty}, tx {state.tx, state.ty}
-  {
-
-    float state_tmp_c00 = state.c00;
-    float state_tmp_c11 = state.c11;
-
-    float dz2 = dz * dz;
-
-    // TODO: check if fabsf is needed here
-    state_tmp_c00 += dz2 * state.c22 + 2.f * fabsf(dz * state.c20);
-    state_tmp_c11 += dz2 * state.c33 + 2.f * fabsf(dz * state.c31);
-    W_00 = 1.f / state_tmp_c00;
-    W_11 = 1.f / state_tmp_c11;
-  }
+  __host__ __device__ PVTrack(const KalmanVeloState& state) :
+    z {state.z}, x {state.x, state.y}, tx {state.tx, state.ty}, W_00{1.f / state.c00}, W_11 {1.f / state.c11}
+  {}
 
   float z {0};
   float2 x;  /// position (x,y)
   float2 tx; /// direction (tx,ty)
-  // to do: check whether this needs to be a double
   float W_00; /// weightmatrix
   float W_11;
 };
