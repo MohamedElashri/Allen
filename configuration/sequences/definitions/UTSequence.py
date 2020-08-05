@@ -65,7 +65,8 @@ def UTSequence(initialize_lists,
         dev_offsets_all_velo_tracks_t(),
         dev_offsets_velo_track_hit_number_t=
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-        dev_velo_beamline_states_t=velo_kalman_filter.dev_velo_kalman_beamline_states_t(),
+        dev_velo_beamline_states_t=velo_kalman_filter.
+        dev_velo_kalman_beamline_states_t(),
         dev_accepted_velo_tracks_t=velo_consolidate_tracks.
         dev_accepted_velo_tracks_t(),
         dev_velo_track_hits_t=velo_consolidate_tracks.dev_velo_track_hits_t())
@@ -85,7 +86,8 @@ def UTSequence(initialize_lists,
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
             prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
+            dev_velo_states_t=velo_kalman_filter.
+            dev_velo_kalman_endvelo_states_t(),
             dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
             dev_ut_number_of_selected_velo_tracks_t(),
             dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
@@ -103,7 +105,8 @@ def UTSequence(initialize_lists,
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
             prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
+            dev_velo_states_t=velo_kalman_filter.
+            dev_velo_kalman_endvelo_states_t(),
             dev_accepted_velo_tracks_t=velo_consolidate_tracks.
             dev_accepted_velo_tracks_t(),
             dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
@@ -123,7 +126,8 @@ def UTSequence(initialize_lists,
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
             prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
+            dev_velo_states_t=velo_kalman_filter.
+            dev_velo_kalman_endvelo_states_t(),
             dev_ut_windows_layers_t=ut_search_windows.
             dev_ut_windows_layers_t(),
             dev_ut_number_of_selected_velo_tracks_with_windows_t=
@@ -148,7 +152,8 @@ def UTSequence(initialize_lists,
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
             prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
+            dev_velo_states_t=velo_kalman_filter.
+            dev_velo_kalman_endvelo_states_t(),
             dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
             dev_ut_number_of_selected_velo_tracks_t(),
             dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
@@ -166,7 +171,8 @@ def UTSequence(initialize_lists,
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
             prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
+            dev_velo_states_t=velo_kalman_filter.
+            dev_velo_kalman_endvelo_states_t(),
             dev_accepted_velo_tracks_t=velo_consolidate_tracks.
             dev_accepted_velo_tracks_t(),
             dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
@@ -186,7 +192,8 @@ def UTSequence(initialize_lists,
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
             prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
+            dev_velo_states_t=velo_kalman_filter.
+            dev_velo_kalman_endvelo_states_t(),
             dev_ut_windows_layers_t=ut_search_windows.
             dev_ut_windows_layers_t(),
             dev_ut_number_of_selected_velo_tracks_with_windows_t=

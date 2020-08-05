@@ -3,8 +3,7 @@ from definitions.algorithms import *
 
 def PVSequence(initialize_lists, velo_copy_track_hit_number,
                velo_consolidate_tracks,
-               prefix_sum_offsets_velo_track_hit_number,
-               velo_kalman_filter):
+               prefix_sum_offsets_velo_track_hit_number, velo_kalman_filter):
 
     pv_beamline_extrapolate = pv_beamline_extrapolate_t(
         name="pv_beamline_extrapolate",
