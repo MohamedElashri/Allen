@@ -11,6 +11,7 @@ def ForwardSequence(initialize_lists,
                     prefix_sum_ut_tracks,
                     prefix_sum_ut_track_hit_number,
                     ut_consolidate_tracks,
+                    velo_kalman_filter,
                     forward_decoding="v4"):
 
     scifi_banks = data_provider_t(name="scifi_banks", bank_type="FTCluster")
@@ -74,7 +75,7 @@ def ForwardSequence(initialize_lists,
         dev_offsets_all_velo_tracks_t(),
         dev_offsets_velo_track_hit_number_t=
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-        dev_velo_states_t=velo_consolidate_tracks.dev_velo_states_t(),
+        dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
         dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
         dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
         dev_output_buffer_t(),
@@ -94,7 +95,7 @@ def ForwardSequence(initialize_lists,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
         dev_offsets_all_velo_tracks_t(),
-        dev_velo_states_t=velo_consolidate_tracks.dev_velo_states_t(),
+        dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
         dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
         dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
         dev_output_buffer_t(),
@@ -118,7 +119,7 @@ def ForwardSequence(initialize_lists,
         dev_offsets_all_velo_tracks_t(),
         dev_offsets_velo_track_hit_number_t=
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-        dev_velo_states_t=velo_consolidate_tracks.dev_velo_states_t(),
+        dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
         dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
         dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
         dev_output_buffer_t(),
@@ -165,7 +166,7 @@ def ForwardSequence(initialize_lists,
         dev_scifi_lf_parametrization_length_filter_t=lf_quality_filter_length.
         dev_scifi_lf_parametrization_length_filter_t(),
         dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t(),
-        dev_velo_states_t=velo_consolidate_tracks.dev_velo_states_t(),
+        dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_endvelo_states_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
         dev_offsets_all_velo_tracks_t(),
         dev_offsets_velo_track_hit_number_t=

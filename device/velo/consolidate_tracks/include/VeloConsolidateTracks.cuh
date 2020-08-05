@@ -23,7 +23,6 @@ namespace velo_consolidate_tracks {
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
     (DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char), dev_sorted_velo_cluster_container),
     (DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned), dev_offsets_estimated_input_size),
-    (DEVICE_OUTPUT(dev_velo_states_t, char), dev_velo_states),
     (DEVICE_INPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits), dev_three_hit_tracks_output),
     (DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned), dev_offsets_number_of_three_hit_tracks_filtered),
     (DEVICE_OUTPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),

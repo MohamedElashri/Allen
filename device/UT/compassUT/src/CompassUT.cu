@@ -128,7 +128,7 @@ __device__ void compass_ut::compass_ut_tracking(
   const float sigma_velo_slope)
 {
   // select velo track to join with UT hits
-  const MiniState velo_state = velo_states.getMiniState(current_track_offset);
+  const MiniState velo_state = velo_states.get(current_track_offset);
 
   fill_shared_windows(windows_layers, number_of_tracks_event, i_track, win_size_shared);
 

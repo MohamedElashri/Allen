@@ -72,7 +72,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
     for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
       const int velo_track_index = ut_tracks.velo_track(i_track);
       const unsigned velo_state_index = velo_event_tracks_offset + velo_track_index;
-      const VeloState velo_state = velo_states.get(velo_state_index);
+      const auto velo_state = velo_states.get(velo_state_index);
 
       Checker::Track t;
 
