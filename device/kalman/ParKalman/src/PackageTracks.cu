@@ -55,11 +55,11 @@ __global__ void package_kalman_tracks::package_kalman_tracks(package_kalman_trac
     // Prepare fit input.
     const int i_ut_track = scifi_tracks.ut_track(i_scifi_track);
     const int i_velo_track = ut_tracks.velo_track(i_ut_track);
-    Velo::Consolidated::ConstKalmanStates kalmanvelo_states {parameters.dev_velo_kalman_beamline_states,
-                                                             velo_tracks.total_number_of_tracks()};
-    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track] =
-      ParKalmanFilter::FittedTrack {kalmanvelo_states.get(velo_tracks.tracks_offset(event_number) + i_velo_track),
-                                    scifi_tracks.qop(i_scifi_track),
-                                    parameters.dev_is_muon[scifi_tracks.tracks_offset(event_number) + i_scifi_track]};
+    Velo::Consolidated::ConstStates kalmanvelo_states {
+      parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
+    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track] = ParKalmanFilter::FittedTrack {
+      kalmanvelo_states.get_kalman_state(velo_tracks.tracks_offset(event_number) + i_velo_track),
+      scifi_tracks.qop(i_scifi_track),
+      parameters.dev_is_muon[scifi_tracks.tracks_offset(event_number) + i_scifi_track]};
   }
 }

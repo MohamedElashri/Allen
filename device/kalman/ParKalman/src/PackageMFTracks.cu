@@ -53,12 +53,12 @@ __global__ void package_mf_tracks::package_mf_tracks(
   for (unsigned i_ut_track = threadIdx.x; i_ut_track < ut_tracks.number_of_tracks(i_event); i_ut_track += blockDim.x) {
 
     const int i_velo_track = ut_tracks.velo_track(i_ut_track);
-    Velo::Consolidated::ConstKalmanStates kalmanvelo_states {parameters.dev_velo_kalman_beamline_states,
-                                                             velo_tracks.total_number_of_tracks()};
-    const KalmanVeloState velo_state = kalmanvelo_states.get(velo_tracks.tracks_offset(i_event) + i_velo_track);
-    event_mf_tracks[i_ut_track] =
-      ParKalmanFilter::FittedTrack {velo_state,
-                                    ut_tracks.qop(i_ut_track),
-                                    parameters.dev_match_upstream_muon[ut_tracks.tracks_offset(i_event) + i_ut_track]};
+    Velo::Consolidated::ConstStates kalmanvelo_states {
+      parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
+    const KalmanVeloState velo_state = kalmanvelo_states.get_kalman_state(velo_tracks.tracks_offset(i_event) + i_velo_track);
+    event_mf_tracks[i_ut_track] = ParKalmanFilter::FittedTrack {
+      velo_state,
+      ut_tracks.qop(i_ut_track),
+      parameters.dev_match_upstream_muon[ut_tracks.tracks_offset(i_event) + i_ut_track]};
   }
 }

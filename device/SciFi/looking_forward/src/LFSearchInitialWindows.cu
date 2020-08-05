@@ -86,7 +86,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
     const float ut_z = parameters.dev_ut_z[ut_track_index];
 
     const unsigned velo_states_index = velo_event_tracks_offset + velo_track_index;
-    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
+    const MiniState velo_state = velo_states.get(velo_states_index);
 
     // extrapolate velo y & ty to z of UT x and tx
     // use ty from Velo state
