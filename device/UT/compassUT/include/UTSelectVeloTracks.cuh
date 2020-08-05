@@ -18,6 +18,7 @@ namespace ut_select_velo_tracks {
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

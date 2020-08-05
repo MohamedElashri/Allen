@@ -32,15 +32,15 @@ __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_ext
 
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstKalmanStates velo_states {parameters.dev_velo_kalman_beamline_states,
-                                                     velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_states {
+    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
 
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
   const unsigned total_number_of_tracks = velo_tracks.total_number_of_tracks();
 
   for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
-    const KalmanVeloState s {velo_states.get(event_tracks_offset + index)};
+    const auto s {velo_states.get(event_tracks_offset + index)};
     parameters.dev_pvtrack_unsorted_z[total_number_of_tracks + event_tracks_offset + index] = s.z;
   }
 
@@ -56,7 +56,7 @@ __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_ext
       insert_position += z > other_z || (z == other_z && index > other);
     }
 
-    const KalmanVeloState s {velo_states.get(event_tracks_offset + index)};
+    const auto s = velo_states.get_kalman_state(event_tracks_offset + index);
     parameters.dev_pvtracks[event_tracks_offset + insert_position] = PVTrack {s};
     parameters.dev_pvtrack_z[event_tracks_offset + index] = z;
   }
