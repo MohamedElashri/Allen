@@ -134,7 +134,7 @@ namespace velo_kalman_filter {
     state.y = state.y + state.ty * delta_z;
     state.z = state.z + delta_z;
 
-    // TODO: Is this safety check necessary (coming from the PV finder)
+    // TODO: Is this safety check necessary ? (coming from the PV finder)
     // if (delta_z * state.c20 < 0.f || delta_z * state.c31 < 0.f) {
     //   state.z = -9999.f;
     // }
