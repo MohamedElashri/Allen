@@ -73,45 +73,22 @@ include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
-# TODO: This test breaks CMake in Debug mode:
+add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
 
-# [6/30] Linking CXX executable host/global_event_cut/mep_gec
-# FAILED: host/global_event_cut/mep_gec 
-# : && /cvmfs/sft.cern.ch/lcg/releases/clang/8.0.0-ed577/x86_64-centos7/bin/clang++  -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion -Wno-gnu-zero-variadic-macro-arguments -march=native -O3 -g -DNDEBUG   host/global_event_cut/CMakeFiles/mep_
-# gec.dir/test/mep_gec.cpp.o host/global_event_cut/CMakeFiles/mep_gec.dir/__/__/backend/src/CPUBackend.cpp.o  -o host/global_event_cut/mep_gec  -Wl,-rpath,/cvmfs/sft.cern.ch/lcg/views/LCG_97python3/x86_64-centos7-clang8-opt/lib: libCommon.a mdf/libmdf.a ho
-# st/global_event_cut/libHostGEC.a -L/cvmfs/sft.cern.ch/lcg/releases/LCG_97python3/./ROOT/v6.20.02/x86_64-centos7-clang8-opt/lib -lTree -lCore -lCling -lHist -lRIO -L/cvmfs/sft.cern.ch/lcg/views/LCG_97python3/x86_64-centos7-clang8-opt/lib -ltbb /cvmfs/sft.
-# cern.ch/lcg/views/LCG_97python3/x86_64-centos7-clang8-opt/lib/libz.so -lstdc++fs backend/libBackend.a && :
-# host/global_event_cut/libHostGEC.a(HostGlobalEventCut.cpp.o): In function `DoubleArgumentOverloadResolution<host_global_event_cut::Parameters::dev_event_list_t, host_global_event_cut::Parameters::host_event_list_t, ArgumentRefManager<std::tuple<host_glob
-# al_event_cut::Parameters::host_ut_raw_banks_t&, host_global_event_cut::Parameters::host_ut_raw_offsets_t&, host_global_event_cut::Parameters::host_scifi_raw_banks_t&, host_global_event_cut::Parameters::host_scifi_raw_offsets_t&, host_global_event_cut::Pa
-# rameters::host_total_number_of_events_t&, host_global_event_cut::Parameters::host_event_list_t&, host_global_event_cut::Parameters::host_number_of_selected_events_t&, host_global_event_cut::Parameters::dev_event_list_t&>, std::tuple<host_global_event_cut
-# ::Parameters::host_ut_raw_banks_t, host_global_event_cut::Parameters::host_ut_raw_offsets_t, host_global_event_cut::Parameters::host_scifi_raw_banks_t, host_global_event_cut::Parameters::host_scifi_raw_offsets_t, host_global_event_cut::Parameters::host_t
-# otal_number_of_events_t, host_global_event_cut::Parameters::host_event_list_t, host_global_event_cut::Parameters::host_number_of_selected_events_t, host_global_event_cut::Parameters::dev_event_list_t, host_global_event_cut::Parameters::min_scifi_ut_clust
-# ers_t, host_global_event_cut::Parameters::max_scifi_ut_clusters_t>, host_global_event_cut::Parameters>, void>::copy(ArgumentRefManager<std::tuple<host_global_event_cut::Parameters::host_ut_raw_banks_t&, host_global_event_cut::Parameters::host_ut_raw_offs
-# ets_t&, host_global_event_cut::Parameters::host_scifi_raw_banks_t&, host_global_event_cut::Parameters::host_scifi_raw_offsets_t&, host_global_event_cut::Parameters::host_total_number_of_events_t&, host_global_event_cut::Parameters::host_event_list_t&, ho
-# st_global_event_cut::Parameters::host_number_of_selected_events_t&, host_global_event_cut::Parameters::dev_event_list_t&>, std::tuple<host_global_event_cut::Parameters::host_ut_raw_banks_t, host_global_event_cut::Parameters::host_ut_raw_offsets_t, host_g
-# lobal_event_cut::Parameters::host_scifi_raw_banks_t, host_global_event_cut::Parameters::host_scifi_raw_offsets_t, host_global_event_cut::Parameters::host_total_number_of_events_t, host_global_event_cut::Parameters::host_event_list_t, host_global_event_cu
-# t::Parameters::host_number_of_selected_events_t, host_global_event_cut::Parameters::dev_event_list_t, host_global_event_cut::Parameters::min_scifi_ut_clusters_t, host_global_event_cut::Parameters::max_scifi_ut_clusters_t>, host_global_event_cut::Paramete
-# rs> const&, CUstream_st*)':
-# /home/dcampora/projects/allen_velo/build_clang8/../stream/gear/include/ArgumentManager.cuh:316: undefined reference to `cudaMemcpyAsync'
-# /home/dcampora/projects/allen_velo/build_clang8/../stream/gear/include/ArgumentManager.cuh:316: undefined reference to `cudaGetErrorString'
-# clang-8: error: linker command failed with exit code 1 (use -v to see invocation)
+target_include_directories(mep_gec PUBLIC
+  ${CPPGSL_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/stream/gear/include
+  ${CMAKE_SOURCE_DIR}/host/global_event_cut/include
+  ${CMAKE_SOURCE_DIR}/main/include
+  ${Boost_INCLUDE_DIRS})
 
-# add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
+if (STANDALONE)
+  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES})
+else()
+  find_package(fmt REQUIRED)
+  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES} fmt::fmt)
+endif()
 
-# target_include_directories(mep_gec PUBLIC
-#   ${CPPGSL_INCLUDE_DIR}
-#   ${CMAKE_SOURCE_DIR}/stream/gear/include
-#   ${CMAKE_SOURCE_DIR}/host/global_event_cut/include
-#   ${CMAKE_SOURCE_DIR}/main/include
-#   ${Boost_INCLUDE_DIRS})
+target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
 
-# if (STANDALONE)
-#   target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES})
-# else()
-#   find_package(fmt REQUIRED)
-#   target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES} fmt::fmt)
-# endif()
-
-# target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
-
-# install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
+install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
