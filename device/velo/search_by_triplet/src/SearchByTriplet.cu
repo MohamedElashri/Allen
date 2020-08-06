@@ -51,18 +51,6 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
     arguments, constants.dev_velo_geometry);
 }
 
-// template<int... Is>
-// void foo_helper(std::integer_sequence<int, Is...> const&)
-// {
-//   ((std::cout << Is << std::endl), ...);
-// }
-
-// template<int T, typename F>
-// void foo(const F& fn)
-// {
-//   foo_helper(std::make_integer_sequence<int, T> {});
-// }
-
 /**
  * @brief Track forwarding algorithm based on triplet finding.
  *
@@ -305,15 +293,110 @@ __device__ void track_seeding(
     // Fetch h1
     const auto h1_index = h1_indices[h1_rel_index];
 
-    const auto [best_h0, best_h2, best_fit] = track_seeding_impl(
-      h1_index,
-      velo_cluster_container,
-      module_pair_data,
-      hit_used,
-      max_scatter,
-      hit_phi,
-      phi_tolerance,
-      h0_candidates_to_consider);
+    // The output we are searching for
+    uint16_t best_h0 = 0;
+    uint16_t best_h2 = 0;
+    float best_fit = max_scatter;
+
+    const Velo::HitBase h1 {
+      velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
+
+    const auto h1_phi = hit_phi[h1_index];
+
+    // Get candidates on previous module
+    std::array<unsigned, max_h0_candidates> best_h0s;
+
+    // Iterate over previous module until the first n candidates are found
+    auto phi_index = binary_search_leftmost(
+      hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
+      module_pair_data[shared::previous_module_pair].hit_num,
+      h1_phi);
+
+    // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
+    // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
+    unsigned found_h0_candidates = 0;
+    for (unsigned i = 0;
+         i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < h0_candidates_to_consider;
+         ++i) {
+      // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
+      const auto sign = i & 0x01;
+      const int index_diff = sign ? i : -i;
+      phi_index += index_diff;
+
+      const auto index_in_bounds =
+        (phi_index < 0 ? phi_index + module_pair_data[shared::previous_module_pair].hit_num :
+                         (phi_index >= static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) ?
+                            phi_index - static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) :
+                            phi_index));
+      const auto h0_index = module_pair_data[shared::previous_module_pair].hit_start + index_in_bounds;
+
+      // Discard the candidate if it is used
+      if (!hit_used[h0_index]) {
+        best_h0s[found_h0_candidates++] = h0_index;
+      }
+    }
+
+    // Use the candidates found previously (best_h0s) to find the best triplet
+    // Since data is sorted, search using a binary search
+    for (unsigned i = 0; i < found_h0_candidates; ++i) {
+      const auto h0_index = best_h0s[i];
+      const Velo::HitBase h0 {
+        velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
+
+      const auto td = 1.0f / (h1.z - h0.z);
+      const auto txn = (h1.x - h0.x);
+      const auto tyn = (h1.y - h0.y);
+      const auto tx = txn * td;
+      const auto ty = tyn * td;
+
+      // Get candidates by performing a binary search in expected phi
+      const auto candidate_h2 = find_forward_candidate(
+        module_pair_data[shared::next_module_pair],
+        hit_phi,
+        h0,
+        tx,
+        ty,
+        module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0],
+        phi_tolerance);
+
+      // First candidate in the next module pair.
+      // Since the buffer is circular, finding the container size means finding the first element.
+      const auto candidate_h2_index = std::get<0>(candidate_h2);
+      const auto extrapolated_phi = std::get<1>(candidate_h2);
+
+      for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
+        const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
+        const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
+
+        // Check the phi difference is within the tolerance with modulo arithmetic.
+        const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+        const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+        if (abs_phi_diff > phi_tolerance) {
+          break;
+        }
+
+        if (!hit_used[h2_index]) {
+          const Velo::HitBase h2 {
+            velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
+
+          const auto dz = h2.z - h0.z;
+          const auto predx = h0.x + tx * dz;
+          const auto predy = h0.y + ty * dz;
+          const auto dx = predx - h2.x;
+          const auto dy = predy - h2.y;
+
+          // Scatter
+          const auto scatter = dx * dx + dy * dy;
+
+          // Keep the best one found
+          if (scatter < best_fit) {
+            best_fit = scatter;
+            best_h0 = h0_index;
+            best_h2 = h2_index;
+          }
+        }
+      }
+    }
 
     if (best_fit < max_scatter) {
       // Add the track to the container of seeds
@@ -329,124 +412,6 @@ __device__ void track_seeding(
       tracks_to_follow[ttfP] = bits::seed | trackP;
     }
   }
-}
-
-__device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
-  const uint16_t h1_index,
-  Velo::ConstClusters& velo_cluster_container,
-  const Velo::ModulePair* module_pair_data,
-  const bool* hit_used,
-  const float max_scatter,
-  const int16_t* hit_phi,
-  const int16_t phi_tolerance,
-  const unsigned h0_candidates_to_consider)
-{
-  // The output we are searching for
-  uint16_t best_h0 = 0;
-  uint16_t best_h2 = 0;
-  float best_fit = max_scatter;
-
-  const Velo::HitBase h1 {
-    velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
-
-  const auto h1_phi = hit_phi[h1_index];
-
-  // Get candidates on previous module
-  std::array<unsigned, max_h0_candidates> best_h0s;
-
-  // Iterate over previous module until the first n candidates are found
-  auto phi_index = binary_search_leftmost(
-    hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
-    module_pair_data[shared::previous_module_pair].hit_num,
-    h1_phi);
-
-  // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
-  // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
-  unsigned found_h0_candidates = 0;
-  for (unsigned i = 0;
-       i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < h0_candidates_to_consider;
-       ++i) {
-    // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
-    const auto sign = i & 0x01;
-    const int index_diff = sign ? i : -i;
-    phi_index += index_diff;
-
-    const auto index_in_bounds =
-      (phi_index < 0 ? phi_index + module_pair_data[shared::previous_module_pair].hit_num :
-                       (phi_index >= static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) ?
-                          phi_index - static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) :
-                          phi_index));
-    const auto h0_index = module_pair_data[shared::previous_module_pair].hit_start + index_in_bounds;
-
-    // Discard the candidate if it is used
-    if (!hit_used[h0_index]) {
-      best_h0s[found_h0_candidates++] = h0_index;
-    }
-  }
-
-  // Use the candidates found previously (best_h0s) to find the best triplet
-  // Since data is sorted, search using a binary search
-  for (unsigned i = 0; i < found_h0_candidates; ++i) {
-    const auto h0_index = best_h0s[i];
-    const Velo::HitBase h0 {
-      velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
-
-    const auto td = 1.0f / (h1.z - h0.z);
-    const auto txn = (h1.x - h0.x);
-    const auto tyn = (h1.y - h0.y);
-    const auto tx = txn * td;
-    const auto ty = tyn * td;
-
-    // Get candidates by performing a binary search in expected phi
-    const auto candidate_h2 = find_forward_candidate(
-      module_pair_data[shared::next_module_pair],
-      hit_phi,
-      h0,
-      tx,
-      ty,
-      module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0],
-      phi_tolerance);
-
-    // First candidate in the next module pair.
-    // Since the buffer is circular, finding the container size means finding the first element.
-    const auto candidate_h2_index = std::get<0>(candidate_h2);
-    const auto extrapolated_phi = std::get<1>(candidate_h2);
-
-    for (unsigned i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
-      const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
-      const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
-
-      // Check the phi difference is within the tolerance with modulo arithmetic.
-      const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
-      const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
-      if (abs_phi_diff > phi_tolerance) {
-        break;
-      }
-
-      if (!hit_used[h2_index]) {
-        const Velo::HitBase h2 {
-          velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
-
-        const auto dz = h2.z - h0.z;
-        const auto predx = h0.x + tx * dz;
-        const auto predy = h0.y + ty * dz;
-        const auto dx = predx - h2.x;
-        const auto dy = predy - h2.y;
-
-        // Scatter
-        const auto scatter = dx * dx + dy * dy;
-
-        // Keep the best one found
-        if (scatter < best_fit) {
-          best_fit = scatter;
-          best_h0 = h0_index;
-          best_h2 = h2_index;
-        }
-      }
-    }
-  }
-
-  return {best_h0, best_h2, best_fit};
 }
 
 #if defined(TARGET_DEVICE_CPU)

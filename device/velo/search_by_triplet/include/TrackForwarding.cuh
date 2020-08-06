@@ -34,16 +34,6 @@ __device__ void track_seeding_vectorized(
   const int16_t phi_tolerance,
   const unsigned h0_candidates_to_consider);
 
-__device__ std::tuple<uint16_t, uint16_t, float> track_seeding_impl(
-  const uint16_t h1_index,
-  Velo::ConstClusters& velo_cluster_container,
-  const Velo::ModulePair* module_pair_data,
-  const bool* hit_used,
-  const float max_scatter,
-  const int16_t* hit_phi,
-  const int16_t phi_tolerance,
-  const unsigned h0_candidates_to_consider);
-
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
   const int16_t* hit_phi,
