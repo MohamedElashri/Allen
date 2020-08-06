@@ -92,6 +92,39 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
    return state;
  }
 
+
+
+
+/**
+ * @brief Calculates the parameters according to a root means square fit
+ */
+ __device__ MiniState linear_fit(Velo::Consolidated::ConstHits& consolidated_hits, const unsigned number_of_hits)
+ {
+   MiniState state;
+ 
+   // Get first and last hits
+   const auto first_x = consolidated_hits.x(0);
+   const auto first_y = consolidated_hits.y(0);
+   const auto first_z = consolidated_hits.z(0);
+   const auto last_x = consolidated_hits.x(number_of_hits-1);
+   const auto last_y = consolidated_hits.y(number_of_hits-1);
+   const auto last_z = consolidated_hits.z(number_of_hits-1);
+ 
+   // Calculate tx, ty
+   state.tx = (last_x-first_x)/(last_z-first_z);
+   state.ty = (last_y-first_y)/(last_z-first_z);
+ 
+   // Propagate to the beamline
+   PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
+   auto delta_z = (state.tx * (beamline.x - last_x) + state.ty * (beamline.y - last_y)) / (state.tx * state.tx + state.ty * state.ty);
+   state.x = last_x + state.tx * delta_z;
+   state.y = last_y + state.ty * delta_z;
+   state.z = last_z + delta_z;
+ 
+   return state;
+ }
+
+
 __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters)
 {
   const unsigned number_of_events = gridDim.x;
@@ -115,12 +148,11 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
     Velo::Consolidated::ConstHits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits.get(), i);
     const unsigned n_hits = velo_tracks.number_of_hits(i);
 
-    // Get first estimate of the state , calculate least means square fit
-    // (Doesn't have to be the output of the least square fit, could be a simple linear fit between first and last hit)
-    const auto lms_fit_at_beamline = least_means_square_fit(consolidated_hits, n_hits);
+    // Get first estimate of the state , changed least means square fit to linear fit between first and last hit
+    const auto lin_fit_at_beamline = linear_fit(consolidated_hits, n_hits);
 
     //Perform a Kalman fit to obtain state at beamline
-    const auto kalman_beamline_state = simplified_fit<true>(consolidated_hits, lms_fit_at_beamline, n_hits);
+    const auto kalman_beamline_state = simplified_fit<true>(consolidated_hits, lin_fit_at_beamline, n_hits);
 
     //Perform a Kalman fit in the other direction to obtain state at the end of the Velo
     const auto kalman_endvelo_state = simplified_fit<false>(consolidated_hits, kalman_beamline_state, n_hits);
