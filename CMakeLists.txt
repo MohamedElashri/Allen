@@ -31,6 +31,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # -----------------------
 # Multiple-choice options
@@ -717,16 +718,7 @@ set(allen_lib_sources ${Allen_cpp_path}
                       ${OutputHandler_cpp_path}
                       ${ZMQOutputSender_cpp_path})
 
-allen_add_device_library(AllenLib STATIC ${allen_lib_sources})
-
-# if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-# #Produce self - contained application
-# #Otherwise, HIP doesn't seem to link properly
-#   allen_add_device_library(AllenLib STATIC ${allen_lib_sources})
-# else()
-# #Library containing all the code
-#   allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
-# endif()
+allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
 
 # Required packages
 find_package(Threads REQUIRED)
