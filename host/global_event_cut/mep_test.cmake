@@ -73,7 +73,8 @@ include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
-add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
+add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp
+  ${CMAKE_SOURCE_DIR}/host/global_event_cut/src/HostGlobalEventCut.cpp)
 
 target_include_directories(mep_gec PUBLIC
   ${CPPGSL_INCLUDE_DIR}
@@ -83,10 +84,10 @@ target_include_directories(mep_gec PUBLIC
   ${Boost_INCLUDE_DIRS})
 
 if (STANDALONE)
-  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES})
+  target_link_libraries(mep_gec PUBLIC Common mdf ${MPI_CXX_LIBRARIES})
 else()
   find_package(fmt REQUIRED)
-  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES} fmt::fmt)
+  target_link_libraries(mep_gec PUBLIC Common mdf ${MPI_CXX_LIBRARIES} fmt::fmt)
 endif()
 
 target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
