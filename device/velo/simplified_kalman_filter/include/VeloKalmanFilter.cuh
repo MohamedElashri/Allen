@@ -9,6 +9,8 @@
 #include "Common.h"
 #include "DeviceAlgorithm.cuh"
 #include "VeloConsolidated.cuh"
+// #include <Gaudi/Parsers/Factory.h>
+#include "patPV_Definitions.cuh"
 
 namespace velo_kalman_filter {
   /**
@@ -121,9 +123,11 @@ namespace velo_kalman_filter {
     state.c33 += noise2PerLayer;
 
     auto delta_z = 0.f;
+    PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
+
     if constexpr (upstream) {
       // Propagate to the closest point near the beam line
-      delta_z = -(state.x * state.tx + state.y * state.ty) / (state.tx * state.tx + state.ty * state.ty);
+      delta_z = (state.tx * (beamline.x - state.x) + state.ty * (beamline.y - state.y)) / (state.tx * state.tx + state.ty * state.ty);
     } else {
       // Propagate to the end of the Velo (z=770 mm)
       delta_z = Velo::Constants::z_endVelo - state.z;
