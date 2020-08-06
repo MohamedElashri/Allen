@@ -37,7 +37,6 @@ __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_ext
 
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
-  const unsigned total_number_of_tracks = velo_tracks.total_number_of_tracks();
 
   for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     const auto s {velo_states.get(event_tracks_offset + index)};
