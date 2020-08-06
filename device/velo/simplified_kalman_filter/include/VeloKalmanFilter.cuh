@@ -61,7 +61,8 @@ namespace velo_kalman_filter {
   __device__ KalmanVeloState simplified_fit(
     Velo::Consolidated::ConstHits& consolidated_hits,
     const MiniState& stateAtBeamLine,
-    const unsigned nhits)
+    const unsigned nhits,
+    float* dev_beamline)
   {
     const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
@@ -123,11 +124,10 @@ namespace velo_kalman_filter {
     state.c33 += noise2PerLayer;
 
     auto delta_z = 0.f;
-    PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
-
+    
     if constexpr (upstream) {
       // Propagate to the closest point near the beam line
-      delta_z = (state.tx * (beamline.x - state.x) + state.ty * (beamline.y - state.y)) / (state.tx * state.tx + state.ty * state.ty);
+      delta_z = (state.tx * (dev_beamline[0] - state.x) + state.ty * (dev_beamline[1] - state.y)) / (state.tx * state.tx + state.ty * state.ty);
     } else {
       // Propagate to the end of the Velo (z=770 mm)
       delta_z = Velo::Constants::z_endVelo - state.z;
@@ -167,7 +167,7 @@ namespace velo_kalman_filter {
     (DEVICE_OUTPUT(dev_velo_kalman_endvelo_states_t, char), dev_velo_kalman_endvelo_states),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
-  __global__ void velo_kalman_filter(Parameters);
+  __global__ void velo_kalman_filter(Parameters, float* dev_beamline);
 
   struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
@@ -179,7 +179,7 @@ namespace velo_kalman_filter {
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
-      const Constants&,
+      const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& stream,
       cudaEvent_t&) const;

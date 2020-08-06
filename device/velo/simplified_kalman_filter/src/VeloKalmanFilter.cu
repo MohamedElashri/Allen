@@ -20,13 +20,13 @@ void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
 void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
-  const Constants&,
+  const Constants& constants,
   HostBuffers& host_buffers,
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
-    arguments);
+  global_function(velo_kalman_filter)(
+    dim3(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments, constants.dev_beamline.data()));
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_kalmanvelo_states, arguments, stream);
@@ -93,7 +93,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
 /**
  * @brief Calculates the parameters according to a root means square fit
  */
- __device__ MiniState linear_fit(Velo::Consolidated::ConstHits& consolidated_hits, const unsigned number_of_hits)
+ __device__ MiniState linear_fit(Velo::Consolidated::ConstHits& consolidated_hits, const unsigned number_of_hits, float* dev_beamline)
  {
    MiniState state;
  
@@ -110,8 +110,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
    state.ty = (last_y-first_y)/(last_z-first_z);
  
    // Propagate to the beamline
-   PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
-   auto delta_z = (state.tx * (beamline.x - last_x) + state.ty * (beamline.y - last_y)) / (state.tx * state.tx + state.ty * state.ty);
+   auto delta_z = (state.tx * (dev_beamline[0] - last_x) + state.ty * (dev_beamline[1] - last_y)) / (state.tx * state.tx + state.ty * state.ty);
    state.x = last_x + state.tx * delta_z;
    state.y = last_y + state.ty * delta_z;
    state.z = last_z + delta_z;
@@ -120,7 +119,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
  }
 
 
-__global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters)
+__global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters, float* dev_beamline)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -143,13 +142,13 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
     const unsigned n_hits = velo_tracks.number_of_hits(i);
 
     // Get first estimate of the state , changed least means square fit to linear fit between first and last hit
-    const auto lin_fit_at_beamline = linear_fit(consolidated_hits, n_hits);
+    const auto lin_fit_at_beamline = linear_fit(consolidated_hits, n_hits, dev_beamline);
 
     //Perform a Kalman fit to obtain state at beamline
-    const auto kalman_beamline_state = simplified_fit<true>(consolidated_hits, lin_fit_at_beamline, n_hits);
+    const auto kalman_beamline_state = simplified_fit<true>(consolidated_hits, lin_fit_at_beamline, n_hits, dev_beamline);
 
     //Perform a Kalman fit in the other direction to obtain state at the end of the Velo
-    const auto kalman_endvelo_state = simplified_fit<false>(consolidated_hits, kalman_beamline_state, n_hits);
+    const auto kalman_endvelo_state = simplified_fit<false>(consolidated_hits, kalman_beamline_state, n_hits, dev_beamline);
 
     kalman_beamline_states.set(event_tracks_offset + i, kalman_beamline_state);
     kalman_endvelo_states.set(event_tracks_offset + i, kalman_endvelo_state);
