@@ -137,7 +137,7 @@ namespace velo_kalman_filter {
     state.y = state.y + state.ty * delta_z;
     state.z = state.z + delta_z;
 
-    // TODO: Understand this logic (coming from the PV finder)
+    // TODO: Is this safety check necessary (coming from the PV finder)
     // if (delta_z * state.c20 < 0.f || delta_z * state.c31 < 0.f) {
     //   state.z = -9999.f;
     // }
@@ -147,6 +147,8 @@ namespace velo_kalman_filter {
     const auto dz2 = delta_z * delta_z;
     state.c00 += dz2 * state.c22 + 2.f * fabsf(delta_z * state.c20);
     state.c11 += dz2 * state.c33 + 2.f * fabsf(delta_z * state.c31);
+    state.c20 += state.c22 * delta_z; 
+    state.c31 += state.c33 * delta_z;
 
     // finally, store the state
     return state;
