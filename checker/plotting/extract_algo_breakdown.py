@@ -84,7 +84,7 @@ def main(argv):
         #  11.08%  6.47377s       700  9.2482ms  3.7639ms  15.887ms  lf_search_uv_windows(unsigned int const *, unsigned int const *, int const *, SciFi::TrackHits const *, int const *, char const *, LookingForward::Constants const *, float const *, MiniState const *, short*)
         # Note: Intended behaviour: Does *not* match nvidia calls like:
         #  0.04%  20.484ms      9100  2.2500us     832ns  16.255us  [CUDA memcpy DtoH]
-        regexp_expression = ".*?([0-9]+\.[0-9]+)\%.*[um]s  ([a-zA-Z][a-zA-Z\_0-9]+).*"
+        regexp_expression = ".*?([0-9]+\.[0-9]+)\%.*[um]s  ([a-zA-Z][a-zA-Z\_0-9:]+).*"
 
         algorithm_times = {}
 
