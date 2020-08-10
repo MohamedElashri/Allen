@@ -41,9 +41,9 @@ __host__ __device__ int
 linear_search(const T* array, const unsigned array_size, const T& value, const unsigned start_element = 0)
 {
   // Start in start_element
-  int i = start_element;
+  unsigned i = start_element;
   const auto array_element = array[i];
-  const int direction = array_element > value;
+  const auto direction = array_element > value;
   for (; i >= 0 && i < array_size; i += (direction ? -1 : 1)) {
     if ((!direction && array[i] > value) || (direction && array[i] < value)) {
       return i + direction;

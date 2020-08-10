@@ -145,7 +145,6 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
             z0,
             z1,
             z2,
-            ut_total_number_of_tracks,
             qop,
             (parameters.dev_ut_states + current_ut_track_index)->tx,
             velo_states.tx(velo_states_index),
@@ -174,7 +173,6 @@ __device__ void lf_triplet_seeding_impl(
   const float z0,
   const float z1,
   const float z2,
-  const unsigned ut_total_number_of_tracks,
   const float qop,
   const float ut_tx,
   const float velo_tx,
@@ -243,7 +241,7 @@ __device__ void lf_triplet_seeding_impl(
     uint16_t number_of_found_triplets = 0;
 
     // Treat central window iteration
-    for (int i = tid_x; i < shared_number_of_elements[0]; i += LookingForward::triplet_seeding_block_dim_x) {
+    for (unsigned i = tid_x; i < shared_number_of_elements[0]; i += LookingForward::triplet_seeding_block_dim_x) {
       const auto element_index = shared_indices[i];
 
       const auto h0_rel = element_index % l0_size;

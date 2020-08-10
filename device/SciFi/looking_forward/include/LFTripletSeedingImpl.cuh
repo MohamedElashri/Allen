@@ -10,7 +10,6 @@ __device__ void lf_triplet_seeding_impl(
   const float z0,
   const float z1,
   const float z2,
-  const unsigned ut_total_number_of_tracks,
   const float qop,
   const float ut_tx,
   const float velo_tx,
