@@ -43,7 +43,8 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   __shared__ float shared_xs[3 * 2 * LookingForward::max_number_of_hits_in_window];
-  __shared__ short shared_indices[2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
+  __shared__ short shared_indices
+    [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
   __shared__ unsigned shared_number_of_elements[2];
 
   const unsigned number_of_events = gridDim.x;
@@ -74,7 +75,8 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  for (unsigned ut_track_number = blockIdx.y; ut_track_number < ut_event_number_of_tracks; ut_track_number += gridDim.y) {
+  for (unsigned ut_track_number = blockIdx.y; ut_track_number < ut_event_number_of_tracks;
+       ut_track_number += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + ut_track_number;
 
     if (parameters.dev_scifi_lf_process_track[current_ut_track_index]) {
@@ -149,7 +151,8 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
             velo_states.tx(velo_states_index),
             x_at_z_magnet,
             shared_xs + triplet_seed * LookingForward::max_number_of_hits_in_window,
-            shared_indices + triplet_seed * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread,
+            shared_indices + triplet_seed * LookingForward::triplet_seeding_block_dim_x *
+                               LookingForward::maximum_number_of_triplets_per_thread,
             shared_number_of_elements + triplet_seed,
             parameters.dev_scifi_lf_found_triplets +
               (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
@@ -253,10 +256,8 @@ __device__ void lf_triplet_seeding_impl(
       const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
 
       // Linear search of candidate
-      const auto candidate_index = linear_search(shared_xs + LookingForward::x1_hits_shift, l1_size, expected_x1, h0_rel < l1_size ? h0_rel : l1_size - 1);
-
-      // Binary search of candidate
-      // const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
+      const auto candidate_index = linear_search(
+        shared_xs + LookingForward::x1_hits_shift, l1_size, expected_x1, h0_rel < l1_size ? h0_rel : l1_size - 1);
 
       float best_chi2 = LookingForward::chi2_max_triplet_single;
       int best_h1_rel = -1;
