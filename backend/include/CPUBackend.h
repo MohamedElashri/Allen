@@ -21,6 +21,7 @@ using std::signbit;
 #define __global__
 #define __constant__
 #define __syncthreads()
+#define __syncwarp()
 #define __launch_bounds__(_i)
 #define cudaError_t int
 #define cudaEvent_t int

@@ -42,7 +42,9 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   lf_triplet_seeding::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  __shared__ float shared_precalc_expected_x1[2 * LookingForward::max_number_of_hits_in_window];
+  __shared__ float shared_xs[3 * 2 * LookingForward::max_number_of_hits_in_window];
+  __shared__ short shared_indices[2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
+  __shared__ unsigned shared_number_of_elements[2];
 
   const unsigned number_of_events = gridDim.x;
   const unsigned event_number = blockIdx.x;
@@ -99,28 +101,56 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
           [(layer_2 * LookingForward::number_of_elements_initial_window + 1) * ut_total_number_of_tracks];
 
         if (l0_size > 0 && l1_size > 0 && l2_size > 0) {
+          // Due to shared containers
+          __syncwarp();
+
+          const int side_shift = triplet_seed * LookingForward::max_number_of_hits_in_window;
+
+          if (threadIdx.x == 0) {
+            shared_number_of_elements[triplet_seed] = 0;
+          }
+
+          const int l0_start =
+            initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          const int l1_start =
+            initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          const int l2_start =
+            initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+
+          for (int i = threadIdx.x; i < l0_size; i += blockDim.x) {
+            shared_xs[side_shift + i] = scifi_hits.x0(event_offset + l0_start + i);
+          }
+
+          for (int i = threadIdx.x; i < l1_size; i += blockDim.x) {
+            shared_xs[LookingForward::x1_hits_shift + side_shift + i] = scifi_hits.x0(event_offset + l1_start + i);
+          }
+
+          for (int i = threadIdx.x; i < l2_size; i += blockDim.x) {
+            shared_xs[LookingForward::x2_hits_shift + side_shift + i] = scifi_hits.x0(event_offset + l2_start + i);
+          }
+
+          // Due to shared containers
+          __syncwarp();
+
           const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
           const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
           const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
 
           lf_triplet_seeding_impl(
-            scifi_hits.x0_p(event_offset),
-            layer_0,
-            layer_1,
-            layer_2,
             l0_size,
             l1_size,
             l2_size,
             z0,
             z1,
             z2,
-            initial_windows,
             ut_total_number_of_tracks,
             qop,
             (parameters.dev_ut_states + current_ut_track_index)->tx,
             velo_states.tx(velo_states_index),
             x_at_z_magnet,
-            shared_precalc_expected_x1 + triplet_seed * LookingForward::max_number_of_hits_in_window,
+            shared_xs + triplet_seed * LookingForward::max_number_of_hits_in_window,
+            shared_indices + triplet_seed * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread,
+            shared_number_of_elements + triplet_seed,
             parameters.dev_scifi_lf_found_triplets +
               (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
                 LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread,
@@ -135,34 +165,24 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
 }
 
 __device__ void lf_triplet_seeding_impl(
-  const float* scifi_hits_x0,
-  const unsigned layer_0,
-  const unsigned layer_1,
-  const unsigned layer_2,
   const int l0_size,
   const int l1_size,
   const int l2_size,
   const float z0,
   const float z1,
   const float z2,
-  const int* initial_windows,
   const unsigned ut_total_number_of_tracks,
   const float qop,
   const float ut_tx,
   const float velo_tx,
   const float x_at_z_magnet,
-  float* shared_x1,
+  const float* shared_xs,
+  short* shared_indices,
+  unsigned* shared_number_of_elements,
   int* scifi_lf_found_triplets,
   int8_t* scifi_lf_number_of_found_triplets,
   const unsigned triplet_seed)
 {
-  const int l0_start =
-    initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
-  const int l1_start =
-    initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
-  const int l2_start =
-    initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
-
   const auto inverse_dz2 = 1.f / (z0 - z2);
   const auto constant_expected_x1 =
     (triplet_seed == 0 ? LookingForward::sagitta_alignment_x1_triplet0 : LookingForward::sagitta_alignment_x1_triplet1);
@@ -175,34 +195,20 @@ __device__ void lf_triplet_seeding_impl(
 
   const auto do_slope_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
 
-  // Due to shared_x1
-  __syncthreads();
-
-  for (int i = threadIdx.x; i < l1_size; i += blockDim.x) {
-    shared_x1[i] = scifi_hits_x0[l1_start + i];
-  }
-
-  // Due to shared_x1
-  __syncthreads();
-
   for (unsigned tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
     uint16_t number_of_found_triplets = 0;
 
-    // Treat central window iteration
     for (int i = tid_x; i < l0_size * l2_size; i += LookingForward::triplet_seeding_block_dim_x) {
       const auto h0_rel = i % l0_size;
       const auto h2_rel = i / l0_size;
-
-      const auto x0 = scifi_hits_x0[l0_start + h0_rel];
-      const auto x2 = scifi_hits_x0[l2_start + h2_rel];
+      const auto x0 = shared_xs[h0_rel];
+      const auto x2 = shared_xs[LookingForward::x2_hits_shift + h2_rel];
 
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
       // Use a simple correction once T1-T2 hits are known to align expected position according to Sagitta-Quality
       // Same approach used in Seeding. Might be improved exploiting other dependencies (here only the line propagation
       // at 0)
-
-      const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
 
       // Compute as well the x(z-magnet) from Velo-UT (or Velo) and SciFi doublet( T1 +T3 ) to check if
       // charge assumption is correct. The best Chi2 triplet is based on expected_x1. The more precise we can go on
@@ -221,40 +227,67 @@ __device__ void lf_triplet_seeding_impl(
         x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_slope_sign_check || equal_signs_in_slopes);
 
       if (process_element && number_of_found_triplets < LookingForward::maximum_number_of_triplets_per_thread) {
-        // Binary search of candidate
-        const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
+        const auto shared_index = atomicAdd(shared_number_of_elements, 1);
+        shared_indices[shared_index] = i;
+        number_of_found_triplets++;
+      }
+    }
+  }
 
-        float best_chi2 = LookingForward::chi2_max_triplet_single;
-        int best_h1_rel = -1;
+  __syncwarp();
 
-        // It is now either candidate_index - 1 or candidate_index
-        for (int h1_rel = candidate_index - 1; h1_rel < candidate_index + 1; ++h1_rel) {
-          if (h1_rel >= 0 && h1_rel < l1_size) {
-            const auto x1 = shared_x1[h1_rel];
-            const auto chi2 = (x1 - expected_x1) * (x1 - expected_x1);
+  for (unsigned tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
+    uint16_t number_of_found_triplets = 0;
 
-            if (chi2 < best_chi2) {
-              best_chi2 = chi2;
-              best_h1_rel = h1_rel;
-            }
+    // Treat central window iteration
+    for (int i = tid_x; i < shared_number_of_elements[0]; i += LookingForward::triplet_seeding_block_dim_x) {
+      const auto element_index = shared_indices[i];
+
+      const auto h0_rel = element_index % l0_size;
+      const auto h2_rel = element_index / l0_size;
+      const auto x0 = shared_xs[h0_rel];
+      const auto x2 = shared_xs[LookingForward::x2_hits_shift + h2_rel];
+
+      // Extrapolation
+      const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
+      const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
+
+      // Linear search of candidate
+      const auto candidate_index = linear_search(shared_xs + LookingForward::x1_hits_shift, l1_size, expected_x1, h0_rel < l1_size ? h0_rel : l1_size - 1);
+
+      // Binary search of candidate
+      // const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
+
+      float best_chi2 = LookingForward::chi2_max_triplet_single;
+      int best_h1_rel = -1;
+
+      // It is now either candidate_index - 1 or candidate_index
+      for (int h1_rel = candidate_index - 1; h1_rel < candidate_index + 1; ++h1_rel) {
+        if (h1_rel >= 0 && h1_rel < l1_size) {
+          const auto x1 = shared_xs[LookingForward::x1_hits_shift + h1_rel];
+          const auto chi2 = (x1 - expected_x1) * (x1 - expected_x1);
+
+          if (chi2 < best_chi2) {
+            best_chi2 = chi2;
+            best_h1_rel = h1_rel;
           }
         }
+      }
 
-        if (best_h1_rel != -1) {
-          // Store chi2, h0, h1 and h2 encoded in a 32-bit type
-          // Bits (LSB):
-          //  0-4: h2_rel
-          //  5-9: h1_rel
-          //  10-14: h0_rel
-          //  15: triplet seed
-          //  16-31: most significant bits of chi2
-          int* best_chi2_int = reinterpret_cast<int*>(&best_chi2);
-          int h0_h1_h2_rel = (triplet_seed << 15) | (h0_rel << 10) | (best_h1_rel << 5) | h2_rel;
+      if (best_h1_rel != -1) {
+        // Store chi2, h0, h1 and h2 encoded in a 32-bit type
+        // Bits (LSB):
+        //  0-4: h2_rel
+        //  5-9: h1_rel
+        //  10-14: h0_rel
+        //  15: triplet seed
+        //  16-31: most significant bits of chi2
+        int* best_chi2_int = reinterpret_cast<int*>(&best_chi2);
+        int h0_h1_h2_rel = (triplet_seed << 15) | (h0_rel << 10) | (best_h1_rel << 5) | h2_rel;
 
-          scifi_lf_found_triplets
-            [tid_x * LookingForward::maximum_number_of_triplets_per_thread + number_of_found_triplets++] =
-              (best_chi2_int[0] & 0xFFFF0000) + h0_h1_h2_rel;
-        }
+        scifi_lf_found_triplets
+          [tid_x * LookingForward::maximum_number_of_triplets_per_thread + number_of_found_triplets++] =
+            (best_chi2_int[0] & 0xFFFF0000) + h0_h1_h2_rel;
       }
     }
 
