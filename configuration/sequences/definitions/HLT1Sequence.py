@@ -203,6 +203,6 @@ def HLT1Sequence(initialize_lists,
         gatherer = make_selection_gatherer(
             lines, initialize_lists, odin_banks, name="gather_selections")
 
-        return extend_sequence(hlt1_sequence, *lines, gatherer)
+        return extend_sequence(extend_sequence(hlt1_sequence, *lines), gatherer)
 
     return hlt1_sequence

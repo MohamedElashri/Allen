@@ -38,7 +38,7 @@ if(${MOORE_GENERATOR})
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/gaudi/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_1)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore"
+  execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_2)
   execute_process(COMMAND ${MOORE_RUN} ${SEQUENCE_DEFINITION_DIR}/allenrun.py ${SEQUENCE}.py
@@ -52,10 +52,10 @@ else()
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_1)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen"
+  execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_2)
-  execute_process(COMMAND python3 ${SEQUENCE}.py
+  execute_process(COMMAND ${Python3_EXECUTABLE} ${SEQUENCE}.py
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_3)
 endif()
@@ -68,7 +68,7 @@ if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
       COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/gaudi/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/gaudi/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore" &&
         ${MOORE_RUN} ${SEQUENCE_DEFINITION_DIR}/allenrun.py ${SEQUENCE}.py &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
@@ -81,8 +81,8 @@ if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
       COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen" &&
-        python3 ${SEQUENCE}.py &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen" &&
+        ${Python3_EXECUTABLE} ${SEQUENCE}.py &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
@@ -95,7 +95,7 @@ else()
     message(WARNING "Sequence generation with LLVM - Failed. Please note that cvmfs (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
     message(WARNING "A pregenerated sequence will be used instead.")
   else()
-    message(WARNING "Failed to generate sequence. Please note that Python 3 AND (cmvfs (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
+    message(WARNING "Failed to generate sequence. Please note that Python 3 and (cmvfs (sft.cern.ch) or clang >= 9.0.0) are required to be able to generate configurations.")
   endif()
 
   add_custom_command(
