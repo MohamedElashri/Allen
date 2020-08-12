@@ -50,10 +50,16 @@ if (GaudiProject_FOUND)
     ${ZMQ_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIR}
     ${AIDA_INCLUDE_DIRS})
-  target_link_libraries(ZMQSvc PUBLIC GaudiKernel
+  target_link_libraries(ZMQSvc PUBLIC
     Boost::filesystem
     ${ZMQ_LIBRARIES}
     ${ALLEN_ROOT_LIBRARIES})
+
+  if (USE_DD4HEP)
+    target_link_libraries(ZMQSvc PUBLIC Gaudi::GaudiKernel)
+  else()
+    target_link_libraries(ZMQSvc PUBLIC GaudiKernel)
+  endif()
 
   find_library(SODIUM_LIBRARY NAMES sodium
                HINTS $ENV{libsodium_ROOT_DIR}/lib ${libsodium_ROOT_DIR}/lib)

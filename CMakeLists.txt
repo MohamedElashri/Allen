@@ -125,6 +125,16 @@ macro(allen_project)
 #Always enable ROOT for Gaudi builds
     set(USE_ROOT ON)
 
+# FIXME: Remove once USE_DD4HEP is properly propagated
+    if (TARGET Detector::DetectorLib)
+      message(STATUS "Using DD4HEP")
+      if (NOT DEFINED USE_DD4HEP)
+        set(USE_DD4HEP ON CACHE BOOL "Controls whether DD4hep is used for the subdetectors supporting it")
+      endif()
+    else()
+      message(STATUS "Using DetDesc")
+    endif()
+
 #Find the CUDA compiler if it's not set
 #FIXME : this assumes a standard device install : re - evaluate if
 #LCG_XXdeviceYY is used
@@ -248,7 +258,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   function(allen_add_host_library)
     add_library(${ARGV})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_device_library)
@@ -594,6 +604,11 @@ include_directories(integration/non_event_data/include)
 include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
+
+if (USE_DD4HEP)
+  get_target_property(GAUDIKERNEL_INCLUDES Gaudi::GaudiKernel INTERFACE_INCLUDE_DIRECTORIES)
+  include_directories("${GAUDIKERNEL_INCLUDES}")
+endif()
 
 #Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")

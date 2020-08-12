@@ -211,7 +211,9 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
 
   auto updMgrSvc = service("UpdateManagerSvc", true).template as<IUpdateManagerSvc>();
 
+#ifndef USE_DD4HEP
   get<DETECTOR>(m_location, updMgrSvc);
+#endif
 
   auto sc = registerConditions(updMgrSvc);
   if (!sc.isSuccess()) {
@@ -234,14 +236,14 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
   for (auto const& entry : m_buffer) {
     auto const& id = std::get<0>(entry);
     updater->registerProducer(id, [this, id]() -> std::optional<std::vector<char>> {
-        auto it = m_buffer.find(id);
-        if (it == m_buffer.end()) {
-          throw GaudiException {"Data for " + id + " not produced.", name(), StatusCode::FAILURE};
-        }
-        else {
-          return it->second;
-        }
-      });
+      auto it = m_buffer.find(id);
+      if (it == m_buffer.end()) {
+        throw GaudiException {"Data for " + id + " not produced.", name(), StatusCode::FAILURE};
+      }
+      else {
+        return it->second;
+      }
+    });
   }
 
   return sc;

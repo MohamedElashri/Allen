@@ -47,4 +47,10 @@ gaudi_add_module(BinaryDumpers
                                 PrKernel VPDetLib UTDetLib UTKernelLib
                                 FTDetLib MuonDAQLib)
 
+# FIXME: USE_DD4HEP doesn't seem to be inherited from LHCb libraries
+if (TARGET Detector::DetectorLib)
+  target_compile_definitions(BinaryDumpersLib PUBLIC USE_DD4HEP)
+  target_compile_definitions(BinaryDumpers PUBLIC USE_DD4HEP)
+endif()
+
 gaudi_add_test(QMTest QMTEST)
