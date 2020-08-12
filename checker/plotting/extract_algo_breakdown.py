@@ -81,17 +81,18 @@ def main(argv):
 
         # Regexp for one line
         # Note: An algorithm line looks like:
-        #  11.08%  6.47377s       700  9.2482ms  3.7639ms  15.887ms  lf_search_uv_windows(unsigned int const *, unsigned int const *, int const *, SciFi::TrackHits const *, int const *, char const *, LookingForward::Constants const *, float const *, MiniState const *, short*)
+        #  11.08%  6.47377s       700  9.2482ms  3.7639ms  15.887ms  lf_search_uv_windows_namespace::lf_search_uv_windows(unsigned int const *, unsigned int const *, int const *, SciFi::TrackHits const *, int const *, char const *, LookingForward::Constants const *, float const *, MiniState const *, short*)
         # Note: Intended behaviour: Does *not* match nvidia calls like:
         #  0.04%  20.484ms      9100  2.2500us     832ns  16.255us  [CUDA memcpy DtoH]
-        regexp_expression = ".*?([0-9]+\.[0-9]+)\%.*[um]s  ([a-zA-Z][a-zA-Z\_0-9]+).*"
+        # Note: And it strips away the namespace
+        regexp_expression = ".*?([0-9]+\.[0-9]+)\%.*[um]s  ([a-zA-Z][a-zA-Z\_0-9]+::)?([a-zA-Z][a-zA-Z\_0-9]+).*"
 
         algorithm_times = {}
 
         for line in timings[0].split("\n"):
             m = re.match(regexp_expression, line)
             if m:
-                algorithm_times[m.group(2)] = float(m.group(1))
+                algorithm_times[m.group(3)] = float(m.group(1))
 
         # Add up everything
         full_addition = sum(algorithm_times.values())
