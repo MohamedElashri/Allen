@@ -20,8 +20,14 @@ if (NOT GaudiProject_FOUND)
   target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lhcb)
 else()
   find_package(Boost COMPONENTS filesystem thread regex)
-  target_link_libraries(mdf PUBLIC GaudiKernel Boost::filesystem Boost::thread Boost::regex)
   target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+  target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
+
+  if (USE_DD4HEP)
+    target_link_libraries(mdf PUBLIC Gaudi::GaudiKernel)
+  else()
+    target_link_libraries(mdf PUBLIC GaudiKernel)
+  endif()
 endif()
 
 if (ROOT_FOUND AND USE_ROOT)
@@ -77,7 +83,7 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  target_include_directories(${PARSED_ARGS_NAME} PUBLIC
+  target_include_directories(${PARSED_ARGS_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 

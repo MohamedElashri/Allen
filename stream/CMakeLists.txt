@@ -104,6 +104,11 @@ target_link_libraries(Stream PRIVATE
   HostDataProvider
   HostInitEventList)
 
+if (USE_DD4HEP)
+  get_target_property(GAUDIKERNEL_INCLUDES Gaudi::GaudiKernel INTERFACE_INCLUDE_DIRECTORIES)
+  target_include_directories(Stream PUBLIC "${GAUDIKERNEL_INCLUDES}")
+endif()
+
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
   target_include_directories(Stream SYSTEM BEFORE PRIVATE
