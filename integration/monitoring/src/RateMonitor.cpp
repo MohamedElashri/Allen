@@ -7,21 +7,21 @@
 #include "Logger.h"
 
 #ifdef WITH_ROOT
-void RateMonitor::fill(unsigned i_buf, bool useWallTime)
+void RateMonitor::fill(unsigned, bool)
 {
-  HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
+  // HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
 
-  unsigned time(0);
+  // unsigned time(0);
 
-  if (!useWallTime) {
-    warning_cout << "ODIN time histograms not avaiable yet" << std::endl;
-    return;
-  }
-  else {
-    time = getWallTimeBin();
-  }
+  // if (!useWallTime) {
+  //   warning_cout << "ODIN time histograms not avaiable yet" << std::endl;
+  //   return;
+  // }
+  // else {
+  //   time = getWallTimeBin();
+  // }
 
-  unsigned nevt = buf->host_number_of_events;
+  // unsigned nevt = buf->host_number_of_events;
 
   // TODO
   // for (unsigned ievt = 0; ievt < nevt; ++ievt) {
