@@ -100,7 +100,13 @@ Instructions on how to call Allen from Moore can be found in [this readme](Rec/A
 
 
 ##### Using the stack setup
-Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself. If lhcb/Moore!388 is not yet merged, the branch `dovombru_Allen_Moore_integration` is required in Moore.
+Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself.
+To compile a sequence other than the default sequence (hlt1_pp_default), compile for example with
+
+```
+make Allen CMAKEFLAGS='-DSEQUENCE=velo'.
+```
+Note that default CMAKEFLAGS are set for Allen in `utils/default-config.json` of the stack setup. For convenience, it is easiest to change the sequence there. 
 
 
 ##### Using the nightlies
@@ -198,7 +204,7 @@ A run of the program with the help option `-h` will let you know the basic optio
     -m, --memory {memory to reserve per thread / stream (megabytes)}=1024
     -v, --verbosity {verbosity [0-5]}=3 (info)
     -p, --print-memory {print memory usage}=0
-    -i, --import-tracks {import forward tracks dumped from Brunel}
+    -i, --import-tracks {import forward tracks dumped from Moore}
     --cpu-offload {offload part of the computation to CPU}=1
     --output-file {Write selected event to output file}
     --device {select device to use}=0
@@ -258,7 +264,7 @@ The following readmes explain various aspects of Allen:
 * [This readme](contributing.md) explains how to add a new algorithm to Allen.
 * [This readme](selections.md ) explains how to add a new HLT1 line to Allen.
 * [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
-* [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore and Brunel.
+* [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore.
 * [Building and running inside Docker](readme_docker.md).
 
 ### Mattermost discussion channels
