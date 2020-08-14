@@ -31,8 +31,8 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_kalmanvelo_states,
-      data<dev_velo_kalman_beamline_states_t>(arguments),
-      size<dev_velo_kalman_beamline_states_t>(arguments),
+      data<dev_velo_kalman_endvelo_states_t>(arguments),
+      size<dev_velo_kalman_endvelo_states_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
   }
