@@ -29,7 +29,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
     dim3(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments, constants.dev_beamline.data()));
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_kalmanvelo_states, arguments, stream);
+    assign_to_host_buffer<dev_velo_kalman_endvelo_states_t>(host_buffers.host_kalmanvelo_states, arguments, stream);
   }
 }
 
