@@ -6,7 +6,7 @@ from definitions.algorithms import *
 
 def VeloSequence(doGEC=True):
     mep_layout = layout_provider_t(name="mep_layout")
-    
+
     host_ut_banks = host_data_provider_t(name="host_ut_banks", bank_type="UT")
 
     host_scifi_banks = host_data_provider_t(
@@ -184,8 +184,8 @@ def VeloSequence(doGEC=True):
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
     velo_sequence = Sequence(
-        mep_layout, host_ut_banks, host_scifi_banks, initialize_lists, full_event_list,
-        velo_banks, velo_calculate_number_of_candidates,
+        mep_layout, host_ut_banks, host_scifi_banks, initialize_lists,
+        full_event_list, velo_banks, velo_calculate_number_of_candidates,
         prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
         prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
         velo_calculate_phi_and_sort, velo_search_by_triplet,
