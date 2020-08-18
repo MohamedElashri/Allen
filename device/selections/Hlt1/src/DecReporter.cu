@@ -1,8 +1,8 @@
-#include "DecReportCreator.cuh"
+#include "DecReporter.cuh"
 #include "HltDecReport.cuh"
 #include "SelectionsEventModel.cuh"
 
-void dec_report_creator::dec_report_creator_t::set_arguments_size(
+void dec_reporter::dec_reporter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
   const Constants&,
@@ -12,7 +12,7 @@ void dec_report_creator::dec_report_creator_t::set_arguments_size(
     arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
 }
 
-void dec_report_creator::dec_report_creator_t::operator()(
+void dec_reporter::dec_reporter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
@@ -20,11 +20,11 @@ void dec_report_creator::dec_report_creator_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(dec_report_creator)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
     arguments);
 }
 
-__global__ void dec_report_creator::dec_report_creator(dec_report_creator::Parameters parameters)
+__global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
 {
   const auto event_index = blockIdx.x;
   const auto number_of_events = gridDim.x;

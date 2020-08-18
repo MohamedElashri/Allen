@@ -2,7 +2,7 @@
 
 #include "DeviceAlgorithm.cuh"
 
-namespace dec_report_creator {
+namespace dec_reporter {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
@@ -13,9 +13,9 @@ namespace dec_report_creator {
     (DEVICE_OUTPUT(dev_dec_reports_t, unsigned), dev_dec_reports),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
-  __global__ void dec_report_creator(Parameters);
+  __global__ void dec_reporter(Parameters);
 
-  struct dec_report_creator_t : public DeviceAlgorithm, Parameters {
+  struct dec_reporter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
@@ -33,4 +33,4 @@ namespace dec_report_creator {
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
   };
-} // namespace dec_report_creator
+} // namespace dec_reporter
