@@ -210,6 +210,14 @@ def HLT1Sequence(layout_provider,
         gatherer = make_selection_gatherer(
             lines, initialize_lists, layout_provider, odin_banks, name="gather_selections")
 
-        return extend_sequence(extend_sequence(hlt1_sequence, *lines), gatherer)
+        dec_reports = dec_report_creator_t(
+            name="dec_report_creator",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_active_lines_t=gatherer.host_number_of_active_lines_t(),
+            dev_number_of_active_lines_t=gatherer.dev_number_of_active_lines_t(),
+            dev_selections_t=gatherer.dev_selections_t(),
+            dev_selections_offsets_t=gatherer.dev_selections_offsets_t())
+
+        return extend_sequence(extend_sequence(hlt1_sequence, *lines), gatherer, dec_reports)
 
     return hlt1_sequence

@@ -27,6 +27,7 @@ namespace gather_selections {
     (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
     (DEVICE_OUTPUT(dev_selections_t, bool), dev_selections),
     (DEVICE_OUTPUT(dev_selections_offsets_t, unsigned), dev_selections_offsets),
+    (DEVICE_OUTPUT(dev_number_of_active_lines_t, unsigned), dev_number_of_active_lines),
     (PROPERTY(scale_factor_t, "scale_factor", "scale factor of postscaler", float), scale_factor),
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned), block_dim_x),
     (PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string), names_of_active_lines))

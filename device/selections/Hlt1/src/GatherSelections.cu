@@ -100,6 +100,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<host_number_of_active_lines_t>(arguments, 1);
+  set_size<dev_number_of_active_lines_t>(arguments, 1);
   set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size());
   set_size<host_selections_lines_offsets_t>(arguments, std::tuple_size<dev_input_selections_t::type>::value + 1);
   set_size<host_selections_offsets_t>(
@@ -130,6 +131,7 @@ void gather_selections::gather_selections_t::operator()(
 
   // Pass the number of lines for posterior algorithms
   data<host_number_of_active_lines_t>(arguments)[0] = std::tuple_size<dev_input_selections_t::type>::value;
+  copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, stream);
 
   // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
