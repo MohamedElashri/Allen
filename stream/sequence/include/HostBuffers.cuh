@@ -48,7 +48,8 @@ struct HostBuffers {
   unsigned* host_total_number_of_velo_clusters;
   unsigned* host_number_of_reconstructed_velo_tracks;
   unsigned* host_accumulated_number_of_hits_in_velo_tracks;
-  char* host_kalmanvelo_states;
+  char* host_velo_kalman_beamline_states;
+  char* host_velo_kalman_endvelo_states;
   PV::Vertex* host_reconstructed_pvs;
   int* host_number_of_vertex;
   int* host_number_of_seeds;
