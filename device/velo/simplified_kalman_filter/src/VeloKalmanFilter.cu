@@ -28,7 +28,8 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
     arguments, constants.dev_beamline.data());
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_velo_kalman_endvelo_states_t>(host_buffers.host_kalmanvelo_states, arguments, context);
+    assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_velo_kalman_beamline_states, arguments, context);
+    assign_to_host_buffer<dev_velo_kalman_endvelo_states_t>(host_buffers.host_velo_kalman_endvelo_states, arguments, context);
   }
 }
 

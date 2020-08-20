@@ -79,7 +79,9 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
       malloc(max_number_of_events * Velo::Constants::max_tracks * sizeof(unsigned)));
     host_velo_track_hits = reinterpret_cast<decltype(host_velo_track_hits)>(
       malloc(max_number_of_events * Velo::Constants::max_tracks * Velo::Constants::max_track_size * sizeof(Velo::Hit)));
-    host_kalmanvelo_states = reinterpret_cast<decltype(host_kalmanvelo_states)>(
+    host_velo_kalman_beamline_states = reinterpret_cast<decltype(host_velo_kalman_beamline_states)>(
+      malloc(max_number_of_events * Velo::Constants::max_tracks * Velo::Consolidated::States::size));
+    host_velo_kalman_endvelo_states = reinterpret_cast<decltype(host_velo_kalman_endvelo_states)>(
       malloc(max_number_of_events * Velo::Constants::max_tracks * Velo::Consolidated::States::size));
 
     host_atomics_ut =
