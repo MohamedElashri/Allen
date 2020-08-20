@@ -40,7 +40,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t> {
       constants.host_scifi_geometry.data(),
       constants.host_inv_clus_res,
       host_buffers.host_kf_tracks,
-      host_buffers.host_kalmanvelo_states,
+      host_buffers.host_velo_kalman_endvelo_states,
       host_buffers.host_reconstructed_multi_pvs,
       host_buffers.host_number_of_multivertex,
       host_buffers.host_number_of_selected_events[0]);
