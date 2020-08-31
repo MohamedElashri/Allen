@@ -239,20 +239,27 @@ __global__ void lf_quality_filter::lf_quality_filter(
       const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
       const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
       const auto bx = (x0 - x1) / (z0 - z1);
+      const auto dslope = bx - velo_state.tx;
 
-      const auto bx2 = bx * bx;
-      const auto ty2 = velo_state.ty * velo_state.ty;
-      const auto coef =
-        (dev_looking_forward_constants->momentumParams[0] + dev_looking_forward_constants->momentumParams[1] * bx2 +
-         dev_looking_forward_constants->momentumParams[2] * bx2 * bx2 +
-         dev_looking_forward_constants->momentumParams[3] * bx * velo_state.tx +
-         dev_looking_forward_constants->momentumParams[4] * ty2 +
-         dev_looking_forward_constants->momentumParams[5] * ty2 * ty2);
-      const auto tx2 = velo_state.tx * velo_state.tx;
-      const auto slope2 = tx2 + ty2;
-      const auto proj = sqrtf((1.f + slope2) / (1.f + tx2));
-      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * dev_magnet_polarity[0]);
-      parameters.dev_scifi_tracks[new_scifi_track_index].qop = updated_qop;
+      const auto p0val = dev_looking_forward_constants->momentumParams[0] + dev_looking_forward_constants->momentumParams[1] * velo_state.tx * velo_state.tx + dev_looking_forward_constants->momentumParams[2] * velo_state.ty * velo_state.ty + dev_looking_forward_constants->momentumParams[3] * velo_state.tx * velo_state.tx * velo_state.ty * velo_state.ty;
+      const auto p1val = dev_looking_forward_constants->momentumParams[4] * velo_state.tx + dev_looking_forward_constants->momentumParams[5] * velo_state.tx * velo_state.ty * velo_state.ty + dev_looking_forward_constants->momentumParams[6] * velo_state.tx * velo_state.tx * velo_state.tx;
+      const auto p2val = dev_looking_forward_constants->momentumParams[7] + dev_looking_forward_constants->momentumParams[8] * velo_state.tx * velo_state.tx + dev_looking_forward_constants->momentumParams[9] * velo_state.ty * velo_state.ty;
+
+      const auto qop = p0val * dslope + p1val * pow(dslope,2) + p2val * pow(dslope,3);
+     
+//     const auto bx2 = bx * bx;
+//      const auto ty2 = velo_state.ty * velo_state.ty;
+//      const auto coef =
+//        (dev_looking_forward_constants->momentumParams[0] + dev_looking_forward_constants->momentumParams[1] * bx2 +
+//         dev_looking_forward_constants->momentumParams[2] * bx2 * bx2 +
+//         dev_looking_forward_constants->momentumParams[3] * bx * velo_state.tx +
+//         dev_looking_forward_constants->momentumParams[4] * ty2 +
+//         dev_looking_forward_constants->momentumParams[5] * ty2 * ty2);
+//      const auto tx2 = velo_state.tx * velo_state.tx;
+//      const auto slope2 = tx2 + ty2;
+//      const auto proj = sqrtf((1.f + slope2) / (1.f + tx2));
+//      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * dev_magnet_polarity[0]);
+      parameters.dev_scifi_tracks[new_scifi_track_index].qop = qop;
     }
   }
 }

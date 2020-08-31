@@ -140,7 +140,7 @@ namespace LookingForward {
     unsigned reverse_layers[12] {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
 
     // momentum Parametrization
-    float momentumParams[6] = {1.21014f, 0.637339f, -0.200292f, 0.632298f, 3.23793f, -27.0259f};
+    float momentumParams[10] = {0.000814f, -0.000405f, -0.001497f, -0.006891f, -0.000610f, -0.006110f, -0.008257f, -0.000275f, -0.001662f, 0.000656f};
 
     // Parametrization for calculation of initial search window
     float ds_multi_param[3 * 5 * 5] {
