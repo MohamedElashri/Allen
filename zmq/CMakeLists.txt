@@ -55,7 +55,7 @@ if (GaudiProject_FOUND)
     ${ZMQ_LIBRARIES}
     ${ALLEN_ROOT_LIBRARIES})
 
-  if (USE_DD4HEP)
+  if (TARGET Gaudi::GaudiKernel)
     target_link_libraries(ZMQSvc PUBLIC Gaudi::GaudiKernel)
   else()
     target_link_libraries(ZMQSvc PUBLIC GaudiKernel)

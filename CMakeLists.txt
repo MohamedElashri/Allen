@@ -605,7 +605,7 @@ include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
-if (USE_DD4HEP)
+if (TARGET Gaudi::GaudiKernel)
   get_target_property(GAUDIKERNEL_INCLUDES Gaudi::GaudiKernel INTERFACE_INCLUDE_DIRECTORIES)
   include_directories("${GAUDIKERNEL_INCLUDES}")
 endif()
