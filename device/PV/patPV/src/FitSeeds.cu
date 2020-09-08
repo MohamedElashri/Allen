@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "FitSeeds.cuh"
 
 void fit_seeds::pv_fit_seeds_t::set_arguments_size(

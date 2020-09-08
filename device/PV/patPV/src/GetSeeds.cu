@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "GetSeeds.cuh"
 
 void pv_get_seeds::pv_get_seeds_t::set_arguments_size(

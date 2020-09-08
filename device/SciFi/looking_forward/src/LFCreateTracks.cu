@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LFCreateTracks.cuh"
 
 void lf_create_tracks::lf_create_tracks_t::set_arguments_size(

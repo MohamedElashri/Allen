@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 import sys, os, time, signal
 from subprocess import PIPE, Popen
 from threading import Thread

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "TrackChecker.h"
 #include "PrepareTracks.h"
 #include "ConsolidateUT.cuh"

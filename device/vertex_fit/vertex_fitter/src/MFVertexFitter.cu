@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "VertexFitter.cuh"
 #include "MFVertexFitter.cuh"
 #include "ParKalmanMath.cuh"

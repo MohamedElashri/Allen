@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "MuonAddCoordsCrossingMaps.cuh"
 
 void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::set_arguments_size(

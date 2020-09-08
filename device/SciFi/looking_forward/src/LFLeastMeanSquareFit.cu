@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LFLeastMeanSquareFit.cuh"
 
 void lf_least_mean_square_fit::lf_least_mean_square_fit_t::set_arguments_size(

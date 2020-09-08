@@ -1,4 +1,7 @@
 #!/usr/bin/python
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 
 # Draw PV resolution as a function of number of tracks in PV
 # author: Vladimir Gligorov (vladimir.gligorov@cern.ch)

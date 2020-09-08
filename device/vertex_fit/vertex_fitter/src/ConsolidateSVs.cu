@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "ConsolidateSVs.cuh"
 
 void consolidate_svs::consolidate_svs_t::set_arguments_size(

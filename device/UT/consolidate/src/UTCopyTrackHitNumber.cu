@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "UTCopyTrackHitNumber.cuh"
 
 void ut_copy_track_hit_number::ut_copy_track_hit_number_t::set_arguments_size(

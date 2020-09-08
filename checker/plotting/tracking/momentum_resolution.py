@@ -1,4 +1,7 @@
 #!/usr/bin/python
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 
 # Script for obtaining the momentum resolution versus momentum
 # from a 2D histogram of dp versus p

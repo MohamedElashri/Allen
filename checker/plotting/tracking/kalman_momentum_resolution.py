@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 import os, sys
 import numpy as np
 from array import array

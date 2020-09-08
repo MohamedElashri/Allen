@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "PrepareKalmanTracks.h"
 
 float ipKalman(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& vertex)

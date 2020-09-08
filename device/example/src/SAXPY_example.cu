@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "SAXPY_example.cuh"
 
 void saxpy::saxpy_t::set_arguments_size(

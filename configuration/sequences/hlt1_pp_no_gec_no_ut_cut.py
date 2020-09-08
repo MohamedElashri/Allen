@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 from definitions.VeloSequence import VeloSequence
 from definitions.PVSequence import PVSequence
 from definitions.UTSequence import UTSequence

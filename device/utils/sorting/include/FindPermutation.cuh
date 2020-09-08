@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 /*!
  *  \brief     find_permutation sorting tool.
  *  \author    Daniel Hugo Campora Perez

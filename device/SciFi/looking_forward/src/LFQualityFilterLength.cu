@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LFQualityFilterLength.cuh"
 
 void lf_quality_filter_length::lf_quality_filter_length_t::set_arguments_size(
