@@ -8,6 +8,9 @@ stages:
   - test      		# Runs various tests of the software
   - publish   		# Publishes the results of the tests and runs in channels and grafana
 
+variables:
+  TARGET_BRANCH: master
+
 check-env:
   stage: check
   except:
