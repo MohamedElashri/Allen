@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/UT/PrVeloUT/include)

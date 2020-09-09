@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 # - Try to find ZMQ
 # Once done this will define
 # ZMQ_FOUND - System has ZMQ

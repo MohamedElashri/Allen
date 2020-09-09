@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 using Vector10 = Vector<10>;
 using Vector2 = Vector<2>;
 using SymMatrix2x2 = SquareMatrix<true, 2>;

@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB host_prefix_sum "src/*cpp")
 
 include_directories(include)

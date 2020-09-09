@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(gear/include)
 include_directories(memory_manager/include)
 include_directories(scheduler/include)

@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
 include_directories(${Boost_INCLUDE_DIRS})
