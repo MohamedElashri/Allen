@@ -104,9 +104,9 @@ target_link_libraries(Stream PRIVATE
   HostDataProvider
   HostInitEventList)
 
-if (USE_DD4HEP)
-  get_target_property(GAUDIKERNEL_INCLUDES Gaudi::GaudiKernel INTERFACE_INCLUDE_DIRECTORIES)
-  target_include_directories(Stream PUBLIC "${GAUDIKERNEL_INCLUDES}")
+# FIXME: this hack will not be needed once all upstream projects are migrated to new cmake configuration
+if (TARGET Gaudi::GaudiKernel)
+  target_link_libraries(Stream PRIVATE Gaudi::GaudiKernel)
 endif()
 
 if (ROOT_FOUND)

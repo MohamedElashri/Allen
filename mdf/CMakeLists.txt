@@ -23,7 +23,7 @@ else()
   target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
   target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
 
-  if (USE_DD4HEP)
+  if (TARGET Gaudi::GaudiKernel)
     target_link_libraries(mdf PUBLIC Gaudi::GaudiKernel)
   else()
     target_link_libraries(mdf PUBLIC GaudiKernel)
