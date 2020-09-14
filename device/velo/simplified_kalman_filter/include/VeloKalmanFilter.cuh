@@ -145,8 +145,8 @@ namespace velo_kalman_filter {
     // Update the covariance states
     // TODO: Check correctness of this code
     const auto dz2 = delta_z * delta_z;
-    state.c00 += dz2 * state.c22 + 2.f * fabsf(delta_z * state.c20);
-    state.c11 += dz2 * state.c33 + 2.f * fabsf(delta_z * state.c31);
+    state.c00 += dz2 * state.c22 + 2.f * delta_z * state.c20;
+    state.c11 += dz2 * state.c33 + 2.f * delta_z * state.c31;
     state.c20 += state.c22 * delta_z; 
     state.c31 += state.c33 * delta_z;
 
