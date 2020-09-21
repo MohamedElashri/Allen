@@ -5,7 +5,7 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------------
-The project requires CMake 3.12, Python3 and a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support).
+The project requires CMake 3.12, Python3, a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support), boost and ZeroMQ.
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
