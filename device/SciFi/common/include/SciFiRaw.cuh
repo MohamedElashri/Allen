@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <stdint.h>
@@ -68,7 +71,7 @@ namespace SciFi {
 
   __device__ inline uint32_t getRawBankIndexOrderedByX(const uint32_t index)
   {
-    const uint k = index % 10; // Rawbank relative to zone
+    const unsigned k = index % 10; // Rawbank relative to zone
     // Reverse rawbank order when on the left side of a zone (because module order is M4–M0)
     const bool reverse_raw_bank_order = k < 5;
     // if reversed: index = offset(5 rb/zone) + reversed index within zone

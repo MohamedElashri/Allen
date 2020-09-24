@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <vector>
@@ -27,38 +30,38 @@ float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& v
 // Velo tracks.
 float ipVelo(
   const Velo::Consolidated::KalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex);
 float ipxVelo(
   const Velo::Consolidated::KalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex);
 float ipyVelo(
   const Velo::Consolidated::KalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex);
 float ipChi2Velo(
   const Velo::Consolidated::KalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex);
 float veloDOCAz(
   const Velo::Consolidated::KalmanStates& velo_kalman_states,
-  const uint state_index,
+  const unsigned state_index,
   const PV::Vertex& vertex);
 
 std::vector<Checker::Tracks> prepareKalmanTracks(
-  const uint* velo_track_atomics,
-  const uint* velo_track_hit_number,
+  const unsigned* velo_track_atomics,
+  const unsigned* velo_track_hit_number,
   const char* velo_track_hits,
-  const uint* ut_track_atomics,
-  const uint* ut_track_hit_number,
+  const unsigned* ut_track_atomics,
+  const unsigned* ut_track_hit_number,
   const char* ut_track_hits,
-  const uint* ut_track_velo_indices,
+  const unsigned* ut_track_velo_indices,
   const float* ut_qop,
-  const uint* scifi_track_atomics,
-  const uint* scifi_track_hit_number,
+  const unsigned* scifi_track_atomics,
+  const unsigned* scifi_track_hit_number,
   const char* scifi_track_hits,
-  const uint* scifi_track_ut_indices,
+  const unsigned* scifi_track_ut_indices,
   const float* scifi_qop,
   const MiniState* scifi_states,
   const char* scifi_geometry,
@@ -67,4 +70,4 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
   char* velo_states_base,
   PV::Vertex* rec_vertex,
   const int* number_of_vertex,
-  const uint number_of_events);
+  const unsigned number_of_events);

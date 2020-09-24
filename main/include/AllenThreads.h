@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <string>
@@ -28,11 +31,11 @@ void run_stream(
   IInputProvider const* input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
-  uint n_reps,
+  unsigned n_reps,
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
   uint inject_mem_fail,
   std::string folder_name_imported_forward_tracks);
 
-void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, uint i_monitor);
+void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor);

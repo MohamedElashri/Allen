@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <stdint.h>
@@ -20,11 +23,11 @@ namespace SciFi {
   namespace Constants {
     // Detector description
     // There are three stations with four layers each
-    static constexpr uint n_stations = 3;
-    static constexpr uint n_layers_per_station = 4;
-    static constexpr uint n_zones = 24;
-    static constexpr uint n_layers = 12;
-    static constexpr uint n_mats = 1024;
+    static constexpr unsigned n_stations = 3;
+    static constexpr unsigned n_layers_per_station = 4;
+    static constexpr unsigned n_zones = 24;
+    static constexpr unsigned n_layers = 12;
+    static constexpr unsigned n_mats = 1024;
 
     /**
      * The following constants are based on the number of modules per quarter.
@@ -48,11 +51,11 @@ namespace SciFi {
      * "mat groups" (the first 160 raw banks, since the offset of the group is enough).
      * However, for the last sector, every mat offset is stored individually.
      */
-    static constexpr uint n_consecutive_raw_banks = 160;
-    static constexpr uint n_mats_per_consec_raw_bank = 4;
-    static constexpr uint n_mat_groups_and_mats = 544;
-    static constexpr uint mat_index_substract = n_consecutive_raw_banks * 3;
-    static constexpr uint n_mats_without_group = n_mats - n_consecutive_raw_banks * n_mats_per_consec_raw_bank;
+    static constexpr unsigned n_consecutive_raw_banks = 160;
+    static constexpr unsigned n_mats_per_consec_raw_bank = 4;
+    static constexpr unsigned n_mat_groups_and_mats = 544;
+    static constexpr unsigned mat_index_substract = n_consecutive_raw_banks * 3;
+    static constexpr unsigned n_mats_without_group = n_mats - n_consecutive_raw_banks * n_mats_per_consec_raw_bank;
 
     // FIXME_GEOMETRY_HARDCODING
     // todo: use dzdy defined in geometry, read by mat
@@ -188,13 +191,13 @@ namespace SciFi {
 
     __device__ __host__ uint32_t module() const { return ((channelID & moduleMask) >> moduleBits); }
 
-    __device__ __host__ uint correctedModule() const
+    __device__ __host__ unsigned correctedModule() const
     {
       // Returns local module ID in ascending x order.
       // There may be a faster way to do this.
-      uint uQuarter = uniqueQuarter() - 16;
-      uint module_count = uQuarter >= 32 ? 6 : 5;
-      uint q = uQuarter % 4;
+      unsigned uQuarter = uniqueQuarter() - 16;
+      unsigned module_count = uQuarter >= 32 ? 6 : 5;
+      unsigned q = uQuarter % 4;
       if (q == 0 || q == 2) return module_count - 1 - module();
       if (q == 1 || q == 3) return module();
       return 0;
@@ -229,7 +232,7 @@ namespace SciFi {
 
     __device__ __host__ bool reversedZone() const
     {
-      uint zone = ((uniqueQuarter() - 16) >> 1) % 4;
+      unsigned zone = ((uniqueQuarter() - 16) >> 1) % 4;
       return zone == 1 || zone == 2;
     }
 

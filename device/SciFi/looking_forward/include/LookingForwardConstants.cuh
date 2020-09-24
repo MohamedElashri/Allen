@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "SystemOfUnits.h"
@@ -132,12 +135,12 @@ namespace LookingForward {
     //   be from T1, T2 and T3 respectively.
     // * Hit 0 and hit 2 of the track are expected to be a T1 and T3 hit,
     //   in the calculation of QualityFilter.cu of the updated qop.
-    uint triplet_seeding_layers[n_triplet_seeds][3] {{0, 2, 4}, {1, 3, 5}};
+    unsigned triplet_seeding_layers[n_triplet_seeds][3] {{0, 2, 4}, {1, 3, 5}};
 
     // Extrapolation to UV
-    uint x_layers[6] {0, 3, 4, 7, 8, 11};
-    uint extrapolation_uv_layers[6] {1, 2, 5, 6, 9, 10};
-    uint reverse_layers[12] {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
+    unsigned x_layers[6] {0, 3, 4, 7, 8, 11};
+    unsigned extrapolation_uv_layers[6] {1, 2, 5, 6, 9, 10};
+    unsigned reverse_layers[12] {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
 
     // momentum Parametrization
     float momentumParams[6] = {1.21014f, 0.637339f, -0.200292f, 0.632298f, 3.23793f, -27.0259f};

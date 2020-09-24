@@ -5,22 +5,22 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------------
-The project requires CMake 3.12, Python3 and a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support).
+The project requires CMake 3.12, Python3, a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support), boost and ZeroMQ.
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
-* CPU target: Any modern compiler can be used, such as gcc greater than 7.0:
+* CPU target: Any modern compiler can be used:
     
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     ```
     
-* CUDA target: The latest supported compilers are gcc-8 and clang-6. CUDA is
+* CUDA target: The latest supported compilers are gcc-9 and clang-10. CUDA is
   available in cvmfs as well:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97python3 x86_64-centos7-gcc8-opt
-    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     ```
     
 * HIP target: A local installation of ROCm at least version 3.3.0 is required.
@@ -30,6 +30,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.1/x86_64-centos7/setup.sh
     ```
 
 Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
@@ -99,7 +100,13 @@ Instructions on how to call Allen from Moore can be found in [this readme](Rec/A
 
 
 ##### Using the stack setup
-Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself. If lhcb/Moore!388 is not yet merged, the branch `dovombru_Allen_Moore_integration` is required in Moore.
+Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set up the software stack. `make Moore` will compile all projects on which it depends as well as Moore itself.
+To compile a sequence other than the default sequence (hlt1_pp_default), compile for example with
+
+```
+make Allen CMAKEFLAGS='-DSEQUENCE=velo'.
+```
+Note that default CMAKEFLAGS are set for Allen in `utils/default-config.json` of the stack setup. For convenience, it is easiest to change the sequence there. 
 
 
 ##### Using the nightlies
@@ -197,7 +204,7 @@ A run of the program with the help option `-h` will let you know the basic optio
     -m, --memory {memory to reserve per thread / stream (megabytes)}=1024
     -v, --verbosity {verbosity [0-5]}=3 (info)
     -p, --print-memory {print memory usage}=0
-    -i, --import-tracks {import forward tracks dumped from Brunel}
+    -i, --import-tracks {import forward tracks dumped from Moore}
     --cpu-offload {offload part of the computation to CPU}=1
     --output-file {Write selected event to output file}
     --device {select device to use}=0
@@ -224,6 +231,9 @@ Here are some example run options:
 
     # Run one stream with 5000 events and print all memory allocations
     ./Allen -n 5000 -p 1
+
+    # Default throughput test configuration
+    ./Allen -t 16 -n 500 -m 500 -r 1000 -c 0
     
 Where to develop for GPUs
 -------------------------
@@ -254,7 +264,7 @@ The following readmes explain various aspects of Allen:
 * [This readme](contributing.md) explains how to add a new algorithm to Allen.
 * [This readme](selections.md ) explains how to add a new HLT1 line to Allen.
 * [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
-* [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore and Brunel.
+* [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore.
 * [Building and running inside Docker](readme_docker.md).
 
 ### Mattermost discussion channels

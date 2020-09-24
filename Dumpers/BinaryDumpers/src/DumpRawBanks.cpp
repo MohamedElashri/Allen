@@ -8,17 +8,20 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
-#include <vector>
+#include <array>
+#include <cstring>
+#include <fstream>
+#include <string>
+#include <thread>
 
 #include <boost/filesystem.hpp>
 
+#include <AIDA/IHistogram1D.h>
+#include <Event/ODIN.h>
+#include <Event/RawBank.h>
+#include <GaudiAlg/Consumer.h>
 #include <GaudiKernel/ParsersFactory.h>
 
-#include <Event/RawBank.h>
-#include <Event/RawEvent.h>
-#include <Event/VPLightCluster.h>
-
-#include "DumpRawBanks.h"
 #include "Utils.h"
 
 namespace {
@@ -27,152 +30,78 @@ namespace {
   namespace fs = boost::filesystem;
 } // namespace
 
-// Parsers are in namespace LHCb for ADL to work.
-namespace LHCb {
+/** @class DumpRawBanks DumpRawBanks.h
+ *  Algorithm that dumps raw banks to binary files.
+ *
+ *  @author Roel Aaij
+ *  @date   2018-08-27
+ */
+class DumpRawBanks : public Gaudi::Functional::Consumer<void(
+                         std::array<std::vector<char>, LHCb::RawBank::LastType> const&, LHCb::ODIN const& )> {
+public:
+  /// Standard constructor
+  DumpRawBanks( const std::string& name, ISvcLocator* pSvcLocator );
 
-  StatusCode parse(std::set<RawBank::BankType>& s, const std::string& in)
-  {
-    std::set<std::string> ss;
-    using Gaudi::Parsers::parse;
-    auto sc = parse(ss, in);
-    if (!sc) return sc;
-    s.clear();
-    try {
-      std::transform(begin(ss), end(ss), std::inserter(s, begin(s)), [](const std::string& s) {
-        RawBank::BankType t {};
-        auto sc = parse(t, s);
-        if (!sc) throw GaudiException("Bad Parse", "", sc);
-        return t;
-      });
-    } catch (const GaudiException& ge) {
-      return ge.code();
-    }
-    return StatusCode::SUCCESS;
-  }
+  StatusCode initialize() override;
 
-  StatusCode parse(RawBank::BankType& result, const std::string& in)
-  {
-    static std::unordered_map<std::string, RawBank::BankType> types;
-    if (types.empty()) {
-      for (int t = 0; t < RawBank::LastType; ++t) {
-        auto bt = static_cast<RawBank::BankType>(t);
-        types.emplace(RawBank::typeName(bt), bt);
-      }
-    }
+  void operator()( std::array<std::vector<char>, LHCb::RawBank::LastType> const& banks,
+                   LHCb::ODIN const&                                             odin ) const override;
 
-    // This takes care of quoting
-    std::string input;
-    using Gaudi::Parsers::parse;
-    auto sc = parse(input, in);
-    if (!sc) return sc;
+private:
+  std::string outputDirectory( LHCb::RawBank::BankType bankType ) const;
 
-    auto it = types.find(input);
-    if (it != end(types)) {
-      result = it->second;
-      return StatusCode::SUCCESS;
-    }
-    else {
-      return StatusCode::FAILURE;
-    }
-  }
+  mutable bool       m_createdDirectories{false};
+  mutable std::mutex m_dirMutex;
 
-  inline std::ostream& toStream(const RawBank::BankType& bt, std::ostream& s)
-  {
-    return s << "'" << RawBank::typeName(bt) << "'";
-  }
-} // namespace LHCb
+  Gaudi::Property<std::string> m_outputDirectory{this, "OutputDirectory", "banks"};
+};
 
-// Declaration of the Algorithm Factory
-DECLARE_COMPONENT(DumpRawBanks)
+DumpRawBanks::DumpRawBanks( const std::string& name, ISvcLocator* pSvcLocator )
+    : Consumer(
+          name, pSvcLocator,
+          // Inputs
+          {KeyValue{"BanksLocation", "Allen/Raw/Input"}, KeyValue{"ODINLocation", LHCb::ODINLocation::Default}} ) {}
 
-DumpRawBanks::DumpRawBanks(const std::string& name, ISvcLocator* pSvcLocator) :
-  Transformer(
-    name,
-    pSvcLocator,
-    // Inputs
-    {KeyValue {"RawEventLocation", LHCb::RawEventLocation::Default},
-     KeyValue {"ODINLocation", LHCb::ODINLocation::Default}},
-    // Output
-    KeyValue {"AllenRawInput", "Allen/Raw/Input"})
-{}
-
-StatusCode DumpRawBanks::initialize()
-{
-  info() << "Dumping RawBank Types:";
-  for (const auto bankType : m_bankTypes) {
-    auto tn = LHCb::RawBank::typeName(bankType);
-    info() << " " << tn;
-    if (!DumpUtils::createDirectory(outputDirectory(bankType))) {
-      error() << "Failed to create directory " << m_outputDirectory.value() << endmsg;
-      return StatusCode::FAILURE;
-    }
-    m_histos[tn] = book1D(tn, -0.5, 603.5, 151);
-  }
-  info() << endmsg;
+StatusCode DumpRawBanks::initialize() {
+  debug() << endmsg;
   return StatusCode::SUCCESS;
 }
 
-std::array<std::vector<char>, LHCb::RawBank::LastType> DumpRawBanks::operator()(
-  const LHCb::RawEvent& rawEvent,
-  const LHCb::ODIN& odin) const
-{
-
-  std::array<std::vector<char>, LHCb::RawBank::LastType> output;
-
-  for (const auto bankType : m_bankTypes) {
-    auto tBanks = rawEvent.banks(bankType);
-    const uint32_t number_of_rawbanks = tBanks.size();
-    uint32_t offset = 0;
-
-    std::vector<uint32_t> bankOffsets;
-    std::vector<uint32_t> bankData;
-    bankOffsets.push_back(0);
-
-    for (auto& bank : tBanks) {
-      const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());
-      bankData.push_back(sourceID);
-
-      offset++;
-
-      auto bStart = bank->begin<uint32_t>();
-      auto bEnd = bank->end<uint32_t>();
-
-      // Debug/testing histogram with the sizes of the binary data per bank
-      auto tn = LHCb::RawBank::typeName(bankType);
-      auto hit = m_histos.find(tn);
-      if (UNLIKELY(hit == end(m_histos))) {
-        warning() << "No histogram booked for bank type " << tn << endmsg;
+void DumpRawBanks::operator()( std::array<std::vector<char>, LHCb::RawBank::LastType> const& banks,
+                               LHCb::ODIN const&                                             odin ) const {
+  if ( !m_createdDirectories ) {
+    std::lock_guard{m_dirMutex};
+    if ( !m_createdDirectories ) {
+      for ( int bt = 0; bt != LHCb::RawBank::LastType; ++bt ) {
+        auto bankType = static_cast<LHCb::RawBank::BankType>( bt );
+        if ( !banks[bankType].empty() ) {
+          auto tn = LHCb::RawBank::typeName( bankType );
+          if ( !DumpUtils::createDirectory( outputDirectory( bankType ) ) ) {
+            throw GaudiException{"Failed to create directory " + m_outputDirectory.value(), name(),
+                                 StatusCode::FAILURE};
+          }
+        }
       }
-      else {
-        hit->second->fill((bEnd - bStart) * sizeof(uint32_t));
-      }
-
-      while (bStart != bEnd) {
-        const uint32_t raw_data = *(bStart);
-        bankData.push_back(raw_data);
-
-        bStart++;
-        offset++;
-      }
-      bankOffsets.push_back(offset * sizeof(uint32_t));
-    }
-
-    // Dumping number_of_rawbanks + 1 offsets!
-    DumpUtils::Writer bank_buffer;
-    bank_buffer.write(number_of_rawbanks, bankOffsets, bankData);
-    output[bankType] = bank_buffer.buffer();
-    if (m_dumpToFile) {
-      DumpUtils::FileWriter outfile =
-        outputDirectory(bankType) + "/" + to_string(odin.runNumber()) + "_" + to_string(odin.eventNumber()) + ".bin";
-      outfile.write(bank_buffer.buffer());
+      m_createdDirectories = true;
     }
   }
-  return output;
+
+  for ( int bt = 0; bt != LHCb::RawBank::LastType; ++bt ) {
+    auto        bankType = static_cast<LHCb::RawBank::BankType>( bt );
+    auto const& rawBanks = banks[bankType];
+    if ( !rawBanks.empty() ) {
+      DumpUtils::FileWriter outfile = outputDirectory( bankType ) + "/" + to_string( odin.runNumber() ) + "_" +
+                                      to_string( odin.eventNumber() ) + ".bin";
+      outfile.write( rawBanks );
+    }
+  }
 }
 
-std::string DumpRawBanks::outputDirectory(LHCb::RawBank::BankType bankType) const
-{
-  auto tn = LHCb::RawBank::typeName(bankType);
-  auto dir = fs::path {m_outputDirectory.value()} / tn;
+std::string DumpRawBanks::outputDirectory( LHCb::RawBank::BankType bankType ) const {
+  auto tn  = LHCb::RawBank::typeName( bankType );
+  auto dir = fs::path{m_outputDirectory.value()} / tn;
   return dir.string();
 }
+
+// Declaration of the Algorithm Factory
+DECLARE_COMPONENT( DumpRawBanks )

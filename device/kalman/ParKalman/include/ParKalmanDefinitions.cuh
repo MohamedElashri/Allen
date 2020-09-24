@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "States.cuh"
@@ -81,10 +84,10 @@ namespace ParKalmanFilter {
     KalmanFloat ipChi2;
     KalmanFloat ip;
     
-    uint ndof;
-    uint ndofV;
-    uint ndofT;
-    uint nhits;
+    unsigned ndof;
+    unsigned ndofV;
+    unsigned ndofT;
+    unsigned nhits;
 
     bool is_muon;
 

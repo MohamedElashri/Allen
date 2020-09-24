@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -34,6 +37,8 @@ if(ROOT_FOUND)
   target_include_directories(TrackChecking SYSTEM BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
+  # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
 endif()
 
 if(USE_KALMAN_SINGLE_PRECISION)

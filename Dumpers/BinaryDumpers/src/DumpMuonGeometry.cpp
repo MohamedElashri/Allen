@@ -21,7 +21,6 @@ DECLARE_COMPONENT(DumpMuonGeometry)
 
 StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
 {
-
   const auto& det = detector();
   m_daqHelper.initSvc(detSvc(), msgSvc());
 
@@ -32,9 +31,9 @@ StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
     info() << "Registering " << path << endmsg;
     updMgrSvc->registerCondition(&m_daqHelper, path, &MuonDAQHelper::updateLUT);
   }
-  updMgrSvc->update(&m_daqHelper);
+  auto sc = updMgrSvc->update(&m_daqHelper);
 
-  return StatusCode::SUCCESS;
+  return sc;
 }
 
 DumpUtils::Dumps DumpMuonGeometry::dumpGeometry() const

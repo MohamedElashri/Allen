@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <read_mdf.hpp>
@@ -13,7 +16,7 @@ public:
     std::string receiver_connection,
     size_t events_per_slice,
     IZeroMQSvc* zmqSvc,
-    uint number_of_hlt1_lines,
+    unsigned number_of_hlt1_lines,
     bool checksum = true);
 
   ~ZMQOutputSender();

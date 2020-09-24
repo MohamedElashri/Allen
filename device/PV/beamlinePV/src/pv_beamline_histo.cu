@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "pv_beamline_histo.cuh"
 
 void pv_beamline_histo::pv_beamline_histo_t::set_arguments_size(
@@ -37,14 +40,14 @@ __device__ float gauss_integral(float x)
 
 __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Parameters parameters, float* dev_beamline)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   float* histo_base_pointer = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
 
@@ -56,7 +59,7 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
   }
   __syncthreads();
 
-  for (uint index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
+  for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     PVTrack trk = parameters.dev_pvtracks[event_tracks_offset + index];
     // apply the z cut here
     if (BeamlinePVConstants::Common::zmin < trk.z && trk.z < BeamlinePVConstants::Common::zmax) {

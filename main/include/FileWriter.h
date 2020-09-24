@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <read_mdf.hpp>
@@ -10,7 +13,7 @@ public:
     IInputProvider const* input_provider,
     std::string filename,
     size_t events_per_slice,
-    const uint number_of_hlt1_lines,
+    const unsigned number_of_hlt1_lines,
     bool checksum = true) :
     OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
     m_filename {std::move(filename)}, m_checksum {checksum}

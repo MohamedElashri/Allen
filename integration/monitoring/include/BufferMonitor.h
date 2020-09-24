@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "MonitorBase.h"
@@ -7,5 +10,5 @@ struct BufferMonitor : public MonitorBase {
 
   virtual ~BufferMonitor() = default;
 
-  virtual void fill(uint i_buf, bool useWallTime = true) = 0;
+  virtual void fill(unsigned i_buf, bool useWallTime = true) = 0;
 };

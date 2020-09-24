@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "MonitorBase.h"
 #include "ROOTHeaders.h"
 
@@ -16,8 +19,8 @@ void MonitorBase::saveHistograms(std::string file_name, bool append) const
     dir = static_cast<TDirectory*>(file->Get(m_name.c_str()));
   }
 
-  for (auto kv : m_histograms) {
-    TH1* h = kv.second;
+  for (auto& kv : m_histograms) {
+    auto h = kv.second.get();
 
     dir->cd();
     if (append) {
@@ -37,11 +40,12 @@ void MonitorBase::saveHistograms(std::string file_name, bool append) const
 
   file->Close();
 #else
-void MonitorBase::saveHistograms(std::string, bool) const {
+void MonitorBase::saveHistograms(std::string, bool) const
+{
 #endif
 }
 
-uint MonitorBase::getWallTimeBin()
+unsigned MonitorBase::getWallTimeBin()
 {
   if (m_offset <= 0) m_offset = time(0);
 

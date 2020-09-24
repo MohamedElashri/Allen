@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LineInfo.cuh"
 #include "RunHlt1.cuh"
 #include "DeterministicPostscaler.cuh"
@@ -5,12 +8,12 @@
 #include "DeviceLineTraverser.cuh"
 
 __global__ void
-run_hlt1::run_postscale(run_hlt1::Parameters parameters, const uint selected_number_of_events, const uint event_start)
+run_hlt1::run_postscale(run_hlt1::Parameters parameters, const unsigned selected_number_of_events, const unsigned event_start)
 {
   const auto event_number = blockIdx.x;
 
-  const uint hdr_size(8);
-  const unsigned int* odinData = reinterpret_cast<const uint*>(
+  const unsigned hdr_size(8);
+  const unsigned int* odinData = reinterpret_cast<const unsigned*>(
     parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number] + hdr_size);
 
   const uint32_t run_no = odinData[LHCb::ODIN::Data::RunNumber];
@@ -28,11 +31,11 @@ run_hlt1::run_postscale(run_hlt1::Parameters parameters, const uint selected_num
     });
 
   if (blockIdx.x < selected_number_of_events) {
-    const uint selected_event_number = blockIdx.x;
-    const uint event_number = parameters.dev_event_list[blockIdx.x] - event_start;
+    const unsigned selected_event_number = blockIdx.x;
+    const unsigned event_number = parameters.dev_event_list[blockIdx.x] - event_start;
 
-    const uint hdr_size(8);
-    const unsigned int* odinData = reinterpret_cast<const uint*>(
+    const unsigned hdr_size(8);
+    const unsigned int* odinData = reinterpret_cast<const unsigned*>(
       parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[selected_event_number] + hdr_size);
 
     const uint32_t run_no = odinData[LHCb::ODIN::Data::RunNumber];

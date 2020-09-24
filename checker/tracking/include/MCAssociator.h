@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 /** @file MCAssociator.h
  *
  * @brief a simple MC associator
@@ -21,15 +24,17 @@
 
 /// simple MC associator
 struct MCAssociator {
-  using LHCbIDWithIndex = std::pair<LHCbID, uint>;
+  using LHCbIDWithIndex = std::pair<LHCbID, unsigned>;
   using AssocMap = std::vector<LHCbIDWithIndex>;
 
   /// internal structure with index into particles and weight
   struct MCParticleWithWeight {
     std::size_t m_idx;
     float m_w;
-    uint m_counter_sum;
-    MCParticleWithWeight(std::size_t idx, float w, uint counter_sum) : m_idx(idx), m_w(w), m_counter_sum(counter_sum) {}
+    unsigned m_counter_sum;
+    MCParticleWithWeight(std::size_t idx, float w, unsigned counter_sum) :
+      m_idx(idx), m_w(w), m_counter_sum(counter_sum)
+    {}
     MCParticleWithWeight(const MCParticleWithWeight&) = default;
     MCParticleWithWeight(MCParticleWithWeight&&) = default;
     MCParticleWithWeight& operator=(const MCParticleWithWeight&) = default;

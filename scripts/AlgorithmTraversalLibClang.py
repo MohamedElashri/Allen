@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 import clang.cindex as cindex
 
 
@@ -125,10 +128,10 @@ class AlgorithmTraversal():
         * typename: Name of the class (ie. host_number_of_selected_events_t).
         * kind: host / device.
         * io: input / output.
-        * typedef: Type that it holds (ie. uint).
+        * typedef: Type that it holds (ie. unsigned).
 
         For a property:
-        * typedef: Type that it holds (ie. uint).
+        * typedef: Type that it holds (ie. unsigned).
         * name: Name of the property (obtained with tokens)
         * descrition: Property description (obtained with tokens)
         """
@@ -157,7 +160,7 @@ class AlgorithmTraversal():
                     kind = child.type.spelling
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
-                    # child.type.spelling is like "void (uint) const", or "void (uint)"
+                    # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
                     typedef = child.type.spelling[child.type.spelling.find(
                         "(") + 1:child.type.spelling.find(")")]
             if typedef == "":

@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 import clang.cindex
 from subprocess import Popen, PIPE
 import os

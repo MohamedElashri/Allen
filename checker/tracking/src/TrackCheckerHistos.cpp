@@ -1,8 +1,11 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <TrackCheckerHistos.h>
 
 namespace {
   using Checker::HistoCategory;
-}
+} // namespace
 
 TrackCheckerHistos::TrackCheckerHistos(
   CheckerInvoker const* invoker,
@@ -288,8 +291,8 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
       h_reconstructible_phi[phi_name]->Fill(mcp.phi);
       h_reconstructible_nPV[nPV_name]->Fill(mcp.nPV);
       h_reconstructible_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
-      float tx = std::sin(mcp.phi) / std::sinh(mcp.eta);
-      float ty = std::cos(mcp.phi) / std::sinh(mcp.eta);
+      float tx = std::cos(mcp.phi) / std::sinh(mcp.eta);
+      float ty = std::sin(mcp.phi) / std::sinh(mcp.eta);
       float docaz = std::abs(ty * mcp.ovtx_x - tx * mcp.ovtx_y) / std::sqrt(tx * tx + ty * ty);
       h_reconstructible_docaz[docaz_name]->Fill(docaz);
     }

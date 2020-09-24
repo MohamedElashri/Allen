@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "MuonFilter.cuh"
 
 void MuonFilter::muon_filter_t::set_arguments_size(
@@ -57,8 +60,8 @@ void MuonFilter::muon_filter_t::operator()(
 __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
 {
 
-  const uint number_of_events = gridDim.x;
-  const uint i_event = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned i_event = blockIdx.x;
 
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, i_event, number_of_events};
@@ -83,15 +86,15 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
     i_event,
     number_of_events};
 
-  const uint event_offset = scifi_tracks.tracks_offset(i_event);
-  const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
-  uint* event_mf_decision = parameters.dev_mf_decisions.get() + i_event;
+  const unsigned event_offset = scifi_tracks.tracks_offset(i_event);
+  const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
+  unsigned* event_mf_decision = parameters.dev_mf_decisions.get() + i_event;
 
   Associate::Consolidated::ConstTable kalman_pv_ipchi2 {
     parameters.dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks()};
   const auto pvchi2_table = kalman_pv_ipchi2.event_table(scifi_tracks, i_event);
 
-  for (uint i_scifi_track = threadIdx.x; i_scifi_track < number_of_tracks_event; i_scifi_track += blockDim.x) {
+  for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < number_of_tracks_event; i_scifi_track += blockDim.x) {
     bool pTcut = false;
     bool pvcut = false;
     bool isMuon = false;
@@ -99,7 +102,7 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
     // Pt cut.
     auto i_ut_track = scifi_tracks.ut_track(i_scifi_track);
     auto i_velo_track = ut_tracks.velo_track(i_ut_track);
-    uint i_velo_state = velo_tracks.tracks_offset(i_event) + i_velo_track;
+    unsigned i_velo_state = velo_tracks.tracks_offset(i_event) + i_velo_track;
     const float p = 1.f / fabsf(scifi_tracks.qop(i_scifi_track));
     const float tx2 = velo_states.tx(i_velo_state) * velo_states.tx(i_velo_state);
     const float ty2 = velo_states.ty(i_velo_state) * velo_states.ty(i_velo_state);

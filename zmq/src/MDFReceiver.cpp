@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <fcntl.h>
 
 #include <iostream>
@@ -20,6 +23,10 @@
 #include <read_mdf.hpp>
 #include <raw_helpers.hpp>
 #include <zmq/svc.h>
+
+#ifndef O_DIRECT
+#define O_DIRECT 00040000
+#endif
 
 namespace {
   using namespace std::string_literals;

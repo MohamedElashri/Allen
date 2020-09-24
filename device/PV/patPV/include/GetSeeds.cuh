@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "VeloDefinitions.cuh"
@@ -11,13 +14,13 @@
 namespace pv_get_seeds {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint), host_number_of_reconstructed_velo_tracks),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
     (DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char), dev_velo_kalman_beamline_states),
-    (DEVICE_INPUT(dev_atomics_velo_t, uint), dev_atomics_velo),
-    (DEVICE_INPUT(dev_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (DEVICE_INPUT(dev_atomics_velo_t, unsigned), dev_atomics_velo),
+    (DEVICE_INPUT(dev_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_OUTPUT(dev_seeds_t, PatPV::XYZPoint), dev_seeds),
-    (DEVICE_OUTPUT(dev_number_seeds_t, uint), dev_number_seeds),
+    (DEVICE_OUTPUT(dev_number_seeds_t, unsigned), dev_number_seeds),
     (PROPERTY(max_chi2_merge_t, "max_chi2_merge", "max chi2 merge", float), max_chi2_merge),
     (PROPERTY(factor_to_increase_errors_t, "factor_to_increase_errors", "factor to increase errors", float), factor_to_increase_errors),
     (PROPERTY(min_cluster_mult_t, "min_cluster_mult", "min cluster mult", int), min_cluster_mult),

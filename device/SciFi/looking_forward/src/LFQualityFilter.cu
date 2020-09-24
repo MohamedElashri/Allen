@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LFQualityFilter.cuh"
 
 void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
@@ -67,7 +70,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
-  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const unsigned velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
   // UT consolidated tracks
@@ -79,7 +82,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
   const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
 
   // SciFi hits
-  const uint total_number_of_hits =
+  const unsigned total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
 
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
@@ -88,7 +91,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
   const auto number_of_tracks = parameters.dev_scifi_lf_length_filtered_atomics[event_number];
   const auto event_offset = scifi_hit_count.event_offset();
 
-  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_length_filtered_tracks[scifi_track_index];
@@ -97,8 +100,8 @@ __global__ void lf_quality_filter::lf_quality_filter(
     bool hit_in_T1_UV = false;
     bool hit_in_T2_UV = false;
     bool hit_in_T3_UV = false;
-    uint number_of_uv_hits = 0;
-    for (uint j = 3; j < track.hitsNum; ++j) {
+    unsigned number_of_uv_hits = 0;
+    for (unsigned j = 3; j < track.hitsNum; ++j) {
       const auto hit_index = event_offset + track.hits[j];
       const auto layer_number = scifi_hits.planeCode(hit_index) / 2;
 
@@ -170,11 +173,11 @@ __global__ void lf_quality_filter::lf_quality_filter(
   // Due to parameters.dev_scifi_quality_of_tracks RAW dependency
   __syncthreads();
 
-  for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     float best_quality = LookingForward::quality_filter_max_quality;
     short best_track_index = -1;
 
-    for (uint j = 0; j < number_of_tracks; j++) {
+    for (unsigned j = 0; j < number_of_tracks; j++) {
       const auto index = ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + j;
       const auto track_quality = parameters.dev_scifi_quality_of_tracks[index];
       const SciFi::TrackHits& track = parameters.dev_scifi_lf_length_filtered_tracks[index];

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "UTEventModel.cuh"
@@ -12,7 +15,7 @@ namespace compass_ut {
     const UT::HitOffsets& ut_hit_offsets,
     const MiniState& velo_state,
     const float* ut_dxDy,
-    const uint max_considered_before_found,
+    const unsigned max_considered_before_found,
     const float delta_tx_2,
     const float hit_tol_2,
     const float sigma_velo_slope,
@@ -45,9 +48,9 @@ namespace compass_ut {
 
   __device__ void compass_ut_tracking(
     const short* dev_windows_layers,
-    const uint number_of_tracks_event,
+    const unsigned number_of_tracks_event,
     const int i_track,
-    const uint current_track_offset,
+    const unsigned current_track_offset,
     Velo::Consolidated::ConstStates& velo_states,
     UT::ConstHits& ut_hits,
     const UT::HitOffsets& ut_hit_offsets,
@@ -55,12 +58,12 @@ namespace compass_ut {
     const float* dev_ut_dxDy,
     const float magnet_polarity,
     short* win_size_shared,
-    uint* n_veloUT_tracks_event,
+    unsigned* n_veloUT_tracks_event,
     UT::TrackHits* veloUT_tracks_event,
     const int event_hit_offset,
     const float min_momentum_final,
     const float min_pt_final,
-    const uint max_considered_before_found,
+    const unsigned max_considered_before_found,
     const float delta_tx_2,
     const float hit_tol_2,
     const float sigma_velo_slope);
@@ -82,7 +85,7 @@ namespace compass_ut {
     UT::ConstHits& ut_hits,
     const float* ut_dxDy,
     const float magSign,
-    uint* n_veloUT_tracks,
+    unsigned* n_veloUT_tracks,
     UT::TrackHits* VeloUT_tracks,
     const int event_hit_offset,
     const float min_momentum_final,

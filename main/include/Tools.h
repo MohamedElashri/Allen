@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <cmath>
@@ -13,8 +16,8 @@
 #include "MuonDefinitions.cuh"
 #include "CheckerTypes.h"
 
-bool check_velopix_events(const std::vector<char>& events, const std::vector<uint>& event_offsets, size_t n_events);
+bool check_velopix_events(const std::vector<char>& events, const std::vector<unsigned>& event_offsets, size_t n_events);
 
 std::map<std::string, float> calcResults(std::vector<float>& times);
 
-std::vector<Checker::Tracks> read_forward_tracks(const char* events, const uint* event_offsets, const int n_events);
+std::vector<Checker::Tracks> read_forward_tracks(const char* events, const unsigned* event_offsets, const int n_events);

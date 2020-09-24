@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 using Vector10 = Vector<10>;
 using Vector2 = Vector<2>;
 using SymMatrix2x2 = SquareMatrix<true, 2>;
@@ -117,7 +120,7 @@ __device__ bool PredictStateVUT(
 // Predict UT <-> UT.
 __device__ void PredictStateUT(
   UT::Consolidated::ConstHits& hits,
-  const uint layer,
+  const unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -193,7 +196,7 @@ __device__ void PredictStateUTFUT(Vector5& x, SymMatrix5x5& C, KalmanFloat& last
 // Predict T <-> T.
 __device__ void PredictStateT(
   SciFi::Consolidated::ConstExtendedHits& hits,
-  uint layer,
+  unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -321,7 +324,7 @@ UpdateStateV(Velo::Consolidated::ConstHits& hits, int forward, int nHit, Vector5
 // Update state with a UT measurement.
 __device__ void UpdateStateUT(
   UT::Consolidated::ConstHits& hits,
-  uint layer,
+  unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -375,7 +378,7 @@ __device__ void UpdateStateUT(
 // Update state with a SciFi measurement.
 __device__ void UpdateStateT(
   SciFi::Consolidated::ConstExtendedHits& hits,
-  const uint layer,
+  const unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -456,7 +459,7 @@ ExtrapolateInV(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   KalmanFloat dz = zTo - zFrom;
   // which set of parameters should be used
   const auto& par = tI.m_extr->Par_predictV[dz > 0 ? 0 : 1];
-  // uint parSet = dz>0 ? 0 : 1;
+  // unsigned parSet = dz>0 ? 0 : 1;
 
   // do not update if there is nothing to update
   if (dz == 0) return;
@@ -643,7 +646,7 @@ __device__ void GetNoiseVUTBackw(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x,
 // Extrapolate in UT.
 __device__ void ExtrapolateInUT(
   KalmanFloat zFrom,
-  uint nLayer,
+  unsigned nLayer,
   KalmanFloat zTo,
   Vector5& x,
   Matrix5x5& F,
@@ -875,7 +878,7 @@ __device__ void GetNoiseUTTBackw(const Vector5& x, SymMatrix5x5& Q, trackInfo& t
 // Extrapolate in the SciFi.
 __device__ void ExtrapolateInT(
   KalmanFloat zFrom,
-  uint nLayer,
+  unsigned nLayer,
   KalmanFloat& zTo,
   Vector5& x,
   Matrix5x5& F,
@@ -903,7 +906,7 @@ __device__ void ExtrapolateInT(
 // Extrapolate in the SciFi.
 __device__ void ExtrapolateInT(
   KalmanFloat zFrom,
-  uint nLayer,
+  unsigned nLayer,
   KalmanFloat zTo,
   KalmanFloat DzDy,
   KalmanFloat DzDty,

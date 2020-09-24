@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <cstdio>
@@ -10,7 +13,7 @@
  *         https://en.wikipedia.org/wiki/Binary_search_algorithm
  */
 template<typename T>
-__host__ __device__ int binary_search_leftmost(const T* array, const uint array_size, const T& value)
+__host__ __device__ int binary_search_leftmost(const T* array, const unsigned array_size, const T& value)
 {
   int l = 0;
   int r = array_size;

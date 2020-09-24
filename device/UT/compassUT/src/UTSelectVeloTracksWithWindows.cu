@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "UTSelectVeloTracksWithWindows.cuh"
 #include <tuple>
 
@@ -67,16 +70,16 @@ found_active_windows(const short* dev_windows_layers, const int number_of_tracks
 __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows(
   ut_select_velo_tracks_with_windows::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
@@ -88,7 +91,7 @@ __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_w
     parameters.dev_ut_number_of_selected_velo_tracks_with_windows + event_number;
   auto ut_selected_velo_tracks_with_windows = parameters.dev_ut_selected_velo_tracks_with_windows + event_tracks_offset;
 
-  for (uint i = threadIdx.x; i < ut_number_of_selected_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < ut_number_of_selected_tracks; i += blockDim.x) {
     const auto current_velo_track = ut_selected_velo_tracks[i];
     if (found_active_windows(ut_windows_layers, number_of_tracks_event, current_velo_track)) {
       int current_track = atomicAdd(ut_number_of_selected_velo_tracks_with_windows, 1);

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "KalmanParametrizations.cuh"
@@ -35,20 +38,20 @@ namespace ParKalmanFilter {
     int m_UTLayerIdxs[4];
 
     // NDoFs.
-    uint m_ndof;
-    uint m_ndofT;
-    uint m_ndofUT;
-    uint m_ndofV;
+    unsigned m_ndof;
+    unsigned m_ndofT;
+    unsigned m_ndofUT;
+    unsigned m_ndofV;
 
     // Number of hits.
-    uint m_NHits;
-    uint m_NHitsV;
-    uint m_NHitsUT;
-    uint m_NHitsT;
+    unsigned m_NHits;
+    unsigned m_NHitsV;
+    unsigned m_NHitsUT;
+    unsigned m_NHitsT;
 
     // Keep track of the previous UT and T layers.
-    uint m_PrevUTLayer;
-    uint m_PrevSciFiLayer;
+    unsigned m_PrevUTLayer;
+    unsigned m_PrevSciFiLayer;
 
     __device__ __host__ trackInfo()
     {
@@ -74,7 +77,7 @@ __device__ inline void GetNoiseVUTBackw(KalmanFloat zFrom, KalmanFloat zTo, Vect
 
 __device__ inline void ExtrapolateInUT(
   KalmanFloat zFrom,
-  uint nLayer,
+  unsigned nLayer,
   KalmanFloat zTo,
   Vector5& x,
   Matrix5x5& F,
@@ -91,7 +94,7 @@ __device__ inline void GetNoiseUTTBackw(const Vector5& x, SymMatrix5x5& Q, track
 
 __device__ inline void ExtrapolateInT(
   KalmanFloat zFrom,
-  uint nLayer,
+  unsigned nLayer,
   KalmanFloat& zTo,
   Vector5& x,
   Matrix5x5& F,
@@ -100,7 +103,7 @@ __device__ inline void ExtrapolateInT(
 
 __device__ inline void ExtrapolateInT(
   KalmanFloat zFrom,
-  uint nLayer,
+  unsigned nLayer,
   KalmanFloat zTo,
   KalmanFloat DzDy,
   KalmanFloat DzDty,
@@ -162,7 +165,7 @@ PredictStateVUT(UT::Consolidated::ConstHits& hitsUT, Vector5& x, SymMatrix5x5& C
 // Predict UT <-> UT.
 __device__ inline void PredictStateUT(
   UT::Consolidated::ConstHits& hits,
-  const uint layer,
+  const unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -180,7 +183,7 @@ __device__ inline void PredictStateUTT(Vector5& x, SymMatrix5x5& C, KalmanFloat&
 // Predict T <-> T.
 __device__ inline void PredictStateT(
   SciFi::Consolidated::ConstExtendedHits& hits,
-  uint layer,
+  unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -204,7 +207,7 @@ UpdateStateV(Velo::Consolidated::ConstHits& hits, int forward, int nHit, Vector5
 // Update state with UT measurement.
 __device__ inline void UpdateStateUT(
   UT::Consolidated::ConstHits& hits,
-  uint layer,
+  unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -214,7 +217,7 @@ __device__ inline void UpdateStateUT(
 // Update state with T measurement.
 __device__ inline void UpdateStateT(
   SciFi::Consolidated::ConstExtendedHits& hits,
-  uint layer,
+  unsigned layer,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,

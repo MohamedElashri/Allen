@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <regex>
 #include <ROOTHeaders.h>
 #include "CheckerInvoker.h"
@@ -45,7 +48,7 @@ TFile* CheckerInvoker::root_file(std::string const& root_file) const
 
 MCEvents CheckerInvoker::load(
   std::string const mc_folder,
-  std::vector<std::tuple<uint, unsigned long>> const& events,
+  std::vector<std::tuple<unsigned, unsigned long>> const& events,
   std::vector<bool> const& event_mask,
   std::string const tracks_folder,
   std::string const pvs_folder) const
@@ -73,7 +76,7 @@ MCEvents CheckerInvoker::load(
   verbose_cout << "Requested " << events.size() << " files" << std::endl;
 
   // Check if all files are there
-  for (auto const event_id : events) {
+  for (auto const& event_id : events) {
     auto files = {std::tuple {pvs_folder, mc_pvs_files}, std::tuple {tracks_folder, mc_tracks_files}};
     if (std::any_of(files.begin(), files.end(), [event_id](auto const& entry) {
           auto missing = !std::get<1>(entry).count(event_id);

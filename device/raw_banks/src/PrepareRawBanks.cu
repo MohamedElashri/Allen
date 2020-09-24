@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "PrepareRawBanks.cuh"
 #include "DeviceLineTraverser.cuh"
 
@@ -61,15 +64,15 @@ void prepare_raw_banks::prepare_raw_banks_t::operator()(
   initialize<dev_sel_atomics_t>(arguments, 0, cuda_stream);
 
 #ifdef CPU
-  const uint grid_dim = 1;
-  const uint block_dim = 1;
+  const unsigned grid_dim = 1;
+  const unsigned block_dim = 1;
 #else
-  uint grid_dim =
+  unsigned grid_dim =
     (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>();
   if (grid_dim == 0) {
     grid_dim = 1;
   }
-  const uint block_dim = property<block_dim_x_t>().get();
+  const unsigned block_dim = property<block_dim_x_t>().get();
 #endif
 
   global_function(prepare_decisions)(dim3(grid_dim), dim3(block_dim), cuda_stream)(
@@ -96,15 +99,15 @@ void prepare_raw_banks::prepare_raw_banks_t::operator()(
 
 __global__ void prepare_raw_banks::prepare_raw_banks(
   prepare_raw_banks::Parameters parameters,
-  const uint selected_number_of_events,
-  const uint total_number_of_events,
-  const uint event_start)
+  const unsigned selected_number_of_events,
+  const unsigned total_number_of_events,
+  const unsigned event_start)
 {
   // Handle special lines for events that don't pass the GEC.
-  for (uint selected_event_number = selected_number_of_events + blockIdx.x * blockDim.x + threadIdx.x;
+  for (unsigned selected_event_number = selected_number_of_events + blockIdx.x * blockDim.x + threadIdx.x;
        selected_event_number < total_number_of_events;
        selected_event_number += blockDim.x * gridDim.x) {
-    const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
+    const unsigned event_number = parameters.dev_event_list[selected_event_number] - event_start;
     const int n_hlt1_lines = std::tuple_size<configured_lines_t>::value;
     uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
 
@@ -123,7 +126,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     // Set the rest of the DecReport.
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;
-    uint n_decisions = 0;
+    unsigned n_decisions = 0;
     
     Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::Line>::traverse([&](const unsigned long i_line) {
       HltDecReport dr;
@@ -138,12 +141,12 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     });
 
     // TODO: Handle SelReports.
-    const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
-    uint* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
-    const uint event_sel_rb_objtyp_offset = event_number * (Hlt1::nObjTyp + 1);
-    uint* event_sel_rb_objtyp = parameters.dev_sel_rb_objtyp + event_sel_rb_objtyp_offset;
-    const uint event_sel_rb_substr_offset = event_number * Hlt1::subStrDefaultAllocationSize;
-    uint* event_sel_rb_substr = parameters.dev_sel_rb_substr + event_sel_rb_substr_offset;
+    const unsigned event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
+    unsigned* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
+    const unsigned event_sel_rb_objtyp_offset = event_number * (Hlt1::nObjTyp + 1);
+    unsigned* event_sel_rb_objtyp = parameters.dev_sel_rb_objtyp + event_sel_rb_objtyp_offset;
+    const unsigned event_sel_rb_substr_offset = event_number * Hlt1::subStrDefaultAllocationSize;
+    unsigned* event_sel_rb_substr = parameters.dev_sel_rb_substr + event_sel_rb_substr_offset;
 
     // Populate dev_passing_event_list
     parameters.dev_passing_event_list[event_number] = true;
@@ -153,8 +156,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     HltSelRepRBSubstr substr_bank(0, event_sel_rb_substr);
 
     // Create the standard info sub-bank.
-    uint nAllInfo = Hlt1::nStdInfoDecision * n_decisions;
-    uint nObj = n_decisions;
+    unsigned nAllInfo = Hlt1::nStdInfoDecision * n_decisions;
+    unsigned nObj = n_decisions;
     bool writeStdInfo = nAllInfo < Hlt1::maxStdInfoEvent;
     HltSelRepRBStdInfo stdinfo_bank(nObj, nAllInfo, event_sel_rb_stdinfo);
 
@@ -179,7 +182,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     objtyp_bank.saveSize();
     substr_bank.saveSize();
     stdinfo_bank.saveSize();
-    uint selrep_size = HltSelRepRawBank::Header::kHeaderSize + objtyp_bank.size() + substr_bank.size() +
+    unsigned selrep_size = HltSelRepRawBank::Header::kHeaderSize + objtyp_bank.size() + substr_bank.size() +
                        writeStdInfo * stdinfo_bank.size();
     parameters.dev_sel_rep_sizes[event_number] = selrep_size;
   }
@@ -188,7 +191,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
   for (auto selected_event_number = blockIdx.x * blockDim.x + threadIdx.x;
        selected_event_number < selected_number_of_events;
        selected_event_number += blockDim.x * gridDim.x) {
-    const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
+    const unsigned event_number = parameters.dev_event_list[selected_event_number] - event_start;
 
     // Create velo tracks.
     Velo::Consolidated::ConstTracks velo_tracks {
@@ -218,14 +221,14 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Tracks.
     const int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(selected_event_number);
-    const uint* event_saved_tracks_list =
+    const unsigned* event_saved_tracks_list =
       parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(selected_event_number);
     const ParKalmanFilter::FittedTrack* event_kf_tracks =
       parameters.dev_kf_tracks + scifi_tracks.tracks_offset(selected_event_number);
 
     // Vertices.
     const int* event_save_sv = parameters.dev_save_sv + parameters.dev_sv_offsets[selected_event_number];
-    const uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[selected_event_number];
+    const unsigned* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[selected_event_number];
     const VertexFit::TrackMVAVertex* event_svs =
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[selected_event_number];
 
@@ -234,15 +237,15 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
     // Sel reports.
-    const uint event_sel_rb_hits_offset =
+    const unsigned event_sel_rb_hits_offset =
       scifi_tracks.tracks_offset(selected_event_number) * ParKalmanFilter::nMaxMeasurements + 3 * selected_event_number;
-    uint* event_sel_rb_hits = parameters.dev_sel_rb_hits + event_sel_rb_hits_offset;
-    const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
-    uint* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
-    const uint event_sel_rb_objtyp_offset = event_number * (Hlt1::nObjTyp + 1);
-    uint* event_sel_rb_objtyp = parameters.dev_sel_rb_objtyp + event_sel_rb_objtyp_offset;
-    const uint event_sel_rb_substr_offset = event_number * Hlt1::subStrDefaultAllocationSize;
-    uint* event_sel_rb_substr = parameters.dev_sel_rb_substr + event_sel_rb_substr_offset;
+    unsigned* event_sel_rb_hits = parameters.dev_sel_rb_hits + event_sel_rb_hits_offset;
+    const unsigned event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
+    unsigned* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
+    const unsigned event_sel_rb_objtyp_offset = event_number * (Hlt1::nObjTyp + 1);
+    unsigned* event_sel_rb_objtyp = parameters.dev_sel_rb_objtyp + event_sel_rb_objtyp_offset;
+    const unsigned event_sel_rb_substr_offset = event_number * Hlt1::subStrDefaultAllocationSize;
+    unsigned* event_sel_rb_substr = parameters.dev_sel_rb_substr + event_sel_rb_substr_offset;
 
     // If any line is passed, add to selected events and create the rest of the DecReport.
     uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
@@ -263,7 +266,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     // Create the rest of the dec report.
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;
-    uint n_decisions = 0;
+    unsigned n_decisions = 0;
     for (int i_line = 0; i_line < n_hlt1_lines; i_line++) {
       HltDecReport dec_report;
       dec_report.setDecision(false);
@@ -289,13 +292,13 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     HltSelRepRBSubstr substr_bank(0, event_sel_rb_substr);
 
     // Create the standard info sub-bank.
-    uint nAllInfo =
+    unsigned nAllInfo =
       Hlt1::nStdInfoDecision * n_decisions +
       Hlt1::nStdInfoTrack *
         (parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved]) +
       Hlt1::nStdInfoSV *
         (parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved]);
-    uint nObj = n_decisions +
+    unsigned nObj = n_decisions +
                 parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved] +
                 parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved];
     bool writeStdInfo = nAllInfo < Hlt1::maxStdInfoEvent;
@@ -315,7 +318,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     // as the lines in the substr
     // Add decision summaries to the StdInfo subbank. CLID = 1.
     // if (writeStdInfo) {
-    //   for (uint i_line = 0; i_line < n_hlt1_lines; i_line++) {
+    //   for (unsigned i_line = 0; i_line < n_hlt1_lines; i_line++) {
     //     if (event_dec_reports[2 + i_line] & dec_mask) {
     //       stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
     //       stdinfo_bank.addInfo(i_line);
@@ -325,15 +328,15 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Add one-track decisions to the substr and stdinfo.
     Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::OneTrackLine>::traverse([&](const unsigned int i_line) {
-      const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
-      const uint* candidate_list =
+      const unsigned* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
+      const unsigned* candidate_list =
         parameters.dev_candidate_lists + (i_line * total_number_of_events + event_number) * Hlt1::maxCandidates;
       // Substructure is pointers to candidates.
       if (event_dec_reports[2 + i_line] & dec_mask) {
         stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
         stdinfo_bank.addInfo(i_line);
         substr_bank.addSubstr(candidate_counts[0], 0);
-        for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
+        for (unsigned i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
           substr_bank.addPtr(n_decisions + event_save_track[candidate_list[i_sub]]);
         }
       }
@@ -341,14 +344,14 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Add two-track decisions to the substr and stdinfo.
     Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse([&](const unsigned int i_line) {
-      const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
-      const uint* candidate_list =
+      const unsigned* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
+      const unsigned* candidate_list =
         parameters.dev_candidate_lists + (i_line * total_number_of_events + event_number) * Hlt1::maxCandidates;
       if (event_dec_reports[2 + i_line] & dec_mask) {
         stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
         stdinfo_bank.addInfo(i_line);
         substr_bank.addSubstr(candidate_counts[0], 0);
-        for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
+        for (unsigned i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
           substr_bank.addPtr(n_decisions + event_save_sv[candidate_list[i_sub]]);
         }
       }
@@ -374,11 +377,11 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     // TODO: dev_n_tracks_saved was 0s at the beginning! ./Allen -m3
-    for (uint i_saved_track = 0;
+    for (unsigned i_saved_track = 0;
          i_saved_track <
          parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved];
          i_saved_track++) {
-      uint i_track = event_saved_tracks_list[i_saved_track];
+      unsigned i_track = event_saved_tracks_list[i_saved_track];
       // Add track parameters to StdInfo.
       if (writeStdInfo) {
         stdinfo_bank.addObj(Hlt1::nStdInfoTrack);
@@ -398,38 +401,38 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       // Create the tracks for saving.
       const int i_ut_track = scifi_tracks.ut_track(i_track);
       const int i_velo_track = ut_tracks.velo_track(i_ut_track);
-      const uint n_hits = scifi_tracks.number_of_hits(i_track) + ut_tracks.number_of_hits(i_ut_track) +
+      const unsigned n_hits = scifi_tracks.number_of_hits(i_track) + ut_tracks.number_of_hits(i_ut_track) +
                           velo_tracks.number_of_hits(i_velo_track);
-      uint begin = hits_bank.addSeq(n_hits);
+      unsigned begin = hits_bank.addSeq(n_hits);
       SciFi::Consolidated::ConstHits scifi_hits = scifi_tracks.get_hits(parameters.dev_scifi_track_hits, i_track);
       UT::Consolidated::ConstHits ut_hits = ut_tracks.get_hits(parameters.dev_ut_track_hits, i_ut_track);
       Velo::Consolidated::ConstHits velo_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i_velo_track);
 
       // Add the velo hits.
       // NB: these are stored in backwards order.
-      uint i_hit = 0;
-      for (uint i_velo_hit = 0; i_velo_hit < velo_tracks.number_of_hits(i_velo_track); i_velo_hit++) {
+      unsigned i_hit = 0;
+      for (unsigned i_velo_hit = 0; i_velo_hit < velo_tracks.number_of_hits(i_velo_track); i_velo_hit++) {
         hits_bank.m_location[begin + i_hit] = velo_hits.id(velo_tracks.number_of_hits(i_velo_track) - 1 - i_velo_hit);
         i_hit++;
       }
       // Add UT hits.
-      for (uint i_ut_hit = 0; i_ut_hit < ut_tracks.number_of_hits(i_ut_track); i_ut_hit++) {
+      for (unsigned i_ut_hit = 0; i_ut_hit < ut_tracks.number_of_hits(i_ut_track); i_ut_hit++) {
         hits_bank.m_location[begin + i_hit] = ut_hits.id(i_ut_hit);
         i_hit++;
       }
       // Add SciFi hits.
-      for (uint i_scifi_hit = 0; i_scifi_hit < scifi_tracks.number_of_hits(i_track); i_scifi_hit++) {
+      for (unsigned i_scifi_hit = 0; i_scifi_hit < scifi_tracks.number_of_hits(i_track); i_scifi_hit++) {
         hits_bank.m_location[begin + i_hit] = scifi_hits.id(i_scifi_hit);
         i_hit++;
       }
     }
 
     // Add secondary vertices to the hits StdInfo. CLID = 10030.
-    for (uint i_saved_sv = 0;
+    for (unsigned i_saved_sv = 0;
          i_saved_sv <
          parameters.dev_sel_atomics[event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved];
          i_saved_sv++) {
-      uint i_sv = event_saved_svs_list[i_saved_sv];
+      unsigned i_sv = event_saved_svs_list[i_saved_sv];
 
       // Add to Substr.
       int i_track = event_svs[i_sv].trk1;
@@ -452,7 +455,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     objtyp_bank.saveSize();
     substr_bank.saveSize();
     stdinfo_bank.saveSize();
-    uint selrep_size = HltSelRepRawBank::Header::kHeaderSize + hits_bank.size() + objtyp_bank.size() +
+    unsigned selrep_size = HltSelRepRawBank::Header::kHeaderSize + hits_bank.size() + objtyp_bank.size() +
                        substr_bank.size() + writeStdInfo * stdinfo_bank.size();
     parameters.dev_sel_rep_sizes[event_number] = selrep_size;
   }

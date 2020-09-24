@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "SciFiDefinitions.cuh"
@@ -7,14 +10,14 @@
 namespace scifi_raw_bank_decoder_v6 {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (HOST_INPUT(host_accumulated_number_of_scifi_hits_t, uint), host_accumulated_number_of_scifi_hits),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_accumulated_number_of_scifi_hits_t, unsigned), host_accumulated_number_of_scifi_hits),
     (DEVICE_INPUT(dev_scifi_raw_input_t, char), dev_scifi_raw_input),
-    (DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint), dev_scifi_raw_input_offsets),
-    (DEVICE_INPUT(dev_scifi_hit_offsets_t, uint), dev_scifi_hit_offsets),
-    (DEVICE_INPUT(dev_cluster_references_t, uint), dev_cluster_references),
+    (DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned), dev_scifi_raw_input_offsets),
+    (DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned), dev_scifi_hit_offsets),
+    (DEVICE_INPUT(dev_cluster_references_t, unsigned), dev_cluster_references),
     (DEVICE_OUTPUT(dev_scifi_hits_t, char), dev_scifi_hits),
-    (DEVICE_INPUT(dev_event_list_t, uint), dev_event_list),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void scifi_raw_bank_decoder_v6(Parameters, const char* scifi_geometry);

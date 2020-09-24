@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "HostPrefixSum.h"
 
 void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
@@ -8,7 +11,7 @@ void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
 {
   // The total sum holder just holds a single unsigned integer.
   set_size<host_total_sum_holder_t>(arguments, 1);
-  set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(uint) + 1);
+  set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(unsigned) + 1);
 }
 
 void host_prefix_sum::host_prefix_sum_t::operator()(
@@ -33,14 +36,14 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
 }
 
 void host_prefix_sum::host_prefix_sum_impl(
-  uint* host_prefix_sum_buffer,
+  unsigned* host_prefix_sum_buffer,
   const size_t input_number_of_elements,
-  uint* host_total_sum_holder)
+  unsigned* host_total_sum_holder)
 {
   // Do prefix sum on the host
-  uint temp = 0;
-  uint temp_sum = 0;
-  for (uint i = 0; i < input_number_of_elements; ++i) {
+  unsigned temp = 0;
+  unsigned temp_sum = 0;
+  for (unsigned i = 0; i < input_number_of_elements; ++i) {
     temp_sum += host_prefix_sum_buffer[i];
     host_prefix_sum_buffer[i] = temp;
     temp = temp_sum;
@@ -56,7 +59,7 @@ void host_prefix_sum::host_prefix_sum_impl(
 }
 
 void host_prefix_sum::host_prefix_sum(
-  uint* host_prefix_sum_buffer,
+  unsigned* host_prefix_sum_buffer,
   size_t& host_allocated_prefix_sum_space,
   const size_t dev_input_buffer_size,
   [[maybe_unused]] const size_t dev_output_buffer_size,
@@ -64,8 +67,8 @@ void host_prefix_sum::host_prefix_sum(
   cudaEvent_t& cuda_generic_event,
   host_prefix_sum::Parameters parameters)
 {
-  assert(dev_output_buffer_size == (dev_input_buffer_size + 1 * sizeof(uint)));
-  const auto input_number_of_elements = dev_input_buffer_size / sizeof(uint);
+  assert(dev_output_buffer_size == (dev_input_buffer_size + 1 * sizeof(unsigned)));
+  const auto input_number_of_elements = dev_input_buffer_size / sizeof(unsigned);
 
   // Reallocate if insufficient space on host buffer
   if ((input_number_of_elements + 1) > host_allocated_prefix_sum_space) {
@@ -73,7 +76,7 @@ void host_prefix_sum::host_prefix_sum(
               << "). Allocating more space (" << ((input_number_of_elements + 1) * 1.2f) << ").\n";
     host_allocated_prefix_sum_space = (input_number_of_elements + 1) * 1.2f;
     cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
-    cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
+    cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(unsigned)));
   }
 
 #ifdef CPU

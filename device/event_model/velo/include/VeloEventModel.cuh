@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <stdint.h>
@@ -6,14 +9,14 @@
 
 namespace Velo {
   struct ModulePair {
-    uint hit_start;
-    uint hit_num;
+    unsigned hit_start;
+    unsigned hit_num;
     // z of both modules in module pair
     float z [2];
 
     __device__ ModulePair() {}
     
-    __device__ ModulePair(const uint param_hit_start, const uint param_hit_num, const float param_z0, const float param_z1) :
+    __device__ ModulePair(const unsigned param_hit_start, const unsigned param_hit_num, const float param_z0, const float param_z1) :
       hit_start(param_hit_start), hit_num(param_hit_num), z{param_z0, param_z1}
     {}
   };
@@ -29,11 +32,11 @@ namespace Velo {
   };
 
   struct Hit : public HitBase { // 4 * 4 = 16 B
-    uint LHCbID;
+    unsigned LHCbID;
 
     __host__ __device__ Hit() {}
 
-    __host__ __device__ Hit(const float _x, const float _y, const float _z, const uint _LHCbID) :
+    __host__ __device__ Hit(const float _x, const float _y, const float _z, const unsigned _LHCbID) :
       HitBase(_x, _y, _z), LHCbID(_LHCbID)
     {}
   };
@@ -107,20 +110,20 @@ namespace Velo {
   /**
    * @brief Structure to access VELO clusters.
    */
-  constexpr uint velo_cluster_size = 3 * sizeof(half_t) + sizeof(uint32_t);
+  constexpr unsigned velo_cluster_size = 3 * sizeof(half_t) + sizeof(uint32_t);
   template<typename T>
   struct Clusters_t {
   protected:
     typename ForwardType<T, half_t>::t* m_base_pointer;
-    const uint m_total_number_of_hits;
-    const uint m_offset;
+    const unsigned m_total_number_of_hits;
+    const unsigned m_offset;
 
   public:
-    constexpr static uint element_size = sizeof(uint) + 3 * sizeof(half_t);
-    constexpr static uint offset_half_t = sizeof(uint) / sizeof(half_t);
+    constexpr static unsigned element_size = sizeof(unsigned) + 3 * sizeof(half_t);
+    constexpr static unsigned offset_half_t = sizeof(unsigned) / sizeof(half_t);
 
     __host__ __device__
-    Clusters_t(T* base_pointer, const uint total_estimated_number_of_clusters, const uint offset = 0) :
+    Clusters_t(T* base_pointer, const unsigned total_estimated_number_of_clusters, const unsigned offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T, half_t>::t*>(base_pointer)),
       m_total_number_of_hits(total_estimated_number_of_clusters), m_offset(offset)
     {}
@@ -131,52 +134,52 @@ namespace Velo {
     {}
 
     // Accessors and lvalue references for all types
-    __host__ __device__ uint id(const uint index) const
+    __host__ __device__ unsigned id(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[m_offset + index];
+      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[m_offset + index];
     }
 
-    __host__ __device__ void set_id(const uint index, const uint value)
+    __host__ __device__ void set_id(const unsigned index, const unsigned value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[m_offset + index] = value;
+      reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[m_offset + index] = value;
     }
 
-    __host__ __device__ float x(const uint index) const
+    __host__ __device__ float x(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
         m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index)]);
     }
 
-    __host__ __device__ void set_x(const uint index, const half_t value)
+    __host__ __device__ void set_x(const unsigned index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
       m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index)] = value;
     }
 
-    __host__ __device__ float y(const uint index) const
+    __host__ __device__ float y(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
         m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
     }
 
-    __host__ __device__ void set_y(const uint index, const half_t value)
+    __host__ __device__ void set_y(const unsigned index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
       m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 1] = value;
     }
 
-    __host__ __device__ float z(const uint index) const
+    __host__ __device__ float z(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
         m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
     }
 
-    __host__ __device__ void set_z(const uint index, const half_t value)
+    __host__ __device__ void set_z(const unsigned index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
       m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 2] = value;

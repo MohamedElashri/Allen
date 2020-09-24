@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <cmath>
@@ -20,6 +23,6 @@ __device__ void lf_search_initial_windows_impl(
   const bool side,
   int* initial_windows,
   const int number_of_tracks,
-  const uint event_offset,
+  const unsigned event_offset,
   bool* dev_process_track,
-  const uint ut_track_index);
+  const unsigned ut_track_index);

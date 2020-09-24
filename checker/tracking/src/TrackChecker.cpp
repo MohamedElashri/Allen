@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 /** @file TrackChecker.cpp
  *
  * @brief check tracks against MC truth
@@ -305,7 +308,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
   //
   // check LHCbIDs for MC association
   Checker::TruthCounter total_counter;
-  std::unordered_map<uint, Checker::TruthCounter> truth_counters;
+  std::unordered_map<unsigned, Checker::TruthCounter> truth_counters;
   int n_meas = 0;
 
   const auto& ids = track.ids();
@@ -486,7 +489,7 @@ void TrackChecker::operator()(
 
   // Iterator over MCPs
   // Check which ones were matched to a track
-  for (const auto mcp : mc_event.m_mcps) {
+  for (const auto& mcp : mc_event.m_mcps) {
     const auto key = mcp.key;
 
     // Muon stats

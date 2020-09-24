@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "CudaCommon.h"
 
 // If supported, compile and use F16C extensions to convert from / to float16
@@ -79,10 +82,19 @@ __host__ __device__ float __half2float_impl(const uint16_t h)
 
 uint16_t __float2half(const float f)
 {
-#if defined(__F16C__)
+#if !defined(__APPLE__) && defined(__F16C__)
   // Check at runtime if the processor supports the F16C extension
   if (cpu_id::supports_feature(bit_F16C, cpu_id::CpuIDRegister::ecx)) {
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wc99-extensions"
+#endif
+
     return _cvtss_sh(f, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
   }
   else {
     return __float2half_impl(f);
@@ -94,7 +106,7 @@ uint16_t __float2half(const float f)
 
 float __half2float(const uint16_t h)
 {
-#if defined(__F16C__)
+#if !defined(__APPLE__) && defined(__F16C__)
   if (cpu_id::supports_feature(bit_F16C, cpu_id::CpuIDRegister::ecx)) {
     return _cvtsh_ss(h);
   }

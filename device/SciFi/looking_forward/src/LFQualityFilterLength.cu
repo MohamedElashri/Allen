@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LFQualityFilterLength.cuh"
 
 void lf_quality_filter_length::lf_quality_filter_length_t::set_arguments_size(
@@ -45,7 +48,7 @@ __global__ void lf_quality_filter_length::lf_quality_filter_length(lf_quality_fi
   const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
   const auto number_of_tracks = parameters.dev_scifi_lf_atomics[event_number];
 
-  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];

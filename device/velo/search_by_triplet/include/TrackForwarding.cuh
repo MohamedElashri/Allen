@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "VeloEventModel.cuh"
@@ -10,9 +13,9 @@ __device__ void track_seeding(
   const Velo::ModulePair* module_pair_data,
   bool* hit_used,
   Velo::TrackletHits* tracklets,
-  uint* tracks_to_follow,
+  unsigned* tracks_to_follow,
   unsigned short* h1_rel_indices,
-  uint* dev_shifted_atomics_velo,
+  unsigned* dev_shifted_atomics_velo,
   const float max_scatter,
   const int16_t* hit_phi,
   const int16_t phi_tolerance);
@@ -22,17 +25,17 @@ __device__ void track_forwarding(
   const int16_t* hit_phi,
   bool* hit_used,
   const Velo::ModulePair* module_pair_data,
-  const uint diff_ttf,
-  uint* tracks_to_follow,
+  const unsigned diff_ttf,
+  unsigned* tracks_to_follow,
   Velo::TrackletHits* weak_tracks,
-  const uint prev_ttf,
+  const unsigned prev_ttf,
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
-  uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks,
+  unsigned* dev_atomics_velo,
+  unsigned* dev_number_of_velo_tracks,
   const int16_t phi_tolerance,
   const float max_scatter,
-  const uint max_skipped_modules);
+  const unsigned max_skipped_modules);
 
 /**
  * @brief Returns the first possible candidate, according to

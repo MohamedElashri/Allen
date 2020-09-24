@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <sys/stat.h>
@@ -64,6 +67,7 @@ public:
     InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
   {
+
     // Check that there is a folder for each bank type, find all the
     // files it contains and store their sizes
     struct stat stat_buf;

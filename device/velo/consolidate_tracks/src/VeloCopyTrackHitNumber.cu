@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "VeloCopyTrackHitNumber.cuh"
 
 void velo_copy_track_hit_number::velo_copy_track_hit_number_t::set_arguments_size(
@@ -31,9 +34,9 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
 
   cudaCheck(cudaMemcpyAsync(
     data<host_number_of_reconstructed_velo_tracks_t>(arguments),
-    data<dev_offsets_all_velo_tracks_t>(arguments) + (size<dev_offsets_all_velo_tracks_t>(arguments) / sizeof(uint)) -
+    data<dev_offsets_all_velo_tracks_t>(arguments) + (size<dev_offsets_all_velo_tracks_t>(arguments) / sizeof(unsigned)) -
       1,
-    sizeof(uint), // Note: Only the last element needs to be copied here.
+    sizeof(unsigned), // Note: Only the last element needs to be copied here.
     cudaMemcpyDeviceToHost,
     cuda_stream));
 }
@@ -55,13 +58,13 @@ __global__ void velo_copy_track_hit_number::velo_copy_track_hit_number(
   // Pointer to velo_track_hit_number of current event
   const auto accumulated_tracks = parameters.dev_offsets_velo_tracks[event_number] +
                                   parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
-  uint* velo_track_hit_number = parameters.dev_velo_track_hit_number + accumulated_tracks;
+  unsigned* velo_track_hit_number = parameters.dev_velo_track_hit_number + accumulated_tracks;
 
-  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     velo_track_hit_number[i] = event_tracks[i].hitsNum;
   }
 
-  for (uint i = threadIdx.x; i < number_of_three_hit_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_three_hit_tracks; i += blockDim.x) {
     velo_track_hit_number[number_of_tracks + i] = 3;
   }
 

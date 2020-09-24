@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 ################################################################################
 # Package: Allen
 ################################################################################
@@ -55,8 +58,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
 
 gaudi_subdir(Allen v1r0)
 
-gaudi_depends_on_subdirs(Online/OnlineKernel
-                         Det/FTDet
+gaudi_depends_on_subdirs(Det/FTDet
                          Det/VPDet
                          UT/UTDAQ
                          UT/UTKernel
@@ -81,7 +83,6 @@ gaudi_env(SET ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
  
 gaudi_add_module(AllenWrapper
                  src/*.cpp
-                 INCLUDE_DIRS Online/OnlineKernel
                  LINK_LIBRARIES AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
                                 PrKernel VPDetLib UTDetLib UTKernelLib
                                 FTDetLib HltEvent)

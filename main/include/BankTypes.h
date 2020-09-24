@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #ifndef BANKTYPES_H
 #define BANKTYPES_H 1
 
@@ -64,10 +67,5 @@ std::unordered_set<BankTypes> banks_set()
 {
   return std::unordered_set<BankTypes> {BANKS...};
 }
-
-using events_span = gsl::span<char>;
-using events_size = gsl::span<char>::index_type;
-using offsets_span = gsl::span<unsigned int>;
-using offsets_size = gsl::span<unsigned int>::index_type;
 
 #endif

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LFSearchInitialWindows.cuh"
 #include "LFSearchInitialWindowsImpl.cuh"
 #include "LookingForwardConstants.cuh"
@@ -42,14 +45,14 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
-  const uint velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
   UT::Consolidated::ConstExtendedTracks ut_tracks {
@@ -64,7 +67,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // SciFi hits
-  const uint total_number_of_hits =
+  const unsigned total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
@@ -84,7 +87,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
     const float ut_tx = parameters.dev_ut_tx[ut_track_index];
     const float ut_z = parameters.dev_ut_z[ut_track_index];
 
-    const uint velo_states_index = velo_event_tracks_offset + velo_track_index;
+    const unsigned velo_states_index = velo_event_tracks_offset + velo_track_index;
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
 
     // extrapolate velo y & ty to z of UT x and tx
@@ -125,9 +128,9 @@ __device__ void lf_search_initial_windows_impl(
   const bool side,
   int* initial_windows,
   const int number_of_tracks,
-  const uint event_offset,
+  const unsigned event_offset,
   bool* dev_process_track,
-  const uint ut_track_index)
+  const unsigned ut_track_index)
 {
   int iZoneStartingPoint = side ? LookingForward::number_of_x_layers : 0;
   uint16_t sizes = 0;

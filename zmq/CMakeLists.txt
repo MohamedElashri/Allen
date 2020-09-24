@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 set(ZMQ_VERSION 4.3.2)
 
 find_package(ZMQ QUIET)
@@ -50,10 +53,16 @@ if (GaudiProject_FOUND)
     ${ZMQ_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIR}
     ${AIDA_INCLUDE_DIRS})
-  target_link_libraries(ZMQSvc PUBLIC GaudiKernel
+  target_link_libraries(ZMQSvc PUBLIC
     Boost::filesystem
     ${ZMQ_LIBRARIES}
     ${ALLEN_ROOT_LIBRARIES})
+
+  if (TARGET Gaudi::GaudiKernel)
+    target_link_libraries(ZMQSvc PUBLIC Gaudi::GaudiKernel)
+  else()
+    target_link_libraries(ZMQSvc PUBLIC GaudiKernel)
+  endif()
 
   find_library(SODIUM_LIBRARY NAMES sodium
                HINTS $ENV{libsodium_ROOT_DIR}/lib ${libsodium_ROOT_DIR}/lib)
@@ -94,7 +103,15 @@ function(zmq_program)
   add_executable(${PARSED_ARGS_NAME} ${PARSED_ARGS_SRC})
   target_include_directories(${PARSED_ARGS_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/mdf/include)
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs pthread)
+
+  find_package(Threads REQUIRED)
+  if (STANDALONE)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads)
+  else()
+    find_package(fmt REQUIRED)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads fmt::fmt)
+  endif()
+
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
@@ -107,3 +124,4 @@ if (BUILD_TESTS)
 endif()
 
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})

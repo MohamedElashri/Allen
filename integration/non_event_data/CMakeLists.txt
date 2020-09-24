@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB SOURCES "src/*.cpp")
 
 allen_add_host_library(NonEventData ${SOURCES})

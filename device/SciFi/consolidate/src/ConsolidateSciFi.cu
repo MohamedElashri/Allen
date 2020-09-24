@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "ConsolidateSciFi.cuh"
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
@@ -74,8 +77,8 @@ __device__ void populate(const SciFi::TrackHits& track, const F& assign)
 
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consolidate_tracks::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {
@@ -90,7 +93,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
   const SciFi::TrackHits* event_scifi_tracks =
     parameters.dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
 
-  const uint total_number_of_scifi_hits =
+  const unsigned total_number_of_scifi_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
 
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_scifi_hits};
@@ -105,11 +108,11 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
     parameters.dev_scifi_track_ut_indices,
     event_number,
     number_of_events};
-  const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
-  const uint event_offset = scifi_hit_count.event_offset();
+  const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
+  const unsigned event_offset = scifi_hit_count.event_offset();
 
   // Loop over tracks.
-  for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     scifi_tracks.ut_track(i) = event_scifi_tracks[i].ut_track_index;
     scifi_tracks.qop(i) = event_scifi_tracks[i].qop;
     const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
@@ -144,23 +147,23 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
     const SciFi::TrackHits& track = event_scifi_tracks[i];
 
     // Populate arrays
-    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const uint i, const uint hit_index) {
+    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.x0(i) = scifi_hits.x0(event_offset + hit_index);
     });
 
-    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const uint i, const uint hit_index) {
+    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.z0(i) = scifi_hits.z0(event_offset + hit_index);
     });
 
-    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const uint i, const uint hit_index) {
+    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.endPointY(i) = scifi_hits.endPointY(event_offset + hit_index);
     });
 
-    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const uint i, const uint hit_index) {
+    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.channel(i) = scifi_hits.channel(event_offset + hit_index);
     });
 
-    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const uint i, const uint hit_index) {
+    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.assembled_datatype(i) = scifi_hits.assembled_datatype(event_offset + hit_index);
     });
   }

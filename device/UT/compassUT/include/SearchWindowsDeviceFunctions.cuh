@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "CudaCommon.h"
@@ -17,7 +20,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const UT::HitOffsets& ut_hit_count,
   const float* ut_dxDy,
   const float* dev_unique_sector_xs,
-  const uint* dev_unique_x_sector_layer_offsets,
+  const unsigned* dev_unique_x_sector_layer_offsets,
   const float y_tol,
   const float y_tol_slope,
   const float min_pt,

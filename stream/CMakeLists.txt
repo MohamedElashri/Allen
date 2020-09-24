@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(gear/include)
 include_directories(memory_manager/include)
 include_directories(scheduler/include)
@@ -103,6 +106,11 @@ target_link_libraries(Stream PRIVATE
   Examples
   HostDataProvider
   HostInitEventList)
+
+# FIXME: this hack will not be needed once all upstream projects are migrated to new cmake configuration
+if (TARGET Gaudi::GaudiKernel)
+  target_link_libraries(Stream PRIVATE Gaudi::GaudiKernel)
+endif()
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})

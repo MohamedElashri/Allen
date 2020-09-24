@@ -1,4 +1,4 @@
-Call Allen from Gaudi, event loop directed by Brunel or Moore
+Call Allen from Gaudi, event loop directed by Moore
 =============================
 The software can be compiled either based on the nightlies or by compiling the full stack, as described [here](https://gitlab.cern.ch/lhcb/Allen/-/blob/master/readme.md#call-allen-with-gaudi-steer-event-loop-from-moore).
 
@@ -36,32 +36,24 @@ To check the muon identification efficiency and misID efficiency:
 The scripts in `Moore/Hlt/RecoConf/scripts/` can be used to produce plots of the various efficiencies and resolutions from the ROOT files produced by one of the previous calls to Moore.
 
 
-Call Allen from Brunel
----------------------------
-In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec/BrunelCache` directory, then `make install`.
-
-Call the executable from within the Brunel directory:
-```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py ../Allen/Online/AllenIntegration/options/run_allen_in_brunel.py ../Rec/GPU/BinaryDumpers/options/upgrade-minbias-magdown-scifi-v5.py
-```
-
 Call HLT1 selection efficiency script
 ------------------------------
-The [mooreanalysis](https://gitlab.cern.ch/lhcb/mooreanalysis) repository contains the HLT efficiency checking script.
-If this [branch](https://gitlab.cern.ch/lhcb/mooreanalysis/tree/dovombru_rjhunter-HltEfficiencyChecker_for_Allen) is not yet merged in the mooreanalysis repository, switch to this branch.
-Check whether the merge requests for LHCb and Analysis linked in [this MR](https://gitlab.cern.ch/lhcb/mooreanalysis/merge_requests/1) are merged. If not, you need to clone the LHCb and Analysis repositories
-in the same directory where all the other projects are already located. Then compile LHCb -> Analysis -> Rec -> Allen -> Moore -> mooreanalysis.
-If the MRs are already merged, you can use the nightlies.
+The [MooreAnalysis](https://gitlab.cern.ch/lhcb/MooreAnalysis) repository contains the `HltEfficiencyChecker` tool for giving rates and
+efficiencies. To get `MooreAnalysis`, you can use the nightlies or do `make MooreAnalysis` from the top-level directory of the stack.
 
-To run the efficiency checking script, call it from the top-level directory, so from `Allen_Gaudi_integration`:
+To get the efficiencies of all the Allen lines, from the top-level directory (`Allen_Gaudi_integration`) do:
 
 ```
-./mooreanalysis/build.x86_64-centos7-gcc9-opt/run mooreanalysis/HltEfficiencyChecker/scripts/HltEfficiencyChecker.py --data MiniBrunel_2018_MinBias_FTv4_DIGI --events 100 --lines Hlt1SingleMuonLine
+MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_eff_example.yaml
 ```
 
-For this to work, verify that the input for Allen configurations is set to `DetectorConfigurationPath="Allen/input/detector_configuration/down/"` and `AlgorithmConfigurationPath="Allen/configuration/constants/"` [here](https://gitlab.cern.ch/lhcb/Moore/blob/dovombru_Allen_Moore_integration/Hlt/RecoConf/python/RecoConf/hlt1_allen.py#L38).
-If this was not the case, change it accordingly and `make install` Moore before calling the mooreanalysis script.
+and to get the rates:
 
-This will run on minimum bias data. mooreanalysis/HltEfficiencyChecker/scripts/HltEfficiencyChecker.py contains a dictionary with all the files that can be used. If SciFi raw bank version 6 is used, make sure the Allen sequence is configured to decode that version. The default in Allen is SciFi raw bank version 4.
-`Hlt1SingleMuonLine` indicates which line should be analyzed. The efficiency script still needs to be adopted for the Allen lines.
+```
+MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_rate_example.yaml
+```
+
+
+Full documentation for the `HltEfficiencyChecker` tool, including a walk-through example for HLT1 efficiencies with Allen, is given 
+[here](https://lhcbdoc.web.cern.ch/lhcbdoc/moore/master/tutorials/hltefficiencychecker.html).
 

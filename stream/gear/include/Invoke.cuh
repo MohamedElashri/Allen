@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "CudaCommon.h"
@@ -16,6 +19,9 @@
  *
  * @return     Return value of the function.
  */
+#if defined(TARGET_DEVICE_CPU) \
+  || (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))) \
+  || ((defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__)))
 template<class Fn, class Tuple, unsigned long... I>
 void invoke_impl(
   Fn&& function,
@@ -48,7 +54,18 @@ void invoke_impl(
   hipLaunchKernelGGL(function, grid_dim, block_dim, 0, stream, std::get<I>(invoke_arguments)...);
 #elif (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__))
   function<<<grid_dim, block_dim, 0, stream>>>(std::get<I>(invoke_arguments)...);
-#else
-  error_cout << "Global function invoked with unexpected backend.\n";
 #endif
 }
+#else
+template<class Fn, class Tuple, unsigned long... I>
+void invoke_impl(
+  Fn&&,
+  const dim3&,
+  const dim3&,
+  cudaStream_t,
+  const Tuple&,
+  std::index_sequence<I...>)
+{
+  error_cout << "Global function invoked with unexpected backend.\n";
+}
+#endif

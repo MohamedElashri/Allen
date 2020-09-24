@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "BankTypes.h"
 #include "Common.h"
 #include "Property.cuh"
@@ -22,7 +25,7 @@ int Configuration::from_string<int>(const std::string& s)
 }
 
 template<>
-uint Configuration::from_string<uint>(const std::string& s)
+unsigned Configuration::from_string<unsigned>(const std::string& s)
 {
   return strtoul(s.c_str(), 0, 0);
 }

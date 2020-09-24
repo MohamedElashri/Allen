@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <iostream>
 #include <Common.h>
 #include <Logger.h>
@@ -5,12 +8,12 @@
 
 #include <ROOTHeaders.h>
 
-void pv_beamline_monitor(uint n_events, float* zhisto)
+void pv_beamline_monitor(unsigned n_events, float* zhisto)
 {
   // Check the output
   TFile output {"testt.root", "RECREATE"};
   TTree outtree {"PV", "PV"};
-  uint i_event = 0;
+  unsigned i_event = 0;
 
   outtree.Branch("event", &i_event);
   float z_histo;

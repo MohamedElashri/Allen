@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <algorithm>
@@ -68,11 +71,11 @@ public:
     std::vector<Checker::Tracks> const& tracks,
     const VertexFit::TrackMVAVertex* svs,
     const bool* sel_results,
-    const uint* sel_results_offsets,
-    const uint* track_offsets,
-    const uint* sv_offsets,
-    const uint*,
-    const uint selected_events)
+    const unsigned* sel_results_offsets,
+    const unsigned* track_offsets,
+    const unsigned* sv_offsets,
+    const unsigned*,
+    const unsigned selected_events)
   {
     if (!m_initialized_line_info) {
       m_initialized_line_info = true;
@@ -116,7 +119,7 @@ public:
       m_event_pass_gec.push_back(1.);
       const auto& event_tracks = tracks[i_event];
       MCAssociator mcassoc {mcps};
-      const uint event_n_svs = sv_offsets[i_event + 1] - sv_offsets[i_event];
+      const unsigned event_n_svs = sv_offsets[i_event + 1] - sv_offsets[i_event];
       const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
 
       // Loop over tracks.
@@ -161,11 +164,11 @@ public:
     std::vector<Checker::Tracks> const&,
     const VertexFit::TrackMVAVertex*,
     const bool*,
-    const uint*,
-    const uint*,
-    const uint*,
-    const uint*,
-    const uint)
+    const unsigned*,
+    const unsigned*,
+    const unsigned*,
+    const unsigned*,
+    const unsigned)
   {}
 #endif
 

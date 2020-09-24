@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <MEPTools.h>
 #include <MuonCalculateSRQSize.cuh>
 
@@ -99,7 +102,7 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size(muon_calculate_
   const auto event_number = blockIdx.x;
   const auto event_id = parameters.dev_event_list[blockIdx.x];
   const auto raw_event = Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[event_id]);
-  uint* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
+  unsigned* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
                                                event_number * Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                                  Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
@@ -107,7 +110,7 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size(muon_calculate_
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (uint i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
@@ -121,7 +124,7 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calcul
 {
   const auto event_number = blockIdx.x;
   const auto event_id = parameters.dev_event_list[blockIdx.x];
-  uint* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
+  unsigned* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
                                                event_number * Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                                  Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
@@ -129,7 +132,7 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calcul
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (uint i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;

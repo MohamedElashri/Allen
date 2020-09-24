@@ -94,7 +94,7 @@ StatusCode RunAllen::initialize()
 
   // Initialize stream
   const bool print_memory_usage = false;
-  const uint start_event_offset = 0;
+  const unsigned start_event_offset = 0;
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
 
   m_stream_wrapper.reset(new StreamWrapper());
@@ -122,7 +122,7 @@ StatusCode RunAllen::initialize()
   // Get HLT1 selection names from configuration and initialize rate counters
   m_line_names = configuration_reader.params()["configured_lines"];
   m_hlt1_line_rates.reserve(m_stream_wrapper->number_of_hlt1_lines);
-  for (uint i = 0; i < m_stream_wrapper->number_of_hlt1_lines; ++i) {
+  for (unsigned i = 0; i < m_stream_wrapper->number_of_hlt1_lines; ++i) {
     const auto it = m_line_names.find(std::to_string(i));
     const std::string name = "Hlt1" + it->second + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
@@ -147,8 +147,8 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   }
 
   // initialize RuntimeOptions
-  const uint event_start = 0;
-  const uint event_end = 1;
+  const unsigned event_start = 0;
+  const unsigned event_end = 1;
   const size_t slice_index = 0;
   const bool mep_layout = false;
   RuntimeOptions runtime_options(
@@ -160,8 +160,8 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
     m_cpu_offload,
     mep_layout);
 
-  const uint buf_idx = m_n_buffers - 1;
-  const uint stream_index = m_number_of_streams - 1;
+  const unsigned buf_idx = m_n_buffers - 1;
+  const unsigned stream_index = m_number_of_streams - 1;
   cudaError_t cuda_rv = m_stream_wrapper->run_stream(stream_index, buf_idx, runtime_options);
   if (cuda_rv != cudaSuccess) {
     error() << "Allen exited with errorCode " << rv << endmsg;
@@ -178,20 +178,21 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   LHCb::HltDecReports reports {};
   reports.reserve(buffer->host_number_of_hlt1_lines);
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
-  for (int i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
+  for (unsigned int i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
     const uint32_t line_report = buffer->host_dec_reports[2 + i];
     const bool dec = line_report & dec_mask;
     const auto it = m_line_names.find(std::to_string(i));
     const std::string name = it->second;
+    const std::string modified_name = "Hlt1" + name + "Decision";
     m_hlt1_line_rates[i].buffer() += int(dec);
     // Note: the line index in a DecReport cannot be zero -> start at 1
     const int dec_rep_index = i + 1;
-    verbose() << "Adding Allen line " << dec_rep_index << " with name " << name << " to HltDecReport with decision "
+    verbose() << "Adding Allen line " << dec_rep_index << " with name " << modified_name << " to HltDecReport with decision "
               << int(dec) << endmsg;
 
-    reports.insert(name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
+    reports.insert(modified_name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
   }
-  if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << uint(filter) << endmsg;
+  if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << unsigned(filter) << endmsg;
   return std::make_tuple(filter, *buffer, reports);
 }
 

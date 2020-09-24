@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "Constants.cuh"
 #include "ClusteringCommon.h"
 #include "UTDefinitions.cuh"
@@ -51,7 +54,7 @@ void Constants::initialize_constants(
     // Muon constants
     Muon::Constants::FieldOfInterest host_muon_foi;
   const float* foi_iterator = muon_field_of_interest_params.data();
-  for (uint i_station = 0; i_station < Muon::Constants::n_stations; i_station++) {
+  for (unsigned i_station = 0; i_station < Muon::Constants::n_stations; i_station++) {
     std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_a_x[i_station]);
     foi_iterator += Muon::Constants::n_regions; // * sizeof(float);
     std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_a_y[i_station]);

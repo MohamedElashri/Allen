@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -15,6 +18,7 @@
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Timer.h>
+#include <Common.h>
 
 using namespace std;
 

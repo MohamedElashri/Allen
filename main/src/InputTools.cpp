@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <regex>
 #include <unordered_map>
 #include "InputTools.h"
@@ -180,7 +183,7 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
  * @brief Processes the number of events requested. If 0,
  *        returns the size of the passed folder contents.
  */
-uint get_number_of_events_requested(uint number_of_events_requested, const std::string& foldername)
+unsigned get_number_of_events_requested(unsigned number_of_events_requested, const std::string& foldername)
 {
   if (number_of_events_requested > 0) {
     return number_of_events_requested;
@@ -242,10 +245,10 @@ void read_folder(
  */
 EventIDs read_folder(
   const std::string& foldername,
-  uint number_of_events_requested,
+  unsigned number_of_events_requested,
   std::vector<char>& events,
-  std::vector<uint>& event_offsets,
-  const uint start_event_offset)
+  std::vector<unsigned>& event_offsets,
+  const unsigned start_event_offset)
 {
   std::vector<std::string> folderContents = list_folder(foldername);
 
@@ -279,7 +282,7 @@ void read_files(
   std::vector<std::string>::const_iterator file,
   std::vector<std::string>::const_iterator file_end,
   std::vector<char>& events,
-  std::vector<uint>& event_offsets)
+  std::vector<unsigned>& event_offsets)
 {
   // Read all requested events
   int readFiles = 0;

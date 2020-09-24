@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "CudaCommon.h"
 
 #ifdef TARGET_DEVICE_CPU
@@ -88,7 +91,7 @@ unsigned int atomicInc(unsigned int* address, unsigned int val)
 }
 
 namespace Configuration {
-  uint verbosity_level;
+  unsigned verbosity_level;
 }
 
 cudaError_t cudaHostUnregister(void*) { return 0; }

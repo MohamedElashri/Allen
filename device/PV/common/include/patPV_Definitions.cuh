@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "CudaCommon.h"
@@ -5,7 +8,7 @@
 namespace PatPV {
 
   // maximum number of vertices in a event
-  static constexpr uint max_number_vertices = 32;
+  static constexpr unsigned max_number_vertices = 32;
 
   // auxiliary class for searching of clusters of tracks
 

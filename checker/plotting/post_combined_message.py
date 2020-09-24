@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 from optparse import OptionParser
 from csv_plotter import produce_plot, send_to_mattermost
 

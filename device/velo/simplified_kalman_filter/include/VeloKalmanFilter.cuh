@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <stdint.h>
@@ -25,7 +28,7 @@ namespace velo_kalman_filter {
    */
   template<bool upstream>
   __device__ KalmanVeloState
-  simplified_fit(Velo::Consolidated::ConstHits& consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits)
+  simplified_fit(Velo::Consolidated::ConstHits& consolidated_hits, const MiniState& stateAtBeamLine, const unsigned nhits)
   {
     // backward = state.z > track.hits[0].z;
     const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);
@@ -93,10 +96,10 @@ namespace velo_kalman_filter {
 
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint), host_number_of_reconstructed_velo_tracks),
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_offsets_all_velo_tracks),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_offsets_velo_track_hit_number),
+    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_offsets_all_velo_tracks),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
     (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
     (DEVICE_INPUT(dev_velo_states_t, char), dev_velo_states),
     (DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char), dev_velo_kalman_beamline_states),

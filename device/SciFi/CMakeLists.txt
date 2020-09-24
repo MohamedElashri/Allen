@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB scifi_preprocessing "preprocessing/src/*cu")
 file(GLOB scifi_looking_forward "looking_forward/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")

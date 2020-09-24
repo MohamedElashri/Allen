@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB host_gec "src/*cpp")
 
 include_directories(include)
@@ -89,8 +92,12 @@ target_include_directories(mep_gec PUBLIC
   ${CMAKE_SOURCE_DIR}/main/include
   ${Boost_INCLUDE_DIRS})
 
-target_link_libraries(mep_gec PUBLIC Common mdf HostGEC
-  ${MPI_CXX_LIBRARIES})
+if (STANDALONE)
+  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES})
+else()
+  find_package(fmt REQUIRED)
+  target_link_libraries(mep_gec PUBLIC Common mdf HostGEC ${MPI_CXX_LIBRARIES} fmt::fmt)
+endif()
 
 target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
 

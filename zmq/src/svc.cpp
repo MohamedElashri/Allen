@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <ZeroMQ/IZeroMQSvc.h>
 #ifndef STANDALONE
 #ifdef DEBUG
@@ -22,13 +25,18 @@ IZeroMQSvc* makeZmqSvc()
 #else
   SmartIF<IStateful> app = Gaudi::createApplicationMgr();
   auto prop = app.as<IProperty>();
-  prop->setProperty("ExtSvc", "[\"ZeroMQSvc\"]");
-  prop->setProperty("JobOptionsType", "\"NONE\"");
-  app->configure();
-  app->initialize();
-  app->start();
-  SmartIF<ISvcLocator> sloc = app.as<ISvcLocator>();
-  auto zmqSvc = sloc->service<IZeroMQSvc>("ZeroMQSvc");
-  return zmqSvc.get();
+  bool sc = prop->setProperty("ExtSvc", "[\"ZeroMQSvc\"]").isSuccess();
+  sc &= prop->setProperty("JobOptionsType", "\"NONE\"");
+  sc &= app->configure();
+  sc &= app->initialize();
+  sc &= app->start();
+  if (sc) {
+    SmartIF<ISvcLocator> sloc = app.as<ISvcLocator>();
+    auto zmqSvc = sloc->service<IZeroMQSvc>("ZeroMQSvc");
+    return zmqSvc.get();
+  }
+  else {
+    return nullptr;
+  }
 #endif
 }

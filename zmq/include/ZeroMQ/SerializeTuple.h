@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #ifndef SERIALIZE_BOOST_H
 #define SERIALIZE_BOOST_H 1
 

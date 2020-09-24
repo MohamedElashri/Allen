@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "ParKalmanVeloOnly.cuh"
 
 void package_kalman_tracks::package_kalman_tracks_t::set_arguments_size(
@@ -23,8 +26,8 @@ void package_kalman_tracks::package_kalman_tracks_t::operator()(
 
 __global__ void package_kalman_tracks::package_kalman_tracks(package_kalman_tracks::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // Create velo tracks.
   Velo::Consolidated::ConstTracks velo_tracks {
@@ -49,8 +52,8 @@ __global__ void package_kalman_tracks::package_kalman_tracks(package_kalman_trac
     event_number,
     number_of_events};
 
-  const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
-  for (uint i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
+  const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
+  for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
     // Prepare fit input.
     const int i_ut_track = scifi_tracks.ut_track(i_scifi_track);
     const int i_velo_track = ut_tracks.velo_track(i_ut_track);

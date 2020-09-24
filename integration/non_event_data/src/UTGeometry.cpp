@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <string>
 #include <vector>
 #include <CudaCommon.h>
@@ -18,10 +21,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
   auto alloc_and_copy = [](auto const& host_numbers, auto& device_numbers) {
     using value_type = typename std::remove_reference_t<decltype(host_numbers)>::value_type;
-    using index_type = typename std::remove_reference_t<decltype(device_numbers)>::index_type;
+    using span_type = typename std::remove_reference_t<decltype(device_numbers)>::value_type;
     value_type* p = nullptr;
     cudaCheck(cudaMalloc((void**) &p, host_numbers.size() * sizeof(value_type)));
-    device_numbers = gsl::span {p, static_cast<index_type>(host_numbers.size())};
+    device_numbers = gsl::span {p, static_cast<span_size_t<span_type>>(host_numbers.size())};
     cudaCheck(cudaMemcpy(
       device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), cudaMemcpyHostToDevice));
   };
@@ -40,18 +43,18 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
   // Allocate space for geometry
   auto& dev_ut_geometry = m_constants.get().dev_ut_geometry;
-  using index_type = typename std::remove_reference_t<decltype(dev_ut_geometry)>::index_type;
+  using span_type = typename std::remove_reference_t<decltype(dev_ut_geometry)>::value_type;
   char* g = nullptr;
   cudaCheck(cudaMalloc((void**) &g, data.size()));
-  dev_ut_geometry = gsl::span {g, static_cast<index_type>(data.size())};
+  dev_ut_geometry = gsl::span {g, static_cast<span_size_t<span_type>>(data.size())};
   const ::UTGeometry geometry {data};
 
   // Offset for each station / layer
-  const std::array<uint, UT::Constants::n_layers + 1> offsets {host_ut_region_offsets[0],
-                                                               host_ut_region_offsets[3],
-                                                               host_ut_region_offsets[6],
-                                                               host_ut_region_offsets[9],
-                                                               host_ut_region_offsets[12]};
+  const std::array<unsigned, UT::Constants::n_layers + 1> offsets {host_ut_region_offsets[0],
+                                                                   host_ut_region_offsets[3],
+                                                                   host_ut_region_offsets[6],
+                                                                   host_ut_region_offsets[9],
+                                                                   host_ut_region_offsets[12]};
   auto current_sector_offset = 0;
   auto& host_unique_x_sector_layer_offsets = m_constants.get().host_unique_x_sector_layer_offsets;
   auto& host_unique_x_sector_offsets = m_constants.get().host_unique_x_sector_offsets;
@@ -59,7 +62,7 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   host_unique_x_sector_offsets[current_sector_offset];
   host_unique_x_sector_layer_offsets[0] = 0;
 
-  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto offset = offsets[i];
     const auto size = offsets[i + 1] - offsets[i];
 

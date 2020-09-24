@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "DeviceAlgorithm.cuh"
@@ -26,7 +29,7 @@ namespace postscaler {
 } // namespace postscaler
 
 struct DeterministicPostscaler {
-  __device__ DeterministicPostscaler(uint initial, float frac) :
+  __device__ DeterministicPostscaler(unsigned initial, float frac) :
     initial_value(initial), scale_factor(frac),
     accept_threshold(
       frac >= 1.f ? std::numeric_limits<uint32_t>::max() : uint32_t(frac * static_cast<float>(std::numeric_limits<uint32_t>::max())))

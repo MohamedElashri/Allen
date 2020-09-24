@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "SciFiDefinitions.cuh"
@@ -15,9 +18,9 @@ struct CombinedTripletValue {
 
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
-  const uint layer_0,
-  const uint layer_1,
-  const uint layer_2,
+  const unsigned layer_0,
+  const unsigned layer_1,
+  const unsigned layer_2,
   const int l0_size,
   const int l1_size,
   const int l2_size,
@@ -25,7 +28,7 @@ __device__ void lf_triplet_seeding_impl(
   const float z1,
   const float z2,
   const int* initial_windows,
-  const uint ut_total_number_of_tracks,
+  const unsigned ut_total_number_of_tracks,
   const float qop,
   const float ut_tx,
   const float velo_tx,
@@ -33,4 +36,4 @@ __device__ void lf_triplet_seeding_impl(
   float* shared_x1,
   int* scifi_lf_found_triplets,
   int8_t* scifi_lf_number_of_found_triplets,
-  const uint triplet_seed);
+  const unsigned triplet_seed);

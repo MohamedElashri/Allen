@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <limits.h>
 #include <unistd.h>
 
@@ -8,6 +11,10 @@
 #include <ZeroMQ/IZeroMQSvc.h>
 #include <zmq_compat.h>
 #include <Logger.h>
+
+#ifdef __APPLE__
+#define HOST_NAME_MAX 64
+#endif
 
 namespace {
   using namespace std::string_literals;
@@ -35,7 +42,7 @@ ZMQOutputSender::ZMQOutputSender(
   std::string const receiver_connection,
   size_t const events_per_slice,
   IZeroMQSvc* zmqSvc,
-  const uint number_of_hlt1_lines,
+  const unsigned number_of_hlt1_lines,
   bool const checksum) :
   OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
   m_zmq {zmqSvc}, m_checksum {checksum}

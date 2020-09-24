@@ -1,3 +1,9 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+find_package(Boost REQUIRED COMPONENTS iostreams)
+
+include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 set(mdf_sources
@@ -17,8 +23,14 @@ if (NOT GaudiProject_FOUND)
   target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lhcb)
 else()
   find_package(Boost COMPONENTS filesystem thread regex)
-  target_link_libraries(mdf PUBLIC GaudiKernel Boost::filesystem Boost::thread Boost::regex)
   target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+  target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
+
+  if (TARGET Gaudi::GaudiKernel)
+    target_link_libraries(mdf PUBLIC Gaudi::GaudiKernel)
+  else()
+    target_link_libraries(mdf PUBLIC GaudiKernel)
+  endif()
 endif()
 
 if (ROOT_FOUND AND USE_ROOT)
@@ -72,11 +84,18 @@ function(test_program)
   cmake_parse_arguments(PARSED_ARGS "" "NAME" "" ${ARGN})
   add_executable(${PARSED_ARGS_NAME} test/${PARSED_ARGS_NAME}.cpp)
 
-  target_include_directories(${PARSED_ARGS_NAME} PUBLIC
+  find_package(Threads REQUIRED)
+
+  target_include_directories(${PARSED_ARGS_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon)
+  if (STANDALONE)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads)
+  else()
+    find_package(fmt REQUIRED)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads fmt::fmt)
+  endif()
 
   if (USE_MPI AND MPI_FOUND)
     target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)

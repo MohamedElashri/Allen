@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <stdexcept>
@@ -8,6 +11,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <algorithm>
 
 // -----------
 // CPU support

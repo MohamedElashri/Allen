@@ -20,8 +20,12 @@ DECLARE_COMPONENT(DumpVPGeometry)
 
 StatusCode DumpVPGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
 {
+#ifndef USE_DD4HEP
   auto& det = detector();
   return updMgrSvc->update(&det);
+#else
+  return StatusCode::SUCCESS;
+#endif
 }
 
 DumpUtils::Dumps DumpVPGeometry::dumpGeometry() const

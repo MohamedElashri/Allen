@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <iostream>
 
 #include <cstdio>
@@ -23,13 +26,13 @@ bool OutputHandler::output_selected_events(
   gsl::span<bool const> const selected_events_bool,
   gsl::span<uint32_t const> const dec_reports,
   gsl::span<uint32_t const> const sel_reports,
-  gsl::span<uint const> const sel_report_offsets)
+  gsl::span<unsigned const> const sel_report_offsets)
 {
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
 
   // m_sizes will contain the total size of all banks in the event
-  std::vector<uint> selected_events;
-  for (uint i = 0; i < selected_events_bool.size(); ++i) {
+  std::vector<unsigned> selected_events;
+  for (unsigned i = 0; i < selected_events_bool.size(); ++i) {
     if (selected_events_bool[i]) {
       selected_events.push_back(i);
     }
@@ -42,12 +45,12 @@ bool OutputHandler::output_selected_events(
   // size of a RawBank header
   const int bank_header_size = 4 * sizeof(short);
   // size of the DecReport RawBank
-  const uint dec_report_size = (m_number_of_hlt1_lines + 2) * sizeof(uint32_t);
+  const unsigned dec_report_size = (m_number_of_hlt1_lines + 2) * sizeof(uint32_t);
 
   for (size_t i = 0; i < static_cast<size_t>(selected_events.size()); ++i) {
 
     // size of the SelReport RawBank
-    const uint sel_report_size = (sel_report_offsets[i + 1] - sel_report_offsets[i]) * sizeof(uint32_t);
+    const unsigned sel_report_size = (sel_report_offsets[i + 1] - sel_report_offsets[i]) * sizeof(uint32_t);
 
     // add DecReport and SelReport sizes to the total size (including two RawBank headers)
     auto [buffer_id, buffer_span] =

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <map>
@@ -18,10 +21,10 @@ struct HostBuffersManager {
 
   HostBuffersManager(
     size_t nBuffers,
-    const uint max_number_of_events,
+    const unsigned max_number_of_events,
     const bool do_check,
-    const uint number_of_hlt1_lines,
-    const uint errorevent_line) :
+    const unsigned number_of_hlt1_lines,
+    const unsigned errorevent_line) :
     max_events(max_number_of_events),
     check(do_check), m_number_of_hlt1_lines(number_of_hlt1_lines),
     m_errorevent_line(errorevent_line)
@@ -41,7 +44,7 @@ struct HostBuffersManager {
 
   void writeSingleEventPassthrough(const size_t b);
 
-  std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<uint const>> getBufferOutputData(size_t b);
+  std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>> getBufferOutputData(size_t b);
 
   void printStatus() const;
   bool buffersEmpty() const { return (empty_buffers.size() == host_buffers.size()); }
@@ -55,8 +58,8 @@ private:
   std::queue<size_t> empty_buffers;
   std::queue<size_t> filled_buffers;
 
-  const uint max_events;
+  const unsigned max_events;
   const bool check;
-  const uint m_number_of_hlt1_lines;
-  const uint m_errorevent_line;
+  const unsigned m_number_of_hlt1_lines;
+  const unsigned m_errorevent_line;
 };

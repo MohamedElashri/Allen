@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "SystemOfUnits.h"
@@ -10,11 +13,11 @@ namespace Muon {
        There are four stations with number of regions in it
        in current implementation regions are ignored
     */
-    static constexpr uint n_stations = 4;
-    static constexpr uint n_regions = 4;
-    static constexpr uint n_quarters = 4;
+    static constexpr unsigned n_stations = 4;
+    static constexpr unsigned n_regions = 4;
+    static constexpr unsigned n_quarters = 4;
     /* Cut-offs */
-    static constexpr uint max_numhits_per_event = 600 * n_stations;
+    static constexpr unsigned max_numhits_per_event = 600 * n_stations;
 
     static constexpr float SQRT3 = 1.7320508075688772;
     static constexpr float INVSQRT3 = 0.5773502691896258;
@@ -22,13 +25,13 @@ namespace Muon {
     static constexpr float MSFACTOR = 1.324200805763835;
 
     /*Muon Catboost model uses 5 features for each station: Delta time, Time, Crossed, X residual, Y residual*/
-    static constexpr uint n_catboost_features = 5 * n_stations;
+    static constexpr unsigned n_catboost_features = 5 * n_stations;
 
     // Safe margin to account for hit crossings
-    static constexpr uint compact_hit_allocate_factor = 2;
+    static constexpr unsigned compact_hit_allocate_factor = 2;
 
     // Number of layouts
-    static constexpr uint n_layouts = 2;
+    static constexpr unsigned n_layouts = 2;
 
     /* IsMuon constants */
     static constexpr float momentum_cuts[] = {3 * Gaudi::Units::GeV, 6 * Gaudi::Units::GeV, 10 * Gaudi::Units::GeV};
@@ -64,7 +67,7 @@ namespace MatchUpstreamMuon {
 
   struct Hit {
     /// Build a hit from a MuonID hit
-    __device__  Hit(Muon::ConstHits& hits, const uint& i_muonhit) :
+    __device__  Hit(Muon::ConstHits& hits, const unsigned& i_muonhit) :
       x(hits.x(i_muonhit)), dx2(hits.dx(i_muonhit) * hits.dx(i_muonhit) / 12), y(hits.y(i_muonhit)),
       dy2(hits.dy(i_muonhit) * hits.dy(i_muonhit) / 12), z(hits.z(i_muonhit))
     {}

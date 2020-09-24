@@ -1,24 +1,23 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "CudaCommon.h"
 #include "SystemOfUnits.h"
 
 namespace PV {
-
-  // Number of threads pv_beamline_peak_t
-  static constexpr uint num_threads_pv_beamline_peak_t = 64;
-
   // maximum number of vertices in a event
-  static constexpr uint max_number_vertices = 32;
+  static constexpr unsigned max_number_vertices = 32;
 
   // study this
-  static constexpr uint max_number_subclusters = 50;
+  static constexpr unsigned max_number_subclusters = 50;
 
   // STUDY THIS NUMBER
-  static constexpr uint max_number_of_clusters = 200;
+  static constexpr unsigned max_number_of_clusters = 200;
 
   // STUDY THIS
-  static constexpr uint max_number_clusteredges = 200;
+  static constexpr unsigned max_number_clusteredges = 200;
   // auxiliary class for searching of clusters of tracks
 
   // configuration for seeding

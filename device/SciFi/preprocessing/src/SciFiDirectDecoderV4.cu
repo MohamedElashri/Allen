@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <MEPTools.h>
 #include <SciFiRawBankDecoderV4.cuh>
 #include <cassert>
@@ -7,11 +10,11 @@ using namespace SciFi;
 __device__ void direct_decode_raw_bank_v4(
   SciFiGeometry const& geom,
   SciFiRawBank const& raw_bank,
-  uint const bank_index,
-  uint const raw_bank_offset,
+  unsigned const bank_index,
+  unsigned const raw_bank_offset,
   SciFi::Hits& hits)
 {
-  const uint j = (bank_index / 10) % 4;
+  const unsigned j = (bank_index / 10) % 4;
   const bool reverse_cluster_order = (j == 1) || (j == 2);
 
   uint16_t* it = raw_bank.data + 2;
@@ -19,9 +22,9 @@ __device__ void direct_decode_raw_bank_v4(
 
   if (*(last - 1) == 0) --last; // Remove padding at the end
   if (last > it) {
-    const uint number_of_clusters = last - it;
+    const unsigned number_of_clusters = last - it;
 
-    for (uint i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
+    for (unsigned i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
       const uint16_t current_cluster = reverse_cluster_order ? (number_of_clusters - 1 - i_cluster) : i_cluster;
 
       uint16_t c = *(it + current_cluster);
@@ -45,8 +48,8 @@ __device__ void direct_decode_raw_bank_v4(
 
       // Apparently the unique* methods are not designed to start at 0, therefore -16
       const uint32_t uniqueZone = ((id.uniqueQuarter() - 16) >> 1);
-      const uint plane_code = 2 * planeCode + (uniqueZone % 2);
-      const uint hit_index = raw_bank_offset + i_cluster;
+      const unsigned plane_code = 2 * planeCode + (uniqueZone % 2);
+      const unsigned hit_index = raw_bank_offset + i_cluster;
       const uint8_t pseudoSize = cSize(c) ? 0 : 4;
 
       assert(pseudoSize < 9 && "Pseudosize of cluster is > 8. Out of range.");
@@ -76,9 +79,9 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4(
   scifi_raw_bank_decoder_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom(scifi_geometry);
   const auto event =
@@ -88,10 +91,10 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4(
                     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
-  for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
 
-    const uint current_raw_bank = getRawBankIndexOrderedByX(i);
-    const uint raw_bank_offset = hit_count.mat_group_offset(i);
+    const unsigned current_raw_bank = getRawBankIndexOrderedByX(i);
+    const unsigned raw_bank_offset = hit_count.mat_group_offset(i);
     const auto raw_bank = event.getSciFiRawBank(current_raw_bank);
 
     direct_decode_raw_bank_v4(geom, raw_bank, i, raw_bank_offset, hits);
@@ -113,9 +116,9 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4_mep(
   scifi_raw_bank_decoder_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom(scifi_geometry);
 
@@ -123,10 +126,10 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4_mep(
                     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
-  for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
 
-    const uint current_raw_bank = getRawBankIndexOrderedByX(i);
-    const uint raw_bank_offset = hit_count.mat_group_offset(i);
+    const unsigned current_raw_bank = getRawBankIndexOrderedByX(i);
+    const unsigned raw_bank_offset = hit_count.mat_group_offset(i);
 
     // Create SciFi raw bank from MEP layout
     auto const raw_bank = MEP::raw_bank<SciFiRawBank>(

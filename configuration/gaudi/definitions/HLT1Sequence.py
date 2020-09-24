@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 from PyConf.components import Algorithm
 from algorithms import *
 from PVSequence import run_velo_kalman_filter, make_pvs

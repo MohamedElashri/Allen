@@ -1,4 +1,7 @@
 #!/usr/bin/env python2
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 import HeaderPath
 from GaudiPython.Bindings import AppMgr, gbl
 from Configurables import LHCbApp, CondDB, ApplicationMgr

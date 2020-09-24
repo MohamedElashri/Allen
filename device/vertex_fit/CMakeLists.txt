@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(vertex_fitter/include)
 include_directories(common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)

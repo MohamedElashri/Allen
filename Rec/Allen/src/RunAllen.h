@@ -66,11 +66,10 @@ private:
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
   std::map<std::string, std::string> m_line_names;
-  const uint m_number_of_streams = 1;
-  const uint m_number_of_repetitions = 1;
+  const unsigned m_number_of_streams = 1;
+  const unsigned m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
-  const uint m_n_buffers = 1;
-  uint m_number_of_hlt1_lines = 0;
+  const unsigned m_n_buffers = 1;
   const bool m_do_check = true;
 
   std::unique_ptr<StreamWrapper> m_stream_wrapper;

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "FitSeeds.cuh"
 
 void fit_seeds::pv_fit_seeds_t::set_arguments_size(
@@ -41,20 +44,20 @@ void fit_seeds::pv_fit_seeds_t::operator()(
 
 __global__ void fit_seeds::fit_seeds(fit_seeds::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstKalmanStates velo_states {
     parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
-  const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   PV::Vertex vertex;
 
   int counter_vertex = 0;
-  for (uint i_seed = 0; i_seed < parameters.dev_number_seeds[event_number]; i_seed++) {
+  for (unsigned i_seed = 0; i_seed < parameters.dev_number_seeds[event_number]; i_seed++) {
     bool success = fit_vertex(
       parameters.dev_seeds[event_number * PatPV::max_number_vertices + i_seed],
       velo_states,
@@ -76,7 +79,7 @@ __device__ bool fit_vertex(
   Velo::Consolidated::ConstKalmanStates& velo_states,
   PV::Vertex& vtx,
   int number_of_tracks,
-  uint tracks_offset)
+  unsigned tracks_offset)
 {
 
   float tr_state_x[Velo::Constants::max_tracks];
@@ -99,7 +102,7 @@ __device__ bool fit_vertex(
 
   // prepare tracks
 
-  uint pvTrack_counter = 0;
+  unsigned pvTrack_counter = 0;
 
   for (int i = 0; i < number_of_tracks; i++) {
     int index = i + tracks_offset;
@@ -179,7 +182,7 @@ __device__ bool fit_vertex(
     // add contribution from all tracks
     float chi2(0);
     size_t ntrin(0);
-    for (uint index = 0; index < pvTrack_counter; index++) {
+    for (unsigned index = 0; index < pvTrack_counter; index++) {
 
       float new_z = vtxpos.z;
       float m_state_x = tr_state_x[index];

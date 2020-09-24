@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <Common.h>
@@ -9,11 +12,11 @@
 
 void checkHlt1Rate(
   const bool* decisions,
-  const uint* decisions_atomics,
-  const uint* track_offsets,
-  const uint* sv_offsets,
-  const uint selected_events,
-  const uint requested_events);
+  const unsigned* decisions_atomics,
+  const unsigned* track_offsets,
+  const unsigned* sv_offsets,
+  const unsigned selected_events,
+  const unsigned requested_events);
 
 double binomial_error(int n, int k);
 
@@ -22,9 +25,9 @@ class RateChecker : public Checker::BaseChecker {
 private:
   // Event counters.
   std::vector<bool> m_event_decs;
-  std::vector<uint> m_counters;
+  std::vector<unsigned> m_counters;
   std::vector<std::string> m_line_names;
-  uint m_tot;
+  unsigned m_tot;
 
 public:
   struct RateTag {
@@ -40,11 +43,11 @@ public:
   template<typename T>
   void accumulate(
     const bool* decisions,
-    const uint* decisions_offsets,
-    const uint* event_tracks_offsets,
-    const uint* sv_offsets,
-    const uint total_number_of_events,
-    const uint selected_number_of_events)
+    const unsigned* decisions_offsets,
+    const unsigned* event_tracks_offsets,
+    const unsigned* sv_offsets,
+    const unsigned total_number_of_events,
+    const unsigned selected_number_of_events)
   {
     const bool counters_initialized = m_counters.size() > 0;
 
@@ -61,7 +64,7 @@ public:
     Hlt1::TraverseLinesNames<T, Hlt1::Line>::traverse(lambda_all_tracks_fn0);
 
     // Event loop.
-    for (uint i_event = 0; i_event < total_number_of_events; i_event++) {
+    for (unsigned i_event = 0; i_event < total_number_of_events; i_event++) {
 
       // Initialize counters
       const auto lambda_all_tracks_fn2 = [&](const unsigned long i) { m_event_decs[i] = false; };

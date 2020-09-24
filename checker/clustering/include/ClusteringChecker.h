@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <tuple>
@@ -10,7 +13,7 @@
 void checkClustering(
   const std::vector<char>& geometry,
   const std::vector<char>& events,
-  const std::vector<uint>& event_offsets,
+  const std::vector<unsigned>& event_offsets,
   const std::vector<std::vector<uint32_t>>& found_clusters,
   float& reconstruction_efficiency,
   float& clone_fraction,

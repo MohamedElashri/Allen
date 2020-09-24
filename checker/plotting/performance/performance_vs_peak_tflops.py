@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
 import statistics

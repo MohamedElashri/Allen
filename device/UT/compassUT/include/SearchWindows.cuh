@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "UTDefinitions.cuh"
@@ -8,27 +11,27 @@
 namespace ut_search_windows {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, uint), host_number_of_selected_events),
-    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint), host_number_of_reconstructed_velo_tracks),
+    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
     (DEVICE_INPUT(dev_ut_hits_t, char), dev_ut_hits),
-    (DEVICE_INPUT(dev_ut_hit_offsets_t, uint), dev_ut_hit_offsets),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned), dev_ut_hit_offsets),
+    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_INPUT(dev_velo_states_t, char), dev_velo_states),
-    (DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint), dev_ut_number_of_selected_velo_tracks),
-    (DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint), dev_ut_selected_velo_tracks),
+    (DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned), dev_ut_number_of_selected_velo_tracks),
+    (DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned), dev_ut_selected_velo_tracks),
     (DEVICE_OUTPUT(dev_ut_windows_layers_t, short), dev_ut_windows_layers),
     (PROPERTY(min_momentum_t, "min_momentum", "min momentum cut [MeV/c]", float), min_momentum),
     (PROPERTY(min_pt_t, "min_pt", "min pT cut [MeV/c]", float), min_pt),
     (PROPERTY(y_tol_t, "y_tol", "y tol [mm]", float), y_tol),
     (PROPERTY(y_tol_slope_t, "y_tol_slope", "y tol slope [mm]", float), y_tol_slope),
-    (PROPERTY(block_dim_y_t, "block_dim_y_t", "block dimension Y", uint), block_dim_y))
+    (PROPERTY(block_dim_y_t, "block_dim_y_t", "block dimension Y", unsigned), block_dim_y))
 
   __global__ void ut_search_windows(
     Parameters,
     UTMagnetTool* dev_ut_magnet_tool,
     const float* dev_ut_dxDy,
-    const uint* dev_unique_x_sector_layer_offsets,
+    const unsigned* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs);
 
   struct ut_search_windows_t : public DeviceAlgorithm, Parameters {

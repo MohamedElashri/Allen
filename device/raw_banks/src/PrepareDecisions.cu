@@ -1,10 +1,13 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "PrepareRawBanks.cuh"
 #include "DeviceLineTraverser.cuh"
 
 __global__ void prepare_raw_banks::prepare_decisions(
   prepare_raw_banks::Parameters parameters,
-  const uint selected_number_of_events,
-  const uint event_start)
+  const unsigned selected_number_of_events,
+  const unsigned event_start)
 {
   const int n_hlt1_lines = std::tuple_size<configured_lines_t>::value;
   const uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
@@ -20,9 +23,9 @@ __global__ void prepare_raw_banks::prepare_decisions(
   });
 
   if (blockIdx.x < selected_number_of_events) {
-    const uint selected_event_number = blockIdx.x;
-    const uint total_number_of_events = gridDim.x;
-    const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
+    const unsigned selected_event_number = blockIdx.x;
+    const unsigned total_number_of_events = gridDim.x;
+    const unsigned event_number = parameters.dev_event_list[selected_event_number] - event_start;
 
     // Create velo tracks.
     Velo::Consolidated::ConstTracks velo_tracks {
@@ -53,29 +56,29 @@ __global__ void prepare_raw_banks::prepare_decisions(
     // Tracks.
     int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(selected_event_number);
     const int n_tracks_event = scifi_tracks.number_of_tracks(selected_event_number);
-    uint* event_saved_tracks_list =
+    unsigned* event_saved_tracks_list =
       parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(selected_event_number);
 
     // Vertices.
     int* event_save_sv = parameters.dev_save_sv + parameters.dev_sv_offsets[selected_event_number];
-    const uint n_vertices_event =
+    const unsigned n_vertices_event =
       parameters.dev_sv_offsets[selected_event_number + 1] - parameters.dev_sv_offsets[selected_event_number];
-    uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[selected_event_number];
+    unsigned* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[selected_event_number];
     const VertexFit::TrackMVAVertex* event_svs =
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[selected_event_number];
 
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
     // Set vertex decisions first.
-    uint insert_index = 0;
-    for (uint i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
+    unsigned insert_index = 0;
+    for (unsigned i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
       uint32_t save_sv = 0;
       const auto lambda_fn = [&](const unsigned long i_line) {
         const bool* decisions = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
                                 parameters.dev_sv_offsets[selected_event_number];
 
-        uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
-        uint* candidate_list = parameters.dev_candidate_lists + total_number_of_events * Hlt1::maxCandidates * i_line +
+        unsigned* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
+        unsigned* candidate_list = parameters.dev_candidate_lists + total_number_of_events * Hlt1::maxCandidates * i_line +
                                event_number * Hlt1::maxCandidates;
         uint32_t dec = ((decisions[i_sv] ? 1 : 0) & dec_mask);
         atomicOr(event_dec_reports + 2 + i_line, dec);
@@ -89,7 +92,7 @@ __global__ void prepare_raw_banks::prepare_decisions(
       Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::TwoTrackLine>::traverse(lambda_fn);
 
       if (save_sv & dec_mask) {
-        const uint sv_insert_index = atomicAdd(
+        const unsigned sv_insert_index = atomicAdd(
           parameters.dev_sel_atomics + event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_svs_saved, 1);
         event_save_sv[i_sv] = sv_insert_index;
         event_saved_svs_list[sv_insert_index] = i_sv;
@@ -108,8 +111,8 @@ __global__ void prepare_raw_banks::prepare_decisions(
         const bool* decisions = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
                                 scifi_tracks.tracks_offset(selected_event_number);
 
-        uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
-        uint* candidate_list = parameters.dev_candidate_lists + total_number_of_events * Hlt1::maxCandidates * i_line +
+        unsigned* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
+        unsigned* candidate_list = parameters.dev_candidate_lists + total_number_of_events * Hlt1::maxCandidates * i_line +
                                event_number * Hlt1::maxCandidates;
         const uint32_t dec = ((decisions[i_track] ? 1 : 0) & dec_mask);
         atomicOr(event_dec_reports + 2 + i_line, dec);
@@ -129,20 +132,20 @@ __global__ void prepare_raw_banks::prepare_decisions(
         const int i_velo_track = ut_tracks.velo_track(i_ut_track);
         const int n_hits = scifi_tracks.number_of_hits(i_track) + ut_tracks.number_of_hits(i_ut_track) +
                            velo_tracks.number_of_hits(i_velo_track);
-        const uint track_insert_index = atomicAdd(
+        const unsigned track_insert_index = atomicAdd(
           parameters.dev_sel_atomics + event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_tracks_saved, 1);
         atomicAdd(
           parameters.dev_sel_atomics + event_number * Hlt1::number_of_sel_atomics + Hlt1::atomics::n_hits_saved,
           n_hits);
-        event_saved_tracks_list[track_insert_index] = (uint) i_track;
+        event_saved_tracks_list[track_insert_index] = (unsigned) i_track;
         event_save_track[i_track] = (int) track_insert_index;
       }
     }
 
     // Set velo line decisions.
-    for (uint selected_event_number = blockIdx.x; selected_event_number < selected_number_of_events;
+    for (unsigned selected_event_number = blockIdx.x; selected_event_number < selected_number_of_events;
          selected_event_number++) {
-      const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
+      const unsigned event_number = parameters.dev_event_list[selected_event_number] - event_start;
       uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
       Hlt1::DeviceTraverseLines<configured_lines_t, Hlt1::VeloLine>::traverse([&](const unsigned long i_line) {
         const bool* decisions =

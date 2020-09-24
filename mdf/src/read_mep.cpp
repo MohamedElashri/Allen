@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -12,6 +15,7 @@
 #include <eb_header.hpp>
 #include <mdf_header.hpp>
 #include <read_mep.hpp>
+#include <BankTypes.h>
 
 namespace {
   using std::cerr;
@@ -41,7 +45,7 @@ std::tuple<bool, bool, EB::Header, gsl::span<char const>> MEP::read_mep(Allen::I
     cerr << "Failed to read header " << strerror(errno) << "\n";
     return {false, false, {}, {}};
   }
-  uint header_version = mdf_header->headerVersion();
+  unsigned header_version = mdf_header->headerVersion();
   auto hdr_size = LHCb::MDFHeader::sizeOf(header_version);
   assert((hdr_size - sizeof(LHCb::MDFHeader)) == mdf_header->subheaderLength());
   // read subheader
@@ -65,7 +69,7 @@ std::tuple<bool, bool, EB::Header, gsl::span<char const>> MEP::read_mep(Allen::I
   buffer.resize(hdr_size + EB::Header::header_size(mep_header->n_blocks));
   mep_buffer = &buffer[0] + hdr_size;
   mep_header = reinterpret_cast<EB::Header*>(mep_buffer);
-  auto data_size = static_cast<gsl::span<char const>::index_type>(mep_header->mep_size);
+  auto data_size = static_cast<span_size_t<char const>>(mep_header->mep_size);
 
   buffer.resize(hdr_size + EB::Header::header_size(mep_header->n_blocks) + data_size);
   mdf_header = reinterpret_cast<LHCb::MDFHeader*>(&buffer[0]);

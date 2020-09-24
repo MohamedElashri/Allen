@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "ParKalmanVeloOnly.cuh"
 
 void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
@@ -191,7 +194,7 @@ update_velo_only(Velo::Consolidated::ConstHits& hits, int nHit, Vector5& x, SymM
 
 __device__ void velo_only_fit(
   Velo::Consolidated::ConstHits& velo_hits,
-  const uint n_velo_hits,
+  const unsigned n_velo_hits,
   const KalmanFloat init_qop,
   const KalmanParametrizations* kalman_params,
   FittedTrack& track)
@@ -285,7 +288,7 @@ __device__ void propagate_to_beamline(FittedTrack& track)
 
 __device__ void simplified_fit(
   Velo::Consolidated::ConstHits& velo_hits,
-  const uint n_velo_hits,
+  const unsigned n_velo_hits,
   const KalmanFloat init_qop,
   FittedTrack& track)
 {
@@ -365,8 +368,8 @@ __global__ void kalman_velo_only::kalman_velo_only(
   kalman_velo_only::Parameters parameters,
   const char* dev_scifi_geometry)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const unsigned number_of_events = gridDim.x;
+  const unsigned event_number = blockIdx.x;
 
   // Create velo tracks.
   Velo::Consolidated::Tracks const velo_tracks {
@@ -398,13 +401,13 @@ __global__ void kalman_velo_only::kalman_velo_only(
   const auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
 
   // Loop over SciFi tracks and get associated UT and VELO tracks.
-  const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
-  for (uint i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
+  const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
+  for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
     // Prepare fit input.
     const int i_ut_track = scifi_tracks.ut_track(i_scifi_track);
     const int i_velo_track = ut_tracks.velo_track(i_ut_track);
     Velo::Consolidated::ConstHits velo_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i_velo_track);
-    const uint n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
+    const unsigned n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
     const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop(i_scifi_track);
     simplified_fit(
       velo_hits,

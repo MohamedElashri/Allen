@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <string>
 
 #include <CudaCommon.h>
@@ -19,7 +22,7 @@ void Consumers::MagneticField::consume(std::vector<char> const& data)
     // Allocate space
     float* p = nullptr;
     cudaCheck(cudaMalloc((void**) &p, data.size()));
-    m_dev_magnet_polarity.get() = {p, static_cast<gsl::span<char>::index_type>(data.size() / sizeof(float))};
+    m_dev_magnet_polarity.get() = {p, static_cast<span_size_t<char>>(data.size() / sizeof(float))};
   }
   else if (data.size() != static_cast<size_t>(sizeof(float) * m_dev_magnet_polarity.get().size())) {
     throw StrException {string {"sizes don't match: "} + to_string(m_dev_magnet_polarity.get().size()) + " " +
