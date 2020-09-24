@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "PrimaryVertexChecker.h"
 #include "FitSeeds.cuh"
 #include "pv_beamline_cleanup.cuh"

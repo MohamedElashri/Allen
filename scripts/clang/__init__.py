@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 #===- __init__.py - Clang Python Bindings --------------------*- python -*--===#
 #
 #                     The LLVM Compiler Infrastructure

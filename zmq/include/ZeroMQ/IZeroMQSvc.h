@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #ifndef ZEROMQ_IZEROMQSVC_H
 #define ZEROMQ_IZEROMQSVC_H 1
 

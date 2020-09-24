@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "CudaCommon.h"
 
 // If supported, compile and use F16C extensions to convert from / to float16

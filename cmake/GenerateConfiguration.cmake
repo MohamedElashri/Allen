@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 # Deal with configuration generation machinery
 # Test by actually trying to generate "algorithms.py"
 # * If clang is available, we can and will generate the configuration files

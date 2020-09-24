@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "TrackForwarding.cuh"
 #include "ClusteringDefinitions.cuh"
 #include "SearchByTriplet.cuh"

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "PackageSelReports.cuh"
 
 void package_sel_reports::package_sel_reports_t::set_arguments_size(

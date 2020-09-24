@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 from os import path, listdir, mkdir
 from sys import argv, exit, byteorder
 from binascii import unhexlify

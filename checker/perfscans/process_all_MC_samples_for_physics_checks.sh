@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 allen_dir="/home/vgligoro/Allen_master_update_checkers"
 build_dir=${allen_dir}"/build"
 

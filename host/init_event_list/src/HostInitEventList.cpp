@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "HostInitEventList.h"
 
 void host_init_event_list::host_init_event_list_t::set_arguments_size(

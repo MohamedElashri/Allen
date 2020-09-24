@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "HostPrefixSum.h"
 
 void host_prefix_sum::host_prefix_sum_t::set_arguments_size(

@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 outloc=../output/perfscans
 cd ../..
 cp cuda/UT/common/include/CompassUTDefinitions.cuh bkpfile.bkp

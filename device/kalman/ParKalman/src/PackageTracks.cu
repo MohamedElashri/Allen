@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "ParKalmanVeloOnly.cuh"
 
 void package_kalman_tracks::package_kalman_tracks_t::set_arguments_size(

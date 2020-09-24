@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "SciFiCopyTrackHitNumber.cuh"
 
 void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::set_arguments_size(

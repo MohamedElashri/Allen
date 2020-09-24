@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(Hlt1/include)
 include_directories(lines/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)

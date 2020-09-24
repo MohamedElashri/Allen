@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "FilterMFTracks.cuh"
 
 void FilterMFTracks::filter_mf_tracks_t::set_arguments_size(

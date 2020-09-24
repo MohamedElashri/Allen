@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB muon_features_extraction "preprocessing/src/*cu")
 file(GLOB muon_classification "classification/src/*cu")
 file(GLOB muon_filtering "is_muon/src/*cu")

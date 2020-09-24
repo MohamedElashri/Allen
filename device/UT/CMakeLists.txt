@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB UT_decoding "UTDecoding/src/*cu")
 file(GLOB UT_consolidate "consolidate/src/*cu")
 file(GLOB CompassUT_tracking "compassUT/src/*cu")
