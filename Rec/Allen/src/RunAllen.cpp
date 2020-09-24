@@ -151,6 +151,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   const unsigned event_end = 1;
   const size_t slice_index = 0;
   const bool mep_layout = false;
+  const uint inject_mem_fail = 0;
   RuntimeOptions runtime_options(
     m_tes_input_provider.get(),
     slice_index,
@@ -158,7 +159,8 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
     m_number_of_repetitions,
     m_do_check,
     m_cpu_offload,
-    mep_layout);
+    mep_layout,
+    inject_mem_fail);
 
   const unsigned buf_idx = m_n_buffers - 1;
   const unsigned stream_index = m_number_of_streams - 1;
