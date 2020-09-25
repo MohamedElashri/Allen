@@ -36,7 +36,7 @@ with open('../refs/dump.ref') as ref:
 
 missing = []
 bad_size = []
-for f, s in ref_sizes.iteritems():
+for f, s in ref_sizes.items():
     if not os.path.exists(f):
         missing.append(f)
     else:
