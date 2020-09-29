@@ -177,19 +177,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // -- This is hardcoded, so faster
   // -- If you ever change the Table in the magnet tool, this will be wrong
   const float absSlopeY = fabsf(velo_state.ty);
-  const int index = (int) (absSlopeY * 100 + 0.5f);
+  const int index = static_cast<int>(absSlopeY * 100 + 0.5f);
   assert(3 + 4 * index < UTMagnetTool::N_dxLay_vals);
   const float normFact[4] {
     fudge_factors[4 * index], fudge_factors[1 + 4 * index], fudge_factors[2 + 4 * index], fudge_factors[3 + 4 * index]};
 
-  // -- this 500 seems a little odd...
-  // to do: change back!
-  const float invTheta = min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
-  const float minMom = max(min_pt * invTheta, min_momentum);
+  const float minMom = max(min_momentum, min_pt / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
   const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
-  // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;
-
-  int layer_offset = ut_hit_offsets.layer_offset(layer);
+  const int layer_offset = ut_hit_offsets.layer_offset(layer);
 
   const float dx_dy = ut_dxDy[layer];
   const float z_at_layer = ut_hits.zAtYEq0(layer_offset);
@@ -197,9 +192,6 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float x_track = velo_state.x + velo_state.tx * (z_at_layer - velo_state.z);
   const float invNormFact = 1.0f / normFact[layer];
   const float xTolNormFact = xTol * invNormFact;
-
-  // Second sector group search
-  // const float tolerance_in_x = xTol * invNormFact;
 
   // Find sector group for lowerBoundX and upperBoundX
   const int first_sector_group_in_layer = dev_unique_x_sector_layer_offsets[layer];
