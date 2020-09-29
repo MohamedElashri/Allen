@@ -12,7 +12,6 @@ namespace ut_select_velo_tracks_with_windows {
     (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
-    (DEVICE_INPUT(dev_velo_states_t, char), dev_velo_states),
     (DEVICE_INPUT(dev_accepted_velo_tracks_t, bool), dev_accepted_velo_tracks),
     (DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned), dev_ut_number_of_selected_velo_tracks),
     (DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned), dev_ut_selected_velo_tracks),
