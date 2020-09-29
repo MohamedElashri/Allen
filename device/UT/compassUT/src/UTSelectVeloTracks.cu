@@ -35,7 +35,8 @@ __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_trac
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_beamline_states {parameters.dev_velo_beamline_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_beamline_states {parameters.dev_velo_beamline_states,
+                                                        velo_tracks.total_number_of_tracks()};
 
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
