@@ -78,7 +78,13 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
     const unsigned current_track_offset = event_tracks_offset + t;
     const KalmanVeloState velo_beamline_state = velo_beamline_states.get_kalman_state(current_track_offset);
     LHCb::State closesttobeam_state;
-    closesttobeam_state.setState(velo_beamline_state.x, velo_beamline_state.y, velo_beamline_state.z, velo_beamline_state.tx, velo_beamline_state.ty, 0.f);
+    closesttobeam_state.setState(
+      velo_beamline_state.x,
+      velo_beamline_state.y,
+      velo_beamline_state.z,
+      velo_beamline_state.tx,
+      velo_beamline_state.ty,
+      0.f);
     closesttobeam_state.covariance()(0, 0) = velo_beamline_state.c00;
     closesttobeam_state.covariance()(1, 1) = velo_beamline_state.c11;
     closesttobeam_state.covariance()(0, 2) = velo_beamline_state.c20;
@@ -88,11 +94,16 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 
-
     // set state at endvelo
     const KalmanVeloState velo_endvelo_state = velo_endvelo_states.get_kalman_state(current_track_offset);
     LHCb::State endvelo_state;
-    endvelo_state.setState(velo_endvelo_state.x, velo_endvelo_state.y, velo_endvelo_state.z, velo_endvelo_state.tx, velo_endvelo_state.ty, 0.f);
+    endvelo_state.setState(
+      velo_endvelo_state.x,
+      velo_endvelo_state.y,
+      velo_endvelo_state.z,
+      velo_endvelo_state.tx,
+      velo_endvelo_state.ty,
+      0.f);
     endvelo_state.covariance()(0, 0) = velo_endvelo_state.c00;
     endvelo_state.covariance()(1, 1) = velo_endvelo_state.c11;
     endvelo_state.covariance()(0, 2) = velo_endvelo_state.c20;
@@ -101,7 +112,6 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
     endvelo_state.covariance()(3, 3) = velo_endvelo_state.c33;
     endvelo_state.setLocation(LHCb::State::Location::EndVelo);
     newTrack.addToStates(endvelo_state);
-
 
     setFlagsAndPt(newTrack, m_ptVelo);
   }

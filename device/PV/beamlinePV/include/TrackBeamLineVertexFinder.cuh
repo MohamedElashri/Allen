@@ -14,12 +14,12 @@ struct PVTrack {
   __host__ __device__ PVTrack() {}
 
   __host__ __device__ PVTrack(const KalmanVeloState& state) :
-    z {state.z}, x {state.x, state.y}, tx {state.tx, state.ty}, W_00{1.f / state.c00}, W_11 {1.f / state.c11}
+    z {state.z}, x {state.x, state.y}, tx {state.tx, state.ty}, W_00 {1.f / state.c00}, W_11 {1.f / state.c11}
   {}
 
   float z {0};
-  float2 x;  /// position (x,y)
-  float2 tx; /// direction (tx,ty)
+  float2 x;   /// position (x,y)
+  float2 tx;  /// direction (tx,ty)
   float W_00; /// weightmatrix
   float W_11;
 };

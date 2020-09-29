@@ -39,9 +39,10 @@ struct MiniState {
 
   __host__ __device__ MiniState() {}
 
-  __host__ __device__ MiniState(const KalmanVeloState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
+  __host__ __device__ MiniState(const KalmanVeloState& other) :
+    x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
   {}
-  
+
   __host__ __device__ MiniState(const MiniState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
   {}
 
@@ -66,9 +67,7 @@ struct ProjectionState {
 
   __host__ __device__ ProjectionState() {}
 
-  __host__ __device__ ProjectionState(const MiniState& state) : x(state.x), y(state.y), z(state.z)
-  {}
+  __host__ __device__ ProjectionState(const MiniState& state) : x(state.x), y(state.y), z(state.z) {}
 
-  __host__ __device__ ProjectionState(const KalmanVeloState& state) : x(state.x), y(state.y), z(state.z)
-  {}
+  __host__ __device__ ProjectionState(const KalmanVeloState& state) : x(state.x), y(state.y), z(state.z) {}
 };

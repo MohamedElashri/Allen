@@ -58,11 +58,10 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
     parameters.dev_three_hit_tracks_output + event_number * Velo::Constants::max_tracks;
 
   // Consolidated datatypes
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_offsets_all_velo_tracks,
-    parameters.dev_offsets_velo_track_hit_number,
-    event_number,
-    number_of_events};
+  const Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
+                                                parameters.dev_offsets_velo_track_hit_number,
+                                                event_number,
+                                                number_of_events};
   const unsigned event_number_of_tracks = velo_tracks.number_of_tracks(event_number);
 
   const auto event_number_of_three_hit_tracks_filtered =
@@ -100,14 +99,16 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
 
     // Populate hits in a coalesced manner, taking into account
     // the underlying container.
-    populate(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const unsigned i, const unsigned hit_index) {
-      consolidated_hits.set_x(i, velo_cluster_container.x(hit_index));
-      consolidated_hits.set_y(i, velo_cluster_container.y(hit_index));
-      consolidated_hits.set_z(i, velo_cluster_container.z(hit_index));
-    });
+    populate(
+      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const unsigned i, const unsigned hit_index) {
+        consolidated_hits.set_x(i, velo_cluster_container.x(hit_index));
+        consolidated_hits.set_y(i, velo_cluster_container.y(hit_index));
+        consolidated_hits.set_z(i, velo_cluster_container.z(hit_index));
+      });
 
-    populate(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const unsigned i, const unsigned hit_index) {
-      consolidated_hits.set_id(i, velo_cluster_container.id(hit_index));
-    });
+    populate(
+      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const unsigned i, const unsigned hit_index) {
+        consolidated_hits.set_id(i, velo_cluster_container.id(hit_index));
+      });
   }
 }

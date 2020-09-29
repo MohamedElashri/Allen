@@ -47,8 +47,7 @@ __global__ void MatchUpstreamMuon::match_upstream_muon(
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, i_event, number_of_events};
 
-  Velo::Consolidated::ConstStates velo_states {
-    parameters.dev_kalmanvelo_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_kalmanvelo_states, velo_tracks.total_number_of_tracks()};
 
   UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
                                                    parameters.dev_ut_track_hit_number,

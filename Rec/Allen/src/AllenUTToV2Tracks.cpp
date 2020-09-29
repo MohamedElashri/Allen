@@ -77,14 +77,26 @@ std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuff
     const auto velo_beamline_state = velo_beamline_states.get(velo_state_index);
     LHCb::State closesttobeam_state;
     const float qop = ut_tracks.qop(t);
-    closesttobeam_state.setState(velo_beamline_state.x, velo_beamline_state.y, velo_beamline_state.z, velo_beamline_state.tx, velo_beamline_state.ty, qop);
+    closesttobeam_state.setState(
+      velo_beamline_state.x,
+      velo_beamline_state.y,
+      velo_beamline_state.z,
+      velo_beamline_state.tx,
+      velo_beamline_state.ty,
+      qop);
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 
     // set state at endvelo
     const auto velo_endvelo_state = velo_endvelo_states.get(velo_state_index);
     LHCb::State endvelo_state;
-    endvelo_state.setState(velo_endvelo_state.x, velo_endvelo_state.y, velo_endvelo_state.z, velo_endvelo_state.tx, velo_endvelo_state.ty, qop);
+    endvelo_state.setState(
+      velo_endvelo_state.x,
+      velo_endvelo_state.y,
+      velo_endvelo_state.z,
+      velo_endvelo_state.tx,
+      velo_endvelo_state.ty,
+      qop);
     endvelo_state.setLocation(LHCb::State::Location::EndVelo);
     newTrack.addToStates(endvelo_state);
 
