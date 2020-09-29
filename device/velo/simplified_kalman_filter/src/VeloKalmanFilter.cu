@@ -134,18 +134,17 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
   const unsigned event_number = blockIdx.x;
 
   // Consolidated datatypes
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_offsets_all_velo_tracks,
-    parameters.dev_offsets_velo_track_hit_number,
-    event_number,
-    number_of_events};
+  const Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
+                                                parameters.dev_offsets_velo_track_hit_number,
+                                                event_number,
+                                                number_of_events};
 
-  Velo::Consolidated::States kalman_beamline_states {
-    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
-  Velo::Consolidated::States kalman_endvelo_states {
-    parameters.dev_velo_kalman_endvelo_states, velo_tracks.total_number_of_tracks()};
-  Velo::Consolidated::States lmsfit_beamline_states {
-    parameters.dev_velo_lmsfit_beamline_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::States kalman_beamline_states {parameters.dev_velo_kalman_beamline_states,
+                                                     velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::States kalman_endvelo_states {parameters.dev_velo_kalman_endvelo_states,
+                                                    velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::States lmsfit_beamline_states {parameters.dev_velo_lmsfit_beamline_states,
+                                                     velo_tracks.total_number_of_tracks()};
 
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);

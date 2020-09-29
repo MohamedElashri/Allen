@@ -121,11 +121,13 @@ namespace velo_kalman_filter {
     state.c33 += noise2PerLayer;
 
     auto delta_z = 0.f;
-    
+
     if constexpr (upstream) {
       // Propagate to the closest point near the beam line
-      delta_z = (state.tx * (dev_beamline[0] - state.x) + state.ty * (dev_beamline[1] - state.y)) / (state.tx * state.tx + state.ty * state.ty);
-    } else {
+      delta_z = (state.tx * (dev_beamline[0] - state.x) + state.ty * (dev_beamline[1] - state.y)) /
+                (state.tx * state.tx + state.ty * state.ty);
+    }
+    else {
       // Propagate to the end of the Velo (z=770 mm)
       delta_z = Velo::Constants::z_endVelo - state.z;
     }
@@ -144,7 +146,7 @@ namespace velo_kalman_filter {
     const auto dz2 = delta_z * delta_z;
     state.c00 += dz2 * state.c22 + 2.f * delta_z * state.c20;
     state.c11 += dz2 * state.c33 + 2.f * delta_z * state.c31;
-    state.c20 += state.c22 * delta_z; 
+    state.c20 += state.c22 * delta_z;
     state.c31 += state.c33 * delta_z;
 
     // finally, store the state

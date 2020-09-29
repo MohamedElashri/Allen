@@ -63,32 +63,29 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, i_event, number_of_events};
 
-  Velo::Consolidated::ConstStates velo_states {
-    parameters.dev_kalmanvelo_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_kalmanvelo_states, velo_tracks.total_number_of_tracks()};
 
-  UT::Consolidated::ConstExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    i_event,
-    number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   i_event,
+                                                   number_of_events};
 
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    i_event,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 i_event,
+                                                 number_of_events};
 
   const unsigned event_offset = scifi_tracks.tracks_offset(i_event);
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
   unsigned* event_mf_decision = parameters.dev_mf_decisions.get() + i_event;
 
-  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {
-    parameters.dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks()};
+  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
+                                                        scifi_tracks.total_number_of_tracks()};
   const auto pvchi2_table = kalman_pv_ipchi2.event_table(scifi_tracks, i_event);
 
   for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < number_of_tracks_event; i_scifi_track += blockDim.x) {

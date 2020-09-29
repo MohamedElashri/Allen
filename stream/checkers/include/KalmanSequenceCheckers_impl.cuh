@@ -6,8 +6,11 @@
 
 template<>
 struct SequenceVisitor<kalman_filter::kalman_filter_t> {
-  static void
-  check(HostBuffers& host_buffers, const Constants& constants, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
+  static void check(
+    HostBuffers& host_buffers,
+    const Constants& constants,
+    const CheckerInvoker& checker_invoker,
+    MCEvents const& mc_events)
   {
 // Note: Nothing happens if not compiled with ROOT
 #ifdef WITH_ROOT
@@ -47,8 +50,11 @@ struct SequenceVisitor<kalman_filter::kalman_filter_t> {
 
 template<>
 struct SequenceVisitor<kalman_velo_only::kalman_velo_only_t> {
-  static void
-  check(HostBuffers& host_buffers, const Constants& constants, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
+  static void check(
+    HostBuffers& host_buffers,
+    const Constants& constants,
+    const CheckerInvoker& checker_invoker,
+    MCEvents const& mc_events)
   {
 // Note: Nothing happens if not compiled with ROOT
 #ifdef WITH_ROOT

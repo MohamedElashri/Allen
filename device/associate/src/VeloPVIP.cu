@@ -110,13 +110,12 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
   velo_pv_ip.cutoff() = Associate::VeloPVIP::baseline;
 
   // Consolidated Velo fitted states for this event
-  Velo::Consolidated::ConstStates velo_kalman_states {
-    parameters.dev_velo_kalman_beamline_states + sizeof(float) * event_tracks_offset,
-    velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_kalman_states {parameters.dev_velo_kalman_beamline_states +
+                                                        sizeof(float) * event_tracks_offset,
+                                                      velo_tracks.total_number_of_tracks()};
 
-  cuda::span<const PV::Vertex> vertices {
-    parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-    *(parameters.dev_number_of_multi_fit_vertices + event_number)};
+  cuda::span<const PV::Vertex> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
+                                         *(parameters.dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event
   auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
