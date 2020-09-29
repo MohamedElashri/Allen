@@ -13,7 +13,8 @@
 namespace velo_consolidate_tracks {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_accumulated_number_of_hits_in_velo_tracks_t, unsigned), host_accumulated_number_of_hits_in_velo_tracks),
+    (HOST_INPUT(host_accumulated_number_of_hits_in_velo_tracks_t, unsigned),
+     host_accumulated_number_of_hits_in_velo_tracks),
     (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
     (HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, unsigned), host_number_of_three_hit_tracks_filtered),
     (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
@@ -24,7 +25,8 @@ namespace velo_consolidate_tracks {
     (DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char), dev_sorted_velo_cluster_container),
     (DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned), dev_offsets_estimated_input_size),
     (DEVICE_INPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits), dev_three_hit_tracks_output),
-    (DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned), dev_offsets_number_of_three_hit_tracks_filtered),
+    (DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned),
+     dev_offsets_number_of_three_hit_tracks_filtered),
     (DEVICE_OUTPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
