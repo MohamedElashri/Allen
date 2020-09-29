@@ -259,6 +259,24 @@ namespace Velo {
         c33(track_number) = state.c33;
       }
 
+      __host__ __device__ void set(const unsigned track_number, const MiniState& state)
+      {
+        assert(track_number < m_total_number_of_tracks);
+
+        x(track_number) = state.x;
+        y(track_number) = state.y;
+        z(track_number) = state.z;
+        tx(track_number) = state.tx;
+        ty(track_number) = state.ty;
+
+        c00(track_number) = 0.f;
+        c20(track_number) = 0.f;
+        c22(track_number) = 0.f;
+        c11(track_number) = 0.f;
+        c31(track_number) = 0.f;
+        c33(track_number) = 0.f;
+      }
+
       __host__ __device__ MiniState get(const uint track_number) const
       {
         return MiniState {x(track_number), y(track_number), z(track_number), tx(track_number), ty(track_number)};
