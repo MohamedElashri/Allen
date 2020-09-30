@@ -120,7 +120,7 @@ namespace Allen {
 #if !defined(ALWAYS_DISPATCH_TO_DEFAULT)
       }
       else {
-        const auto fn = std::get<configured_target>(std::tuple<Fns...> {fns...});
+        const auto fn = std::get<configured_target>(std::tuple{fns...});
         return [fn](auto&&... args) { return fn(args...); };
       }
 #endif
