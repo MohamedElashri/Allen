@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 #ifdef KALMAN_DOUBLE_PRECISION
 using KalmanFloat = double;

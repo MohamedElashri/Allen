@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
   // Structure for handling the HltDecReport of a single line.
 class HltDecReport {    

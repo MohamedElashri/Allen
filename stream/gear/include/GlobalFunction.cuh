@@ -7,7 +7,7 @@
 #include "Property.cuh"
 #include "HostFunction.cuh"
 #include "Invoke.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include <functional>
 #include <utility>
 #include <tuple>

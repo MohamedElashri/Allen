@@ -4,7 +4,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "VeloDefinitions.cuh"
 
 namespace Velo {

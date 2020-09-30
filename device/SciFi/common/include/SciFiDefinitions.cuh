@@ -7,7 +7,7 @@
 #include <vector>
 #include <ostream>
 #include <sstream>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Common.h"
 #include "Logger.h"
 #include "States.cuh"

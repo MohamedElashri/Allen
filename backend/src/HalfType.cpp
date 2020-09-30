@@ -1,11 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include "CudaCommon.h"
+
+#include "CPUBackend.h"
 #include <iostream>
 
 // If supported, compile and use F16C extensions to convert from / to float16
-#include "CpuID.h"
+#include "CPUID.h"
 
 __host__ __device__ int32_t intbits(const float f)
 {
@@ -80,6 +81,7 @@ __host__ __device__ float __half2float_impl(const uint16_t h)
   return floatbits(o);
 }
 
+// A good approximation of converting to half and back in a single function
 __host__ __device__ float __float_cap_to_half_precision(const float f) {
   constexpr float fmagic = 1.92592994439e-34f; // equals 15ul << 23
   constexpr uint32_t signs_mask = 0xC0000000u;
@@ -90,56 +92,10 @@ __host__ __device__ float __float_cap_to_half_precision(const float f) {
   const auto result = (fint & signs_mask) | (fint2 & 0x07FFE000);
   const auto fresult = floatbits(result);
 
-  // A good approximation of converting to half and back
   return fresult;
 }
 
-#if defined(TARGET_DEVICE_CPU)
-
-uint16_t __float2half(const float f)
-{
-  return __float2half_impl(f);
-}
-
-float __half2float(const uint16_t h)
-{
-  return __half2float_impl(h);
-}
-
-#ifdef CPU_USE_REAL_HALF
-
-half_t::half_t(const float f) { m_value = __float2half(f); }
-
-half_t::operator float() const { return __half2float(m_value); }
-
-bool half_t::operator<(const half_t& a) const
-{
-  const auto sign = (m_value >> 15) & 0x01;
-  const auto sign_a = (a.get() >> 15) & 0x01;
-  return (sign & sign_a & operator!=(a)) ^ (m_value < a.get());
-}
-
-bool half_t::operator>(const half_t& a) const
-{
-  const auto sign = (m_value >> 15) & 0x01;
-  const auto sign_a = (a.get() >> 15) & 0x01;
-  return (sign & sign_a & operator!=(a)) ^ (m_value > a.get());
-}
-
-bool half_t::operator<=(const half_t& a) const { return !operator>(a); }
-
-bool half_t::operator>=(const half_t& a) const { return !operator<(a); }
-
-bool half_t::operator==(const half_t& a) const { return m_value == a.get(); }
-
-bool half_t::operator!=(const half_t& a) const { return !operator==(a); }
-#else
-half_t::half_t(const float f) { m_value = __half2float_impl(__float2half_impl(f)); }
-
-half_t::operator float() const { return m_value; }
-#endif
-
-#elif defined(DEVICE_TARGET_HIP)
+#ifndef TARGET_DEVICE_CUDA
 
 __host__ __device__ uint16_t __float2half(const float f) { return __float2half_impl(f); }
 

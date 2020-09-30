@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>

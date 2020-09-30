@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include <Common.h>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
 #include <PV_Definitions.cuh>

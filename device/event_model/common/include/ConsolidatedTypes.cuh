@@ -4,7 +4,7 @@
 #pragma once
 
 #include <cassert>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Common.h"
 
 namespace Consolidated {

@@ -1,6 +1,7 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
+
 #include "TrackForwarding.cuh"
 #include "ClusteringDefinitions.cuh"
 #include "SearchByTriplet.cuh"
@@ -286,8 +287,7 @@ __device__ void track_seeding(
     float best_fit = max_scatter;
 
     // Fetch h1
-    const auto h1_index_total = h1_indices[h1_rel_index];
-    const uint16_t h1_index = h1_index_total & bits::hit_number;
+    const auto h1_index = h1_indices[h1_rel_index];
     const Velo::HitBase h1 {
       velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
     const auto h1_phi = hit_phi[h1_index];

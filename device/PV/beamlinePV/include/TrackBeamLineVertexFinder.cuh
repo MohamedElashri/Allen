@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Common.h"
 #include "Logger.h"
 #include "PV_Definitions.cuh"

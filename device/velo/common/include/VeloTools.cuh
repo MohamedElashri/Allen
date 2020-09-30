@@ -3,8 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
-#include "CudaMathConstants.h"
+#include "BackendCommon.h"
 #include "ArgumentManager.cuh"
 #include "VeloEventModel.cuh"
 

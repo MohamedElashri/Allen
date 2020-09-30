@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Common.h"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include <fstream>
 #include <stdio.h>
 

@@ -8,7 +8,7 @@
 #include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidatedTypes.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 namespace Velo {
   namespace Consolidated {

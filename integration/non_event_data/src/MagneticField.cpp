@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #include <string>
 
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <Common.h>
 #include <Consumers.h>
 

@@ -5,7 +5,7 @@
 
 #include "UTDefinitions.cuh"
 #include "SystemOfUnits.h"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 namespace CompassUT {
 

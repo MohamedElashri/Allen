@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 /**
  * @brief A simplified state for the Velo

@@ -21,6 +21,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/zmq/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${ROOT_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 

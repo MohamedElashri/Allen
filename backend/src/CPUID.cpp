@@ -1,7 +1,8 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include "CpuID.h"
+
+#include "CPUID.h"
 
 namespace cpu_id {
   static std::unique_ptr<CpuID> cpu_id_instance;

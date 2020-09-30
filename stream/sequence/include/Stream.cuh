@@ -10,7 +10,7 @@
 #include <tuple>
 
 #include "Common.h"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 #include "Timer.h"
 #include "Tools.h"

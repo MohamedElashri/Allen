@@ -5,7 +5,7 @@
 
 #include <cstdint>
 #include <cstdlib>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 
 namespace Velo {
   // Total number of atomics required

@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #include "VeloDefinitions.cuh"
 #include "CalculatePhiAndSort.cuh"
-#include "CudaMathConstants.h"
 #include "VeloTools.cuh"
 
 void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::set_arguments_size(

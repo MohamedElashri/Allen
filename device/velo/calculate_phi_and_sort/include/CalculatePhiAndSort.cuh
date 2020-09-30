@@ -5,7 +5,7 @@
 
 #include <cstdint>
 #include <cassert>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"

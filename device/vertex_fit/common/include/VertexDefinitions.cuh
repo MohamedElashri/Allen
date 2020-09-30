@@ -5,7 +5,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #if !defined(__NVCC__) && !defined(__CUDACC__)
 #include <cmath>
 #endif

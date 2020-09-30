@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include <gsl/gsl>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 
 // Forward declarations

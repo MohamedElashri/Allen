@@ -545,6 +545,7 @@ set(EXTERNAL_DIR "external")
 
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
+add_subdirectory(backend)
 add_subdirectory(device)
 add_subdirectory(stream)
 add_subdirectory(checker)
@@ -564,6 +565,7 @@ endif()
 #Include directories
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(main/include)
+include_directories(backend/include)
 include_directories(host/velo/clustering/include)
 include_directories(host/utils/prefix_sum/include)
 include_directories(device/global_event_cut/include)
@@ -642,8 +644,6 @@ if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   set_source_files_properties(${common_device_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
-allen_add_device_library(CudaCommon STATIC ${common_device_sources})
-
 set(allen_lib_sources ${Allen_cpp_path}
                       ${AllenThreads_cpp_path}
                       ${OutputHandler_cpp_path}
@@ -665,7 +665,6 @@ find_package(Threads REQUIRED)
 target_link_libraries(AllenLib PUBLIC
   Stream
   Common
-  CudaCommon
   TrackChecking
   PVChecking
   CheckClustering

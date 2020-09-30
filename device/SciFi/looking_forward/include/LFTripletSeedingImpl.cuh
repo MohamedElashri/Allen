@@ -7,7 +7,7 @@
 #include "SciFiEventModel.cuh"
 #include "UTDefinitions.cuh"
 #include "LookingForwardConstants.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 struct CombinedTripletValue {
   float chi2 = LookingForward::chi2_max_triplet_single * LookingForward::chi2_max_triplet_single;

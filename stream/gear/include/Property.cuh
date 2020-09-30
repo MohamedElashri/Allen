@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Argument.cuh"
 #include "BaseTypes.cuh"
 #include "BankTypes.h"

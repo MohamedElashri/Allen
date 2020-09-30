@@ -1,12 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include "CudaCommon.h"
 
 #ifdef TARGET_DEVICE_CPU
 
+#include "CPUBackend.h"
 #include <cstring>
-#include "stdlib.h"
+#include <cstdlib>
 
 thread_local GridDimensions gridDim;
 thread_local BlockIndices blockIdx;

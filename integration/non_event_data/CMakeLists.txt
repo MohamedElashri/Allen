@@ -6,10 +6,11 @@ file(GLOB SOURCES "src/*.cpp")
 allen_add_host_library(NonEventData ${SOURCES})
 
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 
 target_link_libraries(NonEventData
   HostClustering
-  CudaCommon
+  Backend
   Common)
 
 target_include_directories(NonEventData PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

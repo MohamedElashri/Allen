@@ -6,7 +6,7 @@
 #include <tuple>
 #include <vector>
 #include <cstring>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 #include "TupleTools.cuh"
 #include "Argument.cuh"

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 
 namespace SciFi {
   struct SciFiRawBank {

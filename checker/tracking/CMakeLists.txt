@@ -15,6 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 
 file(GLOB tracking_checker_sources "src/*cpp")
 

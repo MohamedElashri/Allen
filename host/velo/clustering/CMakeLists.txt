@@ -4,6 +4,7 @@
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 
 file(GLOB host_clustering "src/*cpp")
 

@@ -4,6 +4,7 @@
 file(GLOB host_gec "src/*cpp")
 
 include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
@@ -81,9 +82,9 @@ allen_add_host_library(HostGEC STATIC
   ${host_gec}
 )
 
-target_link_libraries(HostGEC PUBLIC CudaCommon)
+target_link_libraries(HostGEC PUBLIC Backend)
 
-add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/main/src/CudaCommon.cpp)
+add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
 
 target_include_directories(mep_gec PUBLIC
   ${CPPGSL_INCLUDE_DIR}

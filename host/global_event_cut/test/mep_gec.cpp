@@ -22,7 +22,7 @@
 #include <read_mep.hpp>
 #include <Transpose.h>
 #include <TransposeMEP.h>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <HostGlobalEventCut.h>
 
 using namespace std;

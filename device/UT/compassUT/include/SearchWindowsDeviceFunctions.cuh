@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "UTDefinitions.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "VeloConsolidated.cuh"
