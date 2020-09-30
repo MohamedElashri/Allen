@@ -139,7 +139,7 @@ namespace cuda {
     __device__ __host__ T* data() const { return __ptr; }
     __device__ __host__ size_t size() const { return __size; }
     __device__ __host__ T& operator[](int i) { return __ptr[i]; }
-    __device__ __host__ const T operator[](int i) const { return __ptr[i]; }
+    __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
   };
 } // namespace cuda
 
