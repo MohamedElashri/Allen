@@ -121,7 +121,7 @@ namespace Allen {
       }
       else {
         const auto fn = std::get<configured_target>(std::tuple{fns...});
-        return [fn](auto&&... args) { return fn(args...); };
+        return [fn](auto&&... args) { return std::apply(fn,std::forward<decltype(args)>(args)...); };
       }
 #endif
     }
