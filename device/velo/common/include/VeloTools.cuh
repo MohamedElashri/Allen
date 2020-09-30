@@ -47,12 +47,7 @@ __device__ inline T fast_atan2f(const T& y, const T& x)
 __device__ inline int16_t hit_phi_16(const float x, const float y)
 {
   // We have to convert the range {-PI, +PI} into {-2^15, (2^15 - 1)}
-  // Simpler: Convert {0, 2 PI} into {0, 2^16},
-  //          then reinterpret cast into int16_t
-// #if defined(TARGET_DEVICE_CPU)
-// #else
-//   const auto atan2_value = atan2f(y, x);
-// #endif
+  // Convert {0, 2 PI} into {0, 2^16}, then reinterpret cast into int16_t.
   const auto atan2_value = fast_atan2f(y, x);
   const float float_value = (Velo::Tools::cudart_pi_f_float + atan2_value) * Velo::Tools::convert_factor;
   const uint16_t uint16_value = static_cast<uint16_t>(float_value);

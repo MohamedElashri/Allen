@@ -113,6 +113,7 @@ namespace Allen {
 #endif
       if constexpr (configured_target == std::tuple_size<targets_t>::value) {
 #endif
+        // Dispatch to the default target, check with a static_assert its existence
         constexpr auto default_target = index_of_v<target::Default, targets_t>;
         static_assert(default_target != std::tuple_size<targets_t>::value, "target available for current platform");
         const auto fn = std::get<default_target>(std::tuple<Fns...> {fns...});
@@ -120,6 +121,7 @@ namespace Allen {
 #if !defined(ALWAYS_DISPATCH_TO_DEFAULT)
       }
       else {
+        // Dispatch to the specific target
         const auto fn = std::get<configured_target>(std::tuple<Fns...> {fns...});
         return [fn](auto&&... args) { return fn(args...); };
       }
