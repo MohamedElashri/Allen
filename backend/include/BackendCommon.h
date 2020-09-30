@@ -160,7 +160,7 @@ struct ForwardType {
 
 template<typename T, typename U>
 struct ForwardType<const T, U> {
-  using t = const U;
+  using t = std::add_const_t<U>;
 };
 
 std::tuple<bool, int> get_device_id(std::string pci_bus_id);
