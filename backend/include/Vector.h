@@ -9,6 +9,19 @@
 #elif defined(__CUDACC__)
 #pragma push
 #pragma diag_suppress = 3141
+#elif __GNUC__ >= 8
+
+// Note: UMESIMD is not maintained since 2017 and therefore AVX512F is not supported
+//       on GCC-8 onwards. The current only way to express "do not include
+//       AVX512F-related UMESIMD include files" is by undefining __AVX512F__.
+#if defined(__AVX512F__)
+#undef __AVX512F__
+#endif
+
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#if __GNUC__ >= 9
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
 #endif
 
 #include "umesimd/UMESimd.h"
@@ -17,6 +30,8 @@
 #pragma clang diagnostic pop
 #elif defined(__CUDACC__)
 #pragma pop
+#elif __GNUC__ >= 8
+#pragma GCC diagnostic pop
 #endif
 
 namespace Allen {
@@ -78,7 +93,7 @@ namespace Allen {
 
 #if defined(TARGET_DEVICE_CPU)
 
-#if defined(__AVX512F__) || defined(__AVX512__)
+#if defined(__AVX512F__)
     template<>
     struct Vector_t<float, vector_backend::b512> {
       using t = UME::SIMD::SIMDVec_f<float, 16>;
