@@ -131,19 +131,21 @@ namespace Allen {
 } // namespace Allen
 #endif
 
-// Replacement for gsl::span in CUDA code
-namespace cuda {
-  template<class T>
-  struct span {
-    T* __ptr;
-    size_t __size;
+// Replacement for gsl::span in device code
+namespace Allen {
+  namespace device {
+    template<class T>
+    struct span {
+      T* __ptr;
+      size_t __size;
 
-    __device__ __host__ T* data() const { return __ptr; }
-    __device__ __host__ size_t size() const { return __size; }
-    __device__ __host__ T& operator[](int i) { return __ptr[i]; }
-    __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
-  };
-} // namespace cuda
+      __device__ __host__ T* data() const { return __ptr; }
+      __device__ __host__ size_t size() const { return __size; }
+      __device__ __host__ T& operator[](int i) { return __ptr[i]; }
+      __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
+    };
+  } // namespace device
+} // namespace Allen
 
 /**
  * @brief Macro to avoid warnings on Release builds with variables used by asserts.

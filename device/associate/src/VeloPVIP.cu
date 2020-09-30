@@ -81,7 +81,7 @@ namespace Distance {
 
 __device__ void associate(
   Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-  cuda::span<const PV::Vertex> const& vertices,
+  Allen::device::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table)
 {
   for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
@@ -117,7 +117,7 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
     parameters.dev_velo_kalman_beamline_states + sizeof(float) * event_tracks_offset,
     velo_tracks.total_number_of_tracks()};
 
-  cuda::span<const PV::Vertex> vertices {
+  Allen::device::span<const PV::Vertex> vertices {
     parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
     *(parameters.dev_number_of_multi_fit_vertices + event_number)};
 

@@ -65,7 +65,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
 
   // Primary vertices.
   const unsigned n_pvs_event = *(parameters.dev_number_of_multi_fit_vertices + event_number);
-  cuda::span<PV::Vertex const> vertices {
+  Allen::device::span<PV::Vertex const> vertices {
     parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
 
   // Secondary vertices.
