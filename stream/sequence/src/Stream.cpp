@@ -174,7 +174,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
           if (
             (host_buffers->host_number_of_selected_events[0] & test_mask) ==
             (host_buffers->host_total_number_of_velo_clusters[0] & test_mask))
-            throw MemoryException("just a test");
+            throw MemoryException("Test : Injected fake memory exception to test failure handling");
         }
 
         // Synchronize CUDA device
