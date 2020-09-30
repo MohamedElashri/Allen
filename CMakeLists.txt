@@ -346,7 +346,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   # Find HIP
   set(HCC_PATH "${HIP_PATH}/../hcc")
-  set(CMAKE_MODULE_PATH "/opt/rocm/hip/cmake" ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP QUIET REQUIRED)
   if(HIP_FOUND)
     message(STATUS "Found HIP: " ${HIP_VERSION})
