@@ -173,8 +173,8 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
           contents[vector_length() + vector_element] = velo_cluster_container.y(hit_index);
         }
 
-        const Vector<float> xs (contents.data());
-        const Vector<float> ys (contents.data() + vector_length());
+        const Vector<float> xs(contents.data());
+        const Vector<float> ys(contents.data() + vector_length());
 
         const auto atan_value = fast_atan2f(ys, xs);
         const auto float_value = (Velo::Tools::cudart_pi_f_float + atan_value) * Velo::Tools::convert_factor;

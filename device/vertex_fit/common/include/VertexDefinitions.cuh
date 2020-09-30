@@ -81,12 +81,12 @@ namespace VertexFit {
     bool is_dimuon;
 
     __device__ __host__ float pt() const { return sqrtf(px * px + py * py); }
-    __device__ __host__ float m(float m1, float m2) const {
+    __device__ __host__ float m(float m1, float m2) const
+    {
       const float E1 = sqrtf(p1 * p1 + m1 * m1);
       const float E2 = sqrtf(p2 * p2 + m2 * m2);
       return sqrtf(m1 * m1 + m2 * m2 + 2 * E1 * E2 - 2 * p1 * p2 * cos);
     }
-
   };
 
 } // namespace VertexFit

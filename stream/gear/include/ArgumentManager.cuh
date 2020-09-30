@@ -24,9 +24,8 @@ struct ArgumentManager {
 
   ArgumentManager() = default;
 
-  void set_base_pointers(
-    char* param_device_base_pointer,
-    char* param_host_base_pointer) {
+  void set_base_pointers(char* param_device_base_pointer, char* param_host_base_pointer)
+  {
     device_base_pointer = param_device_base_pointer;
     host_base_pointer = param_host_base_pointer;
   }
@@ -51,15 +50,13 @@ struct ArgumentManager {
   }
 
   template<typename T>
-  typename std::enable_if<std::is_base_of<device_datatype, T>::value>::type
-  set_offset(const unsigned offset)
+  typename std::enable_if<std::is_base_of<device_datatype, T>::value>::type set_offset(const unsigned offset)
   {
     tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(device_base_pointer + offset);
   }
 
   template<typename T>
-  typename std::enable_if<std::is_base_of<host_datatype, T>::value>::type
-  set_offset(const unsigned offset)
+  typename std::enable_if<std::is_base_of<host_datatype, T>::value>::type set_offset(const unsigned offset)
   {
     tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(host_base_pointer + offset);
   }
@@ -127,7 +124,10 @@ struct WrappedTuple<std::tuple<>, void> {
 };
 
 template<typename T, typename... R>
-struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value>::type> {
+struct WrappedTuple<
+  std::tuple<T, R...>,
+  typename std::enable_if<
+    std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value>::type> {
   using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
   using t = typename TupleAppendFirst<T&, previous_t>::t;
   using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
@@ -135,7 +135,10 @@ struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of
 };
 
 template<typename T, typename... R>
-struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<!std::is_base_of<device_datatype, T>::value && !std::is_base_of<host_datatype, T>::value>::type> {
+struct WrappedTuple<
+  std::tuple<T, R...>,
+  typename std::enable_if<
+    !std::is_base_of<device_datatype, T>::value && !std::is_base_of<host_datatype, T>::value>::type> {
   using t = typename WrappedTuple<std::tuple<R...>>::t;
   using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
   using parameter_tuple_t = typename TupleAppendFirst<T, previous_parameter_tuple_t>::t;
@@ -143,41 +146,46 @@ struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<!std::is_base_o
 
 template<typename T>
 struct ParameterTuple {
-  using t = typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t;
+  using t = typename WrappedTuple<decltype(
+    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t;
 };
 
 template<typename T>
-using ArgumentReferences = ArgumentRefManager<typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t,
-typename WrappedTuple<decltype(boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::parameter_tuple_t,
-T>;
+using ArgumentReferences = ArgumentRefManager<
+  typename WrappedTuple<decltype(
+    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t,
+  typename WrappedTuple<decltype(
+    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::parameter_tuple_t,
+  T>;
 
 // Helpers
 template<typename Arg, typename Args>
-void set_size(Args arguments, const size_t size) {
+void set_size(Args arguments, const size_t size)
+{
   arguments.template set_size<Arg>(size);
 }
 
 template<typename Arg, typename Args>
-size_t size(const Args& arguments) {
+size_t size(const Args& arguments)
+{
   return arguments.template size<Arg>();
 }
 
 template<typename Arg, typename Args>
-auto data(const Args& arguments) {
-  return Arg{arguments.template data<Arg>()};
+auto data(const Args& arguments)
+{
+  return Arg {arguments.template data<Arg>()};
 }
 
 template<typename Arg, typename Args>
-auto first(const Args& arguments) {
+auto first(const Args& arguments)
+{
   return arguments.template first<Arg>();
 }
 
 template<typename Arg, typename Args, typename T>
-void safe_assign_to_host_buffer(
-  T* array,
-  unsigned& size,
-  const Args& arguments,
-  cudaStream_t cuda_stream) {
+void safe_assign_to_host_buffer(T* array, unsigned& size, const Args& arguments, cudaStream_t cuda_stream)
+{
   if (arguments.template size<Arg>() > size) {
     size = arguments.template size<Arg>() * 1.2f;
     cudaCheck(cudaFreeHost(array));
@@ -185,13 +193,8 @@ void safe_assign_to_host_buffer(
   }
 
   cudaCheck(cudaMemcpyAsync(
-    array,
-    arguments.template data<Arg>(),
-    arguments.template size<Arg>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+    array, arguments.template data<Arg>(), arguments.template size<Arg>(), cudaMemcpyDeviceToHost, cuda_stream));
 }
-
 
 // SFINAE for single argument functions, like initialization and print of host / device parameters
 template<typename Arg, typename Args, typename Enabled = void>
@@ -224,11 +227,7 @@ struct SingleArgumentOverloadResolution<
   typename std::enable_if<std::is_base_of<device_datatype, Arg>::value>::type> {
   constexpr static void initialize(const Args& arguments, const int value, cudaStream_t stream)
   {
-    cudaCheck(cudaMemsetAsync(
-      data<Arg>(arguments),
-      value,
-      size<Arg>(arguments),
-      stream));
+    cudaCheck(cudaMemsetAsync(data<Arg>(arguments), value, size<Arg>(arguments), stream));
   }
 
   constexpr static void print(const Args& arguments)
@@ -283,23 +282,14 @@ struct DoubleArgumentOverloadResolution<
   constexpr static void copy(const Args& arguments, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
-    cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments),
-      data<B>(arguments),
-      size<B>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    cudaCheck(
+      cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), size<B>(arguments), cudaMemcpyDeviceToHost, cuda_stream));
   }
 
   constexpr static void copy(const Args& arguments, const size_t count, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= count && size<B>(arguments) >= count);
-    cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments),
-      data<B>(arguments),
-      count,
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), count, cudaMemcpyDeviceToHost, cuda_stream));
   }
 };
 
@@ -316,23 +306,14 @@ struct DoubleArgumentOverloadResolution<
   constexpr static void copy(const Args& arguments, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
-    cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments),
-      data<B>(arguments),
-      size<B>(arguments),
-      cudaMemcpyHostToDevice,
-      cuda_stream));
+    cudaCheck(
+      cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), size<B>(arguments), cudaMemcpyHostToDevice, cuda_stream));
   }
 
   constexpr static void copy(const Args& arguments, const size_t count, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= count && size<B>(arguments) >= count);
-    cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments),
-      data<B>(arguments),
-      count,
-      cudaMemcpyHostToDevice,
-      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), count, cudaMemcpyHostToDevice, cuda_stream));
   }
 };
 
@@ -350,22 +331,13 @@ struct DoubleArgumentOverloadResolution<
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments),
-      data<B>(arguments),
-      size<B>(arguments),
-      cudaMemcpyDeviceToDevice,
-      cuda_stream));
+      data<A>(arguments), data<B>(arguments), size<B>(arguments), cudaMemcpyDeviceToDevice, cuda_stream));
   }
 
   constexpr static void copy(const Args& arguments, const size_t count, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= count && size<B>(arguments) >= count);
-    cudaCheck(cudaMemcpyAsync(
-      data<A>(arguments),
-      data<B>(arguments),
-      count,
-      cudaMemcpyDeviceToDevice,
-      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(data<A>(arguments), data<B>(arguments), count, cudaMemcpyDeviceToDevice, cuda_stream));
   }
 };
 
@@ -377,7 +349,8 @@ struct DoubleArgumentOverloadResolution<
  *          is performed after the initialization.
  */
 template<typename Arg, typename Args>
-void initialize(const Args& arguments, const int value, cudaStream_t stream = 0) {
+void initialize(const Args& arguments, const int value, cudaStream_t stream = 0)
+{
   SingleArgumentOverloadResolution<Arg, Args>::initialize(arguments, value, stream);
 }
 
@@ -389,7 +362,8 @@ void initialize(const Args& arguments, const int value, cudaStream_t stream = 0)
  *          considerable slowdown.
  */
 template<typename Arg, typename Args>
-void print(const Args& arguments) {
+void print(const Args& arguments)
+{
   SingleArgumentOverloadResolution<Arg, Args>::print(arguments);
 }
 
@@ -398,7 +372,8 @@ void print(const Args& arguments) {
  * @details A and B may be host or device arguments (the four options).
  */
 template<typename A, typename B, typename Args>
-void copy(const Args& arguments, cudaStream_t stream = 0) {
+void copy(const Args& arguments, cudaStream_t stream = 0)
+{
   DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, stream);
 }
 
@@ -407,7 +382,8 @@ void copy(const Args& arguments, cudaStream_t stream = 0) {
  * @details A and B may be host or device arguments (the four options).
  */
 template<typename A, typename B, typename Args>
-void copy(const Args& arguments, const size_t count, cudaStream_t stream = 0) {
+void copy(const Args& arguments, const size_t count, cudaStream_t stream = 0)
+{
   DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, count, stream);
 }
 

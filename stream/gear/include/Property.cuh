@@ -63,7 +63,7 @@ namespace Configuration {
 
   template<>
   std::string to_string<DeviceDimensions>(const DeviceDimensions& holder);
-  
+
   template<>
   std::string to_string<BankTypes>(const BankTypes& holder);
 } // namespace Configuration
@@ -94,10 +94,7 @@ namespace Allen {
       return true;
     }
 
-    std::string to_string() const override
-    {
-      return Configuration::to_string(m_cached_value.get());
-    }
+    std::string to_string() const override { return Configuration::to_string(m_cached_value.get()); }
 
     std::string print() const override
     {
@@ -116,5 +113,5 @@ namespace Allen {
     std::string m_name;
     std::string m_description;
   };
-  
+
 } // namespace Allen

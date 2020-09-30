@@ -81,8 +81,14 @@ namespace ParKalmanFilter {
     __device__ __host__ inline float& y10(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + Degy2 + idx]; }
     __device__ __host__ inline float& y01(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + Degy1 + Degy2 + idx]; }
     __device__ __host__ inline float& ty00(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 2 * Degy1 + Degy2 + idx]; }
-    __device__ __host__ inline float& ty10(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 2 * Degy1 + 2 * Degy2 + idx]; }
-    __device__ __host__ inline float& ty01(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 3 * Degy1 + 2 * Degy2 + idx]; }
+    __device__ __host__ inline float& ty10(int idx)
+    {
+      return coefs[4 * Degx1 + 2 * Degx2 + 2 * Degy1 + 2 * Degy2 + idx];
+    }
+    __device__ __host__ inline float& ty01(int idx)
+    {
+      return coefs[4 * Degx1 + 2 * Degx2 + 3 * Degy1 + 2 * Degy2 + idx];
+    }
   };
 
   // Operators for Kalman coefficients.

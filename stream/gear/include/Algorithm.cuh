@@ -50,7 +50,7 @@ namespace Allen {
         return prop->get_value();
       else
         warning_cout << "property " << T::name << " not found\n";
-      return T{};
+      return T {};
     }
 
     std::map<std::string, std::string> get_properties() const override

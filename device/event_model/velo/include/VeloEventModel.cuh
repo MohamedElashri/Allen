@@ -13,12 +13,17 @@ namespace Velo {
     unsigned hit_start;
     unsigned hit_num;
     // z of both modules in module pair
-    float z [2];
+    float z[2];
 
     __device__ ModulePair() {}
-    
-    __device__ ModulePair(const unsigned param_hit_start, const unsigned param_hit_num, const float param_z0, const float param_z1) :
-      hit_start(param_hit_start), hit_num(param_hit_num), z{param_z0, param_z1}
+
+    __device__ ModulePair(
+      const unsigned param_hit_start,
+      const unsigned param_hit_num,
+      const float param_z0,
+      const float param_z1) :
+      hit_start(param_hit_start),
+      hit_num(param_hit_num), z {param_z0, param_z1}
     {}
   };
 
