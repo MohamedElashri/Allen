@@ -28,48 +28,6 @@
 #if defined(DEVICE_COMPILER)
 namespace Allen {
   namespace device {
-    /**
-     * @brief Returns the current local ID.
-     * @details This refers in CUDA to threadIdx.x, y, z.
-     *          In HIP, threadIdx.x, y, z.
-     *          In CPU backend, it is always 0.
-     */
-    template<unsigned long I>
-    __device__ unsigned local_id()
-    {
-      return local_t<I>::id();
-    }
-
-    /**
-     * @brief Returns the current local ID.
-     * @details This refers in CUDA to blockDim.x, y, z.
-     *          In HIP, blockDim.x, y, z.
-     *          In CPU backend, it is always 0.
-     */
-    template<unsigned long I>
-    __device__ unsigned local_size()
-    {
-      return local_t<I>::size();
-    }
-
-    /**
-     * @brief Returns current global ID.
-     */
-    template<unsigned long I>
-    __device__ unsigned global_id()
-    {
-      return global_t<I>::id();
-    }
-
-    /**
-     * @brief Returns current global size.
-     */
-    template<unsigned long I>
-    __device__ unsigned global_size()
-    {
-      return global_t<I>::size();
-    }
-
     // Dispatcher targets
     namespace target {
       struct Default {

@@ -6,8 +6,6 @@
 
 #ifdef TARGET_DEVICE_HIP
 
-#include "BackendCommonInterface.h"
-
 #if !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
 #include <hip/hip_runtime_api.h>
@@ -57,50 +55,6 @@
 #define cudaDeviceGetByPCIBusId hipDeviceGetByPCIBusId
 #define cudaDeviceSetCacheConfig hipDeviceSetCacheConfig
 #define cudaHostUnregister hipHostUnregister
-
-#if defined(DEVICE_COMPILER)
-namespace Allen {
-  namespace device {
-    template<>
-    struct local_t<0> {
-      __device__ static unsigned id() { return threadIdx.x; }
-      __device__ static unsigned size() { return blockDim.x; }
-    };
-
-    template<>
-    struct local_t<1> {
-      __device__ static unsigned id() { return threadIdx.y; }
-      __device__ static unsigned size() { return blockDim.y; }
-    };
-
-    template<>
-    struct local_t<2> {
-      __device__ static unsigned id() { return threadIdx.z; }
-      __device__ static unsigned size() { return blockDim.z; }
-    };
-
-    template<>
-    struct global_t<0> {
-      __device__ static unsigned id() { return blockIdx.x; }
-      __device__ static unsigned size() { return gridDim.x; }
-    };
-
-    template<>
-    struct global_t<1> {
-      __device__ static unsigned id() { return blockIdx.y; }
-      __device__ static unsigned size() { return gridDim.y; }
-    };
-
-    template<>
-    struct global_t<2> {
-      __device__ static unsigned id() { return blockIdx.z; }
-      __device__ static unsigned size() { return gridDim.z; }
-    };
-
-    __device__ static void barrier() { __syncthreads(); }
-  } // namespace device
-} // namespace Allen
-#endif
 
 #define cudaCheck(stmt)                                                                                           \
   {                                                                                                               \
