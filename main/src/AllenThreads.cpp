@@ -148,6 +148,7 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
   int timeout = -1;
+  uint current_run_number = 0;
   while (true) {
 
     // Check if there are messages without blocking
@@ -165,9 +166,15 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
 
     // Get a slice and inform the main thread that it is available
     // NOTE: the argument specifies the timeout in ms, not the number of events.
-    auto [good, done, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
+    auto [good, done, timed_out, slice_index, n_filled, run_number] = input_provider->get_slice(1000);
     // Report errors or good slices that contain events
     if (!timed_out && good && n_filled != 0) {
+      // If run number has change then report this first
+      if (run_number != current_run_number) {
+        current_run_number = run_number;
+        zmqSvc->send(control, "RUN", send_flags::sndmore);
+        zmqSvc->send(control, current_run_number);
+      }
       zmqSvc->send(control, "SLICE", send_flags::sndmore);
       zmqSvc->send(control, slice_index, send_flags::sndmore);
       zmqSvc->send(control, n_filled);
@@ -206,6 +213,7 @@ void run_stream(
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
+  uint inject_mem_fail,
   std::string folder_name_imported_forward_tracks)
 {
 
@@ -257,7 +265,8 @@ void run_stream(
          n_reps,
          do_check,
          cpu_offload,
-         mep_layout});
+         mep_layout,
+         inject_mem_fail});
 
       if (status == cudaErrorMemoryAllocation) {
         zmqSvc->send(control, "SPLIT", send_flags::sndmore);

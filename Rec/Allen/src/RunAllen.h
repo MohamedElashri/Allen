@@ -39,6 +39,7 @@
 #include "StreamWrapper.cuh"
 #include "Logger.h"
 #include "TESProvider.h"
+#include "HltDecReport.cuh"
 
 class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers, LHCb::HltDecReports>(
                          const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,

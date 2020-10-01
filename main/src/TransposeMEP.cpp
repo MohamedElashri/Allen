@@ -77,8 +77,11 @@ size_t MEP::allen_offsets(
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  EB::Header const& mep_header,
   MEP::Blocks const& blocks,
-  std::tuple<size_t, size_t> const& interval)
+  MEP::SourceOffsets const& input_offsets,
+  std::tuple<size_t, size_t> const& interval,
+  bool split_by_run)
 {
 
   auto [event_start, event_end] = interval;
@@ -88,8 +91,25 @@ size_t MEP::allen_offsets(
     auto const& [block_header, block_data] = blocks[i_block];
     auto lhcb_type = block_header.types[0];
     auto allen_type = bank_ids[lhcb_type];
+    auto& source_offsets = input_offsets[i_block];
+    uint run_number = 0;
     if (allen_type != -1) {
       for (size_t i = event_start; i < event_end; ++i) {
+        // First check for run changes in ODIN banks
+        if (split_by_run && lhcb_type == LHCb::RawBank::ODIN) {
+          // decode ODIN banks to check for run changes
+          auto odin_version = mep_header.versions[i_block];
+          auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + source_offsets[i]);
+          auto odin = MDF::decode_odin(odin_version, odin_data);
+          // if splitting by run, check all events have same run number
+          if (i == event_start) {
+            run_number = odin.runNumber();
+          }
+          else if (odin.runNumber() != run_number) {
+            event_end = i;
+            break;
+          }
+        }
         // Anticipate offset structure already here, i.e. don't assign to the first one
         auto idx = i - event_start + 1;
         auto& event_offsets = std::get<2>(slices[allen_type][slice_index]);
@@ -143,13 +163,15 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
   EventIDs& event_ids,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
-  std::tuple<size_t, size_t> const& interval)
+  std::tuple<size_t, size_t> const& interval,
+  bool split_by_run)
 {
 
   auto [event_start, event_end] = interval;
 
   unsigned char prev_type = 0;
   size_t offset_index = 0;
+  uint run_number = 0;
   for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
     auto const& [block_header, block_data] = blocks[i_block];
     auto lhcb_type = block_header.types[0];
@@ -165,6 +187,14 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
         if (i_event >= event_start) {
           auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + fragment_offset);
           auto odin = MDF::decode_odin(odin_version, odin_data);
+          // if splitting by run, check all events have same run number
+          if (i_event == event_start) {
+            run_number = odin.runNumber();
+          }
+          else if (split_by_run && odin.runNumber() != run_number) {
+            event_end = i_event;
+            break;
+          }
           event_ids.emplace_back(odin.runNumber(), odin.eventNumber());
         }
         fragment_offset += block_header.sizes[i_event];
@@ -319,13 +349,15 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
   MEP::SourceOffsets const& source_offsets,
-  std::tuple<size_t, size_t> const& interval)
+  std::tuple<size_t, size_t> const& interval,
+  bool split_by_run)
 {
   auto [event_start, event_end] = interval;
 
   bool success = true;
 
-  auto to_transpose = allen_offsets(slices, slice_index, bank_ids, banks_count, blocks, interval);
+  auto to_transpose = allen_offsets(
+    slices, slice_index, bank_ids, banks_count, mep_header, blocks, source_offsets, interval, split_by_run);
 
   transpose_event(
     slices,

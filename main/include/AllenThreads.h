@@ -35,6 +35,7 @@ void run_stream(
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
+  uint inject_mem_fail,
   std::string folder_name_imported_forward_tracks);
 
 void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor);

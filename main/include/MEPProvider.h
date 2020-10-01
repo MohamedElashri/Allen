@@ -69,6 +69,8 @@ struct MEPProviderConfig {
 
   bool transpose_mep = false;
 
+  bool split_by_run = false;
+
   size_t n_receivers() const { return receivers.size(); }
 
   // Mapping of receiver card to MPI rank to receive from
@@ -255,11 +257,12 @@ public:
    *
    * @return     (good slice, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
     boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
+    uint run_no = 0;
     std::unique_lock<std::mutex> lock {m_transpose_mut};
 
     if (!m_read_error) {
@@ -282,6 +285,9 @@ public:
       if (!m_read_error && !m_transposed.empty() && (!timeout || (timeout && !timed_out))) {
         std::tie(slice_index, n_filled) = m_transposed.front();
         m_transposed.pop_front();
+        if (n_filled > 0) {
+          run_no = std::get<0>(m_event_ids[slice_index].front());
+        }
       }
     }
 
@@ -300,7 +306,7 @@ public:
         std::to_string(done) + " n_filled " + std::to_string(n_filled));
     }
 
-    return {!m_read_error, done, timed_out, slice_index, m_read_error ? 0 : n_filled};
+    return {!m_read_error, done, timed_out, slice_index, m_read_error ? 0 : n_filled, run_no};
   }
 
   /**
@@ -521,11 +527,7 @@ private:
   // Packing factor can be done dynamically if needed
   size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
   for (size_t i = 0; i < m_config.n_buffers; ++i) {
-    auto i_rec = i % m_config.n_receivers();
-    auto const& numa_obj = numa_objs[i_rec];
     char* contents = nullptr;
-
-    info_cout << "Allocating buffer " << i << " in NUMA domain " << numa_obj->os_index << "\n";
     MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
 
     // Only bind explicitly if there are multiple receivers,

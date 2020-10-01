@@ -183,7 +183,7 @@ public:
    *
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
     boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     bool timed_out = false;
@@ -208,7 +208,7 @@ public:
       }
     }
 
-    return {!m_read_error, m_done, timed_out, slice_index, n_filled};
+    return {!m_read_error, m_done, timed_out, slice_index, n_filled, 0u};
   }
 
   /**

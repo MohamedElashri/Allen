@@ -164,6 +164,19 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
             cuda_stream,
             cuda_generic_event);
 
+        // deterministic injection of ~random memory failures
+        if (runtime_options.inject_mem_fail > 0) {
+          // compare the least significant N bits of two ~unrelated buffers
+          // test should fire one time in 2^N slices on average
+          // limit ourselves to a maximum of 15-bit comparison (1/2 - ~1/32k of slices)
+          uint test_mask = (1 << 15) - 1;
+          if (runtime_options.inject_mem_fail < 15) test_mask = (1 << runtime_options.inject_mem_fail) - 1;
+          if (
+            (host_buffers->host_number_of_selected_events[0] & test_mask) ==
+            (host_buffers->host_total_number_of_velo_clusters[0] & test_mask))
+            throw MemoryException("Test : Injected fake memory exception to test failure handling");
+        }
+
         // Synchronize CUDA device
         cudaEventRecord(cuda_generic_event, cuda_stream);
         cudaEventSynchronize(cuda_generic_event);

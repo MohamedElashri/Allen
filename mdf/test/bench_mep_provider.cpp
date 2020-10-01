@@ -43,6 +43,7 @@ int main(int argc, char* argv[])
                             false,         // Receive from MPI or read files
                             false,         // Run the application non-stop
                             true,          // Transpose MEP
+                            false,         // Split by run number
                             {{"mem", 0}}}; // mapping of receiver to its numa node
 
   MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep {
@@ -52,8 +53,9 @@ int main(int argc, char* argv[])
 
   bool good = true, done = false, timed_out = false;
   size_t filled = 0, slice = 0;
+  uint runno = 0;
   while (good || filled != 0) {
-    std::tie(good, done, timed_out, slice, filled) = mep.get_slice();
+    std::tie(good, done, timed_out, slice, filled, runno) = mep.get_slice();
     n_filled += filled;
     this_thread::sleep_for(sleep_interval);
     mep.slice_free(slice);

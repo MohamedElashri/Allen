@@ -46,8 +46,9 @@ int main(int argc, char* argv[])
 
   bool good = true, timed_out = false, done = false;
   size_t filled = 0, slice = 0;
+  uint runno = 0;
   while (good && !done) {
-    std::tie(good, done, timed_out, slice, filled) = mdf.get_slice();
+    std::tie(good, done, timed_out, slice, filled, runno) = mdf.get_slice();
     n_filled += filled;
     this_thread::sleep_for(sleep_interval);
     mdf.slice_free(slice);
