@@ -20,7 +20,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
+  HostBuffers& host_buffers,
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
@@ -43,6 +43,32 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
       constants.dev_velo_sp_patterns.data(),
       constants.dev_velo_sp_fx.data(),
       constants.dev_velo_sp_fy.data());
+  }
+
+  if (runtime_options.do_check) {
+
+    auto to_host = [stream](auto& hv, auto const* d, auto const s) {
+      if (hv.size() < s) hv.resize(s);
+      cudaCheck(cudaMemcpyAsync(
+        &hv[0], d, s * sizeof(std::remove_pointer_t<decltype(d)>),
+        cudaMemcpyDeviceToHost,
+        stream));
+    };
+
+    // Event offsets to clusters
+    to_host(host_buffers.velo_clusters_offsets,
+            arguments.data<dev_offsets_estimated_input_size_t>(),
+            first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs + 1);
+
+    // Number of clusters per module
+    to_host(host_buffers.velo_module_clusters_num,
+            arguments.data<dev_module_cluster_num_t>(),
+            first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
+
+    // Clusters
+    to_host(host_buffers.velo_clusters,
+            arguments.data<dev_velo_cluster_container_t>(),
+            first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
   }
 }
 

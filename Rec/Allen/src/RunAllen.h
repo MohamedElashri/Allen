@@ -75,6 +75,7 @@ private:
   // If set to false, events are only filtered by the GEC
   // If set to true, events are filtered based on an OR of the Allen selection lines
   Gaudi::Property<bool> m_filter_hlt1 {this, "FilterHLT1", false};
+  Gaudi::Property<bool> m_filterGEC {this, "FilterGEC", false};
 
   // Counters for HLT1 selection rates
   mutable std::vector<Gaudi::Accumulators::BinomialCounter<>> m_hlt1_line_rates {};
