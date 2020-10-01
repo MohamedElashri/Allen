@@ -16,6 +16,7 @@
 //       AVX512F-related UMESIMD include files" is by undefining __AVX512F__.
 #if defined(__AVX512F__)
 #undef __AVX512F__
+#define ADD_BACK_AVX512F
 #endif
 
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
@@ -363,3 +364,8 @@ __device__ inline UME::SIMD::SIMDVec_f<T, I> copysignf(
 }
 
 __device__ inline float signselect(const float& s, const float& a, const float& b) { return (s > 0) ? a : b; }
+
+// Note: See AVX512 compatibility issues of UMESIMD above
+#if defined(ADD_BACK_AVX512F)
+#define __AVX512F__
+#endif
