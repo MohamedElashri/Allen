@@ -31,8 +31,10 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
 }
 
 namespace Distance {
-  __device__ float
-  velo_ip(Velo::Consolidated::ConstKalmanStates& velo_kalman_states, const unsigned state_index, const PV::Vertex& vertex)
+  __device__ float velo_ip(
+    Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
+    const unsigned state_index,
+    const PV::Vertex& vertex)
   {
     float tx = velo_kalman_states.tx(state_index);
     float ty = velo_kalman_states.ty(state_index);
@@ -113,13 +115,13 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
   velo_pv_ip.cutoff() = Associate::VeloPVIP::baseline;
 
   // Consolidated Velo fitted states for this event
-  Velo::Consolidated::ConstKalmanStates velo_kalman_states {
-    parameters.dev_velo_kalman_beamline_states + sizeof(float) * event_tracks_offset,
-    velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstKalmanStates velo_kalman_states {parameters.dev_velo_kalman_beamline_states +
+                                                              sizeof(float) * event_tracks_offset,
+                                                            velo_tracks.total_number_of_tracks()};
 
-  Allen::device::span<const PV::Vertex> vertices {
-    parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-    *(parameters.dev_number_of_multi_fit_vertices + event_number)};
+  Allen::device::span<const PV::Vertex> vertices {parameters.dev_multi_fit_vertices +
+                                                    event_number * PV::max_number_vertices,
+                                                  *(parameters.dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event
   auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
