@@ -144,8 +144,7 @@ namespace SciFi {
   public:
     static constexpr unsigned number_of_arrays = 5;
 
-    __host__ __device__
-    Hits_t(T* base_pointer, const unsigned total_number_of_hits, const unsigned offset = 0) :
+    __host__ __device__ Hits_t(T* base_pointer, const unsigned total_number_of_hits, const unsigned offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + offset),
       m_total_number_of_hits(total_number_of_hits)
     {}
@@ -190,36 +189,49 @@ namespace SciFi {
     __host__ __device__ unsigned channel(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+        m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned& channel(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+        m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned assembled_datatype(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+        m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned& assembled_datatype(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+        m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned id(const unsigned index) const { return (10u << 28) + channel(index); };
 
     __host__ __device__ unsigned mat(const unsigned index) const { return assembled_datatype(index) & 0x7ff; };
 
-    __host__ __device__ unsigned pseudoSize(const unsigned index) const { return (assembled_datatype(index) >> 11) & 0xf; };
+    __host__ __device__ unsigned pseudoSize(const unsigned index) const
+    {
+      return (assembled_datatype(index) >> 11) & 0xf;
+    };
 
-    __host__ __device__ unsigned planeCode(const unsigned index) const { return (assembled_datatype(index) >> 15) & 0x1f; };
+    __host__ __device__ unsigned planeCode(const unsigned index) const
+    {
+      return (assembled_datatype(index) >> 15) & 0x1f;
+    };
 
-    __host__ __device__ unsigned fraction(const unsigned index) const { return (assembled_datatype(index) >> 20) & 0x1; };
+    __host__ __device__ unsigned fraction(const unsigned index) const
+    {
+      return (assembled_datatype(index) >> 20) & 0x1;
+    };
 
     __host__ __device__ Hit get(const unsigned hit_number) const
     {
