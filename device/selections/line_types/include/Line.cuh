@@ -81,9 +81,7 @@ struct Line {
       return size<typename Parameters::dev_event_list_t>(arguments);
     }
     // else if (std::is_same<typename Derived::iteration_t, LineIteration::event_iteration_tag>::value) {
-    else {
-      return 1;
-    }
+    return 1;
   }
 
   /**
@@ -193,7 +191,7 @@ void Line<Derived, Parameters>::operator()(
     data<typename Parameters::dev_post_scaler_t>(arguments),
     derived_instance->template property_address<typename Parameters::post_scaler_t>(),
     sizeof(float),
-    cudaMemcpyDeviceToHost,
+    cudaMemcpyHostToDevice,
     stream);
 
   // // Dispatch the executing global function.
