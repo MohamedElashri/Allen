@@ -613,12 +613,7 @@ set(EXTERNAL_DIR "external")
 
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
-# Note: For some reason, backend is picked up in advance when
-# building with the Gaudi framework
-if (STANDALONE)
-  add_subdirectory(backend)
-endif()
-
+add_subdirectory(backend)
 add_subdirectory(device)
 add_subdirectory(stream)
 add_subdirectory(checker)
