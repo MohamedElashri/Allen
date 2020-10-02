@@ -99,7 +99,7 @@ least_means_square_fit(Velo::Consolidated::ConstHits& consolidated_hits, const u
 }
 
 /**
- * @brief Calculates the parameters according to a root means square fit
+ * @brief Calculates the parameters according to a linear fit between the first and last velo hit
  */
 __device__ MiniState
 linear_fit(Velo::Consolidated::ConstHits& consolidated_hits, const unsigned number_of_hits, float* dev_beamline)
