@@ -1,6 +1,8 @@
 #pragma once
 
+#include <string>
 #include <ArgumentOps.cuh>
+#include <DeterministicScaler.cuh>
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \
@@ -49,7 +51,28 @@ namespace LineIteration {
  */
 template<typename Derived, typename Parameters>
 struct Line {
+private:
+  uint32_t m_pre_scaler_hash;
+  uint32_t m_post_scaler_hash;
+
+public:
   using iteration_t = LineIteration::default_iteration_tag;
+
+  void init()
+  {
+    auto derived_instance = static_cast<const Derived*>(this);
+    const std::string pre_scaler_hash_string =
+      derived_instance->template property<typename Parameters::pre_scaler_hash_string_t>();
+    const std::string post_scaler_hash_string =
+      derived_instance->template property<typename Parameters::post_scaler_hash_string_t>();
+
+    if (pre_scaler_hash_string.empty() || post_scaler_hash_string.empty()) {
+      throw HashNotPopulatedException(derived_instance->name());
+    }
+
+    m_pre_scaler_hash = mixString(pre_scaler_hash_string.size(), pre_scaler_hash_string);
+    m_post_scaler_hash = mixString(post_scaler_hash_string.size(), post_scaler_hash_string);
+  }
 
   void set_arguments_size(
     ArgumentReferences<Parameters> arguments,
@@ -61,7 +84,8 @@ struct Line {
     set_size<typename Parameters::dev_decisions_t>(arguments, derived_instance->get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
-    set_size<typename Parameters::dev_post_scaler_t>(arguments, 1);
+    set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
+    set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
   }
 
   void operator()(
@@ -187,26 +211,14 @@ void Line<Derived, Parameters>::operator()(
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, stream);
 
   const auto* derived_instance = static_cast<const Derived*>(this);
-  cudaMemcpyAsync(
-    data<typename Parameters::dev_post_scaler_t>(arguments),
-    derived_instance->template property_address<typename Parameters::post_scaler_t>(),
-    sizeof(float),
-    cudaMemcpyHostToDevice,
-    stream);
 
-  // // Dispatch the executing global function.
-  // // Note: Simplified code prepared for "if constexpr" with C++17
-  // if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::default_iteration_tag>) {
-  //   derived_instance->global_function(process_line<Derived, Parameters>)(
-  //     get_grid_dim_x(arguments), derived_instance->get_block_dim_x(arguments), stream)(
-  //     *derived_instance, arguments);
-  // } else {
-  //   //  if (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>)
-  //   derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-  //     get_grid_dim_x(arguments), derived_instance->get_block_dim_x(arguments), stream)(
-  //     *derived_instance, arguments);
-  // }
+  // Copy post scaler and hash to an output, such that GatherSelections can later
+  // perform the postscaling
+  data<typename Parameters::host_post_scaler_t>(arguments)[0] =
+    derived_instance->template property<typename Parameters::post_scaler_t>();
+  data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
 
+  // Dispatch the executing global function.
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
     arguments, stream, derived_instance, get_grid_dim_x(arguments));
 }

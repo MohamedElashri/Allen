@@ -26,7 +26,7 @@ struct TupleTraits {
   {}
 
   template<typename AssignType, typename Stream>
-  static void populate_post_scale_factors(const Arguments&, Stream&)
+  static void populate_scalars(const Arguments&, Stream&)
   {}
 };
 
@@ -65,9 +65,9 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   }
 
   template<typename AssignType, typename Stream>
-  static void populate_post_scale_factors(const Arguments& arguments, Stream& stream)
+  static void populate_scalars(const Arguments& arguments, Stream& stream)
   {
-    TupleTraits<Arguments, std::tuple<R...>>::template populate_post_scale_factors<AssignType>(arguments, stream);
+    TupleTraits<Arguments, std::tuple<R...>>::template populate_scalars<AssignType>(arguments, stream);
     copy<AssignType, T>(arguments, size<T>(arguments), stream, i - 1, 0);
   }
 };
@@ -80,6 +80,7 @@ __global__ void postscaler(
   const char* dev_odin_raw_input,
   const unsigned* dev_odin_raw_input_offsets,
   const float* scale_factors,
+  const uint32_t* scale_hashes,
   const unsigned number_of_lines)
 {
   const auto number_of_events = gridDim.x;
@@ -98,7 +99,7 @@ __global__ void postscaler(
   for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
     auto span = sels.get_span(i, event_number);
 
-    DeterministicPostscaler ps {i, scale_factors[i]};
+    DeterministicPostscaler ps {scale_hashes[i], scale_factors[i]};
     ps(span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
   }
 }
@@ -120,8 +121,14 @@ void gather_selections::gather_selections_t::set_arguments_size(
     arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
   set_size<dev_selections_t>(
     arguments, TupleTraits<ArgumentReferences<Parameters>, dev_input_selections_t::type>::get_size(arguments));
+  set_size<host_post_scale_factors_t>(
+    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_factors_t::type>::get_size(arguments));
+  set_size<host_post_scale_hashes_t>(
+    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_hashes_t::type>::get_size(arguments));
   set_size<dev_post_scale_factors_t>(
-    arguments, TupleTraits<ArgumentReferences<Parameters>, dev_input_post_scale_factors_t::type>::get_size(arguments));
+    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_factors_t::type>::get_size(arguments));
+  set_size<dev_post_scale_hashes_t>(
+    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_hashes_t::type>::get_size(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
@@ -158,9 +165,18 @@ void gather_selections::gather_selections_t::operator()(
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_offsets_t::type>::t>::
     template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, stream);
 
-  // Populate dev_post_scale_factors_t
-  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_post_scale_factors_t::type>::t>::
-    template populate_post_scale_factors<dev_post_scale_factors_t>(arguments, stream);
+  // Populate host_post_scale_factors_t
+  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<host_input_post_scale_factors_t::type>::t>::
+    template populate_scalars<host_post_scale_factors_t>(arguments, stream);
+
+  // Populate host_post_scale_hashes_t
+  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<host_input_post_scale_hashes_t::type>::t>::
+    template populate_scalars<host_post_scale_hashes_t>(arguments, stream);
+
+  // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
+  // and host_post_scale_hashes_t to dev_post_scale_hashes_t
+  copy<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, stream);
+  copy<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, stream);
 
   // Synchronize
   cudaEventRecord(event, stream);
@@ -200,6 +216,7 @@ void gather_selections::gather_selections_t::operator()(
     data<dev_odin_raw_input_t>(arguments),
     data<dev_odin_raw_input_offsets_t>(arguments),
     data<dev_post_scale_factors_t>(arguments),
+    data<dev_post_scale_hashes_t>(arguments),
     first<host_number_of_active_lines_t>(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {

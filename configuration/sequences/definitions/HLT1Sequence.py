@@ -13,7 +13,8 @@ def make_selection_gatherer(lines, initialize_lists, layout_provider,
         dev_input_selections_t=tuple(line.dev_decisions_t() for line in lines),
         dev_input_selections_offsets_t=tuple(
             line.dev_decisions_offsets_t() for line in lines),
-        dev_input_post_scale_factors_t=tuple(line.dev_post_scaler_t() for line in lines),
+        host_input_post_scale_factors_t=tuple(line.host_post_scaler_t() for line in lines),
+        host_input_post_scale_hashes_t=tuple(line.host_post_scaler_hash_t() for line in lines),
         dev_odin_raw_input_t=populate_odin_banks.dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=populate_odin_banks.dev_raw_offsets_t(),
         names_of_active_lines=",".join([line.name() for line in lines]),
@@ -150,7 +151,9 @@ def HLT1Sequence(layout_provider,
             dev_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
             dev_event_list_t=initialize_lists.dev_event_list_t(),
             dev_track_offsets_t=prefix_sum_forward_tracks.
-            dev_output_buffer_t())
+            dev_output_buffer_t(),
+            pre_scaler_hash_string="track_mva_line_pre",
+            post_scaler_hash_string="track_mva_line_post")
 
         two_track_mva_line = two_track_mva_line_t(
             name="two_track_mva_line",
@@ -160,7 +163,9 @@ def HLT1Sequence(layout_provider,
             dev_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
             dev_event_list_t=initialize_lists.dev_event_list_t(),
             dev_sv_offsets_t=prefix_sum_secondary_vertices.
-            dev_output_buffer_t())
+            dev_output_buffer_t(),
+            pre_scaler_hash_string="two_track_mva_line_pre",
+            post_scaler_hash_string="two_track_mva_line_post")
 
         no_beam_line = beam_crossing_line_t(
             name="no_beam_line",
@@ -169,7 +174,9 @@ def HLT1Sequence(layout_provider,
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
-            beam_crossing_type="0")
+            beam_crossing_type="0",
+            pre_scaler_hash_string="no_beam_line_pre",
+            post_scaler_hash_string="no_beam_line_post")
 
         beam_one_line = beam_crossing_line_t(
             name="beam_one_line",
@@ -178,7 +185,9 @@ def HLT1Sequence(layout_provider,
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
-            beam_crossing_type="1")
+            beam_crossing_type="1",
+            pre_scaler_hash_string="beam_one_line_pre",
+            post_scaler_hash_string="beam_one_line_post")
 
         beam_two_line = beam_crossing_line_t(
             name="beam_two_line",
@@ -187,7 +196,9 @@ def HLT1Sequence(layout_provider,
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
-            beam_crossing_type="2")
+            beam_crossing_type="2",
+            pre_scaler_hash_string="beam_two_line_pre",
+            post_scaler_hash_string="beam_two_line_post")
 
         both_beams_line = beam_crossing_line_t(
             name="both_beams_line",
@@ -196,7 +207,9 @@ def HLT1Sequence(layout_provider,
             dev_event_list_t=full_event_list.dev_event_list_t(),
             dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
             dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
-            beam_crossing_type="3")
+            beam_crossing_type="3",
+            pre_scaler_hash_string="both_beams_line_pre",
+            post_scaler_hash_string="both_beams_line_post")
 
         velo_micro_bias_line = velo_micro_bias_line_t(
             name="velo_micro_bias_line",
@@ -206,7 +219,9 @@ def HLT1Sequence(layout_provider,
             dev_offsets_velo_tracks_t=velo_copy_track_hit_number.
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
-            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t())
+            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
+            pre_scaler_hash_string="velo_micro_bias_line_pre",
+            post_scaler_hash_string="velo_micro_bias_line_post")
 
         lines = (track_mva_line, two_track_mva_line, no_beam_line,
                  beam_one_line, beam_two_line, both_beams_line,

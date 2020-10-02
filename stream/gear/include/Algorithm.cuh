@@ -53,18 +53,6 @@ namespace Allen {
       return prop->get_value();
     }
 
-    // Gets the address of property with type T
-    template<typename T>
-    const T* property_address() const
-    {
-      auto prop = dynamic_cast<Allen::Property<T> const*>(get_prop(T::name));
-      if (prop)
-        return prop->get_value_address();
-      else
-        error_cout << "property " << T::name << " not found\n";
-      return nullptr;
-    }
-
     std::map<std::string, std::string> get_properties() const override
     {
       std::map<std::string, std::string> properties;
