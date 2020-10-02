@@ -290,11 +290,9 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   message(STATUS "Device architecture set to ${DEVICE_ARCHITECTURE}")
 endif()
 
-#Setup project for the configured target
+# Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
-  allen_project()
-
-#This seems to be needed across compilers
+  # This seems to be needed across compilers
   add_definitions("-x c++")
 
   if(CPU_USE_REAL_HALF)
@@ -331,7 +329,9 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
-  endif()
+   endif()
+
+   allen_project()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # Setup HIPCC compiler
   if(NOT DEFINED HIP_PATH)
@@ -613,7 +613,12 @@ set(EXTERNAL_DIR "external")
 
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
-add_subdirectory(backend)
+# Note: For some reason, backend is picked up in advance when
+# building with the Gaudi framework
+if (STANDALONE)
+  add_subdirectory(backend)
+endif()
+
 add_subdirectory(device)
 add_subdirectory(stream)
 add_subdirectory(checker)

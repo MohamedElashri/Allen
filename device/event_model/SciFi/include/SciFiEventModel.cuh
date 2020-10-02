@@ -351,19 +351,6 @@ namespace SciFi {
     uint16_t hits[SciFi::Constants::max_track_size];
     uint8_t hitsNum = 0;
 
-    __host__ __device__ TrackHits operator=(const TrackHits& other)
-    {
-      quality = other.quality;
-      qop = other.qop;
-      ut_track_index = other.ut_track_index;
-      hitsNum = other.hitsNum;
-      for (int i = 0; i < SciFi::Constants::max_track_size; ++i) {
-        hits[i] = other.hits[i];
-      }
-
-      return *this;
-    }
-
     __host__ __device__ TrackHits() {};
 
     __host__ __device__ TrackHits(const TrackHits& other) :
