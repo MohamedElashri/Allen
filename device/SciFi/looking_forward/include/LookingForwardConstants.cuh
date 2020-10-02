@@ -59,7 +59,7 @@ namespace LookingForward {
   constexpr int num_atomics = 1;
 
   // z at the center of the magnet
-  constexpr float z_magnet = 5212.38f; // FIXME_GEOMETRY_HARDCODING
+  constexpr float z_magnet = 5212.38f;      // FIXME_GEOMETRY_HARDCODING
   constexpr float z_last_UT_plane = 2642.f; // FIXME_GEOMETRY_HARDCODING
 
   // z difference between reference plane and end of SciFi

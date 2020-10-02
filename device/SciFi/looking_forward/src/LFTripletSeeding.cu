@@ -51,18 +51,17 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   const unsigned event_number = blockIdx.x;
 
   // Velo consolidated types
-  Velo::Consolidated::ConstStates velo_states {
-    parameters.dev_velo_states, parameters.dev_atomics_velo[number_of_events]};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
+                                               parameters.dev_atomics_velo[number_of_events]};
   const unsigned velo_tracks_offset_event = parameters.dev_atomics_velo[event_number];
 
   // UT consolidated tracks
-  UT::Consolidated::ConstExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    event_number,
-    number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   event_number,
+                                                   number_of_events};
 
   const auto ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
   const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
