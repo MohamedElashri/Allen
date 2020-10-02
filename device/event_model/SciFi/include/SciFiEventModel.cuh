@@ -319,16 +319,8 @@ namespace SciFi {
     uint16_t hits[SciFi::Constants::max_track_candidate_size];
     uint8_t hitsNum = 0;
 
-    __host__ __device__ TrackCandidate() {};
-
-    __host__ __device__ TrackCandidate(const TrackCandidate& candidate) :
-      quality(candidate.quality), qop(candidate.qop), ut_track_index(candidate.ut_track_index),
-      hitsNum(candidate.hitsNum)
-    {
-      for (int i = 0; i < hitsNum; ++i) {
-        hits[i] = candidate.hits[i];
-      }
-    }
+    TrackCandidate() = default;
+    TrackCandidate(const TrackCandidate&) = default;
 
     __host__ __device__
     TrackCandidate(const uint16_t h0, const uint16_t h1, const uint16_t param_ut_track_index, const float param_qop) :
@@ -363,15 +355,8 @@ namespace SciFi {
     uint16_t hits[SciFi::Constants::max_track_size];
     uint8_t hitsNum = 0;
 
-    __host__ __device__ TrackHits() {};
-
-    __host__ __device__ TrackHits(const TrackHits& other) :
-      quality(other.quality), qop(other.qop), ut_track_index(other.ut_track_index), hitsNum(other.hitsNum)
-    {
-      for (int i = 0; i < hitsNum; ++i) {
-        hits[i] = other.hits[i];
-      }
-    }
+    TrackHits() = default;
+    TrackHits(const TrackHits&) = default;
 
     __host__ __device__ TrackHits(const TrackCandidate& candidate) :
       quality(candidate.quality), qop(candidate.qop), ut_track_index(candidate.ut_track_index),
@@ -466,12 +451,5 @@ namespace SciFi {
       }
       printf("\n");
     }
-  };
-
-  struct CombinedValue {
-    float chi2 = 10000.f;
-    uint16_t h0 = 0;
-    uint16_t h1 = 0;
-    uint16_t h2 = 0;
   };
 } // namespace SciFi
