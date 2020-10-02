@@ -23,12 +23,14 @@ namespace gather_selections {
      dev_input_selections),
     (DEVICE_INPUT_AGGREGATE(dev_input_selections_offsets_t, gather_selections::dev_input_selections_offsets_t::tuple_t),
      dev_input_selections_offsets),
+    (DEVICE_INPUT_AGGREGATE(dev_input_post_scale_factors_t, gather_selections::dev_input_post_scale_factors_t::tuple_t),
+     dev_input_post_scale_factors),
     (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
     (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
     (DEVICE_OUTPUT(dev_selections_t, bool), dev_selections),
     (DEVICE_OUTPUT(dev_selections_offsets_t, unsigned), dev_selections_offsets),
     (DEVICE_OUTPUT(dev_number_of_active_lines_t, unsigned), dev_number_of_active_lines),
-    (PROPERTY(scale_factor_t, "scale_factor", "scale factor of postscaler", float), scale_factor),
+    (DEVICE_OUTPUT(dev_post_scale_factors_t, float), dev_post_scale_factors),
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned), block_dim_x),
     (PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string), names_of_active_lines))
 
@@ -49,7 +51,6 @@ namespace gather_selections {
 
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<scale_factor_t> m_scale_factor {this, 1.0f};
     Property<names_of_active_lines_t> m_names_of_active_lines {this, ""};
   };
 } // namespace gather_selections

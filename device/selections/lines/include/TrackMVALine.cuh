@@ -16,6 +16,9 @@ namespace track_mva_line {
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
     (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (DEVICE_OUTPUT(dev_post_scaler_t, float), dev_post_scaler),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Selection pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Selection pre-scaling factor", float), post_scaler),
     (PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float), maxChi2Ndof),
     (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
     (PROPERTY(maxPt_t, "maxPt", "maxPt description", float), maxPt),
@@ -29,6 +32,8 @@ namespace track_mva_line {
     __device__ bool select(const Parameters& ps, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
 
   private:
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 2.5f};
     Property<minPt_t> m_minPt {this, 2000.0f / Gaudi::Units::GeV};
     Property<maxPt_t> m_maxPt {this, 26000.0f / Gaudi::Units::GeV};

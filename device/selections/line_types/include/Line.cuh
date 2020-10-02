@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ArgumentOps.cuh>
+
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \
   template void Line<LINE, PARAMETERS>::operator()( \
@@ -59,6 +61,7 @@ struct Line {
     set_size<typename Parameters::dev_decisions_t>(arguments, derived_instance->get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
+    set_size<typename Parameters::dev_post_scaler_t>(arguments, 1);
   }
 
   void operator()(
@@ -74,8 +77,7 @@ struct Line {
    */
   unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments) const
   {
-    // Note: Becomes if constexpr with C++17
-    if (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
+    if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
       return size<typename Parameters::dev_event_list_t>(arguments);
     }
     // else if (std::is_same<typename Derived::iteration_t, LineIteration::event_iteration_tag>::value) {
@@ -187,20 +189,25 @@ void Line<Derived, Parameters>::operator()(
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, stream);
 
   const auto* derived_instance = static_cast<const Derived*>(this);
+  cudaMemcpyAsync(
+    data<typename Parameters::dev_post_scaler_t>(arguments),
+    derived_instance->template property_address<typename Parameters::post_scaler_t>(),
+    sizeof(float),
+    cudaMemcpyDeviceToHost,
+    stream);
 
-  // Dispatch the executing global function.
-  // Note: Simplified code prepared for "if constexpr" with C++17
-  // if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
+  // // Dispatch the executing global function.
+  // // Note: Simplified code prepared for "if constexpr" with C++17
+  // if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::default_iteration_tag>) {
   //   derived_instance->global_function(process_line<Derived, Parameters>)(
   //     get_grid_dim_x(arguments), derived_instance->get_block_dim_x(arguments), stream)(
   //     *derived_instance, arguments);
-  // } else if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::event_iteration_tag>::value) {
+  // } else {
+  //   //  if (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>)
   //   derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
   //     get_grid_dim_x(arguments), derived_instance->get_block_dim_x(arguments), stream)(
   //     *derived_instance, arguments);
   // }
-
-  
 
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
     arguments, stream, derived_instance, get_grid_dim_x(arguments));

@@ -83,6 +83,8 @@ namespace Allen {
       algo->register_property(m_name, this);
     }
 
+    const V* get_value_address() const { return &m_cached_value; }
+
     V get_value() const { return m_cached_value; }
 
     virtual bool from_string(const std::string& value) override

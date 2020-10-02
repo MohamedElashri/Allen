@@ -13,6 +13,7 @@ def make_selection_gatherer(lines, initialize_lists, layout_provider,
         dev_input_selections_t=tuple(line.dev_decisions_t() for line in lines),
         dev_input_selections_offsets_t=tuple(
             line.dev_decisions_offsets_t() for line in lines),
+        dev_input_post_scale_factors_t=tuple(line.dev_post_scaler_t() for line in lines),
         dev_odin_raw_input_t=populate_odin_banks.dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=populate_odin_banks.dev_raw_offsets_t(),
         names_of_active_lines=",".join([line.name() for line in lines]),

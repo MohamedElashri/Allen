@@ -16,6 +16,9 @@ namespace two_track_mva_line {
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
     (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (DEVICE_OUTPUT(dev_post_scaler_t, float), dev_post_scaler),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Selection pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Selection pre-scaling factor", float), post_scaler),
     (PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float), minComboPt),
     (PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float), maxVertexChi2),
     (PROPERTY(minMCor_t, "minMCor", "minMCor description", float), minMCor),
@@ -30,6 +33,8 @@ namespace two_track_mva_line {
     __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
   private:
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::MeV};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minMCor_t> m_minMCor {this, 1000.0f / Gaudi::Units::MeV};
