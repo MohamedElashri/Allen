@@ -7,7 +7,7 @@
 
 namespace {
   // Mostly a copy of LHCbMath/DeterministicPrescalerGenerator.h
-  __device__ inline uint32_t mix(uint32_t state)
+  __host__ __device__ inline uint32_t mix(uint32_t state)
   {
     // note: the constants below are _not_ arbitrary, but are picked
     //       carefully such that the bit shuffling has a large 'avalanche' effect...
@@ -35,17 +35,17 @@ namespace {
   }
 
   // mix some 'extra' entropy into 'state' and return result
-  __device__ inline uint32_t mix32(uint32_t state, uint32_t extra) { return mix(state + extra); }
+  __host__ __device__ inline uint32_t mix32(uint32_t state, uint32_t extra) { return mix(state + extra); }
 
   // mix some 'extra' entropy into 'state' and return result
-  __device__ inline uint32_t mix64(uint32_t state, uint32_t extra_hi, uint32_t extra_lo)
+  __host__ __device__ inline uint32_t mix64(uint32_t state, uint32_t extra_hi, uint32_t extra_lo)
   {
     state = mix32(state, extra_lo);
     return mix32(state, extra_hi);
   }
 
   // mix some 'extra' entropy into 'state' and return result
-  __host__ inline uint32_t mix4(uint32_t s, gsl::span<const char> a)
+  __host__ __device__ inline uint32_t mix4(uint32_t s, gsl::span<const char> a)
   {
     // FIXME: this _might_ do something different on big endian vs. small endian machines...
     return mix32(s, uint32_t(a[0]) | uint32_t(a[1]) << 8 | uint32_t(a[2]) << 16 | uint32_t(a[3]) << 24);
