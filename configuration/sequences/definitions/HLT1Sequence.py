@@ -8,7 +8,6 @@ def make_selection_gatherer(lines, initialize_lists, layout_provider,
                             populate_odin_banks, **kwargs):
     return gather_selections_t(
         host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-        host_mep_layout_t=layout_provider.host_mep_layout_t(),
         dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
         dev_input_selections_t=tuple(line.dev_decisions_t() for line in lines),
         dev_input_selections_offsets_t=tuple(
@@ -152,6 +151,9 @@ def HLT1Sequence(layout_provider,
             dev_event_list_t=initialize_lists.dev_event_list_t(),
             dev_track_offsets_t=prefix_sum_forward_tracks.
             dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             pre_scaler_hash_string="track_mva_line_pre",
             post_scaler_hash_string="track_mva_line_post")
 
@@ -164,6 +166,9 @@ def HLT1Sequence(layout_provider,
             dev_event_list_t=initialize_lists.dev_event_list_t(),
             dev_sv_offsets_t=prefix_sum_secondary_vertices.
             dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             pre_scaler_hash_string="two_track_mva_line_pre",
             post_scaler_hash_string="two_track_mva_line_post")
 
@@ -220,6 +225,9 @@ def HLT1Sequence(layout_provider,
             dev_offsets_all_velo_tracks_t(),
             dev_offsets_velo_track_hit_number_t=
             prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             pre_scaler_hash_string="velo_micro_bias_line_pre",
             post_scaler_hash_string="velo_micro_bias_line_post")
 

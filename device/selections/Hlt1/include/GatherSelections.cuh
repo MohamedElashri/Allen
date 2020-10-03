@@ -13,7 +13,6 @@ namespace gather_selections {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_INPUT(host_mep_layout_t, unsigned), host_mep_layout),
     (HOST_OUTPUT(host_selections_lines_offsets_t, unsigned), host_selections_lines_offsets),
     (HOST_OUTPUT(host_selections_offsets_t, unsigned), host_selections_offsets),
     (HOST_OUTPUT(host_number_of_active_lines_t, unsigned), host_number_of_active_lines),

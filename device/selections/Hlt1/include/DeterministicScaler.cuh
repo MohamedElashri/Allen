@@ -6,7 +6,8 @@
 #include <string>
 
 namespace {
-  __device__ uint32_t mix(uint32_t state)
+  // Mostly a copy of LHCbMath/DeterministicPrescalerGenerator.h
+  __device__ inline uint32_t mix(uint32_t state)
   {
     // note: the constants below are _not_ arbitrary, but are picked
     //       carefully such that the bit shuffling has a large 'avalanche' effect...
@@ -34,25 +35,24 @@ namespace {
   }
 
   // mix some 'extra' entropy into 'state' and return result
-  __device__ uint32_t mix32(uint32_t state, uint32_t extra) { return mix(state + extra); }
+  __device__ inline uint32_t mix32(uint32_t state, uint32_t extra) { return mix(state + extra); }
 
   // mix some 'extra' entropy into 'state' and return result
-  __device__ uint32_t mix4(uint32_t s, gsl::span<const char> a)
+  __device__ inline uint32_t mix64(uint32_t state, uint32_t extra_hi, uint32_t extra_lo)
+  {
+    state = mix32(state, extra_lo);
+    return mix32(state, extra_hi);
+  }
+
+  // mix some 'extra' entropy into 'state' and return result
+  __host__ inline uint32_t mix4(uint32_t s, gsl::span<const char> a)
   {
     // FIXME: this _might_ do something different on big endian vs. small endian machines...
     return mix32(s, uint32_t(a[0]) | uint32_t(a[1]) << 8 | uint32_t(a[2]) << 16 | uint32_t(a[3]) << 24);
   }
 
   // mix some 'extra' entropy into 'state' and return result
-  __device__ uint32_t mix64(uint32_t state, uint64_t extra)
-  {
-    constexpr auto mask = ((~uint64_t {0}) >> 32);
-    state = mix32(state, uint32_t(extra & mask));
-    return mix32(state, uint32_t((extra >> 32) & mask));
-  }
-
-  // mix some 'extra' entropy into 'state' and return result
-  __host__ uint32_t mixString(uint32_t state, std::string_view extra)
+  __host__ inline uint32_t mixString(uint32_t state, std::string_view extra)
   {
     // prefix extra with ' ' until the size is a multiple of 4.
     if (auto rem = extra.size() % 4; rem != 0) {
@@ -65,5 +65,43 @@ namespace {
     for (; !extra.empty(); extra.remove_prefix(4))
       state = mix4(state, gsl::span<const char> {extra.substr(0, 4)});
     return state;
+  }
+
+  __device__ inline bool deterministic_scaler(
+    const unsigned initial_value,
+    const float scale_factor,
+    const uint32_t run_number,
+    const uint32_t evt_number_hi,
+    const uint32_t evt_number_lo,
+    const uint32_t gps_time_hi,
+    const uint32_t gps_time_lo)
+  {
+    const auto accept_threshold =
+      scale_factor >= 1.f ?
+        std::numeric_limits<uint32_t>::max() :
+        static_cast<uint32_t>(scale_factor * static_cast<float>(std::numeric_limits<uint32_t>::max()));
+    if (accept_threshold == std::numeric_limits<uint32_t>::max()) return true;
+
+    auto x = mix64(mix32(mix64(initial_value, gps_time_hi, gps_time_lo), run_number), evt_number_hi, evt_number_lo);
+    return x < accept_threshold;
+  }
+
+  __device__ inline void deterministic_post_scaler(
+    const unsigned initial_value,
+    const float scale_factor,
+    const int n_candidates,
+    bool* results,
+    const uint32_t run_number,
+    const uint32_t evt_number_hi,
+    const uint32_t evt_number_lo,
+    const uint32_t gps_time_hi,
+    const uint32_t gps_time_lo)
+  {
+    if (!deterministic_scaler(
+          initial_value, scale_factor, run_number, evt_number_hi, evt_number_lo, gps_time_hi, gps_time_lo)) {
+      for (auto i_cand = 0; i_cand < n_candidates; ++i_cand) {
+        results[i_cand] = 0;
+      }
+    }
   }
 } // namespace

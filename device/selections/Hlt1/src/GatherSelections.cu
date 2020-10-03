@@ -1,6 +1,6 @@
 #include "GatherSelections.cuh"
 #include "SelectionsEventModel.cuh"
-#include "DeterministicPostscaler.cuh"
+#include "DeterministicScaler.cuh"
 #include "Event/ODIN.h"
 #include <algorithm>
 
@@ -73,37 +73,46 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
 };
 
 namespace gather_selections {
-template<typename ODIN>
-__global__ void postscaler(
-  bool* dev_selections,
-  const unsigned* dev_selections_offsets,
-  const char* dev_odin_raw_input,
-  const unsigned* dev_odin_raw_input_offsets,
-  const float* scale_factors,
-  const uint32_t* scale_hashes,
-  const unsigned number_of_lines)
-{
-  const auto number_of_events = gridDim.x;
-  const auto event_number = blockIdx.x;
+  __global__ void postscaler(
+    bool* dev_selections,
+    const unsigned* dev_selections_offsets,
+    const char* dev_odin_raw_input,
+    const unsigned* dev_odin_raw_input_offsets,
+    const float* scale_factors,
+    const uint32_t* scale_hashes,
+    const uint32_t* dev_mep_layout,
+    const unsigned number_of_lines)
+  {
+    const auto number_of_events = gridDim.x;
+    const auto event_number = blockIdx.x;
 
-  Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
+    Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-  const unsigned int* odin = ODIN::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+    const unsigned int* odin = *dev_mep_layout ?
+      odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+      odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
 
-  const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
-  const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
-  const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
-  const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
-  const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
+    const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
+    const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
+    const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
+    const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
+    const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
 
-  for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
-    auto span = sels.get_span(i, event_number);
-
-    DeterministicPostscaler ps {scale_hashes[i], scale_factors[i]};
-    ps(span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+    for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
+      auto span = sels.get_span(i, event_number);
+      deterministic_post_scaler(
+        scale_hashes[i],
+        scale_factors[i],
+        span.size(),
+        span.data(),
+        run_no,
+        evt_hi,
+        evt_lo,
+        gps_hi,
+        gps_lo);
+    }
   }
-}
-}
+} // namespace gather_selections
 
 void gather_selections::gather_selections_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -208,25 +217,30 @@ void gather_selections::gather_selections_t::operator()(
   copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, stream);
 
   // Fetch the postscaler function depending on its layout
-  auto postscale_fn = first<host_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>) : global_function(postscaler<odin_data_t>);
+  // auto postscale_fn = first<dev_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>) :
+  //                                                           global_function(postscaler<odin_data_t>);
   // Run the postscaler
-  postscale_fn(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), stream)(
+  global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), stream)(
     data<dev_selections_t>(arguments),
     data<dev_selections_offsets_t>(arguments),
     data<dev_odin_raw_input_t>(arguments),
     data<dev_odin_raw_input_offsets_t>(arguments),
     data<dev_post_scale_factors_t>(arguments),
     data<dev_post_scale_hashes_t>(arguments),
+    data<dev_mep_layout_t>(arguments),
     first<host_number_of_active_lines_t>(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {
-    std::vector<uint8_t> host_selections (size<dev_selections_t>(arguments));
+    std::vector<uint8_t> host_selections(size<dev_selections_t>(arguments));
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, stream);
     copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, stream);
 
-    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()), data<host_selections_offsets_t>(arguments), first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {
+      reinterpret_cast<bool*>(host_selections.data()),
+      data<host_selections_offsets_t>(arguments),
+      first<host_number_of_events_t>(arguments)};
 
-    std::vector<uint8_t> event_decisions{};
+    std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
       bool dec = false;
       for (auto j = 0u; j < first<host_number_of_active_lines_t>(arguments); ++j) {

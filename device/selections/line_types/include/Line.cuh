@@ -3,6 +3,8 @@
 #include <string>
 #include <ArgumentOps.cuh>
 #include <DeterministicScaler.cuh>
+#include "Event/ODIN.h"
+#include "ODINBank.cuh"
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \
@@ -123,15 +125,37 @@ public:
  *        The way process line parallelizes is highly configurable.
  */
 template<typename Line, typename Parameters>
-__global__ void process_line(Line line, Parameters parameters, const unsigned number_of_events)
+__global__ void process_line(
+  Line line,
+  Parameters parameters,
+  const unsigned number_of_events,
+  const float pre_scaler_factor,
+  const unsigned pre_scaler_hash,
+  const char* dev_odin_raw_input,
+  const unsigned* dev_odin_raw_input_offsets,
+  const unsigned* dev_mep_layout)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned input_size = line.offset(parameters, event_number + 1) - line.offset(parameters, event_number);
 
-  // Do selection
-  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-    parameters.dev_decisions[line.offset(parameters, event_number) + i] =
-      line.select(parameters, line.get_input(parameters, event_number, i));
+  // ODIN data
+  const unsigned int* odin = *dev_mep_layout ?
+    odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+    odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+
+  const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
+  const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
+  const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
+  const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
+  const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
+
+  // Pre-scaler
+  if (deterministic_scaler(pre_scaler_hash, pre_scaler_factor, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
+    // Do selection
+    for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+      parameters.dev_decisions[line.offset(parameters, event_number) + i] =
+        line.select(parameters, line.get_input(parameters, event_number, i));
+    }
   }
 
   // Populate offsets in first block
@@ -150,12 +174,31 @@ __global__ void process_line_iterate_events(
   Line line,
   Parameters parameters,
   const unsigned number_of_events_in_event_list,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const float pre_scaler_factor,
+  const unsigned pre_scaler_hash,
+  const char* dev_odin_raw_input,
+  const unsigned* dev_odin_raw_input_offsets,
+  const unsigned* dev_mep_layout)
 {
   // Do selection
   for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
     const auto event_number = parameters.dev_event_list[i];
-    parameters.dev_decisions[event_number] = line.select(parameters, line.get_input(parameters, event_number));
+
+    // ODIN data
+    const unsigned int* odin = *dev_mep_layout ?
+      odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+      odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+
+    const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
+    const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
+    const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
+    const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
+    const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
+
+    if (deterministic_scaler(pre_scaler_hash, pre_scaler_factor, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
+      parameters.dev_decisions[event_number] = line.select(parameters, line.get_input(parameters, event_number));
+    }
   }
 
   // Populate offsets
@@ -173,11 +216,19 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iterati
     const ArgumentReferences<Parameters>& arguments,
     cudaStream_t& stream,
     const Derived* derived_instance,
-    const unsigned grid_dim_x)
+    const unsigned grid_dim_x,
+    const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line<Derived, Parameters>)(
       grid_dim_x, derived_instance->get_block_dim_x(arguments), stream)(
-      *derived_instance, arguments, first<typename Parameters::host_number_of_events_t>(arguments));
+      *derived_instance,
+      arguments,
+      first<typename Parameters::host_number_of_events_t>(arguments),
+      derived_instance->template property<typename Parameters::pre_scaler_t>(),
+      pre_scaler_hash,
+      data<typename Parameters::dev_odin_raw_input_t>(arguments),
+      data<typename Parameters::dev_odin_raw_input_offsets_t>(arguments),
+      data<typename Parameters::dev_mep_layout_t>(arguments));
   }
 };
 
@@ -187,14 +238,20 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::event_iteration
     const ArgumentReferences<Parameters>& arguments,
     cudaStream_t& stream,
     const Derived* derived_instance,
-    const unsigned grid_dim_x)
+    const unsigned grid_dim_x,
+    const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
       grid_dim_x, derived_instance->get_block_dim_x(arguments), stream)(
       *derived_instance,
       arguments,
       size<typename Parameters::dev_event_list_t>(arguments),
-      first<typename Parameters::host_number_of_events_t>(arguments));
+      first<typename Parameters::host_number_of_events_t>(arguments),
+      derived_instance->template property<typename Parameters::pre_scaler_t>(),
+      pre_scaler_hash,
+      data<typename Parameters::dev_odin_raw_input_t>(arguments),
+      data<typename Parameters::dev_odin_raw_input_offsets_t>(arguments),
+      data<typename Parameters::dev_mep_layout_t>(arguments));
   }
 };
 
@@ -220,7 +277,7 @@ void Line<Derived, Parameters>::operator()(
 
   // Dispatch the executing global function.
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
-    arguments, stream, derived_instance, get_grid_dim_x(arguments));
+    arguments, stream, derived_instance, get_grid_dim_x(arguments), m_pre_scaler_hash);
 }
 
 #endif
