@@ -10,8 +10,8 @@ double binomial_error(int n, int k) { return 1. / n * std::sqrt(1. * k * (1. - 1
 
 void RateChecker::accumulate(
   const std::vector<std::string>& names_of_lines,
-  const cuda::span<bool>& selections,
-  const cuda::span<unsigned>& selections_offsets,
+  const gsl::span<bool>& selections,
+  const gsl::span<unsigned>& selections_offsets,
   const unsigned number_of_events)
 {
   const auto number_of_lines = names_of_lines.size();

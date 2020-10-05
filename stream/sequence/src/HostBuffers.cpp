@@ -17,7 +17,7 @@
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
 
-void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_check, const unsigned number_of_hlt1_lines)
+void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_check)
 {
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
@@ -47,13 +47,6 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
 
   // Buffer for saving events passing Hlt1 selections.
   cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(bool)));
-
-  // Buffers for output of HLT1 lines
-  host_number_of_hlt1_lines = number_of_hlt1_lines;
-  cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (number_of_hlt1_lines + 1) * sizeof(unsigned)));
-
-  host_sel_results_size = max_number_of_events * 1000 * number_of_hlt1_lines * sizeof(bool);
-  cudaCheck(cudaMallocHost((void**) &host_sel_results, host_sel_results_size));
 
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated

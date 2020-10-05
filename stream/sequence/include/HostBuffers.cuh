@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <string>
+#include <gsl/gsl>
 #include "CudaCommon.h"
 
 // Forward declarations
@@ -34,7 +35,6 @@ struct HostBuffers {
   unsigned* host_event_list;
   unsigned* host_prefix_sum_buffer;
   bool* host_passing_event_list;
-  uint32_t* host_dec_reports;
   uint32_t* host_sel_rep_raw_banks;
   unsigned host_sel_rep_raw_banks_size;
   size_t host_allocated_prefix_sum_space;
@@ -111,16 +111,11 @@ struct HostBuffers {
   VertexFit::TrackMVAVertex* host_mf_secondary_vertices;
 
   // Selections
-  unsigned host_number_of_hlt1_lines;
-  unsigned* host_sel_results_atomics;
-  unsigned host_sel_results_size;
-  bool* host_sel_results;
-
-  // New selection datatypes
   std::string host_names_of_lines;
   unsigned host_number_of_lines;
-  cuda::span<bool> host_selections = {};
-  cuda::span<unsigned> host_selections_offsets = {};
+  gsl::span<uint32_t> host_dec_reports = {};
+  gsl::span<bool> host_selections = {};
+  gsl::span<unsigned> host_selections_offsets = {};
 
   // Non pinned datatypes: CPU algorithms
   std::vector<char> host_velo_states;
@@ -131,7 +126,7 @@ struct HostBuffers {
   /**
    * @brief Reserves all host buffers.
    */
-  void reserve(const unsigned max_number_of_events, const bool do_check, const unsigned number_of_hlt1_lines);
+  void reserve(const unsigned max_number_of_events, const bool do_check);
 
   // /**
   //  * @brief Frees all host buffers.

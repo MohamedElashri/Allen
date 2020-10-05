@@ -16,12 +16,11 @@ struct MonitorManager {
   MonitorManager(
     unsigned n_mon_thread,
     HostBuffersManager* buffers_manager,
-    unsigned number_of_hlt1_lines,
     int time_step = 30,
     int offset = 0) :
     meta_mon(time_step, offset)
   {
-    init(n_mon_thread, buffers_manager, number_of_hlt1_lines, time_step, offset);
+    init(n_mon_thread, buffers_manager, time_step, offset);
   }
 
   void fill(unsigned i_mon, unsigned i_buf, bool useWallTime = true);
@@ -35,7 +34,6 @@ private:
   void init(
     unsigned n_mon_thread,
     HostBuffersManager* buffers_manager,
-    unsigned number_of_hlt1_lines,
     int time_step,
     int offset);
 

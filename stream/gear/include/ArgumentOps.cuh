@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tuple>
+#include <gsl/gsl>
 #include "BankTypes.h"
 #include "CudaCommon.h"
 
@@ -72,18 +73,27 @@ void safe_assign_to_host_buffer(T* array, unsigned& size, const Args& arguments,
 }
 
 template<typename Arg, typename Args, typename T>
-void safe_assign_to_host_buffer(cuda::span<T>& span, const Args& arguments, cudaStream_t stream)
+void safe_assign_to_host_buffer(gsl::span<T>& span, const Args& arguments, cudaStream_t stream)
 {
-  if (arguments.template size<Arg>() > span.size()) {
-    span.m_size = arguments.template size<Arg>() * sizeof(typename Arg::type);
-    if (span.m_ptr != nullptr) {
-      cudaCheck(cudaFreeHost(span.m_ptr));
+  // Ensure span is big enough
+  if (arguments.template size<Arg>() >= span.size()) {
+    // Deallocate previously allocated data, if any
+    if (span.data() != nullptr) {
+      cudaCheck(cudaFreeHost(span.data()));
     }
-    cudaCheck(cudaMallocHost((void**) &span.m_ptr, span.size()));
+    
+    // Pinned allocation of new buffer of required size
+    T* buffer_pointer;
+    const auto buffer_size = arguments.template size<Arg>();
+    cudaCheck(cudaMallocHost((void**) &buffer_pointer, buffer_size * sizeof(typename Arg::type)));
+
+    // Update the span
+    span = {buffer_pointer, buffer_size};
   }
 
+  // Actual copy to the span
   cudaCheck(cudaMemcpyAsync(
-    span.m_ptr, arguments.template data<Arg>(), arguments.template size<Arg>() * sizeof(typename Arg::type), cudaMemcpyDeviceToHost, stream));
+    span.data(), arguments.template data<Arg>(), arguments.template size<Arg>() * sizeof(typename Arg::type), cudaMemcpyDeviceToHost, stream));
 }
 
 template<typename Arg, typename Args, typename T>

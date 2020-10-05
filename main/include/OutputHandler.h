@@ -13,8 +13,8 @@ struct IInputProvider;
 
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider, size_t eps, const unsigned number_of_hlt1_lines) :
-    m_input_provider {input_provider}, m_sizes(eps), m_number_of_hlt1_lines(number_of_hlt1_lines)
+  OutputHandler(IInputProvider const* input_provider, size_t eps) :
+    m_input_provider {input_provider}, m_sizes(eps)
   {}
 
   virtual ~OutputHandler() {}

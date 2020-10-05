@@ -28,7 +28,6 @@ struct StreamWrapper {
   //       needing to know the size of the allocated object
   std::vector<Stream*> streams;
   bool do_check;
-  unsigned number_of_hlt1_lines;
   unsigned errorevent_line;
 
   StreamWrapper();

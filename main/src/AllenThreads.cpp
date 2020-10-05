@@ -75,7 +75,7 @@ zmq::socket_t make_control(size_t thread_id, IZeroMQSvc* zmqSvc, std::string suf
   return control;
 }
 
-void run_output(const size_t thread_id, IZeroMQSvc* zmqSvc, OutputHandler* output_handler, HostBuffersManager*)
+void run_output(const size_t thread_id, IZeroMQSvc* zmqSvc, OutputHandler* output_handler, HostBuffersManager* buffer_manager)
 {
   auto* client_socket = output_handler ? output_handler->client_socket() : nullptr;
 
@@ -108,23 +108,19 @@ void run_output(const size_t thread_id, IZeroMQSvc* zmqSvc, OutputHandler* outpu
         auto buf_idx = zmqSvc->receive<size_t>(control);
         bool success = true;
 
-        // TODO
-        // auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] =
-        //   buffer_manager->getBufferOutputData(buf_idx);
-        // if (output_handler != nullptr) {
-        //   success = output_handler->output_selected_events(
-        //     slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
-        // }
+        auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] =
+          buffer_manager->getBufferOutputData(buf_idx);
+        if (output_handler != nullptr) {
+          success = output_handler->output_selected_events(
+            slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
+        }
 
         zmqSvc->send(control, "WRITTEN", send_flags::sndmore);
         zmqSvc->send(control, slc_idx, send_flags::sndmore);
         zmqSvc->send(control, first_evt, send_flags::sndmore);
         zmqSvc->send(control, buf_idx, send_flags::sndmore);
         zmqSvc->send(control, success, send_flags::sndmore);
-
-        // TODO
-        // zmqSvc->send(control, static_cast<size_t>(passing_event_list.size()));
-        zmqSvc->send(control, 0);
+        zmqSvc->send(control, static_cast<size_t>(passing_event_list.size()));
       }
     }
   }

@@ -10,7 +10,7 @@ void HostBuffersManager::init(size_t nBuffers)
   host_buffers.reserve(nBuffers);
   for (size_t i = 0; i < nBuffers; ++i) {
     host_buffers.push_back(new HostBuffers());
-    host_buffers.back()->reserve(max_events, check, m_number_of_hlt1_lines);
+    host_buffers.back()->reserve(max_events, check);
     buffer_statuses.push_back(BufferStatus::Empty);
     empty_buffers.push(i);
   }
@@ -24,7 +24,7 @@ size_t HostBuffersManager::assignBufferToFill()
     warning_cout << "No empty buffers available" << std::endl;
     warning_cout << "Adding new buffers" << std::endl;
     host_buffers.push_back(new HostBuffers());
-    host_buffers.back()->reserve(max_events, check, m_number_of_hlt1_lines);
+    host_buffers.back()->reserve(max_events, check);
     buffer_statuses.push_back(BufferStatus::Filling);
     return host_buffers.size() - 1;
   }
@@ -111,14 +111,12 @@ HostBuffersManager::getBufferOutputData(size_t b)
 
   HostBuffers* buf = host_buffers.at(b);
   auto const n_passing = buf->host_number_of_events;
-  const unsigned sel_rep_buf_size = buf->host_sel_rep_offsets[n_passing];
-  const unsigned dec_rep_buf_size = (m_number_of_hlt1_lines + 2) * max_events;
 
   gsl::span<bool const> passing_event_list {buf->host_passing_event_list, n_passing};
-  gsl::span<uint32_t const> dec_reports {buf->host_dec_reports, dec_rep_buf_size};
-  gsl::span<uint32_t const> sel_reports {buf->host_sel_rep_raw_banks, sel_rep_buf_size};
-  gsl::span<unsigned const> sel_report_offsets {buf->host_sel_rep_offsets, n_passing + 1};
-  return {passing_event_list, dec_reports, sel_reports, sel_report_offsets};
+  gsl::span<uint32_t const> dec_reports {buf->host_dec_reports.data(), buf->host_dec_reports.size()};
+  gsl::span<uint32_t const> sel_reports {nullptr, 0};
+  gsl::span<unsigned const> sel_report_offsets {nullptr, 0};
+  return {passing_event_list, buf->host_dec_reports, sel_reports, sel_report_offsets};
 }
 
 void HostBuffersManager::printStatus() const

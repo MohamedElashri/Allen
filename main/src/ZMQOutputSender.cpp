@@ -42,9 +42,8 @@ ZMQOutputSender::ZMQOutputSender(
   std::string const receiver_connection,
   size_t const events_per_slice,
   IZeroMQSvc* zmqSvc,
-  const unsigned number_of_hlt1_lines,
   bool const checksum) :
-  OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
+  OutputHandler {input_provider, events_per_slice},
   m_zmq {zmqSvc}, m_checksum {checksum}
 {
   auto const pos = receiver_connection.rfind(":");

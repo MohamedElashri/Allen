@@ -39,8 +39,8 @@ public:
 
   void accumulate(
     const std::vector<std::string>& names_of_lines,
-    const cuda::span<bool>& selections,
-    const cuda::span<unsigned>& selections_offsets,
+    const gsl::span<bool>& selections,
+    const gsl::span<unsigned>& selections_offsets,
     const unsigned number_of_events);
 
   void report(const size_t requested_events) const override;

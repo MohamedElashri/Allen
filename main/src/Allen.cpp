@@ -471,7 +471,6 @@ extern "C" int allen(
     number_of_buffers,
     *events_per_slice,
     do_check,
-    stream_wrapper.number_of_hlt1_lines,
     stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
@@ -482,18 +481,18 @@ extern "C" int allen(
 
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
-    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), stream_wrapper.number_of_hlt1_lines, 30, time(0));
+    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), 30, time(0));
 
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
         output_handler = std::make_unique<ZMQOutputSender>(
-          input_provider.get(), output_file, *events_per_slice, zmqSvc, stream_wrapper.number_of_hlt1_lines);
+          input_provider.get(), output_file, *events_per_slice, zmqSvc);
       }
       else {
         output_handler = std::make_unique<FileWriter>(
-          input_provider.get(), output_file, *events_per_slice, stream_wrapper.number_of_hlt1_lines);
+          input_provider.get(), output_file, *events_per_slice);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
