@@ -114,8 +114,8 @@ HostBuffersManager::getBufferOutputData(size_t b)
 
   gsl::span<bool const> passing_event_list {buf->host_passing_event_list, n_passing};
   gsl::span<uint32_t const> dec_reports {buf->host_dec_reports.data(), buf->host_dec_reports.size()};
-  gsl::span<uint32_t const> sel_reports {nullptr, 0};
-  gsl::span<unsigned const> sel_report_offsets {nullptr, 0};
+  gsl::span<uint32_t const> sel_reports {nullptr, static_cast<size_t>(0)};
+  gsl::span<unsigned const> sel_report_offsets {nullptr, static_cast<size_t>(0)};
   return {passing_event_list, buf->host_dec_reports, sel_reports, sel_report_offsets};
 }
 
