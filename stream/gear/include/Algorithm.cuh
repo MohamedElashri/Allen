@@ -31,9 +31,8 @@ namespace Allen {
 
         if (it == m_properties.end()) {
           error_cout << "could not set " << kv.first << "=" << kv.second << "\n";
-          error_cout << "parameter does not exist"
-                     << "\n";
-          throw std::exception {};
+          const std::string error_message = "parameter " + kv.first + " does not exist";
+          throw std::runtime_error {error_message};
         }
         else {
           it->second->from_string(kv.second);
@@ -46,11 +45,11 @@ namespace Allen {
     T property() const
     {
       auto prop = dynamic_cast<Allen::Property<T> const*>(get_prop(T::name));
-      if (prop)
-        return prop->get_value();
-      else
-        warning_cout << "property " << T::name << " not found\n";
-      return T {};
+      if (!prop) {
+        const std::string error_message = "property " + std::string(T::name) + " not found";
+        throw std::runtime_error {error_message};
+      }
+      return prop->get_value();
     }
 
     std::map<std::string, std::string> get_properties() const override
@@ -66,7 +65,8 @@ namespace Allen {
     {
       auto r = m_properties.emplace(name, property);
       if (!std::get<1>(r)) {
-        throw std::exception {};
+        const std::string error_message = "could not register property " + name;
+        throw std::runtime_error {error_message};
       }
       return std::get<1>(r);
     }
