@@ -26,7 +26,7 @@ namespace beam_crossing_line {
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1e-3f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<beam_crossing_type_t> m_beam_crossing_type {this, 0};

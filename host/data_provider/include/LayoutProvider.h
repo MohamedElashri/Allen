@@ -11,6 +11,11 @@ namespace layout_provider {
     (HOST_OUTPUT(host_mep_layout_t, unsigned), host_mep_layout),
     (DEVICE_OUTPUT(dev_mep_layout_t, unsigned), dev_mep_layout))
 
+  /**
+   * @brief Provides layout information as
+   *        parameters that can be reused in any algorithm.
+   *        Currently available layouts are MEP or Allen layout.
+   */
   struct layout_provider_t : public HostAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,

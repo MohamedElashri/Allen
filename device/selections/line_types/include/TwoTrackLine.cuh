@@ -4,7 +4,7 @@
 #include "VertexDefinitions.cuh"
 
 /**
- * A OneTrackLine.
+ * A TwoTrackLine.
  *
  * It assumes an inheriting class will have the following inputs:
  *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
