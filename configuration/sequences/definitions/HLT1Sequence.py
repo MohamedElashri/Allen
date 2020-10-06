@@ -253,9 +253,25 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="odin_no_bias_post",
             odin_event_type=int("0x0004", 0))
 
+        single_high_pt_muon_line = single_high_pt_muon_line_t(
+            name="single_high_pt_muon_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_reconstructed_scifi_tracks_t=
+            prefix_sum_forward_tracks.host_total_sum_holder_t(),
+            dev_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_track_offsets_t=prefix_sum_forward_tracks.
+            dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="single_high_pt_muon_line_pre",
+            post_scaler_hash_string="single_high_pt_muon_line_post")
+
         lines = (track_mva_line, two_track_mva_line, no_beam_line,
                  beam_one_line, beam_two_line, both_beams_line,
-                 velo_micro_bias_line, odin_lumi_line, odin_no_bias)
+                 velo_micro_bias_line, odin_lumi_line, odin_no_bias,
+                 single_high_pt_muon_line)
         gatherer = make_selection_gatherer(
             lines,
             initialize_lists,
