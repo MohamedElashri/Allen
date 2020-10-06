@@ -231,9 +231,31 @@ def HLT1Sequence(layout_provider,
             pre_scaler_hash_string="velo_micro_bias_line_pre",
             post_scaler_hash_string="velo_micro_bias_line_post")
 
+        odin_lumi_line = odin_event_type_line_t(
+            name="odin_lumi_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            dev_event_list_t=full_event_list.dev_event_list_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            pre_scaler_hash_string="odin_lumi_line_pre",
+            post_scaler_hash_string="odin_lumi_line_post",
+            odin_event_type=int("0x0008", 0))
+
+        odin_no_bias = odin_event_type_line_t(
+            name="odin_no_bias",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            dev_event_list_t=full_event_list.dev_event_list_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            pre_scaler_hash_string="odin_no_bias_pre",
+            post_scaler_hash_string="odin_no_bias_post",
+            odin_event_type=int("0x0004", 0))
+
         lines = (track_mva_line, two_track_mva_line, no_beam_line,
                  beam_one_line, beam_two_line, both_beams_line,
-                 velo_micro_bias_line)
+                 velo_micro_bias_line, odin_lumi_line, odin_no_bias)
         gatherer = make_selection_gatherer(
             lines,
             initialize_lists,
