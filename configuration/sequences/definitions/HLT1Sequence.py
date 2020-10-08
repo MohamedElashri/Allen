@@ -328,11 +328,94 @@ def HLT1Sequence(layout_provider,
             pre_scaler_hash_string="d2pipi_line_pre",
             post_scaler_hash_string="d2pipi_line_post")
 
+        di_muon_high_mass_line = di_muon_mass_line_t(
+            name="di_muon_high_mass_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_svs_t=prefix_sum_secondary_vertices.
+            host_total_sum_holder_t(),
+            dev_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_sv_offsets_t=prefix_sum_secondary_vertices.
+            dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="di_muon_high_mass_line_pre",
+            post_scaler_hash_string="di_muon_high_mass_line_post")
+
+        di_muon_low_mass_line = di_muon_mass_line_t(
+            name="di_muon_low_mass_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_svs_t=prefix_sum_secondary_vertices.
+            host_total_sum_holder_t(),
+            dev_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_sv_offsets_t=prefix_sum_secondary_vertices.
+            dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="di_muon_low_mass_line_pre",
+            post_scaler_hash_string="di_muon_low_mass_line_post",
+            minHighMassTrackPt = "500",
+            minHighMassTrackP = "3000",
+            minMass = "0",
+            maxDoca = "0.2",
+            maxVertexChi2 = "25",
+            minIPChi2 = "4")
+
+        di_muon_soft_line = di_muon_soft_line_t(
+            name="di_muon_soft_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_svs_t=prefix_sum_secondary_vertices.
+            host_total_sum_holder_t(),
+            dev_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_sv_offsets_t=prefix_sum_secondary_vertices.
+            dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="di_muon_soft_line_pre",
+            post_scaler_hash_string="di_muon_soft_line_post")
+
+        low_pt_di_muon_line = low_pt_di_muon_line_t(
+            name="low_pt_di_muon_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_svs_t=prefix_sum_secondary_vertices.
+            host_total_sum_holder_t(),
+            dev_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_sv_offsets_t=prefix_sum_secondary_vertices.
+            dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="low_pt_di_muon_line_pre",
+            post_scaler_hash_string="low_pt_di_muon_line_post")
+
+        track_muon_mva_line = track_muon_mva_line_t(
+            name="track_muon_mva_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_reconstructed_scifi_tracks_t=
+            prefix_sum_forward_tracks.host_total_sum_holder_t(),
+            dev_tracks_t=kalman_velo_only.dev_kf_tracks_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_track_offsets_t=prefix_sum_forward_tracks.
+            dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="track_muon_mva_line_pre",
+            post_scaler_hash_string="track_muon_mva_line_post")
+
         lines = (track_mva_line, two_track_mva_line, no_beam_line,
                  beam_one_line, beam_two_line, both_beams_line,
                  velo_micro_bias_line, odin_lumi_line, odin_no_bias,
                  single_high_pt_muon_line, low_pt_muon_line, d2kk_line,
-                 d2kpi_line, d2pipi_line)
+                 d2kpi_line, d2pipi_line, di_muon_high_mass_line,
+                 di_muon_low_mass_line, di_muon_soft_line, low_pt_di_muon_line,
+                 track_muon_mva_line)
         gatherer = make_selection_gatherer(
             lines,
             initialize_lists,
