@@ -95,6 +95,8 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
 
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_scifi_hits};
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
+  const Velo::Consolidated::Tracks velo_tracks {     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   // Create consolidated SoAs.
   SciFi::Consolidated::Tracks scifi_tracks {
@@ -105,11 +107,26 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
     parameters.dev_scifi_track_ut_indices,
     event_number,
     number_of_events};
+
+  UT::Consolidated::ConstExtendedTracks ut_tracks {
+    parameters.dev_atomics_ut,  
+    parameters.dev_ut_track_hit_number, 
+    parameters.dev_ut_qop,  
+    parameters.dev_ut_track_velo_indices,    
+    event_number,  
+    number_of_events};
+
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const unsigned event_offset = scifi_hit_count.event_offset();
+  const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
+  
+    const int velo_track_index = ut_tracks.velo_track(event_scifi_tracks[i].ut_track_index);
+    const unsigned velo_states_index = velo_event_tracks_offset + velo_track_index;
+    const MiniState velo_state = velo_states.get(velo_states_index);
+  
     scifi_tracks.ut_track(i) = event_scifi_tracks[i].ut_track_index;
     scifi_tracks.qop(i) = event_scifi_tracks[i].qop;
     const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
