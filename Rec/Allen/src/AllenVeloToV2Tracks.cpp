@@ -58,8 +58,10 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
                                                 (unsigned*) host_buffers.host_velo_track_hit_number,
                                                 i_event,
                                                 number_of_events};
-  const Velo::Consolidated::KalmanStates velo_states(
-    host_buffers.host_kalmanvelo_states, velo_tracks.total_number_of_tracks());
+  const Velo::Consolidated::States velo_beamline_states(
+    host_buffers.host_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks());
+  const Velo::Consolidated::States velo_endvelo_states(
+    host_buffers.host_velo_kalman_endvelo_states, velo_tracks.total_number_of_tracks());
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(i_event);
 
   const unsigned number_of_tracks = velo_tracks.number_of_tracks(i_event);
@@ -81,17 +83,42 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
 
     // set state at beamline
     const unsigned current_track_offset = event_tracks_offset + t;
-    const KalmanVeloState velo_state = velo_states.get(current_track_offset);
+    const KalmanVeloState velo_beamline_state = velo_beamline_states.get_kalman_state(current_track_offset);
     LHCb::State closesttobeam_state;
-    closesttobeam_state.setState(velo_state.x, velo_state.y, velo_state.z, velo_state.tx, velo_state.ty, 0.f);
-    closesttobeam_state.covariance()(0, 0) = velo_state.c00;
-    closesttobeam_state.covariance()(1, 1) = velo_state.c11;
-    closesttobeam_state.covariance()(0, 2) = velo_state.c20;
-    closesttobeam_state.covariance()(2, 2) = velo_state.c22;
-    closesttobeam_state.covariance()(1, 3) = velo_state.c31;
-    closesttobeam_state.covariance()(3, 3) = velo_state.c33;
+    closesttobeam_state.setState(
+      velo_beamline_state.x,
+      velo_beamline_state.y,
+      velo_beamline_state.z,
+      velo_beamline_state.tx,
+      velo_beamline_state.ty,
+      0.f);
+    closesttobeam_state.covariance()(0, 0) = velo_beamline_state.c00;
+    closesttobeam_state.covariance()(1, 1) = velo_beamline_state.c11;
+    closesttobeam_state.covariance()(0, 2) = velo_beamline_state.c20;
+    closesttobeam_state.covariance()(2, 2) = velo_beamline_state.c22;
+    closesttobeam_state.covariance()(1, 3) = velo_beamline_state.c31;
+    closesttobeam_state.covariance()(3, 3) = velo_beamline_state.c33;
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
+
+    // set state at endvelo
+    const KalmanVeloState velo_endvelo_state = velo_endvelo_states.get_kalman_state(current_track_offset);
+    LHCb::State endvelo_state;
+    endvelo_state.setState(
+      velo_endvelo_state.x,
+      velo_endvelo_state.y,
+      velo_endvelo_state.z,
+      velo_endvelo_state.tx,
+      velo_endvelo_state.ty,
+      0.f);
+    endvelo_state.covariance()(0, 0) = velo_endvelo_state.c00;
+    endvelo_state.covariance()(1, 1) = velo_endvelo_state.c11;
+    endvelo_state.covariance()(0, 2) = velo_endvelo_state.c20;
+    endvelo_state.covariance()(2, 2) = velo_endvelo_state.c22;
+    endvelo_state.covariance()(1, 3) = velo_endvelo_state.c31;
+    endvelo_state.covariance()(3, 3) = velo_endvelo_state.c33;
+    endvelo_state.setLocation(LHCb::State::Location::EndVelo);
+    newTrack.addToStates(endvelo_state);
 
     setFlagsAndPt(newTrack, m_ptVelo);
   }

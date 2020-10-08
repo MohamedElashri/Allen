@@ -52,13 +52,12 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
-  UT::Consolidated::ConstExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    event_number,
-    number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   event_number,
+                                                   number_of_events};
 
   const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
   const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
@@ -85,7 +84,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
     const float ut_z = parameters.dev_ut_z[ut_track_index];
 
     const unsigned velo_states_index = velo_event_tracks_offset + velo_track_index;
-    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
+    const MiniState velo_state = velo_states.get(velo_states_index);
 
     // extrapolate velo y & ty to z of UT x and tx
     // use ty from Velo state

@@ -125,7 +125,7 @@ __device__ void compass_ut::compass_ut_tracking(
   const float sigma_velo_slope)
 {
   // select velo track to join with UT hits
-  const MiniState velo_state = velo_states.getMiniState(current_track_offset);
+  const MiniState velo_state = velo_states.get(current_track_offset);
 
   fill_shared_windows(windows_layers, number_of_tracks_event, i_track, win_size_shared);
 
@@ -143,11 +143,10 @@ __device__ void compass_ut::compass_ut_tracking(
     1.f / sigma_velo_slope,
     event_hit_offset);
 
-  const int best_hits[UT::Constants::n_layers] = {
-    std::get<0>(best_hits_and_params),
-    std::get<1>(best_hits_and_params),
-    std::get<2>(best_hits_and_params),
-    std::get<3>(best_hits_and_params)};
+  const int best_hits[UT::Constants::n_layers] = {std::get<0>(best_hits_and_params),
+                                                  std::get<1>(best_hits_and_params),
+                                                  std::get<2>(best_hits_and_params),
+                                                  std::get<3>(best_hits_and_params)};
   const BestParams best_params = std::get<4>(best_hits_and_params);
 
   // write the final track
@@ -212,7 +211,7 @@ __device__ void compass_ut::save_track(
   UT::ConstHits& ut_hits,
   const float* ut_dxDy,
   const float magSign,
-  unsigned* n_veloUT_tracks,        // increment number of tracks
+  unsigned* n_veloUT_tracks,    // increment number of tracks
   UT::TrackHits* VeloUT_tracks, // write the track
   const int event_hit_offset,
   const float min_momentum_final,
@@ -233,10 +232,9 @@ __device__ void compass_ut::save_track(
   float bdl = bdl_table[master_index(index1, index2, index3)];
 
   const int num_idx = 3;
-  const float bdls[num_idx] = {
-    bdl_table[master_index(index1 + 1, index2, index3)],
-    bdl_table[master_index(index1, index2 + 1, index3)],
-    bdl_table[master_index(index1, index2, index3 + 1)]};
+  const float bdls[num_idx] = {bdl_table[master_index(index1 + 1, index2, index3)],
+                               bdl_table[master_index(index1, index2 + 1, index3)],
+                               bdl_table[master_index(index1, index2, index3 + 1)]};
   const float deltaBdl[num_idx] = {0.02f, 50.0f, 80.0f};
   const float boundaries[num_idx] = {
     -0.3f + float(index1) * deltaBdl[0], -250.0f + float(index2) * deltaBdl[1], 0.0f + float(index3) * deltaBdl[2]};
@@ -253,11 +251,10 @@ __device__ void compass_ut::save_track(
   }
   bdl += addBdlVal;
 
-  float finalParams[4] = {
-    best_params.x,
-    best_params.tx,
-    velo_state.y + velo_state.ty * (UT::Constants::zMidUT - velo_state.z),
-    best_params.chi2UT};
+  float finalParams[4] = {best_params.x,
+                          best_params.tx,
+                          velo_state.y + velo_state.ty * (UT::Constants::zMidUT - velo_state.z),
+                          best_params.chi2UT};
 
   // const float qpxz2p = -1 * sqrtf(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
   const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;

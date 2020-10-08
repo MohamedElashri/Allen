@@ -49,16 +49,14 @@ __global__ void MatchUpstreamMuon::match_upstream_muon(
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, i_event, number_of_events};
 
-  Velo::Consolidated::ConstKalmanStates velo_states {
-    parameters.dev_kalmanvelo_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_kalmanvelo_states, velo_tracks.total_number_of_tracks()};
 
-  UT::Consolidated::ConstExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    i_event,
-    number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   i_event,
+                                                   number_of_events};
 
   const auto muon_total_number_of_hits =
     parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];
@@ -70,7 +68,7 @@ __global__ void MatchUpstreamMuon::match_upstream_muon(
 
     const unsigned i_velo_track = ut_tracks.velo_track(i_uttrack);
     const unsigned velo_states_index = velo_tracks.tracks_offset(i_event) + i_velo_track;
-    const KalmanVeloState velo_state = velo_states.get(velo_states_index);
+    const KalmanVeloState velo_state = velo_states.get_kalman_state(velo_states_index);
     const unsigned absolute_index_ut = ut_tracks.tracks_offset(i_event) + i_uttrack;
 
     const bool matched = match(

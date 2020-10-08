@@ -8,17 +8,14 @@
  */
 template<>
 struct SequenceVisitor<ut_consolidate_tracks::ut_consolidate_tracks_t> {
-  static void check(
-    HostBuffers& host_buffers,
-    const Constants&,
-    const CheckerInvoker& checker_invoker,
-    MCEvents const& mc_events)
+  static void
+  check(HostBuffers& host_buffers, const Constants&, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
   {
     const auto tracks = prepareUTTracks(
       host_buffers.host_atomics_velo,
       host_buffers.host_velo_track_hit_number,
       host_buffers.host_velo_track_hits,
-      host_buffers.host_kalmanvelo_states,
+      host_buffers.host_velo_kalman_endvelo_states,
       host_buffers.host_atomics_ut,
       host_buffers.host_ut_track_hit_number,
       host_buffers.host_ut_track_hits,
