@@ -1,6 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 stages:
   - check			# Ensures the CI environment is valid
   - build           # Builds all projects
@@ -48,6 +52,8 @@ check-formatting:
   allow_failure: true
 
 .build_job: &build_gcc_job_def_warnings_as_errors
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -81,6 +87,8 @@ check-formatting:
   allow_failure: true
 
 .build_job: &build_clang_job_def_warnings_as_errors
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -114,6 +122,8 @@ check-formatting:
   allow_failure: true
 
 .build_job: &build_gcc_job_def
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -146,6 +156,8 @@ check-formatting:
   retry: 1
 
 .build_job: &build_clang_job_def
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   only:
     refs:
       - master
@@ -187,6 +199,7 @@ docker_image:build:
   script: "echo 'Building Allen dev docker image"
   variables:
     TO: $CI_REGISTRY_IMAGE:latest
+    GIT_SUBMODULE_STRATEGY: recursive
   allow_failure: true
 
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
@@ -364,6 +377,7 @@ docker_image:build:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+    - echo CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
     expire_in: 2 hrs
@@ -400,6 +414,7 @@ docker_image:build:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+    - echo numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
     - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
     expire_in: 2 hrs
@@ -441,6 +456,7 @@ docker_image:build:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
     - NVPROF_TMPDIR=`mktemp -d`
+    - echo CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=${NVPROF_TMPDIR} numactl --cpunodebind=0 --membind=0 nvprof ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=${NVPROF_TMPDIR} numactl --cpunodebind=0 --membind=0 nvprof ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
     - rm -rf ${NVPROF_TMPDIR}
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -d ${TOPLEVEL}

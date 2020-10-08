@@ -1,0 +1,3 @@
+[submodule "external/umesimd"]
+	path = external/umesimd
+	url = https://github.com/edanor/umesimd.git

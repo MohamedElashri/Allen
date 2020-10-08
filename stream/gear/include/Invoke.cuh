@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 
 /**
@@ -19,9 +19,8 @@
  *
  * @return     Return value of the function.
  */
-#if defined(TARGET_DEVICE_CPU) \
-  || (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))) \
-  || ((defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__)))
+#if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))) || \
+  ((defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__)))
 template<class Fn, class Tuple, unsigned long... I>
 void invoke_impl(
   Fn&& function,
@@ -58,13 +57,7 @@ void invoke_impl(
 }
 #else
 template<class Fn, class Tuple, unsigned long... I>
-void invoke_impl(
-  Fn&&,
-  const dim3&,
-  const dim3&,
-  cudaStream_t,
-  const Tuple&,
-  std::index_sequence<I...>)
+void invoke_impl(Fn&&, const dim3&, const dim3&, cudaStream_t, const Tuple&, std::index_sequence<I...>)
 {
   error_cout << "Global function invoked with unexpected backend.\n";
 }

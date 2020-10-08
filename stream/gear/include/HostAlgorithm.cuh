@@ -5,7 +5,7 @@
 
 #include "Algorithm.cuh"
 #include "Property.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
@@ -15,4 +15,5 @@
 
 // Note: For the moment, a HostAlgorithm does not
 //       differ from an Algorithm.
-struct HostAlgorithm : public Allen::Algorithm {};
+struct HostAlgorithm : public Allen::Algorithm {
+};

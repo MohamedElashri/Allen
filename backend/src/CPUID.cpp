@@ -1,14 +1,15 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include "CpuID.h"
+
+#include "CPUID.h"
 
 namespace cpu_id {
   static std::unique_ptr<CpuID> cpu_id_instance;
 
   CpuID::CpuID(const unsigned level) : m_level(level)
   {
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && defined(__x86_64__)
     __get_cpuid(m_level, &m_registers[0], &m_registers[1], &m_registers[2], &m_registers[3]);
 #endif
   }

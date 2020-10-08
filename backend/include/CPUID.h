@@ -1,18 +1,23 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
+
 #pragma once
 
 #include <array>
 #include <cstdint>
 #include <memory>
-#include <x86intrin.h>
 #include <cassert>
+
+#ifdef __x86_64__
+#include <x86intrin.h>
 
 #ifdef __APPLE__
 #include <CpuID.h>
 #else
 #include <cpuid.h>
+#endif
+
 #endif
 
 namespace cpu_id {

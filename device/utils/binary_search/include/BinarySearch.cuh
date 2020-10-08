@@ -4,7 +4,7 @@
 #pragma once
 
 #include <cstdio>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 /**
  * @brief  Binary search leftmost

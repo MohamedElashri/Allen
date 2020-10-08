@@ -10,7 +10,7 @@
 #include <vector>
 #include <cfloat>
 #include <cstdint>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 #include "ClusteringDefinitions.cuh"
 #include "MuonDefinitions.cuh"

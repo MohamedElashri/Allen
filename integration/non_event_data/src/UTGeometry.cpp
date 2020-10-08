@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #include <string>
 #include <vector>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <Common.h>
 #include <Consumers.h>
 #include "UTDefinitions.cuh"

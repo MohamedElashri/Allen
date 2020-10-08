@@ -1,6 +1,11 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+
+include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+
 set(ZMQ_VERSION 4.3.2)
 
 find_package(ZMQ QUIET)
@@ -122,6 +127,3 @@ if (BUILD_TESTS)
   # Simple MDF sender to test MDF receiver
   zmq_program(NAME allen_mdf_sender SRC test/mdf_sender.cpp)
 endif()
-
-include_directories(${CPPGSL_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})

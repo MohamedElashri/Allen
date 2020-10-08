@@ -32,7 +32,7 @@
 #include <ZeroMQ/IZeroMQSvc.h>
 #include <zmq_compat.h>
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "RuntimeOptions.h"
 #include "ProgramOptions.h"
 #include "Logger.h"
@@ -55,7 +55,7 @@
 #include "AllenThreads.h"
 #include "Allen.h"
 #include "RegisterConsumers.h"
-#include "CpuID.h"
+#include "CPUID.h"
 #include <tuple>
 
 namespace {

@@ -2,6 +2,9 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "PrefixSum.cuh"
+#include "BackendCommon.h"
+
+using namespace Allen::device;
 
 /**
  * @brief Up-Sweep

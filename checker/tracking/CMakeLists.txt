@@ -15,10 +15,13 @@ include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 
 file(GLOB tracking_checker_sources "src/*cpp")
 
-add_library(TrackChecking STATIC
+allen_add_host_library(TrackChecking STATIC
   ${tracking_checker_sources}
 )
 target_include_directories(TrackChecking PUBLIC ${CPPGSL_INCLUDE_DIR})

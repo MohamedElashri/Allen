@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "HostAlgorithm.cuh"
 
 namespace host_prefix_sum {

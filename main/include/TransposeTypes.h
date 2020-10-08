@@ -11,7 +11,7 @@
 #include <SystemOfUnits.h>
 #include <Event/RawBank.h>
 #include <AllenUnits.h>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <mdf_header.hpp>
 
 namespace {

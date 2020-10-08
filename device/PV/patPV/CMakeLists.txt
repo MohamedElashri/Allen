@@ -16,6 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/utils/sorting/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 

@@ -28,7 +28,7 @@
 #include <Event/RawBank.h>
 #include <eb_header.hpp>
 #include "TransposeTypes.h"
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 
 namespace {
   using namespace Allen::Units;

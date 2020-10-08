@@ -5,7 +5,7 @@
 
 #include <cstdint>
 #include <cassert>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
@@ -25,6 +25,14 @@ namespace velo_calculate_phi_and_sort {
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __device__ void calculate_phi(
+    int16_t* shared_hit_phis,
+    const unsigned* module_hitStarts,
+    const unsigned* module_hitNums,
+    Velo::ConstClusters& velo_cluster_container,
+    int16_t* hit_Phis,
+    unsigned* hit_permutations);
+
+  __device__ void calculate_phi_vectorized(
     int16_t* shared_hit_phis,
     const unsigned* module_hitStarts,
     const unsigned* module_hitNums,

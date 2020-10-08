@@ -3,6 +3,8 @@
 ###############################################################################
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 
@@ -112,10 +114,10 @@ function(test_program)
 endfunction()
 
 # Build our own common library to avoid circular dependency in Gaudi build
-foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp CudaCommon.cpp)
+foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp)
   list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
 endforeach()
-allen_add_host_library(MdfTestCommon STATIC ${common_sources})
+allen_add_host_library(MdfTestCommon STATIC ${common_sources} ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
 target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs)
 
 test_program(NAME mdf_to_mep)

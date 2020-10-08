@@ -29,7 +29,7 @@
 #include <read_mep.hpp>
 #include <Event/RawBank.h>
 #include <write_mdf.hpp>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <MEPTools.h>
 #include "Transpose.h"
 #include "TransposeMEP.h"

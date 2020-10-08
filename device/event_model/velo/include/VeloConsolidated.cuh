@@ -8,7 +8,7 @@
 #include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidatedTypes.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 namespace Velo {
   namespace Consolidated {
@@ -69,7 +69,8 @@ namespace Velo {
         return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __host__ std::vector<unsigned> get_lhcbids_for_track(const char* hits_base_pointer, const unsigned track_number) const
+      __host__ std::vector<unsigned> get_lhcbids_for_track(const char* hits_base_pointer, const unsigned track_number)
+        const
       {
         std::vector<unsigned> ids;
         const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
@@ -168,13 +169,15 @@ namespace Velo {
       __host__ __device__ bool backward(const unsigned index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 5 * m_total_number_of_tracks)[m_offset + index];
+        return reinterpret_cast<typename ForwardType<T, bool>::t*>(
+          m_base_pointer + 5 * m_total_number_of_tracks)[m_offset + index];
       }
 
       __host__ __device__ bool& backward(const unsigned index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 5 * m_total_number_of_tracks)[m_offset + index];
+        return reinterpret_cast<typename ForwardType<T, bool>::t*>(
+          m_base_pointer + 5 * m_total_number_of_tracks)[m_offset + index];
       }
 
       __host__ __device__ void set(const unsigned track_number, const VeloState& state)
