@@ -3,7 +3,7 @@
 #include "SelectionAlgorithm.cuh"
 #include "EventLine.cuh"
 
-namespace gec_passthrough_line {
+namespace passthrough_line {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
@@ -23,7 +23,7 @@ namespace gec_passthrough_line {
     (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string), pre_scaler_hash_string),
     (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string))
 
-  struct gec_passthrough_line_t : public SelectionAlgorithm, Parameters, EventLine<gec_passthrough_line_t, Parameters> {
+  struct passthrough_line_t : public SelectionAlgorithm, Parameters, EventLine<passthrough_line_t, Parameters> {
     __device__ std::tuple<const bool>
     get_input(const Parameters& parameters, const unsigned event_number) const;
 
@@ -35,4 +35,4 @@ namespace gec_passthrough_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
   };
-} // namespace gec_passthrough_line
+} // namespace passthrough_line
