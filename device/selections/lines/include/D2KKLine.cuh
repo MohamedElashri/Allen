@@ -29,7 +29,7 @@ namespace d2kk_line {
     (PROPERTY(minEta_t, "minEta", "minEta description", float), minEta),
     (PROPERTY(maxEta_t, "maxEta", "maxEta description", float), maxEta),
     (PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float), minTrackPt),
-    (PROPERTY(massWindow_t, "massWindow", "massWindow description", int), massWindow),
+    (PROPERTY(massWindow_t, "massWindow", "massWindow description", float), massWindow),
     (PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float), minTrackIPChi2))
 
   struct d2kk_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<d2kk_line_t, Parameters> {

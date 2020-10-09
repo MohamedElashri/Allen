@@ -409,13 +409,28 @@ def HLT1Sequence(layout_provider,
             pre_scaler_hash_string="track_muon_mva_line_pre",
             post_scaler_hash_string="track_muon_mva_line_post")
 
+        gec_passthrough_line = gec_passthrough_line_t(
+            name="gec_passthrough_line",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_offsets_velo_tracks_t=velo_copy_track_hit_number.
+            dev_offsets_all_velo_tracks_t(),
+            dev_offsets_velo_track_hit_number_t=
+            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="gec_passthrough_line_pre",
+            post_scaler_hash_string="gec_passthrough_line_post")
+
         lines = (track_mva_line, two_track_mva_line, no_beam_line,
                  beam_one_line, beam_two_line, both_beams_line,
                  velo_micro_bias_line, odin_lumi_line, odin_no_bias,
                  single_high_pt_muon_line, low_pt_muon_line, d2kk_line,
                  d2kpi_line, d2pipi_line, di_muon_high_mass_line,
                  di_muon_low_mass_line, di_muon_soft_line, low_pt_di_muon_line,
-                 track_muon_mva_line)
+                 track_muon_mva_line, gec_passthrough_line)
         gatherer = make_selection_gatherer(
             lines,
             initialize_lists,
