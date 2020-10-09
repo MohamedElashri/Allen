@@ -29,3 +29,25 @@ __host__ __device__ int binary_search_leftmost(const T* array, const unsigned ar
   }
   return l;
 }
+
+/**
+ * @brief Linear search
+ * @details This implementation of linear search accepts a parameter "start_element"
+ *          which is the starting point of where to look for. The data structure
+ *          is sweeped to the correct direction afterwards.
+ */
+template<typename T>
+__host__ __device__ int
+linear_search(const T* array, const unsigned array_size, const T& value, const unsigned start_element = 0)
+{
+  // Start in start_element
+  unsigned i = start_element;
+  const auto array_element = array[i];
+  const auto direction = array_element > value;
+  for (; i >= 0 && i < array_size; i += (direction ? -1 : 1)) {
+    if ((!direction && array[i] > value) || (direction && array[i] < value)) {
+      return i + direction;
+    }
+  }
+  return i + direction;
+}
