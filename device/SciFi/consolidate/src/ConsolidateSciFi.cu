@@ -74,6 +74,8 @@ __device__ void populate(const SciFi::TrackHits& track, const F& assign)
 
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consolidate_tracks::Parameters parameters)
 {
+  const LookingForward::Constants* dev_looking_forward_constants;
+
   const unsigned number_of_events = gridDim.x;
   const unsigned event_number = blockIdx.x;
 
@@ -128,7 +130,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
     const MiniState velo_state = velo_states.get(velo_states_index);
   
     scifi_tracks.ut_track(i) = event_scifi_tracks[i].ut_track_index;
-    scifi_tracks.qop(i) = event_scifi_tracks[i].qop;
+//    scifi_tracks.qop(i) = event_scifi_tracks[i].qop;
     const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
 
     const auto curvature = parameters.dev_scifi_lf_parametrization_consolidate[scifi_track_index];
@@ -159,6 +161,34 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
 
     auto consolidated_hits = scifi_tracks.get_hits(parameters.dev_scifi_track_hits, i);
     const SciFi::TrackHits& track = event_scifi_tracks[i];
+
+    // update qop
+    const auto z0 = LookingForward::z_mid_t;
+    const auto xVelo = velo_state.x;
+    const auto yVelo = velo_state.y;
+    const auto zVelo = velo_state.z;
+    const auto txO = velo_state.tx;
+    const auto tyO = velo_state.ty;
+    const auto zMatch = ( x0 - xVelo + txO*zVelo - tx*z0 )/(txO -tx);
+    const auto xMatch = txO*zMatch;
+    const auto yMatch = tyO*zMatch;
+
+    const auto FLIGHTPATH_MAGNET_SCI_SQ =  (x0-xMatch)*(x0-xMatch) + (y0-yMatch)*(y0-yMatch)+ (z0-zMatch)*(z0-zMatch) ;
+    const auto FLIGHTPATH_VELO_MAGNET_SQ =  (xVelo-xMatch)*(xVelo-xMatch) + (yVelo-yMatch)*(yVelo-yMatch)+ (zVelo-zMatch)*(zVelo-zMatch) ;
+    const auto FLIGHTPATH = 0.001*sqrt( FLIGHTPATH_MAGNET_SCI_SQ +FLIGHTPATH_VELO_MAGNET_SQ );
+    const auto MAGFIELD =  FLIGHTPATH * cos(asin(tyO));
+    const auto DSLOPE = tx/( sqrt( 1+ tx * tx + ty * ty)) - txO/(sqrt( 1+ txO*txO + tyO*tyO));
+   
+    const auto C0 = dev_looking_forward_constants->C0[0]+dev_looking_forward_constants->C0[1]*pow(txO,2) + dev_looking_forward_constants->C0[2]*pow(txO,4) + dev_looking_forward_constants->C0[3]*pow(tyO,2) + dev_looking_forward_constants->C0[4]*pow(tyO,4) + dev_looking_forward_constants->C0[5]*pow(txO,2)*pow(tyO,2) + dev_looking_forward_constants->C0[6]*pow(txO,6) + dev_looking_forward_constants->C0[7]*pow(tyO,5) + dev_looking_forward_constants->C0[8]*pow(txO,4)*pow(tyO,2) + dev_looking_forward_constants->C0[9]*pow(txO,2)*pow(tyO,4);
+    const auto C1 = dev_looking_forward_constants->C1[0]+dev_looking_forward_constants->C1[1]*pow(txO,1) + dev_looking_forward_constants->C1[2]*pow(txO,3) +dev_looking_forward_constants->C1[3]*pow(txO,5) +dev_looking_forward_constants->C1[4]*pow(txO,7) + dev_looking_forward_constants->C1[5]*pow(tyO,2) + dev_looking_forward_constants->C1[6]*pow(tyO,4) + dev_looking_forward_constants->C1[7]*pow(tyO,6) + dev_looking_forward_constants->C1[8]*pow(txO,1)*pow(tyO,2) +dev_looking_forward_constants->C1[9]*pow(txO,1)*pow(tyO,4) +dev_looking_forward_constants->C1[10]*pow(txO,1)*pow(tyO,6) +dev_looking_forward_constants->C1[11]*pow(txO,3)*pow(tyO,2) + dev_looking_forward_constants->C1[12]*pow(txO,3)*pow(tyO,4) + dev_looking_forward_constants->C1[13]*pow(txO,5)*pow(tyO,2);
+    const auto C2 = dev_looking_forward_constants->C2[0]+dev_looking_forward_constants->C2[1]*pow(txO,2) + dev_looking_forward_constants->C2[2]*pow(txO,4) + dev_looking_forward_constants->C2[3]*pow(tyO,2) + dev_looking_forward_constants->C2[4]*pow(tyO,4)  + dev_looking_forward_constants->C2[5]*pow(txO,2)*pow(tyO,2)  + dev_looking_forward_constants->C2[6]*pow(txO,6) + dev_looking_forward_constants->C2[7]*pow(tyO,5) + dev_looking_forward_constants->C2[8]*pow(txO,4)*pow(tyO,2) + dev_looking_forward_constants->C2[9]*pow(txO,2)*pow(tyO,4);
+    const auto C3 = dev_looking_forward_constants->C3[0]+dev_looking_forward_constants->C3[1]*pow(txO,1) + dev_looking_forward_constants->C3[2]*pow(txO,3) +dev_looking_forward_constants->C3[3]*pow(txO,5) +dev_looking_forward_constants->C3[4]*pow(txO,7) + dev_looking_forward_constants->C3[5]*pow(tyO,2) + dev_looking_forward_constants->C3[6]*pow(tyO,4) + dev_looking_forward_constants->C3[7]*pow(tyO,6) + dev_looking_forward_constants->C3[8]*pow(txO,1)*pow(tyO,2) +dev_looking_forward_constants->C3[9]*pow(txO,1)*pow(tyO,4) +dev_looking_forward_constants->C3[10]*pow(txO,1)*pow(tyO,6) +dev_looking_forward_constants->C3[11]*pow(txO,3)*pow(tyO,2) + dev_looking_forward_constants->C3[12]*pow(txO,3)*pow(tyO,4) + dev_looking_forward_constants->C3[13]*pow(txO,5)*pow(tyO,2);
+    const auto C4 = dev_looking_forward_constants->C4[0]+dev_looking_forward_constants->C4[1]*pow(txO,2) + dev_looking_forward_constants->C4[2]*pow(txO,4) + dev_looking_forward_constants->C4[3]*pow(tyO,2) + dev_looking_forward_constants->C4[4]*pow(tyO,4)  + dev_looking_forward_constants->C4[5]*pow(txO,2)*pow(tyO,2)  + dev_looking_forward_constants->C4[6]*pow(txO,6) + dev_looking_forward_constants->C4[7]*pow(tyO,5) + dev_looking_forward_constants->C4[8]*pow(txO,4)*pow(tyO,2) + dev_looking_forward_constants->C4[9]*pow(txO,2)*pow(tyO,4);
+
+    const auto MAGFIELD_updated = MAGFIELD * ( C0 + C1 * DSLOPE + C2 * DSLOPE*DSLOPE + C3 * DSLOPE*DSLOPE*DSLOPE + C4 * DSLOPE*DSLOPE*DSLOPE*DSLOPE);
+    const auto qop = DSLOPE / MAGFIELD;
+
+    scifi_tracks.qop(i) = qop;
 
     // Populate arrays
     populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
