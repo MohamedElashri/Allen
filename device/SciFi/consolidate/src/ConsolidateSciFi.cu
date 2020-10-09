@@ -132,7 +132,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
     const MiniState velo_state = velo_states.get(velo_states_index);
   
     scifi_tracks.ut_track(i) = event_scifi_tracks[i].ut_track_index;
-    scifi_tracks.qop(i) = event_scifi_tracks[i].qop;
+//    scifi_tracks.qop(i) = event_scifi_tracks[i].qop;
     const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
 
     const auto curvature = parameters.dev_scifi_lf_parametrization_consolidate[scifi_track_index];

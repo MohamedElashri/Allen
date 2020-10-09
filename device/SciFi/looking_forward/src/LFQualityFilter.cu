@@ -228,7 +228,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
         [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_m;
 
       // Update qop of the track
-      const auto velo_track_index = parameters.dev_ut_track_velo_indices[ut_event_tracks_offset + track.ut_track_index];
+/*      const auto velo_track_index = parameters.dev_ut_track_velo_indices[ut_event_tracks_offset + track.ut_track_index];
       const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
       const auto velo_state = velo_states.get(velo_states_index);
 
@@ -259,7 +259,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
 //      const auto slope2 = tx2 + ty2;
 //      const auto proj = sqrtf((1.f + slope2) / (1.f + tx2));
 //      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * dev_magnet_polarity[0]);
-      parameters.dev_scifi_tracks[new_scifi_track_index].qop = qop;
+      parameters.dev_scifi_tracks[new_scifi_track_index].qop = qop;*/
     }
   }
 }
