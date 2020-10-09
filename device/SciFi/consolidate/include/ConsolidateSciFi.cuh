@@ -33,7 +33,8 @@ namespace scifi_consolidate_tracks {
     (DEVICE_INPUT(dev_scifi_lf_parametrization_consolidate_t, float), dev_scifi_lf_parametrization_consolidate),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
-  __global__ void scifi_consolidate_tracks(Parameters);
+  __global__ void scifi_consolidate_tracks(Parameters,
+    const LookingForward::Constants* dev_looking_forward_constants);
 
   struct scifi_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
