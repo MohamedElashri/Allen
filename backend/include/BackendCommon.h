@@ -126,3 +126,15 @@ struct ForwardType<const T, U> {
 };
 
 std::tuple<bool, int> get_device_id(std::string pci_bus_id);
+
+struct HashNotPopulatedException : public std::exception {
+private:
+  std::string m_algorithm_name;
+
+public:
+  HashNotPopulatedException(const std::string& algorithm_name) :
+    m_algorithm_name("Pre or post-scaler hash not populated in selection algorithm " + algorithm_name)
+  {}
+
+  const char* what() const noexcept override { return m_algorithm_name.c_str(); }
+};

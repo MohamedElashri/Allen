@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 namespace Hlt1 {
   // Hlt1 TCK.

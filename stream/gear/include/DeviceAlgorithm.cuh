@@ -14,5 +14,3 @@
 #include "Argument.cuh"
 
 struct DeviceAlgorithm : public Allen::Algorithm {};
-
-struct SelectionAlgorithm : public Allen::Algorithm {};

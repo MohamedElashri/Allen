@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include <algorithm>
 #include <cstdint>
 #include <string>

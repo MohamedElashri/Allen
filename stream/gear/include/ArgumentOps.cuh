@@ -3,7 +3,7 @@
 #include <tuple>
 #include <gsl/gsl>
 #include "BankTypes.h"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 /**
  * @brief Sets the size of a container to the specified size.

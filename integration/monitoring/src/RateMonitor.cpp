@@ -79,6 +79,7 @@ void RateMonitor::init() {
   _unused(m_buffers_manager);
   _unused(m_histograms_initialized);
   _unused(m_nBins);
+  _unused(m_max);
 }
 
 void RateMonitor::initialize_histograms(const unsigned) {}

@@ -6,7 +6,7 @@
 #include <Common.h>
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 void checkHlt1Rate(
   const bool* decisions,

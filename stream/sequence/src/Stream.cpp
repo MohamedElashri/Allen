@@ -168,7 +168,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
           uint test_mask = (1 << 15) - 1;
           if (runtime_options.inject_mem_fail < 15) test_mask = (1 << runtime_options.inject_mem_fail) - 1;
           if (
-            (host_buffers->host_number_of_selected_events[0] & test_mask) ==
+            (host_buffers->host_number_of_selected_events & test_mask) ==
             (host_buffers->host_total_number_of_velo_clusters[0] & test_mask))
             throw MemoryException("Test : Injected fake memory exception to test failure handling");
         }

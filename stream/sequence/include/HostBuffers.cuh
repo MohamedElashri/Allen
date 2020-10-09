@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <string>
 #include <gsl/gsl>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 // Forward declarations
 namespace PV {
