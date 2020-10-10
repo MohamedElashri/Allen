@@ -172,10 +172,12 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
     const auto txO = velo_state.tx;
     const auto tyO = velo_state.ty;
     const auto zMatch = ( x0 - xVelo + txO*zVelo - tx*z0 )/(txO -tx);
-    const auto xMatch = txO*zMatch;
-    const auto yMatch = tyO*zMatch;
+    const auto xMatch = xVelo + txO*(zMatch - zVelo);
+    const auto yMatch = yVelo + tyO*(zMatch - zVelo);
+    const auto xVelo_at0 = xVelo - txO * zVelo;
+    const auto yVelo_at0 = yVelo - tyO * zVelo;
     const auto FLIGHTPATH_MAGNET_SCI_SQ =  (x0-xMatch)*(x0-xMatch) + (y0-yMatch)*(y0-yMatch)+ (z0-zMatch)*(z0-zMatch) ;
-    const auto FLIGHTPATH_VELO_MAGNET_SQ =  (xVelo-xMatch)*(xVelo-xMatch) + (yVelo-yMatch)*(yVelo-yMatch)+ (zVelo-zMatch)*(zVelo-zMatch) ;
+    const auto FLIGHTPATH_VELO_MAGNET_SQ =  (xVelo_at0-xMatch)*(xVelo_at0-xMatch) + (yVelo_at0-yMatch)*(yVelo_at0-yMatch)+ (0-zMatch)*(0-zMatch) ;
     const auto FLIGHTPATH = 0.001*sqrt( FLIGHTPATH_MAGNET_SCI_SQ +FLIGHTPATH_VELO_MAGNET_SQ );
     const auto MAGFIELD =  FLIGHTPATH * cos(asin(tyO));
     const auto DSLOPE = tx/( sqrt( 1+ tx * tx + ty * ty)) - txO/(sqrt( 1+ txO*txO + tyO*tyO));
@@ -187,7 +189,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
 	const auto C4 = dev_looking_forward_constants->C4[0]+dev_looking_forward_constants->C4[1]*pow(txO,2) + dev_looking_forward_constants->C4[2]*pow(txO,4) + dev_looking_forward_constants->C4[3]*pow(tyO,2) + dev_looking_forward_constants->C4[4]*pow(tyO,4)  + dev_looking_forward_constants->C4[5]*pow(txO,2)*pow(tyO,2)  + dev_looking_forward_constants->C4[6]*pow(txO,6) + dev_looking_forward_constants->C4[7]*pow(tyO,5) + dev_looking_forward_constants->C4[8]*pow(txO,4)*pow(tyO,2) + dev_looking_forward_constants->C4[9]*pow(txO,2)*pow(tyO,4);
 	
 	const auto MAGFIELD_updated = MAGFIELD * ( C0 + C1 * DSLOPE + C2 * DSLOPE*DSLOPE + C3 * DSLOPE*DSLOPE*DSLOPE + C4 * DSLOPE*DSLOPE*DSLOPE*DSLOPE);
-	const auto qop = DSLOPE / MAGFIELD;
+	const auto qop = DSLOPE / MAGFIELD_updated;
 	scifi_tracks.qop(i) = qop;
    
     
