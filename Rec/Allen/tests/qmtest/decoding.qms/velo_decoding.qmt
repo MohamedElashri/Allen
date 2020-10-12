@@ -12,7 +12,7 @@
 <extension class="GaudiTest.GaudiExeTest" kind="test">
   <argument name="program"><text>gaudirun.py</text></argument>
   <argument name="args"><set>
-    <text>../../options/test_velo_clusters.py</text>
+    <text>../options/test_velo_clusters.py</text>
   </set></argument>
   <argument name="validator"><text>
 countErrorLines({"FATAL": 0, "ERROR": 0, "WARNING": 0})

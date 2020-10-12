@@ -20,6 +20,7 @@ from Configurables import (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry,
                            DumpMuonGeometry, DumpMuonTable, DumpMagneticField,
                            DumpBeamline, DumpUTLookupTables)
 from GaudiConf import IOHelper
+from PRConfig import TestFileDB
 
 # ROOT persistency
 ApplicationMgr().HistogramPersistency = "ROOT"
@@ -32,19 +33,15 @@ EventSelector().PrintFreq = 100
 
 # Just to initialise
 CondDB(Upgrade=True)
-LHCbApp(
-    EvtMax=10,
-    Simulation=True,
-    DDDBtag="dddb-20180815",
-    CondDBtag="sim-20180530-vc-md100")
+app = LHCbApp(EvtMax=10)
 
 SequencerTimerTool("ToolSvc.SequencerTimerTool").NameSize = 40
 
-all = GaudiSequencer("All", MeasureTime=True)
+seq = GaudiSequencer("All", MeasureTime=True)
 
 # Finally set up the application
 ApplicationMgr(
-    TopAlg=[all],
+    TopAlg=[seq],
     EvtMax=nEvents,  # events to be processed
     ExtSvc=['ToolSvc', 'AuditorSvc'],
     AuditAlgorithms=True)
@@ -57,26 +54,26 @@ producers = [
               DumpBeamline, DumpUTLookupTables)
 ]
 ApplicationMgr().ExtSvc += [
-    AllenUpdater(OutputLevel=2),
+    AllenUpdater(),
 ] + producers
 
 # ODIN and banks for Allen
 odin = createODIN()
 allen_banks = TransposeRawBanks()
-all.Members += [odin, allen_banks]
+seq.Members += [odin, allen_banks]
 
 allen = RunAllen(
-    OutputLevel=2,
     AllenRawInput=allen_banks.AllenRawInput,
     ODINLocation=odin.ODIN,
     ParamDir="${ALLEN_PROJECT_ROOT}/input/detector_configuration/down/",
     FilterGEC=True)
 
-all.Members += [allen]
+seq.Members += [allen]
 
 test_velo_clusters = TestVeloClusters(AllenOutput=allen.AllenOutput)
 
-all.Members += [test_velo_clusters]
+seq.Members += [test_velo_clusters]
 
-data = ["DATAFILE='mdf:root://eoslhcb.cern.ch///eos/lhcb/user/r/raaij/data/upgrade_minbias_scifi_v5/upgrade_mc_minbias_scifi_v5_{:03d}.mdf'".format(i) for i in range(1,7)]
-IOHelper('MDF').inputFiles(data, clear=True)
+sample = TestFileDB.test_file_db[
+    'upgrade-baseline-FT64-digi']
+sample.run(configurable=LHCbApp(), withDB=True)
