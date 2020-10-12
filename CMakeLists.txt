@@ -213,6 +213,8 @@ macro(allen_project)
       message(STATUS "Using internal gsl-lite")
     endif()
   endif()
+  # https://github.com/nlohmann/json
+  find_package(nlohmann_json REQUIRED)
 endmacro()
 
 # Detect architecture (CUDA, CUDACLANG)
@@ -707,7 +709,7 @@ if(NOT Filesystem_FOUND)
 else()
   target_link_libraries(allen_fs INTERFACE std::filesystem)
 endif()
-target_link_libraries(Common mdf allen_fs)
+target_link_libraries(Common mdf allen_fs nlohmann_json::nlohmann_json)
 
 if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   set_source_files_properties(${common_device_sources} PROPERTIES LANGUAGE CXX)

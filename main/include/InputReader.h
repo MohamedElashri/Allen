@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <unordered_set>
 #include <gsl/gsl>
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 struct Reader {
   std::string folder_name;
