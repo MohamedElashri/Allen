@@ -135,7 +135,8 @@ StatusCode TransposeRawBanks::initialize()
     if (m_bankTypes.value().count(static_cast<LHCb::RawBank::BankType>(bt))) {
       auto tn = LHCb::RawBank::typeName(static_cast<LHCb::RawBank::BankType>(bt));
       m_histos[bt] = book1D(tn, -0.5, 603.5, 151);
-    } else {
+    }
+    else {
       m_histos[bt] = nullptr;
     }
   }
@@ -150,11 +151,12 @@ std::array<std::vector<char>, LHCb::RawBank::LastType> TransposeRawBanks::operat
   std::array<LHCb::span<LHCb::RawBank const*>, LHCb::RawBank::LastType> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
-    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks] (auto bt) {
-        auto banks = rawEvent->banks(bt);
-        if (!banks.empty()) {
-          rawBanks[bt] = std::move(banks);
-        }});
+    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
+      auto banks = rawEvent->banks(bt);
+      if (!banks.empty()) {
+        rawBanks[bt] = std::move(banks);
+      }
+    });
   }
 
   for (int bt = 0; bt < LHCb::RawBank::LastType; ++bt) {

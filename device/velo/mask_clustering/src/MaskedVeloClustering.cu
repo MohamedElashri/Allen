@@ -56,19 +56,22 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
     };
 
     // Event offsets to clusters
-    to_host(host_buffers.velo_clusters_offsets,
-            arguments.data<dev_offsets_estimated_input_size_t>(),
-            first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs + 1);
+    to_host(
+      host_buffers.velo_clusters_offsets,
+      arguments.data<dev_offsets_estimated_input_size_t>(),
+      first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs + 1);
 
     // Number of clusters per module
-    to_host(host_buffers.velo_module_clusters_num,
-            arguments.data<dev_module_cluster_num_t>(),
-            first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
+    to_host(
+      host_buffers.velo_module_clusters_num,
+      arguments.data<dev_module_cluster_num_t>(),
+      first<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
 
     // Clusters
-    to_host(host_buffers.velo_clusters,
-            arguments.data<dev_velo_cluster_container_t>(),
-            first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
+    to_host(
+      host_buffers.velo_clusters,
+      arguments.data<dev_velo_cluster_container_t>(),
+      first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
   }
 }
 

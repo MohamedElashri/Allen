@@ -29,7 +29,7 @@ It is possible to inspect all algorithms defined in Allen interactively by using
 foo@bar:build$ cmake ..
 foo@bar:build$ cd sequences
 foo@bar:build/sequences$ python3
-Python 3.8.2 (default, Feb 28 2020, 00:00:00) 
+Python 3.8.2 (default, Feb 28 2020, 00:00:00)
 [GCC 10.0.1 20200216 (Red Hat 10.0.1-0.8)] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> from definitions import algorithms

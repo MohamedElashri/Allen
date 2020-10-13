@@ -18,9 +18,7 @@
 #include "VeloEventModel.cuh"
 #include "Logger.h"
 
-
-class TestVeloClusters final
-  : public Gaudi::Functional::Consumer<void(const HostBuffers&)> {
+class TestVeloClusters final : public Gaudi::Functional::Consumer<void(const HostBuffers&)> {
 
 public:
   /// Standard constructor
@@ -28,7 +26,6 @@ public:
 
   /// Algorithm execution
   void operator()(const HostBuffers&) const override;
-
 };
 
 DECLARE_COMPONENT(TestVeloClusters)

@@ -9,7 +9,8 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
-from Gaudi.Configuration import (HistogramPersistencySvc, ApplicationMgr, EventSelector)
+from Gaudi.Configuration import (HistogramPersistencySvc, ApplicationMgr,
+                                 EventSelector)
 from Configurables import Gaudi__Hive__FetchDataFromFile as FetchDataFromFile
 from Configurables import SequencerTimerTool
 from Configurables import CondDB, LHCbApp, GaudiSequencer
@@ -49,9 +50,9 @@ ApplicationMgr(
 # Setup non-event data for Allen
 producers = [
     p(DumpToFile=False)
-    for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry,
-              DumpMuonGeometry, DumpMuonTable, DumpMagneticField,
-              DumpBeamline, DumpUTLookupTables)
+    for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry, DumpMuonGeometry,
+              DumpMuonTable, DumpMagneticField, DumpBeamline,
+              DumpUTLookupTables)
 ]
 ApplicationMgr().ExtSvc += [
     AllenUpdater(),
@@ -74,6 +75,5 @@ test_velo_clusters = TestVeloClusters(AllenOutput=allen.AllenOutput)
 
 seq.Members += [test_velo_clusters]
 
-sample = TestFileDB.test_file_db[
-    'upgrade-baseline-FT64-digi']
+sample = TestFileDB.test_file_db['upgrade-baseline-FT64-digi']
 sample.run(configurable=LHCbApp(), withDB=True)
