@@ -114,7 +114,7 @@ bool ZMQOutputSender::write_buffer(size_t)
     char* data = static_cast<char*>(m_buffer.data());
     auto* header = reinterpret_cast<LHCb::MDFHeader*>(data);
     auto const skip = 4 * sizeof(int);
-    auto c = LHCb::genChecksum(1, data + skip, m_buffer.size() - skip);
+    auto c = LHCb::hash32Checksum(data + skip, m_buffer.size() - skip);
     header->setChecksum(c);
   }
 
