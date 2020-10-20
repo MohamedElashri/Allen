@@ -526,10 +526,10 @@ test_run_changes:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
   dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_with_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_no_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_with_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_no_run_changes
+    - x862630v4:CPU:hlt1_pp_scifi_v6:run_with_run_changes
+    - x862630v4:CPU:hlt1_pp_scifi_v6:run_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
@@ -809,33 +809,33 @@ epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu:
 
 # check run changes
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::build
 
-x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
+x862630v4:CPU:hlt1_pp_scifi_v6:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - x862630v4
   dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::build
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::build
 
-x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
+x862630v4:CPU:hlt1_pp_scifi_v6:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - x862630v4
   dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::build
 
 # =======
 # Publish
