@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(vertex_fitter/include)
 include_directories(common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
@@ -18,6 +21,8 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/muon/decoding/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})

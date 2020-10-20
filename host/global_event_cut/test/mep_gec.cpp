@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -19,7 +22,7 @@
 #include <read_mep.hpp>
 #include <Transpose.h>
 #include <TransposeMEP.h>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <HostGlobalEventCut.h>
 
 using namespace std;

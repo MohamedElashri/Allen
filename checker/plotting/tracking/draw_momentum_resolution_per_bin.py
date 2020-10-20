@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 # author: Vladimir Gligorov (vladimir.gligorov@cern.ch)
 # date:   02/2019
 #

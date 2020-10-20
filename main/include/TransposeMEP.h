@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <thread>
@@ -25,7 +28,7 @@
 #include <Event/RawBank.h>
 #include <eb_header.hpp>
 #include "TransposeTypes.h"
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 
 namespace {
   using namespace Allen::Units;
@@ -61,8 +64,11 @@ namespace MEP {
     int const slice_index,
     std::vector<int> const& bank_ids,
     std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+    EB::Header const& mep_header,
     Blocks const& blocks,
-    std::tuple<size_t, size_t> const& interval);
+    MEP::SourceOffsets const& input_offsets,
+    std::tuple<size_t, size_t> const& interval,
+    bool split_by_run = false);
 
   std::tuple<bool, bool, size_t> mep_offsets(
     ::Slices& slices,
@@ -72,7 +78,8 @@ namespace MEP {
     EventIDs& event_ids,
     EB::Header const& mep_header,
     MEP::Blocks const& blocks,
-    std::tuple<size_t, size_t> const& interval);
+    std::tuple<size_t, size_t> const& interval,
+    bool split_by_run = false);
 
   /**
    * @brief      Transpose events to Allen layout
@@ -116,6 +123,7 @@ namespace MEP {
     EB::Header const& mep_header,
     Blocks const& blocks,
     SourceOffsets const& source_offsets,
-    std::tuple<size_t, size_t> const& interval);
+    std::tuple<size_t, size_t> const& interval,
+    bool split_by_run = false);
 
 } // namespace MEP

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 /**
  *      Allen
  *
@@ -29,7 +32,7 @@
 #include <ZeroMQ/IZeroMQSvc.h>
 #include <zmq_compat.h>
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "RuntimeOptions.h"
 #include "ProgramOptions.h"
 #include "Logger.h"
@@ -52,7 +55,7 @@
 #include "AllenThreads.h"
 #include "Allen.h"
 #include "RegisterConsumers.h"
-#include "CpuID.h"
+#include "CPUID.h"
 #include <tuple>
 
 namespace {
@@ -150,6 +153,9 @@ extern "C" int allen(
   std::string file_list;
   bool print_config = 0;
   bool print_status = 0;
+  uint inject_mem_fail = 0;
+  uint mon_save_period = 0;
+  bool disable_run_changes = 0;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -261,6 +267,15 @@ extern "C" int allen(
     }
     else if (flag_in({"print-status"})) {
       print_status = atoi(arg.c_str());
+    }
+    else if (flag_in({"inject-mem-fail"})) {
+      inject_mem_fail = atoi(arg.c_str());
+    }
+    else if (flag_in({"monitoring-save-period"})) {
+      mon_save_period = atoi(arg.c_str());
+    }
+    else if (flag_in({"disable-run-changes"})) {
+      disable_run_changes = atoi(arg.c_str());
     }
   }
 
@@ -378,6 +393,7 @@ extern "C" int allen(
                               with_mpi,             // Receive from MPI or read files
                               non_stop,             // Run the application non-stop
                               !mep_layout,          // MEPs should be transposed to Allen layout
+                              !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
     input_provider =
       std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
@@ -388,9 +404,10 @@ extern "C" int allen(
     MDFProviderConfig config {false,                      // verify MDF checksums
                               10,                         // number of read buffers
                               4,                          // number of transpose threads
-                              *events_per_slice * 10 + 1, // mximum number event of offsets in read buffer
+                              *events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
                               *events_per_slice,          // number of events per read buffer
-                              n_io_reps};                 // number of loops over the input files
+                              n_io_reps,                  // number of loops over the input files
+                              !disable_run_changes};      // Whether to split slices by run number
     input_provider =
       std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
         number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
@@ -519,6 +536,7 @@ extern "C" int allen(
                    do_check,
                    cpu_offload,
                    mep_layout,
+                   inject_mem_fail,
                    folder_name_imported_forward_tracks},
       std::move(check_control));
   };
@@ -670,6 +688,8 @@ extern "C" int allen(
   std::optional<Timer> t;
   double previous_time_measurement = 0;
 
+  Timer t_mon;
+
   std::optional<zmq::socket_t> throughput_socket;
   try {
     throughput_socket = zmqSvc->socket(zmq::PUB);
@@ -684,6 +704,10 @@ extern "C" int allen(
   // and sub-slices to be resubmitted
   std::queue<std::tuple<size_t, size_t, size_t>> write_queue;
   std::queue<std::tuple<size_t, size_t, size_t>> sub_slice_queue;
+
+  // track run changes
+  std::optional<uint> next_run_number;
+  uint current_run_number = 0;
 
   // Lambda to check if any event processors are done processing
   auto check_processors = [&]() {
@@ -838,69 +862,87 @@ extern "C" int allen(
     // Wait for messages to come in from the I/O, monitoring or stream threads
     zmqSvc->poll(&items[0], items.size(), -1);
 
-    // Check if input slices are ready or events have been written
-    for (size_t i = 0; i < n_io; ++i) {
-      if (items[number_of_threads + i].revents & zmq::POLLIN) {
-        auto& socket = std::get<1>(io_workers[i]);
-        auto msg = zmqSvc->receive<std::string>(socket);
-        if (msg == "SLICE") {
-          slice_index = zmqSvc->receive<size_t>(socket);
-          auto n_filled = zmqSvc->receive<size_t>(socket);
-          // FIXME: make the warmup time configurable
-          if (!t && (number_of_repetitions == 1 || slices_processed >= 5 * number_of_threads || !enable_async_io)) {
-            info_cout << "Starting timer for throughput measurement\n";
-            throughput_start = n_events_processed * number_of_repetitions;
-            t = Timer {};
-            previous_time_measurement = t->get_elapsed_time();
+    // If we have a pending run change we must do that before receiving further input from the I/O threads
+    if (next_run_number) {
+      // Only process the run change once all GPU streams have finished
+      if (stream_ready.count() == number_of_threads) {
+        debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
+        updater->update(*next_run_number);
+        current_run_number = *next_run_number;
+        next_run_number.reset();
+      }
+    }
+    else {
+      // Check if input slices are ready or events have been written
+      for (size_t i = 0; i < n_io; ++i) {
+        if (items[number_of_threads + i].revents & zmq::POLLIN) {
+          auto& socket = std::get<1>(io_workers[i]);
+          auto msg = zmqSvc->receive<std::string>(socket);
+          if (msg == "SLICE") {
+            slice_index = zmqSvc->receive<size_t>(socket);
+            auto n_filled = zmqSvc->receive<size_t>(socket);
+            // FIXME: make the warmup time configurable
+            if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
+              info_cout << "Starting timer for throughput measurement\n";
+              throughput_start = n_events_processed * number_of_repetitions;
+              t = Timer {};
+              previous_time_measurement = t->get_elapsed_time();
+            }
+            input_slice_status[*slice_index][0] = SliceStatus::Filled;
+            events_in_slice[*slice_index][0] = n_filled;
+            n_events_read += n_filled;
+            // If we have a slice we must send it for processing before polling remaining I/O threads
+            break;
           }
-          input_slice_status[*slice_index][0] = SliceStatus::Filled;
-          events_in_slice[*slice_index][0] = n_filled;
-          n_events_read += n_filled;
-          // If we have a slice we must send it for processing before polling remaining I/O threads
-          break;
-        }
-        else if (msg == "WRITTEN") {
-          auto slc_idx = zmqSvc->receive<size_t>(socket);
-          auto first_evt = zmqSvc->receive<size_t>(socket);
-          auto buf_idx = zmqSvc->receive<size_t>(socket);
-          auto success = zmqSvc->receive<bool>(socket);
-          auto n_written = zmqSvc->receive<size_t>(socket);
-          n_events_output += n_written;
-          n_output_measured += n_written;
-          if (!success) {
-            error_cout << "Failed to write output events.\n";
+          else if (msg == "RUN") {
+            next_run_number = zmqSvc->receive<uint>(socket);
+            debug_cout << "Requested run change from " << current_run_number << " to " << *next_run_number << std::endl;
+            // guard against double run changes if we have multiple input threads
+            if (disable_run_changes || *next_run_number == current_run_number) next_run_number.reset();
           }
-          input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
+          else if (msg == "WRITTEN") {
+            auto slc_idx = zmqSvc->receive<size_t>(socket);
+            auto first_evt = zmqSvc->receive<size_t>(socket);
+            auto buf_idx = zmqSvc->receive<size_t>(socket);
+            auto success = zmqSvc->receive<bool>(socket);
+            auto n_written = zmqSvc->receive<size_t>(socket);
+            n_events_output += n_written;
+            n_output_measured += n_written;
+            if (!success) {
+              error_cout << "Failed to write output events.\n";
+            }
+            input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
 
-          // check to see if any parts of this slice still need to be written
-          bool slice_finished(true);
-          for (auto const& [k, v] : input_slice_status[slc_idx]) {
-            if (v != SliceStatus::Written) {
-              slice_finished = false;
-              break;
+            // check to see if any parts of this slice still need to be written
+            bool slice_finished(true);
+            for (auto const& [k, v] : input_slice_status[slc_idx]) {
+              if (v != SliceStatus::Written) {
+                slice_finished = false;
+                break;
+              }
+            }
+            if (enable_async_io && slice_finished) {
+              input_slice_status[slc_idx].clear();
+              input_slice_status[slc_idx][0] = SliceStatus::Empty;
+              input_provider->slice_free(slc_idx);
+              events_in_slice[slc_idx].clear();
+              events_in_slice[slc_idx][0] = 0;
+            }
+
+            buffer_manager->returnBufferWritten(buf_idx);
+          }
+          else if (msg == "DONE") {
+            if (((allen_control && stop) || !allen_control) && !io_done) {
+              io_done = true;
+              info_cout << "Input complete\n";
             }
           }
-          if (enable_async_io && slice_finished) {
-            input_slice_status[slc_idx].clear();
-            input_slice_status[slc_idx][0] = SliceStatus::Empty;
-            input_provider->slice_free(slc_idx);
-            events_in_slice[slc_idx].clear();
-            events_in_slice[slc_idx][0] = 0;
-          }
-
-          buffer_manager->returnBufferWritten(buf_idx);
-        }
-        else if (msg == "DONE") {
-          if (((allen_control && stop) || !allen_control) && !io_done) {
+          else {
+            assert(msg == "ERROR");
+            error_cout << "I/O provider failed to decode events into slice.\n";
             io_done = true;
-            info_cout << "Input complete\n";
+            goto loop_error;
           }
-        }
-        else {
-          assert(msg == "ERROR");
-          error_cout << "I/O provider failed to decode events into slice.\n";
-          io_done = true;
-          goto loop_error;
         }
       }
     }
@@ -998,6 +1040,13 @@ extern "C" int allen(
 
     // Check for finished monitoring jobs
     check_monitors();
+
+    // periodically save monitoring histograms
+    if (mon_save_period > 0 && t_mon.get_elapsed_time() >= mon_save_period) {
+      monitor_manager->saveHistograms("monitoringHists.root");
+      info_cout << "Saved monitoring histograms" << std::endl;
+      t_mon.restart();
+    }
 
     if (allen_control && items[control_index].revents & zmq::POLLIN) {
       auto msg = zmqSvc->receive<std::string>(*allen_control);
@@ -1108,6 +1157,9 @@ loop_error:
 
   if (!output_file.empty()) {
     info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_file << "\n";
+  }
+  else {
+    info_cout << "Selected " << n_events_output << "/" << n_events_processed << " events\n";
   }
 
   // Reset device

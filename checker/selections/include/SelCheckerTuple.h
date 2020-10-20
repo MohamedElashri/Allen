@@ -1,9 +1,12 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <algorithm>
 
 #include <Common.h>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
 #include <PV_Definitions.cuh>

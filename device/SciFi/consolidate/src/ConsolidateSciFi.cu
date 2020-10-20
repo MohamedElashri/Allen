@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "ConsolidateSciFi.cuh"
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(

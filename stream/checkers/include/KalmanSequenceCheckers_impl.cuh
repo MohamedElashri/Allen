@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanFilter.cuh"
 #include "ParKalmanVeloOnly.cuh"

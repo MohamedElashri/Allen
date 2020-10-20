@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "LFCreateTracks.cuh"
 
 __global__ void lf_create_tracks::lf_calculate_parametrization(

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "MuonCatboostEvaluator.cuh"
 
 void muon_catboost_evaluator::muon_catboost_evaluator_t::set_arguments_size(

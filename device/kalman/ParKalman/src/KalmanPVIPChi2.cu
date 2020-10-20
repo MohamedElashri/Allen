@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include <Common.h>
 #include <ParKalmanVeloOnly.cuh>
 #include <PV_Definitions.cuh>
@@ -42,7 +45,7 @@ namespace Distance {
 __device__ void associate_and_muon_id(
   ParKalmanFilter::FittedTrack* tracks,
   const bool* is_muon,
-  cuda::span<const PV::Vertex> const& vertices,
+  Allen::device::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table)
 {
   for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
@@ -85,16 +88,13 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
   const bool* event_is_muon = parameters.dev_is_muon + event_tracks_offset;
-  cuda::span<PV::Vertex const> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-                                         *(parameters.dev_number_of_multi_fit_vertices + event_number)};
+  Allen::device::span<PV::Vertex const> vertices {parameters.dev_multi_fit_vertices +
+                                                    event_number * PV::max_number_vertices,
+                                                  *(parameters.dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event.
   Associate::Consolidated::EventTable pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Perform the association for this event.
-  associate_and_muon_id(
-    event_tracks,
-    event_is_muon,
-    vertices,
-    pv_table);
+  associate_and_muon_id(event_tracks, event_is_muon, vertices, pv_table);
 }

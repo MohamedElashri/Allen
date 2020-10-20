@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "VeloKalmanFilter.cuh"
 
 void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(

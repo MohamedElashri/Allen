@@ -1,4 +1,8 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "MuonPopulateHits.cuh"
+#include "FindPermutation.cuh"
 
 void muon_populate_hits::muon_populate_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,

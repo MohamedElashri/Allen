@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB UT_decoding "UTDecoding/src/*cu")
 file(GLOB UT_consolidate "consolidate/src/*cu")
 file(GLOB CompassUT_tracking "compassUT/src/*cu")
@@ -13,6 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/utils/sorting/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/utils/binary_search/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(common/include)

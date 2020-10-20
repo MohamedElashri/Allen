@@ -1,6 +1,9 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "SystemOfUnits.h"
 
 namespace PV {
@@ -100,7 +103,7 @@ namespace PV {
       cov21 = m_cov[4];
       cov22 = m_cov[5];
     }
-    float nTracks = 0; //float since weights are getting added
+    float nTracks = 0; // float since weights are getting added
   };
 
 } // namespace PV

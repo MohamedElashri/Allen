@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "../include/Clustering.h"
 #include <array>
 std::vector<std::vector<uint32_t>> clustering(

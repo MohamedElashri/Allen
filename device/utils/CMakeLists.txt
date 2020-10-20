@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB prefix_sum "prefix_sum/src/*cu")
 
 include_directories(prefix_sum/include/)
@@ -18,6 +21,8 @@ include_directories(${CMAKE_SOURCE_DIR}/device/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 allen_add_device_library(Utils STATIC

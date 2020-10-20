@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "VeloConsolidateTracks.cuh"
 
 void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(

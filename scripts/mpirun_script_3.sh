@@ -1,4 +1,7 @@
 #!/bin/bash
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 
 ALLEN_RUN="../build/Allen --mep /home/scratch/raaij/mep/upgrade_mc_minbias_scifi_v5_pf3000.mep --events-per-slice 1000 --non-stop 1 --with-mpi $1:2,$2:1 -c 0 -v 3 -t 10 -s 18 --output-file tcp://192.168.1.101:35000 --device 01:00.0"
 

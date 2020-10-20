@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "SystemOfUnits.h"
@@ -42,6 +45,10 @@ namespace LookingForward {
   constexpr int max_number_of_hits_in_window = 32;
   constexpr int triplet_seeding_block_dim_x = 32;
 
+  // Constants to access shared_xs
+  constexpr int x1_hits_shift = 2 * LookingForward::max_number_of_hits_in_window;
+  constexpr int x2_hits_shift = 4 * LookingForward::max_number_of_hits_in_window;
+
   constexpr int n_triplet_seeds = 2;
   constexpr int maximum_number_of_triplets_per_thread = 8;
   constexpr int maximum_number_of_candidates_per_ut_track = 12;
@@ -52,7 +59,7 @@ namespace LookingForward {
   constexpr int num_atomics = 1;
 
   // z at the center of the magnet
-  constexpr float z_magnet = 5212.38f; // FIXME_GEOMETRY_HARDCODING
+  constexpr float z_magnet = 5212.38f;      // FIXME_GEOMETRY_HARDCODING
   constexpr float z_last_UT_plane = 2642.f; // FIXME_GEOMETRY_HARDCODING
 
   // z difference between reference plane and end of SciFi

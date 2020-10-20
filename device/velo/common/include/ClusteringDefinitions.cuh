@@ -1,6 +1,9 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include <cstdint>
 #include <vector>
 #include <cassert>
@@ -141,7 +144,8 @@ struct VeloGeometry {
   }
 };
 
-__device__ __host__ inline uint32_t get_channel_id(const unsigned sensor, const unsigned chip, const unsigned col, const unsigned row)
+__device__ __host__ inline uint32_t
+get_channel_id(const unsigned sensor, const unsigned chip, const unsigned col, const unsigned row)
 {
   return (sensor << Allen::VPChannelID::sensorBits) | (chip << Allen::VPChannelID::chipBits) |
          (col << Allen::VPChannelID::colBits) | row;

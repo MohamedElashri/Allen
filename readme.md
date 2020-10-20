@@ -5,7 +5,7 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------------
-The project requires CMake 3.12, Python3 and a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support).
+The project requires CMake 3.12, Python3, a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support), boost, ZeroMQ and the nlohmann json library (https://github.com/nlohmann/json).
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
@@ -254,9 +254,14 @@ The results of the tests are published in this [mattermost channel](https://matt
 For local throughput measurements, we recommend the following settings in Allen standalone mode:
 
 ```console
-nvprof ./Allen -f /scratch/allen_data/minbias_mag_down -n 1000 -m 700 -r 100 -t 12 -c 0
+./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16 -c 0
 ```
 
+Calling Allen with the Nvidia profiler will give information on how much time is spent on which kernel call (note that a slowdown in throughput of around 7% is observed on the master branch when running nvprof, possibly due to the additional data being copied to and from the device):
+
+```console
+nvprof ./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16 -c 0
+```
 
 ### Links to more readmes
 The following readmes explain various aspects of Allen:

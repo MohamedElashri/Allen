@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -17,10 +20,12 @@ include_directories(${CMAKE_SOURCE_DIR}/device/raw_banks/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 
 file(GLOB selection_checker_sources "src/*.cpp")
 
-add_library(SelChecking STATIC
+allen_add_host_library(SelChecking STATIC
   ${selection_checker_sources}
 )
 set_target_properties(SelChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)

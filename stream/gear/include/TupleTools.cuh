@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <tuple>
@@ -116,3 +119,33 @@ auto tuple_ref_by_inheritance(Tuple&& tuple)
 {
   return std::get<tuple_ref_index<Base, typename std::decay<Tuple>::type>::value>(std::forward<Tuple>(tuple));
 }
+
+/** @brief Get the index/position in a tuple of a specified type
+ *
+ *  index_of_v<B, std::tuple<A, B, C>>
+ * yields 1 etc.
+ *
+ * Implementation based on
+ *
+ * https://stackoverflow.com/questions/18063451/get-index-of-a-tuple-elements-type
+ */
+template<typename T, typename Tuple>
+struct index_of;
+
+template<typename... Ts>
+inline constexpr std::size_t index_of_v = index_of<Ts...>::value;
+
+template<typename T>
+struct index_of<T, std::tuple<>> {
+  static constexpr std::size_t value {0};
+};
+
+template<typename T, typename... Ts>
+struct index_of<T, std::tuple<T, Ts...>> {
+  static constexpr std::size_t value {0};
+};
+
+template<typename T, typename U, typename... Ts>
+struct index_of<T, std::tuple<U, Ts...>> {
+  static constexpr std::size_t value {1 + index_of_v<T, std::tuple<Ts...>>};
+};

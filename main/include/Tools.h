@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <cmath>
@@ -7,7 +10,7 @@
 #include <vector>
 #include <cfloat>
 #include <cstdint>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 #include "ClusteringDefinitions.cuh"
 #include "MuonDefinitions.cuh"

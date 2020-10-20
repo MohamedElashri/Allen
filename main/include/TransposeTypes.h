@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <vector>
@@ -8,7 +11,7 @@
 #include <SystemOfUnits.h>
 #include <Event/RawBank.h>
 #include <AllenUnits.h>
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 #include <mdf_header.hpp>
 
 namespace {

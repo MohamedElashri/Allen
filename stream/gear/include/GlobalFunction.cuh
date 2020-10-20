@@ -1,10 +1,13 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include "ArgumentManager.cuh"
 #include "Property.cuh"
 #include "HostFunction.cuh"
 #include "Invoke.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include <functional>
 #include <utility>
 #include <tuple>

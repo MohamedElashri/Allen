@@ -1,12 +1,18 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB SOURCES "src/*.cpp")
 
 allen_add_host_library(NonEventData ${SOURCES})
 
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 
 target_link_libraries(NonEventData
   HostClustering
-  CudaCommon
+  Backend
   Common)
 
 target_include_directories(NonEventData PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -31,4 +37,7 @@ target_include_directories(NonEventData PUBLIC
   ${CMAKE_SOURCE_DIR}/host/velo/clustering/include
   ${CMAKE_SOURCE_DIR}/host/SciFi/MomentumForward/include
   ${CMAKE_SOURCE_DIR}/device/SciFi/looking_forward/common/include/
-  ${CMAKE_SOURCE_DIR}/main/include)
+  ${CMAKE_SOURCE_DIR}/main/include
+  ${CMAKE_SOURCE_DIR}/stream/gear/include
+  ${CMAKE_SOURCE_DIR}/external)
+

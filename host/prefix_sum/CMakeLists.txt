@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB host_prefix_sum "src/*cpp")
 
 include_directories(include)
@@ -70,6 +73,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})

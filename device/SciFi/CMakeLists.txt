@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 file(GLOB scifi_preprocessing "preprocessing/src/*cu")
 file(GLOB scifi_looking_forward "looking_forward/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
@@ -21,6 +24,7 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/host/SciFi/LookingForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/host/SciFi/MomentumForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(common/include)
 include_directories(preprocessing/include)
 include_directories(looking_forward/include)

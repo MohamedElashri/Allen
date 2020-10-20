@@ -1,4 +1,7 @@
 #!/usr/bin/python
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 
 # Script to split up data by occupancy
 # using raw size of SciFi raw banks as measure

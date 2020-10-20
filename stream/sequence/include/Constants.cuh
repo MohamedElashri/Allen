@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <array>
@@ -5,7 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include <gsl/gsl>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 
 // Forward declarations
@@ -17,7 +20,7 @@ namespace Muon {
   namespace Constants {
     struct FieldOfInterest;
   }
-}
+} // namespace Muon
 namespace LookingForward {
   struct Constants;
 }
@@ -27,7 +30,7 @@ namespace ParKalmanFilter {
 namespace MatchUpstreamMuon {
   struct MuonChambers;
   struct SearchWindows;
-}
+} // namespace MatchUpstreamMuon
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.

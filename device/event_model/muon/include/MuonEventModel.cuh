@@ -1,6 +1,9 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 namespace Muon {
   /**
@@ -30,7 +33,8 @@ namespace Muon {
   public:
     constexpr static unsigned element_size = 5 * sizeof(float) + 4 * sizeof(int) + sizeof(unsigned);
 
-    __host__ __device__ Hits_t(T* base_pointer, const unsigned total_estimated_number_of_clusters, const unsigned offset = 0) :
+    __host__ __device__
+    Hits_t(T* base_pointer, const unsigned total_estimated_number_of_clusters, const unsigned offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
       m_total_number_of_hits(total_estimated_number_of_clusters), m_offset(offset)
     {}

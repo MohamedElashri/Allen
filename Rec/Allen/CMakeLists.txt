@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 ################################################################################
 # Package: Allen
 ################################################################################
@@ -52,6 +55,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 
 gaudi_subdir(Allen v1r0)
 
@@ -86,8 +90,4 @@ gaudi_add_module(AllenWrapper
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()
-target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
-
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  target_compile_definitions(AllenWrapper PRIVATE CPU)
-endif()
+target_compile_definitions(AllenWrapper PRIVATE -D${TARGET_DEFINITION})

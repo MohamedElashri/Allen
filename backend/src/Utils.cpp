@@ -1,15 +1,17 @@
-#include "Tools.h"
-#include "CudaCommon.h"
-#include <iomanip>
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 
-void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffer, size)); }
+#include "BackendCommon.h"
+#include <iomanip>
+#include <iostream>
+#include "Logger.h"
 
 #ifdef TARGET_DEVICE_CPU
 
 #include <fstream>
 #include <regex>
 
-void reset() {}
 void print_gpu_memory_consumption() {}
 
 #ifdef __linux__
@@ -36,13 +38,9 @@ std::tuple<bool, std::string> set_device(int, size_t)
 std::tuple<bool, std::string> set_device(int, size_t) { return {true, "CPU"}; }
 #endif // linux-dependent CPU detection
 
-std::tuple<bool, int> get_device_id(std::string) {
-  return {true, 0};
-}
+std::tuple<bool, int> get_device_id(std::string) { return {true, 0}; }
 
 #else
-
-void reset() { cudaCheck(cudaDeviceReset()); }
 
 /**
  * @brief Prints the memory consumption of the device.
@@ -103,7 +101,8 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
   return {true, device_properties.name};
 }
 
-std::tuple<bool, int> get_device_id(std::string pci_bus_id) {
+std::tuple<bool, int> get_device_id(std::string pci_bus_id)
+{
   int device = 0;
   try {
     cudaCheck(cudaDeviceGetByPCIBusId(&device, pci_bus_id.c_str()));

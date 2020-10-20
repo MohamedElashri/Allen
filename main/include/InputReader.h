@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #ifndef INPUTREADER_H
 #define INPUTREADER_H 1
 
@@ -9,7 +12,7 @@
 #include <algorithm>
 #include <unordered_set>
 #include <gsl/gsl>
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 struct Reader {
   std::string folder_name;

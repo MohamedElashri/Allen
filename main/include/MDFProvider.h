@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <thread>
@@ -24,7 +27,7 @@
 #include <Event/RawBank.h>
 
 #include "Transpose.h"
-#include <CudaCommon.h>
+#include <BackendCommon.h>
 
 namespace {
   using namespace Allen::Units;
@@ -52,6 +55,8 @@ struct MDFProviderConfig {
 
   // number of loops over input data
   size_t n_loops = 0;
+
+  bool split_by_run = false;
 };
 
 /**
@@ -244,11 +249,12 @@ public:
    *
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
     boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
+    uint run_no = 0;
     std::unique_lock<std::mutex> lock {m_transpose_mut};
     if (!m_read_error) {
       // If no transposed slices are ready for processing, wait until
@@ -268,13 +274,16 @@ public:
       if (!m_read_error && !m_transposed.empty() && (!timeout || (timeout && !timed_out))) {
         std::tie(slice_index, n_filled) = m_transposed.front();
         m_transposed.pop_front();
+        if (n_filled > 0) {
+          run_no = std::get<0>(m_event_ids[slice_index].front());
+        }
       }
     }
 
     // Check if I/O and transposition is done and return a slice index
     auto n_writable = count_writable();
     done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
-    return {!m_read_error, done, timed_out, slice_index, n_filled};
+    return {!m_read_error, done, timed_out, slice_index, n_filled, run_no};
   }
 
   /**
@@ -302,7 +311,7 @@ public:
         m_slice_to_buffer[slice_index] = -1;
 
         if (
-          status.work_counter == 0 &&
+          status.work_counter == 0 && std::get<0>(m_buffers[i_read]) == std::get<3>(m_buffers[i_read]) &&
           (std::find(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), i_read) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
@@ -443,7 +452,8 @@ private:
         m_bank_ids,
         m_banks_count,
         m_event_ids[*slice_index],
-        this->events_per_slice());
+        this->events_per_slice(),
+        m_config.split_by_run);
       this->debug_output(
         "Transposed " + std::to_string(*slice_index) + " " + std::to_string(good) + " " +
           std::to_string(transpose_full) + " " + std::to_string(n_transposed),
@@ -463,24 +473,22 @@ private:
         m_transposed.emplace_back(*slice_index, n_transposed);
       }
       m_transpose_cond.notify_one();
-
       // Check if the read buffer is now empty. If it is, it can be
       // reused, otherwise give it to another transpose thread once a
       // new target slice is available
-      if (n_transposed == std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read])) {
-        slice_index.reset();
-        {
-          std::unique_lock<std::mutex> lock {m_prefetch_mut};
-          auto& status = m_buffer_status[i_read];
-          --status.work_counter;
-        }
-      }
-      else {
+      if (n_transposed < std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read])) {
         // Put this prefetched slice back on the prefetched queue so
         // somebody else can finish it
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
-        std::get<3>(m_buffers[i_read]) = n_transposed;
         m_prefetched.push_front(i_read);
+      }
+
+      slice_index.reset();
+      {
+        std::unique_lock<std::mutex> lock {m_prefetch_mut};
+        auto& status = m_buffer_status[i_read];
+        --status.work_counter;
+        std::get<3>(m_buffers[i_read]) += n_transposed;
       }
     }
   }

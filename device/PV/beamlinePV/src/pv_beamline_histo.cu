@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "pv_beamline_histo.cuh"
 
 void pv_beamline_histo::pv_beamline_histo_t::set_arguments_size(

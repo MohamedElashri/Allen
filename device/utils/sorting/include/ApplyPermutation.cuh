@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 /*!
  *  \brief     apply_permutation sorting tool.
  *  \author    Daniel Hugo Campora Perez
@@ -7,7 +10,7 @@
 
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include <cassert>
 
 /**

@@ -1,6 +1,9 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 #ifdef KALMAN_DOUBLE_PRECISION
 using KalmanFloat = double;
@@ -426,7 +429,7 @@ namespace ParKalmanFilter {
     const SquareMatrix<true, 5>& C2,
     Vector<5>& x,
     SquareMatrix<true, 5>& C);
-  
+
   __device__ __host__ inline Vector<5> operator*(const Vector<10>& M, const Vector<2>& a);
 
 } // namespace ParKalmanFilter

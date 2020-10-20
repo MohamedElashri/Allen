@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 from ROOT import gStyle
 from ROOT import gROOT
 from ROOT import TStyle

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "Timer.h"
 
 Timer::Timer() : accumulated_elapsed_time(std::chrono::duration<double>::zero()) { start(); }

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <unordered_set>
@@ -42,7 +45,7 @@ struct IInputProvider {
    *
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
-  virtual std::tuple<bool, bool, bool, size_t, size_t> get_slice(
+  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
     boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) = 0;
 
   /**
@@ -123,7 +126,7 @@ public:
    *
    * @return     tuple of (succes, eof, timed_out, slice_index, n_filled)
    */
-  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
     boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     return static_cast<Derived<Banks...>*>(this)->get_slice(timeout);

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #include "SciFiRawBankDecoderV6.cuh"
 #include <MEPTools.h>
 #include "assert.h"

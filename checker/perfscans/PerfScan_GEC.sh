@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 outloc=../output/perfscans
 cd ../..
 cp cuda/global_event_cut/include/GlobalEventCutConfiguration.cuh bkpfile.bkp

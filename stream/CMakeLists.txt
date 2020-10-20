@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 include_directories(gear/include)
 include_directories(memory_manager/include)
 include_directories(scheduler/include)
@@ -57,6 +60,8 @@ include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Postscale/include)
 include_directories(${CMAKE_SOURCE_DIR}/mdf/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
@@ -84,7 +89,6 @@ add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/Sequence.js
 add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE
-  CudaCommon
   Associate
   Velo
   AllenPatPV
@@ -102,11 +106,12 @@ target_link_libraries(Stream PRIVATE
   Utils
   Examples
   HostDataProvider
-  HostInitEventList)
+  HostInitEventList
+  Backend)
 
-if (USE_DD4HEP)
-  get_target_property(GAUDIKERNEL_INCLUDES Gaudi::GaudiKernel INTERFACE_INCLUDE_DIRECTORIES)
-  target_include_directories(Stream PUBLIC "${GAUDIKERNEL_INCLUDES}")
+# FIXME: this hack will not be needed once all upstream projects are migrated to new cmake configuration
+if (TARGET Gaudi::GaudiKernel)
+  target_link_libraries(Stream PRIVATE Gaudi::GaudiKernel)
 endif()
 
 if (ROOT_FOUND)

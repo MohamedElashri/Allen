@@ -84,7 +84,7 @@ velo_sequence = VeloSequence()
 We should now add the SAXPY algorithm. We can use the interactive session to explore what it requires:
 
 ```sh
->>> algorithms.saxpy_t
+>>> saxpy_t
 class AlgorithmRepr : DeviceAlgorithm
  inputs: ('host_number_of_selected_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
  outputs: ('dev_saxpy_output_t',)
@@ -94,7 +94,7 @@ class AlgorithmRepr : DeviceAlgorithm
 The inputs should be passed into our sequence to be able to instantiate `saxpy_t`. Knowing which inputs to pass is up to the developer. For this one, let's just pass:
 
 ```sh
-saxpy = algorithms.saxpy_t(
+saxpy = saxpy_t(
   name = "saxpy",
   host_number_of_selected_events_t = velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
@@ -115,7 +115,7 @@ from definitions.VeloSequence import VeloSequence
 
 velo_sequence = VeloSequence()
 
-saxpy = algorithms.saxpy_t(
+saxpy = saxpy_t(
   name = "saxpy",
   host_number_of_selected_events_t = velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),

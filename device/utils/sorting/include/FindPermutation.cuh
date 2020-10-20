@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 /*!
  *  \brief     find_permutation sorting tool.
  *  \author    Daniel Hugo Campora Perez
@@ -7,7 +10,7 @@
 
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include <cassert>
 
 /**
@@ -21,8 +24,7 @@ __host__ __device__ void find_permutation(
   unsigned* hit_permutations,
   const T& sort_function)
 {
-  FOR_STATEMENT(unsigned, i, number_of_hits)
-  {
+  for (unsigned i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     const unsigned hit_index = hit_start + i;
 
     // Find out local position

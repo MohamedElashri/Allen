@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <iostream>
@@ -7,7 +10,7 @@
 #include <tuple>
 
 #include "Common.h"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Logger.h"
 #include "Timer.h"
 #include "Tools.h"
@@ -30,14 +33,14 @@ struct Stream {
   using scheduler_t = Scheduler<configured_sequence_t, configured_arguments_t, configured_sequence_arguments_t>;
 
   Stream() = default;
-   
+
   // Dynamic scheduler
   scheduler_t scheduler;
 
   // Stream datatypes
   cudaStream_t cuda_stream;
   cudaEvent_t cuda_generic_event;
-  
+
   // Launch options
   bool do_print_memory_manager;
 
@@ -65,7 +68,7 @@ struct Stream {
     const Constants& param_constants);
 
   void set_host_buffer_manager(HostBuffersManager* buffers_manager);
-  
+
   std::vector<bool> reconstructed_events() const;
 
   void run_monte_carlo_test(

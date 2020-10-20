@@ -1,10 +1,13 @@
+/*****************************************************************************\
+* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+\*****************************************************************************/
 #pragma once
 
 #include <stdint.h>
 #include <vector>
 #include <ostream>
 #include <sstream>
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "Common.h"
 #include "Logger.h"
 #include "States.cuh"
