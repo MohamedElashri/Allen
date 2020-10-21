@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           #
+###############################################################################
 class Sequence():
     def __init__(self, *args):
         self.__sequence = OrderedDict()

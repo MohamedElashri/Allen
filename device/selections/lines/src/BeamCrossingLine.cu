@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "BeamCrossingLine.cuh"
 #include "Event/ODIN.h"
 

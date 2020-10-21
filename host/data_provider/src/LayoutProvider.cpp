@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "LayoutProvider.h"
 
 void layout_provider::layout_provider_t::set_arguments_size(

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "DiMuonSoftLine.cuh"
 
 INSTANTIATE_LINE(di_muon_soft_line::di_muon_soft_line_t, di_muon_soft_line::Parameters)

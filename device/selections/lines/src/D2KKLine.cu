@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "D2KKLine.cuh"
 
 INSTANTIATE_LINE(d2kk_line::d2kk_line_t, d2kk_line::Parameters)

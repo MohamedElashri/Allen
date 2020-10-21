@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "DisplacedDiMuonLine.cuh"
 
 INSTANTIATE_LINE(displaced_di_muon_line::displaced_di_muon_line_t, displaced_di_muon_line::Parameters)

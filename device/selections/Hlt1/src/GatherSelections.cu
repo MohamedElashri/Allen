@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "GatherSelections.cuh"
 #include "SelectionsEventModel.cuh"
 #include "DeterministicScaler.cuh"

@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "TwoTrackMVALine.cuh"
 
 INSTANTIATE_LINE(two_track_mva_line::two_track_mva_line_t, two_track_mva_line::Parameters)

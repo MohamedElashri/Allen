@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "D2PiPiLine.cuh"
 
 INSTANTIATE_LINE(d2pipi_line::d2pipi_line_t, d2pipi_line::Parameters)

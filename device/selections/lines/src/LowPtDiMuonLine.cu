@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "LowPtDiMuonLine.cuh"
 
 INSTANTIATE_LINE(low_pt_di_muon_line::low_pt_di_muon_line_t, low_pt_di_muon_line::Parameters)
