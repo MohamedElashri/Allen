@@ -1,3 +1,4 @@
+
 Velo tracks:
 TrackChecker output                               :      2030/   239008   0.85% ghosts
 01_velo                                           :    100543/   102077  98.50% ( 98.51%),      2163 (  2.11%) clones, pur  99.70%, hit eff  96.63%
@@ -69,26 +70,25 @@ Ghost tracks identified as muon with isMuon:                              182/  
 
 
 HLT1 rates:
-ErrorEvent:            0/  1000, (    0.00 +/-     0.00) kHz
-PassThrough:        1000/  1000, (30000.00 +/-     0.00) kHz
-NoBeams:               0/  1000, (    0.00 +/-     0.00) kHz
-BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
-BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
-BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
-ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
-ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
-GECPassthrough:      856/  1000, (25680.00 +/-   333.07) kHz
-VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
-TrackMVA:            212/  1000, ( 6360.00 +/-   387.75) kHz
-TrackMuonMVA:          5/  1000, (  150.00 +/-    66.91) kHz
-SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
-LowPtMuon:           121/  1000, ( 3630.00 +/-   309.39) kHz
-TwoTrackMVA:         377/  1000, (11310.00 +/-   459.77) kHz
-DiMuonHighMass:       10/  1000, (  300.00 +/-    94.39) kHz
-DiMuonLowMass:        17/  1000, (  510.00 +/-   122.64) kHz
-LowPtDiMuon:          41/  1000, ( 1230.00 +/-   188.11) kHz
-DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz
-D2KPi:                31/  1000, (  930.00 +/-   164.42) kHz
-D2PiPi:               26/  1000, (  780.00 +/-   150.97) kHz
-D2KK:                 18/  1000, (  540.00 +/-   126.13) kHz
-Inclusive:          1000/  1000, (30000.00 +/-     0.00) kHz
+track_mva_line:              212/  1000, ( 6360.00 +/-   387.75) kHz
+two_track_mva_line:          377/  1000, (11310.00 +/-   459.77) kHz
+no_beam_line:                  0/  1000, (    0.00 +/-     0.00) kHz
+beam_one_line:                 0/  1000, (    0.00 +/-     0.00) kHz
+beam_two_line:                 0/  1000, (    0.00 +/-     0.00) kHz
+both_beams_line:               2/  1000, (   60.00 +/-    42.38) kHz
+velo_micro_bias_line:          0/  1000, (    0.00 +/-     0.00) kHz
+odin_lumi_line:                0/  1000, (    0.00 +/-     0.00) kHz
+odin_no_bias:                  0/  1000, (    0.00 +/-     0.00) kHz
+single_high_pt_muon_line:      4/  1000, (  120.00 +/-    59.88) kHz
+low_pt_muon_line:            121/  1000, ( 3630.00 +/-   309.39) kHz
+d2kk_line:                    18/  1000, (  540.00 +/-   126.13) kHz
+d2kpi_line:                   31/  1000, (  930.00 +/-   164.42) kHz
+d2pipi_line:                  26/  1000, (  780.00 +/-   150.97) kHz
+di_muon_high_mass_line:       10/  1000, (  300.00 +/-    94.39) kHz
+di_muon_low_mass_line:        17/  1000, (  510.00 +/-   122.64) kHz
+di_muon_soft_line:            10/  1000, (  300.00 +/-    94.39) kHz
+low_pt_di_muon_line:          41/  1000, ( 1230.00 +/-   188.11) kHz
+track_muon_mva_line:           5/  1000, (  150.00 +/-    66.91) kHz
+gec_passthrough_line:        856/  1000, (25680.00 +/-   333.07) kHz
+passthrough_line:           1000/  1000, (30000.00 +/-     0.00) kHz
+Inclusive:                  1000/  1000, (30000.00 +/-     0.00) kHz
