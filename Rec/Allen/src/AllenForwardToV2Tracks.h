@@ -1,6 +1,5 @@
-
-/***************************************************************************** \
- * or submit itself to any jurisdiction.                                       *
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #ifndef ALLENFORWARDTOV2TRACKS_H
 #define ALLENFORWARDTOV2TRACKS_H
