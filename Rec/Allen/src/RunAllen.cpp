@@ -103,12 +103,13 @@ StatusCode RunAllen::initialize()
     print_memory_usage,
     start_event_offset,
     reserve_mb,
+    reserve_mb, // host memory same as "device"
     m_constants,
     configuration_reader.params());
 
   // Initialize host buffers (where Allen output is stored)
   m_host_buffers_manager.reset(new HostBuffersManager(
-    m_n_buffers, 2, m_do_check, m_stream_wrapper->number_of_hlt1_lines, m_stream_wrapper->errorevent_line));
+    m_n_buffers, 2, m_do_check, m_stream_wrapper->errorevent_line));
   m_stream_wrapper->initialize_streams_host_buffers_manager(m_host_buffers_manager.get());
 
   // Initialize input provider
@@ -121,8 +122,8 @@ StatusCode RunAllen::initialize()
 
   // Get HLT1 selection names from configuration and initialize rate counters
   m_line_names = configuration_reader.params()["configured_lines"];
-  m_hlt1_line_rates.reserve(m_stream_wrapper->number_of_hlt1_lines);
-  for (unsigned i = 0; i < m_stream_wrapper->number_of_hlt1_lines; ++i) {
+  m_hlt1_line_rates.reserve(m_line_names.size());
+  for (unsigned i = 0; i < m_line_names.size(); ++i) {
     const auto it = m_line_names.find(std::to_string(i));
     const std::string name = "Hlt1" + it->second + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
@@ -178,9 +179,9 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   // Get line decisions from DecReports
   // First two words contain the TCK and taskID, then one word per HLT1 line
   LHCb::HltDecReports reports {};
-  reports.reserve(buffer->host_number_of_hlt1_lines);
+  reports.reserve(buffer->host_number_of_lines);
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
-  for (unsigned int i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
+  for (unsigned int i = 0; i < buffer->host_number_of_lines; i++) {
     const uint32_t line_report = buffer->host_dec_reports[2 + i];
     const bool dec = line_report & dec_mask;
     const auto it = m_line_names.find(std::to_string(i));
