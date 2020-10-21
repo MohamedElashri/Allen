@@ -121,8 +121,17 @@ outputs and properties. However, certain inputs and outputs are assumed and must
 
 * `(HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events)`: (Total) number of events.
 * `(DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list)`: Event list that will be applied the selection.
+* `(DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input)`: ODIN raw inputs. Needed for pre-scalers.
+* `(DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets)`: ODIN raw input offsets. Needed for pre-scalers.
+* `(DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout)`: MEP layout. Needed to properly read ODIN input.
 * `(DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions)`: Will contain the results of the selection.
 * `(DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets)`: Will contain the offsets to each event decisions.
+* `(HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler)`: Will contain the post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling.
+* `(HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash)`: Will contain the hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling.
+* `(PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler)`: Pre-scaling factor.
+* `(PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler)`: Post-scaling factor.
+* `(PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string)`: Pre-scaler hash string. Must not be empty.
+* `(PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string)`: Post-scaler hash string. Must not be empty.
 
 In order to define a selection algorithm, one must define a struct as follows:
 
@@ -176,13 +185,26 @@ Below are three examples of lines.
     namespace example_one_track_line {
       DEFINE_PARAMETERS(
         Parameters,
+        // Commonly required inputs, outputs and properties
         (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+        (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+        (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+        (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+        (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+        (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+        (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+        (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+        (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+         pre_scaler_hash_string),
+        (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+         post_scaler_hash_string),
+        // Line-specific inputs and properties
         (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
         (DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack), dev_tracks),
         (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
-        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
-        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
         (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
         (PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float), minIPChi2))
 
@@ -235,13 +257,26 @@ Below are three examples of lines.
     namespace example_two_track_line {
       DEFINE_PARAMETERS(
         Parameters,
+        // Commonly required inputs, outputs and properties
         (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+        (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+        (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+        (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+        (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+        (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+        (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+        (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+        (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+         pre_scaler_hash_string),
+        (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+         post_scaler_hash_string),
+        // Line-specific inputs and properties
         (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
         (DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex), dev_svs),
         (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
-        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
-        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
         (PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float), minComboPt),
         (PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float), minTrackPt),
         (PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float), minTrackIPChi2))
@@ -303,13 +338,26 @@ Below are three examples of lines.
     namespace velo_micro_bias_line {
       DEFINE_PARAMETERS(
         Parameters,
+        // Commonly required inputs, outputs and properties
         (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-        (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
         (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-        (DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned), dev_offsets_velo_tracks),
-        (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
+        (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+        (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+        (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
         (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
         (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+        (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+        (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+        (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+        (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+        (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+         pre_scaler_hash_string),
+        (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+         post_scaler_hash_string),
+        // Line-specific inputs and properties
+        (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
+        (DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned), dev_offsets_velo_tracks),
+        (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
         (PROPERTY(min_velo_tracks_t, "min_velo_tracks", "Minimum number of VELO tracks", unsigned), min_velo_tracks))
 
       struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
@@ -379,7 +427,9 @@ configuration file.
 
     ```python
     hlt1_sequence = HLT1Sequence(
+        layout_provider=velo_sequence["mep_layout"],
         initialize_lists=velo_sequence["initialize_lists"],
+        full_event_list=velo_sequence["full_event_list"],
         velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
         velo_kalman_filter=pv_sequence["velo_kalman_filter"],
         prefix_sum_offsets_velo_track_hit_number=velo_sequence[
@@ -395,7 +445,6 @@ configuration file.
             "prefix_sum_scifi_track_hit_number"],
         scifi_consolidate_tracks=forward_sequence["scifi_consolidate_tracks_t"],
         is_muon=muon_sequence["is_muon_t"],
-	full_event_list=velo_sequence["full_event_list"],
         # Disable default lines
         add_default_lines=False)
 
@@ -411,7 +460,12 @@ configuration file.
         dev_tracks_t=hlt1_sequence["kalman_velo_only"].dev_kf_tracks_t(),
         dev_event_list_t=velo_sequence["initialize_lists"].dev_event_list_t(),
         dev_track_offsets_t=forward_sequence["prefix_sum_forward_tracks"].
-        dev_output_buffer_t())
+        dev_output_buffer_t(),
+        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
+        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
+        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        pre_scaler_hash_string="example_one_track_line_pre",
+        post_scaler_hash_string="example_one_track_line_post")
 
     example_two_track_line = algorithms.example_two_track_line_t(
         name="example_two_track_line",
@@ -421,7 +475,12 @@ configuration file.
         dev_svs_t=hlt1_sequence["fit_secondary_vertices"].dev_consolidated_svs_t(),
         dev_event_list_t=velo_sequence["initialize_lists"].dev_event_list_t(),
         dev_sv_offsets_t=hlt1_sequence["prefix_sum_secondary_vertices"].
-        dev_output_buffer_t())
+        dev_output_buffer_t(),
+        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
+        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
+        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        pre_scaler_hash_string="example_two_track_line_pre",
+        post_scaler_hash_string="example_two_track_line_post")
 
     velo_micro_bias_line = velo_micro_bias_line_t(
         name="velo_micro_bias_line",
@@ -429,11 +488,17 @@ configuration file.
         dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
         dev_event_list_t=velo_sequence["full_event_list"].dev_event_list_t(),
         dev_offsets_velo_tracks_t=velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
-        dev_offsets_velo_track_hit_number_t=velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
+        dev_offsets_velo_track_hit_number_t=velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
+        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
+        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
+        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        pre_scaler_hash_string="velo_micro_bias_line_pre",
+        post_scaler_hash_string="velo_micro_bias_line_post")
 
     lines = (example_one_track_line, example_two_track_line, velo_micro_bias_line)
+
     gatherer = make_selection_gatherer(
-        lines, velo_sequence["initialize_lists"], hlt1_sequence["odin_banks"], name="gather_selections")
+        lines, velo_sequence["initialize_lists"], hlt1_sequence["layout_provider"], hlt1_sequence["odin_banks"], name="gather_selections")
 
     # Compose final sequence with lines
     extend_sequence(compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
