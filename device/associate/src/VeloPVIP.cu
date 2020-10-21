@@ -26,8 +26,7 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(velo_pv_ip)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(velo_pv_ip)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 namespace Distance {

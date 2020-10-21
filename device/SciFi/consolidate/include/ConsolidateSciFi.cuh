@@ -15,7 +15,8 @@ namespace scifi_consolidate_tracks {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned), host_accumulated_number_of_hits_in_scifi_tracks),
+    (HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned),
+     host_accumulated_number_of_hits_in_scifi_tracks),
     (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),

@@ -37,7 +37,7 @@ namespace scifi_copy_track_hit_number {
       HostBuffers&,
       cudaStream_t& stream,
       cudaEvent_t&) const;
-    
+
   private:
     Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
   };

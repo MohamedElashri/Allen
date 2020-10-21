@@ -167,7 +167,7 @@ protected:
 
 /**
  * @brief DeviceDimension specialization.
- * 
+ *
  *        A separate specialization is provided for DeviceDimensions to support
  *        conversion to dim3.
  */

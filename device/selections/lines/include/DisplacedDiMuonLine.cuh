@@ -23,15 +23,19 @@ namespace displaced_di_muon_line {
     (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
     (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
     (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
-    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string), pre_scaler_hash_string),
-    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+     pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+     post_scaler_hash_string),
     (PROPERTY(minDispTrackPt_t, "minDispTrackPt", "minDispTrackPt description", float), minDispTrackPt),
     (PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float), maxVertexChi2),
     (PROPERTY(dispMinIPChi2_t, "dispMinIPChi2", "dispMinIPChi2 description", float), dispMinIPChi2),
     (PROPERTY(dispMinEta_t, "dispMinEta", "dispMinEta description", float), dispMinEta),
     (PROPERTY(dispMaxEta_t, "dispMaxEta", "dispMaxEta description", float), dispMaxEta))
 
-  struct displaced_di_muon_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<displaced_di_muon_line_t, Parameters> {
+  struct displaced_di_muon_line_t : public SelectionAlgorithm,
+                                    Parameters,
+                                    TwoTrackLine<displaced_di_muon_line_t, Parameters> {
     __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
   private:

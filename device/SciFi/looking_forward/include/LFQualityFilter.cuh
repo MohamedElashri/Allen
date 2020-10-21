@@ -33,7 +33,8 @@ namespace lf_quality_filter {
     (DEVICE_OUTPUT(dev_lf_quality_of_tracks_t, float), dev_scifi_quality_of_tracks),
     (DEVICE_OUTPUT(dev_atomics_scifi_t, unsigned), dev_atomics_scifi),
     (DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits), dev_scifi_tracks),
-    (DEVICE_OUTPUT(dev_scifi_lf_y_parametrization_length_filter_t, float), dev_scifi_lf_y_parametrization_length_filter),
+    (DEVICE_OUTPUT(dev_scifi_lf_y_parametrization_length_filter_t, float),
+     dev_scifi_lf_y_parametrization_length_filter),
     (DEVICE_OUTPUT(dev_scifi_lf_parametrization_consolidate_t, float), dev_scifi_lf_parametrization_consolidate),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 

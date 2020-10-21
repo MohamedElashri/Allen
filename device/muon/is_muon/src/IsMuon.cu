@@ -26,8 +26,9 @@ void is_muon::is_muon_t::operator()(
   initialize<dev_muon_track_occupancies_t>(arguments, 0, stream);
 
   global_function(is_muon)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get(), Muon::Constants::n_stations), stream)(
-    arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+    dim3(size<dev_event_list_t>(arguments)),
+    dim3(property<block_dim_x_t>().get(), Muon::Constants::n_stations),
+    stream)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, stream);
@@ -46,17 +47,16 @@ __device__ std::pair<float, float> field_of_interest(
   const float momentum)
 {
   if (momentum < 1000 * Gaudi::Units::GeV) {
-    return {
-      elliptical_foi_window(
-        dev_muon_foi->param_a_x[station][region],
-        dev_muon_foi->param_b_x[station][region],
-        dev_muon_foi->param_c_x[station][region],
-        momentum),
-      elliptical_foi_window(
-        dev_muon_foi->param_a_y[station][region],
-        dev_muon_foi->param_b_y[station][region],
-        dev_muon_foi->param_c_y[station][region],
-        momentum)};
+    return {elliptical_foi_window(
+              dev_muon_foi->param_a_x[station][region],
+              dev_muon_foi->param_b_x[station][region],
+              dev_muon_foi->param_c_x[station][region],
+              momentum),
+            elliptical_foi_window(
+              dev_muon_foi->param_a_y[station][region],
+              dev_muon_foi->param_b_y[station][region],
+              dev_muon_foi->param_c_y[station][region],
+              momentum)};
   }
   else {
     return {dev_muon_foi->param_a_x[station][region], dev_muon_foi->param_a_y[station][region]};
@@ -94,14 +94,13 @@ __global__ void is_muon::is_muon(
   const auto station_ocurrences_offset =
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
 
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    event_number,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_number,
+                                                 number_of_events};
 
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 

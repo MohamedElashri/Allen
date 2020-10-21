@@ -92,8 +92,8 @@ namespace gather_selections {
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
     const unsigned int* odin = *dev_mep_layout ?
-      odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-      odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+                                 odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                                 odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
 
     const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
     const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
@@ -104,15 +104,7 @@ namespace gather_selections {
     for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
       auto span = sels.get_span(i, event_number);
       deterministic_post_scaler(
-        scale_hashes[i],
-        scale_factors[i],
-        span.size(),
-        span.data(),
-        run_no,
-        evt_hi,
-        evt_lo,
-        gps_hi,
-        gps_lo);
+        scale_hashes[i], scale_factors[i], span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     }
   }
 } // namespace gather_selections
@@ -230,10 +222,9 @@ void gather_selections::gather_selections_t::operator()(
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, stream);
     copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, stream);
 
-    Selections::ConstSelections sels {
-      reinterpret_cast<bool*>(host_selections.data()),
-      data<host_selections_offsets_t>(arguments),
-      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
+                                      data<host_selections_offsets_t>(arguments),
+                                      first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {

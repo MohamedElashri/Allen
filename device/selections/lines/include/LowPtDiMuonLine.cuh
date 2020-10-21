@@ -23,8 +23,10 @@ namespace low_pt_di_muon_line {
     (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
     (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
     (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
-    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string), pre_scaler_hash_string),
-    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+     pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+     post_scaler_hash_string),
     (PROPERTY(minTrackIP_t, "minTrackIP", "minTrackIP description", float), minTrackIP),
     (PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float), minTrackPt),
     (PROPERTY(minTrackP_t, "minTrackP", "minTrackP description", float), minTrackP),
@@ -33,7 +35,9 @@ namespace low_pt_di_muon_line {
     (PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float), maxVertexChi2),
     (PROPERTY(minMass_t, "minMass", "minMass description", float), minMass))
 
-  struct low_pt_di_muon_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<low_pt_di_muon_line_t, Parameters> {
+  struct low_pt_di_muon_line_t : public SelectionAlgorithm,
+                                 Parameters,
+                                 TwoTrackLine<low_pt_di_muon_line_t, Parameters> {
     __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
   private:

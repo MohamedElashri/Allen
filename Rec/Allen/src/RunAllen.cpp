@@ -101,8 +101,7 @@ StatusCode RunAllen::initialize()
     configuration_reader.params());
 
   // Initialize host buffers (where Allen output is stored)
-  m_host_buffers_manager.reset(new HostBuffersManager(
-    m_n_buffers, 2, m_do_check, m_stream_wrapper->errorevent_line));
+  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_do_check, m_stream_wrapper->errorevent_line));
   m_stream_wrapper->initialize_streams_host_buffers_manager(m_host_buffers_manager.get());
 
   // Initialize input provider
@@ -183,8 +182,8 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
     m_hlt1_line_rates[i].buffer() += int(dec);
     // Note: the line index in a DecReport cannot be zero -> start at 1
     const int dec_rep_index = i + 1;
-    verbose() << "Adding Allen line " << dec_rep_index << " with name " << modified_name << " to HltDecReport with decision "
-              << int(dec) << endmsg;
+    verbose() << "Adding Allen line " << dec_rep_index << " with name " << modified_name
+              << " to HltDecReport with decision " << int(dec) << endmsg;
 
     reports.insert(modified_name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
   }

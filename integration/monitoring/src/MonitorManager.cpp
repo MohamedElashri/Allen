@@ -67,11 +67,7 @@ void MonitorManager::freeMonitor(size_t i_mon)
   free_monitors.push(i_mon);
 }
 
-void MonitorManager::init(
-  unsigned n_mon_thread,
-  HostBuffersManager* buffers_manager,
-  int time_step,
-  int offset)
+void MonitorManager::init(unsigned n_mon_thread, HostBuffersManager* buffers_manager, int time_step, int offset)
 {
   for (unsigned i = 0; i < n_mon_thread; ++i) {
     m_monitors.push_back(std::vector<BufferMonitor*>());

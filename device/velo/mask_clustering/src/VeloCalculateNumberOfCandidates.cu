@@ -24,12 +24,11 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   initialize<dev_number_of_candidates_t>(arguments, 0, stream);
 
   // Enough blocks to cover all events
-  const auto grid_size = dim3(
-    (size<dev_event_list_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+  const auto grid_size =
+    dim3((size<dev_event_list_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
   if (runtime_options.mep_layout) {
-    global_function(velo_calculate_number_of_candidates_mep)(
-      grid_size, dim3(property<block_dim_x_t>().get()), stream)(
+    global_function(velo_calculate_number_of_candidates_mep)(grid_size, dim3(property<block_dim_x_t>().get()), stream)(
       arguments, size<dev_event_list_t>(arguments));
   }
   else {
@@ -45,8 +44,7 @@ __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_ca
   for (auto event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_events;
        event_index += blockDim.x * gridDim.x) {
     const auto event_number = parameters.dev_event_list[event_index];
-    const char* raw_input =
-      parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
+    const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
 
     // Read raw event
     const auto raw_event = VeloRawEvent(raw_input);

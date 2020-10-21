@@ -73,7 +73,6 @@ struct StreamWrapper {
   std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration();
 };
 
-
 /**
  * @brief Prints the configured sequence.
  *        Must be compiled by nvcc.

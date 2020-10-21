@@ -23,9 +23,8 @@ void muon_catboost_features_extraction::muon_catboost_features_extraction_t::ope
   cudaEvent_t&) const
 {
   global_function(muon_catboost_features_extraction)(
-    dim3(first<host_number_of_events_t>(arguments), Muon::Constants::n_stations),
-    property<block_dim_t>(),
-    stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments), Muon::Constants::n_stations), property<block_dim_t>(), stream)(
+    arguments);
 }
 
 __global__ void muon_catboost_features_extraction::muon_catboost_features_extraction(
@@ -35,14 +34,13 @@ __global__ void muon_catboost_features_extraction::muon_catboost_features_extrac
   const unsigned event_id = blockIdx.x;
   const unsigned station_id = blockIdx.y;
 
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    event_id,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_id,
+                                                 number_of_events};
 
   const auto muon_total_number_of_hits =
     parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];

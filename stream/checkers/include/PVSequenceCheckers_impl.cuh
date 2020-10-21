@@ -10,11 +10,8 @@
  */
 template<>
 struct SequenceVisitor<fit_seeds::pv_fit_seeds_t> {
-  static void check(
-    HostBuffers& host_buffers,
-    const Constants&,
-    const CheckerInvoker& checker_invoker,
-    const MCEvents& mc_events)
+  static void
+  check(HostBuffers& host_buffers, const Constants&, const CheckerInvoker& checker_invoker, const MCEvents& mc_events)
   {
     auto& checker = checker_invoker.checker<GPUPVChecker>("Primary vertices (pv_fit_seeds_t):", "GPU_PVChecker.root");
     checker.accumulate(
@@ -31,11 +28,8 @@ struct SequenceVisitor<fit_seeds::pv_fit_seeds_t> {
  */
 template<>
 struct SequenceVisitor<pv_beamline_cleanup::pv_beamline_cleanup_t> {
-  static void check(
-    HostBuffers& host_buffers,
-    const Constants&,
-    const CheckerInvoker& checker_invoker,
-    const MCEvents& mc_events)
+  static void
+  check(HostBuffers& host_buffers, const Constants&, const CheckerInvoker& checker_invoker, const MCEvents& mc_events)
   {
     auto& checker = checker_invoker.checker<GPUPVChecker>("Primary vertices:", "GPU_PVChecker.root");
 

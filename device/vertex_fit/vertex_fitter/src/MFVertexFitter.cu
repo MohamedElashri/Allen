@@ -25,8 +25,8 @@ void MFVertexFit::fit_mf_vertices_t::operator()(
 {
   initialize<dev_mf_svs_t>(arguments, 0, stream);
 
-  global_function(fit_mf_vertices)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(fit_mf_vertices)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   safe_assign_to_host_buffer<dev_mf_svs_t>(
     host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, arguments, stream);

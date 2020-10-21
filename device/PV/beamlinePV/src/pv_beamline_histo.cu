@@ -23,8 +23,7 @@ void pv_beamline_histo::pv_beamline_histo_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(pv_beamline_histo)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(pv_beamline_histo)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_beamline.data());
 }
 

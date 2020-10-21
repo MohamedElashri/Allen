@@ -19,9 +19,12 @@ struct ODINLine : public EventLine<Derived, Parameters> {
   {
     const unsigned* event_odin_data = nullptr;
     if (parameters.dev_mep_layout[0]) {
-      event_odin_data = odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
-    } else {
-      event_odin_data = odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
+      event_odin_data =
+        odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
+    }
+    else {
+      event_odin_data =
+        odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
     }
     return std::forward_as_tuple(event_odin_data);
   }

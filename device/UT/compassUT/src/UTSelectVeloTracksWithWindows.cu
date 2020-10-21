@@ -10,8 +10,7 @@ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::s
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_ut_number_of_selected_velo_tracks_with_windows_t>(
-    arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_selected_velo_tracks_with_windows_t>(
     arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
 }

@@ -24,8 +24,8 @@ void muon_populate_hits::muon_populate_hits_t::operator()(
 {
   initialize<dev_permutation_station_t>(arguments, 0, stream);
 
-  global_function(muon_populate_hits)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(muon_populate_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 }
 
 __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Parameters parameters)

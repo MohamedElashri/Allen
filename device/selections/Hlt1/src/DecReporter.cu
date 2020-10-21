@@ -40,7 +40,8 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
   Selections::ConstSelections selections {
     parameters.dev_selections, parameters.dev_selections_offsets, number_of_events};
 
-  uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_index;
+  uint32_t* event_dec_reports =
+    parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_index;
 
   if (threadIdx.x == 0) {
     // Set TCK and taskID for each event dec report
@@ -59,7 +60,7 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
 
     HltDecReport dec_report;
     dec_report.setDecision(final_decision);
-    
+
     // TODO: The following are all placeholder values for now.
     dec_report.setErrorBits(0);
     dec_report.setNumberOfCandidates(1);

@@ -55,7 +55,8 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
   auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
 
-  for (unsigned i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  for (unsigned i = threadIdx.x;
+       i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
        i += blockDim.x) {
 
     // Note: The location of the indices depends on n_layouts.

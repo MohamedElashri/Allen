@@ -25,8 +25,8 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
 {
   initialize<dev_number_of_three_hit_tracks_output_t>(arguments, 0, stream);
 
-  global_function(velo_three_hit_tracks_filter)(
-    size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(arguments);
+  global_function(velo_three_hit_tracks_filter)(size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(
+    arguments);
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO three hit tracks found:\n";

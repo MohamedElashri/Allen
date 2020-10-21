@@ -24,8 +24,8 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
 {
   initialize<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, stream);
 
-  global_function(ut_select_velo_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 }
 
 __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_tracks::Parameters parameters)

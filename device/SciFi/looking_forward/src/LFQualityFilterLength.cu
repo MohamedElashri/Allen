@@ -31,8 +31,8 @@ void lf_quality_filter_length::lf_quality_filter_length_t::operator()(
 {
   initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, stream);
 
-  global_function(lf_quality_filter_length)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(lf_quality_filter_length)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 }
 
 __global__ void lf_quality_filter_length::lf_quality_filter_length(lf_quality_filter_length::Parameters parameters)

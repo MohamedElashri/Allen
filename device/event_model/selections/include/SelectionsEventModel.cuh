@@ -43,9 +43,8 @@ namespace Selections {
       const
     {
       assert(event < m_number_of_events);
-      return {
-        m_base_pointer + m_offsets[line * m_number_of_events + event],
-        m_offsets[line * m_number_of_events + event + 1] - m_offsets[line * m_number_of_events + event]};
+      return {m_base_pointer + m_offsets[line * m_number_of_events + event],
+              m_offsets[line * m_number_of_events + event + 1] - m_offsets[line * m_number_of_events + event]};
     }
   };
 

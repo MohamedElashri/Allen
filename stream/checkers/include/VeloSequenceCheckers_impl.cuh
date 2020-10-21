@@ -11,11 +11,9 @@
  */
 template<>
 struct SequenceVisitor<velo_consolidate_tracks::velo_consolidate_tracks_t> {
-  static void check(
-    HostBuffers& host_buffers,
-    const Constants&,
-    const CheckerInvoker& checker_invoker,
-    MCEvents const& mc_events) {
+  static void
+  check(HostBuffers& host_buffers, const Constants&, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
+  {
     const auto tracks = prepareVeloTracks(
       host_buffers.host_atomics_velo,
       host_buffers.host_velo_track_hit_number,

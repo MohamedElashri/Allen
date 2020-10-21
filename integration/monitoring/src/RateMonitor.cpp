@@ -75,7 +75,8 @@ void RateMonitor::initialize_histograms(const unsigned host_number_of_active_lin
 #else
 void RateMonitor::fill(unsigned, bool) {}
 
-void RateMonitor::init() {
+void RateMonitor::init()
+{
   _unused(m_buffers_manager);
   _unused(m_histograms_initialized);
   _unused(m_nBins);

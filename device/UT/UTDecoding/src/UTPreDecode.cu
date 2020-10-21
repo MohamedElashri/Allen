@@ -11,11 +11,9 @@ void ut_pre_decode::ut_pre_decode_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_ut_pre_decoded_hits_t>(
-    arguments,
-    first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
+    arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
   set_size<dev_ut_hit_count_t>(
-    arguments,
-    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+    arguments, first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
 }
 
 void ut_pre_decode::ut_pre_decode_t::operator()(

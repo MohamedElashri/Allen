@@ -21,8 +21,8 @@ void pv_get_seeds::pv_get_seeds_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(pv_get_seeds)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(pv_get_seeds)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_number_seeds_t>(host_buffers.host_number_of_seeds, arguments, stream);
@@ -83,8 +83,8 @@ __global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
 
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstKalmanStates velo_states {
-    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstKalmanStates velo_states {parameters.dev_velo_kalman_beamline_states,
+                                                     velo_tracks.total_number_of_tracks()};
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 

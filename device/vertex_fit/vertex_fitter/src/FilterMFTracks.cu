@@ -26,8 +26,7 @@ void FilterMFTracks::filter_mf_tracks_t::operator()(
   initialize<dev_svs_kf_idx_t>(arguments, 0, stream);
   initialize<dev_svs_mf_idx_t>(arguments, 0, stream);
 
-  global_function(filter_mf_tracks)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(filter_mf_tracks)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, first<host_number_of_events_t>(arguments));
 }
 
@@ -41,14 +40,13 @@ __global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters para
   unsigned* event_svs_mf_idx = parameters.dev_svs_mf_idx + idx_offset;
 
   // Consolidated SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    i_event,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 i_event,
+                                                 number_of_events};
 
   const unsigned event_tracks_offset = scifi_tracks.tracks_offset(i_event);
   const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(i_event);

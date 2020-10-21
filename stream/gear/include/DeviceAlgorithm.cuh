@@ -13,4 +13,5 @@
 #include "Property.cuh"
 #include "Argument.cuh"
 
-struct DeviceAlgorithm : public Allen::Algorithm {};
+struct DeviceAlgorithm : public Allen::Algorithm {
+};

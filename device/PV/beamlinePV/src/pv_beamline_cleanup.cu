@@ -9,8 +9,7 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_multi_final_vertices_t>(
-    arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
+  set_size<dev_multi_final_vertices_t>(arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
   set_size<dev_number_of_multi_final_vertices_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
@@ -24,12 +23,13 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
 {
   initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, stream);
 
-  global_function(pv_beamline_cleanup)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   // Retrieve result
   assign_to_host_buffer<dev_multi_final_vertices_t>(host_buffers.host_reconstructed_multi_pvs, arguments, stream);
-  assign_to_host_buffer<dev_number_of_multi_final_vertices_t>(host_buffers.host_number_of_multivertex, arguments, stream);
+  assign_to_host_buffer<dev_number_of_multi_final_vertices_t>(
+    host_buffers.host_number_of_multivertex, arguments, stream);
 }
 
 __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Parameters parameters)

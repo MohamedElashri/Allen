@@ -19,9 +19,7 @@ namespace velo_calculate_number_of_candidates {
   // Global function
   __global__ void velo_calculate_number_of_candidates(Parameters parameters, const unsigned number_of_events);
 
-  __global__ void velo_calculate_number_of_candidates_mep(
-    Parameters parameters,
-    const unsigned number_of_events);
+  __global__ void velo_calculate_number_of_candidates_mep(Parameters parameters, const unsigned number_of_events);
 
   // Algorithm
   struct velo_calculate_number_of_candidates_t : public DeviceAlgorithm, Parameters {

@@ -27,8 +27,7 @@ void FilterTracks::filter_tracks_t::operator()(
 {
   initialize<dev_sv_atomics_t>(arguments, 0, stream);
 
-  global_function(filter_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
@@ -42,20 +41,19 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
   unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
 
   // Consolidated SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    event_number,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_number,
+                                                 number_of_events};
   const unsigned event_tracks_offset = scifi_tracks.tracks_offset(event_number);
   const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
 
   // Track-PV association table.
-  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {
-    parameters.dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks()};
+  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
+                                                        scifi_tracks.total_number_of_tracks()};
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Kalman fitted tracks.

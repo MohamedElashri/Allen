@@ -20,8 +20,8 @@ void consolidate_svs::consolidate_svs_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(consolidate_svs)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_consolidated_svs_t>(host_buffers.host_secondary_vertices, arguments, stream);

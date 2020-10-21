@@ -26,10 +26,8 @@ namespace is_muon {
     (DEVICE_OUTPUT(dev_is_muon_t, bool), dev_is_muon),
     (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned), block_dim_x))
 
-  __global__ void is_muon(
-    Parameters,
-    const Muon::Constants::FieldOfInterest* dev_muon_foi,
-    const float* dev_muon_momentum_cuts);
+  __global__ void
+  is_muon(Parameters, const Muon::Constants::FieldOfInterest* dev_muon_foi, const float* dev_muon_momentum_cuts);
 
   struct is_muon_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
@@ -45,7 +43,7 @@ namespace is_muon {
       HostBuffers& host_buffers,
       cudaStream_t& stream,
       cudaEvent_t&) const;
-    
+
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 64};
   };

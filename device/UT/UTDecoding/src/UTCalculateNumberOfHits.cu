@@ -11,8 +11,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_s
   const HostBuffers&) const
 {
   set_size<dev_ut_hit_sizes_t>(
-    arguments,
-    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+    arguments, first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
 }
 
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
@@ -26,14 +25,17 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   initialize<dev_ut_hit_sizes_t>(arguments, 0, stream);
 
   if (runtime_options.mep_layout) {
-    global_function(ut_calculate_number_of_hits_mep)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    global_function(ut_calculate_number_of_hits_mep)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
       constants.dev_unique_x_sector_offsets.data());
-  } else {
-    global_function(ut_calculate_number_of_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  }
+  else {
+    global_function(ut_calculate_number_of_hits)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),

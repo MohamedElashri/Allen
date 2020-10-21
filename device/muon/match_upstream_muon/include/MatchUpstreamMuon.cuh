@@ -53,4 +53,4 @@ namespace MatchUpstreamMuon {
   private:
     Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
-}
+} // namespace MatchUpstreamMuon

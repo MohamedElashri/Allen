@@ -26,8 +26,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(ut_consolidate_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
   if (runtime_options.do_check) {
@@ -83,13 +82,12 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   // Create consolidated SoAs.
-  UT::Consolidated::ExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    event_number,
-    number_of_events};
+  UT::Consolidated::ExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                              parameters.dev_ut_track_hit_number,
+                                              parameters.dev_ut_qop,
+                                              parameters.dev_ut_track_velo_indices,
+                                              event_number,
+                                              number_of_events};
 
   const unsigned number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = ut_tracks.tracks_offset(event_number);

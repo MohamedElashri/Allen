@@ -9,8 +9,7 @@ void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_atomics_scifi_t>(
-    arguments, first<host_number_of_events_t>(arguments) * LookingForward::num_atomics);
+  set_size<dev_atomics_scifi_t>(arguments, first<host_number_of_events_t>(arguments) * LookingForward::num_atomics);
   set_size<dev_scifi_tracks_t>(
     arguments,
     first<host_number_of_reconstructed_ut_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
@@ -37,8 +36,7 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
 {
   initialize<dev_atomics_scifi_t>(arguments, 0, stream);
 
-  global_function(lf_quality_filter)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
 
   if (runtime_options.do_check) {

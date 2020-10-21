@@ -27,8 +27,10 @@ namespace velo_kalman_filter {
    *        allowing for some scattering at every hit
    */
   template<bool upstream>
-  __device__ KalmanVeloState
-  simplified_fit(Velo::Consolidated::ConstHits& consolidated_hits, const MiniState& stateAtBeamLine, const unsigned nhits)
+  __device__ KalmanVeloState simplified_fit(
+    Velo::Consolidated::ConstHits& consolidated_hits,
+    const MiniState& stateAtBeamLine,
+    const unsigned nhits)
   {
     // backward = state.z > track.hits[0].z;
     const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);

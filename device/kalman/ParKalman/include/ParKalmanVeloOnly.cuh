@@ -106,9 +106,9 @@ namespace kalman_velo_only {
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void kalman_velo_only(Parameters, const char* dev_scifi_geometry);
-  
+
   __global__ void kalman_pv_ipchi2(Parameters parameters);
-  
+
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

@@ -11,6 +11,6 @@ __device__ bool low_pt_muon_line::low_pt_muon_line_t::select(
   std::tuple<const ParKalmanFilter::FittedTrack&> input) const
 {
   const auto& track = std::get<0>(input);
-  return track.is_muon && track.ip >= parameters.minIP && track.ipChi2 >= parameters.minIPChi2
-    && track.pt() >= parameters.minPt && track.chi2 / track.ndof <= parameters.maxChi2Ndof;
+  return track.is_muon && track.ip >= parameters.minIP && track.ipChi2 >= parameters.minIPChi2 &&
+         track.pt() >= parameters.minPt && track.chi2 / track.ndof <= parameters.maxChi2Ndof;
 }

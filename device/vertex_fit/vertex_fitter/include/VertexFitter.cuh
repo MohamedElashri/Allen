@@ -21,7 +21,7 @@ namespace VertexFit {
     float& x,
     float& y,
     float& z);
-  
+
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
   __device__ inline float addToDerivatives(

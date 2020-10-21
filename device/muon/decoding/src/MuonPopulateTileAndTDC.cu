@@ -101,7 +101,7 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
   unsigned* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
-                                                       Muon::Constants::n_regions * Muon::Constants::n_quarters;
+                                                           Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
@@ -133,7 +133,7 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
   unsigned* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
-                                                       Muon::Constants::n_regions * Muon::Constants::n_quarters;
+                                                           Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
@@ -144,8 +144,8 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
 
-    const auto raw_bank =
-      MEP::raw_bank<Muon::MuonRawBank>(parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number, bank_index);
+    const auto raw_bank = MEP::raw_bank<Muon::MuonRawBank>(
+      parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number, bank_index);
 
     decode_muon_bank(
       parameters.dev_muon_raw_to_hits,

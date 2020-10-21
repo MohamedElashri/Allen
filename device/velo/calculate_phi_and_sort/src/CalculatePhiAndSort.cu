@@ -31,12 +31,13 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
 {
   initialize<dev_hit_permutation_t>(arguments, 0, stream);
 
-  global_function(velo_calculate_phi_and_sort)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
-    arguments);
+  global_function(velo_calculate_phi_and_sort)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO clusters after velo_calculate_phi_and_sort:\n";
-    print_velo_clusters<dev_sorted_velo_cluster_container_t,
+    print_velo_clusters<
+      dev_sorted_velo_cluster_container_t,
       dev_offsets_estimated_input_size_t,
       dev_module_cluster_num_t,
       host_total_number_of_velo_clusters_t,

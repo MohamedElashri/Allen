@@ -24,14 +24,15 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(scifi_consolidate_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   // Transmission device to host of Scifi consolidated tracks
   assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, stream);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_offsets_scifi_track_hit_number_t>(host_buffers.host_scifi_track_hit_number, arguments, stream);
+    assign_to_host_buffer<dev_offsets_scifi_track_hit_number_t>(
+      host_buffers.host_scifi_track_hit_number, arguments, stream);
     assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, stream);
     assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, stream);
     assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, stream);
@@ -72,14 +73,13 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
 
   // Create consolidated SoAs.
-  SciFi::Consolidated::Tracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    event_number,
-    number_of_events};
+  SciFi::Consolidated::Tracks scifi_tracks {parameters.dev_atomics_scifi,
+                                            parameters.dev_scifi_track_hit_number,
+                                            parameters.dev_scifi_qop,
+                                            parameters.dev_scifi_states,
+                                            parameters.dev_scifi_track_ut_indices,
+                                            event_number,
+                                            number_of_events};
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const unsigned event_offset = scifi_hit_count.event_offset();
 
@@ -106,12 +106,11 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
         [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
 
     const auto dz = SciFi::Constants::ZEndT - LookingForward::z_mid_t;
-    const MiniState scifi_state {
-      x0 + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz),
-      y0 + ty * SciFi::Constants::ZEndT,
-      SciFi::Constants::ZEndT,
-      tx + 2.f * dz * curvature + 3.f * dz * dz * curvature * d_ratio,
-      ty};
+    const MiniState scifi_state {x0 + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz),
+                                 y0 + ty * SciFi::Constants::ZEndT,
+                                 SciFi::Constants::ZEndT,
+                                 tx + 2.f * dz * curvature + 3.f * dz * dz * curvature * d_ratio,
+                                 ty};
 
     scifi_tracks.states(i) = scifi_state;
 

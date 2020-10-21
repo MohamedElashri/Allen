@@ -34,11 +34,23 @@ namespace lf_create_tracks {
     (DEVICE_INPUT(dev_ut_states_t, MiniState), dev_ut_states),
     (DEVICE_OUTPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits), dev_scifi_lf_tracks),
     (DEVICE_OUTPUT(dev_scifi_lf_atomics_t, unsigned), dev_scifi_lf_atomics),
-    (DEVICE_OUTPUT(dev_scifi_lf_total_number_of_found_triplets_t, unsigned), dev_scifi_lf_total_number_of_found_triplets),
+    (DEVICE_OUTPUT(dev_scifi_lf_total_number_of_found_triplets_t, unsigned),
+     dev_scifi_lf_total_number_of_found_triplets),
     (DEVICE_OUTPUT(dev_scifi_lf_parametrization_t, float), dev_scifi_lf_parametrization),
-    (PROPERTY(triplet_keep_best_block_dim_t, "triplet_keep_best_block_dim", "block dimensions triplet keep best", DeviceDimensions), triplet_keep_best_block_dim),
-    (PROPERTY(calculate_parametrization_block_dim_t, "calculate_parametrization_block_dim", "block dimensions calculate parametrization", DeviceDimensions), calculate_parametrization_block_dim),
-    (PROPERTY(extend_tracks_block_dim_t, "extend_tracks_block_dim", "block dimensions extend tracks", DeviceDimensions), extend_tracks_block_dim))
+    (PROPERTY(
+       triplet_keep_best_block_dim_t,
+       "triplet_keep_best_block_dim",
+       "block dimensions triplet keep best",
+       DeviceDimensions),
+     triplet_keep_best_block_dim),
+    (PROPERTY(
+       calculate_parametrization_block_dim_t,
+       "calculate_parametrization_block_dim",
+       "block dimensions calculate parametrization",
+       DeviceDimensions),
+     calculate_parametrization_block_dim),
+    (PROPERTY(extend_tracks_block_dim_t, "extend_tracks_block_dim", "block dimensions extend tracks", DeviceDimensions),
+     extend_tracks_block_dim))
 
   __global__ void lf_triplet_keep_best(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 

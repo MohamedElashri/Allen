@@ -32,8 +32,8 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
   }
   else {
-    global_function(velo_estimate_input_size)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    global_function(velo_estimate_input_size)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      arguments);
   }
 }
 

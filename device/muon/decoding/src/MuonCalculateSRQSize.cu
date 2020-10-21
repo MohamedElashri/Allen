@@ -13,8 +13,8 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::set_arguments_size(
   set_size<dev_muon_raw_to_hits_t>(arguments, 1);
   set_size<dev_storage_station_region_quarter_sizes_t>(
     arguments,
-    first<host_number_of_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations * Muon::Constants::n_regions *
-      Muon::Constants::n_quarters);
+    first<host_number_of_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations *
+      Muon::Constants::n_regions * Muon::Constants::n_quarters);
 }
 
 void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
@@ -31,11 +31,7 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   Muon::MuonRawToHits muonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
 
   cudaCheck(cudaMemcpyAsync(
-    data<dev_muon_raw_to_hits_t>(arguments),
-    &muonRawToHits,
-    sizeof(muonRawToHits),
-    cudaMemcpyHostToDevice,
-    stream));
+    data<dev_muon_raw_to_hits_t>(arguments), &muonRawToHits, sizeof(muonRawToHits), cudaMemcpyHostToDevice, stream));
 
   initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, stream);
 
@@ -101,9 +97,10 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size(muon_calculate_
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto raw_event = Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[event_number]);
-  unsigned* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
-                                               event_number * Muon::Constants::n_layouts * Muon::Constants::n_stations *
-                                                 Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  unsigned* storage_station_region_quarter_sizes =
+    parameters.dev_storage_station_region_quarter_sizes + event_number * Muon::Constants::n_layouts *
+                                                            Muon::Constants::n_stations * Muon::Constants::n_regions *
+                                                            Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
@@ -122,9 +119,10 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size(muon_calculate_
 __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calculate_srq_size::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  unsigned* storage_station_region_quarter_sizes = parameters.dev_storage_station_region_quarter_sizes +
-                                               event_number * Muon::Constants::n_layouts * Muon::Constants::n_stations *
-                                                 Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  unsigned* storage_station_region_quarter_sizes =
+    parameters.dev_storage_station_region_quarter_sizes + event_number * Muon::Constants::n_layouts *
+                                                            Muon::Constants::n_stations * Muon::Constants::n_regions *
+                                                            Muon::Constants::n_quarters;
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
@@ -134,8 +132,8 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calcul
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
-    const auto raw_bank =
-      MEP::raw_bank<Muon::MuonRawBank>(parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number, bank_index);
+    const auto raw_bank = MEP::raw_bank<Muon::MuonRawBank>(
+      parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number, bank_index);
 
     calculate_srq_size(parameters.dev_muon_raw_to_hits, batch_index, raw_bank, storage_station_region_quarter_sizes);
   }

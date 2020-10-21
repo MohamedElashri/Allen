@@ -124,8 +124,7 @@ struct WrappedTuple<std::tuple<>, void> {
 };
 
 template<typename T, typename... R>
-struct WrappedTuple<std::tuple<T, R...>,
-  typename std::enable_if<std::is_base_of<aggregate_datatype, T>::value>::type> {
+struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of<aggregate_datatype, T>::value>::type> {
   using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
   using t = typename ConcatTupleReferences<typename T::type, previous_t>::t;
   using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;

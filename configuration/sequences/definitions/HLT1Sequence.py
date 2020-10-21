@@ -3,6 +3,7 @@
 ###############################################################################
 from definitions.algorithms import *
 
+
 def make_selection_gatherer(lines, initialize_lists, layout_provider,
                             populate_odin_banks, **kwargs):
     return gather_selections_t(
@@ -11,8 +12,10 @@ def make_selection_gatherer(lines, initialize_lists, layout_provider,
         dev_input_selections_t=tuple(line.dev_decisions_t() for line in lines),
         dev_input_selections_offsets_t=tuple(
             line.dev_decisions_offsets_t() for line in lines),
-        host_input_post_scale_factors_t=tuple(line.host_post_scaler_t() for line in lines),
-        host_input_post_scale_hashes_t=tuple(line.host_post_scaler_hash_t() for line in lines),
+        host_input_post_scale_factors_t=tuple(
+            line.host_post_scaler_t() for line in lines),
+        host_input_post_scale_hashes_t=tuple(
+            line.host_post_scaler_hash_t() for line in lines),
         dev_odin_raw_input_t=populate_odin_banks.dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=populate_odin_banks.dev_raw_offsets_t(),
         names_of_active_lines=",".join([line.name() for line in lines]),
@@ -356,12 +359,12 @@ def HLT1Sequence(layout_provider,
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             pre_scaler_hash_string="di_muon_low_mass_line_pre",
             post_scaler_hash_string="di_muon_low_mass_line_post",
-            minHighMassTrackPt = "500",
-            minHighMassTrackP = "3000",
-            minMass = "0",
-            maxDoca = "0.2",
-            maxVertexChi2 = "25",
-            minIPChi2 = "4")
+            minHighMassTrackPt="500",
+            minHighMassTrackP="3000",
+            minMass="0",
+            maxDoca="0.2",
+            maxVertexChi2="25",
+            minIPChi2="4")
 
         di_muon_soft_line = di_muon_soft_line_t(
             name="di_muon_soft_line",

@@ -75,7 +75,11 @@ zmq::socket_t make_control(size_t thread_id, IZeroMQSvc* zmqSvc, std::string suf
   return control;
 }
 
-void run_output(const size_t thread_id, IZeroMQSvc* zmqSvc, OutputHandler* output_handler, HostBuffersManager* buffer_manager)
+void run_output(
+  const size_t thread_id,
+  IZeroMQSvc* zmqSvc,
+  OutputHandler* output_handler,
+  HostBuffersManager* buffer_manager)
 {
   auto* client_socket = output_handler ? output_handler->client_socket() : nullptr;
 

@@ -28,7 +28,7 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   std::vector<Checker::Tracks> checker_tracks(event_list_size); // all tracks from the selected events
   for (unsigned i = 0; i < event_list_size; i++) {
     const auto event_number = event_list[i];
-    
+
     auto& tracks = checker_tracks[i]; // all tracks within one event
 
     Velo::Consolidated::ConstTracks velo_tracks {track_atomics, track_hit_number, event_number, number_of_events};

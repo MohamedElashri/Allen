@@ -88,7 +88,7 @@ namespace Allen {
     {
       return GlobalFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
     }
-    
+
   protected:
     PROPERTY(verbosity_t, "verbosity", "verbosity of algorithm", int);
 

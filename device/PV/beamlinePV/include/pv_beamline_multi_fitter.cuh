@@ -31,9 +31,7 @@ namespace pv_beamline_multi_fitter {
     (DEVICE_OUTPUT(dev_number_of_multi_fit_vertices_t, unsigned), dev_number_of_multi_fit_vertices),
     (PROPERTY(block_dim_y_t, "block_dim_y", "block dimension Y", unsigned), block_dim_y))
 
-  __global__ void pv_beamline_multi_fitter(
-    Parameters,
-    const float* dev_beamline);
+  __global__ void pv_beamline_multi_fitter(Parameters, const float* dev_beamline);
 
   struct pv_beamline_multi_fitter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(

@@ -23,9 +23,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
 {
   if (runtime_options.mep_layout) {
     global_function(ut_decode_raw_banks_in_order_mep)(
-      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers),
-      property<block_dim_t>(),
-      stream)(
+      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -34,9 +32,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   }
   else {
     global_function(ut_decode_raw_banks_in_order)(
-      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers),
-      property<block_dim_t>(),
-      stream)(
+      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), stream)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -127,8 +123,8 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  UT::Hits ut_hits {
-    parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits ut_hits {parameters.dev_ut_hits,
+                    parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   UT::ConstPreDecodedHits ut_pre_decoded_hits {
     parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
@@ -166,8 +162,8 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  UT::Hits ut_hits {
-    parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits ut_hits {parameters.dev_ut_hits,
+                    parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   UT::ConstPreDecodedHits ut_pre_decoded_hits {
     parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};

@@ -38,9 +38,8 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
     arguments, constants.dev_looking_forward_constants);
 
   global_function(lf_calculate_parametrization)(
-    dim3(size<dev_event_list_t>(arguments)),
-    property<calculate_parametrization_block_dim_t>(),
-    stream)(arguments, constants.dev_looking_forward_constants);
+    dim3(size<dev_event_list_t>(arguments)), property<calculate_parametrization_block_dim_t>(), stream)(
+    arguments, constants.dev_looking_forward_constants);
 
   global_function(lf_extend_tracks)(
     dim3(size<dev_event_list_t>(arguments)), property<extend_tracks_block_dim_t>(), stream)(

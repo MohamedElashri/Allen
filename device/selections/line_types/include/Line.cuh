@@ -143,8 +143,8 @@ __global__ void process_line(
 
   // ODIN data
   const unsigned int* odin = *dev_mep_layout ?
-    odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-    odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+                               odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                               odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
 
   const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
   const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
@@ -190,8 +190,8 @@ __global__ void process_line_iterate_events(
 
     // ODIN data
     const unsigned int* odin = *dev_mep_layout ?
-      odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-      odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+                                 odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                                 odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
 
     const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
     const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];

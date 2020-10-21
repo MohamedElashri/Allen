@@ -34,8 +34,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
 
   cudaCheck(cudaMemcpyAsync(
     data<host_number_of_reconstructed_velo_tracks_t>(arguments),
-    data<dev_offsets_all_velo_tracks_t>(arguments) + size<dev_offsets_all_velo_tracks_t>(arguments) -
-      1,
+    data<dev_offsets_all_velo_tracks_t>(arguments) + size<dev_offsets_all_velo_tracks_t>(arguments) - 1,
     sizeof(unsigned), // Note: Only the last element needs to be copied here.
     cudaMemcpyDeviceToHost,
     stream));

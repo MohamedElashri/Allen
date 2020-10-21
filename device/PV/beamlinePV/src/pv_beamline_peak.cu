@@ -25,8 +25,7 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
     (first<host_number_of_events_t>(arguments) + property<block_dim_x_t>().get() - 1) /
     property<block_dim_x_t>().get());
 
-  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), stream)(
-    arguments);
+  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), stream)(arguments);
 }
 
 __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters)

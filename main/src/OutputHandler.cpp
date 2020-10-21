@@ -53,7 +53,7 @@ bool OutputHandler::output_selected_events(
 
     // add DecReport and SelReport sizes to the total size (including two RawBank headers)
     auto [buffer_id, buffer_span] =
-      buffer(m_sizes[i] + header_size + 2 * bank_header_size + dec_report_size ); //  + sel_report_size
+      buffer(m_sizes[i] + header_size + 2 * bank_header_size + dec_report_size); //  + sel_report_size
 
     // Add the header
     auto* header = reinterpret_cast<LHCb::MDFHeader*>(buffer_span.data());
@@ -97,8 +97,8 @@ bool OutputHandler::output_selected_events(
     //   LHCb::RawBank::HltSelReports,
     //   2u,
     //   1 << 13,
-    //   {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[i] * sizeof(uint32_t), sel_report_size},
-    //   buffer_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
+    //   {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[i] * sizeof(uint32_t),
+    //   sel_report_size}, buffer_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
 
     auto s = write_buffer(buffer_id);
     if (!s) return s;

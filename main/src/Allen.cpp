@@ -468,10 +468,7 @@ extern "C" int allen(
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
-    number_of_buffers,
-    *events_per_slice,
-    do_check,
-    stream_wrapper.errorevent_line);
+    number_of_buffers, *events_per_slice, do_check, stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 
@@ -487,12 +484,11 @@ extern "C" int allen(
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(
-          input_provider.get(), output_file, *events_per_slice, zmqSvc);
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, zmqSvc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(
-          input_provider.get(), output_file, *events_per_slice);
+        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, *events_per_slice);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
