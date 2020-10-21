@@ -33,8 +33,19 @@ namespace LineIteration {
  *
  *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
  *  (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+ *  (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+ *  (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+ *  (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
  *  (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
  *  (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+ *  (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+ *  (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+ *  (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+ *  (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+ *  (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+ *   pre_scaler_hash_string),
+ *  (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+ *   post_scaler_hash_string),
  *
  * The inheriting line must also provide the following methods:
  *
@@ -42,11 +53,13 @@ namespace LineIteration {
  *
  *     unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
  *
- *     __device__ std::tuple<const ParKalmanFilter::FittedTrack&>
+ *     __device__ std::tuple<types...>
  *     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
  *
- *     __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input)
- * const;
+ *     __device__ bool select(const Parameters& parameters, std::tuple<types...> input) const;
+ *
+ *     where "types..." is a list of types that can be freely configured.
+ *
  *
  * The following methods can optionally be defined in an inheriting class:
  *
