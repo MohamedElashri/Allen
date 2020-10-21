@@ -76,7 +76,7 @@ check-formatting:
     - mkdir build_${TARGET}
     - cd build_${TARGET}
     - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
-    - ninja -j 8
+    - ninja -j 4
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -111,7 +111,7 @@ check-formatting:
     - mkdir build_${TARGET}
     - cd build_${TARGET}
     - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
-    - ninja -j 8
+    - ninja -j 4
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -146,7 +146,7 @@ check-formatting:
     - mkdir build_${TARGET}
     - cd build_${TARGET}
     - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
-    - ninja -j 8
+    - ninja -j 4
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -180,7 +180,7 @@ check-formatting:
     - mkdir build_${TARGET}
     - cd build_${TARGET}
     - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" "${ADDITIONAL_OPTIONS}" ..
-    - ninja -j 8
+    - ninja -j 4
   artifacts:
     expire_in: 2 hrs
     paths:

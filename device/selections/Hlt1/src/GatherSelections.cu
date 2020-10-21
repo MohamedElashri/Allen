@@ -191,14 +191,6 @@ void gather_selections::gather_selections_t::operator()(
   cudaEventRecord(event, stream);
   cudaEventSynchronize(event);
 
-  // [0, 10, 30]
-  // line 0: [event 0: 0, event 1: 0, event 2: 4, 6, 8], [0, 4, 8, 12, 16]
-  // ->
-  // [0, 2, 4, 6, 8, 10 + 0, 10 + 4, 10 + 8, 10 + 12, 10 + 16]
-  // gather_selections__host_selections_offsets_t: 0, 0, 10, 34, 65, 123, 135, 153, 194, 247, 0, 0, 0, 15, 18, 33, 33,
-  // 36, 43, 67, 0, gather_selections__host_selections_offsets_t: 0, 0, 10, 34, 65, 123, 135, 153, 194, 247, 315, 315,
-  // 315, 330, 333, 348, 348, 351, 358, 382, 553,
-
   // Add partial sums from host_selections_lines_offsets_t to host_selections_offsets_t
   for (unsigned line_index = 1; line_index < first<host_number_of_active_lines_t>(arguments); ++line_index) {
     const auto line_offset = data<host_selections_lines_offsets_t>(arguments)[line_index];
