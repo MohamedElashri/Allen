@@ -70,7 +70,6 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # Configured sequence
 set(SEQUENCE hlt1_pp_default CACHE STRING "Configured sequence")
 message(STATUS "Configured sequence: " ${SEQUENCE})
-message(STATUS "Sequence generation: " ${SEQUENCE_GENERATION})
 
 # Configured CPU architecture
 set(CPU_ARCH native CACHE STRING "Target CPU architecture")
