@@ -94,9 +94,8 @@ if(ALWAYS_DISPATCH_TO_DEFAULT)
   add_compile_definitions(ALWAYS_DISPATCH_TO_DEFAULT)
 endif()
 
-# Support generating configuration with Allen standalone, and with Moore
-set(MOORE_GENERATOR CACHE BOOL OFF)
-set(MOORE_INSTALL_DIR CACHE STRING "")
+# Support configuring the sequence or turning sequence generation off
+set(GENERATE_SEQUENCE CACHE BOOL ON)
 
 # General CMAKE CXX FLAGS option
 if(TREAT_WARNINGS_AS_ERRORS)

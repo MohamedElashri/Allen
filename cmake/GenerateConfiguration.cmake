@@ -18,34 +18,14 @@ find_package (Python3 COMPONENTS Interpreter QUIET)
 # TODO: Figure out if there is a cleaner way to do this
 set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64:/Library/Developer/CommandLineTools/usr/lib)
 set(REQUIRED_CPLUS_PATH /cvmfs/sft.cern.ch/lcg/views/LCG_97python3/x86_64-centos7-gcc8-opt/include)
-set(DEFAULT_MOORE_RUN "/scratch/dcampora/gaudi_projects/MooreDev_v51r0/run")
 
 message(STATUS "Generating sequence using LLVM")
 
-if(MOORE_INSTALL_DIR STREQUAL "")
-  set(MOORE_RUN ${DEFAULT_MOORE_RUN})
-else()
-  set(MOORE_RUN ${MOORE_INSTALL_DIR}/run)
-endif()
-
 # From CMake on execute_process:
 # "If a sequential execution of multiple commands is required, use multiple execute_process() calls with a single COMMAND argument."
-if(${MOORE_GENERATOR})
-  message(STATUS "Testing code generation with LLVM - Configured generator: Moore")
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/gaudi/definitions" "${SEQUENCE_DEFINITION_DIR}"
-    WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
-    RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_0)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/gaudi/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}"
-    WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
-    RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_1)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore"
-    WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
-    RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_2)
-  execute_process(COMMAND ${MOORE_RUN} ${SEQUENCE_DEFINITION_DIR}/allenrun.py ${SEQUENCE}.py
-    WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
-    RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_3)
-else()
-  message(STATUS "Testing code generation with LLVM - Configured generator: Allen")
+message(STATUS "Testing code generation with LLVM - Configured generator: Allen")
+
+if (GENERATE_SEQUENCE AND Python3_FOUND)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_0)
@@ -58,25 +38,11 @@ else()
   execute_process(COMMAND ${Python3_EXECUTABLE} ${SEQUENCE}.py
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_3)
-endif()
 
-if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 0 AND
-  ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 0)
-  message(STATUS "Testing code generation with LLVM - Success")
-  if(${MOORE_GENERATOR})
-    add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
-      COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/gaudi/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
-        ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/gaudi/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore" &&
-        ${MOORE_RUN} ${SEQUENCE_DEFINITION_DIR}/allenrun.py ${SEQUENCE}.py &&
-        ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-        ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
-        ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
-      WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
-    )
-  else()
+  if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 0 AND
+    ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 0)
+    message(STATUS "Testing code generation with LLVM - Success")
+    set(CODE_GENERATION_SUCCESS TRUE)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
       COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
@@ -90,12 +56,16 @@ if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     )
   endif()
-else()
-  if (Python3_FOUND)
-    message(WARNING "Sequence generation with LLVM - Failed. Please note that cvmfs (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
-    message(WARNING "A pregenerated sequence will be used instead.")
+endif()
+
+if(NOT CODE_GENERATION_SUCCESS)
+  if(GENERATE_SEQUENCE AND Python3_FOUND)
+    message(STATUS "Testing code generation with LLVM - Failed. Please note that cvmfs (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
+    message(STATUS "A pregenerated sequence will be used instead.")
+  elseif(GENERATE_SEQUENCE)
+    message(STATUS "Testing code generation with LLVM - Failed. Please note that Python 3 is required to be able to generate configurations.")
   else()
-    message(WARNING "Failed to generate sequence. Please note that Python 3 and (cmvfs (sft.cern.ch) or clang >= 9.0.0) are required to be able to generate configurations.")
+    message(STATUS "Testing code generation with LLVM - Disabled")
   endif()
 
   add_custom_command(

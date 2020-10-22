@@ -640,6 +640,13 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_erro
   tags:
     - cvmfs
 
+# Build of default sequence without code generation
+
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DGENERATE_SEQUENCE=OFF:build:
+  <<: *build_clang_job_def
+  tags:
+    - cvmfs
+
 # Builds only on master of additional options
 
 CUDA:hlt1_pp_no_gec:RelWithDebInfo::build:
