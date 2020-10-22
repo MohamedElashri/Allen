@@ -643,7 +643,7 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_erro
 
 # Build of default sequence without code generation
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DGENERATE_SEQUENCE=OFF:build:
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=OFF:build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
