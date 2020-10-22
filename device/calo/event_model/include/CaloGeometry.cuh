@@ -3,7 +3,7 @@
 #include <iomanip>
 
 #include "CaloConstants.cuh"
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 struct CaloGeometry {
   uint32_t code_offset;

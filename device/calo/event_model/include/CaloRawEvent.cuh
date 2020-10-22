@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 #include "CaloRawBanks.cuh"
 #include "MEPTools.h"
 

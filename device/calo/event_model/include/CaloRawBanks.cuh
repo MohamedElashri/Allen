@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CudaCommon.h"
+#include "BackendCommon.h"
 
 struct CaloRawBank {
   uint32_t source_id;
