@@ -25,7 +25,7 @@ message(STATUS "Generating sequence using LLVM")
 # "If a sequential execution of multiple commands is required, use multiple execute_process() calls with a single COMMAND argument."
 message(STATUS "Testing code generation with LLVM - Configured generator: Allen")
 
-if (GENERATE_SEQUENCE AND Python3_FOUND)
+if (SEQUENCE_GENERATION AND Python3_FOUND)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_0)
@@ -42,7 +42,7 @@ if (GENERATE_SEQUENCE AND Python3_FOUND)
   if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 0 AND
     ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 0)
     message(STATUS "Testing code generation with LLVM - Success")
-    set(CODE_GENERATION_SUCCESS TRUE)
+    set(SEQUENCE_GENERATION_SUCCESS TRUE)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
       COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
@@ -58,11 +58,11 @@ if (GENERATE_SEQUENCE AND Python3_FOUND)
   endif()
 endif()
 
-if(NOT CODE_GENERATION_SUCCESS)
-  if(GENERATE_SEQUENCE AND Python3_FOUND)
+if(NOT SEQUENCE_GENERATION_SUCCESS)
+  if(SEQUENCE_GENERATION AND Python3_FOUND)
     message(STATUS "Testing code generation with LLVM - Failed. Please note that cvmfs (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
     message(STATUS "A pregenerated sequence will be used instead.")
-  elseif(GENERATE_SEQUENCE)
+  elseif(SEQUENCE_GENERATION)
     message(STATUS "Testing code generation with LLVM - Failed. Please note that Python 3 is required to be able to generate configurations.")
   else()
     message(STATUS "Testing code generation with LLVM - Disabled")

@@ -18,7 +18,7 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
-option(GENERATE_SEQUENCE "Sequence generation" ON)
+option(SEQUENCE_GENERATION "Sequence generation" ON)
 
 # --------
 # Settings
@@ -70,6 +70,7 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # Configured sequence
 set(SEQUENCE hlt1_pp_default CACHE STRING "Configured sequence")
 message(STATUS "Configured sequence: " ${SEQUENCE})
+message(STATUS "Sequence generation: " ${SEQUENCE_GENERATION})
 
 # Configured CPU architecture
 set(CPU_ARCH native CACHE STRING "Target CPU architecture")
