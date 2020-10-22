@@ -1,13 +1,13 @@
 {% set categories = [
-    'Configuration',
-    'Decoding', 'Tracking', 'PV finding', 'Muon', 'Calo', 'RICH', 'Jets',
+    'selections', 'Configuration',
+    'Decoding', 'Tracking', 'PV finding', 'VP', 'UT', 'FT', 'Muon', 'Calo', 'RICH', 'Jets',
     'PID', 'Composites', 'Filters', 'Functors',
     'Event model', 'Persistency',
     'MC checking', 'Monitoring', 'Luminosity',
     'Core', 'Conditions', 'Utilities',
     'Simulation',  'Tuples', 'Accelerators',
     'Flavour tagging',
-    'Build', 'integration'
+    'Build', 'integration',
     ] -%}
 {% set used_mrs = [] -%}
 {% macro section(labels, mrs=merge_requests, used=used_mrs, indent='', highlight='highlight') -%}
