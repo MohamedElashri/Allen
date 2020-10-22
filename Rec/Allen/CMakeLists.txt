@@ -79,8 +79,10 @@ find_package(ZMQ REQUIRED)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}/configuration/sequences")
 
-message(STATUS "Setting Allen install dir env variable to ${CMAKE_INSTALL_PREFIX}")
-gaudi_env(SET ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+set(ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+_make_relocatable(ALLEN_INSTALL_DIR MAPPINGS "${CMAKE_SOURCE_DIR}" "\${ALLEN_PROJECT_ROOT}")
+message(STATUS "Setting Allen install dir env variable to ${ALLEN_INSTALL_DIR}")
+gaudi_env(SET ALLEN_INSTALL_DIR ${ALLEN_INSTALL_DIR})
  
 gaudi_add_module(AllenWrapper
                  src/*.cpp
