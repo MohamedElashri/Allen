@@ -145,7 +145,7 @@ def HLT1Sequence(layout_provider,
 
     if add_default_lines:
         track_mva_line = track_mva_line_t(
-            name="track_mva_line",
+            name="TrackMVALine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_reconstructed_scifi_tracks_t=
             prefix_sum_forward_tracks.host_total_sum_holder_t(),
@@ -160,7 +160,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="track_mva_line_post")
 
         two_track_mva_line = two_track_mva_line_t(
-            name="two_track_mva_line",
+            name="TwoTrackMVALine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -175,7 +175,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="two_track_mva_line_post")
 
         no_beam_line = beam_crossing_line_t(
-            name="no_beam_line",
+            name="NoBeamLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
@@ -186,7 +186,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="no_beam_line_post")
 
         beam_one_line = beam_crossing_line_t(
-            name="beam_one_line",
+            name="BeamOneLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
@@ -197,7 +197,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="beam_one_line_post")
 
         beam_two_line = beam_crossing_line_t(
-            name="beam_two_line",
+            name="BeamTwoLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
@@ -208,7 +208,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="beam_two_line_post")
 
         both_beams_line = beam_crossing_line_t(
-            name="both_beams_line",
+            name="BothBeamsLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
@@ -219,7 +219,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="both_beams_line_post")
 
         velo_micro_bias_line = velo_micro_bias_line_t(
-            name="velo_micro_bias_line",
+            name="VeloMicroBiasLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
@@ -234,7 +234,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="velo_micro_bias_line_post")
 
         odin_lumi_line = odin_event_type_line_t(
-            name="odin_lumi_line",
+            name="ODINLumiLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
@@ -245,7 +245,7 @@ def HLT1Sequence(layout_provider,
             odin_event_type=int("0x0008", 0))
 
         odin_no_bias = odin_event_type_line_t(
-            name="odin_no_bias",
+            name="ODINNoBiasLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
@@ -256,7 +256,7 @@ def HLT1Sequence(layout_provider,
             odin_event_type=int("0x0004", 0))
 
         single_high_pt_muon_line = single_high_pt_muon_line_t(
-            name="single_high_pt_muon_line",
+            name="SingleHighPtMuonLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_reconstructed_scifi_tracks_t=
             prefix_sum_forward_tracks.host_total_sum_holder_t(),
@@ -271,7 +271,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="single_high_pt_muon_line_post")
 
         low_pt_muon_line = low_pt_muon_line_t(
-            name="low_pt_muon_line",
+            name="LowPtMuonLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_reconstructed_scifi_tracks_t=
             prefix_sum_forward_tracks.host_total_sum_holder_t(),
@@ -286,7 +286,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="low_pt_muon_line_post")
 
         d2kk_line = d2kk_line_t(
-            name="d2kk_line",
+            name="D2KKLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -301,7 +301,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="d2kk_line_post")
 
         d2kpi_line = d2kpi_line_t(
-            name="d2kpi_line",
+            name="D2KPiLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -316,7 +316,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="d2kpi_line_post")
 
         d2pipi_line = d2pipi_line_t(
-            name="d2pipi_line",
+            name="D2PiPiLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -331,7 +331,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="d2pipi_line_post")
 
         di_muon_high_mass_line = di_muon_mass_line_t(
-            name="di_muon_high_mass_line",
+            name="DiMuonHighMassLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -346,7 +346,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="di_muon_high_mass_line_post")
 
         di_muon_low_mass_line = di_muon_mass_line_t(
-            name="di_muon_low_mass_line",
+            name="DiMuonLowMassLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -367,7 +367,7 @@ def HLT1Sequence(layout_provider,
             minIPChi2="4")
 
         di_muon_soft_line = di_muon_soft_line_t(
-            name="di_muon_soft_line",
+            name="DiMuonSoftLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -382,7 +382,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="di_muon_soft_line_post")
 
         low_pt_di_muon_line = low_pt_di_muon_line_t(
-            name="low_pt_di_muon_line",
+            name="LowPtDiMuonLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_svs_t=prefix_sum_secondary_vertices.
             host_total_sum_holder_t(),
@@ -397,7 +397,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="low_pt_di_muon_line_post")
 
         track_muon_mva_line = track_muon_mva_line_t(
-            name="track_muon_mva_line",
+            name="TrackMuonMVALine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             host_number_of_reconstructed_scifi_tracks_t=
             prefix_sum_forward_tracks.host_total_sum_holder_t(),
@@ -412,7 +412,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="track_muon_mva_line_post")
 
         gec_passthrough_line = passthrough_line_t(
-            name="gec_passthrough_line",
+            name="GECPassthroughLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
             dev_event_list_t=initialize_lists.dev_event_list_t(),
@@ -427,7 +427,7 @@ def HLT1Sequence(layout_provider,
             post_scaler_hash_string="gec_passthrough_line_post")
 
         passthrough_line = passthrough_line_t(
-            name="passthrough_line",
+            name="PassthroughLine",
             host_number_of_events_t=initialize_lists.host_number_of_events_t(),
             dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
             dev_event_list_t=full_event_list.dev_event_list_t(),
