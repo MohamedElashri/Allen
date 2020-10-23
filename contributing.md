@@ -129,6 +129,7 @@ namespace saxpy {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
@@ -145,6 +146,7 @@ Some parameter examples:
 * `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _unsigned_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
 * `(DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output)`: Defines an output parameter on _device memory_, with name `dev_saxpy_output_t` and identifier `dev_saxpy_output`. Its underlying type is `float*`.
 * `(HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events)`: Defines an input parameter on _host memory_, with name `host_number_of_events_t` and identifier `host_number_of_events`. Its underlying type is `const unsigned*`.
+* `(DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events)`: Defines an input parameter on _device memory_, with name `dev_number_of_events_t` and identifier `dev_number_of_events`. Its underlying type is `const unsigned*`.
 
 Properties of algorithms define constants can be configured prior to running the application. They are defined in two parts. First, they should be defined in the `DEFINE_PARAMETERS` macro following the convention:
 
@@ -199,7 +201,7 @@ An algorithm `saxpy_t` has been declared. It is a `DeviceAlgorithm`, and for con
 Since this is a DeviceAlgorithm, one would like the work to actually be done on the device. In order to run code on the device, a _global kernel_ has to be defined. The syntax used is standard CUDA:
 
 ```
-__global__ void saxpy(Parameters, const unsigned number_of_events);
+__global__ void saxpy(Parameters);
 ```
 
 ##### SAXPY_example.cu
@@ -245,7 +247,7 @@ void saxpy::saxpy_t::operator()(
   global_function(saxpy)(
     dim3(1),
     property<block_dim_t>(),
-    stream)(arguments, first<host_number_of_events_t>(arguments));
+    stream)(arguments);
 }
 ```
 
@@ -270,8 +272,9 @@ Finally, the kernel is defined:
  * @brief SAXPY example algorithm
  * @detail Calculates for every event y = a*x + x, where x is the number of velo tracks in one event
  */
-__global__ void saxpy::saxpy(saxpy::Parameters parameters, const unsigned number_of_events)
+__global__ void saxpy::saxpy(saxpy::Parameters parameters)
 {
+  const auto number_of_events = parameters.dev_number_of_events[0];
   for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
     Velo::Consolidated::ConstTracks velo_tracks {
       parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
@@ -293,6 +296,7 @@ The kernel accepts a single parameter of type `saxpy::Parameters`. It is now pos
 
 In other words, in the code above:
 
+* `parameters.dev_number_of_events` decays to `const unsigned*`.
 * `parameters.dev_atomics_velo` decays to `const unsigned*`.
 * `parameters.dev_velo_track_hit_number` decays to `const unsigned*`.
 * `parameters.dev_saxpy_output` decays to `float*`.

@@ -10,6 +10,7 @@ namespace saxpy {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
@@ -33,5 +34,5 @@ namespace saxpy {
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
   };
 
-  __global__ void saxpy(Parameters, const unsigned number_of_events);
+  __global__ void saxpy(Parameters);
 } // namespace saxpy

@@ -85,7 +85,7 @@ We should now add the SAXPY algorithm. We can use the interactive session to exp
 ```sh
 >>> saxpy_t
 class AlgorithmRepr : DeviceAlgorithm
- inputs: ('host_number_of_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
+ inputs: ('host_number_of_events_t', 'dev_number_of_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
  outputs: ('dev_saxpy_output_t',)
  properties: ('saxpy_scale_factor', 'block_dim')
 ```
@@ -96,6 +96,7 @@ The inputs should be passed into our sequence to be able to instantiate `saxpy_t
 saxpy = saxpy_t(
   name = "saxpy",
   host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
+  dev_number_of_events_t = velo_sequence["initialize_lists"].dev_number_of_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
   dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
 ```
@@ -117,6 +118,7 @@ velo_sequence = VeloSequence()
 saxpy = saxpy_t(
   name = "saxpy",
   host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
+  dev_number_of_events_t = velo_sequence["initialize_lists"].dev_number_of_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
   dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
 
