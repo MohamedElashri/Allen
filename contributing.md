@@ -302,6 +302,29 @@ In other words, in the code above:
 * `parameters.dev_saxpy_output` decays to `float*`.
 * `parameters.saxpy_scale_factor` decays to `float`, and has default value `2.f`.
 
+How to access processing event in other algorithms
+--------------------------------------------------
+
+Typically, events are processed by independent blocks of execution. When that's the case, the invocation of the global function happens with as many blocks as events in the event list. Eg.
+
+```c++
+  global_function(kernel)(
+    size<dev_event_list_t>(),
+    property<block_dim_t>(),
+    stream)(arguments);
+```
+
+Then, in the kernel itself, in order to access the event under execution, the following idiom is used:
+
+```c++
+__global__ void kernel(namespace::Parameters parameters) {
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+```
+
+Configuring the algorithm in a sequence
+---------------------------------------
+
 The last thing remaining is to add the algorithm to a sequence, and run it.
 
 * [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
