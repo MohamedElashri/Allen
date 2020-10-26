@@ -55,7 +55,7 @@ If other inputs are required, follow these instructions for producing them:
 Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
 
 ```console
-python3 scripts/makeODIN.py /path/to/data/banks/
+python3 scripts/makeFakeODIN.py /path/to/data/banks/
 ```
 
 This will create a random ODIN bank for each bank in `/path/to/data/banks/VP`.
