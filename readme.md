@@ -69,6 +69,7 @@ The build process doesn't differ from standard cmake projects:
 
     mkdir build
     cd build
+    git submodule update --init --recursive
     cmake -DSTANDALONE=ON ..
     make
 
