@@ -27,7 +27,8 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   global_function(scifi_consolidate_tracks)(
     dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
     arguments,
-    constants.dev_looking_forward_constants);
+    constants.dev_looking_forward_constants,
+    constants.dev_magnet_polarity.data());
 
   // Transmission device to host of Scifi consolidated tracks
   cudaCheck(cudaMemcpyAsync(
@@ -79,7 +80,8 @@ __device__ void populate(const SciFi::TrackHits& track, const F& assign)
 
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
   scifi_consolidate_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants, 
+  const float* dev_magnet_polarity)
 {
   const unsigned number_of_events = gridDim.x;
   const unsigned event_number = blockIdx.x;
@@ -168,6 +170,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
     const SciFi::TrackHits& track = event_scifi_tracks[i];
 
     // update qop
+    const float magSign = dev_magnet_polarity[0];
     const auto z0 = LookingForward::z_mid_t;
     const auto xVelo = velo_state.x;
     const auto yVelo = velo_state.y;
@@ -203,7 +206,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
     const auto C3 = dev_looking_forward_constants->C3[0]+dev_looking_forward_constants->C3[1]*txO + dev_looking_forward_constants->C3[2]*txO3 +dev_looking_forward_constants->C3[3]*txO5 +dev_looking_forward_constants->C3[4]*txO7 + dev_looking_forward_constants->C3[5]*tyO2 + dev_looking_forward_constants->C3[6]*tyO4 + dev_looking_forward_constants->C3[7]*tyO6 + dev_looking_forward_constants->C3[8]*txO*tyO2 +dev_looking_forward_constants->C3[9]*txO*tyO4 +dev_looking_forward_constants->C3[10]*txO*tyO6 +dev_looking_forward_constants->C3[11]*txO3*tyO2 + dev_looking_forward_constants->C3[12]*txO3*tyO4 + dev_looking_forward_constants->C3[13]*txO5*tyO2;
     const auto C4 = dev_looking_forward_constants->C4[0]+dev_looking_forward_constants->C4[1]*txO2 + dev_looking_forward_constants->C4[2]*txO4 + dev_looking_forward_constants->C4[3]*tyO2 + dev_looking_forward_constants->C4[4]*tyO4  + dev_looking_forward_constants->C4[5]*txO2*tyO2  + dev_looking_forward_constants->C4[6]*txO6 + dev_looking_forward_constants->C4[7]*tyO5 + dev_looking_forward_constants->C4[8]*txO4*tyO2 + dev_looking_forward_constants->C4[9]*txO2*tyO4;
 
-    const auto MAGFIELD_updated = MAGFIELD * ( C0 + C1 * DSLOPE + C2 * DSLOPE*DSLOPE + C3 * DSLOPE*DSLOPE*DSLOPE + C4 * DSLOPE*DSLOPE*DSLOPE*DSLOPE);
+    const auto MAGFIELD_updated = MAGFIELD * magSign * ( C0 + C1 * DSLOPE + C2 * DSLOPE*DSLOPE + C3 * DSLOPE*DSLOPE*DSLOPE + C4 * DSLOPE*DSLOPE*DSLOPE*DSLOPE);
     const auto qop = DSLOPE / MAGFIELD_updated;
     scifi_tracks.qop(i) = qop;
    
