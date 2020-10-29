@@ -422,8 +422,8 @@ namespace example_one_velo_track_line {
     (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string),
     // Line-specific inputs and properties
     (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
-    (DEVICE_INPUT(dev_number_of_events_t, uint), dev_number_of_events),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
     (PROPERTY(minNHits_t, "minNHits", "min number of hits of velo track", unsigned), minNHits))
 
 
@@ -495,7 +495,7 @@ __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_v
   // Get the ith velo track
  const unsigned track_index = i + velo_tracks.tracks_offset(event_number);
 
-  return std::forward_as_tuple(track_index);
+  return std::forward_as_tuple(parameters.dev_velo_track_hit_number[track_index]);
 }
 
 
@@ -503,11 +503,11 @@ __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_v
 __device__ bool example_one_velo_track_line::example_one_velo_track_line_t::select(const Parameters& parameters, 
     std::tuple<const unsigned> input) const
 {
-  // Get velo track index
-  const auto& track_index = std::get<0>(input);
+  // Get number of hits for current velo track
+  const auto& velo_track_hit_number = std::get<0>(input);
 
   // Check if velo track satisfies requirement
-  const bool decision = (parameters.dev_velo_track_hit_number[track_index] > parameters.minNHits);
+  const bool decision = ( velo_track_hit_number > parameters.minNHits);
 
   return decision;
 }
