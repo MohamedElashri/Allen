@@ -1,25 +1,24 @@
-
 # Table of Contents
 
-1.  [Allen: Adding a new selection](#orgec93f80)
-    1.  [Types of selections](#orgf63e834)
-        1.  [`OneTrackLine`](#org219209d)
-        2.  [`TwoTrackLine`](#org1e461fd)
-        3.  [`ODINLine`](#orgd5c01cf)
-        4.  [Custom selections](#orgd5c01de)
-    2.  [Adding a new selection](#org9dddbc8)
-        1.  [Writing the selection code](#org14eaf8f)
-        2.  [Adding your selection algorithm to the Allen sequence](#org3fe70a8)
+1.  [Allen: Adding a new selection](#allen-adding-a-new-selection)
+    1.  [Types of selections](#types-of-selections)
+        1.  [OneTrackLine](#onetrackline)
+        2.  [TwoTrackLine](#twotrackline)
+        3.  [EventLine](#eventline)
+        4.  [Custom selections](#custom-selections)
+    2.  [Adding a new selection](#adding-a-new-selection)
+        1.  [Creating a selection](#creating-a-selection)
+            1.  [OneTrackLine example](#onetrackline-example)
+            2.  [TwoTrackLine example](#twotrackline-example)
+            3.  [EventLine example](#eventline-example)
+            4.  [CustomLine example](#customline-example)
+        2.  [Adding your selection algorithm to the Allen sequence](#adding-your-selection-to-the-allen-sequence)
 
-
-<a id="orgec93f80"></a>
 
 # Allen: Adding a new selection
 
 This tutorial will cover adding trigger selections to Allen using the
 main reconstruction sequence.
-
-<a id="orgf63e834"></a>
 
 ## Types of selections
 
@@ -27,9 +26,7 @@ Selections are fully configurable algorithms in Allen. However, for ease of use,
 
 Bear in mind that if the selection you want to write does not adhere to any of the types below, you can always create a new [custom selection](#orgd5c01de).
 
-<a id="org219209d"></a>
-
-### `OneTrackLine`
+### OneTrackLine
 
 These trigger on single Kalman filtered long (Velo-UT-SciFi)
 tracks. These are stored in the device buffer type
@@ -52,9 +49,7 @@ includes muon ID information.
         momentum information
 
 
-<a id="org1e461fd"></a>
-
-### `TwoTrackLine`
+### TwoTrackLine
 
 These trigger on secondary vertices constructed from 2 Kalman filtered
 long tracks defined in
@@ -93,24 +88,16 @@ reconstruction. These vertices in the device buffer with type
     -   `m(float m1, float m2)`: vertex mass assuming mass hypotheses
         `m1` and `m2` for the constituent tracks
 
-<a id="orgd5c01cf"></a>
-
-### `ODINLine`
+### EventLine
 
 These make trigger selections based on event-level information. Right
 now this includes the ODIN raw bank. This includes minimum bias and lumi lines.
 
-<a id="orgd5c01de"></a>
-
-### Custom selections
+### Custom line
 
 A custom selection can trigger on any input data, and can either be based on event-level information, or on more specific information.
 
-<a id="org9dddbc8"></a>
-
 ## Adding a new selection
-
-<a id="org14eaf8f"></a>
 
 ### Creating a selection
 
@@ -168,244 +155,366 @@ In addition, lines must be instantiated in their source file definition:
 
 * `INSTANTIATE_LINE("name_of_algorithm", "parameters_of_algorithm")`
 
-Below are three examples of lines.
+Below are four examples of lines.
 
-1.  Example: High-pT displaced track selection
+#### OneTrackLine example
 
-    As an example, we'll create a line that triggers on highly displaced,
-    high-pT single tracks. It will be of type `OneTrackLine`. We will create the
-    header `device/selections/lines/include/ExampleOneTrack.cuh`.
+As an example, we'll create a line that triggers on highly displaced,
+high-pT single long tracks. It will be of type `OneTrackLine`. We will create the
+header `device/selections/lines/include/ExampleOneTrackLine.cuh`.
         
-    ```c++
-    #pragma once
+```c++
+#pragma once
 
-    #include "SelectionAlgorithm.cuh"
-    #include "OneTrackLine.cuh"
+#include "SelectionAlgorithm.cuh"
+#include "OneTrackLine.cuh"
 
-    namespace example_one_track_line {
-      DEFINE_PARAMETERS(
-        Parameters,
-        // Commonly required inputs, outputs and properties
-        (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-        (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
-        (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
-        (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
-        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
-        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
-        (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
-        (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
-        (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
-        (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
-        (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
-         pre_scaler_hash_string),
-        (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
-         post_scaler_hash_string),
-        // Line-specific inputs and properties
-        (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
-        (DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack), dev_tracks),
-        (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
-        (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
-        (PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float), minIPChi2))
+namespace example_one_track_line {
+  DEFINE_PARAMETERS(
+    Parameters,
+    // Commonly required inputs, outputs and properties
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+    (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+    (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+    (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+     pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+     post_scaler_hash_string),
+    // Line-specific inputs and properties
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack), dev_tracks),
+    (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
+    (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
+    (PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float), minIPChi2))
 
-      // SelectionAlgorithm definition
-      struct example_one_track_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<example_one_track_line_t, Parameters> {
-        // Selection function.
-        __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+  // SelectionAlgorithm definition
+  struct example_one_track_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<example_one_track_line_t, Parameters> {
+    // Selection function.
+    __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
 
-      private:
-        Property<minPt_t> m_minPt {this, 10000.0f / Gaudi::Units::GeV};
-        Property<minIPChi2_t> m_minIPChi2 {this, 25.0f};
-      };
-    } // namespace example_one_track_line
-    ```
+  private:
+    Property<minPt_t> m_minPt {this, 10000.0f / Gaudi::Units::GeV};
+    Property<minIPChi2_t> m_minIPChi2 {this, 25.0f};
+  };
+} // namespace example_one_track_line
+```
 
-    And the source in `device/selections/lines/src/ExampleOneTrack.cu`:
+And the source in `device/selections/lines/src/ExampleOneTrack.cu`:
 
-    ```c++
-    #include "ExampleOneTrack.cuh"
+```c++
+#include "ExampleOneTrack.cuh"
 
-    // Explicit instantiation of the line
-    INSTANTIATE_LINE(example_one_track_line::example_one_track_line_t, example_one_track_line::Parameters)
+// Explicit instantiation of the line
+INSTANTIATE_LINE(example_one_track_line::example_one_track_line_t, example_one_track_line::Parameters)
 
-    __device__ bool example_one_track_line::example_one_track_line_t::select(
-      const Parameters& parameters,
-      std::tuple<const ParKalmanFilter::FittedTrack&> input) const
-    {
-      const auto& track = std::get<0>(input);
-      const bool decision = track.pt() > parameters.minPt && track.ipChi2 > parameters.minIPChi2;
-      return decision;
-    }
+__device__ bool example_one_track_line::example_one_track_line_t::select(
+  const Parameters& parameters,
+  std::tuple<const ParKalmanFilter::FittedTrack&> input) const
+{
+  const auto& track = std::get<0>(input);
+  const bool decision = track.pt() > parameters.minPt && track.ipChi2 > parameters.minIPChi2;
+  return decision;
+}
+```
 
-    ```
+Note that since the type of this line was preexisting (`OneTrackLine`), it was not
+necessary to define any function other than `select`.
 
-    Note that since the type of this line was preexisting (`OneTrackLine`), it was not
-    necessary to define any function other than `select`.
+#### TwoTrackLine example
 
-2.  Example: Displaced 2-body selection
-
-    Here we'll create an example 2-track line that selects displaced
-    secondary vertices with no postscale. We'll create a header in
-    `device/selections/lines/include/ExampleTwoTrackLine.cuh` with the following contents:
+Here we'll create an example of a 2-long-track line that selects displaced
+secondary vertices with no postscale. This lines inherit from `TwoTrackLine`. We'll create a header in
+`device/selections/lines/include/ExampleTwoTrackLine.cuh` with the following contents:
     
-    ```c++
-    #pragma once
+```c++
+#pragma once
 
-    #include "SelectionAlgorithm.cuh"
-    #include "TwoTrackLine.cuh"
+#include "SelectionAlgorithm.cuh"
+#include "TwoTrackLine.cuh"
 
-    namespace example_two_track_line {
-      DEFINE_PARAMETERS(
-        Parameters,
-        // Commonly required inputs, outputs and properties
-        (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-        (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
-        (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
-        (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
-        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
-        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
-        (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
-        (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
-        (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
-        (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
-        (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
-         pre_scaler_hash_string),
-        (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
-         post_scaler_hash_string),
-        // Line-specific inputs and properties
-        (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
-        (DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex), dev_svs),
-        (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
-        (PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float), minComboPt),
-        (PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float), minTrackPt),
-        (PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float), minTrackIPChi2))
+namespace example_two_track_line {
+  DEFINE_PARAMETERS(
+    Parameters,
+    // Commonly required inputs, outputs and properties
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+    (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+    (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+    (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+     pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+     post_scaler_hash_string),
+    // Line-specific inputs and properties
+    (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
+    (DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex), dev_svs),
+    (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
+    (PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float), minComboPt),
+    (PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float), minTrackPt),
+    (PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float), minTrackIPChi2))
 
-      // SelectionAlgorithm definition
-      struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
-        // Selection function.
-        __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
+  // SelectionAlgorithm definition
+  struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
+    // Selection function.
+    __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
-      private:
-        Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::GeV};
-        Property<minTrackPt_t> m_minTrackPt {this, 500.0f / Gaudi::Units::MeV};
-        Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 25.0f};
-      };
+  private:
+    Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::GeV};
+    Property<minTrackPt_t> m_minTrackPt {this, 500.0f / Gaudi::Units::MeV};
+    Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 25.0f};
+  };
 
-    } // namespace example_two_track_line
-    ```
+} // namespace example_two_track_line
+```
 
-    And a source in `device/selections/lines/src/ExampleTwoTrack.cu` with the following:
+And a source in `device/selections/lines/src/ExampleTwoTrack.cu` with the following:
 
-    ```c++
-    #include "ExampleTwoTrackLine.cuh"
+```c++
+#include "ExampleTwoTrackLine.cuh"
 
-    INSTANTIATE_LINE(example_two_track_line::example_two_track_line_t, example_two_track_line::Parameters)
+INSTANTIATE_LINE(example_two_track_line::example_two_track_line_t, example_two_track_line::Parameters)
 
-    __device__ bool example_two_track_line::example_two_track_line_t::select(
-      const Parameters& parameters,
-      std::tuple<const VertexFit::TrackMVAVertex&> input) const
-    {
-      const auto& vertex = std::get<0>(input);
+__device__ bool example_two_track_line::example_two_track_line_t::select(
+  const Parameters& parameters,
+  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+{
+  const auto& vertex = std::get<0>(input);
 
-      // Make sure the vertex fit succeeded.
-      if (vertex.chi2 < 0) {
-        return false;
-      }
+  // Make sure the vertex fit succeeded.
+  if (vertex.chi2 < 0) {
+    return false;
+  }
 
-      const bool decision = vertex.pt() > parameters.minComboPt && 
-        vertex.minpt > parameters.minTrackPt &&
-        vertex.minipchi2 > parameters.minTrackIPChi2;
-      return decision;
-    }
-    ```
+  const bool decision = vertex.pt() > parameters.minComboPt && 
+    vertex.minpt > parameters.minTrackPt &&
+    vertex.minipchi2 > parameters.minTrackIPChi2;
+  return decision;
+}
+```
 
-3. Example: Velo micro bias line
+#### EventLine example
 
-    Finally we'll define a line that selects events with at least 1 reconstructed VELO track.
+Now we'll define a line that selects events with at least 1 reconstructed VELO track. This line runs once per event, so it inherits from `EventLine`.
+This time, we will need to define not only the `select` function, but also the `get_input` function, as we need custom data to feed into our line (the number of tracks in an event).
 
-    This time, we will need to define not only the `select` function, but also the `get_input` function, as we need custom data to feed into our line (the number of tracks in an event).
+The header `VeloMicroBiasLine.cuh` is as follows:
 
-    The header `VeloMicroBiasLine.cuh` is as follows:
+```c++
+#pragma once
 
-    ```c++
-    #pragma once
+#include "SelectionAlgorithm.cuh"
+#include "EventLine.cuh"
+#include "VeloConsolidated.cuh"
 
-    #include "SelectionAlgorithm.cuh"
-    #include "EventLine.cuh"
-    #include "VeloConsolidated.cuh"
+namespace velo_micro_bias_line {
+  DEFINE_PARAMETERS(
+    Parameters,
+    // Commonly required inputs, outputs and properties
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+    (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+    (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+    (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+     pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+     post_scaler_hash_string),
+    // Line-specific inputs and properties
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
+    (DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned), dev_offsets_velo_tracks),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
+    (PROPERTY(min_velo_tracks_t, "min_velo_tracks", "Minimum number of VELO tracks", unsigned), min_velo_tracks))
 
-    namespace velo_micro_bias_line {
-      DEFINE_PARAMETERS(
-        Parameters,
-        // Commonly required inputs, outputs and properties
-        (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-        (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-        (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
-        (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
-        (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
-        (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
-        (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
-        (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
-        (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
-        (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
-        (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
-        (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
-         pre_scaler_hash_string),
-        (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
-         post_scaler_hash_string),
-        // Line-specific inputs and properties
-        (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-        (DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned), dev_offsets_velo_tracks),
-        (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
-        (PROPERTY(min_velo_tracks_t, "min_velo_tracks", "Minimum number of VELO tracks", unsigned), min_velo_tracks))
-
-      struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
-        __device__ std::tuple<const unsigned>
-        get_input(const Parameters& parameters, const unsigned event_number) const;
-
-        __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
-
-      private:
-        Property<min_velo_tracks_t> m_min_velo_tracks {this, 1};
-      };
-    } // namespace velo_micro_bias_line
-    ```
-
-    Note that we have added three inputs to obtain VELO track information (`dev_offsets_velo_tracks_t`, `dev_offsets_velo_track_hit_number_t` and `dev_number_of_events_t`). Also, the line will run only once per events, so `velo_micro_bias_line_t` inherits from `EventLine<velo_micro_bias_line_t, Parameters>` (instead of `Line`). Finally, `get_input` is declared as well, which we will have to define in the source file. `get_input` will return a `std::tuple<const unsigned>`, which is the type of the `input` argument in `select`.
-
-    The source file looks as follows:
-
-    ```c++
-    #include "VeloMicroBiasLine.cuh"
-
-    // Explicit instantiation
-    INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_line::Parameters)
-
+  struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
     __device__ std::tuple<const unsigned>
-    velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parameters, const unsigned event_number) const
-    {
-      Velo::Consolidated::ConstTracks velo_tracks {
-        parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, parameters.dev_number_of_events[0]};
-      const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
-      return std::forward_as_tuple(number_of_velo_tracks);
-    }
+    get_input(const Parameters& parameters, const unsigned event_number) const;
 
-    __device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
-      const Parameters& parameters,
-      std::tuple<const unsigned> input) const
-    {
-      const auto number_of_velo_tracks = std::get<0>(input);
-      return number_of_velo_tracks >= parameters.min_velo_tracks;
-    }
+    __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
 
-    ```
+  private:
+    Property<min_velo_tracks_t> m_min_velo_tracks {this, 1};
+  };
+} // namespace velo_micro_bias_line
+```
 
-    `get_input` gets the number of VELO tracks and returns it, and `select` will select only events with VELO tracks.
+Note that we have added three inputs to obtain VELO track information (`dev_offsets_velo_tracks_t`, `dev_offsets_velo_track_hit_number_t` and `dev_number_of_events_t`). Finally, `get_input` is declared as well, which we will have to define in the source file. `get_input` will return a `std::tuple<const unsigned>`, which is the type of the `input` argument in `select`.
+
+The source file looks as follows:
+
+```c++
+#include "VeloMicroBiasLine.cuh"
+
+// Explicit instantiation
+INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_line::Parameters)
+
+__device__ std::tuple<const unsigned>
+velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parameters, const unsigned event_number) const
+{
+  Velo::Consolidated::ConstTracks velo_tracks {
+    parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, parameters.dev_number_of_events[0]};
+  const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
+  return std::forward_as_tuple(number_of_velo_tracks);
+}
+
+__device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
+  const Parameters& parameters,
+  std::tuple<const unsigned> input) const
+{
+  const auto number_of_velo_tracks = std::get<0>(input);
+  return number_of_velo_tracks >= parameters.min_velo_tracks;
+}
+```
+
+`get_input` gets the number of VELO tracks and returns it, and `select` will select only events with VELO tracks.
 
 
+#### CustomLine example
 
-<a id="org3fe70a8"></a>
+Finally, we'll define a line that runs on every velo track. Since this is a completely custom line, we need to define all the function of the line, i.e. `select`, `get_input`, `get_decisions_size` and `offset`.
+In addition, we also need to add some properties to the line.
+
+The header `ExampleOneVeloTrackLine.cuh` is as follows:
+
+```c++
+#pragma once
+
+#include "SelectionAlgorithm.cuh"
+#include "Line.cuh"
+#include "VeloConsolidated.cuh"
+
+namespace example_one_velo_track_line {
+  DEFINE_PARAMETERS(
+    Parameters,
+    // Commonly required inputs, outputs and properties
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+    (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+    (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+    (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string), pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string),
+    // Line-specific inputs and properties
+    (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
+    (DEVICE_INPUT(dev_number_of_events_t, uint), dev_number_of_events),
+    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint), dev_velo_track_hit_number),
+    (PROPERTY(minNHits_t, "minNHits", "min number of hits of velo track", unsigned), minNHits))
+
+
+  // SelectionAlgorithm definition
+  struct example_one_velo_track_line_t : public SelectionAlgorithm, Parameters, Line<example_one_velo_track_line_t, Parameters> {
+
+      // Offset function
+      __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const;
+    
+      //Get decision size function
+      unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
+    
+      // Get input function
+      __device__ std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
+    
+      // Selection function
+      __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+
+
+  private:
+    // Commonly required properties
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Line-specific properties
+    Property<minNHits_t> minNHits {this, 3};
+  };
+} // namespace example_one_velo_track_line
+```
+    
+Note that we have added some inputs and one property.
+
+The source file looks as follows:
+    
+```c++
+#include "ExampleOneVeloTrackLine.cuh"
+
+// Explicit instantiation of the line
+INSTANTIATE_LINE(example_one_velo_track_line::example_one_velo_track_line_t, example_one_velo_track_line::Parameters)
+
+// Offset function
+__device__ unsigned example_one_velo_track_line::example_one_velo_track_line_t::offset(const Parameters& parameters, 
+    const unsigned event_number) const
+{
+  return parameters.dev_track_offsets[event_number];
+}
+
+//Get decision size function
+unsigned example_one_velo_track_line::example_one_velo_track_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments) const
+{
+  return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
+}
+
+// Get input function
+__device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_velo_track_line_t::get_input(const Parameters& parameters, 
+    const unsigned event_number, const unsigned i) const
+{
+  // Get the number of events
+  const uint number_of_events = parameters.dev_number_of_events[0]; 
+
+  // Create the velo tracks
+  Velo::Consolidated::Tracks const velo_tracks {
+    parameters.dev_track_offsets, 
+    parameters.dev_velo_track_hit_number, 
+    event_number, 
+    number_of_events};
+    
+  // Get the ith velo track
+ const unsigned track_index = i + velo_tracks.tracks_offset(event_number);
+
+  return std::forward_as_tuple(track_index);
+}
+
+
+// Selection function
+__device__ bool example_one_velo_track_line::example_one_velo_track_line_t::select(const Parameters& parameters, 
+    std::tuple<const unsigned> input) const
+{
+  // Get velo track index
+  const auto& track_index = std::get<0>(input);
+
+  // Check if velo track satisfies requirement
+  const bool decision = (parameters.dev_velo_track_hit_number[track_index] > parameters.minNHits);
+
+  return decision;
+}
+```
+
+It is important that the return type of `get_input` is the same as the input type of `select`.
+
 
 ### Adding your selection to the Allen sequence
 
@@ -423,7 +532,9 @@ configuration file.
 
     First, copy the contents of `hlt1_pp_default.py` into `custom_sequence.py`.
     Modify the argument list to `HLT1Sequence` by adding the keyword argument
-    `add_default_lines = False`, and add the lines:
+    `add_default_lines = False` and add the lines.
+    
+    Don't forget to add the hash strings that act as seed phrases in case of prescaling and postscaling.
 
     ```python
     hlt1_sequence = HLT1Sequence(
@@ -452,7 +563,7 @@ configuration file.
     from definitions.HLT1Sequence import make_selection_gatherer
     from definitions.algorithms import *
 
-    example_one_track_line = definitions.algorithms.example_one_track_line_t(
+    example_one_track_line = example_one_track_line_t(
         name="example_one_track_line",
         host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
         host_number_of_reconstructed_scifi_tracks_t=
@@ -467,7 +578,7 @@ configuration file.
         pre_scaler_hash_string="example_one_track_line_pre",
         post_scaler_hash_string="example_one_track_line_post")
 
-    example_two_track_line = algorithms.example_two_track_line_t(
+    example_two_track_line = example_two_track_line_t(
         name="example_two_track_line",
         host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
         host_number_of_svs_t=hlt1_sequence["prefix_sum_secondary_vertices"].
@@ -494,8 +605,22 @@ configuration file.
         dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
         pre_scaler_hash_string="velo_micro_bias_line_pre",
         post_scaler_hash_string="velo_micro_bias_line_post")
-
-    lines = (example_one_track_line, example_two_track_line, velo_micro_bias_line)
+    
+    example_one_velo_track_line = example_one_velo_track_line_t(
+        name="example_one_velo_track_line",
+        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
+        host_number_of_reconstructed_velo_tracks_t=velo_sequence["velo_copy_track_hit_number"].host_number_of_reconstructed_velo_tracks_t(),
+        dev_event_list_t=velo_sequence["full_event_list"].dev_event_list_t(),
+        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
+        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
+        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_track_offsets_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
+        dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
+        dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
+        pre_scaler_hash_string="single_electron_brem_line_pre",
+        post_scaler_hash_string="single_electron_brem_line_post")
+        
+    lines = (example_one_track_line, example_two_track_line, velo_micro_bias_line, example_one_velo_track_line)
 
     gatherer = make_selection_gatherer(
         lines, velo_sequence["initialize_lists"], hlt1_sequence["layout_provider"], hlt1_sequence["odin_banks"], name="gather_selections")
