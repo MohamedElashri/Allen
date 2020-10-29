@@ -58,7 +58,7 @@ private:
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
-  std::map<std::string, std::string> m_line_names;
+  std::vector<std::string> m_line_names;
   const unsigned m_number_of_streams = 1;
   const unsigned m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
