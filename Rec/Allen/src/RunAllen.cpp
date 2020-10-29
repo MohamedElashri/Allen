@@ -138,7 +138,7 @@ StatusCode RunAllen::initialize()
 
   m_hlt1_line_rates.reserve(m_line_names.size());
   for (unsigned i = 0; i < m_line_names.size(); ++i) {
-    const std::string name = "Hlt1" + m_line_names[i] + "Decision";
+    const std::string name = m_line_names[i] + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
   }
 
@@ -197,7 +197,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   for (unsigned int i = 0; i < buffer->host_number_of_lines; i++) {
     const uint32_t line_report = buffer->host_dec_reports[2 + i];
     const bool dec = line_report & dec_mask;
-    const std::string modified_name = "Hlt1" + m_line_names[i] + "Decision";
+    const std::string modified_name = m_line_names[i] + "Decision";
     m_hlt1_line_rates[i].buffer() += int(dec);
     // Note: the line index in a DecReport cannot be zero -> start at 1
     const int dec_rep_index = i + 1;
