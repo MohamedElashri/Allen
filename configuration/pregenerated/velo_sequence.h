@@ -40,6 +40,7 @@ struct mep_layout__host_mep_layout_t : layout_provider::Parameters::host_mep_lay
   std::string name() const override { return "mep_layout__host_mep_layout_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -51,6 +52,7 @@ struct mep_layout__dev_mep_layout_t : layout_provider::Parameters::dev_mep_layou
   std::string name() const override { return "mep_layout__dev_mep_layout_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -64,6 +66,7 @@ struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_ra
   std::string name() const override { return "host_ut_banks__host_raw_banks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -77,6 +80,7 @@ struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_
   std::string name() const override { return "host_ut_banks__host_raw_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -90,6 +94,7 @@ struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host
   std::string name() const override { return "host_scifi_banks__host_raw_banks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -103,6 +108,7 @@ struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::ho
   std::string name() const override { return "host_scifi_banks__host_raw_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -114,6 +120,7 @@ struct initialize_lists__host_event_list_t : host_global_event_cut::Parameters::
   std::string name() const override { return "initialize_lists__host_event_list_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -134,6 +141,7 @@ struct initialize_lists__host_number_of_events_t
   std::string name() const override { return "initialize_lists__host_number_of_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -146,6 +154,7 @@ struct initialize_lists__host_number_of_selected_events_t
   std::string name() const override { return "initialize_lists__host_number_of_selected_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -162,6 +171,7 @@ struct initialize_lists__dev_number_of_events_t : host_global_event_cut::Paramet
   std::string name() const override { return "initialize_lists__dev_number_of_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -180,6 +190,7 @@ struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::d
   std::string name() const override { return "initialize_lists__dev_event_list_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -191,6 +202,7 @@ struct full_event_list__host_number_of_events_t : host_init_event_list::Paramete
   std::string name() const override { return "full_event_list__host_number_of_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -202,6 +214,7 @@ struct full_event_list__host_event_list_t : host_init_event_list::Parameters::ho
   std::string name() const override { return "full_event_list__host_event_list_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -213,6 +226,7 @@ struct full_event_list__dev_number_of_events_t : host_init_event_list::Parameter
   std::string name() const override { return "full_event_list__dev_number_of_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -224,6 +238,7 @@ struct full_event_list__dev_event_list_t : host_init_event_list::Parameters::dev
   std::string name() const override { return "full_event_list__dev_event_list_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -238,6 +253,7 @@ struct velo_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
   std::string name() const override { return "velo_banks__dev_raw_banks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -252,6 +268,7 @@ struct velo_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offset
   std::string name() const override { return "velo_banks__dev_raw_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -265,6 +282,7 @@ struct velo_calculate_number_of_candidates__dev_number_of_candidates_t
   std::string name() const override { return "velo_calculate_number_of_candidates__dev_number_of_candidates_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -278,6 +296,7 @@ struct prefix_sum_offsets_velo_candidates__host_total_sum_holder_t
   std::string name() const override { return "prefix_sum_offsets_velo_candidates__host_total_sum_holder_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -292,6 +311,7 @@ struct prefix_sum_offsets_velo_candidates__dev_output_buffer_t
   std::string name() const override { return "prefix_sum_offsets_velo_candidates__dev_output_buffer_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -305,6 +325,7 @@ struct velo_estimate_input_size__dev_estimated_input_size_t
   std::string name() const override { return "velo_estimate_input_size__dev_estimated_input_size_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -318,6 +339,7 @@ struct velo_estimate_input_size__dev_module_candidate_num_t
   std::string name() const override { return "velo_estimate_input_size__dev_module_candidate_num_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -331,6 +353,7 @@ struct velo_estimate_input_size__dev_cluster_candidates_t
   std::string name() const override { return "velo_estimate_input_size__dev_cluster_candidates_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -346,6 +369,7 @@ struct prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t
   std::string name() const override { return "prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -363,6 +387,7 @@ struct prefix_sum_offsets_estimated_input_size__dev_output_buffer_t
   std::string name() const override { return "prefix_sum_offsets_estimated_input_size__dev_output_buffer_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -377,6 +402,7 @@ struct velo_masked_clustering__dev_module_cluster_num_t
   std::string name() const override { return "velo_masked_clustering__dev_module_cluster_num_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -390,6 +416,7 @@ struct velo_masked_clustering__dev_velo_cluster_container_t
   std::string name() const override { return "velo_masked_clustering__dev_velo_cluster_container_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -405,6 +432,7 @@ struct velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t
   std::string name() const override { return "velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -417,6 +445,7 @@ struct velo_calculate_phi_and_sort__dev_hit_permutation_t
   std::string name() const override { return "velo_calculate_phi_and_sort__dev_hit_permutation_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -429,6 +458,7 @@ struct velo_calculate_phi_and_sort__dev_hit_phi_t : velo_calculate_phi_and_sort:
   std::string name() const override { return "velo_calculate_phi_and_sort__dev_hit_phi_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -442,6 +472,7 @@ struct velo_search_by_triplet__dev_tracks_t : velo_search_by_triplet::Parameters
   std::string name() const override { return "velo_search_by_triplet__dev_tracks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -453,6 +484,7 @@ struct velo_search_by_triplet__dev_tracklets_t : velo_search_by_triplet::Paramet
   std::string name() const override { return "velo_search_by_triplet__dev_tracklets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -464,6 +496,7 @@ struct velo_search_by_triplet__dev_tracks_to_follow_t : velo_search_by_triplet::
   std::string name() const override { return "velo_search_by_triplet__dev_tracks_to_follow_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -477,6 +510,7 @@ struct velo_search_by_triplet__dev_three_hit_tracks_t
   std::string name() const override { return "velo_search_by_triplet__dev_three_hit_tracks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -489,6 +523,7 @@ struct velo_search_by_triplet__dev_hit_used_t : velo_search_by_triplet::Paramete
   std::string name() const override { return "velo_search_by_triplet__dev_hit_used_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -501,6 +536,7 @@ struct velo_search_by_triplet__dev_atomics_velo_t : velo_search_by_triplet::Para
   std::string name() const override { return "velo_search_by_triplet__dev_atomics_velo_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -512,6 +548,7 @@ struct velo_search_by_triplet__dev_rel_indices_t : velo_search_by_triplet::Param
   std::string name() const override { return "velo_search_by_triplet__dev_rel_indices_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -525,6 +562,7 @@ struct velo_search_by_triplet__dev_number_of_velo_tracks_t
   std::string name() const override { return "velo_search_by_triplet__dev_number_of_velo_tracks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -538,6 +576,7 @@ struct prefix_sum_offsets_velo_tracks__host_total_sum_holder_t
   std::string name() const override { return "prefix_sum_offsets_velo_tracks__host_total_sum_holder_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -551,6 +590,7 @@ struct prefix_sum_offsets_velo_tracks__dev_output_buffer_t
   std::string name() const override { return "prefix_sum_offsets_velo_tracks__dev_output_buffer_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -564,6 +604,7 @@ struct velo_three_hit_tracks_filter__dev_three_hit_tracks_output_t
   std::string name() const override { return "velo_three_hit_tracks_filter__dev_three_hit_tracks_output_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -577,6 +618,7 @@ struct velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t
   std::string name() const override { return "velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -594,6 +636,7 @@ struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_ho
   }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -611,6 +654,7 @@ struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer
   }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -624,6 +668,7 @@ struct velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t
   std::string name() const override { return "velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -637,6 +682,7 @@ struct velo_copy_track_hit_number__dev_velo_track_hit_number_t
   std::string name() const override { return "velo_copy_track_hit_number__dev_velo_track_hit_number_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -650,6 +696,7 @@ struct velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t
   std::string name() const override { return "velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -663,6 +710,7 @@ struct prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t
   std::string name() const override { return "prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -676,6 +724,7 @@ struct prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t
   std::string name() const override { return "prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -688,6 +737,7 @@ struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
   std::string name() const override { return "velo_consolidate_tracks__dev_accepted_velo_tracks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -699,6 +749,7 @@ struct velo_consolidate_tracks__dev_velo_states_t : velo_consolidate_tracks::Par
   std::string name() const override { return "velo_consolidate_tracks__dev_velo_states_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -710,6 +761,7 @@ struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks:
   std::string name() const override { return "velo_consolidate_tracks__dev_velo_track_hits_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;

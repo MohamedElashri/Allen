@@ -34,6 +34,7 @@ struct Hlt1TrackMVA__dev_decisions_t : track_mva_line::Parameters::dev_decisions
   std::string name() const override { return "Hlt1TrackMVA__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -45,6 +46,7 @@ struct Hlt1TwoTrackMVA__dev_decisions_t : two_track_mva_line::Parameters::dev_de
   std::string name() const override { return "Hlt1TwoTrackMVA__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -56,6 +58,7 @@ struct Hlt1NoBeam__dev_decisions_t : beam_crossing_line::Parameters::dev_decisio
   std::string name() const override { return "Hlt1NoBeam__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -67,6 +70,7 @@ struct Hlt1BeamOne__dev_decisions_t : beam_crossing_line::Parameters::dev_decisi
   std::string name() const override { return "Hlt1BeamOne__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -78,6 +82,7 @@ struct Hlt1BeamTwo__dev_decisions_t : beam_crossing_line::Parameters::dev_decisi
   std::string name() const override { return "Hlt1BeamTwo__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -89,6 +94,7 @@ struct Hlt1BothBeams__dev_decisions_t : beam_crossing_line::Parameters::dev_deci
   std::string name() const override { return "Hlt1BothBeams__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -100,6 +106,7 @@ struct Hlt1VeloMicroBias__dev_decisions_t : velo_micro_bias_line::Parameters::de
   std::string name() const override { return "Hlt1VeloMicroBias__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -111,6 +118,7 @@ struct Hlt1ODINLumi__dev_decisions_t : odin_event_type_line::Parameters::dev_dec
   std::string name() const override { return "Hlt1ODINLumi__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -122,6 +130,7 @@ struct Hlt1ODINNoBias__dev_decisions_t : odin_event_type_line::Parameters::dev_d
   std::string name() const override { return "Hlt1ODINNoBias__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -133,6 +142,7 @@ struct Hlt1SingleHighPtMuon__dev_decisions_t : single_high_pt_muon_line::Paramet
   std::string name() const override { return "Hlt1SingleHighPtMuon__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -144,6 +154,7 @@ struct Hlt1LowPtMuon__dev_decisions_t : low_pt_muon_line::Parameters::dev_decisi
   std::string name() const override { return "Hlt1LowPtMuon__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -155,6 +166,7 @@ struct Hlt1D2KK__dev_decisions_t : d2kk_line::Parameters::dev_decisions_t {
   std::string name() const override { return "Hlt1D2KK__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -166,6 +178,7 @@ struct Hlt1D2KPi__dev_decisions_t : d2kpi_line::Parameters::dev_decisions_t {
   std::string name() const override { return "Hlt1D2KPi__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -177,6 +190,7 @@ struct Hlt1D2PiPi__dev_decisions_t : d2pipi_line::Parameters::dev_decisions_t {
   std::string name() const override { return "Hlt1D2PiPi__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -188,6 +202,7 @@ struct Hlt1DiMuonHighMass__dev_decisions_t : di_muon_mass_line::Parameters::dev_
   std::string name() const override { return "Hlt1DiMuonHighMass__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -199,6 +214,7 @@ struct Hlt1DiMuonLowMass__dev_decisions_t : di_muon_mass_line::Parameters::dev_d
   std::string name() const override { return "Hlt1DiMuonLowMass__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -210,6 +226,7 @@ struct Hlt1DiMuonSoft__dev_decisions_t : di_muon_soft_line::Parameters::dev_deci
   std::string name() const override { return "Hlt1DiMuonSoft__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -221,6 +238,7 @@ struct Hlt1LowPtDiMuon__dev_decisions_t : low_pt_di_muon_line::Parameters::dev_d
   std::string name() const override { return "Hlt1LowPtDiMuon__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -232,6 +250,7 @@ struct Hlt1TrackMuonMVA__dev_decisions_t : track_muon_mva_line::Parameters::dev_
   std::string name() const override { return "Hlt1TrackMuonMVA__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -243,6 +262,7 @@ struct Hlt1GECPassthrough__dev_decisions_t : passthrough_line::Parameters::dev_d
   std::string name() const override { return "Hlt1GECPassthrough__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -254,6 +274,7 @@ struct Hlt1Passthrough__dev_decisions_t : passthrough_line::Parameters::dev_deci
   std::string name() const override { return "Hlt1Passthrough__dev_decisions_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -265,6 +286,7 @@ struct Hlt1TrackMVA__dev_decisions_offsets_t : track_mva_line::Parameters::dev_d
   std::string name() const override { return "Hlt1TrackMVA__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -276,6 +298,7 @@ struct Hlt1TwoTrackMVA__dev_decisions_offsets_t : two_track_mva_line::Parameters
   std::string name() const override { return "Hlt1TwoTrackMVA__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -287,6 +310,7 @@ struct Hlt1NoBeam__dev_decisions_offsets_t : beam_crossing_line::Parameters::dev
   std::string name() const override { return "Hlt1NoBeam__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -298,6 +322,7 @@ struct Hlt1BeamOne__dev_decisions_offsets_t : beam_crossing_line::Parameters::de
   std::string name() const override { return "Hlt1BeamOne__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -309,6 +334,7 @@ struct Hlt1BeamTwo__dev_decisions_offsets_t : beam_crossing_line::Parameters::de
   std::string name() const override { return "Hlt1BeamTwo__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -320,6 +346,7 @@ struct Hlt1BothBeams__dev_decisions_offsets_t : beam_crossing_line::Parameters::
   std::string name() const override { return "Hlt1BothBeams__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -331,6 +358,7 @@ struct Hlt1VeloMicroBias__dev_decisions_offsets_t : velo_micro_bias_line::Parame
   std::string name() const override { return "Hlt1VeloMicroBias__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -342,6 +370,7 @@ struct Hlt1ODINLumi__dev_decisions_offsets_t : odin_event_type_line::Parameters:
   std::string name() const override { return "Hlt1ODINLumi__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -353,6 +382,7 @@ struct Hlt1ODINNoBias__dev_decisions_offsets_t : odin_event_type_line::Parameter
   std::string name() const override { return "Hlt1ODINNoBias__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -364,6 +394,7 @@ struct Hlt1SingleHighPtMuon__dev_decisions_offsets_t : single_high_pt_muon_line:
   std::string name() const override { return "Hlt1SingleHighPtMuon__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -375,6 +406,7 @@ struct Hlt1LowPtMuon__dev_decisions_offsets_t : low_pt_muon_line::Parameters::de
   std::string name() const override { return "Hlt1LowPtMuon__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -386,6 +418,7 @@ struct Hlt1D2KK__dev_decisions_offsets_t : d2kk_line::Parameters::dev_decisions_
   std::string name() const override { return "Hlt1D2KK__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -397,6 +430,7 @@ struct Hlt1D2KPi__dev_decisions_offsets_t : d2kpi_line::Parameters::dev_decision
   std::string name() const override { return "Hlt1D2KPi__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -408,6 +442,7 @@ struct Hlt1D2PiPi__dev_decisions_offsets_t : d2pipi_line::Parameters::dev_decisi
   std::string name() const override { return "Hlt1D2PiPi__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -419,6 +454,7 @@ struct Hlt1DiMuonHighMass__dev_decisions_offsets_t : di_muon_mass_line::Paramete
   std::string name() const override { return "Hlt1DiMuonHighMass__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -430,6 +466,7 @@ struct Hlt1DiMuonLowMass__dev_decisions_offsets_t : di_muon_mass_line::Parameter
   std::string name() const override { return "Hlt1DiMuonLowMass__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -441,6 +478,7 @@ struct Hlt1DiMuonSoft__dev_decisions_offsets_t : di_muon_soft_line::Parameters::
   std::string name() const override { return "Hlt1DiMuonSoft__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -452,6 +490,7 @@ struct Hlt1LowPtDiMuon__dev_decisions_offsets_t : low_pt_di_muon_line::Parameter
   std::string name() const override { return "Hlt1LowPtDiMuon__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -463,6 +502,7 @@ struct Hlt1TrackMuonMVA__dev_decisions_offsets_t : track_muon_mva_line::Paramete
   std::string name() const override { return "Hlt1TrackMuonMVA__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -474,6 +514,7 @@ struct Hlt1GECPassthrough__dev_decisions_offsets_t : passthrough_line::Parameter
   std::string name() const override { return "Hlt1GECPassthrough__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -485,6 +526,7 @@ struct Hlt1Passthrough__dev_decisions_offsets_t : passthrough_line::Parameters::
   std::string name() const override { return "Hlt1Passthrough__dev_decisions_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -496,6 +538,7 @@ struct Hlt1TrackMVA__host_post_scaler_t : track_mva_line::Parameters::host_post_
   std::string name() const override { return "Hlt1TrackMVA__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -507,6 +550,7 @@ struct Hlt1TwoTrackMVA__host_post_scaler_t : two_track_mva_line::Parameters::hos
   std::string name() const override { return "Hlt1TwoTrackMVA__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -518,6 +562,7 @@ struct Hlt1NoBeam__host_post_scaler_t : beam_crossing_line::Parameters::host_pos
   std::string name() const override { return "Hlt1NoBeam__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -529,6 +574,7 @@ struct Hlt1BeamOne__host_post_scaler_t : beam_crossing_line::Parameters::host_po
   std::string name() const override { return "Hlt1BeamOne__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -540,6 +586,7 @@ struct Hlt1BeamTwo__host_post_scaler_t : beam_crossing_line::Parameters::host_po
   std::string name() const override { return "Hlt1BeamTwo__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -551,6 +598,7 @@ struct Hlt1BothBeams__host_post_scaler_t : beam_crossing_line::Parameters::host_
   std::string name() const override { return "Hlt1BothBeams__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -562,6 +610,7 @@ struct Hlt1VeloMicroBias__host_post_scaler_t : velo_micro_bias_line::Parameters:
   std::string name() const override { return "Hlt1VeloMicroBias__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -573,6 +622,7 @@ struct Hlt1ODINLumi__host_post_scaler_t : odin_event_type_line::Parameters::host
   std::string name() const override { return "Hlt1ODINLumi__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -584,6 +634,7 @@ struct Hlt1ODINNoBias__host_post_scaler_t : odin_event_type_line::Parameters::ho
   std::string name() const override { return "Hlt1ODINNoBias__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -595,6 +646,7 @@ struct Hlt1SingleHighPtMuon__host_post_scaler_t : single_high_pt_muon_line::Para
   std::string name() const override { return "Hlt1SingleHighPtMuon__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -606,6 +658,7 @@ struct Hlt1LowPtMuon__host_post_scaler_t : low_pt_muon_line::Parameters::host_po
   std::string name() const override { return "Hlt1LowPtMuon__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -617,6 +670,7 @@ struct Hlt1D2KK__host_post_scaler_t : d2kk_line::Parameters::host_post_scaler_t 
   std::string name() const override { return "Hlt1D2KK__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -628,6 +682,7 @@ struct Hlt1D2KPi__host_post_scaler_t : d2kpi_line::Parameters::host_post_scaler_
   std::string name() const override { return "Hlt1D2KPi__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -639,6 +694,7 @@ struct Hlt1D2PiPi__host_post_scaler_t : d2pipi_line::Parameters::host_post_scale
   std::string name() const override { return "Hlt1D2PiPi__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -650,6 +706,7 @@ struct Hlt1DiMuonHighMass__host_post_scaler_t : di_muon_mass_line::Parameters::h
   std::string name() const override { return "Hlt1DiMuonHighMass__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -661,6 +718,7 @@ struct Hlt1DiMuonLowMass__host_post_scaler_t : di_muon_mass_line::Parameters::ho
   std::string name() const override { return "Hlt1DiMuonLowMass__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -672,6 +730,7 @@ struct Hlt1DiMuonSoft__host_post_scaler_t : di_muon_soft_line::Parameters::host_
   std::string name() const override { return "Hlt1DiMuonSoft__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -683,6 +742,7 @@ struct Hlt1LowPtDiMuon__host_post_scaler_t : low_pt_di_muon_line::Parameters::ho
   std::string name() const override { return "Hlt1LowPtDiMuon__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -694,6 +754,7 @@ struct Hlt1TrackMuonMVA__host_post_scaler_t : track_muon_mva_line::Parameters::h
   std::string name() const override { return "Hlt1TrackMuonMVA__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -705,6 +766,7 @@ struct Hlt1GECPassthrough__host_post_scaler_t : passthrough_line::Parameters::ho
   std::string name() const override { return "Hlt1GECPassthrough__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -716,6 +778,7 @@ struct Hlt1Passthrough__host_post_scaler_t : passthrough_line::Parameters::host_
   std::string name() const override { return "Hlt1Passthrough__host_post_scaler_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -727,6 +790,7 @@ struct Hlt1TrackMVA__host_post_scaler_hash_t : track_mva_line::Parameters::host_
   std::string name() const override { return "Hlt1TrackMVA__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -738,6 +802,7 @@ struct Hlt1TwoTrackMVA__host_post_scaler_hash_t : two_track_mva_line::Parameters
   std::string name() const override { return "Hlt1TwoTrackMVA__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -749,6 +814,7 @@ struct Hlt1NoBeam__host_post_scaler_hash_t : beam_crossing_line::Parameters::hos
   std::string name() const override { return "Hlt1NoBeam__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -760,6 +826,7 @@ struct Hlt1BeamOne__host_post_scaler_hash_t : beam_crossing_line::Parameters::ho
   std::string name() const override { return "Hlt1BeamOne__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -771,6 +838,7 @@ struct Hlt1BeamTwo__host_post_scaler_hash_t : beam_crossing_line::Parameters::ho
   std::string name() const override { return "Hlt1BeamTwo__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -782,6 +850,7 @@ struct Hlt1BothBeams__host_post_scaler_hash_t : beam_crossing_line::Parameters::
   std::string name() const override { return "Hlt1BothBeams__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -793,6 +862,7 @@ struct Hlt1VeloMicroBias__host_post_scaler_hash_t : velo_micro_bias_line::Parame
   std::string name() const override { return "Hlt1VeloMicroBias__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -804,6 +874,7 @@ struct Hlt1ODINLumi__host_post_scaler_hash_t : odin_event_type_line::Parameters:
   std::string name() const override { return "Hlt1ODINLumi__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -815,6 +886,7 @@ struct Hlt1ODINNoBias__host_post_scaler_hash_t : odin_event_type_line::Parameter
   std::string name() const override { return "Hlt1ODINNoBias__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -826,6 +898,7 @@ struct Hlt1SingleHighPtMuon__host_post_scaler_hash_t : single_high_pt_muon_line:
   std::string name() const override { return "Hlt1SingleHighPtMuon__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -837,6 +910,7 @@ struct Hlt1LowPtMuon__host_post_scaler_hash_t : low_pt_muon_line::Parameters::ho
   std::string name() const override { return "Hlt1LowPtMuon__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -848,6 +922,7 @@ struct Hlt1D2KK__host_post_scaler_hash_t : d2kk_line::Parameters::host_post_scal
   std::string name() const override { return "Hlt1D2KK__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -859,6 +934,7 @@ struct Hlt1D2KPi__host_post_scaler_hash_t : d2kpi_line::Parameters::host_post_sc
   std::string name() const override { return "Hlt1D2KPi__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -870,6 +946,7 @@ struct Hlt1D2PiPi__host_post_scaler_hash_t : d2pipi_line::Parameters::host_post_
   std::string name() const override { return "Hlt1D2PiPi__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -881,6 +958,7 @@ struct Hlt1DiMuonHighMass__host_post_scaler_hash_t : di_muon_mass_line::Paramete
   std::string name() const override { return "Hlt1DiMuonHighMass__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -892,6 +970,7 @@ struct Hlt1DiMuonLowMass__host_post_scaler_hash_t : di_muon_mass_line::Parameter
   std::string name() const override { return "Hlt1DiMuonLowMass__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -903,6 +982,7 @@ struct Hlt1DiMuonSoft__host_post_scaler_hash_t : di_muon_soft_line::Parameters::
   std::string name() const override { return "Hlt1DiMuonSoft__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -914,6 +994,7 @@ struct Hlt1LowPtDiMuon__host_post_scaler_hash_t : low_pt_di_muon_line::Parameter
   std::string name() const override { return "Hlt1LowPtDiMuon__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -925,6 +1006,7 @@ struct Hlt1TrackMuonMVA__host_post_scaler_hash_t : track_muon_mva_line::Paramete
   std::string name() const override { return "Hlt1TrackMuonMVA__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -936,6 +1018,7 @@ struct Hlt1GECPassthrough__host_post_scaler_hash_t : passthrough_line::Parameter
   std::string name() const override { return "Hlt1GECPassthrough__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -947,6 +1030,7 @@ struct Hlt1Passthrough__host_post_scaler_hash_t : passthrough_line::Parameters::
   std::string name() const override { return "Hlt1Passthrough__host_post_scaler_hash_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
