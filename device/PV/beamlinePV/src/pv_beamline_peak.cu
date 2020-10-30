@@ -21,14 +21,16 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  const auto grid_dim = dim3(
-    (size<dev_event_list_t>(arguments) + property<block_dim_x_t>().get() - 1) /
-    property<block_dim_x_t>().get());
+  const auto grid_dim =
+    dim3((size<dev_event_list_t>(arguments) + property<block_dim_x_t>().get() - 1) / property<block_dim_x_t>().get());
 
-  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), stream)(arguments, size<dev_event_list_t>(arguments));
+  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), stream)(
+    arguments, size<dev_event_list_t>(arguments));
 }
 
-__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters, const unsigned event_list_size)
+__global__ void pv_beamline_peak::pv_beamline_peak(
+  pv_beamline_peak::Parameters parameters,
+  const unsigned event_list_size)
 {
   // At least parallelize over events, even if it's
   // one event on each thread
