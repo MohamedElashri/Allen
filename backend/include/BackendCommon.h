@@ -138,3 +138,5 @@ public:
 
   const char* what() const noexcept override { return m_algorithm_name.c_str(); }
 };
+
+__device__ inline float signselect(const float& s, const float& a, const float& b) { return (s > 0) ? a : b; }

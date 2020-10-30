@@ -129,6 +129,12 @@ message(STATUS "Allen device target: " ${TARGET_DEVICE})
 # Add compile definition for target
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
+# Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.
+# Support it in a future Allen release.
+if(${CMAKE_VERSION} VERSION_GREATER "3.18.0" OR ${CMAKE_VERSION} VERSION_EQUAL "3.18.0")
+  cmake_policy(SET CMP0104 OLD)
+endif()
+
 # List of all expected submodules
 set(EXPECTED_SUBMODULES umesimd)
 foreach(SUBMODULE ${EXPECTED_SUBMODULES})
