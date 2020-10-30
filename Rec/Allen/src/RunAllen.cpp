@@ -129,7 +129,8 @@ StatusCode RunAllen::initialize()
   if (m_line_names.empty()) {
     error() << "Failed to obtain any line names from " << selection_names->second << endmsg;
     return StatusCode::FAILURE;
-  } else {
+  }
+  else {
     for (auto line_name : m_line_names) {
       debug() << line_name << " ";
     }
