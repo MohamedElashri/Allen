@@ -24,6 +24,7 @@ struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_ra
   std::string name() const override { return "host_ut_banks__host_raw_banks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -35,6 +36,7 @@ struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_
   std::string name() const override { return "host_ut_banks__host_raw_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -46,6 +48,7 @@ struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host
   std::string name() const override { return "host_scifi_banks__host_raw_banks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -57,6 +60,7 @@ struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::ho
   std::string name() const override { return "host_scifi_banks__host_raw_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -68,6 +72,7 @@ struct initialize_lists__host_total_number_of_events_t
   std::string name() const override { return "initialize_lists__host_total_number_of_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -78,6 +83,7 @@ struct initialize_lists__host_event_list_t : host_global_event_cut::Parameters::
   std::string name() const override { return "initialize_lists__host_event_list_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -92,6 +98,7 @@ struct initialize_lists__host_number_of_selected_events_t
   std::string name() const override { return "initialize_lists__host_number_of_selected_events_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -105,6 +112,7 @@ struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::d
   std::string name() const override { return "initialize_lists__dev_event_list_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -116,6 +124,7 @@ struct ecal_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
   std::string name() const override { return "ecal_banks__dev_raw_banks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -127,6 +136,7 @@ struct ecal_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offset
   std::string name() const override { return "ecal_banks__dev_raw_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -138,6 +148,7 @@ struct hcal_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
   std::string name() const override { return "hcal_banks__dev_raw_banks_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -149,6 +160,7 @@ struct hcal_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offset
   std::string name() const override { return "hcal_banks__dev_raw_offsets_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -161,6 +173,7 @@ struct calo_decode__dev_ecal_digits_t : calo_decode::Parameters::dev_ecal_digits
   std::string name() const override { return "calo_decode__dev_ecal_digits_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -173,6 +186,7 @@ struct calo_decode__dev_hcal_digits_t : calo_decode::Parameters::dev_hcal_digits
   std::string name() const override { return "calo_decode__dev_hcal_digits_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -184,6 +198,7 @@ struct calo_seed_clusters__dev_ecal_num_clusters_t : calo_seed_clusters::Paramet
   std::string name() const override { return "calo_seed_clusters__dev_ecal_num_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -195,6 +210,7 @@ struct calo_seed_clusters__dev_hcal_num_clusters_t : calo_seed_clusters::Paramet
   std::string name() const override { return "calo_seed_clusters__dev_hcal_num_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -206,6 +222,7 @@ struct calo_seed_clusters__dev_ecal_seed_clusters_t : calo_seed_clusters::Parame
   std::string name() const override { return "calo_seed_clusters__dev_ecal_seed_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -217,6 +234,7 @@ struct calo_seed_clusters__dev_hcal_seed_clusters_t : calo_seed_clusters::Parame
   std::string name() const override { return "calo_seed_clusters__dev_hcal_seed_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -229,6 +247,7 @@ struct prefix_sum_ecal_num_clusters__host_total_sum_holder_t
   std::string name() const override { return "prefix_sum_ecal_num_clusters__host_total_sum_holder_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -240,6 +259,7 @@ struct prefix_sum_ecal_num_clusters__dev_output_buffer_t : host_prefix_sum::Para
   std::string name() const override { return "prefix_sum_ecal_num_clusters__dev_output_buffer_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -252,6 +272,7 @@ struct prefix_sum_hcal_num_clusters__host_total_sum_holder_t
   std::string name() const override { return "prefix_sum_hcal_num_clusters__host_total_sum_holder_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -263,6 +284,7 @@ struct prefix_sum_hcal_num_clusters__dev_output_buffer_t : host_prefix_sum::Para
   std::string name() const override { return "prefix_sum_hcal_num_clusters__dev_output_buffer_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -273,6 +295,7 @@ struct calo_find_clusters__dev_ecal_digits_clusters_t : calo_find_clusters::Para
   std::string name() const override { return "calo_find_clusters__dev_ecal_digits_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -283,6 +306,7 @@ struct calo_find_clusters__dev_hcal_digits_clusters_t : calo_find_clusters::Para
   std::string name() const override { return "calo_find_clusters__dev_hcal_digits_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -293,6 +317,7 @@ struct calo_find_clusters__dev_ecal_clusters_t : calo_find_clusters::Parameters:
   std::string name() const override { return "calo_find_clusters__dev_ecal_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
@@ -303,6 +328,7 @@ struct calo_find_clusters__dev_hcal_clusters_t : calo_find_clusters::Parameters:
   std::string name() const override { return "calo_find_clusters__dev_hcal_clusters_t"; }
   void set_offset(char* offset) override { m_offset = offset; }
   char* offset() const override { return m_offset; }
+
 private:
   size_t m_size = 0;
   char* m_offset = nullptr;
