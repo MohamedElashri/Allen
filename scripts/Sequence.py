@@ -244,7 +244,6 @@ char* m_offset = nullptr; };\n"
                     # Since there are no instances of that algorithm,
                     # at least we need to populate the aggregate inputs as empty
                     for aggregate_parameter in algorithm_with_aggregate_class.aggregates:
-                        print(algorithm_with_aggregate_class.namespace)
                         s += "namespace " + algorithm_with_aggregate_class.namespace + " { namespace " + aggregate_parameter + " { using tuple_t = std::tuple<>; }}\n"
             f = open(aggregate_input_filename, "w")
             f.write(s)

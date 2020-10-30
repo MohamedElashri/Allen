@@ -5,6 +5,7 @@
 #include "SelectionsEventModel.cuh"
 #include "DeterministicScaler.cuh"
 #include "Event/ODIN.h"
+#include "ODINBank.cuh"
 #include <algorithm>
 
 // Helper traits to traverse dev_input_selections_t
