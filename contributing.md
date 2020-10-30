@@ -319,7 +319,6 @@ Then, in the kernel itself, in order to access the event under execution, the fo
 ```c++
 __global__ void kernel(namespace::Parameters parameters) {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 ```
 
 Configuring the algorithm in a sequence

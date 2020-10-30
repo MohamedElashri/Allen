@@ -51,8 +51,7 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
         name="pv_beamline_peak",
         host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         dev_zhisto_t=pv_beamline_histo.dev_zhisto_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
+        dev_event_list_t=initialize_lists.dev_event_list_t())
 
     pv_beamline_calculate_denom = pv_beamline_calculate_denom_t(
         name="pv_beamline_calculate_denom",
