@@ -48,9 +48,6 @@ public:
     const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
-  /// Finalize
-  StatusCode finalize() override;
-
 private:
   Constants m_constants;
   std::set<LHCb::RawBank::BankType> m_bankTypes = {LHCb::RawBank::ODIN,

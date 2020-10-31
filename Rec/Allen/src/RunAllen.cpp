@@ -211,10 +211,3 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << unsigned(filter) << endmsg;
   return std::make_tuple(filter, *buffer, reports);
 }
-
-StatusCode RunAllen::finalize()
-{
-  if (msgLevel(MSG::DEBUG)) debug() << "Finalizing Allen..." << endmsg;
-
-  return MultiTransformerFilter::finalize();
-}
