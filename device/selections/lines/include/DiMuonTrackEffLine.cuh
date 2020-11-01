@@ -1,25 +1,47 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
 
-#include "LineInfo.cuh"
-#include "VertexDefinitions.cuh"
-#include "SystemOfUnits.h"
+#include "SelectionAlgorithm.cuh"
+#include "TwoTrackLine.cuh"
 
-namespace DiMuonTrackEff {
-  // Mass window around J/psi meson.
-  constexpr float DMTrackEffM0 = 2900.f;
-  constexpr float DMTrackEffM1 = 3100.f;
+namespace di_muon_track_eff_line {
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
+    (DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex), dev_svs),
+    (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+    (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+    (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+    (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+     pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+     post_scaler_hash_string),
+    (PROPERTY(DMTrackEffM0_t, "DMTrackEffM0", "DMTrackEffM0 description", float), DMTrackEffM0),
+    (PROPERTY(DMTrackEffM1_t, "DMTrackEffM1", "DMTrackEffM1 description", float), DMTrackEffM1))
 
-  struct DiMuonTrackEff_t : public Hlt1::VeloUTTwoTrackLine {
-    constexpr static auto name {"DiMuonTrackEff"};
+  struct di_muon_track_eff_line_t : public SelectionAlgorithm,
+                                    Parameters,
+                                    TwoTrackLine<di_muon_track_eff_line_t, Parameters> {
+    __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
-    static __device__ bool function(const VertexFit::TrackMVAVertex& vertex)
-    {
-      if (!vertex.is_dimuon) return false;
-      const bool decision = vertex.chi2 > 0 && vertex.mdimu > DMTrackEffM0 && vertex.mdimu < DMTrackEffM1;
-      return decision;
-    }
+  private:
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Mass window around J/psi meson.
+    Property<DMTrackEffM0_t> m_DMTrackEffM0 {this, 2900.f};
+    Property<DMTrackEffM1_t> m_DMTrackEffM1 {this, 3100.f};
   };
-} // namespace DiMuonTrackEff
+} // namespace di_muon_track_eff_line

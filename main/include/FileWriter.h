@@ -13,9 +13,8 @@ public:
     IInputProvider const* input_provider,
     std::string filename,
     size_t events_per_slice,
-    const unsigned number_of_hlt1_lines,
     bool checksum = true) :
-    OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
+    OutputHandler {input_provider, events_per_slice},
     m_filename {std::move(filename)}, m_checksum {checksum}
   {
     m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);

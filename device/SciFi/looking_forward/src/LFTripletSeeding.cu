@@ -27,15 +27,14 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, cuda_stream);
+  initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, stream);
 
   global_function(lf_triplet_seeding)(
-    dim3(first<host_number_of_selected_events_t>(arguments)),
-    dim3(LookingForward::triplet_seeding_block_dim_x, 2),
-    cuda_stream)(arguments, constants.dev_looking_forward_constants);
+    dim3(size<dev_event_list_t>(arguments)), dim3(LookingForward::triplet_seeding_block_dim_x, 2), stream)(
+    arguments, constants.dev_looking_forward_constants);
 }
 
 __global__ void lf_triplet_seeding::lf_triplet_seeding(
@@ -47,8 +46,8 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
     [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
   __shared__ unsigned shared_number_of_elements[2];
 
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo consolidated types
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,

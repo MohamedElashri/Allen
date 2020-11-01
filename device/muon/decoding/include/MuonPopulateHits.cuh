@@ -11,16 +11,18 @@
 namespace muon_populate_hits {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_muon_total_number_of_hits_t, unsigned), host_muon_total_number_of_hits),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_storage_tile_id_t, unsigned), dev_storage_tile_id),
     (DEVICE_INPUT(dev_storage_tdc_value_t, unsigned), dev_storage_tdc_value),
-    (DEVICE_OUTPUT(dev_permutation_station_t, unsigned), dev_permutation_station),
-    (DEVICE_OUTPUT(dev_muon_hits_t, char), dev_muon_hits),
     (DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned), dev_station_ocurrences_offset),
     (DEVICE_INPUT(dev_muon_compact_hit_t, uint64_t), dev_muon_compact_hit),
     (DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits), dev_muon_raw_to_hits),
     (DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned), dev_storage_station_region_quarter_offsets),
+    (DEVICE_OUTPUT(dev_permutation_station_t, unsigned), dev_permutation_station),
+    (DEVICE_OUTPUT(dev_muon_hits_t, char), dev_muon_hits),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
   __global__ void muon_populate_hits(Parameters);
@@ -37,7 +39,7 @@ namespace muon_populate_hits {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

@@ -22,15 +22,13 @@ void ut_search_windows::ut_search_windows_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_ut_windows_layers_t>(arguments, 0, cuda_stream);
+  initialize<dev_ut_windows_layers_t>(arguments, 0, stream);
 
   global_function(ut_search_windows)(
-    dim3(first<host_number_of_selected_events_t>(arguments)),
-    dim3(UT::Constants::n_layers, property<block_dim_y_t>()),
-    cuda_stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), stream)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_ut_dxDy.data(),
@@ -43,10 +41,10 @@ __global__ void ut_search_windows::ut_search_windows(
   UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_ut_dxDy,
   const unsigned* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
-  const float* dev_unique_sector_xs)             // list of xs that define the groups
+  const float* dev_unique_sector_xs)                 // list of xs that define the groups
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
@@ -328,17 +326,16 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
     right2_group_number_of_candidates = std::get<1>(right2_group_candidates);
   }
 
-  return std::tuple<int, int, int, int, int, int, int, int, int, int> {
-    first_candidate,
-    number_of_candidates,
-    left_group_first_candidate,
-    left_group_number_of_candidates,
-    right_group_first_candidate,
-    right_group_number_of_candidates,
-    left2_group_first_candidate,
-    left2_group_number_of_candidates,
-    right2_group_first_candidate,
-    right2_group_number_of_candidates};
+  return std::tuple<int, int, int, int, int, int, int, int, int, int> {first_candidate,
+                                                                       number_of_candidates,
+                                                                       left_group_first_candidate,
+                                                                       left_group_number_of_candidates,
+                                                                       right_group_first_candidate,
+                                                                       right_group_number_of_candidates,
+                                                                       left2_group_first_candidate,
+                                                                       left2_group_number_of_candidates,
+                                                                       right2_group_first_candidate,
+                                                                       right2_group_number_of_candidates};
 }
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(

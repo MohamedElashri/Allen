@@ -20,17 +20,17 @@ void scifi_pre_decode_v4::scifi_pre_decode_v4_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   if (runtime_options.mep_layout) {
     global_function(scifi_pre_decode_v4_mep)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_pre_decode_v4)(
-      dim3(first<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
       arguments, constants.dev_scifi_geometry);
   }
 }
@@ -104,12 +104,11 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
   scifi_pre_decode_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   SciFiGeometry geom(scifi_geometry);
   const auto event =
-    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
+    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[event_number]);
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
@@ -141,8 +140,7 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4_mep(
   scifi_pre_decode_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   SciFiGeometry geom(scifi_geometry);
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
@@ -164,7 +162,7 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4_mep(
 
     // Create SciFi raw bank from MEP layout
     auto const raw_bank = MEP::raw_bank<SciFiRawBank>(
-      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, i);
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number, i);
     pre_decode_raw_bank_v4(
       hit_count,
       geom,

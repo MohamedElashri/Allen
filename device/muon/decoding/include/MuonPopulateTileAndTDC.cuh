@@ -11,7 +11,7 @@
 namespace muon_populate_tile_and_tdc {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_muon_total_number_of_tiles_t, unsigned), host_muon_total_number_of_tiles),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_muon_raw_t, char), dev_muon_raw),
@@ -38,7 +38,7 @@ namespace muon_populate_tile_and_tdc {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
   };
 } // namespace muon_populate_tile_and_tdc

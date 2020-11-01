@@ -19,11 +19,11 @@ void data_provider::data_provider_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
 
   // Copy data to device
-  data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(arguments, bno, cuda_stream);
+  data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(arguments, bno, stream);
 }

@@ -138,7 +138,8 @@ extern "C" int allen(
   bool write_config = false;
   // By default, do_check will be true when mc_check is enabled
   bool do_check = true;
-  size_t reserve_mb = 1024;
+  size_t reserve_mb = 1000;
+  size_t reserve_host_mb = 200;
   // MPI options
   bool with_mpi = false;
   std::map<std::string, int> receivers = {{"mem", 1}};
@@ -217,6 +218,9 @@ extern "C" int allen(
     }
     else if (flag_in({"m", "memory"})) {
       reserve_mb = atoi(arg.c_str());
+    }
+    else if (flag_in({"host-memory"})) {
+      reserve_host_mb = atoi(arg.c_str());
     }
     else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
@@ -454,15 +458,17 @@ extern "C" int allen(
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, print_memory_usage, start_event_offset, reserve_mb, constants, configuration_reader->params());
+    number_of_threads,
+    print_memory_usage,
+    start_event_offset,
+    reserve_mb,
+    reserve_host_mb,
+    constants,
+    configuration_reader->params());
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
-    number_of_buffers,
-    *events_per_slice,
-    do_check,
-    stream_wrapper.number_of_hlt1_lines,
-    stream_wrapper.errorevent_line);
+    number_of_buffers, *events_per_slice, do_check, stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 
@@ -472,18 +478,17 @@ extern "C" int allen(
 
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
-    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), stream_wrapper.number_of_hlt1_lines, 30, time(0));
+    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), 30, time(0));
 
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(
-          input_provider.get(), output_file, *events_per_slice, zmqSvc, stream_wrapper.number_of_hlt1_lines);
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, zmqSvc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(
-          input_provider.get(), output_file, *events_per_slice, stream_wrapper.number_of_hlt1_lines);
+        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, *events_per_slice);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
@@ -1157,9 +1162,6 @@ loop_error:
 
   if (!output_file.empty()) {
     info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_file << "\n";
-  }
-  else {
-    info_cout << "Selected " << n_events_output << "/" << n_events_processed << " events\n";
   }
 
   // Reset device

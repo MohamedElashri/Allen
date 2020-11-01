@@ -17,27 +17,23 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(fit_secondary_vertices)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   safe_assign_to_host_buffer<dev_consolidated_svs_t>(
-    host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, cuda_stream);
+    host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, stream);
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_sv_offsets,
-    data<dev_sv_offsets_t>(arguments),
-    size<dev_sv_offsets_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_offsets, arguments, stream);
 }
 
 __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+
   const unsigned sv_offset = parameters.dev_sv_offsets[event_number];
   const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
   const unsigned idx_offset = 10 * VertexFit::max_svs * event_number;

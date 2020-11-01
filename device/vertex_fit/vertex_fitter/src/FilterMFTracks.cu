@@ -9,9 +9,9 @@ void FilterMFTracks::filter_mf_tracks_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_mf_sv_atomics_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_svs_kf_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_svs_mf_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_mf_sv_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_kf_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_mf_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
 }
 
 void FilterMFTracks::filter_mf_tracks_t::operator()(
@@ -19,16 +19,15 @@ void FilterMFTracks::filter_mf_tracks_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_mf_sv_atomics_t>(arguments, 0, cuda_stream);
-  initialize<dev_svs_kf_idx_t>(arguments, 0, cuda_stream);
-  initialize<dev_svs_mf_idx_t>(arguments, 0, cuda_stream);
+  initialize<dev_mf_sv_atomics_t>(arguments, 0, stream);
+  initialize<dev_svs_kf_idx_t>(arguments, 0, stream);
+  initialize<dev_svs_mf_idx_t>(arguments, 0, stream);
 
-  global_function(filter_mf_tracks)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-    arguments, first<host_number_of_selected_events_t>(arguments));
+  global_function(filter_mf_tracks)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments, first<host_number_of_events_t>(arguments));
 }
 
 __global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters parameters, const unsigned number_of_events)
@@ -41,14 +40,13 @@ __global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters para
   unsigned* event_svs_mf_idx = parameters.dev_svs_mf_idx + idx_offset;
 
   // Consolidated SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    i_event,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 i_event,
+                                                 number_of_events};
 
   const unsigned event_tracks_offset = scifi_tracks.tracks_offset(i_event);
   const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(i_event);

@@ -23,11 +23,9 @@ struct HostBuffersManager {
     size_t nBuffers,
     const unsigned max_number_of_events,
     const bool do_check,
-    const unsigned number_of_hlt1_lines,
     const unsigned errorevent_line) :
     max_events(max_number_of_events),
-    check(do_check), m_number_of_hlt1_lines(number_of_hlt1_lines),
-    m_errorevent_line(errorevent_line)
+    check(do_check), m_errorevent_line(errorevent_line)
   {
     init(nBuffers);
   }
@@ -44,7 +42,8 @@ struct HostBuffersManager {
 
   void writeSingleEventPassthrough(const size_t b);
 
-  std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>> getBufferOutputData(size_t b);
+  std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>>
+  getBufferOutputData(size_t b);
 
   void printStatus() const;
   bool buffersEmpty() const { return (empty_buffers.size() == host_buffers.size()); }
@@ -60,6 +59,5 @@ private:
 
   const unsigned max_events;
   const bool check;
-  const unsigned m_number_of_hlt1_lines;
   const unsigned m_errorevent_line;
 };

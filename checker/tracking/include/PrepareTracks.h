@@ -21,7 +21,9 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   const unsigned* track_atomics,
   const unsigned* track_hit_number,
   const char* track_hits,
-  const unsigned number_of_events);
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list);
 
 /**
  * @brief Prepares tracks for Velo, UT consolidated datatypes.
@@ -36,7 +38,9 @@ std::vector<Checker::Tracks> prepareUTTracks(
   const char* ut_track_hits,
   const unsigned* ut_track_velo_indices,
   const float* ut_qop,
-  const unsigned number_of_events);
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list);
 
 /**
  * @brief Prepares tracks for Velo, UT, SciFi consolidated datatypes.
@@ -61,4 +65,6 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const std::array<float, 9>& host_inv_clus_res,
   const float* muon_catboost_output,
   const bool* is_muon,
-  const unsigned number_of_events);
+  const unsigned number_of_events,
+  const unsigned event_list_size,
+  const unsigned* event_list);

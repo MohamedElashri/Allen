@@ -26,7 +26,7 @@
 #endif
 
 // Datatypes can be host or device.
-// Note: These structs need to be not templated.
+// Note: These structs need to be not templated (libClang).
 struct host_datatype {
   virtual void set_size(size_t) {}
   virtual size_t size() const { return 0; }
@@ -43,6 +43,11 @@ struct device_datatype {
   virtual void set_offset(char*) {}
   virtual char* offset() const { return nullptr; }
   virtual ~device_datatype() {}
+};
+
+// Datatypes can also be aggregates.
+// Note: This structs need to be not templated (libClang).
+struct aggregate_datatype {
 };
 
 // A generic datatype* data holder.
@@ -101,6 +106,19 @@ struct output_datatype : datatype<internal_t> {
     void inline parameter(__VA_ARGS__) {}                                     \
   }
 
+// Support for multiparameters
+#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
+  struct ARGUMENT_NAME : public aggregate_datatype, device_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                                             \
+    void inline parameter(__VA_ARGS__) const {}                                                    \
+  }
+
+#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
+  struct ARGUMENT_NAME : public aggregate_datatype, host_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                                           \
+    void inline parameter(__VA_ARGS__) const {}                                                  \
+  }
+
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.
 struct DeviceDimensions {
   unsigned x;
@@ -111,13 +129,15 @@ struct DeviceDimensions {
   constexpr DeviceDimensions(const std::array<unsigned, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
 };
 
-// A property datatype data holder.
+/**
+ * @brief A property datatype data holder.
+ */
 template<typename T>
 struct property_datatype {
   using t = T;
 
-  __host__ __device__ constexpr property_datatype(const t& value) : m_value(value) {}
-  __host__ __device__ constexpr property_datatype() {}
+  constexpr property_datatype(const t& value) : m_value(value) {}
+  constexpr property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
   __host__ __device__ operator dim3() const;
@@ -126,15 +146,40 @@ protected:
   t m_value;
 };
 
+/**
+ * @brief std::string properties cannot be accessed on the device,
+ *        as any retrieval of the value results in a copy constructor
+ *        invocation, which is not header only.
+ */
+template<>
+struct property_datatype<std::string> {
+  using t = std::string;
+
+  // Constructors cannot be constexpr for std::string
+  property_datatype(const t& value) : m_value(value) {}
+  property_datatype() {}
+  operator t() const { return this->m_value; }
+  t get() const { return this->m_value; }
+
+protected:
+  t m_value;
+};
+
+/**
+ * @brief DeviceDimension specialization.
+ *
+ *        A separate specialization is provided for DeviceDimensions to support
+ *        conversion to dim3.
+ */
 template<>
 struct property_datatype<DeviceDimensions> {
   using t = DeviceDimensions;
 
   constexpr property_datatype(const t& value) : m_value(value) {}
   constexpr property_datatype() {}
-  operator t() const { return this->m_value; }
-  t get() const { return this->m_value; }
-  operator dim3() const { return {this->m_value.x, this->m_value.y, this->m_value.z}; }
+  __host__ __device__ operator t() const { return this->m_value; }
+  __host__ __device__ t get() const { return this->m_value; }
+  __host__ __device__ operator dim3() const { return {this->m_value.x, this->m_value.y, this->m_value.z}; }
 
 protected:
   t m_value;

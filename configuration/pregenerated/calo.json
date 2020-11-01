@@ -1,0 +1,7 @@
+{
+  "host_ut_banks": {"bank_type": "UT"},
+  "host_scifi_banks": {"bank_type": "FTCluster"},
+  "ecal_banks": {"bank_type": "ECal"},
+  "hcal_banks": {"bank_type": "HCal"},
+  "configured_lines": []
+}

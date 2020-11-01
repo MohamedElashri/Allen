@@ -1,12 +1,5 @@
 /***************************************************************************** \
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
- *                                                                             *
- * This software is distributed under the terms of the GNU General Public      *
- * Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
- *                                                                             *
- * In applying this licence, CERN does not waive the privileges and immunities *
- * granted to it by virtue of its status as an Intergovernmental Organization  *
- * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 
 /**
@@ -15,6 +8,8 @@
  * author Dorothea vom Bruch
  *
  */
+#include <boost/algorithm/string.hpp>
+
 #include "RunAllen.h"
 
 DECLARE_COMPONENT(RunAllen)
@@ -103,12 +98,12 @@ StatusCode RunAllen::initialize()
     print_memory_usage,
     start_event_offset,
     reserve_mb,
+    reserve_mb, // host memory same as "device"
     m_constants,
     configuration_reader.params());
 
   // Initialize host buffers (where Allen output is stored)
-  m_host_buffers_manager.reset(new HostBuffersManager(
-    m_n_buffers, 2, m_do_check, m_stream_wrapper->number_of_hlt1_lines, m_stream_wrapper->errorevent_line));
+  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_do_check, m_stream_wrapper->errorevent_line));
   m_stream_wrapper->initialize_streams_host_buffers_manager(m_host_buffers_manager.get());
 
   // Initialize input provider
@@ -120,11 +115,31 @@ StatusCode RunAllen::initialize()
       number_of_slices, events_per_slice, n_events));
 
   // Get HLT1 selection names from configuration and initialize rate counters
-  m_line_names = configuration_reader.params()["configured_lines"];
-  m_hlt1_line_rates.reserve(m_stream_wrapper->number_of_hlt1_lines);
-  for (unsigned i = 0; i < m_stream_wrapper->number_of_hlt1_lines; ++i) {
-    const auto it = m_line_names.find(std::to_string(i));
-    const std::string name = "Hlt1" + it->second + "Decision";
+  auto selection_params = configuration_reader.params("gather_selections");
+  if (selection_params.empty()) {
+    error() << "Failed to obtain parameters of gather_selections from " << m_json << endmsg;
+    return StatusCode::FAILURE;
+  }
+  auto selection_names = selection_params.find("names_of_active_lines");
+  if (selection_names == selection_params.end()) {
+    error() << "Failed to obtain names_of_active_lines from gather_selections " << endmsg;
+    return StatusCode::FAILURE;
+  }
+  boost::split(m_line_names, selection_names->second, boost::is_any_of(","));
+  if (m_line_names.empty()) {
+    error() << "Failed to obtain any line names from " << selection_names->second << endmsg;
+    return StatusCode::FAILURE;
+  }
+  else {
+    for (auto line_name : m_line_names) {
+      debug() << line_name << " ";
+    }
+    debug() << endmsg;
+  }
+
+  m_hlt1_line_rates.reserve(m_line_names.size());
+  for (unsigned i = 0; i < m_line_names.size(); ++i) {
+    const std::string name = m_line_names[i] + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
   }
 
@@ -178,29 +193,21 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   // Get line decisions from DecReports
   // First two words contain the TCK and taskID, then one word per HLT1 line
   LHCb::HltDecReports reports {};
-  reports.reserve(buffer->host_number_of_hlt1_lines);
+  reports.reserve(buffer->host_number_of_lines);
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
-  for (unsigned int i = 0; i < buffer->host_number_of_hlt1_lines; i++) {
+  for (unsigned int i = 0; i < buffer->host_number_of_lines; i++) {
     const uint32_t line_report = buffer->host_dec_reports[2 + i];
     const bool dec = line_report & dec_mask;
-    const auto it = m_line_names.find(std::to_string(i));
-    const std::string name = it->second;
-    const std::string modified_name = "Hlt1" + name + "Decision";
+    const std::string modified_name = m_line_names[i] + "Decision";
     m_hlt1_line_rates[i].buffer() += int(dec);
     // Note: the line index in a DecReport cannot be zero -> start at 1
     const int dec_rep_index = i + 1;
-    verbose() << "Adding Allen line " << dec_rep_index << " with name " << modified_name << " to HltDecReport with decision "
-              << int(dec) << endmsg;
-
+    if (msgLevel(MSG::VERBOSE)) {
+      verbose() << "Adding Allen line " << dec_rep_index << " with name " << modified_name
+                << " to HltDecReport with decision " << int(dec) << endmsg;
+    }
     reports.insert(modified_name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
   }
   if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << unsigned(filter) << endmsg;
   return std::make_tuple(filter, *buffer, reports);
-}
-
-StatusCode RunAllen::finalize()
-{
-  if (msgLevel(MSG::DEBUG)) debug() << "Finalizing Allen..." << endmsg;
-
-  return MultiTransformerFilter::finalize();
 }

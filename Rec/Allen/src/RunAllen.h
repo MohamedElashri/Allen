@@ -1,13 +1,5 @@
-
-/***************************************************************************** \
- * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
- *                                                                             *
- * This software is distributed under the terms of the GNU General Public      *
- * Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
- *                                                                             *
- * In applying this licence, CERN does not waive the privileges and immunities *
- * granted to it by virtue of its status as an Intergovernmental Organization  *
- * or submit itself to any jurisdiction.                                       *
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #ifndef RUNALLEN_H
 #define RUNALLEN_H
@@ -56,9 +48,6 @@ public:
     const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
-  /// Finalize
-  StatusCode finalize() override;
-
 private:
   Constants m_constants;
   std::set<LHCb::RawBank::BankType> m_bankTypes = {LHCb::RawBank::ODIN,
@@ -66,7 +55,7 @@ private:
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
-  std::map<std::string, std::string> m_line_names;
+  std::vector<std::string> m_line_names;
   const unsigned m_number_of_streams = 1;
   const unsigned m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;

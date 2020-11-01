@@ -10,7 +10,7 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_ut_number_of_selected_velo_tracks_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_ut_number_of_selected_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_selected_velo_tracks_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
 }
 
@@ -19,19 +19,19 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, cuda_stream);
+  initialize<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, stream);
 
-  global_function(ut_select_velo_tracks)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 }
 
 __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_tracks::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {

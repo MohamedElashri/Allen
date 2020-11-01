@@ -17,26 +17,21 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_match_upstream_muon_t>(arguments, 0, cuda_stream);
+  initialize<dev_match_upstream_muon_t>(arguments, 0, stream);
 
   global_function(match_upstream_muon)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
     arguments,
     constants.dev_magnet_polarity.data(),
     constants.dev_muonmatch_search_muon_chambers,
     constants.dev_muonmatch_search_windows,
-    first<host_number_of_selected_events_t>(arguments));
+    first<host_number_of_events_t>(arguments));
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_match_upstream_muon,
-      data<dev_match_upstream_muon_t>(arguments),
-      size<dev_match_upstream_muon_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, stream);
   }
 }
 
@@ -52,16 +47,15 @@ __global__ void MatchUpstreamMuon::match_upstream_muon(
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, i_event, number_of_events};
 
-  Velo::Consolidated::ConstKalmanStates velo_states {
-    parameters.dev_kalmanvelo_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstKalmanStates velo_states {parameters.dev_kalmanvelo_states,
+                                                     velo_tracks.total_number_of_tracks()};
 
-  UT::Consolidated::ConstExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    i_event,
-    number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   i_event,
+                                                   number_of_events};
 
   const auto muon_total_number_of_hits =
     parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];

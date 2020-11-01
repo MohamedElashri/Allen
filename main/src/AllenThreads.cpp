@@ -110,8 +110,8 @@ void run_output(
         auto slc_idx = zmqSvc->receive<size_t>(control);
         auto first_evt = zmqSvc->receive<size_t>(control);
         auto buf_idx = zmqSvc->receive<size_t>(control);
-
         bool success = true;
+
         auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] =
           buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {

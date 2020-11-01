@@ -3,15 +3,14 @@
 \*****************************************************************************/
 #pragma once
 
+#if defined(TARGET_DEVICE_CPU)
+
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdouble-promotion"
 #if __clang_major__ >= 10
 #pragma clang diagnostic ignored "-Wdeprecated-copy"
 #endif
-#elif defined(__CUDACC__)
-#pragma push
-#pragma diag_suppress = 3141
 #elif __GNUC__ >= 8
 
 // Note: UMESIMD is not maintained since 2017 and therefore AVX512F is not supported
@@ -32,8 +31,6 @@
 
 #if defined(__clang__)
 #pragma clang diagnostic pop
-#elif defined(__CUDACC__)
-#pragma pop
 #elif __GNUC__ >= 8
 #pragma GCC diagnostic pop
 #endif
@@ -366,9 +363,9 @@ __device__ inline UME::SIMD::SIMDVec_f<T, I> copysignf(
   return a.copysign(b);
 }
 
-__device__ inline float signselect(const float& s, const float& a, const float& b) { return (s > 0) ? a : b; }
-
 // Note: See AVX512 compatibility issues of UMESIMD above
 #if defined(ADD_BACK_AVX512F)
 #define __AVX512F__
+#endif
+
 #endif

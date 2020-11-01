@@ -152,18 +152,21 @@ int main(int argc, char* argv[])
     vector<unsigned> host_total_number_of_events(interval, 0);
     vector<unsigned> host_event_list(interval, 0);
     vector<unsigned> event_list(interval, 0);
+    unsigned dev_number_of_events = 0;
     unsigned number_of_selected_events = 0;
 
     host_global_event_cut::Parameters pars {std::get<0>(ut_banks).data(),
                                             &std::get<2>(ut_banks),
                                             std::get<0>(scifi_banks).data(),
                                             &std::get<2>(scifi_banks),
-                                            host_total_number_of_events.data(),
                                             host_event_list.data(),
+                                            host_total_number_of_events.data(),
                                             &number_of_selected_events,
+                                            &dev_number_of_events,
                                             event_list.data(),
                                             0,
                                             9750};
+
     host_global_event_cut::host_global_event_cut_mep(interval, pars);
 
     cout << "selected " << number_of_selected_events << " events" << endl;

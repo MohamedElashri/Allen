@@ -9,8 +9,7 @@ void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_atomics_scifi_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
+  set_size<dev_atomics_scifi_t>(arguments, first<host_number_of_events_t>(arguments) * LookingForward::num_atomics);
   set_size<dev_scifi_tracks_t>(
     arguments,
     first<host_number_of_reconstructed_ut_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
@@ -32,29 +31,21 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_atomics_scifi_t>(arguments, 0, cuda_stream);
+  initialize<dev_atomics_scifi_t>(arguments, 0, stream);
 
-  global_function(lf_quality_filter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+  global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_atomics_scifi,
-      data<dev_atomics_scifi_t>(arguments),
-      size<dev_atomics_scifi_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, stream);
+    assign_to_host_buffer<dev_scifi_tracks_t>(host_buffers.host_scifi_tracks, arguments, stream);
+  }
 
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_scifi_tracks,
-      data<dev_scifi_tracks_t>(arguments),
-      size<dev_scifi_tracks_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+  if (property<verbosity_t>() >= logger::debug) {
+    print<dev_atomics_scifi_t>(arguments);
   }
 }
 
@@ -63,8 +54,8 @@ __global__ void lf_quality_filter::lf_quality_filter(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity)
 {
-  const auto number_of_events = gridDim.x;
-  const auto event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {

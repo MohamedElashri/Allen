@@ -17,20 +17,14 @@ void kalman_filter::kalman_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  global_function(kalman_filter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+  global_function(kalman_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_kf_tracks,
-      data<dev_kf_tracks_t>(arguments),
-      size<dev_kf_tracks_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, stream);
   }
 }
 
@@ -233,23 +227,21 @@ __global__ void kalman_filter::kalman_filter(
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   // Create UT tracks.
-  UT::Consolidated::ConstExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    event_number,
-    number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   event_number,
+                                                   number_of_events};
 
   // Create SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    event_number,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_number,
+                                                 number_of_events};
 
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
 

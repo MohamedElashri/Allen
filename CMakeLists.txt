@@ -18,6 +18,7 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
+option(SEQUENCE_GENERATION "Sequence generation" ON)
 
 # --------
 # Settings
@@ -32,6 +33,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # -----------------------
 # Multiple-choice options
@@ -93,10 +95,6 @@ if(ALWAYS_DISPATCH_TO_DEFAULT)
   add_compile_definitions(ALWAYS_DISPATCH_TO_DEFAULT)
 endif()
 
-# Support generating configuration with Allen standalone, and with Moore
-set(MOORE_GENERATOR CACHE BOOL OFF)
-set(MOORE_INSTALL_DIR CACHE STRING "")
-
 # General CMAKE CXX FLAGS option
 if(TREAT_WARNINGS_AS_ERRORS)
   message(STATUS "Treating compiler warnings as errors")
@@ -130,6 +128,12 @@ message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
 # Add compile definition for target
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
+
+# Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.
+# Support it in a future Allen release.
+if(${CMAKE_VERSION} VERSION_GREATER "3.18.0" OR ${CMAKE_VERSION} VERSION_EQUAL "3.18.0")
+  cmake_policy(SET CMP0104 OLD)
+endif()
 
 # List of all expected submodules
 set(EXPECTED_SUBMODULES umesimd)

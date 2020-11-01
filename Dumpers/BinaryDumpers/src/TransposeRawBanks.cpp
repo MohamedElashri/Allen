@@ -1,12 +1,5 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
-*                                                                             *
-* This software is distributed under the terms of the GNU General Public      *
-* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
-*                                                                             *
-* In applying this licence, CERN does not waive the privileges and immunities *
-* granted to it by virtue of its status as an Intergovernmental Organization  *
-* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <cstring>
 #include <fstream>
@@ -73,14 +66,13 @@ namespace LHCb {
     return StatusCode::SUCCESS;
   }
 
-
   inline std::ostream& toStream(const RawBank::BankType& bt, std::ostream& s)
   {
     return s << "'" << RawBank::typeName(bt) << "'";
   }
 } // namespace LHCb
 
-template <typename T>
+template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;
 
 // Raw bank format:
@@ -107,8 +99,8 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  *  @date   2018-08-27
  */
 class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<
-  std::array<std::vector<char>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
-                       Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+                            std::array<std::vector<char>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
+                            Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
   TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
@@ -155,11 +147,12 @@ std::array<std::vector<char>, LHCb::RawBank::LastType> TransposeRawBanks::operat
   std::unordered_map<LHCb::RawBank::BankType, LHCb::span<LHCb::RawBank const*>> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
-    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks] (auto bt) {
-        auto banks = rawEvent->banks(bt);
-        if (!banks.empty()) {
-          rawBanks.emplace(bt, std::move(banks));
-        }});
+    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
+      auto banks = rawEvent->banks(bt);
+      if (!banks.empty()) {
+        rawBanks.emplace(bt, std::move(banks));
+      }
+    });
   }
 
   for (auto const& [bankType, banks] : rawBanks) {

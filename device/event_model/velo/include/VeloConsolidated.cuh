@@ -64,7 +64,7 @@ namespace Velo {
         return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __host__ __device__ Hits get_hits(char* hits_base_pointer, const unsigned track_number) const
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const unsigned track_number)
       {
         return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }

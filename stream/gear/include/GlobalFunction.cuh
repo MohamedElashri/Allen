@@ -61,7 +61,7 @@ public:
   GlobalFunction(P class_ptr, R (*param_function)(T...)) : m_class_ptr(class_ptr), m_fn(param_function) {}
 
   // The syntax of operator() resembles the CUDA syntax:
-  //  foo(num_blocks, num_threads, cuda_stream)(arguments...)
+  //  foo(num_blocks, num_threads, stream)(arguments...)
   auto operator()(const dim3& num_blocks, const dim3& num_threads, cudaStream_t stream) const
   {
     return GlobalFunctionImpl<P, R, T...> {m_class_ptr, m_fn, num_blocks, num_threads, stream};

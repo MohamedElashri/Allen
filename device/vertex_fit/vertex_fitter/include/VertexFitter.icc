@@ -264,8 +264,10 @@ namespace VertexFit {
     // SVz - PVz
     sv.dz = dz;
 
+    // SV IP
+    sv.vertex_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px / sv.pz, sv.py / sv.pz);
+
     if (sv.is_dimuon) {
-      sv.vertex_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px / sv.pz, sv.py / sv.pz);
       const float txA = trackA.state[2];
       const float tyA = trackA.state[3];
 
@@ -279,7 +281,6 @@ namespace VertexFit {
         (vx * vx + vy * vy + vz * vz) / ((txA * txA + tyA * tyA + 1.f) * (txB * txB + tyB * tyB + 1.f));
     }
     else {
-      sv.vertex_ip = -1.f;
       sv.vertex_clone_sin2 = -1.f;
     }
 

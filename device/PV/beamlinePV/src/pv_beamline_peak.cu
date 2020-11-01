@@ -9,8 +9,8 @@ void pv_beamline_peak::pv_beamline_peak_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_zpeaks_t>(arguments, first<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
-  set_size<dev_number_of_zpeaks_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_zpeaks_t>(arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
+  set_size<dev_number_of_zpeaks_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void pv_beamline_peak::pv_beamline_peak_t::operator()(
@@ -18,23 +18,27 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  const auto grid_dim = dim3(
-    (first<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>().get() - 1) /
-    property<block_dim_x_t>().get());
+  const auto grid_dim =
+    dim3((size<dev_event_list_t>(arguments) + property<block_dim_x_t>().get() - 1) / property<block_dim_x_t>().get());
 
-  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), cuda_stream)(
-    arguments, first<host_number_of_selected_events_t>(arguments));
+  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), stream)(
+    arguments, size<dev_event_list_t>(arguments));
 }
 
-__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters, const unsigned number_of_events)
+__global__ void pv_beamline_peak::pv_beamline_peak(
+  pv_beamline_peak::Parameters parameters,
+  const unsigned event_list_size)
 {
   // At least parallelize over events, even if it's
   // one event on each thread
-  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
+  for (auto event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < event_list_size;
+       event_index += blockDim.x * gridDim.x) {
+
+    const unsigned event_number = parameters.dev_event_list[event_index];
+
     const float* zhisto = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
     float* zpeaks = parameters.dev_zpeaks + PV::max_number_vertices * event_number;
     unsigned number_of_peaks = 0;

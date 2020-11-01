@@ -20,23 +20,18 @@ void MFVertexFit::fit_mf_vertices_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_mf_svs_t>(arguments, 0, cuda_stream);
+  initialize<dev_mf_svs_t>(arguments, 0, stream);
 
-  global_function(fit_mf_vertices)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  global_function(fit_mf_vertices)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   safe_assign_to_host_buffer<dev_mf_svs_t>(
-    host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, arguments, cuda_stream);
+    host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, arguments, stream);
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_mf_sv_offsets,
-    data<dev_mf_sv_offsets_t>(arguments),
-    size<dev_mf_sv_offsets_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  assign_to_host_buffer<dev_mf_sv_offsets_t>(host_buffers.host_mf_sv_offsets, arguments, stream);
 }
 
 __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)

@@ -9,9 +9,8 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_multi_final_vertices_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
-  set_size<dev_number_of_multi_final_vertices_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_multi_final_vertices_t>(arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
+  set_size<dev_number_of_multi_final_vertices_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
@@ -19,28 +18,18 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, cuda_stream);
+  initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, stream);
 
-  global_function(pv_beamline_cleanup)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 
   // Retrieve result
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_reconstructed_multi_pvs,
-    data<dev_multi_final_vertices_t>(arguments),
-    size<dev_multi_final_vertices_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
-
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_number_of_multivertex,
-    data<dev_number_of_multi_final_vertices_t>(arguments),
-    size<dev_number_of_multi_final_vertices_t>(arguments),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  assign_to_host_buffer<dev_multi_final_vertices_t>(host_buffers.host_reconstructed_multi_pvs, arguments, stream);
+  assign_to_host_buffer<dev_number_of_multi_final_vertices_t>(
+    host_buffers.host_number_of_multivertex, arguments, stream);
 }
 
 __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Parameters parameters)
@@ -51,7 +40,7 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Pa
 
   __syncthreads();
 
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const PV::Vertex* vertices = parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
   PV::Vertex* final_vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;

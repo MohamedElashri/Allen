@@ -58,6 +58,8 @@ include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/selections/line_types/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/selections/lines/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Postscale/include)
 include_directories(${CMAKE_SOURCE_DIR}/mdf/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
@@ -98,7 +100,6 @@ target_link_libraries(Stream PRIVATE
   UT
   Kalman
   VertexFitter
-  RawBanks
   Selections
   SciFi
   HostGEC

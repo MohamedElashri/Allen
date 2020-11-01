@@ -7,7 +7,6 @@
 #include "Argument.cuh"
 #include "BaseTypes.cuh"
 #include "BankTypes.h"
-#include "Algorithm.cuh"
 #include "Logger.h"
 #include <string>
 #include <sstream>
@@ -83,6 +82,8 @@ namespace Allen {
     {
       algo->register_property(m_name, this);
     }
+
+    const V* get_value_address() const { return &m_cached_value; }
 
     V get_value() const { return m_cached_value; }
 

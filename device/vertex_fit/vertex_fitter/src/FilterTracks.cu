@@ -12,9 +12,9 @@ void FilterTracks::filter_tracks_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_sv_atomics_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_svs_trk1_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_svs_trk2_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_sv_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_trk1_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_trk2_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
 }
 
 void FilterTracks::filter_tracks_t::operator()(
@@ -22,39 +22,38 @@ void FilterTracks::filter_tracks_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_sv_atomics_t>(arguments, 0, cuda_stream);
+  initialize<dev_sv_atomics_t>(arguments, 0, stream);
 
-  global_function(filter_tracks)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
 }
 
 __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+
   const unsigned idx_offset = event_number * 10 * VertexFit::max_svs;
   unsigned* event_sv_number = parameters.dev_sv_atomics + event_number;
   unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
 
   // Consolidated SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    event_number,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_number,
+                                                 number_of_events};
   const unsigned event_tracks_offset = scifi_tracks.tracks_offset(event_number);
   const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
 
   // Track-PV association table.
-  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {
-    parameters.dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks()};
+  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
+                                                        scifi_tracks.total_number_of_tracks()};
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Kalman fitted tracks.

@@ -26,13 +26,12 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, cuda_stream);
+  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, stream);
 
-  global_function(lf_search_initial_windows)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments,
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
@@ -45,8 +44,8 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
@@ -55,13 +54,12 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
-  UT::Consolidated::ConstExtendedTracks ut_tracks {
-    parameters.dev_atomics_ut,
-    parameters.dev_ut_track_hit_number,
-    parameters.dev_ut_qop,
-    parameters.dev_ut_track_velo_indices,
-    event_number,
-    number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   event_number,
+                                                   number_of_events};
 
   const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
   const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);

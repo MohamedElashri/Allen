@@ -38,7 +38,7 @@ struct Stream {
   scheduler_t scheduler;
 
   // Stream datatypes
-  cudaStream_t cuda_stream;
+  cudaStream_t stream;
   cudaEvent_t cuda_generic_event;
 
   // Launch options
@@ -65,6 +65,7 @@ struct Stream {
     const bool param_print_memory_usage,
     const unsigned param_start_event_offset,
     const size_t param_reserve_mb,
+    const size_t reserve_host_mb,
     const Constants& param_constants);
 
   void set_host_buffer_manager(HostBuffersManager* buffers_manager);
