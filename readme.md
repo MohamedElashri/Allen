@@ -67,9 +67,9 @@ How to build it
 
 The build process doesn't differ from standard cmake projects:
 
+    git submodule update --init --recursive
     mkdir build
     cd build
-    git submodule update --init --recursive
     cmake -DSTANDALONE=ON ..
     make
 

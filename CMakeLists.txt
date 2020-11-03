@@ -139,7 +139,7 @@ endif()
 set(EXPECTED_SUBMODULES umesimd)
 foreach(SUBMODULE ${EXPECTED_SUBMODULES})
   if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/${SUBMODULE}/CMakeLists.txt")
-    message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+    message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! Please update submodules and try again. You may need to run `git submodule update --init --recursive`.")
   endif()
 endforeach()
 
