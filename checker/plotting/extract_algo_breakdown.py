@@ -10,117 +10,76 @@ import operator
 import csv
 from group_algos import group_algos
 from optparse import OptionParser
+from collections import OrderedDict
+
+"""
+Produces a reduced algorithm name
+"""
+class AlgorithmNameParser:
+    def __init__(self):
+        # "velo_search_by_triplet::velo_search_by_triplet(velo_search_by_triplet::Parameters, VeloGeometry const*)"
+        # "void process_line<di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Parameters>(di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Parameters, unsigned int, float, unsigned int, char const*, unsigned int const*, unsigned int const*)"
+        # "void process_line_iterate_events<passthrough_line::passthrough_line_t, passthrough_line::Parameters>(passthrough_line::passthrough_line_t, passthrough_line::Parameters, unsigned int, unsigned int, float, unsigned int, char const*, unsigned int const*, unsigned int const*)"
+        algorithm_regexp_expression = "([a-zA-Z][a-zA-Z\_0-9]+::)?([a-zA-Z][a-zA-Z\_0-9]+).*"
+        sel_algorithm_regexp_expression = "void process_line[a-zA-Z\_0-9]*<([a-zA-Z][a-zA-Z\_0-9]+::)?([a-zA-Z][a-zA-Z\_0-9]+).*"
+        self.__algorithm_pattern = re.compile(algorithm_regexp_expression)
+        self.__sel_algorithm_pattern = re.compile(sel_algorithm_regexp_expression)
+
+    def parse_algorithm_name(self, full_name):
+        m0 = self.__sel_algorithm_pattern.match(full_name)
+        if m0:
+            return m0.group(2)
+        else:
+            m1 = self.__algorithm_pattern.match(full_name)
+            if m1:
+                return m1.group(2)
+            else:
+                print(full_name)
+
+
 """
 Produces a plot of the performance breakdown of the sequence under execution
 """
-
-
 def main(argv):
-    global final_msg
     parser = OptionParser()
     parser.add_option(
         '-d',
         '--dir',
         dest='output_directory',
-        help='The directory to scan for build_* directories')
+        help='The output directory')
     parser.add_option(
         '-f',
-        '--file_pattern',
-        dest='file_pattern',
-        default='profiler_output.txt',
+        '--filename',
+        dest='filename',
+        default='allen_report_gpukernsum.csv',
         help=
-        'The file name to look for profiler data in each build_ directoy. default: profiler_output.txt'
+        'The file name of the file containing report data. default: allen_report_gpukernsum.csv'
     )
 
     (options, args) = parser.parse_args()
 
     if options.output_directory is None:
         parser.print_help()
-        print('Please specify an input directory')
+        print('Please specify an output directory')
         return
 
-    try:
-        dirs = []
-        files = os.listdir(options.output_directory)
+    plot_data = OrderedDict()
+    algorithm_name_parser = AlgorithmNameParser()
+    with open(options.filename) as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter=',')
+        for i, row in enumerate(csv_reader):
+            if i > 0:
+                try:
+                    plot_data[algorithm_name_parser.parse_algorithm_name(row[6])] = float(row[0])
+                except:
+                    print(traceback.format_exc())
 
-    except:
-        print('Failed to read profiler output directory: %s' % options.dir)
-        traceback.print_exc()
-        return
-
-    dirs = []
-    for file in files:
-        if file.startswith('output_'):
-            dirs.append(file)
-
-    for dir in dirs:
-        filepath = options.output_directory + "/" + dir + "/" + options.file_pattern
-        try:
-            f = open(filepath)
-            s = f.read()
-            f.close()
-        except:
-            print('Error while trying to read profiler file: %s' % filepath)
-            traceback.print_exc()
-            continue
-
-        # Fetch all timings into timings[0]
-        start_s = "GPU activities:"
-        end_s = "API calls:"
-        timings = re.findall(start_s + "(.*?)" + end_s, s, re.DOTALL)
-        try:
-            perf = re.findall("([0-9]+\.[0-9]+) events\/s", s)[0]
-            perf = float(perf)
-        except:
-            print('Failed to read performance data from output')
-            print(traceback.format_exc())
-
-        try:
-            runtime = re.findall("Ran test for ([0-9]+\.[0-9]+) seconds", s)[0]
-            runtime = float(runtime)
-        except:
-            print('Failed to read runtime from output')
-            print(traceback.format_exc())
-
-        # Regexp for one line
-        # Note: An algorithm line looks like:
-        #  11.08%  6.47377s       700  9.2482ms  3.7639ms  15.887ms  lf_search_uv_windows_namespace::lf_search_uv_windows(unsigned int const *, unsigned int const *, int const *, SciFi::TrackHits const *, int const *, char const *, LookingForward::Constants const *, float const *, MiniState const *, short*)
-        # Note: Intended behaviour: Does *not* match nvidia calls like:
-        #  0.04%  20.484ms      9100  2.2500us     832ns  16.255us  [CUDA memcpy DtoH]
-        # Note: And it strips away the namespace
-        regexp_expression = ".*?([0-9]+\.[0-9]+)\%.*[um]s  ([a-zA-Z][a-zA-Z\_0-9]+::)?([a-zA-Z][a-zA-Z\_0-9]+).*"
-
-        algorithm_times = {}
-
-        for line in timings[0].split("\n"):
-            m = re.match(regexp_expression, line)
-            if m:
-                algorithm_times[m.group(3)] = float(m.group(1))
-
-        # Add up everything
-        full_addition = sum(algorithm_times.values())
-        for k in algorithm_times.keys():
-            algorithm_times[k] = 100 * algorithm_times[k] / full_addition
-
-        output_list = sorted(
-            algorithm_times.items(), key=operator.itemgetter(1), reverse=True)
-
-        print(output_list)
-
-        output_path = options.output_directory + "/" + dir + "/algo_breakdown.csv"
-        with open(output_path, 'w') as out:
-            csv_out = csv.writer(out)
-            for row in output_list:
-                csv_out.writerow(row)
-
-        timings = group_algos(algorithm_times)
-        print(timings)
-
-        output_path = options.output_directory + "/" + dir + "/algo_summary.csv"
-        with open(output_path, 'w') as out:
-            csv_out = csv.writer(out)
-            for row in timings:
-                csv_out.writerow(row)
+    # Iterate plot_data and produce an output csv file
+    output_path = options.output_directory + "/algo_breakdown.csv"
+    with open(output_path, 'w') as out:
+        csv_out = csv.writer(out)
+        for key, value in iter(plot_data.items()):
+            csv_out.writerow([key, value])
 
 
 if __name__ == "__main__":
