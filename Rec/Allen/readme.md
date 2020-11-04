@@ -78,7 +78,7 @@ recreates the required Allen event model object - in this case
 the clusters.
 
 An example options file to run `TestVeloClusters` as a test can be
-found [here](https://gitlab.cern.ch/lhcb/Allen/-/blob/raaij_decoding_tests/Rec/Allen/tests/qmtest/decoding.qms/velo_decoding.qmt).
+found [here](https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/tests/qmtest/decoding.qms/hlt1_velo_decoding.qmt).
 
 
 Future Developments for tests
