@@ -8,8 +8,6 @@
  * granted to it by virtue of its status as an Intergovernmental Organization  *
  * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
-#pragma once
-
 // Gaudi
 #include "GaudiAlg/Consumer.h"
 
@@ -40,7 +38,7 @@ TestVeloClusters::TestVeloClusters(const std::string& name, ISvcLocator* pSvcLoc
 
 void TestVeloClusters::operator()(HostBuffers const& host_buffers) const
 {
-  if (host_buffers.host_number_of_selected_events[0] == 0) return;
+  if (host_buffers.host_number_of_selected_events == 0) return;
 
   const auto& offsets = host_buffers.velo_clusters_offsets;
   // Single event, but offsets are stored per module pair

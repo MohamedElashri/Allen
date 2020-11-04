@@ -187,7 +187,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   bool filter = true;
   HostBuffers* buffer = m_host_buffers_manager->getBuffers(buf_idx);
   if (m_filterGEC.value()) {
-    filter = buffer->host_number_of_selected_events[0];
+    filter = static_cast<bool>(buffer->host_number_of_selected_events);
   }
   else if (m_filter_hlt1.value()) {
     filter = buffer->host_passing_event_list[0];
