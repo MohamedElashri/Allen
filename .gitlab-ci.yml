@@ -454,13 +454,12 @@ docker_image:build:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+    - mkdir tmp
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - NSYS_TMPDIR=`mktemp -d`
-    - echo CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=${NSYS_TMPDIR} numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=${NSYS_TMPDIR} numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=tmp numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ./
-    - rm -rf report1.qdrep ${NSYS_TMPDIR}
+    - rm -rf report1.qdrep tmp
   artifacts:
     expire_in: 2 hrs
     paths:
