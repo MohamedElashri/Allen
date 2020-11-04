@@ -673,7 +673,7 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
 # Throughput runs
 
 geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
   dependencies:
@@ -694,7 +694,7 @@ teslav100:CUDA:hlt1_pp_default:run_throughput:
     - CUDA:hlt1_pp_default:RelWithDebInfo::build
 
 geforcertx3080:CUDA:hlt1_pp_default:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
   dependencies:
@@ -763,7 +763,7 @@ x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
 # Additional throughput runs, only on master
 
 geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
   dependencies:
@@ -793,11 +793,14 @@ teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
       - master
 
 geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
   dependencies:
     - CUDA:hlt1_pp_no_gec:RelWithDebInfo::build
+  only:
+    refs:
+      - master
 
 geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput:
   <<: *run_throughput_job_def
@@ -805,6 +808,9 @@ geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput:
     - geforcertx3090
   dependencies:
     - CUDA:hlt1_pp_no_gec:RelWithDebInfo::build
+  only:
+    refs:
+      - master
 
 x862630v4:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -860,7 +866,7 @@ x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
 # Publish
 # =======
 
-throughput:hlt1_pp_default:geforcertx2080ti:publish_throughput:
+throughput:hlt1_pp_default:geforcertx3090:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - cvmfs
@@ -875,7 +881,7 @@ throughput:hlt1_pp_default:geforcertx2080ti:publish_throughput:
 
 # Publish additional throughput tests, only in master
 
-throughput:hlt1_pp_no_gec:geforcertx2080ti:publish_throughput:
+throughput:hlt1_pp_no_gec:geforcertx3090:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - x86
