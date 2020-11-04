@@ -445,8 +445,10 @@ docker_image:build:
     - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
+    - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 16 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 8 -c 0"
+    -   RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 8 -c 0"
     - fi
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
@@ -456,7 +458,7 @@ docker_image:build:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - mkdir tmp
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=tmp numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=tmp numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_PROFILER_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
     - rm -rf report1.qdrep tmp
@@ -503,8 +505,8 @@ test_physics_efficiency:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_default:run_physics_efficiency
+    - geforcertx2080ti:CUDA:forward:run_physics_efficiency
+    - x862630v4:CPU:forward:run_physics_efficiency
   tags:
     - cvmfs
   allow_failure: true
@@ -526,10 +528,10 @@ test_run_changes:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
   dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_with_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_no_run_changes
+    - geforcertx2080ti:CUDA:forward:run_with_run_changes
+    - geforcertx2080ti:CUDA:forward:run_no_run_changes
+    - x862630v4:CPU:forward:run_with_run_changes
+    - x862630v4:CPU:forward:run_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
@@ -546,7 +548,7 @@ test_run_changes:
 #     - cd build_CUDA
 #     - ctest -V
 #   dependencies:
-#     - CUDA:hlt1_pp_default:Debug::build
+#     - CUDA:forward:Debug::build
 #   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
@@ -595,22 +597,22 @@ test_run_changes:
 # Build
 # =====
 
-CUDA:hlt1_pp_default:RelWithDebInfo::build:
+CUDA:forward:RelWithDebInfo::build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
+CUDA:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:RelWithDebInfo::build:
+CPU:forward:RelWithDebInfo::build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
+CPU:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
@@ -618,31 +620,31 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
+CPU:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_gcc_job_def_warnings_as_errors
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
+CUDA:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_gcc_job_def_warnings_as_errors
   tags:
     - cvmfs
 
 # clang:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
+CPU:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_clang_job_def_warnings_as_errors
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
+CUDA:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_clang_job_def_warnings_as_errors
   tags:
     - cvmfs
 
 # Build of default sequence without code generation
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=OFF:build:
+CPU:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=OFF:build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
@@ -671,93 +673,93 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
 
 # Throughput runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput:
+geforcertx2080ti:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-quadrortx6000:CUDA:hlt1_pp_default:run_throughput:
+quadrortx6000:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-teslav100:CUDA:hlt1_pp_default:run_throughput:
+teslav100:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-geforcertx3080:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3080:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-geforcertx3090:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3090:CUDA:forward:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx3090
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-x862630v4:CPU:hlt1_pp_default:run_throughput_cpu:
+x862630v4:CPU:forward:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
     - x862630v4
   dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+    - CPU:forward:RelWithDebInfo::build
 
-epyc7502:CPU:hlt1_pp_default:run_throughput_cpu:
+epyc7502:CPU:forward:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
     - epyc7502
   dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+    - CPU:forward:RelWithDebInfo::build
 
 # Physics efficiency runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency:
+geforcertx2080ti:CUDA:forward:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
+x862630v4:CPU:forward:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def_cpu
   tags:
     - x862630v4
   dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+    - CPU:forward:RelWithDebInfo::build
 
 # Test runs
 
-# geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
+# geforcertx2080ti:CUDA:forward:run_physics_efficiency_debug:
 #   <<: *run_physics_efficiency_job_def
 #   tags:
 #     - geforcertx2080ti
 #   dependencies:
-#     - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+#     - CUDA:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
-# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
+# x86:CPU:forward:run_physics_efficiency_debug:
 #   <<: *run_physics_efficiency_job_def_cpu
 #   tags:
 #     - x86
 #   dependencies:
-#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+#     - CPU:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
-# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
+# x86:CPU:forward:run_physics_efficiency_debug_root:
 #   <<: *run_physics_efficiency_job_def_cpu
 #   tags:
 #     - x86
 #   dependencies:
-#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+#     - CPU:forward:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
 
 # Additional throughput runs, only on master
 
@@ -833,50 +835,50 @@ epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu:
 
 # check run changes
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
+geforcertx2080ti:CUDA:forward:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
+x862630v4:CPU:forward:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - x862630v4
   dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+    - CPU:forward:RelWithDebInfo::build
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
+geforcertx2080ti:CUDA:forward:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+    - CUDA:forward:RelWithDebInfo::build
 
-x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
+x862630v4:CPU:forward:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - x862630v4
   dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+    - CPU:forward:RelWithDebInfo::build
 
 # =======
 # Publish
 # =======
 
-throughput:hlt1_pp_default:geforcertx3090:publish_throughput:
+throughput:forward:geforcertx3090:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - cvmfs
   dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput
-    - quadrortx6000:CUDA:hlt1_pp_default:run_throughput
-    - teslav100:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3080:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3090:CUDA:hlt1_pp_default:run_throughput
-    - x862630v4:CPU:hlt1_pp_default:run_throughput_cpu
-    - epyc7502:CPU:hlt1_pp_default:run_throughput_cpu
+    - geforcertx2080ti:CUDA:forward:run_throughput
+    - quadrortx6000:CUDA:forward:run_throughput
+    - teslav100:CUDA:forward:run_throughput
+    - geforcertx3080:CUDA:forward:run_throughput
+    - geforcertx3090:CUDA:forward:run_throughput
+    - x862630v4:CPU:forward:run_throughput_cpu
+    - epyc7502:CPU:forward:run_throughput_cpu
 
 # Publish additional throughput tests, only in master
 
