@@ -56,7 +56,7 @@ endif()
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
-set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75)
+set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75 80 86)
 
 # HIP architecture
 # https://llvm.org/docs/AMDGPUUsage.html
@@ -248,13 +248,13 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   #By default, compile for compatibility
     elseif(CUDA_ARCH STREQUAL "COMPATIBILITY")
   #Compatibility arch flag.
-  #* These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
-  #* All other 3.X, 5.X and 6.X architectures are supported through their respective
+  #* These settings support natively archs 5.0, 6.0, 7.0, 7.5, 8.0 and 8.6.
+  #* All other 5.X and 6.X architectures are supported through their respective
   #major number builds, specifics of those architectures are not used.
-  #* Forward compatibility with newer devices is also supported by generating PTX from 7.5
-  #(- gencode = arch = compute_75, compute = compute_75)
+  #* Forward compatibility with newer devices is also supported by generating PTX from 8.6
+  #(- gencode = arch = compute_86, compute = compute_86)
       message(STATUS "Setting compute capability to COMPATIBILITY:")
-      foreach(arch 53 60 70 75)
+      foreach(arch 53 60 70 75 80 86)
         list(APPEND CUDA_ARCH_LIST ${arch})
       endforeach()
   #Finally, compile for the specified architecture
@@ -269,7 +269,7 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
         string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_${arch},code=sm_${arch}")
       endforeach()
       if(CUDA_ARCH STREQUAL "COMPATIBILITY")
-        string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_75,code=compute_75")
+        string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_86,code=compute_86")
       endif()
     elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
       foreach(arch ${CUDA_ARCH_LIST})
