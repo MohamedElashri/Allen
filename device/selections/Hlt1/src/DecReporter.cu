@@ -26,7 +26,7 @@ void dec_reporter::dec_reporter_t::operator()(
     arguments);
 
   if (runtime_options.do_check) {
-    safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, stream);
+    safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
   }
 }
 

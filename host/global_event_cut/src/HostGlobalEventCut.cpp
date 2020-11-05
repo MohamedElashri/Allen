@@ -32,7 +32,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
 
   // Initialize number of events
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
-  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, stream);
+  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
 
   // Initialize host event list
   for (unsigned i = 0; i < number_of_events; ++i) {
@@ -48,7 +48,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   }
 
   // Copy data to the device
-  copy<dev_event_list_t, host_event_list_t>(arguments, stream);
+  copy<dev_event_list_t, host_event_list_t>(arguments, context);
 
   // Reduce the size of the event lists to the selected events
   reduce_size<host_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));

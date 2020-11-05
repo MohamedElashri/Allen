@@ -30,7 +30,7 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
     first<host_number_of_events_t>(arguments));
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, stream);
+    assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, context);
   }
 }
 

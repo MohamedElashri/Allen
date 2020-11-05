@@ -27,15 +27,15 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
     arguments);
 
   // Transmission device to host of Scifi consolidated tracks
-  assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, stream);
+  assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_offsets_scifi_track_hit_number_t>(
-      host_buffers.host_scifi_track_hit_number, arguments, stream);
-    assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, stream);
-    assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, stream);
-    assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, stream);
-    assign_to_host_buffer<dev_scifi_states_t>(host_buffers.host_scifi_states, arguments, stream);
+      host_buffers.host_scifi_track_hit_number, arguments, context);
+    assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, context);
+    assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, context);
+    assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, context);
+    assign_to_host_buffer<dev_scifi_states_t>(host_buffers.host_scifi_states, arguments, context);
   }
 }
 

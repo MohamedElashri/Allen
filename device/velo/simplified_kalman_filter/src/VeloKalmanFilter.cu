@@ -26,7 +26,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
     arguments);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_kalmanvelo_states, arguments, stream);
+    assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_kalmanvelo_states, arguments, context);
   }
 }
 

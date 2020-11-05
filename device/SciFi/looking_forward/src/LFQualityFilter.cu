@@ -39,8 +39,8 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, stream);
-    assign_to_host_buffer<dev_scifi_tracks_t>(host_buffers.host_scifi_tracks, arguments, stream);
+    assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, context);
+    assign_to_host_buffer<dev_scifi_tracks_t>(host_buffers.host_scifi_tracks, arguments, context);
   }
 
   if (property<verbosity_t>() >= logger::debug) {

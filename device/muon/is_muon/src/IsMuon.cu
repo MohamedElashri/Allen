@@ -30,7 +30,7 @@ void is_muon::is_muon_t::operator()(
     stream)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, stream);
+    assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, context);
   }
 }
 

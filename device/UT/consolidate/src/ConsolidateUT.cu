@@ -29,14 +29,14 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, stream);
-    assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, stream);
-    assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, stream);
-    assign_to_host_buffer<dev_ut_qop_t>(host_buffers.host_ut_qop, arguments, stream);
-    assign_to_host_buffer<dev_ut_x_t>(host_buffers.host_ut_x, arguments, stream);
-    assign_to_host_buffer<dev_ut_tx_t>(host_buffers.host_ut_tx, arguments, stream);
-    assign_to_host_buffer<dev_ut_z_t>(host_buffers.host_ut_z, arguments, stream);
-    assign_to_host_buffer<dev_ut_track_velo_indices_t>(host_buffers.host_ut_track_velo_indices, arguments, stream);
+    assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, context);
+    assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, context);
+    assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, context);
+    assign_to_host_buffer<dev_ut_qop_t>(host_buffers.host_ut_qop, arguments, context);
+    assign_to_host_buffer<dev_ut_x_t>(host_buffers.host_ut_x, arguments, context);
+    assign_to_host_buffer<dev_ut_tx_t>(host_buffers.host_ut_tx, arguments, context);
+    assign_to_host_buffer<dev_ut_z_t>(host_buffers.host_ut_z, arguments, context);
+    assign_to_host_buffer<dev_ut_track_velo_indices_t>(host_buffers.host_ut_track_velo_indices, arguments, context);
   }
 }
 

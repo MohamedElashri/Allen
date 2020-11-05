@@ -54,7 +54,7 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   static void populate_selections(const Arguments& arguments, Stream& stream)
   {
     TupleTraits<Arguments, std::tuple<R...>>::template populate_selections<OffsetsType, AssignType>(arguments, stream);
-    copy<AssignType, T>(arguments, size<T>(arguments), stream, data<OffsetsType>(arguments)[i - 1], 0);
+    copy<AssignType, T>(arguments, context), stream, data<OffsetsType>(arguments)[i - 1], 0);
   }
 
   template<typename AssignType, typename NumberOfEvents, typename Stream>
@@ -62,7 +62,7 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   {
     TupleTraits<Arguments, std::tuple<R...>>::template populate_selection_offsets<AssignType, NumberOfEvents, Stream>(
       arguments, stream);
-    copy<AssignType, T>(arguments, size<T>(arguments), stream, first<NumberOfEvents>(arguments) * (i - 1), 0);
+    copy<AssignType, T>(arguments, context), stream, first<NumberOfEvents>(arguments) * (i - 1), 0);
 
     // There should be as many elements as number of events
     assert(first<NumberOfEvents>(arguments) == size<T>(arguments));
@@ -72,7 +72,7 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   static void populate_scalars(const Arguments& arguments, Stream& stream)
   {
     TupleTraits<Arguments, std::tuple<R...>>::template populate_scalars<AssignType>(arguments, stream);
-    copy<AssignType, T>(arguments, size<T>(arguments), stream, i - 1, 0);
+    copy<AssignType, T>(arguments, context), stream, i - 1, 0);
   }
 };
 
@@ -155,7 +155,7 @@ void gather_selections::gather_selections_t::operator()(
 
   // Pass the number of lines for posterior algorithms
   data<host_number_of_active_lines_t>(arguments)[0] = std::tuple_size<dev_input_selections_t::type>::value;
-  copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, stream);
+  copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
 
   // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
@@ -179,8 +179,8 @@ void gather_selections::gather_selections_t::operator()(
 
   // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
   // and host_post_scale_hashes_t to dev_post_scale_hashes_t
-  copy<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, stream);
-  copy<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, stream);
+  copy<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
+  copy<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
 
   // Synchronize
   cudaEventRecord(event, stream);
@@ -201,7 +201,7 @@ void gather_selections::gather_selections_t::operator()(
     data<host_selections_lines_offsets_t>(arguments)[std::tuple_size<dev_input_selections_t::type>::value];
 
   // Copy host_selections_offsets_t onto dev_selections_offsets_t
-  copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, stream);
+  copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, context);
 
   // Fetch the postscaler function depending on its layout
   // auto postscale_fn = first<dev_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>) :
@@ -219,8 +219,8 @@ void gather_selections::gather_selections_t::operator()(
 
   if (property<verbosity_t>() >= logger::debug) {
     std::vector<uint8_t> host_selections(size<dev_selections_t>(arguments));
-    assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, stream);
-    copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, stream);
+    assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
+    copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
     Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
                                       data<host_selections_offsets_t>(arguments),
@@ -250,7 +250,7 @@ void gather_selections::gather_selections_t::operator()(
   if (runtime_options.do_check) {
     host_buffers.host_names_of_lines = std::string(property<names_of_active_lines_t>());
     host_buffers.host_number_of_lines = first<host_number_of_active_lines_t>(arguments);
-    safe_assign_to_host_buffer<dev_selections_t>(host_buffers.host_selections, arguments, stream);
-    safe_assign_to_host_buffer<dev_selections_offsets_t>(host_buffers.host_selections_offsets, arguments, stream);
+    safe_assign_to_host_buffer<dev_selections_t>(host_buffers.host_selections, arguments, context);
+    safe_assign_to_host_buffer<dev_selections_offsets_t>(host_buffers.host_selections_offsets, arguments, context);
   }
 }

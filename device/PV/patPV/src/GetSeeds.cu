@@ -24,7 +24,7 @@ void pv_get_seeds::pv_get_seeds_t::operator()(
     arguments);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_number_seeds_t>(host_buffers.host_number_of_seeds, arguments, stream);
+    assign_to_host_buffer<dev_number_seeds_t>(host_buffers.host_number_of_seeds, arguments, context);
   }
 }
 

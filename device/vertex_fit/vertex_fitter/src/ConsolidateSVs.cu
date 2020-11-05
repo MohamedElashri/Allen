@@ -23,8 +23,8 @@ void consolidate_svs::consolidate_svs_t::operator()(
     arguments);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_consolidated_svs_t>(host_buffers.host_secondary_vertices, arguments, stream);
-    assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_atomics, arguments, stream);
+    assign_to_host_buffer<dev_consolidated_svs_t>(host_buffers.host_secondary_vertices, arguments, context);
+    assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_atomics, arguments, context);
   }
 }
 

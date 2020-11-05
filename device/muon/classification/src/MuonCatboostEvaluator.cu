@@ -31,7 +31,7 @@ void muon_catboost_evaluator::muon_catboost_evaluator_t::operator()(
     constants.muon_catboost_n_trees);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_muon_catboost_output_t>(host_buffers.host_muon_catboost_output, arguments, stream);
+    assign_to_host_buffer<dev_muon_catboost_output_t>(host_buffers.host_muon_catboost_output, arguments, context);
   }
 }
 

@@ -23,7 +23,7 @@ void kalman_filter::kalman_filter_t::operator()(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, stream);
+    assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
   }
 }
 

@@ -36,10 +36,10 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   initialize<dev_accepted_velo_tracks_t>(arguments, 1, context);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, stream);
+    assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, context);
     assign_to_host_buffer<dev_offsets_velo_track_hit_number_t>(
-      host_buffers.host_velo_track_hit_number, arguments, stream);
-    assign_to_host_buffer<dev_velo_track_hits_t>(host_buffers.host_velo_track_hits, arguments, stream);
+      host_buffers.host_velo_track_hit_number, arguments, context);
+    assign_to_host_buffer<dev_velo_track_hits_t>(host_buffers.host_velo_track_hits, arguments, context);
   }
 }
 
