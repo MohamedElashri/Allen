@@ -30,7 +30,7 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
 {
   initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, context);
 
-  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,

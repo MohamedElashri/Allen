@@ -19,7 +19,7 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   safe_assign_to_host_buffer<dev_consolidated_svs_t>(

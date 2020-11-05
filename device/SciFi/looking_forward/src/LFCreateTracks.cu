@@ -33,14 +33,14 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
   initialize<dev_scifi_lf_atomics_t>(arguments, 0, context);
 
   global_function(lf_triplet_keep_best)(
-    dim3(size<dev_event_list_t>(arguments)), property<triplet_keep_best_block_dim_t>(), stream)(
+    dim3(size<dev_event_list_t>(arguments)), property<triplet_keep_best_block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants);
 
   global_function(lf_calculate_parametrization)(
-    dim3(size<dev_event_list_t>(arguments)), property<calculate_parametrization_block_dim_t>(), stream)(
+    dim3(size<dev_event_list_t>(arguments)), property<calculate_parametrization_block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants);
 
   global_function(lf_extend_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<extend_tracks_block_dim_t>(), stream)(
+    dim3(size<dev_event_list_t>(arguments)), property<extend_tracks_block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants);
 }

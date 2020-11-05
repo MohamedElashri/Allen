@@ -32,14 +32,12 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   if (runtime_options.mep_layout) {
     global_function(muon_populate_tile_and_tdc_mep)(
       size<dev_event_list_t>(arguments),
-      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      stream)(arguments);
+      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank, context)(arguments);
   }
   else {
     global_function(muon_populate_tile_and_tdc)(
       size<dev_event_list_t>(arguments),
-      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      stream)(arguments);
+      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank, context)(arguments);
   }
 }
 

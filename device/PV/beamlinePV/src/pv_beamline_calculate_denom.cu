@@ -20,7 +20,7 @@ void pv_beamline_calculate_denom::pv_beamline_calculate_denom_t::operator()(
   const Allen::Context& context) const
 {
   global_function(pv_beamline_calculate_denom)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 __global__ void pv_beamline_calculate_denom::pv_beamline_calculate_denom(

@@ -20,7 +20,7 @@ void package_kalman_tracks::package_kalman_tracks_t::operator()(
   const Allen::Context& context) const
 {
   global_function(package_kalman_tracks)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 __global__ void package_kalman_tracks::package_kalman_tracks(package_kalman_tracks::Parameters parameters)

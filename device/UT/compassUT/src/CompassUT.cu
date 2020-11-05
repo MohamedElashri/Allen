@@ -25,7 +25,7 @@ void compass_ut::compass_ut_t::operator()(
 {
   initialize<dev_atomics_ut_t>(arguments, 0, context);
 
-  global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), stream)(
+  global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), context)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),

@@ -29,7 +29,7 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
   const auto block_dimension = dim3(1, property<block_dim_y_t>());
 #endif
 
-  global_function(pv_beamline_multi_fitter)(dim3(size<dev_event_list_t>(arguments)), block_dimension, stream)(
+  global_function(pv_beamline_multi_fitter)(dim3(size<dev_event_list_t>(arguments)), block_dimension, context)(
     arguments, constants.dev_beamline.data());
 }
 

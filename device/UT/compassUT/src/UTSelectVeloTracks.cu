@@ -23,7 +23,7 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
 {
   initialize<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, context);
 
-  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 }
 

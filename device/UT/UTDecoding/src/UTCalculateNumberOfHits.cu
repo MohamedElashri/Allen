@@ -25,7 +25,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
 
   if (runtime_options.mep_layout) {
     global_function(ut_calculate_number_of_hits_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
@@ -34,7 +34,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   }
   else {
     global_function(ut_calculate_number_of_hits)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),

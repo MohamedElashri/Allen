@@ -25,12 +25,12 @@ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_v4_t::opera
 
   if (runtime_options.mep_layout) {
     global_function(scifi_calculate_cluster_count_v4_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_calculate_cluster_count_v4)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments, constants.dev_scifi_geometry);
   }
 }

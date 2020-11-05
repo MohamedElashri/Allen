@@ -207,7 +207,7 @@ void gather_selections::gather_selections_t::operator()(
   // auto postscale_fn = first<dev_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>) :
   //                                                           global_function(postscaler<odin_data_t>);
   // Run the postscaler
-  global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), stream)(
+  global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     data<dev_selections_t>(arguments),
     data<dev_selections_offsets_t>(arguments),
     data<dev_odin_raw_input_t>(arguments),

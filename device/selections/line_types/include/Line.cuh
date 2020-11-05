@@ -235,7 +235,7 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iterati
     const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line<Derived, Parameters>)(
-      grid_dim_x, derived_instance->get_block_dim_x(arguments), stream)(
+      grid_dim_x, derived_instance->get_block_dim_x(arguments), context)(
       *derived_instance,
       arguments,
       first<typename Parameters::host_number_of_events_t>(arguments),
@@ -257,7 +257,7 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::event_iteration
     const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-      grid_dim_x, derived_instance->get_block_dim_x(arguments), stream)(
+      grid_dim_x, derived_instance->get_block_dim_x(arguments), context)(
       *derived_instance,
       arguments,
       size<typename Parameters::dev_event_list_t>(arguments),

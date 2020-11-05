@@ -25,7 +25,7 @@ void FilterMFTracks::filter_mf_tracks_t::operator()(
   initialize<dev_svs_kf_idx_t>(arguments, 0, context);
   initialize<dev_svs_mf_idx_t>(arguments, 0, context);
 
-  global_function(filter_mf_tracks)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(filter_mf_tracks)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
 }
 

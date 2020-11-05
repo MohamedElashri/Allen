@@ -23,7 +23,7 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   const auto grid_dim =
     dim3((size<dev_event_list_t>(arguments) + property<block_dim_x_t>().get() - 1) / property<block_dim_x_t>().get());
 
-  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), stream)(
+  global_function(pv_beamline_peak)(grid_dim, property<block_dim_x_t>().get(), context)(
     arguments, size<dev_event_list_t>(arguments));
 }
 

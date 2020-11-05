@@ -22,7 +22,7 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
 {
   initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, context);
 
-  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   // Retrieve result

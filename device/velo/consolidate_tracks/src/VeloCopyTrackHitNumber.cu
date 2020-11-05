@@ -29,7 +29,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
   initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, context);
 
   global_function(velo_copy_track_hit_number)(
-    first<host_number_of_events_t>(arguments), property<block_dim_t>(), stream)(arguments);
+    first<host_number_of_events_t>(arguments), property<block_dim_t>(), context)(arguments);
 
   cudaCheck(cudaMemcpyAsync(
     data<host_number_of_reconstructed_velo_tracks_t>(arguments),

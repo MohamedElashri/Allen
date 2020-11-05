@@ -19,7 +19,7 @@ void saxpy::saxpy_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  global_function(saxpy)(dim3(1), property<block_dim_t>(), stream)(arguments);
+  global_function(saxpy)(dim3(1), property<block_dim_t>(), context)(arguments);
 }
 
 /**

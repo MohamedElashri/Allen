@@ -24,12 +24,12 @@ void scifi_pre_decode_v6::scifi_pre_decode_v6_t::operator()(
 {
   if (runtime_options.mep_layout) {
     global_function(scifi_pre_decode_v6_mep)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_pre_decode_v6)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
       arguments, constants.dev_scifi_geometry);
   }
 }

@@ -28,7 +28,7 @@ void MuonFilter::muon_filter_t::operator()(
   initialize<dev_mf_decisions_t>(arguments, 0, context);
   initialize<dev_mf_track_atomics_t>(arguments, 0, context);
 
-  global_function(muon_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(muon_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, stream);

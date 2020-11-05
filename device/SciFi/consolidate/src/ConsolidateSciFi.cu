@@ -23,7 +23,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   // Transmission device to host of Scifi consolidated tracks

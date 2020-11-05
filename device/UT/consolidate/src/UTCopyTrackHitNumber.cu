@@ -20,7 +20,7 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::operator()(
   const Allen::Context& context) const
 {
   global_function(ut_copy_track_hit_number)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 /**

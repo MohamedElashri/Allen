@@ -37,14 +37,12 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   if (runtime_options.mep_layout) {
     global_function(muon_calculate_srq_size_mep)(
       size<dev_event_list_t>(arguments),
-      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      stream)(arguments);
+      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank, context)(arguments);
   }
   else {
     global_function(muon_calculate_srq_size)(
       size<dev_event_list_t>(arguments),
-      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      stream)(arguments);
+      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank, context)(arguments);
   }
 }
 

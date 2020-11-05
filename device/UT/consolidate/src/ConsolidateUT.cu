@@ -25,7 +25,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
   if (runtime_options.do_check) {

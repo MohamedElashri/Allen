@@ -29,7 +29,7 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(
+  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
     arguments);
 
   // Set all found tracks to accepted

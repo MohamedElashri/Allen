@@ -244,15 +244,14 @@ void saxpy::saxpy_t::operator()(
 {
   global_function(saxpy)(
     dim3(1),
-    property<block_dim_t>(),
-    stream)(arguments);
+    property<block_dim_t>(), context)(arguments);
 }
 ```
 
 In order to invoke host and global functions, wrapper methods `host_function` and `global_function` should be used. The syntax is as follows:
 
     host_function(<host_function_identifier>)(<parameters of function>)
-    global_function(<global_function_identifier>)(<grid_size>, <block_size>, <stream>)(<parameters of function>)
+    global_function(<global_function_identifier>)(<grid_size>, <block_size>, context)(<parameters of function>)
 
 `global_function` wraps a function identifier, such as `saxpy`. The object it returns can be used to invoke a _global kernel_ following a syntax that is similar to [CUDA's kernel invocation syntax](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels). It expects:
 
@@ -308,8 +307,7 @@ Typically, events are processed by independent blocks of execution. When that's 
 ```c++
   global_function(kernel)(
     size<dev_event_list_t>(),
-    property<block_dim_t>(),
-    stream)(arguments);
+    property<block_dim_t>(), context)(arguments);
 ```
 
 Then, in the kernel itself, in order to access the event under execution, the following idiom is used:

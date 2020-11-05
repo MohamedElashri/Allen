@@ -25,12 +25,12 @@ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::operator()(
 {
   if (runtime_options.mep_layout) {
     global_function(scifi_raw_bank_decoder_v6_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_raw_bank_decoder_v6)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments, constants.dev_scifi_geometry);
   }
 }

@@ -22,8 +22,7 @@ void ut_find_permutation::ut_find_permutation_t::operator()(
   const Allen::Context& context) const
 {
   global_function(ut_find_permutation)(
-    dim3(size<dev_event_list_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
-    property<block_dim_t>(),
+    dim3(size<dev_event_list_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]), context),
     stream)(arguments, constants.dev_unique_x_sector_layer_offsets.data());
 }
 

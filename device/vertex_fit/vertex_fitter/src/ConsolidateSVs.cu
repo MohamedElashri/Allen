@@ -19,7 +19,7 @@ void consolidate_svs::consolidate_svs_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   if (runtime_options.do_check) {

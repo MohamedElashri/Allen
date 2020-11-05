@@ -28,10 +28,10 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
 
   if (runtime_options.mep_layout) {
     global_function(velo_estimate_input_size_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
   }
   else {
-    global_function(velo_estimate_input_size)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    global_function(velo_estimate_input_size)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments);
   }
 }

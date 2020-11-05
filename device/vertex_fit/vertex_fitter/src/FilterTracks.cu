@@ -26,7 +26,7 @@ void FilterTracks::filter_tracks_t::operator()(
 {
   initialize<dev_sv_atomics_t>(arguments, 0, context);
 
-  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)

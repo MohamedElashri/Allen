@@ -25,7 +25,7 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  global_function(velo_pv_ip)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+  global_function(velo_pv_ip)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 namespace Distance {
