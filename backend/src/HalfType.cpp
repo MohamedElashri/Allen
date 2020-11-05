@@ -4,7 +4,7 @@
 
 #ifdef TARGET_DEVICE_CPU
 
-#include "CPUBackend.h"
+#include "BackendCommon.h"
 #include <iostream>
 
 // If supported, compile and use F16C extensions to convert from / to float16

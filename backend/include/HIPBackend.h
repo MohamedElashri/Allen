@@ -56,24 +56,4 @@
 #define cudaDeviceSetCacheConfig hipDeviceSetCacheConfig
 #define cudaHostUnregister hipHostUnregister
 
-#define cudaCheck(stmt)                                                                                           \
-  {                                                                                                               \
-    hipError_t err = stmt;                                                                                        \
-    if (err != hipSuccess) {                                                                                      \
-      fprintf(                                                                                                    \
-        stderr, "Failed to run %s\n%s (%d) at %s: %d\n", #stmt, hipGetErrorString(err), err, __FILE__, __LINE__); \
-      throw std::invalid_argument("cudaCheck failed");                                                            \
-    }                                                                                                             \
-  }
-
-#define cudaCheckKernelCall(stmt)                                                                                 \
-  {                                                                                                               \
-    cudaError_t err = stmt;                                                                                       \
-    if (err != cudaSuccess) {                                                                                     \
-      fprintf(                                                                                                    \
-        stderr, "Failed to invoke kernel\n%s (%d) at %s: %d\n", hipGetErrorString(err), err, __FILE__, __LINE__); \
-      throw std::invalid_argument("cudaCheckKernelCall failed");                                                  \
-    }                                                                                                             \
-  }
-
 #endif

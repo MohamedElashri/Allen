@@ -4,98 +4,45 @@
 
 #ifdef TARGET_DEVICE_CPU
 
-#include "CPUBackend.h"
+#include "BackendCommon.h"
 #include <cstring>
 #include <cstdlib>
+#include <fstream>
+#include <regex>
 
 thread_local GridDimensions gridDim;
 thread_local BlockIndices blockIdx;
-
-dim3::dim3(const unsigned int& x) : x(x) {}
-dim3::dim3(const unsigned int& x, const unsigned int& y) : x(x), y(y) {}
-dim3::dim3(const unsigned int& x, const unsigned int& y, const unsigned int& z) : x(x), y(y), z(z) {}
-
-cudaError_t cudaMalloc(void** devPtr, size_t size)
-{
-  posix_memalign(devPtr, 64, size);
-  return 0;
-}
-
-cudaError_t cudaMallocHost(void** ptr, size_t size)
-{
-  posix_memalign(ptr, 64, size);
-  return 0;
-}
-
-cudaError_t cudaMemcpy(void* dst, const void* src, size_t count, enum cudaMemcpyKind)
-{
-  std::memcpy(dst, src, count);
-  return 0;
-}
-
-cudaError_t cudaMemcpyAsync(void* dst, const void* src, size_t count, enum cudaMemcpyKind, cudaStream_t)
-{
-  std::memcpy(dst, src, count);
-  return 0;
-}
-
-cudaError_t cudaMemset(void* devPtr, int value, size_t count)
-{
-  std::memset(devPtr, value, count);
-  return 0;
-}
-
-cudaError_t cudaMemsetAsync(void* devPtr, int value, size_t count, cudaStream_t)
-{
-  std::memset(devPtr, value, count);
-  return 0;
-}
-
-cudaError_t cudaPeekAtLastError() { return 0; }
-
-cudaError_t cudaEventCreate(cudaEvent_t*) { return 0; }
-
-cudaError_t cudaEventCreateWithFlags(cudaEvent_t*, int) { return 0; }
-
-cudaError_t cudaEventSynchronize(cudaEvent_t) { return 0; }
-
-cudaError_t cudaEventRecord(cudaEvent_t, cudaStream_t) { return 0; }
-
-cudaError_t cudaFreeHost(void* ptr)
-{
-  free(ptr);
-  return 0;
-}
-
-cudaError_t cudaFree(void* ptr)
-{
-  free(ptr);
-  return 0;
-}
-
-cudaError_t cudaDeviceReset() { return 0; }
-
-cudaError_t cudaStreamCreate(cudaStream_t*) { return 0; }
-
-cudaError_t cudaMemcpyToSymbol(void* symbol, const void* src, size_t count, size_t offset, enum cudaMemcpyKind)
-{
-  std::memcpy(symbol, reinterpret_cast<const char*>(src) + offset, count);
-  return 0;
-}
-
-unsigned int atomicInc(unsigned int* address, unsigned int val)
-{
-  unsigned int old = *address;
-  *address = ((old >= val) ? 0 : (old + 1));
-  return old;
-}
 
 namespace Configuration {
   unsigned verbosity_level;
 }
 
-cudaError_t cudaHostUnregister(void*) { return 0; }
+void print_gpu_memory_consumption() {}
 
-cudaError_t cudaHostRegister(void*, size_t, unsigned int) { return 0; }
+#ifdef __linux__
+#include <ext/stdio_filebuf.h>
+std::tuple<bool, std::string> set_device(int, size_t)
+{
+  // Assume a linux system and try to get the CPU type
+  FILE* cmd = popen("grep -m1 -hoE 'model name\\s+.*' /proc/cpuinfo | awk '{ print substr($0, index($0,$4)) }'", "r");
+  if (cmd == NULL) return {true, "CPU"};
+
+  // Get a string that identifies the CPU
+  const int fd = fileno(cmd);
+  __gnu_cxx::stdio_filebuf<char> filebuf {fd, std::ios::in};
+  std::istream cmd_ifstream {&filebuf};
+  std::string processor_name {(std::istreambuf_iterator<char>(cmd_ifstream)), (std::istreambuf_iterator<char>())};
+
+  // Clean the string
+  const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))|(\n)|( Processor)"};
+  processor_name = std::regex_replace(processor_name, regex_to_remove, std::string {});
+
+  return {true, processor_name};
+}
+#else
+std::tuple<bool, std::string> set_device(int, size_t) { return {true, "CPU"}; }
+#endif // linux-dependent CPU detection
+
+std::tuple<bool, int> get_device_id(std::string) { return {true, 0}; }
 
 #endif

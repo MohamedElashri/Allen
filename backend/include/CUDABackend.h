@@ -20,27 +20,4 @@ inline const char* cudaGetErrorString(cudaError_t error) { return ""; }
 
 #include "math_constants.h"
 
-/**
- * @brief Macro to check cuda calls.
- */
-#define cudaCheck(stmt)                                \
-  {                                                    \
-    cudaError_t err = stmt;                            \
-    if (err != cudaSuccess) {                          \
-      std::cerr << "Failed to run " << #stmt << "\n";  \
-      std::cerr << cudaGetErrorString(err) << "\n";    \
-      throw std::invalid_argument("cudaCheck failed"); \
-    }                                                  \
-  }
-
-#define cudaCheckKernelCall(stmt)                                                                                  \
-  {                                                                                                                \
-    cudaError_t err = stmt;                                                                                        \
-    if (err != cudaSuccess) {                                                                                      \
-      fprintf(                                                                                                     \
-        stderr, "Failed to invoke kernel\n%s (%d) at %s: %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
-      throw std::invalid_argument("cudaCheckKernelCall failed");                                                   \
-    }                                                                                                              \
-  }
-
 #endif

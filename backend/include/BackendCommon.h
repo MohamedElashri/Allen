@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include <tuple>
-#include <string>
-#include <cassert>
-#include "TupleTools.cuh"
-
 // Host / device compiler identification
 #if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || \
   (defined(TARGET_DEVICE_CUDACLANG) && defined(__clang__) && defined(__CUDA__)) ||        \
@@ -16,13 +11,25 @@
 #define DEVICE_COMPILER
 #endif
 
+#if defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_CUDACLANG) || defined(TARGET_DEVICE_HIP)
+#define TARGET_DEVICE_CUDAHIP
+#endif
+
+#include <tuple>
+#include <string>
+#include <cassert>
+#include "TupleTools.cuh"
+#include "BackendCommonInterface.h"
+
 // Dispatch to the right backend
 #if defined(TARGET_DEVICE_CPU)
 #include "CPUBackend.h"
 #elif defined(TARGET_DEVICE_HIP)
 #include "HIPBackend.h"
+#include "CUDAHIPBackend.h"
 #elif defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_CUDACLANG)
 #include "CUDABackend.h"
+#include "CUDAHIPBackend.h"
 #endif
 
 #if defined(DEVICE_COMPILER)

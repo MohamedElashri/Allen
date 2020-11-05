@@ -113,34 +113,29 @@ struct ArgumentRefManager {
   }
 };
 
-// Wraps tuple arguments
+/**
+ * @brief Tuple wrapper that extracts tuples out of the
+ *        Parameters struct. It extracts a tuple of all parameters and properties
+ *        (parameters_and_properties_tuple_t), and a tuple of parameters (parameters_tuple_t).
+ */
 template<typename Tuple, typename Enabled = void>
 struct WrappedTuple;
 
 template<>
 struct WrappedTuple<std::tuple<>, void> {
-  using t = std::tuple<>;
-  using parameter_tuple_t = std::tuple<>;
-};
-
-template<typename T, typename... R>
-struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of<aggregate_datatype, T>::value>::type> {
-  using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
-  using t = typename ConcatTupleReferences<typename T::type, previous_t>::t;
-  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
-  using parameter_tuple_t = typename ConcatTuple<typename T::type, previous_parameter_tuple_t>::t;
+  using parameters_and_properties_tuple_t = std::tuple<>;
+  using parameters_tuple_t = std::tuple<>;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<
   std::tuple<T, R...>,
   typename std::enable_if<
-    !std::is_base_of<aggregate_datatype, T>::value &&
-    (std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value)>::type> {
-  using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
-  using t = typename TupleAppendFirst<T&, previous_t>::t;
-  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
-  using parameter_tuple_t = typename TupleAppendFirst<T, previous_parameter_tuple_t>::t;
+    std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value>::type> {
+  using prev_parameters_and_properties_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
+  using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
+  using parameters_tuple_t = typename TupleAppendFirst<T, prev_parameters_tuple_t>::t;
 };
 
 template<typename T, typename... R>
@@ -148,21 +143,13 @@ struct WrappedTuple<
   std::tuple<T, R...>,
   typename std::enable_if<
     !std::is_base_of<device_datatype, T>::value && !std::is_base_of<host_datatype, T>::value>::type> {
-  using t = typename WrappedTuple<std::tuple<R...>>::t;
-  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
-  using parameter_tuple_t = typename TupleAppendFirst<T, previous_parameter_tuple_t>::t;
-};
-
-template<typename T>
-struct ParameterTuple {
-  using t = typename WrappedTuple<decltype(
-    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t;
+  using prev_parameters_and_properties_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
+  using parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
 };
 
 template<typename T>
 using ArgumentReferences = ArgumentRefManager<
-  typename WrappedTuple<decltype(
-    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t,
-  typename WrappedTuple<decltype(
-    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::parameter_tuple_t,
+  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_and_properties_tuple_t,
+  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_tuple_t,
   T>;

@@ -6,25 +6,6 @@
 #include <tuple>
 #include <array>
 
-// Avoid warnings from the hana library from nvcc and clang
-#ifdef __CUDACC__
-#pragma push
-#pragma diag_suppress = expr_has_no_effect
-#elif defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdouble-promotion"
-#endif
-
-#include <boost/hana/members.hpp>
-#include <boost/hana/define_struct.hpp>
-#include <boost/hana/ext/std/tuple.hpp>
-
-#ifdef __CUDACC__
-#pragma pop
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#endif
-
 // Datatypes can be host or device.
 // Note: These structs need to be not templated (libClang).
 struct host_datatype {
@@ -204,8 +185,3 @@ struct ScheduledDependencies {
   using Algorithm = T;
   using Arguments = ArgumentsTuple;
 };
-
-#define DEFINE_PARAMETERS(CLASS_NAME, ...)             \
-  struct CLASS_NAME {                                  \
-    BOOST_HANA_DEFINE_STRUCT(CLASS_NAME, __VA_ARGS__); \
-  };
