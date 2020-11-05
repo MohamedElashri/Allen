@@ -114,7 +114,6 @@ Note that default CMAKEFLAGS are set for Allen in `utils/default-config.json` of
 
 ```
 lb-set-platform x86_64-centos7-gcc9-opt
-export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/latest/Linux-x86_64/bin:$PATH
 export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
 source /cvmfs/projects.cern.ch/intelsw/psxe/linux/all-setup.sh
 ```
