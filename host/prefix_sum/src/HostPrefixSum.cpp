@@ -73,7 +73,7 @@ void host_prefix_sum::host_prefix_sum(
               << ((input_number_of_elements + 1) * 1.2f) << ").\n";
     host_allocated_prefix_sum_space = (input_number_of_elements + 1) * 1.2f;
     cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
-    cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(unsigned)));
+    Allen::malloc_host((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(unsigned));
   }
 
 #ifdef CPU
@@ -87,8 +87,8 @@ void host_prefix_sum::host_prefix_sum(
   host_prefix_sum_impl(parameters.dev_output_buffer, input_number_of_elements, parameters.host_total_sum_holder);
 #else
   // Copy data over to the host
-  cudaCheck(cudaMemcpyAsync(
-    host_prefix_sum_buffer, parameters.dev_input_buffer, dev_input_buffer_size, cudaMemcpyDeviceToHost, stream));
+  Allen::memcpy_async(
+    host_prefix_sum_buffer, parameters.dev_input_buffer, dev_input_buffer_size, context);
 
   // Synchronize
   cudaEventRecord(event, stream);
@@ -98,7 +98,7 @@ void host_prefix_sum::host_prefix_sum(
   host_prefix_sum_impl(host_prefix_sum_buffer, input_number_of_elements, parameters.host_total_sum_holder);
 
   // Copy prefix summed data to the output buffer
-  cudaCheck(cudaMemcpyAsync(
-    parameters.dev_output_buffer, host_prefix_sum_buffer, dev_output_buffer_size, cudaMemcpyHostToDevice, stream));
+  Allen::memcpy_async(
+    parameters.dev_output_buffer, host_prefix_sum_buffer, dev_output_buffer_size, context);
 #endif
 }

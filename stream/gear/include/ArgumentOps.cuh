@@ -67,15 +67,13 @@ void safe_assign_to_host_buffer(T* array, unsigned& size, const Args& arguments,
   if (arguments.template size<Arg>() > size) {
     size = arguments.template size<Arg>() * sizeof(typename Arg::type);
     cudaCheck(cudaFreeHost(array));
-    cudaCheck(cudaMallocHost((void**) &array, size));
+    Allen::malloc_host((void**) &array, size);
   }
 
-  cudaCheck(cudaMemcpyAsync(
+  Allen::memcpy_async(
     array,
     arguments.template data<Arg>(),
-    arguments.template size<Arg>() * sizeof(typename Arg::type),
-    cudaMemcpyDeviceToHost,
-    stream));
+    arguments.template size<Arg>() * sizeof(typename Arg::type), context);
 }
 
 template<typename Arg, typename Args, typename T>
@@ -91,30 +89,26 @@ void safe_assign_to_host_buffer(gsl::span<T>& span, const Args& arguments, cudaS
     // Pinned allocation of new buffer of required size
     T* buffer_pointer;
     const auto buffer_size = arguments.template size<Arg>();
-    cudaCheck(cudaMallocHost((void**) &buffer_pointer, buffer_size * sizeof(typename Arg::type)));
+    Allen::malloc_host((void**) &buffer_pointer, buffer_size * sizeof(typename Arg::type));
 
     // Update the span
     span = {buffer_pointer, buffer_size};
   }
 
   // Actual copy to the span
-  cudaCheck(cudaMemcpyAsync(
+  Allen::memcpy_async(
     span.data(),
     arguments.template data<Arg>(),
-    arguments.template size<Arg>() * sizeof(typename Arg::type),
-    cudaMemcpyDeviceToHost,
-    stream));
+    arguments.template size<Arg>() * sizeof(typename Arg::type), context);
 }
 
 template<typename Arg, typename Args, typename T>
 void assign_to_host_buffer(T* array, const Args& arguments, cudaStream_t stream)
 {
-  cudaCheck(cudaMemcpyAsync(
+  Allen::memcpy_async(
     array,
     arguments.template data<Arg>(),
-    arguments.template size<Arg>() * sizeof(typename Arg::type),
-    cudaMemcpyDeviceToHost,
-    stream));
+    arguments.template size<Arg>() * sizeof(typename Arg::type), context);
 }
 
 // SFINAE for single argument functions, like initialization and print of host / device parameters
@@ -190,8 +184,8 @@ struct SingleArgumentOverloadResolution<
   static void print(const Args& arguments)
   {
     std::vector<char> v(size<Arg>(arguments));
-    cudaCheck(cudaMemcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), cudaMemcpyDeviceToHost));
+    Allen::memcpy(
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
 
     info_cout << arguments.template name<Arg>() << ": ";
     for (const auto& i : v) {
@@ -218,8 +212,8 @@ struct SingleArgumentOverloadResolution<
   static void print(const Args& arguments)
   {
     std::vector<typename Arg::type> v(size<Arg>(arguments));
-    cudaCheck(cudaMemcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), cudaMemcpyDeviceToHost));
+    Allen::memcpy(
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
 
     info_cout << arguments.template name<Arg>() << ": ";
     for (const auto& i : v) {
@@ -270,24 +264,20 @@ struct DoubleArgumentOverloadResolution<
   constexpr static void copy(const Args& arguments, cudaStream_t stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
-    cudaCheck(cudaMemcpyAsync(
+    Allen::memcpy_async(
       data<A>(arguments),
       data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type),
-      cudaMemcpyDeviceToHost,
-      stream));
+      size<B>(arguments) * sizeof(typename B::type), context);
   }
 
   constexpr static void
   copy(const Args& arguments, const size_t count, cudaStream_t stream, const size_t offset_a, const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
-    cudaCheck(cudaMemcpyAsync(
+    Allen::memcpy_async(
       data<A>(arguments) + offset_a,
       data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type),
-      cudaMemcpyDeviceToHost,
-      stream));
+      count * sizeof(typename B::type), context);
   }
 };
 
@@ -304,24 +294,20 @@ struct DoubleArgumentOverloadResolution<
   constexpr static void copy(const Args& arguments, cudaStream_t stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
-    cudaCheck(cudaMemcpyAsync(
+    Allen::memcpy_async(
       data<A>(arguments),
       data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type),
-      cudaMemcpyHostToDevice,
-      stream));
+      size<B>(arguments) * sizeof(typename B::type), context);
   }
 
   constexpr static void
   copy(const Args& arguments, const size_t count, cudaStream_t stream, const size_t offset_a, const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
-    cudaCheck(cudaMemcpyAsync(
+    Allen::memcpy_async(
       data<A>(arguments) + offset_a,
       data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type),
-      cudaMemcpyHostToDevice,
-      stream));
+      count * sizeof(typename B::type), context);
   }
 };
 
@@ -338,24 +324,20 @@ struct DoubleArgumentOverloadResolution<
   constexpr static void copy(const Args& arguments, cudaStream_t stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
-    cudaCheck(cudaMemcpyAsync(
+    Allen::memcpy_async(
       data<A>(arguments),
       data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type),
-      cudaMemcpyDeviceToDevice,
-      stream));
+      size<B>(arguments) * sizeof(typename B::type), context);
   }
 
   constexpr static void
   copy(const Args& arguments, const size_t count, cudaStream_t stream, const size_t offset_a, const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
-    cudaCheck(cudaMemcpyAsync(
+    Allen::memcpy_async(
       data<A>(arguments) + offset_a,
       data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type),
-      cudaMemcpyDeviceToDevice,
-      stream));
+      count * sizeof(typename B::type), context);
   }
 };
 
@@ -418,16 +400,14 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStrea
 {
   auto offset = args.template data<DATA_ARG>();
   for (gsl::span<char const> data_span : std::get<0>(bno)) {
-    cudaCheck(cudaMemcpyAsync(offset, data_span.data(), data_span.size_bytes(), cudaMemcpyHostToDevice, stream));
+    Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), context);
     offset += data_span.size_bytes();
   }
 
-  cudaCheck(cudaMemcpyAsync(
+  Allen::memcpy_async(
     args.template data<OFFSET_ARG>(),
     std::get<2>(bno).data(),
-    std::get<2>(bno).size_bytes(),
-    cudaMemcpyHostToDevice,
-    stream));
+    std::get<2>(bno).size_bytes(), context);
 }
 
 /**

@@ -92,9 +92,9 @@ void Consumers::MagneticField::consume(std::vector<char> const& data) {
   }
   if (!m_dev_magnet_polarity.get()) {
     // Allocate space
-    cudaCheck(cudaMalloc((void**) &m_dev_magnet_polarity.get(), data.size()));
+    Allen::malloc((void**) &m_dev_magnet_polarity.get(), data.size());
   }
-  cudaCheck(cudaMemcpy(m_dev_magnet_polarity, data.data(), data.size(), cudaMemcpyHostToDevice));
+  Allen::memcpy(m_dev_magnet_polarity, data.data(), data.size(), Allen::memcpyHostToDevice);
 }
 ```
 Device variables are allocated on first call and never reallocated,

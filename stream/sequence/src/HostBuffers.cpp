@@ -21,40 +21,40 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
 {
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
-  cudaCheck(cudaMallocHost((void**) &host_number_of_events, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_total_number_of_velo_clusters, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_number_of_reconstructed_velo_tracks, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_velo_tracks, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_ut_hits, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_number_of_reconstructed_ut_tracks, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_ut_tracks, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_scifi_hits, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_number_of_reconstructed_scifi_tracks, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_scifi_tracks, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_lf_total_number_of_candidates, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_lf_total_size_first_window_layer, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_tiles, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_number_of_sel_rep_words, sizeof(unsigned)));
-  cudaCheck(cudaMallocHost((void**) &host_selected_events_mf, sizeof(unsigned)));
+  Allen::malloc_host((void**) &host_number_of_events, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_total_number_of_velo_clusters, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_number_of_reconstructed_velo_tracks, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_accumulated_number_of_hits_in_velo_tracks, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_accumulated_number_of_ut_hits, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_number_of_reconstructed_ut_tracks, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_accumulated_number_of_hits_in_ut_tracks, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_accumulated_number_of_scifi_hits, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_number_of_reconstructed_scifi_tracks, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_accumulated_number_of_hits_in_scifi_tracks, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_lf_total_number_of_candidates, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_lf_total_size_first_window_layer, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_muon_total_number_of_tiles, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_number_of_svs, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_muon_total_number_of_hits, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_number_of_sel_rep_words, sizeof(unsigned));
+  Allen::malloc_host((void**) &host_selected_events_mf, sizeof(unsigned));
 
   // Initialize for sequences that don't fill this in.
   host_number_of_events = 0;
 
   // Buffer for performing GEC on CPU
-  cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(unsigned)));
+  Allen::malloc_host((void**) &host_event_list, max_number_of_events * sizeof(unsigned));
 
   // Buffer for saving events passing Hlt1 selections.
-  cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(bool)));
+  Allen::malloc_host((void**) &host_passing_event_list, max_number_of_events * sizeof(bool));
 
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated
   host_allocated_prefix_sum_space = 10000000;
-  cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(unsigned)));
+  Allen::malloc_host((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(unsigned));
 
   // Needed for track monitoring
-  cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
+  Allen::malloc_host((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int));
   cudaCheck(cudaMallocHost(
     (void**) &host_kf_tracks,
     max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
@@ -62,13 +62,13 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
   // Needed for PV monitoring
   cudaCheck(cudaMallocHost(
     (void**) &host_reconstructed_multi_pvs, max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
-  cudaCheck(cudaMallocHost((void**) &host_number_of_multivertex, max_number_of_events * sizeof(int)));
+  Allen::malloc_host((void**) &host_number_of_multivertex, max_number_of_events * sizeof(int));
 
   // Needed for SV monitoring
   host_secondary_vertices_size =
     max_number_of_events * SciFi::Constants::max_tracks * 10 * sizeof(VertexFit::TrackMVAVertex);
-  cudaCheck(cudaMallocHost((void**) &host_secondary_vertices, host_secondary_vertices_size));
-  cudaCheck(cudaMallocHost((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(unsigned)));
+  Allen::malloc_host((void**) &host_secondary_vertices, host_secondary_vertices_size);
+  Allen::malloc_host((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(unsigned));
 
   if (do_check) {
     // Datatypes to be reserved only if checking is on

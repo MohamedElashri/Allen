@@ -165,24 +165,6 @@ using half_t = float;
 
 #endif
 
-#define cudaCheck(stmt)                                \
-  {                                                    \
-    cudaError_t err = stmt;                            \
-    if (err != cudaSuccess) {                          \
-      std::cerr << "Failed to run " << #stmt << "\n";  \
-      throw std::invalid_argument("cudaCheck failed"); \
-    }                                                  \
-  }
-
-#define cudaCheckKernelCall(stmt)                                \
-  {                                                              \
-    cudaError_t err = stmt;                                      \
-    if (err != cudaSuccess) {                                    \
-      std::cerr << "Failed to invoke kernel.\n";                 \
-      throw std::invalid_argument("cudaCheckKernelCall failed"); \
-    }                                                            \
-  }
-
 namespace Allen {
   struct Context {
   };

@@ -49,7 +49,7 @@ struct StreamWrapper {
   /**
    * @brief Runs stream.
    */
-  cudaError_t run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options);
+  Allen::error run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options);
 
   /**
    * @brief Mask of the events selected by the stream

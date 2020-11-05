@@ -179,8 +179,8 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
 
   const unsigned buf_idx = m_n_buffers - 1;
   const unsigned stream_index = m_number_of_streams - 1;
-  cudaError_t cuda_rv = m_stream_wrapper->run_stream(stream_index, buf_idx, runtime_options);
-  if (cuda_rv != cudaSuccess) {
+  Allen::error cuda_rv = m_stream_wrapper->run_stream(stream_index, buf_idx, runtime_options);
+  if (cuda_rv != Allen::error::success) {
     error() << "Allen exited with errorCode " << rv << endmsg;
     // how to exit a filter with failure?
   }

@@ -268,14 +268,14 @@ void run_stream(
          mep_layout,
          inject_mem_fail});
 
-      if (status == cudaErrorMemoryAllocation) {
+      if (status == Allen::error::errorMemoryAllocation) {
         zmqSvc->send(control, "SPLIT", send_flags::sndmore);
         zmqSvc->send(control, *idx, send_flags::sndmore);
         zmqSvc->send(control, first, send_flags::sndmore);
         zmqSvc->send(control, last, send_flags::sndmore);
         zmqSvc->send(control, buf);
       }
-      else if (status == cudaSuccess) {
+      else if (status == Allen::error::success) {
         // signal that we're done
         zmqSvc->send(control, "PROCESSED", send_flags::sndmore);
         zmqSvc->send(control, *idx, send_flags::sndmore);

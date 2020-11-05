@@ -42,7 +42,7 @@ void StreamWrapper::initialize_streams_host_buffers_manager(HostBuffersManager* 
   }
 }
 
-cudaError_t StreamWrapper::run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options)
+Allen::error StreamWrapper::run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
   return streams[i]->run_sequence(buf_idx, runtime_options);
 }
@@ -83,27 +83,23 @@ void print_configured_sequence()
 /**
  * @brief Sets up the chain that will be executed later.
  */
-cudaError_t Stream::initialize(
+Allen::error Stream::initialize(
   const bool param_do_print_memory_manager,
   const unsigned param_start_event_offset,
   const size_t reserve_mb,
   const size_t reserve_host_mb,
   const Constants& param_constants)
 {
-  // Set stream and events
-  cudaCheck(cudaStreamCreate(&stream));
-  cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
-
-  // Set stream options
+  // Set options
   do_print_memory_manager = param_do_print_memory_manager;
   start_event_offset = param_start_event_offset;
   constants = param_constants;
 
   // Malloc a configurable reserved memory on the host
-  cudaCheck(cudaMallocHost((void**) &host_base_pointer, reserve_host_mb * 1000 * 1000));
+  Allen::malloc_host((void**) &host_base_pointer, reserve_host_mb * 1000 * 1000);
 
   // Malloc a configurable reserved memory on the device
-  cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1000 * 1000));
+  Allen::malloc((void**) &dev_base_pointer, reserve_mb * 1000 * 1000);
 
   // Prepare scheduler
   scheduler.initialize(
@@ -116,7 +112,7 @@ cudaError_t Stream::initialize(
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);
 
-  return cudaSuccess;
+  return Allen::error::success;
 }
 
 void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
@@ -125,7 +121,7 @@ void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
   host_buffers_manager = buffers_manager;
 }
 
-cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& runtime_options)
+Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
   host_buffers = host_buffers_manager->getBuffers(buf_idx);
   // The sequence is only run if there are events to run on
@@ -176,12 +172,12 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
         synchronize(m_context);
       } catch (const MemoryException& e) {
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
-        return cudaErrorMemoryAllocation;
+        return Allen::error::errorMemoryAllocation;
       }
     }
   }
 
-  return cudaSuccess;
+  return Allen::error::success;
 }
 
 std::vector<bool> Stream::reconstructed_events() const

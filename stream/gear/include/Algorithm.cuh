@@ -6,8 +6,7 @@
 #include "BackendCommon.h"
 #include "Logger.h"
 #include "BaseTypes.cuh"
-#include "HostFunction.cuh"
-#include "GlobalFunction.cuh"
+#include "TargetFunction.cuh"
 #include "Argument.cuh"
 
 namespace Allen {
@@ -83,10 +82,10 @@ namespace Allen {
       return HostFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
     }
 
-    template<typename R, typename... T>
-    GlobalFunction<const Allen::Algorithm*, R, T...> global_function(R(f)(T...)) const
+    template<typename Fn>
+    GlobalFunction<Fn, const Allen::Algorithm*> global_function_impl(const Fn& fn) const
     {
-      return GlobalFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
+      return GlobalFunction<Fn, const Allen::Algorithm*> {dynamic_cast<const Allen::Algorithm*>(this), fn};
     }
 
   protected:

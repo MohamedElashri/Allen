@@ -60,7 +60,7 @@ struct Stream {
   // Constants
   Constants constants;
 
-  cudaError_t initialize(
+  Allen::error initialize(
     const bool param_print_memory_usage,
     const unsigned param_start_event_offset,
     const size_t param_reserve_mb,
@@ -76,7 +76,7 @@ struct Stream {
     MCEvents const& mc_events,
     std::vector<Checker::Tracks> const& forward_tracks);
 
-  cudaError_t run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
+  Allen::error run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
   void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
   {

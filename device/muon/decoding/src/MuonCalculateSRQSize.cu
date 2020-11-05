@@ -29,8 +29,8 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   // indicate dependencies between Consumer and/or Producers.
   Muon::MuonRawToHits muonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
 
-  cudaCheck(cudaMemcpyAsync(
-    data<dev_muon_raw_to_hits_t>(arguments), &muonRawToHits, sizeof(muonRawToHits), cudaMemcpyHostToDevice, stream));
+  Allen::memcpy_async(
+    data<dev_muon_raw_to_hits_t>(arguments), &muonRawToHits, sizeof(muonRawToHits), context);
 
   initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
 

@@ -56,8 +56,8 @@ std::vector<std::tuple<unsigned int, unsigned long>> EventReader::read_events(
     // Copy raw data to pinned host memory
     char* events_mem = nullptr;
     unsigned* offsets_mem = nullptr;
-    cudaCheck(cudaMallocHost((void**) &events_mem, events.size()));
-    cudaCheck(cudaMallocHost((void**) &offsets_mem, event_offsets.size() * sizeof(unsigned)));
+    Allen::malloc_host((void**) &events_mem, events.size());
+    Allen::malloc_host((void**) &offsets_mem, event_offsets.size() * sizeof(unsigned));
     std::copy_n(std::begin(events), events.size(), events_mem);
     std::copy_n(std::begin(event_offsets), event_offsets.size(), offsets_mem);
 
