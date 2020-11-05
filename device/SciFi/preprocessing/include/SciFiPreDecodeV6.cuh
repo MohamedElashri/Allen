@@ -34,7 +34,6 @@ namespace scifi_pre_decode_v6 {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace scifi_pre_decode_v6

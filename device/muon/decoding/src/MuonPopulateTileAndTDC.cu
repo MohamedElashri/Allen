@@ -23,12 +23,11 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_atomics_muon_t>(arguments, 0, stream);
-  initialize<dev_storage_tile_id_t>(arguments, 0, stream);
-  initialize<dev_storage_tdc_value_t>(arguments, 0, stream);
+  initialize<dev_atomics_muon_t>(arguments, 0, context);
+  initialize<dev_storage_tile_id_t>(arguments, 0, context);
+  initialize<dev_storage_tdc_value_t>(arguments, 0, context);
 
   if (runtime_options.mep_layout) {
     global_function(muon_populate_tile_and_tdc_mep)(

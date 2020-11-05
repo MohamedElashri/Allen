@@ -26,8 +26,7 @@ namespace saxpy {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t&,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};

@@ -36,10 +36,9 @@ struct Stream {
 
   // Dynamic scheduler
   scheduler_t scheduler;
-
-  // Stream datatypes
-  cudaStream_t stream;
-  cudaEvent_t cuda_generic_event;
+  
+  // Context
+  Allen::Context m_context {};
 
   // Launch options
   bool do_print_memory_manager;

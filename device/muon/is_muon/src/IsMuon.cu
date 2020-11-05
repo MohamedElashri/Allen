@@ -20,10 +20,9 @@ void is_muon::is_muon_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_muon_track_occupancies_t>(arguments, 0, stream);
+  initialize<dev_muon_track_occupancies_t>(arguments, 0, context);
 
   global_function(is_muon)(
     dim3(size<dev_event_list_t>(arguments)),

@@ -42,8 +42,7 @@ namespace velo_three_hit_tracks_filter {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<max_chi2_t> m_chi2 {this, 20.0f};

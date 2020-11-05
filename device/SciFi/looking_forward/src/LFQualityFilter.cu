@@ -31,10 +31,9 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_atomics_scifi_t>(arguments, 0, stream);
+  initialize<dev_atomics_scifi_t>(arguments, 0, context);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());

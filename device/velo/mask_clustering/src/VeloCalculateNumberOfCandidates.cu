@@ -18,10 +18,9 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_number_of_candidates_t>(arguments, 0, stream);
+  initialize<dev_number_of_candidates_t>(arguments, 0, context);
 
   // Enough blocks to cover all events
   const auto grid_size =

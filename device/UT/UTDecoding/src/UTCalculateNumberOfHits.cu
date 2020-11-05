@@ -19,10 +19,9 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_ut_hit_sizes_t>(arguments, 0, stream);
+  initialize<dev_ut_hit_sizes_t>(arguments, 0, context);
 
   if (runtime_options.mep_layout) {
     global_function(ut_calculate_number_of_hits_mep)(

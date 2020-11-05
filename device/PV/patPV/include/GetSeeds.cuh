@@ -51,8 +51,7 @@ namespace pv_get_seeds {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<max_chi2_merge_t> m_chi2 {this, 25.f};

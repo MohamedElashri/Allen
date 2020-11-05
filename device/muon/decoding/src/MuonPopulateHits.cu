@@ -19,10 +19,9 @@ void muon_populate_hits::muon_populate_hits_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_permutation_station_t>(arguments, 0, stream);
+  initialize<dev_permutation_station_t>(arguments, 0, context);
 
   global_function(muon_populate_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments);

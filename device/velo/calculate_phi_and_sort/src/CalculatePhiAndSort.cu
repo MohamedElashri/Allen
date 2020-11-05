@@ -26,10 +26,9 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_hit_permutation_t>(arguments, 0, stream);
+  initialize<dev_hit_permutation_t>(arguments, 0, context);
 
   global_function(velo_calculate_phi_and_sort)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);

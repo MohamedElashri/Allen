@@ -19,8 +19,7 @@ void ut_find_permutation::ut_find_permutation_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(ut_find_permutation)(
     dim3(size<dev_event_list_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),

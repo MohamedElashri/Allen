@@ -59,8 +59,7 @@ namespace FilterTracks {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<track_min_pt_t> m_minpt {this, 200.0f};

@@ -111,8 +111,7 @@ public:
     const RuntimeOptions&,
     const Constants&,
     HostBuffers&,
-    cudaStream_t&,
-    cudaEvent_t&) const;
+    const Allen::Context& context) const;
 
   /**
    * @brief Grid dimension of kernel call. get_grid_dim returns the size of the event list.
@@ -277,11 +276,10 @@ void Line<Derived, Parameters>::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<typename Parameters::dev_decisions_t>(arguments, 0, stream);
-  initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, stream);
+  initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
+  initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
 
   const auto* derived_instance = static_cast<const Derived*>(this);
 

@@ -19,8 +19,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t& event) const
+  const Allen::Context& context) const
 {
   // Invokes the function
   host_prefix_sum(
@@ -28,8 +27,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
     host_buffers.host_allocated_prefix_sum_space,
     size<dev_input_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
     size<dev_output_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
-    stream,
-    event,
+    context,
     Parameters {data<host_total_sum_holder_t>(arguments),
                 data<dev_input_buffer_t>(arguments),
                 data<dev_output_buffer_t>(arguments)});
@@ -63,9 +61,7 @@ void host_prefix_sum::host_prefix_sum(
   size_t& host_allocated_prefix_sum_space,
   const size_t dev_input_buffer_size,
   [[maybe_unused]] const size_t dev_output_buffer_size,
-  cudaStream_t& stream,
-  cudaEvent_t& event,
-  host_prefix_sum::Parameters parameters)
+  const Allen::Context& context)
 {
   assert(dev_output_buffer_size == (dev_input_buffer_size + 1 * sizeof(unsigned)));
   const auto input_number_of_elements = dev_input_buffer_size / sizeof(unsigned);

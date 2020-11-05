@@ -19,10 +19,9 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, stream);
+  initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, context);
 
 #ifdef TARGET_DEVICE_CUDA
   const auto block_dimension = dim3(32, property<block_dim_y_t>());

@@ -58,8 +58,7 @@ namespace MuonFilter {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<mf_min_pt_t> m_minpt {this, 800.f};

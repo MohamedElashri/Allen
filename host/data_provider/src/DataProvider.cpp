@@ -19,8 +19,7 @@ void data_provider::data_provider_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
 

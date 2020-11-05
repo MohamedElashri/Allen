@@ -17,8 +17,7 @@ void package_kalman_tracks::package_kalman_tracks_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(package_kalman_tracks)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);

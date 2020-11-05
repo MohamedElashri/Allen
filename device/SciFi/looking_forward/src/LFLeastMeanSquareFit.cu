@@ -15,8 +15,7 @@ void lf_least_mean_square_fit::lf_least_mean_square_fit_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(lf_least_mean_square_fit)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(

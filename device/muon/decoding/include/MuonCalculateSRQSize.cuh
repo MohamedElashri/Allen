@@ -34,7 +34,6 @@ namespace muon_calculate_srq_size {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace muon_calculate_srq_size

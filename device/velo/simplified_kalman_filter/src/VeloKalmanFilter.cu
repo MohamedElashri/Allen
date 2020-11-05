@@ -20,8 +20,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments);

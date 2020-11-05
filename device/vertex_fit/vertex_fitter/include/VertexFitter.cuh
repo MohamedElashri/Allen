@@ -107,8 +107,7 @@ namespace VertexFit {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};

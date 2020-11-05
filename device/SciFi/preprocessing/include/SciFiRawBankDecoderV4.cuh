@@ -52,8 +52,7 @@ namespace scifi_raw_bank_decoder_v4 {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<raw_bank_decoder_block_dim_t> m_raw_bank_decoder_block_dim {this, {{256, 1, 1}}};

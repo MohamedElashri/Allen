@@ -18,8 +18,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   if (runtime_options.mep_layout) {
     global_function(ut_decode_raw_banks_in_order_mep)(

@@ -18,8 +18,7 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   const auto grid_dim =
     dim3((size<dev_event_list_t>(arguments) + property<block_dim_x_t>().get() - 1) / property<block_dim_x_t>().get());

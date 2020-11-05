@@ -21,8 +21,7 @@ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   if (runtime_options.mep_layout) {
     global_function(scifi_raw_bank_decoder_v4_mep)(

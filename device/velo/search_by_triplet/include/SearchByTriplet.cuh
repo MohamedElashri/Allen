@@ -57,8 +57,7 @@ namespace velo_search_by_triplet {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<phi_tolerance_t> m_tolerance {this, 0.045f};

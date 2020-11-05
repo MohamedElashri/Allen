@@ -24,8 +24,7 @@ void host_init_event_list::host_init_event_list_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   const auto number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);

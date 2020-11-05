@@ -17,8 +17,7 @@ void saxpy::saxpy_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(saxpy)(dim3(1), property<block_dim_t>(), stream)(arguments);
 }

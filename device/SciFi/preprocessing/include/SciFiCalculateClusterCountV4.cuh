@@ -33,8 +33,7 @@ namespace scifi_calculate_cluster_count_v4 {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{240, 1, 1}}};

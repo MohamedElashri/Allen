@@ -72,8 +72,7 @@ namespace lf_create_tracks {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<triplet_keep_best_block_dim_t> m_triplet_keep_best_block_dim {this, {{128, 1, 1}}};

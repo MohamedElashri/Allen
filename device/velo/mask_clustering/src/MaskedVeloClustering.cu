@@ -21,10 +21,9 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_module_cluster_num_t>(arguments, 0, stream);
+  initialize<dev_module_cluster_num_t>(arguments, 0, context);
 
   // Selector from layout
   if (runtime_options.mep_layout) {

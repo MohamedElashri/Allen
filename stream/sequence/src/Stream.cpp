@@ -146,7 +146,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
         Sch::RunSequenceTuple<
           scheduler_t,
           std::tuple<const RuntimeOptions&, const Constants&, const HostBuffers&>,
-          std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, cudaStream_t&, cudaEvent_t&>>::
+          std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&>>::
           run(
             scheduler,
             // Arguments to set_arguments_size
@@ -157,8 +157,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
             runtime_options,
             constants,
             *host_buffers,
-            stream,
-            cuda_generic_event);
+            m_context);
 
         // deterministic injection of ~random memory failures
         if (runtime_options.inject_mem_fail > 0) {
@@ -173,9 +172,8 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
             throw MemoryException("Test : Injected fake memory exception to test failure handling");
         }
 
-        // Synchronize CUDA device
-        cudaEventRecord(cuda_generic_event, stream);
-        cudaEventSynchronize(cuda_generic_event);
+        // Synchronize device
+        synchronize(m_context);
       } catch (const MemoryException& e) {
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
         return cudaErrorMemoryAllocation;

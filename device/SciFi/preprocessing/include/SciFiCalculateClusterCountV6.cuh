@@ -32,7 +32,6 @@ namespace scifi_calculate_cluster_count_v6 {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace scifi_calculate_cluster_count_v6

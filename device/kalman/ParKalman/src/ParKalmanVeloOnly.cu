@@ -19,8 +19,7 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_scifi_geometry);

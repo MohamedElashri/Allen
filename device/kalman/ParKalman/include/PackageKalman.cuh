@@ -49,8 +49,7 @@ namespace package_kalman_tracks {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

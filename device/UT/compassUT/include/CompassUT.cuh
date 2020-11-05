@@ -57,8 +57,7 @@ namespace compass_ut {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<sigma_velo_slope_t> m_slope {this, 0.1f * Gaudi::Units::mrad};

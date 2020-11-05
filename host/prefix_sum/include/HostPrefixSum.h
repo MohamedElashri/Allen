@@ -29,9 +29,7 @@ namespace host_prefix_sum {
     size_t& host_allocated_prefix_sum_space,
     const size_t dev_input_buffer_size,
     const size_t dev_output_buffer_size,
-    cudaStream_t& stream,
-    cudaEvent_t& cuda_generic_event,
-    Parameters parameters);
+    const Allen::Context& context);
 
   struct host_prefix_sum_t : public HostAlgorithm, Parameters {
     void set_arguments_size(
@@ -45,7 +43,6 @@ namespace host_prefix_sum {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t& cuda_generic_event) const;
+      const Allen::Context& context) const;
   };
 } // namespace host_prefix_sum

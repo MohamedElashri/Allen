@@ -47,8 +47,7 @@ namespace velo_consolidate_tracks {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

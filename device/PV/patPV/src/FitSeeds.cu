@@ -18,8 +18,7 @@ void fit_seeds::pv_fit_seeds_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(fit_seeds)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
     arguments);

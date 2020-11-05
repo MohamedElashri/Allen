@@ -43,8 +43,7 @@ namespace host_global_event_cut {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<min_scifi_ut_clusters_t> m_min_scifi_ut_clusters {this, 0};

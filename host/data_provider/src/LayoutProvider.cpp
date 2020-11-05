@@ -18,8 +18,7 @@ void layout_provider::layout_provider_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   unsigned int mep_layout = runtime_options.mep_layout;
 
@@ -27,5 +26,5 @@ void layout_provider::layout_provider_t::operator()(
   ::memcpy(data<host_mep_layout_t>(arguments), &mep_layout, sizeof(mep_layout));
 
   // Device output
-  initialize<dev_mep_layout_t>(arguments, mep_layout, stream);
+  initialize<dev_mep_layout_t>(arguments, mep_layout, context);
 }

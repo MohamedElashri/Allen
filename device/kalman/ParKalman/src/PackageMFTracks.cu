@@ -18,10 +18,9 @@ void package_mf_tracks::package_mf_tracks_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_mf_tracks_t>(arguments, 0, stream);
+  initialize<dev_mf_tracks_t>(arguments, 0, context);
 
   global_function(package_mf_tracks)(
     dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(

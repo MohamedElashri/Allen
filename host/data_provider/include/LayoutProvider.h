@@ -31,7 +31,6 @@ namespace layout_provider {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
-      cudaStream_t&,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace layout_provider

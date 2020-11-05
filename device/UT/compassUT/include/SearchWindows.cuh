@@ -48,8 +48,7 @@ namespace ut_search_windows {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<min_momentum_t> m_mom {this, 1.5f * Gaudi::Units::GeV};

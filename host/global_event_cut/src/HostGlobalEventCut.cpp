@@ -24,8 +24,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   const auto event_start = std::get<0>(runtime_options.event_interval);
   const auto event_end = std::get<1>(runtime_options.event_interval);

@@ -34,8 +34,7 @@ namespace velo_calculate_number_of_candidates {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 256};

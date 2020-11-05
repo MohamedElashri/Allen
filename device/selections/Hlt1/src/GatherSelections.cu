@@ -147,8 +147,7 @@ void gather_selections::gather_selections_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t& event) const
+  const Allen::Context& context) const
 {
   // Save the names of active lines as output
   const auto line_names = std::string(property<names_of_active_lines_t>());

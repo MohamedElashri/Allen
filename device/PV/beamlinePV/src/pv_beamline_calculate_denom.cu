@@ -17,8 +17,7 @@ void pv_beamline_calculate_denom::pv_beamline_calculate_denom_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(pv_beamline_calculate_denom)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);

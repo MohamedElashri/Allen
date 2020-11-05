@@ -38,7 +38,6 @@ namespace muon_populate_tile_and_tdc {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace muon_populate_tile_and_tdc

@@ -46,7 +46,6 @@ namespace lf_triplet_seeding {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace lf_triplet_seeding

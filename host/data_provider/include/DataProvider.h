@@ -27,8 +27,7 @@ namespace data_provider {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<raw_bank_type_t> m_bank_type {this, BankTypes::ODIN};
