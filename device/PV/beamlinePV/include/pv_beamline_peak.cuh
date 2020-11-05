@@ -15,14 +15,14 @@
 #include <cstdint>
 
 namespace pv_beamline_peak {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_zhisto_t, float), dev_zhisto),
-    (DEVICE_OUTPUT(dev_zpeaks_t, float), dev_zpeaks),
-    (DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned), dev_number_of_zpeaks),
-    (PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned), block_dim_x))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_zhisto_t, float) dev_zhisto;
+    DEVICE_OUTPUT(dev_zpeaks_t, float) dev_zpeaks;
+    DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned) dev_number_of_zpeaks;
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
+  };
 
   __global__ void pv_beamline_peak(Parameters, const unsigned event_list_size);
 

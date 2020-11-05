@@ -9,18 +9,18 @@
 #include "MuonRaw.cuh"
 
 namespace muon_populate_tile_and_tdc {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_INPUT(host_muon_total_number_of_tiles_t, unsigned), host_muon_total_number_of_tiles),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_muon_raw_t, char), dev_muon_raw),
-    (DEVICE_INPUT(dev_muon_raw_offsets_t, unsigned), dev_muon_raw_offsets),
-    (DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits), dev_muon_raw_to_hits),
-    (DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned), dev_storage_station_region_quarter_offsets),
-    (DEVICE_OUTPUT(dev_storage_tile_id_t, unsigned), dev_storage_tile_id),
-    (DEVICE_OUTPUT(dev_storage_tdc_value_t, unsigned), dev_storage_tdc_value),
-    (DEVICE_OUTPUT(dev_atomics_muon_t, unsigned), dev_atomics_muon))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_muon_total_number_of_tiles_t, unsigned) host_muon_total_number_of_tiles;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_muon_raw_t, char) dev_muon_raw;
+    DEVICE_INPUT(dev_muon_raw_offsets_t, unsigned) dev_muon_raw_offsets;
+    DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
+    DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
+    DEVICE_OUTPUT(dev_storage_tile_id_t, unsigned) dev_storage_tile_id;
+    DEVICE_OUTPUT(dev_storage_tdc_value_t, unsigned) dev_storage_tdc_value;
+    DEVICE_OUTPUT(dev_atomics_muon_t, unsigned) dev_atomics_muon;
+  };
 
   __global__ void muon_populate_tile_and_tdc(Parameters);
 

@@ -6,15 +6,15 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace dec_reporter {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_INPUT(host_number_of_active_lines_t, unsigned), host_number_of_active_lines),
-    (DEVICE_INPUT(dev_number_of_active_lines_t, unsigned), dev_number_of_active_lines),
-    (DEVICE_INPUT(dev_selections_t, bool), dev_selections),
-    (DEVICE_INPUT(dev_selections_offsets_t, unsigned), dev_selections_offsets),
-    (DEVICE_OUTPUT(dev_dec_reports_t, unsigned), dev_dec_reports),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
+    DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
+    DEVICE_INPUT(dev_selections_t, bool) dev_selections;
+    DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
+    DEVICE_OUTPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void dec_reporter(Parameters);
 

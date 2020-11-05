@@ -96,18 +96,18 @@ namespace velo_kalman_filter {
     return state;
   }
 
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_offsets_all_velo_tracks),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
-    (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
-    (DEVICE_INPUT(dev_velo_states_t, char), dev_velo_states),
-    (DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char), dev_velo_kalman_beamline_states),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
+    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
+    DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
+    DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void velo_kalman_filter(Parameters);
 

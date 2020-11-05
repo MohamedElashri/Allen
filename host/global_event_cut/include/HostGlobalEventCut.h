@@ -9,21 +9,21 @@
 #include "HostAlgorithm.cuh"
 
 namespace host_global_event_cut {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>), ut_banks),
-    (HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>), ut_offsets),
-    (HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>), scifi_banks),
-    (HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>), scifi_offsets),
-    (HOST_OUTPUT(host_event_list_t, unsigned), host_event_list),
-    (HOST_OUTPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_OUTPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
-    (DEVICE_OUTPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-    (DEVICE_OUTPUT(dev_event_list_t, unsigned), dev_event_list),
-    (PROPERTY(min_scifi_ut_clusters_t, "min_scifi_ut_clusters", "minimum number of scifi + ut clusters", unsigned),
-     min_scifi_ut_clusters),
-    (PROPERTY(max_scifi_ut_clusters_t, "max_scifi_ut_clusters", "maximum number of scifi + ut clusters", unsigned),
-     max_scifi_ut_clusters))
+  struct Parameters {
+    HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>) ut_banks;
+    HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>) ut_offsets;
+    HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
+    HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
+    HOST_OUTPUT(host_event_list_t, unsigned) host_event_list;
+    HOST_OUTPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
+    DEVICE_OUTPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_OUTPUT(dev_event_list_t, unsigned) dev_event_list;
+    PROPERTY(min_scifi_ut_clusters_t, "min_scifi_ut_clusters", "minimum number of scifi + ut clusters", unsigned)
+     min_scifi_ut_clusters;
+    PROPERTY(max_scifi_ut_clusters_t, "max_scifi_ut_clusters", "maximum number of scifi + ut clusters", unsigned)
+     max_scifi_ut_clusters;
+  };
 
   // Function
   void host_global_event_cut(unsigned number_of_events, Parameters parameters);

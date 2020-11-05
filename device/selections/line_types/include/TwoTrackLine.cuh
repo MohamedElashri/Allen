@@ -10,11 +10,11 @@
  * A TwoTrackLine.
  *
  * It assumes an inheriting class will have the following inputs:
- *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
- *  (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
- *  (DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex), dev_svs),
- *  (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
- *  (DEVICE_OUTPUT(decisions_t, bool), decisions),
+ *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+ *  HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
+ *  DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+ *  DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+ *  DEVICE_OUTPUT(decisions_t, bool) decisions;
  *
  * It also assumes the OneTrackLine will be defined as:
  *  __device__ bool select(const Parameters& parameters, std::tuple<const VertexFit::TrackMVAVertex&> input) const;

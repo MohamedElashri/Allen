@@ -9,10 +9,10 @@
 #include <gsl/gsl>
 
 namespace layout_provider {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_OUTPUT(host_mep_layout_t, unsigned), host_mep_layout),
-    (DEVICE_OUTPUT(dev_mep_layout_t, unsigned), dev_mep_layout))
+  struct Parameters {
+    HOST_OUTPUT(host_mep_layout_t, unsigned) host_mep_layout;
+    DEVICE_OUTPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
+  };
 
   /**
    * @brief Provides layout information as

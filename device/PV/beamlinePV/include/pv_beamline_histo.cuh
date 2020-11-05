@@ -15,16 +15,16 @@
 #include "FloatOperations.cuh"
 
 namespace pv_beamline_histo {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
-    (DEVICE_INPUT(dev_pvtracks_t, PVTrack), dev_pvtracks),
-    (DEVICE_OUTPUT(dev_zhisto_t, float), dev_zhisto),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_pvtracks_t, PVTrack) dev_pvtracks;
+    DEVICE_OUTPUT(dev_zhisto_t, float) dev_zhisto;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void pv_beamline_histo(Parameters, float* dev_beamline);
 

@@ -126,15 +126,15 @@ The Velo include is only required if Velo objects are used in the algorithm. `De
 
 ```c++
 namespace saxpy {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
-    (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
-    (PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float), saxpy_scale_factor),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
+    DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;
+    PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 ```
 
 In the `saxpy` namespace the parameters and properties are specified. Parameters _scope_ can either be the host or the device, and they can either be inputs or outputs. Parameters should be defined with the following convention:

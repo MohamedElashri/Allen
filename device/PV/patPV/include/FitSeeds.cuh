@@ -21,17 +21,17 @@ __device__ bool fit_vertex(
 __device__ float get_tukey_weight(float trchi2, int iter);
 
 namespace fit_seeds {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_OUTPUT(dev_vertex_t, PV::Vertex), dev_vertex),
-    (DEVICE_OUTPUT(dev_number_vertex_t, int), dev_number_vertex),
-    (DEVICE_INPUT(dev_seeds_t, PatPV::XYZPoint), dev_seeds),
-    (DEVICE_INPUT(dev_number_seeds_t, unsigned), dev_number_seeds),
-    (DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char), dev_velo_kalman_beamline_states),
-    (DEVICE_INPUT(dev_atomics_velo_t, unsigned), dev_atomics_velo),
-    (DEVICE_INPUT(dev_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_OUTPUT(dev_vertex_t, PV::Vertex) dev_vertex;
+    DEVICE_OUTPUT(dev_number_vertex_t, int) dev_number_vertex;
+    DEVICE_INPUT(dev_seeds_t, PatPV::XYZPoint) dev_seeds;
+    DEVICE_INPUT(dev_number_seeds_t, unsigned) dev_number_seeds;
+    DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
+    DEVICE_INPUT(dev_atomics_velo_t, unsigned) dev_atomics_velo;
+    DEVICE_INPUT(dev_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void fit_seeds(Parameters);
 

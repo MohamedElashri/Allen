@@ -7,11 +7,11 @@
 #include "HostAlgorithm.cuh"
 
 namespace host_prefix_sum {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_OUTPUT(host_total_sum_holder_t, unsigned), host_total_sum_holder),
-    (DEVICE_INPUT(dev_input_buffer_t, unsigned), dev_input_buffer),
-    (DEVICE_OUTPUT(dev_output_buffer_t, unsigned), dev_output_buffer))
+  struct Parameters {
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
+    DEVICE_INPUT(dev_input_buffer_t, unsigned) dev_input_buffer;
+    DEVICE_OUTPUT(dev_output_buffer_t, unsigned) dev_output_buffer;
+  };
 
   /**
    * @brief Implementation of prefix sum.

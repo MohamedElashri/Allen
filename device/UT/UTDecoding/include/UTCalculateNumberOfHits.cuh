@@ -7,14 +7,14 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_calculate_number_of_hits {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_ut_raw_input_t, char), dev_ut_raw_input),
-    (DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned), dev_ut_raw_input_offsets),
-    (DEVICE_OUTPUT(dev_ut_hit_sizes_t, unsigned), dev_ut_hit_sizes),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
+    DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned) dev_ut_raw_input_offsets;
+    DEVICE_OUTPUT(dev_ut_hit_sizes_t, unsigned) dev_ut_hit_sizes;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void ut_calculate_number_of_hits(
     Parameters,
