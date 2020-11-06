@@ -631,6 +631,6 @@ configuration file.
                       muon_sequence, hlt1_sequence), *lines, gatherer).generate()
     ```
 
-    Notice that all the values of the properties have to be given in a string event if the type of the property is an int or a float.
+    Notice that all the values of the properties have to be given in a string even if the type of the property is an int or a float.
     Now, you should be able to build and run the newly generated `custom_sequence`.
     
