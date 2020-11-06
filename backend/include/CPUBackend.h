@@ -185,7 +185,7 @@ namespace Allen {
 
   void inline memset_async(void* ptr, int value, size_t count, const Context&) { memset(ptr, value, count); }
 
-  void inline free_host(void* ptr) { free(ptr); }
+  void inline free_host(void* ptr) { ::free(ptr); }
 
   void inline free(void* ptr) { free_host(ptr); }
 
