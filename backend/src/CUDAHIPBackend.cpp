@@ -2,9 +2,10 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 
+#include "BackendCommon.h"
+
 #ifdef TARGET_DEVICE_CUDAHIP
 
-#include "BackendCommon.h"
 #include "Logger.h"
 #include <iostream>
 #include <iomanip>

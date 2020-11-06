@@ -59,9 +59,9 @@ namespace Allen {
   unsigned inline convert_allen_to_cuda_host_register_kind(Allen::host_register_kind kind)
   {
     switch (kind) {
-    case hostRegisterDefault: return cudaHostRegisterDefault;
     case hostRegisterPortable: return cudaHostRegisterPortable;
     case hostRegisterMapped: return cudaHostRegisterMapped;
+    default: return cudaHostRegisterDefault;
     }
   }
 

@@ -33,8 +33,8 @@ namespace gather_selections {
     HOST_OUTPUT(host_post_scale_hashes_t, uint32_t) host_post_scale_hashes;
     DEVICE_OUTPUT(dev_post_scale_factors_t, float) dev_post_scale_factors;
     DEVICE_OUTPUT(dev_post_scale_hashes_t, uint32_t) dev_post_scale_hashes;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;
-    PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string) names_of_active_lines;
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
+    PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string);
   };
 
   struct gather_selections_t : public HostAlgorithm, Parameters {
