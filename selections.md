@@ -450,7 +450,7 @@ namespace example_one_velo_track_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Line-specific properties
-    Property<minNHits_t> minNHits {this, 3};
+    Property<minNHits_t> m_minNHits {this, 0};
   };
 } // namespace example_one_velo_track_line
 ```
@@ -617,8 +617,9 @@ configuration file.
         dev_track_offsets_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
         dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
         dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
-        pre_scaler_hash_string="single_electron_brem_line_pre",
-        post_scaler_hash_string="single_electron_brem_line_post")
+        pre_scaler_hash_string="example_one_velo_track_line_pre",
+        post_scaler_hash_string="example_one_velo_track_line_post",
+        minNHits="3")
         
     lines = (example_one_track_line, example_two_track_line, velo_micro_bias_line, example_one_velo_track_line)
 
@@ -630,5 +631,6 @@ configuration file.
                       muon_sequence, hlt1_sequence), *lines, gatherer).generate()
     ```
 
+    Notice that all the values of the properties have to be given in a string event if the type of the property is an int or a float.
     Now, you should be able to build and run the newly generated `custom_sequence`.
     
