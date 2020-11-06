@@ -83,7 +83,7 @@ namespace Allen {
     }
 
     template<typename Fn>
-    GlobalFunction<Fn, const Allen::Algorithm*> global_function_impl(const Fn& fn) const
+    GlobalFunction<Fn, const Allen::Algorithm*> global_function(const Fn& fn) const
     {
       return GlobalFunction<Fn, const Allen::Algorithm*> {dynamic_cast<const Allen::Algorithm*>(this), fn};
     }

@@ -1165,7 +1165,7 @@ loop_error:
   }
 
   // Reset device
-  cudaCheck(cudaDeviceReset());
+  Allen::device_reset();
 
   if (allen_control) {
     zmqSvc->send(*allen_control, "NOT_READY");

@@ -23,7 +23,7 @@ void VertexFit::fit_secondary_vertices_t::operator()(
     arguments);
 
   safe_assign_to_host_buffer<dev_consolidated_svs_t>(
-    host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, context);
+    host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, context);
 
   assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_offsets, arguments, context);
 }

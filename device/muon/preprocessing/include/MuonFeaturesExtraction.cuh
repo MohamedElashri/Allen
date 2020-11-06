@@ -27,6 +27,8 @@ namespace muon_catboost_features_extraction {
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

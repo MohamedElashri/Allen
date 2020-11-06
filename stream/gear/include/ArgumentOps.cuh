@@ -47,48 +47,59 @@ size_t size(const Args& arguments)
  * @brief Returns a pointer to the container with the container type.
  */
 template<typename Arg, typename Args>
-auto data(const Args& arguments)
+typename Arg::type* data(const Args& arguments)
 {
-  return arguments.template data<Arg>();
+  return arguments.template pointer<Arg>();
+}
+
+/**
+ * @brief Gets the name of a container.
+ */
+template<typename Arg, typename Args>
+std::string name(Args arguments)
+{
+  return arguments.template name<Arg>();
 }
 
 /**
  * @brief Returns the first element in the container.
  */
 template<typename Arg, typename Args>
-auto first(const Args& arguments)
+typename Arg::type first(const Args& arguments)
 {
   return arguments.template first<Arg>();
 }
 
 template<typename Arg, typename Args, typename T>
-void safe_assign_to_host_buffer(T* array, unsigned& size, const Args& arguments, cudaStream_t stream)
+void safe_assign_to_host_buffer(T* array, unsigned& array_size, const Args& arguments, const Allen::Context& context)
 {
-  if (arguments.template size<Arg>() > size) {
-    size = arguments.template size<Arg>() * sizeof(typename Arg::type);
-    cudaCheck(cudaFreeHost(array));
-    Allen::malloc_host((void**) &array, size);
+  if (size<Arg>(arguments) > array_size) {
+    array_size = size<Arg>(arguments) * sizeof(typename Arg::type);
+    Allen::free_host(array);
+    Allen::malloc_host((void**) &array, array_size);
   }
 
   Allen::memcpy_async(
     array,
-    arguments.template data<Arg>(),
-    arguments.template size<Arg>() * sizeof(typename Arg::type), context);
+    data<Arg>(arguments),
+    array_size,
+    Allen::memcpyDeviceToHost,
+    context);
 }
 
 template<typename Arg, typename Args, typename T>
-void safe_assign_to_host_buffer(gsl::span<T>& span, const Args& arguments, cudaStream_t stream)
+void safe_assign_to_host_buffer(gsl::span<T>& span, const Args& arguments, const Allen::Context& context)
 {
   // Ensure span is big enough
-  if (arguments.template size<Arg>() >= span.size()) {
+  if (size<Arg>(arguments) >= span.size()) {
     // Deallocate previously allocated data, if any
     if (span.data() != nullptr) {
-      cudaCheck(cudaFreeHost(span.data()));
+      Allen::free_host(span.data());
     }
 
     // Pinned allocation of new buffer of required size
     T* buffer_pointer;
-    const auto buffer_size = arguments.template size<Arg>();
+    const auto buffer_size = size<Arg>(arguments);
     Allen::malloc_host((void**) &buffer_pointer, buffer_size * sizeof(typename Arg::type));
 
     // Update the span
@@ -98,17 +109,21 @@ void safe_assign_to_host_buffer(gsl::span<T>& span, const Args& arguments, cudaS
   // Actual copy to the span
   Allen::memcpy_async(
     span.data(),
-    arguments.template data<Arg>(),
-    arguments.template size<Arg>() * sizeof(typename Arg::type), context);
+    data<Arg>(arguments),
+    size<Arg>(arguments) * sizeof(typename Arg::type),
+    Allen::memcpyDeviceToHost,
+    context);
 }
 
 template<typename Arg, typename Args, typename T>
-void assign_to_host_buffer(T* array, const Args& arguments, cudaStream_t stream)
+void assign_to_host_buffer(T* array, const Args& arguments, const Allen::Context& context)
 {
   Allen::memcpy_async(
     array,
-    arguments.template data<Arg>(),
-    arguments.template size<Arg>() * sizeof(typename Arg::type), context);
+    data<Arg>(arguments),
+    size<Arg>(arguments) * sizeof(typename Arg::type),
+    Allen::memcpyDeviceToHost,
+    context);
 }
 
 // SFINAE for single argument functions, like initialization and print of host / device parameters
@@ -124,7 +139,7 @@ struct SingleArgumentOverloadResolution<
     (std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
      std::is_same<typename Arg::type, unsigned char>::value ||
      std::is_same<typename Arg::type, signed char>::value)>::type> {
-  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t)
+  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
   }
@@ -133,7 +148,7 @@ struct SingleArgumentOverloadResolution<
   {
     const auto array = data<Arg>(arguments);
 
-    info_cout << arguments.template name<Arg>() << ": ";
+    info_cout << name<Arg>(arguments) << ": ";
     for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
       info_cout << ((int) array[i]) << ", ";
     }
@@ -145,12 +160,12 @@ template<typename Arg, typename Args>
 struct SingleArgumentOverloadResolution<
   Arg,
   Args,
-  typename std::enable_if<
-    std::is_base_of<host_datatype, Arg>::value &&
-    !(std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
-      std::is_same<typename Arg::type, unsigned char>::value ||
-      std::is_same<typename Arg::type, signed char>::value)>::type> {
-  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t)
+  std::enable_if_t<
+    std::is_base_of_v<host_datatype, Arg> &&
+    !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
+      std::is_same_v<typename Arg::type, unsigned char> ||
+      std::is_same_v<typename Arg::type, signed char>)>> {
+  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
   }
@@ -159,7 +174,7 @@ struct SingleArgumentOverloadResolution<
   {
     const auto array = data<Arg>(arguments);
 
-    info_cout << arguments.template name<Arg>() << ": ";
+    info_cout << name<Arg>(arguments) << ": ";
     for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
       info_cout << array[i] << ", ";
     }
@@ -171,14 +186,14 @@ template<typename Arg, typename Args>
 struct SingleArgumentOverloadResolution<
   Arg,
   Args,
-  typename std::enable_if<
-    std::is_base_of<device_datatype, Arg>::value &&
-    (std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
-     std::is_same<typename Arg::type, unsigned char>::value ||
-     std::is_same<typename Arg::type, signed char>::value)>::type> {
-  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t stream)
+  std::enable_if_t<
+    std::is_base_of_v<device_datatype, Arg> &&
+    (std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
+     std::is_same_v<typename Arg::type, unsigned char> ||
+     std::is_same_v<typename Arg::type, signed char>)>> {
+  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
   {
-    cudaCheck(cudaMemsetAsync(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), stream));
+    Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
   }
 
   static void print(const Args& arguments)
@@ -187,7 +202,7 @@ struct SingleArgumentOverloadResolution<
     Allen::memcpy(
       v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
 
-    info_cout << arguments.template name<Arg>() << ": ";
+    info_cout << name<Arg>(arguments) << ": ";
     for (const auto& i : v) {
       info_cout << ((int) i) << ", ";
     }
@@ -199,14 +214,14 @@ template<typename Arg, typename Args>
 struct SingleArgumentOverloadResolution<
   Arg,
   Args,
-  typename std::enable_if<
-    std::is_base_of<device_datatype, Arg>::value &&
-    !(std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
-      std::is_same<typename Arg::type, unsigned char>::value ||
-      std::is_same<typename Arg::type, signed char>::value)>::type> {
-  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t stream)
+  std::enable_if_t<
+    std::is_base_of_v<device_datatype, Arg> &&
+    !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
+      std::is_same_v<typename Arg::type, unsigned char> ||
+      std::is_same_v<typename Arg::type, signed char>)>> {
+  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
   {
-    cudaCheck(cudaMemsetAsync(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), stream));
+    Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
   }
 
   static void print(const Args& arguments)
@@ -215,7 +230,7 @@ struct SingleArgumentOverloadResolution<
     Allen::memcpy(
       v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
 
-    info_cout << arguments.template name<Arg>() << ": ";
+    info_cout << name<Arg>(arguments) << ": ";
     for (const auto& i : v) {
       info_cout << i << ", ";
     }
@@ -233,18 +248,18 @@ struct DoubleArgumentOverloadResolution<
   A,
   B,
   Args,
-  typename std::conditional<
-    std::is_base_of<host_datatype, A>::value,
-    typename std::enable_if<std::is_base_of<host_datatype, B>::value>::type,
-    typename std::enable_if<false>>::type> {
-  constexpr static void copy(const Args& arguments, cudaStream_t)
+  std::conditional_t<
+    std::is_base_of_v<host_datatype, A>,
+    std::enable_if_t<std::is_base_of_v<host_datatype, B>>,
+    std::enable_if<false>>> {
+  constexpr static void copy(const Args& arguments, const Allen::Context&)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     std::memcpy(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(typename B::type));
   }
 
   constexpr static void
-  copy(const Args& arguments, const size_t count, cudaStream_t, const size_t offset_a, const size_t offset_b)
+  copy(const Args& arguments, const size_t count, const Allen::Context&, const size_t offset_a, const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
     std::memcpy(data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(typename B::type));
@@ -257,27 +272,31 @@ struct DoubleArgumentOverloadResolution<
   A,
   B,
   Args,
-  typename std::conditional<
-    std::is_base_of<host_datatype, A>::value,
-    typename std::enable_if<std::is_base_of<device_datatype, B>::value>::type,
-    typename std::enable_if<false>>::type> {
-  constexpr static void copy(const Args& arguments, cudaStream_t stream)
+  std::conditional_t<
+    std::is_base_of_v<host_datatype, A>,
+    std::enable_if_t<std::is_base_of_v<device_datatype, B>>,
+    std::enable_if<false>>> {
+  constexpr static void copy(const Args& arguments, const Allen::Context& context)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     Allen::memcpy_async(
       data<A>(arguments),
       data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type), context);
+      size<B>(arguments) * sizeof(typename B::type),
+      Allen::memcpyDeviceToHost,
+      context);
   }
 
   constexpr static void
-  copy(const Args& arguments, const size_t count, cudaStream_t stream, const size_t offset_a, const size_t offset_b)
+  copy(const Args& arguments, const size_t count, const Allen::Context& context, const size_t offset_a, const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
     Allen::memcpy_async(
       data<A>(arguments) + offset_a,
       data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type), context);
+      count * sizeof(typename B::type),
+      Allen::memcpyDeviceToHost,
+      context);
   }
 };
 
@@ -287,27 +306,31 @@ struct DoubleArgumentOverloadResolution<
   A,
   B,
   Args,
-  typename std::conditional<
-    std::is_base_of<device_datatype, A>::value,
-    typename std::enable_if<std::is_base_of<host_datatype, B>::value>::type,
-    typename std::enable_if<false>>::type> {
-  constexpr static void copy(const Args& arguments, cudaStream_t stream)
+  std::conditional_t<
+    std::is_base_of_v<device_datatype, A>,
+    std::enable_if_t<std::is_base_of_v<host_datatype, B>>,
+    std::enable_if<false>>> {
+  constexpr static void copy(const Args& arguments, const Allen::Context& context)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     Allen::memcpy_async(
       data<A>(arguments),
       data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type), context);
+      size<B>(arguments) * sizeof(typename B::type),
+      Allen::memcpyHostToDevice,
+      context);
   }
 
   constexpr static void
-  copy(const Args& arguments, const size_t count, cudaStream_t stream, const size_t offset_a, const size_t offset_b)
+  copy(const Args& arguments, const size_t count, const Allen::Context& context, const size_t offset_a, const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
     Allen::memcpy_async(
       data<A>(arguments) + offset_a,
       data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type), context);
+      count * sizeof(typename B::type),
+      Allen::memcpyHostToDevice,
+      context);
   }
 };
 
@@ -317,27 +340,31 @@ struct DoubleArgumentOverloadResolution<
   A,
   B,
   Args,
-  typename std::conditional<
-    std::is_base_of<device_datatype, A>::value,
-    typename std::enable_if<std::is_base_of<device_datatype, B>::value>::type,
-    typename std::enable_if<false>>::type> {
-  constexpr static void copy(const Args& arguments, cudaStream_t stream)
+  std::conditional_t<
+    std::is_base_of_v<device_datatype, A>,
+    std::enable_if_t<std::is_base_of_v<device_datatype, B>>,
+    std::enable_if<false>>> {
+  constexpr static void copy(const Args& arguments, const Allen::Context& context)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
     Allen::memcpy_async(
       data<A>(arguments),
       data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type), context);
+      size<B>(arguments) * sizeof(typename B::type),
+      Allen::memcpyDeviceToDevice,
+      context);
   }
 
   constexpr static void
-  copy(const Args& arguments, const size_t count, cudaStream_t stream, const size_t offset_a, const size_t offset_b)
+  copy(const Args& arguments, const size_t count, const Allen::Context& context, const size_t offset_a, const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
     Allen::memcpy_async(
       data<A>(arguments) + offset_a,
       data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type), context);
+      count * sizeof(typename B::type),
+      Allen::memcpyDeviceToDevice,
+      context);
   }
 };
 
@@ -345,19 +372,19 @@ struct DoubleArgumentOverloadResolution<
  * @brief Initializes a datatype with the value specified.
  *        Can be used to either initialize values on the host or on the device.
  * @details On the host, this resolves to a std::memset.
- *          On the device, this resolves to a cudaMemsetAsync. No synchronization
+ *          On the device, this resolves to a Allen::memset_async. No synchronization
  *          is performed after the initialization.
  */
 template<typename Arg, typename Args>
-void initialize(const Args& arguments, const int value, cudaStream_t stream)
+void initialize(const Args& arguments, const int value, const Allen::Context& context)
 {
-  SingleArgumentOverloadResolution<Arg, Args>::initialize(arguments, value, stream);
+  SingleArgumentOverloadResolution<Arg, Args>::initialize(arguments, value, context);
 }
 
 /**
  * @brief Prints the value of an argument.
  * @details On the host, a mere loop and a print statement is done.
- *          On the device, a cudaMemcpy is used to first copy the data onto a std::vector.
+ *          On the device, a Allen::memcpy is used to first copy the data onto a std::vector.
  *          Note that as a consequence of this, printing device variables results in a
  *          considerable slowdown.
  */
@@ -372,9 +399,9 @@ void print(const Args& arguments)
  * @details A and B may be host or device arguments.
  */
 template<typename A, typename B, typename Args>
-void copy(const Args& arguments, cudaStream_t stream)
+void copy(const Args& arguments, const Allen::Context& context)
 {
-  DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, stream);
+  DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, context);
 }
 
 /**
@@ -385,29 +412,31 @@ template<typename A, typename B, typename Args>
 void copy(
   const Args& arguments,
   const size_t count,
-  cudaStream_t stream,
+  const Allen::Context& context,
   const size_t offset_a = 0,
   const size_t offset_b = 0)
 {
-  DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, count, stream, offset_a, offset_b);
+  DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, count, context, offset_a, offset_b);
 }
 
 /**
  * @brief Transfer data to the device, populating raw banks and offsets.
  */
 template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
-void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& stream)
+void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const Allen::Context& context)
 {
-  auto offset = args.template data<DATA_ARG>();
+  auto offset = data<DATA_ARG>(args);
   for (gsl::span<char const> data_span : std::get<0>(bno)) {
-    Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), context);
+    Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), Allen::memcpyHostToDevice, context);
     offset += data_span.size_bytes();
   }
 
   Allen::memcpy_async(
-    args.template data<OFFSET_ARG>(),
+    data<OFFSET_ARG>(args),
     std::get<2>(bno).data(),
-    std::get<2>(bno).size_bytes(), context);
+    std::get<2>(bno).size_bytes(),
+    Allen::memcpyHostToDevice,
+    context);
 }
 
 /**

@@ -50,7 +50,7 @@ struct MemoryManager {
   void reserve(ArgumentManagerType& argument_manager)
   {
     // Tag and requested size
-    const auto tag = argument_manager.template name<Argument>();
+    const auto tag = name<Argument>(argument_manager);
     size_t requested_size = argument_manager.template size<Argument>() * sizeof(typename Argument::type);
 
     // Size requested should be greater than zero
@@ -112,7 +112,7 @@ struct MemoryManager {
   template<typename ArgumentManagerType, typename Argument>
   void free(ArgumentManagerType& argument_manager)
   {
-    const auto tag = argument_manager.template name<Argument>();
+    const auto tag = name<Argument>(argument_manager);
 
     if (logger::verbosity() >= 5) {
       verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;

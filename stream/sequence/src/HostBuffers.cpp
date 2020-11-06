@@ -55,13 +55,13 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
 
   // Needed for track monitoring
   Allen::malloc_host((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int));
-  cudaCheck(cudaMallocHost(
+  Allen::malloc_host(
     (void**) &host_kf_tracks,
-    max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
+    max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack));
 
   // Needed for PV monitoring
-  cudaCheck(cudaMallocHost(
-    (void**) &host_reconstructed_multi_pvs, max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
+  Allen::malloc_host(
+    (void**) &host_reconstructed_multi_pvs, max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex));
   Allen::malloc_host((void**) &host_number_of_multivertex, max_number_of_events * sizeof(int));
 
   // Needed for SV monitoring

@@ -1,6 +1,3 @@
-/*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
-\*****************************************************************************/
 #include "HostPrefixSum.h"
 
 void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
@@ -11,26 +8,42 @@ void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
 {
   // The total sum holder just holds a single unsigned integer.
   set_size<host_total_sum_holder_t>(arguments, 1);
-  set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) + 1);
+  set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(unsigned) + 1);
+  set_size<host_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(unsigned) + 1);
 }
 
 void host_prefix_sum::host_prefix_sum_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
-  // Invokes the function
-  host_prefix_sum(
-    host_buffers.host_prefix_sum_buffer,
-    host_buffers.host_allocated_prefix_sum_space,
-    size<dev_input_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
-    size<dev_output_buffer_t>(arguments) * sizeof(dev_input_buffer_t::type),
-    context,
-    Parameters {data<host_total_sum_holder_t>(arguments),
-                data<dev_input_buffer_t>(arguments),
-                data<dev_output_buffer_t>(arguments)});
+#if defined(TARGET_DEVICE_CPU)
+  // Copy directly data to the output buffer
+  copy<dev_output_buffer_t, dev_input_buffer_t>(arguments, context);
+
+  // Perform the prefix sum on the output buffer
+  host_prefix_sum_impl(
+    data<dev_output_buffer_t>(arguments),
+    size<dev_input_buffer_t>(arguments) / sizeof(unsigned),
+    data<host_total_sum_holder_t>(arguments));
+#else
+  // Copy data over to the host
+  copy<host_output_buffer_t, dev_input_buffer_t>(arguments, context);
+
+  // Synchronize
+  Allen::synchronize(context);
+
+  // Perform the prefix sum in the host
+  host_prefix_sum_impl(
+    data<host_output_buffer_t>(arguments),
+    size<dev_input_buffer_t>(arguments) / sizeof(unsigned),
+    data<host_total_sum_holder_t>(arguments));
+
+  // Copy prefix summed data to the device
+  copy<dev_output_buffer_t, host_output_buffer_t>(arguments, context);
+#endif
 }
 
 void host_prefix_sum::host_prefix_sum_impl(
@@ -54,51 +67,4 @@ void host_prefix_sum::host_prefix_sum_impl(
   if (host_total_sum_holder != nullptr) {
     host_total_sum_holder[0] = host_prefix_sum_buffer[input_number_of_elements];
   }
-}
-
-void host_prefix_sum::host_prefix_sum(
-  unsigned* host_prefix_sum_buffer,
-  size_t& host_allocated_prefix_sum_space,
-  const size_t dev_input_buffer_size,
-  [[maybe_unused]] const size_t dev_output_buffer_size,
-  const Allen::Context& context)
-{
-  assert(dev_output_buffer_size == (dev_input_buffer_size + 1 * sizeof(unsigned)));
-  const auto input_number_of_elements = dev_input_buffer_size / sizeof(unsigned);
-
-  // Reallocate if insufficient space on host buffer
-  if ((input_number_of_elements + 1) > host_allocated_prefix_sum_space) {
-    info_cout << "Prefix sum host buffer: Number of elements surpassed (" << input_number_of_elements << " > "
-              << host_allocated_prefix_sum_space << "). Allocating more space ("
-              << ((input_number_of_elements + 1) * 1.2f) << ").\n";
-    host_allocated_prefix_sum_space = (input_number_of_elements + 1) * 1.2f;
-    cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
-    Allen::malloc_host((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(unsigned));
-  }
-
-#ifdef CPU
-  _unused(stream);
-  _unused(event);
-
-  // Copy directly data to the output buffer
-  std::memcpy(parameters.dev_output_buffer, parameters.dev_input_buffer, dev_input_buffer_size);
-
-  // Perform the prefix sum on the output buffer
-  host_prefix_sum_impl(parameters.dev_output_buffer, input_number_of_elements, parameters.host_total_sum_holder);
-#else
-  // Copy data over to the host
-  Allen::memcpy_async(
-    host_prefix_sum_buffer, parameters.dev_input_buffer, dev_input_buffer_size, context);
-
-  // Synchronize
-  cudaEventRecord(event, stream);
-  cudaEventSynchronize(event);
-
-  // Perform the prefix sum
-  host_prefix_sum_impl(host_prefix_sum_buffer, input_number_of_elements, parameters.host_total_sum_holder);
-
-  // Copy prefix summed data to the output buffer
-  Allen::memcpy_async(
-    parameters.dev_output_buffer, host_prefix_sum_buffer, dev_output_buffer_size, context);
-#endif
 }

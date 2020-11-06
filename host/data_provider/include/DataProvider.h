@@ -17,13 +17,13 @@ namespace data_provider {
 
   struct data_provider_t : public HostAlgorithm, Parameters {
     void set_arguments_size(
-      ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,

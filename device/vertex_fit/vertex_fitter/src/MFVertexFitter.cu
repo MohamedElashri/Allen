@@ -28,7 +28,7 @@ void MFVertexFit::fit_mf_vertices_t::operator()(
     arguments);
 
   safe_assign_to_host_buffer<dev_mf_svs_t>(
-    host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, context);
+    host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, arguments, context);
 
   assign_to_host_buffer<dev_mf_sv_offsets_t>(host_buffers.host_mf_sv_offsets, arguments, context);
 }

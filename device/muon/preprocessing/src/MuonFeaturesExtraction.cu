@@ -22,15 +22,15 @@ void muon_catboost_features_extraction::muon_catboost_features_extraction_t::ope
   const Allen::Context& context) const
 {
   global_function(muon_catboost_features_extraction)(
-    dim3(first<host_number_of_events_t>(arguments), Muon::Constants::n_stations), context), stream)(
+    size<dev_event_list_t>(arguments), Muon::Constants::n_stations, context)(
     arguments);
 }
 
 __global__ void muon_catboost_features_extraction::muon_catboost_features_extraction(
   muon_catboost_features_extraction::Parameters parameters)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_id = blockIdx.x;
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned event_id = parameters.dev_event_list[blockIdx.x];
   const unsigned station_id = blockIdx.y;
 
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,

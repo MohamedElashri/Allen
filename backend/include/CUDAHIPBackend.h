@@ -4,12 +4,6 @@
 
 #ifdef TARGET_DEVICE_CUDAHIP
 
-#define lambda_wrap(fn) fn
-#define global_function(function_name) global_function_impl(function_name)
-#define copysignf_impl copysignf
-#define fmaxf_impl fmaxf
-#define fminf_impl fminf
-
 /**
  * @brief Macro to check cuda calls.
  */

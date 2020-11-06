@@ -54,7 +54,7 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   static void populate_selections(const Arguments& arguments, Stream& stream)
   {
     TupleTraits<Arguments, std::tuple<R...>>::template populate_selections<OffsetsType, AssignType>(arguments, stream);
-    copy<AssignType, T>(arguments, context), stream, data<OffsetsType>(arguments)[i - 1], 0);
+    copy<AssignType, T>(arguments, size<T>(arguments), stream, data<OffsetsType>(arguments)[i - 1], 0);
   }
 
   template<typename AssignType, typename NumberOfEvents, typename Stream>
@@ -62,7 +62,7 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   {
     TupleTraits<Arguments, std::tuple<R...>>::template populate_selection_offsets<AssignType, NumberOfEvents, Stream>(
       arguments, stream);
-    copy<AssignType, T>(arguments, context), stream, first<NumberOfEvents>(arguments) * (i - 1), 0);
+    copy<AssignType, T>(arguments, size<T>(arguments), stream, first<NumberOfEvents>(arguments) * (i - 1), 0);
 
     // There should be as many elements as number of events
     assert(first<NumberOfEvents>(arguments) == size<T>(arguments));
@@ -72,7 +72,7 @@ struct TupleTraits<Arguments, std::tuple<T, R...>> {
   static void populate_scalars(const Arguments& arguments, Stream& stream)
   {
     TupleTraits<Arguments, std::tuple<R...>>::template populate_scalars<AssignType>(arguments, stream);
-    copy<AssignType, T>(arguments, context), stream, i - 1, 0);
+    copy<AssignType, T>(arguments, size<T>(arguments), stream, i - 1, 0);
   }
 };
 
@@ -163,19 +163,19 @@ void gather_selections::gather_selections_t::operator()(
 
   // Populate dev_selections_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
-    template populate_selections<host_selections_lines_offsets_t, dev_selections_t>(arguments, stream);
+    template populate_selections<host_selections_lines_offsets_t, dev_selections_t>(arguments, context);
 
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_offsets_t::type>::t>::
-    template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, stream);
+    template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, context);
 
   // Populate host_post_scale_factors_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<host_input_post_scale_factors_t::type>::t>::
-    template populate_scalars<host_post_scale_factors_t>(arguments, stream);
+    template populate_scalars<host_post_scale_factors_t>(arguments, context);
 
   // Populate host_post_scale_hashes_t
   TupleTraits<ArgumentReferences<Parameters>, TupleReverse<host_input_post_scale_hashes_t::type>::t>::
-    template populate_scalars<host_post_scale_hashes_t>(arguments, stream);
+    template populate_scalars<host_post_scale_hashes_t>(arguments, context);
 
   // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
   // and host_post_scale_hashes_t to dev_post_scale_hashes_t
@@ -183,8 +183,7 @@ void gather_selections::gather_selections_t::operator()(
   copy<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
 
   // Synchronize
-  cudaEventRecord(event, stream);
-  cudaEventSynchronize(event);
+  Allen::synchronize(context);
 
   // Add partial sums from host_selections_lines_offsets_t to host_selections_offsets_t
   for (unsigned line_index = 1; line_index < first<host_number_of_active_lines_t>(arguments); ++line_index) {

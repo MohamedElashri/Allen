@@ -17,8 +17,6 @@ using std::signbit;
 using std::min;
 using std::max;
 
-#define lambda_wrap(fn) fn
-#define global_function(function_name) global_function_impl(function_name)
 #define __host__
 #define __device__
 #define __shared__

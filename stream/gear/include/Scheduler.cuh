@@ -66,14 +66,11 @@ struct Scheduler {
    *        This function should always be invoked, even when it is
    *        known there are no tags to reserve or free on this step.
    */
-  template<unsigned long I, typename T>
+  template<unsigned long I>
   void setup()
   {
     // in dependencies: Dependencies to be reserved
     // out dependencies: Dependencies to be free'd
-    //
-    // in_deps and out_deps should be in order
-    // and index I should contain algorithm type T
     using in_arguments_t = typename std::tuple_element<I, in_deps_t>::type;
     using out_arguments_t = typename std::tuple_element<I, out_deps_t>::type;
     

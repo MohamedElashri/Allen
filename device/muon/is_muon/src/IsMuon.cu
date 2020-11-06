@@ -26,8 +26,7 @@ void is_muon::is_muon_t::operator()(
 
   global_function(is_muon)(
     dim3(size<dev_event_list_t>(arguments)),
-    dim3(property<block_dim_x_t>().get(), context),
-    stream)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+    dim3(property<block_dim_x_t>().get()), context)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, context);

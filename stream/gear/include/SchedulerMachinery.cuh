@@ -30,36 +30,17 @@ namespace {
 } // namespace
 
 namespace Sch {
-  // Motivation:
-  //
-  // I need somehow a struct with the inputs (things to malloc),
-  // and another one for the outputs (things to free), like so:
-  //
-  // typedef std::tuple<
-  //   In<a_t, dev_a, dev_b>,
-  //   In<b_t, dev_c, dev_d>,
-  //   In<c_t>
-  // > input_t;
-  //
-  // typedef std::tuple<
-  //   Out<a_t>,
-  //   Out<b_t, dev_a>,
-  //   Out<c_t, dev_c, dev_b, dev_d>,
-  // > output_t;
-
-  // Get the ParameterTuple from the function operator()
+  // Get the ArgumentRefManagerType from the function operator()
   template<typename Function>
   struct FunctionTraits;
 
   template<typename Function, typename T, typename S, typename R, typename... OtherArguments>
   struct FunctionTraits<void (Function::*)(const ArgumentRefManager<T, S, R>&, OtherArguments...) const> {
-    using ParameterTuple = T;
     using ArgumentRefManagerType = ArgumentRefManager<T, S, R>;
   };
 
   template<typename Algorithm>
   struct AlgorithmTraits {
-    using ParameterTuple = typename FunctionTraits<decltype(&Algorithm::operator())>::ParameterTuple;
     using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
@@ -330,7 +311,7 @@ namespace Sch {
 
   template<typename ArgumentsTuple, typename ArgumentRefManager, typename... ConfiguredArguments>
   struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<ConfiguredArguments...>> {
-    constexpr static ArgumentRefManager produce(
+    constexpr static auto produce(
       std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_tuple)
     {
       return ArgumentRefManager {
@@ -343,7 +324,7 @@ namespace Sch {
    */
   template<typename ArgumentsTuple, typename Algorithm, typename ConfiguredArguments>
   struct ProduceArgumentsTuple {
-    constexpr static typename AlgorithmTraits<Algorithm>::ArgumentRefManagerType produce(
+    constexpr static auto produce(
       std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_database)
     {
       return ProduceArgumentsTupleHelper<

@@ -6,30 +6,11 @@
 #include <tuple>
 #include <array>
 
-// Datatypes can be host or device.
+// Datatypes can be host, device or aggregates.
 // Note: These structs need to be not templated (libClang).
-struct host_datatype {
-  virtual void set_size(size_t) {}
-  virtual size_t size() const { return 0; }
-  virtual std::string name() const { return ""; }
-  virtual void set_offset(char*) {}
-  virtual char* offset() const { return nullptr; }
-  virtual ~host_datatype() {}
-};
-
-struct device_datatype {
-  virtual void set_size(size_t) {}
-  virtual size_t size() const { return 0; }
-  virtual std::string name() const { return ""; }
-  virtual void set_offset(char*) {}
-  virtual char* offset() const { return nullptr; }
-  virtual ~device_datatype() {}
-};
-
-// Datatypes can also be aggregates.
-// Note: This structs need to be not templated (libClang).
-struct aggregate_datatype {
-};
+struct host_datatype {};
+struct device_datatype {};
+struct aggregate_datatype {};
 
 // A generic datatype* data holder.
 template<typename internal_t>

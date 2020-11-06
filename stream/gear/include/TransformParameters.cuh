@@ -25,8 +25,8 @@ struct ProduceSingleParameter<
   ArgMan,
   P,
   T,
-  typename std::enable_if<
-    std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value>::type> {
+  typename std::enable_if_t<
+    std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>>> {
   constexpr static auto produce(const ArgMan& arguments, P) { return data<T>(arguments); }
 };
 
@@ -38,22 +38,9 @@ struct ProduceSingleParameter<
   ArgMan,
   P,
   T,
-  typename std::enable_if<
-    !std::is_base_of<device_datatype, T>::value && !std::is_base_of<host_datatype, T>::value &&
-    !std::is_same_v<T, Allen::KernelInvocationConfiguration>>::type> {
+  typename std::enable_if_t<
+    !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
   constexpr static auto produce(const ArgMan&, P class_ptr) { return class_ptr->template property<T>(); }
-};
-
-/**
- * @brief Produces Allen::KernelInvocationConfiguration.
- */
-template<typename ArgMan, typename P, typename T>
-struct ProduceSingleParameter<
-  ArgMan,
-  P,
-  T,
-  typename std::enable_if<std::is_same_v<T, Allen::KernelInvocationConfiguration>>::type> {
-  constexpr static auto produce(const ArgMan&, P) { return Allen::KernelInvocationConfiguration {}; }
 };
 
 template<typename ArgMan, typename P, typename Tuple>
