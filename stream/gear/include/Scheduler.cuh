@@ -22,8 +22,8 @@ struct Scheduler {
   using arguments_tuple_t = ConfiguredArguments;
   using argument_manager_t = ArgumentManager<arguments_tuple_t>;
 
-  MemoryManager device_memory_manager;
-  MemoryManager host_memory_manager;
+  MemoryManager device_memory_manager {"Device memory manager"};
+  MemoryManager host_memory_manager {"Host memory manager"};
   argument_manager_t argument_manager;
   bool do_print = false;
 

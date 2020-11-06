@@ -112,6 +112,9 @@ Allen::error Stream::initialize(
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);
 
+  // Populate names of parameters in the sequence
+  populate_sequence_argument_names(scheduler.argument_manager);
+
   return Allen::error::success;
 }
 
@@ -169,7 +172,7 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
         }
 
         // Synchronize device
-        synchronize(m_context);
+        Allen::synchronize(m_context);
       } catch (const MemoryException& e) {
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
         return Allen::error::errorMemoryAllocation;

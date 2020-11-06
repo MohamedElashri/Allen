@@ -73,7 +73,7 @@ typename Arg::type first(const Args& arguments)
 template<typename Arg, typename Args, typename T>
 void safe_assign_to_host_buffer(T* array, unsigned& array_size, const Args& arguments, const Allen::Context& context)
 {
-  if (size<Arg>(arguments) > array_size) {
+  if (size<Arg>(arguments) * sizeof(typename Arg::type) > array_size) {
     array_size = size<Arg>(arguments) * sizeof(typename Arg::type);
     Allen::free_host(array);
     Allen::malloc_host((void**) &array, array_size);
@@ -82,7 +82,7 @@ void safe_assign_to_host_buffer(T* array, unsigned& array_size, const Args& argu
   Allen::memcpy_async(
     array,
     data<Arg>(arguments),
-    array_size,
+    size<Arg>(arguments) * sizeof(typename Arg::type),
     Allen::memcpyDeviceToHost,
     context);
 }

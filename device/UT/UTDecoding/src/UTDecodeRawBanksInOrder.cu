@@ -22,7 +22,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
 {
   if (runtime_options.mep_layout) {
     global_function(ut_decode_raw_banks_in_order_mep)(
-      size<dev_event_list_t>(arguments), UT::Constants::n_layers, context)(
+      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -31,7 +31,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   }
   else {
     global_function(ut_decode_raw_banks_in_order)(
-      size<dev_event_list_t>(arguments), UT::Constants::n_layers, context)(
+      dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),

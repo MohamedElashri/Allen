@@ -178,6 +178,13 @@ class Sequence():
                     i) + ">(sequence).set_name(\"" + algorithm.name(
                     ) + "\");\n"
                 i += 1
+            s += "}\n\n"
+            # Generate populate_sequence_parameter_names
+            s += "template<typename T>\nvoid populate_sequence_argument_names(T& argument_manager) {\n"
+            i = 0
+            for parameter_name in iter(parameters.keys()):
+                s += prefix(1) + "argument_manager.template set_name<" + parameter_name + ">(\"" + parameter_name + "\");\n"
+                i += 1
             s += "}\n"
             f = open(output_filename, "w")
             f.write(s)

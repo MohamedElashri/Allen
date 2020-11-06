@@ -90,7 +90,7 @@ public:
   {
     constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].set_size(size * sizeof(typename T::type));
+    m_tuple_to_argument_data[index_of_T].set_size(size);
   }
 
   template<typename T>
@@ -102,7 +102,7 @@ public:
   }
 
   template<typename T>
-  void set_name(const std::string& name) const
+  void set_name(const std::string& name)
   {
     constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
@@ -157,7 +157,7 @@ public:
   {
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].get().set_size(size * sizeof(typename T::type));
+    m_tuple_to_argument_data[index_of_T].get().set_size(size);
   }
 
   template<typename T>

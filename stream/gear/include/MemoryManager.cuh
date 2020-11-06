@@ -9,7 +9,8 @@
 #include "Logger.h"
 
 struct MemoryManager {
-  size_t max_available_memory = (size_t) 8 * 1024 * 1024 * 1024; // 8 GiB
+private:
+  size_t m_max_available_memory = (size_t) 8 * 1024 * 1024 * 1024; // 8 GiB
   constexpr static unsigned guarantee_alignment = 256;
 
   /**
@@ -24,19 +25,23 @@ struct MemoryManager {
     std::string tag;
   };
 
-  std::list<MemorySegment> memory_segments = {{0, max_available_memory, ""}};
-  size_t total_memory_required = 0;
+  std::list<MemorySegment> m_memory_segments = {{0, m_max_available_memory, ""}};
+  size_t m_total_memory_required = 0;
+  std::string m_name = "Memory manager";
 
+public:
   MemoryManager() = default;
 
+  MemoryManager(const std::string& name) : m_name(name) {}
+
   /**
-   * @brief Sets the max_available_memory of this manager.
-   *        Note: This triggers a free_all to restore the memory_segments
+   * @brief Sets the m_max_available_memory of this manager.
+   *        Note: This triggers a free_all to restore the m_memory_segments
    *        to a valid state. This operation is very disruptive.
    */
   void set_reserved_memory(size_t reserved_memory)
   {
-    max_available_memory = reserved_memory;
+    m_max_available_memory = reserved_memory;
     free_all();
   }
 
@@ -70,15 +75,15 @@ struct MemoryManager {
     }
 
     // Finds first free segment providing that space
-    auto it = memory_segments.begin();
-    for (; it != memory_segments.end(); ++it) {
+    auto it = m_memory_segments.begin();
+    for (; it != m_memory_segments.end(); ++it) {
       if (it->tag == "" && it->size >= aligned_request) {
         break;
       }
     }
 
     // Complain if no space was available
-    if (it == memory_segments.end()) {
+    if (it == m_memory_segments.end()) {
       print();
       throw MemoryException(
         "Reserve: Requested size for argument " + tag + " could not be met (" +
@@ -93,17 +98,17 @@ struct MemoryManager {
     it->start += aligned_request;
     it->size -= aligned_request;
     if (it->size == 0) {
-      it = memory_segments.erase(it);
+      it = m_memory_segments.erase(it);
     }
 
     // Insert an occupied segment
     auto segment = MemorySegment {start, aligned_request, tag};
-    memory_segments.insert(it, segment);
+    m_memory_segments.insert(it, segment);
 
     // Update total memory required
-    // Note: This can be done accesing the last element in memory_segments
+    // Note: This can be done accesing the last element in m_memory_segments
     //       upon every reserve, and keeping the maximum used memory
-    total_memory_required = std::max(total_memory_required, max_available_memory - memory_segments.back().size);
+    m_total_memory_required = std::max(m_total_memory_required, m_max_available_memory - m_memory_segments.back().size);
   }
 
   /**
@@ -118,11 +123,11 @@ struct MemoryManager {
       verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
     }
 
-    auto it = std::find_if(memory_segments.begin(), memory_segments.end(), [&tag](const MemorySegment& segment) {
+    auto it = std::find_if(m_memory_segments.begin(), m_memory_segments.end(), [&tag](const MemorySegment& segment) {
       return segment.tag == tag;
     });
 
-    if (it == memory_segments.end()) {
+    if (it == m_memory_segments.end()) {
       throw StrException("Free: Requested tag could not be found (" + tag + ")");
     }
 
@@ -130,23 +135,23 @@ struct MemoryManager {
     it->tag = "";
 
     // Check if previous segment is free, in which case, join
-    if (it != memory_segments.begin()) {
+    if (it != m_memory_segments.begin()) {
       auto previous_it = std::prev(it);
       if (previous_it->tag == "") {
         previous_it->size += it->size;
         // Remove current element, and point to previous one
-        it = memory_segments.erase(it);
+        it = m_memory_segments.erase(it);
         it--;
       }
     }
 
     // Check if next segment is free, in which case, join
-    if (std::next(it) != memory_segments.end()) {
+    if (std::next(it) != m_memory_segments.end()) {
       auto next_it = std::next(it);
       if (next_it->tag == "") {
         it->size += next_it->size;
         // Remove next tag
-        memory_segments.erase(next_it);
+        m_memory_segments.erase(next_it);
       }
     }
   }
@@ -155,23 +160,19 @@ struct MemoryManager {
    * @brief Frees all memory segments, effectively resetting the
    *        available space.
    */
-  void free_all() { memory_segments = std::list<MemorySegment> {{0, max_available_memory, ""}}; }
+  void free_all() { m_memory_segments = std::list<MemorySegment> {{0, m_max_available_memory, ""}}; }
 
   /**
    * @brief Prints the current state of the memory segments.
    */
   void print()
   {
-    info_cout << "Memory segments (MiB):" << std::endl;
-
-    for (auto& segment : memory_segments) {
+    info_cout << m_name << " segments (MiB):" << std::endl;
+    for (auto& segment : m_memory_segments) {
       std::string name = segment.tag == "" ? "unused" : segment.tag;
       info_cout << name << " (" << ((float) segment.size) / (1024 * 1024) << "), ";
     }
-    info_cout << std::endl;
-
-    info_cout << "Max memory required: " << (((float) total_memory_required) / (1024 * 1024)) << " MiB" << std::endl
-              << std::endl;
+    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1024 * 1024)) << " MiB" << "\n\n";
   }
 };
 

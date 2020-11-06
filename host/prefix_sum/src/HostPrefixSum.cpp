@@ -8,8 +8,8 @@ void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
 {
   // The total sum holder just holds a single unsigned integer.
   set_size<host_total_sum_holder_t>(arguments, 1);
-  set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(unsigned) + 1);
-  set_size<host_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(unsigned) + 1);
+  set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) + 1);
+  set_size<host_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) + 1);
 }
 
 void host_prefix_sum::host_prefix_sum_t::operator()(
@@ -26,7 +26,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   // Perform the prefix sum on the output buffer
   host_prefix_sum_impl(
     data<dev_output_buffer_t>(arguments),
-    size<dev_input_buffer_t>(arguments) / sizeof(unsigned),
+    size<dev_input_buffer_t>(arguments),
     data<host_total_sum_holder_t>(arguments));
 #else
   // Copy data over to the host
@@ -38,7 +38,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   // Perform the prefix sum in the host
   host_prefix_sum_impl(
     data<host_output_buffer_t>(arguments),
-    size<dev_input_buffer_t>(arguments) / sizeof(unsigned),
+    size<dev_input_buffer_t>(arguments),
     data<host_total_sum_holder_t>(arguments));
 
   // Copy prefix summed data to the device
