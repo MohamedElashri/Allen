@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+###############################################################################
+# (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           #
+###############################################################################
 
 def generate_code_struct_to_tuple(maximum_number_of_parameters):
   for i in range(maximum_number_of_parameters, 0, -1):
