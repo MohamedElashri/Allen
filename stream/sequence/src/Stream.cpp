@@ -90,24 +90,19 @@ Allen::error Stream::initialize(
   const size_t reserve_host_mb,
   const Constants& param_constants)
 {
+  // Initialize context
+  m_context.initialize();
+
   // Set options
   do_print_memory_manager = param_do_print_memory_manager;
   start_event_offset = param_start_event_offset;
   constants = param_constants;
 
-  // Malloc a configurable reserved memory on the host
-  Allen::malloc_host((void**) &host_base_pointer, reserve_host_mb * 1000 * 1000);
-
-  // Malloc a configurable reserved memory on the device
-  Allen::malloc((void**) &dev_base_pointer, reserve_mb * 1000 * 1000);
-
   // Prepare scheduler
   scheduler.initialize(
     do_print_memory_manager,
     reserve_mb * 1000 * 1000,
-    dev_base_pointer,
-    reserve_host_mb * 1000 * 1000,
-    host_base_pointer);
+    reserve_host_mb * 1000 * 1000);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);

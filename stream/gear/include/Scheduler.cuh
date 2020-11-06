@@ -36,15 +36,25 @@ struct Scheduler {
   void initialize(
     const bool param_do_print,
     const size_t device_reserved_mb,
-    char* device_base_pointer,
-    const size_t host_reserved_mb,
-    char* host_base_pointer)
+    const size_t host_reserved_mb)
   {
     do_print = param_do_print;
+
+    // TODO: Let the pointers live in the memory managers.
+    //       The memory managers should assign pointers to the 
+    //       ArgumentData of each element.
+    //       Instead of "set_reserved_memory" it should be "reserve_memory"
 
     // Set max mb to memory_manager
     device_memory_manager.set_reserved_memory(device_reserved_mb);
     host_memory_manager.set_reserved_memory(host_reserved_mb);
+
+    // Reserve base pointers
+    char* host_base_pointer;
+    char* device_base_pointer;
+    Allen::malloc_host((void**) &host_base_pointer, host_reserved_mb);
+    Allen::malloc((void**) &device_base_pointer, device_reserved_mb);
+
     argument_manager.set_base_pointers(device_base_pointer, host_base_pointer);
   }
 
