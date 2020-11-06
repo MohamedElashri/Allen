@@ -30,8 +30,8 @@ check-copyright:
   stage: check
   image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   script:
-    - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
-    - python lb-check-copyright origin/${TARGET_BRANCH}
+    - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/separate_license/LbDevTools/SourceTools.py?inline=false"
+    - python lb-check-copyright --license=None origin/${TARGET_BRANCH}
 
 check-formatting:
   stage: build
