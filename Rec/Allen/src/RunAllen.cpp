@@ -156,7 +156,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   const LHCb::ODIN&) const
 {
 
-  int rv = m_tes_input_provider.get()->set_banks(allen_banks, m_bankTypes);
+  int rv = m_tes_input_provider->set_banks(allen_banks, m_bankTypes);
   if (rv > 0) {
     error() << "Error in reading dumped raw banks" << endmsg;
   }
@@ -186,10 +186,12 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   }
   bool filter = true;
   HostBuffers* buffer = m_host_buffers_manager->getBuffers(buf_idx);
-  if (m_filter_hlt1.value()) {
+  if (m_filterGEC.value()) {
+    filter = static_cast<bool>(buffer->host_number_of_selected_events);
+  }
+  else if (m_filter_hlt1.value()) {
     filter = buffer->host_passing_event_list[0];
   }
-
   // Get line decisions from DecReports
   // First two words contain the TCK and taskID, then one word per HLT1 line
   LHCb::HltDecReports reports {};

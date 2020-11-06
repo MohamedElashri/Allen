@@ -160,7 +160,7 @@ private:
 template<typename DETECTOR>
 StatusCode DumpGeometry<DETECTOR>::initialize()
 {
-  if (!DumpUtils::createDirectory(m_outputDirectory.value())) {
+  if (m_dumpToFile.value() && !DumpUtils::createDirectory(m_outputDirectory.value())) {
     error() << "Failed to create directory " << m_outputDirectory.value() << endmsg;
     return StatusCode::FAILURE;
   }

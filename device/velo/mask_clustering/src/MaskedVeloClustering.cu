@@ -20,7 +20,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
+  HostBuffers& host_buffers,
   cudaStream_t& stream,
   cudaEvent_t&) const
 {
@@ -43,6 +43,27 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
       constants.dev_velo_sp_patterns.data(),
       constants.dev_velo_sp_fx.data(),
       constants.dev_velo_sp_fy.data());
+  }
+
+  if (runtime_options.do_check) {
+    // Event offsets to clusters
+    auto const n_events = first<host_number_of_events_t>(arguments);
+    data_to_host(
+      host_buffers.velo_clusters_offsets,
+      arguments.data<dev_offsets_estimated_input_size_t>(),
+       n_events * Velo::Constants::n_module_pairs + 1, stream);
+
+    // Number of clusters per module
+    data_to_host(
+      host_buffers.velo_module_clusters_num,
+      arguments.data<dev_module_cluster_num_t>(),
+      n_events * Velo::Constants::n_module_pairs, stream);
+
+    // Clusters
+    data_to_host(
+      host_buffers.velo_clusters,
+      arguments.data<dev_velo_cluster_container_t>(),
+      first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size, stream);
   }
 }
 

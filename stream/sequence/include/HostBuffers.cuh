@@ -58,6 +58,9 @@ struct HostBuffers {
   unsigned* host_number_of_peaks;
   PV::Vertex* host_reconstructed_multi_pvs;
   int* host_number_of_multivertex;
+  std::vector<unsigned> velo_clusters_offsets;
+  std::vector<unsigned> velo_module_clusters_num;
+  std::vector<char> velo_clusters;
 
   // UT
   unsigned* host_atomics_ut;
