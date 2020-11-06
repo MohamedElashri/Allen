@@ -29,8 +29,7 @@ public:
     const Allen::Context& context,
     const Fn& fn) :
     m_class_ptr(class_ptr),
-    m_grid_dim(grid_dim), m_block_dim(block_dim), m_context(context),
-    m_fn(fn)
+    m_grid_dim(grid_dim), m_block_dim(block_dim), m_context(context), m_fn(fn)
   {}
 
   template<typename... S>
@@ -59,9 +58,7 @@ private:
 
 public:
   // Constructor. Encapsulates a CUDA function.
-  GlobalFunction(P class_ptr, const Fn& fn) :
-    m_class_ptr(class_ptr), m_fn(fn)
-  {}
+  GlobalFunction(P class_ptr, const Fn& fn) : m_class_ptr(class_ptr), m_fn(fn) {}
 
   // The syntax of operator() resembles the CUDA syntax:
   //  foo(num_blocks, num_threads, cuda_context)(arguments...)

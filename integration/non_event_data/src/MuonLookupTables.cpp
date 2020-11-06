@@ -95,8 +95,8 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
                         to_string(data.size())};
   }
   host_muon_tables_raw = data;
-  Allen::memcpy(dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), Allen::memcpyHostToDevice);
-
+  Allen::memcpy(
+    dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), Allen::memcpyHostToDevice);
   Muon::MuonTables host_muon_tables {allOffsets, dev_muon_tables_raw, sizeOffset};
   Allen::memcpy(m_muon_tables.get(), &host_muon_tables, sizeof(Muon::MuonTables), Allen::memcpyHostToDevice);
 }

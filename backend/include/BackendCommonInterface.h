@@ -10,24 +10,11 @@ namespace Allen {
   struct Context;
 
   // Memcpy kind used in memory transfers, analogous to cudaMemcpyKind
-  enum memcpy_kind {
-    memcpyHostToHost,
-    memcpyHostToDevice,
-    memcpyDeviceToHost,
-    memcpyDeviceToDevice,
-    memcpyDefault
-  };
+  enum memcpy_kind { memcpyHostToHost, memcpyHostToDevice, memcpyDeviceToHost, memcpyDeviceToDevice, memcpyDefault };
 
-  enum host_register_kind {
-    hostRegisterDefault,
-    hostRegisterPortable,
-    hostRegisterMapped
-  };
+  enum host_register_kind { hostRegisterDefault, hostRegisterPortable, hostRegisterMapped };
 
-  enum class error {
-    success,
-    errorMemoryAllocation
-  };
+  enum class error { success, errorMemoryAllocation };
 
   void malloc(void** devPtr, size_t size);
   void malloc_host(void** ptr, size_t size);

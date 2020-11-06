@@ -8,9 +8,12 @@
 
 // Datatypes can be host, device or aggregates.
 // Note: These structs need to be not templated (libClang).
-struct host_datatype {};
-struct device_datatype {};
-struct aggregate_datatype {};
+struct host_datatype {
+};
+struct device_datatype {
+};
+struct aggregate_datatype {
+};
 
 // A generic datatype* data holder.
 template<typename internal_t>

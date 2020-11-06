@@ -22,8 +22,7 @@ void muon_catboost_features_extraction::muon_catboost_features_extraction_t::ope
   const Allen::Context& context) const
 {
   global_function(muon_catboost_features_extraction)(
-    size<dev_event_list_t>(arguments), Muon::Constants::n_stations, context)(
-    arguments);
+    size<dev_event_list_t>(arguments), Muon::Constants::n_stations, context)(arguments);
 }
 
 __global__ void muon_catboost_features_extraction::muon_catboost_features_extraction(

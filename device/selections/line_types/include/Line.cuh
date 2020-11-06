@@ -137,19 +137,17 @@ public:
  *        The way process line parallelizes is highly configurable.
  */
 template<typename Line, typename Parameters>
-__global__ void process_line(
-  Line line,
-  Parameters parameters,
-  const unsigned number_of_events,
-  const unsigned pre_scaler_hash)
+__global__ void
+process_line(Line line, Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned input_size = line.offset(parameters, event_number + 1) - line.offset(parameters, event_number);
 
   // ODIN data
-  const unsigned int* odin = *parameters.dev_mep_layout ?
-                               odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-                               odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
+  const unsigned int* odin =
+    *parameters.dev_mep_layout ?
+      odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+      odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
 
   const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
   const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
@@ -190,9 +188,10 @@ __global__ void process_line_iterate_events(
     const auto event_number = parameters.dev_event_list[i];
 
     // ODIN data
-    const unsigned int* odin = *parameters.dev_mep_layout ?
-                                 odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-                                 odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
+    const unsigned int* odin =
+      *parameters.dev_mep_layout ?
+        odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+        odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
 
     const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
     const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
@@ -225,10 +224,7 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iterati
   {
     derived_instance->global_function(process_line<Derived, Parameters>)(
       grid_dim_x, derived_instance->get_block_dim_x(arguments), context)(
-      *derived_instance,
-      arguments,
-      first<typename Parameters::host_number_of_events_t>(arguments),
-      pre_scaler_hash);
+      *derived_instance, arguments, first<typename Parameters::host_number_of_events_t>(arguments), pre_scaler_hash);
   }
 };
 

@@ -22,7 +22,7 @@ namespace ut_select_velo_tracks_with_windows {
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
     DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, unsigned)
-     dev_ut_number_of_selected_velo_tracks_with_windows;
+    dev_ut_number_of_selected_velo_tracks_with_windows;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_with_windows_t, unsigned) dev_ut_selected_velo_tracks_with_windows;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

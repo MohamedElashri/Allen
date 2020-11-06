@@ -34,7 +34,8 @@ namespace Allen {
     cudaEvent_t m_event;
 
   public:
-    Context() {
+    Context()
+    {
       cudaCheck(cudaStreamCreate(&m_stream));
       cudaCheck(cudaEventCreateWithFlags(&m_event, cudaEventBlockingSync));
     }

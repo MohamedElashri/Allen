@@ -24,7 +24,7 @@ namespace compass_ut {
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, unsigned)
-     dev_ut_number_of_selected_velo_tracks;
+    dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, unsigned) dev_ut_selected_velo_tracks;
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
     DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
@@ -35,7 +35,7 @@ namespace compass_ut {
     PROPERTY(hit_tol_2_t, "hit_tol_2", "hit_tol_2 [mm]", float) hit_tol_2;
     PROPERTY(delta_tx_2_t, "delta_tx_2", "delta_tx_2", float) delta_tx_2;
     PROPERTY(max_considered_before_found_t, "max_considered_before_found", "max_considered_before_found", unsigned)
-     max_considered_before_found;
+    max_considered_before_found;
   };
 
   __global__ void compass_ut(

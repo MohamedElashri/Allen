@@ -14,7 +14,7 @@ namespace ut_consolidate_tracks {
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, unsigned) host_number_of_reconstructed_ut_tracks;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_accumulated_number_of_hits_in_ut_tracks_t, unsigned)
-     host_accumulated_number_of_hits_in_ut_tracks;
+    host_accumulated_number_of_hits_in_ut_tracks;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;

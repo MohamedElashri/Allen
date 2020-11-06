@@ -186,21 +186,21 @@ struct WrappedTuple<std::tuple<>, void> {
 template<typename T, typename... R>
 struct WrappedTuple<
   std::tuple<T, R...>,
-  std::enable_if_t<
-    (std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>) && !std::is_base_of_v<aggregate_datatype, T>>> {
-  using prev_parameters_and_properties_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  std::enable_if_t<(std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>) &&!std::
+                     is_base_of_v<aggregate_datatype, T>>> {
+  using prev_parameters_and_properties_tuple_t =
+    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
   using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
   using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
   using parameters_tuple_t = typename TupleAppendFirst<T, prev_parameters_tuple_t>::t;
 };
 
 template<typename T, typename... R>
-struct WrappedTuple<
-  std::tuple<T, R...>,
-  std::enable_if_t<
-    std::is_base_of_v<aggregate_datatype, T>>> {
-  using prev_parameters_and_properties_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
-  using parameters_and_properties_tuple_t = typename ConcatTuple<typename T::type, prev_parameters_and_properties_tuple_t>::t;
+struct WrappedTuple<std::tuple<T, R...>, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
+  using prev_parameters_and_properties_tuple_t =
+    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using parameters_and_properties_tuple_t =
+    typename ConcatTuple<typename T::type, prev_parameters_and_properties_tuple_t>::t;
   using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
   using parameters_tuple_t = typename ConcatTuple<typename T::type, prev_parameters_tuple_t>::t;
 };
@@ -208,9 +208,9 @@ struct WrappedTuple<
 template<typename T, typename... R>
 struct WrappedTuple<
   std::tuple<T, R...>,
-  std::enable_if_t<
-    !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
-  using prev_parameters_and_properties_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
+  using prev_parameters_and_properties_tuple_t =
+    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
   using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
   using parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
 };

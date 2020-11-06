@@ -25,8 +25,7 @@ struct ProduceSingleParameter<
   ArgMan,
   P,
   T,
-  typename std::enable_if_t<
-    std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>>> {
+  typename std::enable_if_t<std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>>> {
   constexpr static auto produce(const ArgMan& arguments, P) { return data<T>(arguments); }
 };
 
@@ -38,8 +37,7 @@ struct ProduceSingleParameter<
   ArgMan,
   P,
   T,
-  typename std::enable_if_t<
-    !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
+  typename std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
   constexpr static auto produce(const ArgMan&, P class_ptr) { return class_ptr->template property<T>(); }
 };
 

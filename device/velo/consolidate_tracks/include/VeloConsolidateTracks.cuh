@@ -13,7 +13,7 @@
 namespace velo_consolidate_tracks {
   struct Parameters {
     HOST_INPUT(host_accumulated_number_of_hits_in_velo_tracks_t, unsigned)
-     host_accumulated_number_of_hits_in_velo_tracks;
+    host_accumulated_number_of_hits_in_velo_tracks;
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
     HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, unsigned) host_number_of_three_hit_tracks_filtered;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -25,7 +25,7 @@ namespace velo_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits) dev_three_hit_tracks_output;
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned)
-     dev_offsets_number_of_three_hit_tracks_filtered;
+    dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     DEVICE_OUTPUT(dev_velo_states_t, char) dev_velo_states;

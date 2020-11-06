@@ -22,12 +22,12 @@ namespace pv_get_seeds {
     DEVICE_OUTPUT(dev_number_seeds_t, unsigned) dev_number_seeds;
     PROPERTY(max_chi2_merge_t, "max_chi2_merge", "max chi2 merge", float) max_chi2_merge;
     PROPERTY(factor_to_increase_errors_t, "factor_to_increase_errors", "factor to increase errors", float)
-     factor_to_increase_errors;
+    factor_to_increase_errors;
     PROPERTY(min_cluster_mult_t, "min_cluster_mult", "min cluster mult", int) min_cluster_mult;
     PROPERTY(min_close_tracks_in_cluster_t, "min_close_tracks_in_cluster", "min close tracks in cluster", int)
-     min_close_tracks_in_cluster;
+    min_close_tracks_in_cluster;
     PROPERTY(dz_close_tracks_in_cluster_t, "dz_close_tracks_in_cluster", "dz close tracks in cluster [mm]", float)
-     dz_close_tracks_in_cluster;
+    dz_close_tracks_in_cluster;
     PROPERTY(high_mult_t, "high_mult", "high mult", int) high_mult;
     PROPERTY(ratio_sig2_high_mult_t, "ratio_sig2_high_mult", "ratio sig2 high mult", float) ratio_sig2_high_mult;
     PROPERTY(ratio_sig2_low_mult_t, "ratio_sig2_low_mult", "ratio sig2 low mult", float) ratio_sig2_low_mult;

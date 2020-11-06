@@ -36,7 +36,7 @@ struct Stream {
 
   // Dynamic scheduler
   scheduler_t scheduler;
-  
+
   // Context
   Allen::Context m_context {};
 

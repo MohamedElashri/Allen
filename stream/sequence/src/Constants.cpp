@@ -34,7 +34,8 @@ void Constants::initialize_constants(
 {
   // SciFi constants
   host_inv_clus_res = {1 / 0.05, 1 / 0.08, 1 / 0.11, 1 / 0.14, 1 / 0.17, 1 / 0.20, 1 / 0.23, 1 / 0.26, 1 / 0.29};
-  Allen::memcpy(dev_inv_clus_res, &host_inv_clus_res, host_inv_clus_res.size() * sizeof(float), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_inv_clus_res, &host_inv_clus_res, host_inv_clus_res.size() * sizeof(float), Allen::memcpyHostToDevice);
 
   host_looking_forward_constants = new LookingForward::Constants {};
 
@@ -50,8 +51,8 @@ void Constants::initialize_constants(
     sizeof(LookingForward::Constants),
     Allen::memcpyHostToDevice);
 
-    // Muon constants
-    Muon::Constants::FieldOfInterest host_muon_foi;
+  // Muon constants
+  Muon::Constants::FieldOfInterest host_muon_foi;
   const float* foi_iterator = muon_field_of_interest_params.data();
   for (unsigned i_station = 0; i_station < Muon::Constants::n_stations; i_station++) {
     std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_a_x[i_station]);

@@ -7,29 +7,29 @@
 
 namespace details {
   /// Implementation of the detection idiom (negative case).
-  template <typename AlwaysVoid, template <typename...> class Op, typename... Args>
+  template<typename AlwaysVoid, template<typename...> class Op, typename... Args>
   struct detector {
     constexpr static bool value = false;
   };
 
   /// Implementation of the detection idiom (positive case).
-  template <template <typename...> class Op, typename... Args>
+  template<template<typename...> class Op, typename... Args>
   struct detector<std::void_t<Op<Args...>>, Op, Args...> {
     constexpr static bool value = true;
   };
 } // namespace details
 
-template <template <class...> class Op, class... Args>
+template<template<class...> class Op, class... Args>
 using is_detected_st = details::detector<void, Op, Args...>;
 
-template <template <class...> class Op, class... Args>
+template<template<class...> class Op, class... Args>
 inline constexpr bool is_detected_st_v = is_detected_st<Op, Args...>::value;
 
-template<typename T, typename ... Args>
-using braced_init = decltype(T{std::declval<Args>()...});
+template<typename T, typename... Args>
+using braced_init = decltype(T {std::declval<Args>()...});
 
 // This is not even my final form
-template<typename ... Args>
+template<typename... Args>
 inline constexpr bool is_braces_constructible = is_detected_st_v<braced_init, Args...>;
 
 struct any_type {
@@ -93,8 +93,46 @@ auto struct_to_tuple(T&& object) noexcept
                   any_type,
                   any_type,
                   any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37, p38, p39] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32,
+            p33,
+            p34,
+            p35,
+            p36,
+            p37,
+            p38,
+            p39] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -178,8 +216,45 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37, p38] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32,
+            p33,
+            p34,
+            p35,
+            p36,
+            p37,
+            p38] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -261,8 +336,44 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32,
+            p33,
+            p34,
+            p35,
+            p36,
+            p37] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -342,8 +453,43 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32,
+            p33,
+            p34,
+            p35,
+            p36] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -421,8 +567,42 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32,
+            p33,
+            p34,
+            p35] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -498,8 +678,41 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32,
+            p33,
+            p34] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -573,8 +786,40 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32,
+            p33] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -646,8 +891,39 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31,
+            p32] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -717,8 +993,38 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30,
+            p31] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -786,8 +1092,37 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29,
+            p30] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -853,8 +1188,36 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28,
+            p29] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -918,8 +1281,35 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27,
+            p28] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -981,8 +1371,34 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26,
+            p27] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -1042,8 +1458,33 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25,
+            p26] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -1101,8 +1542,32 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25] =
-      object;
+    auto&& [p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+            p14,
+            p15,
+            p16,
+            p17,
+            p18,
+            p19,
+            p20,
+            p21,
+            p22,
+            p23,
+            p24,
+            p25] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -1158,8 +1623,9 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24] =
-      object;
+    auto&&
+      [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23,
+       p24] = object;
     return std::make_tuple(
       p0,
       p1,
@@ -1213,8 +1679,8 @@ auto struct_to_tuple(T&& object) noexcept
                        any_type,
                        any_type,
                        any_type>) {
-    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23] =
-      object;
+    auto&& [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22,
+            p23] = object;
     return std::make_tuple(
       p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23);
   }

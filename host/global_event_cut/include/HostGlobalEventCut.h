@@ -20,9 +20,9 @@ namespace host_global_event_cut {
     DEVICE_OUTPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_event_list_t, unsigned) dev_event_list;
     PROPERTY(min_scifi_ut_clusters_t, "min_scifi_ut_clusters", "minimum number of scifi + ut clusters", unsigned)
-     min_scifi_ut_clusters;
+    min_scifi_ut_clusters;
     PROPERTY(max_scifi_ut_clusters_t, "max_scifi_ut_clusters", "maximum number of scifi + ut clusters", unsigned)
-     max_scifi_ut_clusters;
+    max_scifi_ut_clusters;
   };
 
   // Function

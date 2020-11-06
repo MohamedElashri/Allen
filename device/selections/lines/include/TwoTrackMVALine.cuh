@@ -31,9 +31,9 @@ namespace two_track_mva_line {
     PROPERTY(maxEta_t, "maxEta", "maxEta description", float) maxEta;
     PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
     PROPERTY(maxNTrksAssoc_t, "maxNTrksAssoc", "maxNTrksAssoc description", int)
-     maxNTrksAssoc; // Placeholder. To be replaced with MVA selection.
+    maxNTrksAssoc; // Placeholder. To be replaced with MVA selection.
     PROPERTY(minFDChi2_t, "minFDChi2", "minFDChi2 description", float)
-     minFDChi2; // Placeholder. To be replaced with MVA selection.
+    minFDChi2; // Placeholder. To be replaced with MVA selection.
     PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float) minTrackIPChi2;
   };
 

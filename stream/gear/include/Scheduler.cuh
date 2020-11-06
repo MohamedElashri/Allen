@@ -51,7 +51,8 @@ struct Scheduler {
   /**
    * @brief Resets the memory manager.
    */
-  void reset() {
+  void reset()
+  {
     device_memory_manager.free_all();
     host_memory_manager.free_all();
   }
@@ -73,12 +74,14 @@ struct Scheduler {
     // out dependencies: Dependencies to be free'd
     using in_arguments_t = typename std::tuple_element<I, in_deps_t>::type;
     using out_arguments_t = typename std::tuple_element<I, out_deps_t>::type;
-    
+
     // Free all arguments in OutDependencies
-    MemoryManagerFree<argument_manager_t, out_arguments_t>::free(device_memory_manager, host_memory_manager, argument_manager);
+    MemoryManagerFree<argument_manager_t, out_arguments_t>::free(
+      device_memory_manager, host_memory_manager, argument_manager);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerReserve<argument_manager_t, in_arguments_t>::reserve(device_memory_manager, host_memory_manager, argument_manager);
+    MemoryManagerReserve<argument_manager_t, in_arguments_t>::reserve(
+      device_memory_manager, host_memory_manager, argument_manager);
 
     // Print memory manager state
     if (do_print) {

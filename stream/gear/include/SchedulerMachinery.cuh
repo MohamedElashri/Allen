@@ -311,8 +311,7 @@ namespace Sch {
 
   template<typename ArgumentsTuple, typename ArgumentRefManager, typename... ConfiguredArguments>
   struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<ConfiguredArguments...>> {
-    constexpr static auto produce(
-      std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_tuple)
+    constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_tuple)
     {
       return ArgumentRefManager {
         {ProduceSingleArgument<ArgumentsTuple, ConfiguredArguments>::produce(arguments_tuple)...}};
@@ -324,8 +323,7 @@ namespace Sch {
    */
   template<typename ArgumentsTuple, typename Algorithm, typename ConfiguredArguments>
   struct ProduceArgumentsTuple {
-    constexpr static auto produce(
-      std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_database)
+    constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_database)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
@@ -377,7 +375,8 @@ namespace Sch {
       scheduler.template setup<I>();
 
       std::get<I>(scheduler.sequence_tuple)
-        .operator()(arguments_tuple, std::forward<VisitArguments>(visit_arguments)...);
+        .
+        operator()(arguments_tuple, std::forward<VisitArguments>(visit_arguments)...);
 
       RunSequenceTupleImpl<
         Scheduler,

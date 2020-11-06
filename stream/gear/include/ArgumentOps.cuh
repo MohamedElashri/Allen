@@ -80,11 +80,7 @@ void safe_assign_to_host_buffer(T* array, unsigned& array_size, const Args& argu
   }
 
   Allen::memcpy_async(
-    array,
-    data<Arg>(arguments),
-    size<Arg>(arguments) * sizeof(typename Arg::type),
-    Allen::memcpyDeviceToHost,
-    context);
+    array, data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost, context);
 }
 
 template<typename Arg, typename Args, typename T>
@@ -119,11 +115,7 @@ template<typename Arg, typename Args, typename T>
 void assign_to_host_buffer(T* array, const Args& arguments, const Allen::Context& context)
 {
   Allen::memcpy_async(
-    array,
-    data<Arg>(arguments),
-    size<Arg>(arguments) * sizeof(typename Arg::type),
-    Allen::memcpyDeviceToHost,
-    context);
+    array, data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost, context);
 }
 
 // SFINAE for single argument functions, like initialization and print of host / device parameters
@@ -163,8 +155,7 @@ struct SingleArgumentOverloadResolution<
   std::enable_if_t<
     std::is_base_of_v<host_datatype, Arg> &&
     !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-      std::is_same_v<typename Arg::type, unsigned char> ||
-      std::is_same_v<typename Arg::type, signed char>)>> {
+      std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>)>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
@@ -189,8 +180,7 @@ struct SingleArgumentOverloadResolution<
   std::enable_if_t<
     std::is_base_of_v<device_datatype, Arg> &&
     (std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-     std::is_same_v<typename Arg::type, unsigned char> ||
-     std::is_same_v<typename Arg::type, signed char>)>> {
+     std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>)>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
   {
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
@@ -217,8 +207,7 @@ struct SingleArgumentOverloadResolution<
   std::enable_if_t<
     std::is_base_of_v<device_datatype, Arg> &&
     !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-      std::is_same_v<typename Arg::type, unsigned char> ||
-      std::is_same_v<typename Arg::type, signed char>)>> {
+      std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>)>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
   {
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
@@ -287,8 +276,12 @@ struct DoubleArgumentOverloadResolution<
       context);
   }
 
-  constexpr static void
-  copy(const Args& arguments, const size_t count, const Allen::Context& context, const size_t offset_a, const size_t offset_b)
+  constexpr static void copy(
+    const Args& arguments,
+    const size_t count,
+    const Allen::Context& context,
+    const size_t offset_a,
+    const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
     Allen::memcpy_async(
@@ -321,8 +314,12 @@ struct DoubleArgumentOverloadResolution<
       context);
   }
 
-  constexpr static void
-  copy(const Args& arguments, const size_t count, const Allen::Context& context, const size_t offset_a, const size_t offset_b)
+  constexpr static void copy(
+    const Args& arguments,
+    const size_t count,
+    const Allen::Context& context,
+    const size_t offset_a,
+    const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
     Allen::memcpy_async(
@@ -355,8 +352,12 @@ struct DoubleArgumentOverloadResolution<
       context);
   }
 
-  constexpr static void
-  copy(const Args& arguments, const size_t count, const Allen::Context& context, const size_t offset_a, const size_t offset_b)
+  constexpr static void copy(
+    const Args& arguments,
+    const size_t count,
+    const Allen::Context& context,
+    const size_t offset_a,
+    const size_t offset_b)
   {
     assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
     Allen::memcpy_async(
@@ -432,11 +433,7 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
   }
 
   Allen::memcpy_async(
-    data<OFFSET_ARG>(args),
-    std::get<2>(bno).data(),
-    std::get<2>(bno).size_bytes(),
-    Allen::memcpyHostToDevice,
-    context);
+    data<OFFSET_ARG>(args), std::get<2>(bno).data(), std::get<2>(bno).size_bytes(), Allen::memcpyHostToDevice, context);
 }
 
 /**
@@ -444,8 +441,8 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
  * random access that can be resized, for example a std::vector.
  */
 template<class HOST_CONTAINER, class DATA_ARG>
-void data_to_host(HOST_CONTAINER& hv, DATA_ARG const* d, size_t s, const Allen::Context& context) {
+void data_to_host(HOST_CONTAINER& hv, DATA_ARG const* d, size_t s, const Allen::Context& context)
+{
   if (hv.size() < s) hv.resize(s);
-  Allen::memcpy_async(
-    &hv[0], d, s * sizeof(DATA_ARG), Allen::memcpyDeviceToHost, context);
+  Allen::memcpy_async(&hv[0], d, s * sizeof(DATA_ARG), Allen::memcpyDeviceToHost, context);
 }

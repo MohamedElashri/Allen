@@ -19,17 +19,17 @@ namespace scifi_raw_bank_decoder_v4 {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     PROPERTY(
-       raw_bank_decoder_block_dim_t,
-       "raw_bank_decoder_block_dim",
-       "block dimensions of raw bank decoder kernel",
-       DeviceDimensions)
-     raw_bank_decoder_block_dim;
+      raw_bank_decoder_block_dim_t,
+      "raw_bank_decoder_block_dim",
+      "block dimensions of raw bank decoder kernel",
+      DeviceDimensions)
+    raw_bank_decoder_block_dim;
     PROPERTY(
-       direct_decoder_block_dim_t,
-       "direct_decoder_block_dim",
-       "block dimensions of direct decoder",
-       DeviceDimensions)
-     direct_decoder_block_dim;
+      direct_decoder_block_dim_t,
+      "direct_decoder_block_dim",
+      "block dimensions of direct decoder",
+      DeviceDimensions)
+    direct_decoder_block_dim;
   };
 
   __global__ void scifi_raw_bank_decoder_v4(Parameters, const char* scifi_geometry);

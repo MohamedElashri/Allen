@@ -172,7 +172,8 @@ public:
       std::string name = segment.tag == "" ? "unused" : segment.tag;
       info_cout << name << " (" << ((float) segment.size) / (1024 * 1024) << "), ";
     }
-    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1024 * 1024)) << " MiB" << "\n\n";
+    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1024 * 1024)) << " MiB"
+              << "\n\n";
   }
 };
 

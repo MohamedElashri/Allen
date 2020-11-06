@@ -13,9 +13,9 @@
 #include <algorithm>
 
 using std::copysignf;
-using std::signbit;
-using std::min;
 using std::max;
+using std::min;
+using std::signbit;
 
 #define __host__
 #define __device__

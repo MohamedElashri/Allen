@@ -137,7 +137,8 @@ class Sequence():
                     for inheriting_class in inheriting_classes:
                         s += inheriting_class + ", "
                     s = s[:-2]
-                    s += " { using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; };\n"
+                    s += " { using type = " + v[0][1] + "::Parameters::" + v[
+                        0][2] + "::type; };\n"
 
             # Generate argument tuple
             s += "\nusing configured_arguments_t = std::tuple<\n"
@@ -183,7 +184,9 @@ class Sequence():
             s += "template<typename T>\nvoid populate_sequence_argument_names(T& argument_manager) {\n"
             i = 0
             for parameter_name in iter(parameters.keys()):
-                s += prefix(1) + "argument_manager.template set_name<" + parameter_name + ">(\"" + parameter_name + "\");\n"
+                s += prefix(
+                    1
+                ) + "argument_manager.template set_name<" + parameter_name + ">(\"" + parameter_name + "\");\n"
                 i += 1
             s += "}\n"
             f = open(output_filename, "w")
@@ -212,7 +215,8 @@ class Sequence():
                 for inheriting_class in inheriting_classes:
                     s += inheriting_class + ", "
                 s = s[:-2]
-                s += " { using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; };\n"
+                s += " { using type = " + v[0][1] + "::Parameters::" + v[0][
+                    2] + "::type; };\n"
 
             s += "\n"
             for algorithm_with_aggregate_class in algorithms_with_aggregates_list:

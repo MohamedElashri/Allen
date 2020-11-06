@@ -56,7 +56,13 @@ void invoke_device_function(
 }
 #else
 template<class Fn, class Tuple, unsigned long... I>
-void invoke_device_function(Fn&&, const dim3&, const dim3&, const Allen::Context&, const Tuple&, std::index_sequence<I...>)
+void invoke_device_function(
+  Fn&&,
+  const dim3&,
+  const dim3&,
+  const Allen::Context&,
+  const Tuple&,
+  std::index_sequence<I...>)
 {
   error_cout << "Global function invoked with unexpected backend.\n";
 }
