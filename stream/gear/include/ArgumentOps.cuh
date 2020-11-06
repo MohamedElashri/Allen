@@ -444,8 +444,8 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
  * random access that can be resized, for example a std::vector.
  */
 template<class HOST_CONTAINER, class DATA_ARG>
-void data_to_host(HOST_CONTAINER& hv, DATA_ARG const* d, size_t s, cudaStream_t& stream) {
+void data_to_host(HOST_CONTAINER& hv, DATA_ARG const* d, size_t s, const Allen::Context& context) {
   if (hv.size() < s) hv.resize(s);
-  cudaCheck(cudaMemcpyAsync(
-    &hv[0], d, s * sizeof(DATA_ARG), cudaMemcpyDeviceToHost, stream));
+  Allen::memcpy_async(
+    &hv[0], d, s * sizeof(DATA_ARG), Allen::memcpyDeviceToHost, context);
 }
