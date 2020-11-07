@@ -40,17 +40,9 @@ template<typename Tuple>
 struct ArgumentManager {
 private:
   std::array<ArgumentData, std::tuple_size_v<Tuple>> m_tuple_to_argument_data;
-  char* m_device_base_pointer;
-  char* m_host_base_pointer;
 
 public:
   std::array<ArgumentData, std::tuple_size_v<Tuple>>& argument_database() { return m_tuple_to_argument_data; }
-
-  void set_base_pointers(char* device_base_pointer, char* host_base_pointer)
-  {
-    m_device_base_pointer = device_base_pointer;
-    m_host_base_pointer = host_base_pointer;
-  }
 
   template<typename T>
   typename T::type* pointer() const
@@ -62,27 +54,19 @@ public:
   }
 
   template<typename T>
+  void set_pointer(char* offset)
+  {
+    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    m_tuple_to_argument_data[index_of_T].set_pointer(offset);
+  }
+
+  template<typename T>
   size_t size() const
   {
     constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     return m_tuple_to_argument_data[index_of_T].size();
-  }
-
-  template<typename T>
-  typename std::enable_if<std::is_base_of<device_datatype, T>::value>::type set_offset(const unsigned offset)
-  {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].set_pointer(m_device_base_pointer + offset);
-  }
-
-  template<typename T>
-  typename std::enable_if<std::is_base_of<host_datatype, T>::value>::type set_offset(const unsigned offset)
-  {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].set_pointer(m_host_base_pointer + offset);
   }
 
   template<typename T>

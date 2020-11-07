@@ -101,6 +101,12 @@ if(TREAT_WARNINGS_AS_ERRORS)
   string(APPEND CMAKE_CXX_FLAGS " -Werror")
 endif()
 
+# Choice of malloc engine
+set(MALLOC_ENGINE SINGLE_ALLOC CACHE STRING "Malloc engine")
+set_property(CACHE MALLOC_ENGINE PROPERTY STRINGS SINGLE_ALLOC MULTI_ALLOC)
+message(STATUS "Memory manager: " ${MALLOC_ENGINE})
+add_compile_definitions(MEMORY_MANAGER_${MALLOC_ENGINE})
+
 # Deal with device target architecture
 if(NOT STANDALONE)
   message(STATUS "Configured Gaudi build")

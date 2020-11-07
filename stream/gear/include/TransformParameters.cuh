@@ -5,50 +5,68 @@
 
 #include "ArgumentManager.cuh"
 #include "BackendCommon.h"
+#include "BaseTypes.cuh"
 #include "Property.cuh"
 #include <functional>
 #include <utility>
 #include <tuple>
 #include <type_traits>
 
+namespace Allen {
+  template<typename V>
+  class Property;
+}
+
 /**
  * @brief Produces a single parameter. Uses SFINAE to choose the returned object.
  */
-template<typename ArgMan, typename P, typename T, typename Enabled = void>
+template<typename ArgMan, typename T, typename Enabled = void>
 struct ProduceSingleParameter;
 
 /**
  * @brief Produces device or host datatypes.
  */
-template<typename ArgMan, typename P, typename T>
+template<typename ArgMan, typename T>
 struct ProduceSingleParameter<
   ArgMan,
-  P,
   T,
   typename std::enable_if_t<std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>>> {
-  constexpr static auto produce(const ArgMan& arguments, P) { return data<T>(arguments); }
+  constexpr static auto produce(const ArgMan& arguments, const std::map<std::string, Allen::BaseProperty*>&)
+  {
+    return data<T>(arguments);
+  }
 };
 
 /**
  * @brief Produces properties.
  */
-template<typename ArgMan, typename P, typename T>
+template<typename ArgMan, typename T>
 struct ProduceSingleParameter<
   ArgMan,
-  P,
   T,
   typename std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
-  constexpr static auto produce(const ArgMan&, P class_ptr) { return class_ptr->template property<T>(); }
+  constexpr static auto produce(const ArgMan&, const std::map<std::string, Allen::BaseProperty*>& properties)
+  {
+    if (properties.find(T::name) == properties.end()) {
+      throw std::runtime_error {"property " + std::string(T::name) + " not found"};
+    }
+
+    const auto base_prop = properties.at(T::name);
+    const auto prop = dynamic_cast<const Allen::Property<T>*>(base_prop);
+    return prop->get_value();
+  }
 };
 
-template<typename ArgMan, typename P, typename Tuple>
+template<typename ArgMan, typename Tuple>
 struct TransformParametersImpl;
 
-template<typename ArgMan, typename P, typename... T>
-struct TransformParametersImpl<ArgMan, P, std::tuple<T...>> {
-  constexpr static typename ArgMan::parameters_struct_t transform(const ArgMan& arguments, P class_ptr)
+template<typename ArgMan, typename... T>
+struct TransformParametersImpl<ArgMan, std::tuple<T...>> {
+  constexpr static typename ArgMan::parameters_struct_t transform(
+    const ArgMan& arguments,
+    const std::map<std::string, Allen::BaseProperty*>& properties)
   {
-    return {ProduceSingleParameter<ArgMan, P, T>::produce(arguments, class_ptr)...};
+    return {ProduceSingleParameter<ArgMan, T>::produce(arguments, properties)...};
   }
 };
 
@@ -62,11 +80,7 @@ struct TransformParametersImpl<ArgMan, P, std::tuple<T...>> {
  */
 template<typename T>
 struct TransformParameters {
-  template<typename P>
-  constexpr static auto transform(T&& t, P)
-  {
-    return std::forward<T>(t);
-  }
+  constexpr static auto transform(T&& t, const std::map<std::string, Allen::BaseProperty*>&) { return std::forward<T>(t); }
 };
 
 /**
@@ -74,12 +88,12 @@ struct TransformParameters {
  */
 template<typename... T>
 struct TransformParameters<const ArgumentRefManager<T...>&> {
-  template<typename P>
-  constexpr static auto transform(const ArgumentRefManager<T...>& t, P class_ptr)
+  constexpr static auto transform(
+    const ArgumentRefManager<T...>& t,
+    const std::map<std::string, Allen::BaseProperty*>& properties)
   {
     return TransformParametersImpl<
       ArgumentRefManager<T...>,
-      P,
-      typename ArgumentRefManager<T...>::parameters_and_properties_tuple_t>::transform(t, class_ptr);
+      typename ArgumentRefManager<T...>::parameters_and_properties_tuple_t>::transform(t, properties);
   }
 };

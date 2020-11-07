@@ -44,7 +44,8 @@ namespace Allen {
     template<typename T>
     T property() const
     {
-      auto prop = dynamic_cast<Allen::Property<T> const*>(get_prop(T::name));
+      const auto base_prop = get_prop(T::name);
+      const auto prop = dynamic_cast<const Property<T>*>(base_prop);
       if (!prop) {
         const std::string error_message = "property " + std::string(T::name) + " not found";
         throw std::runtime_error {error_message};
@@ -76,16 +77,16 @@ namespace Allen {
 
     std::string name() const { return m_name; }
 
-    template<typename R, typename... T>
-    HostFunction<const Allen::Algorithm*, R, T...> host_function(R(f)(T...)) const
+    template<typename Fn>
+    auto host_function(const Fn& fn) const
     {
-      return HostFunction<const Allen::Algorithm*, R, T...> {dynamic_cast<const Allen::Algorithm*>(this), f};
+      return HostFunction<Fn> {m_properties, fn};
     }
 
     template<typename Fn>
-    GlobalFunction<Fn, const Allen::Algorithm*> global_function(const Fn& fn) const
+    auto global_function(const Fn& fn) const
     {
-      return GlobalFunction<Fn, const Allen::Algorithm*> {dynamic_cast<const Allen::Algorithm*>(this), fn};
+      return GlobalFunction<Fn> {m_properties, fn};
     }
 
   protected:
