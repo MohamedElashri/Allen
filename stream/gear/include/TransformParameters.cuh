@@ -80,7 +80,10 @@ struct TransformParametersImpl<ArgMan, std::tuple<T...>> {
  */
 template<typename T>
 struct TransformParameters {
-  constexpr static auto transform(T&& t, const std::map<std::string, Allen::BaseProperty*>&) { return std::forward<T>(t); }
+  constexpr static auto transform(T&& t, const std::map<std::string, Allen::BaseProperty*>&)
+  {
+    return std::forward<T>(t);
+  }
 };
 
 /**

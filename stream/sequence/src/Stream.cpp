@@ -96,10 +96,7 @@ Allen::error Stream::initialize(
   constants = param_constants;
 
   // Prepare scheduler
-  scheduler.initialize(
-    do_print_memory_manager,
-    reserve_mb,
-    reserve_host_mb);
+  scheduler.initialize(do_print_memory_manager, reserve_mb, reserve_host_mb);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);

@@ -134,10 +134,7 @@ public:
  *        The way process line parallelizes is highly configurable.
  */
 template<typename Derived, typename Parameters>
-__global__ void process_line(
-  Parameters parameters,
-  const unsigned number_of_events,
-  const unsigned pre_scaler_hash)
+__global__ void process_line(Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
@@ -198,7 +195,8 @@ __global__ void process_line_iterate_events(
     const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
 
     if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-      parameters.dev_decisions[event_number] = Derived::select(parameters, Derived::get_input(parameters, event_number));
+      parameters.dev_decisions[event_number] =
+        Derived::select(parameters, Derived::get_input(parameters, event_number));
     }
   }
 
@@ -222,9 +220,7 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iterati
   {
     derived_instance->global_function(process_line<Derived, Parameters>)(
       grid_dim_x, Derived::get_block_dim_x(arguments), context)(
-      arguments,
-      first<typename Parameters::host_number_of_events_t>(arguments),
-      pre_scaler_hash);
+      arguments, first<typename Parameters::host_number_of_events_t>(arguments), pre_scaler_hash);
   }
 };
 

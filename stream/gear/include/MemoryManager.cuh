@@ -241,7 +241,8 @@ public:
   /**
    * @brief This MultiAlloc MemoryManager does not reserve memory upon startup.
    */
-  void reserve_memory(size_t) {
+  void reserve_memory(size_t)
+  {
     // Note: This function invokes free_all() in order to preserve the
     //       same behaviour as SingleAlloc memory managers.
     free_all();
@@ -304,7 +305,7 @@ public:
       throw MemoryException(
         "MemoryManager free: Requested to free tag " + tag + " but it was not registered with this MemoryManager");
     }
-    
+
     if (logger::verbosity() >= 5) {
       verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
     }
