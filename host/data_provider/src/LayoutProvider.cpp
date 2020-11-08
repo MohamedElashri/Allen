@@ -23,7 +23,7 @@ void layout_provider::layout_provider_t::operator()(
   unsigned int mep_layout = runtime_options.mep_layout;
 
   // Host output
-  ::memcpy(data<host_mep_layout_t>(arguments), &mep_layout, sizeof(mep_layout));
+  initialize<host_mep_layout_t>(arguments, mep_layout, context);
 
   // Device output
   initialize<dev_mep_layout_t>(arguments, mep_layout, context);

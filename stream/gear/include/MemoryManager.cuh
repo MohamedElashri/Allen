@@ -383,13 +383,13 @@ struct MemoryManagerReserve<
   std::tuple<Argument, Arguments...>,
   typename std::enable_if<std::is_base_of<device_datatype, Argument>::value>::type> {
   constexpr static void reserve(
-    HostMemoryManager& device_memory_manager,
-    DeviceMemoryManager& host_memory_manager,
+    HostMemoryManager& host_memory_manager,
+    DeviceMemoryManager& device_memory_manager,
     ArgumentManagerType& argument_manager)
   {
     device_memory_manager.template reserve<ArgumentManagerType, Argument>(argument_manager);
     MemoryManagerReserve<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::
-      reserve(device_memory_manager, host_memory_manager, argument_manager);
+      reserve(host_memory_manager, device_memory_manager, argument_manager);
   }
 };
 
@@ -406,13 +406,13 @@ struct MemoryManagerReserve<
   std::tuple<Argument, Arguments...>,
   typename std::enable_if<std::is_base_of<host_datatype, Argument>::value>::type> {
   constexpr static void reserve(
-    HostMemoryManager& device_memory_manager,
-    DeviceMemoryManager& host_memory_manager,
+    HostMemoryManager& host_memory_manager,
+    DeviceMemoryManager& device_memory_manager,
     ArgumentManagerType& argument_manager)
   {
     host_memory_manager.template reserve<ArgumentManagerType, Argument>(argument_manager);
     MemoryManagerReserve<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::
-      reserve(device_memory_manager, host_memory_manager, argument_manager);
+      reserve(host_memory_manager, device_memory_manager, argument_manager);
   }
 };
 
@@ -447,13 +447,13 @@ struct MemoryManagerFree<
   std::tuple<Argument, Arguments...>,
   typename std::enable_if<std::is_base_of<device_datatype, Argument>::value>::type> {
   constexpr static void free(
-    HostMemoryManager& device_memory_manager,
-    DeviceMemoryManager& host_memory_manager,
+    HostMemoryManager& host_memory_manager,
+    DeviceMemoryManager& device_memory_manager,
     ArgumentManagerType& argument_manager)
   {
     device_memory_manager.template free<ArgumentManagerType, Argument>(argument_manager);
     MemoryManagerFree<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::free(
-      device_memory_manager, host_memory_manager, argument_manager);
+      host_memory_manager, device_memory_manager, argument_manager);
   }
 };
 
@@ -470,13 +470,13 @@ struct MemoryManagerFree<
   std::tuple<Argument, Arguments...>,
   typename std::enable_if<std::is_base_of<host_datatype, Argument>::value>::type> {
   constexpr static void free(
-    HostMemoryManager& device_memory_manager,
-    DeviceMemoryManager& host_memory_manager,
+    HostMemoryManager& host_memory_manager,
+    DeviceMemoryManager& device_memory_manager,
     ArgumentManagerType& argument_manager)
   {
     // Host memory manager does not free any memory
     // host_memory_manager.template free<ArgumentManagerType, Argument>(argument_manager);
     MemoryManagerFree<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::free(
-      device_memory_manager, host_memory_manager, argument_manager);
+      host_memory_manager, device_memory_manager, argument_manager);
   }
 };

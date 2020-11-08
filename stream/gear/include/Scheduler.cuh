@@ -47,8 +47,8 @@ struct Scheduler {
     do_print = param_do_print;
 
     // Reserve memory in managers
-    host_memory_manager.reserve_memory(host_requested_mb);
-    device_memory_manager.reserve_memory(device_requested_mb);
+    host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000);
+    device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000);
   }
 
   /**
@@ -56,8 +56,8 @@ struct Scheduler {
    */
   void reset()
   {
-    device_memory_manager.free_all();
     host_memory_manager.free_all();
+    device_memory_manager.free_all();
   }
 
   /**

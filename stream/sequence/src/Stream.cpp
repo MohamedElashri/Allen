@@ -90,9 +90,6 @@ Allen::error Stream::initialize(
   const size_t reserve_host_mb,
   const Constants& param_constants)
 {
-  // Initialize context
-  m_context.initialize();
-
   // Set options
   do_print_memory_manager = param_do_print_memory_manager;
   start_event_offset = param_start_event_offset;
@@ -101,8 +98,8 @@ Allen::error Stream::initialize(
   // Prepare scheduler
   scheduler.initialize(
     do_print_memory_manager,
-    reserve_mb * 1000 * 1000,
-    reserve_host_mb * 1000 * 1000);
+    reserve_mb,
+    reserve_host_mb);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);
