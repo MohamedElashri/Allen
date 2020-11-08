@@ -176,7 +176,7 @@ __global__ void process_line(
 
   // Populate offsets in first block
   if (blockIdx.x == 0) {
-    for (unsigned i = threadIdx.x; i <= number_of_events; i += blockDim.x) {
+    for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
       parameters.dev_decisions_offsets[i] = line.offset(parameters, i);
     }
   }
@@ -218,7 +218,7 @@ __global__ void process_line_iterate_events(
   }
 
   // Populate offsets
-  for (unsigned event_number = threadIdx.x; event_number <= number_of_events; event_number += blockDim.x) {
+  for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
     parameters.dev_decisions_offsets[event_number] = event_number;
   }
 }
