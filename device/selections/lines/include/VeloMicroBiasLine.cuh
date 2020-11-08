@@ -29,9 +29,9 @@ namespace velo_micro_bias_line {
   };
 
   struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
-    __device__ std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number) const;
+    __device__ static std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number);
 
-    __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

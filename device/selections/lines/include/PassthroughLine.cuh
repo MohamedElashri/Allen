@@ -27,9 +27,9 @@ namespace passthrough_line {
   };
 
   struct passthrough_line_t : public SelectionAlgorithm, Parameters, EventLine<passthrough_line_t, Parameters> {
-    __device__ std::tuple<const bool> get_input(const Parameters& parameters, const unsigned event_number) const;
+    __device__ static std::tuple<const bool> get_input(const Parameters& parameters, const unsigned event_number);
 
-    __device__ bool select(const Parameters& parameters, std::tuple<const bool> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const bool> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

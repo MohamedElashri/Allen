@@ -38,7 +38,7 @@ namespace two_track_mva_line {
   };
 
   struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
-    __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
+    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

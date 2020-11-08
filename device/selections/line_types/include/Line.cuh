@@ -95,8 +95,7 @@ public:
     const Constants&,
     const HostBuffers&) const
   {
-    auto derived_instance = static_cast<const Derived*>(this);
-    set_size<typename Parameters::dev_decisions_t>(arguments, derived_instance->get_decisions_size(arguments));
+    set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
@@ -113,7 +112,7 @@ public:
   /**
    * @brief Grid dimension of kernel call. get_grid_dim returns the size of the event list.
    */
-  unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments) const
+  static unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments)
   {
     if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
       return size<typename Parameters::dev_event_list_t>(arguments);
@@ -125,7 +124,7 @@ public:
   /**
    * @brief Default block dim x of kernel call. Can be "overriden".
    */
-  unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 256; }
+  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 256; }
 };
 
 #if defined(DEVICE_COMPILER)
@@ -134,12 +133,14 @@ public:
  * @brief Processes a line by iterating over all events and all "input sizes" (ie. tracks, vertices, etc.).
  *        The way process line parallelizes is highly configurable.
  */
-template<typename Line, typename Parameters>
-__global__ void
-process_line(Line line, Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
+template<typename Derived, typename Parameters>
+__global__ void process_line(
+  Parameters parameters,
+  const unsigned number_of_events,
+  const unsigned pre_scaler_hash)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned input_size = line.offset(parameters, event_number + 1) - line.offset(parameters, event_number);
+  const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
 
   // ODIN data
   const unsigned int* odin =
@@ -157,15 +158,15 @@ process_line(Line line, Parameters parameters, const unsigned number_of_events, 
   if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
     // Do selection
     for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-      parameters.dev_decisions[line.offset(parameters, event_number) + i] =
-        line.select(parameters, line.get_input(parameters, event_number, i));
+      parameters.dev_decisions[Derived::offset(parameters, event_number) + i] =
+        Derived::select(parameters, Derived::get_input(parameters, event_number, i));
     }
   }
 
   // Populate offsets in first block
   if (blockIdx.x == 0) {
     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-      parameters.dev_decisions_offsets[i] = line.offset(parameters, i);
+      parameters.dev_decisions_offsets[i] = Derived::offset(parameters, i);
     }
   }
 }
@@ -173,9 +174,8 @@ process_line(Line line, Parameters parameters, const unsigned number_of_events, 
 /**
  * @brief Processes a line by iterating over events and applying the line.
  */
-template<typename Line, typename Parameters>
+template<typename Derived, typename Parameters>
 __global__ void process_line_iterate_events(
-  Line line,
   Parameters parameters,
   const unsigned number_of_events_in_event_list,
   const unsigned number_of_events,
@@ -198,7 +198,7 @@ __global__ void process_line_iterate_events(
     const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
 
     if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-      parameters.dev_decisions[event_number] = line.select(parameters, line.get_input(parameters, event_number));
+      parameters.dev_decisions[event_number] = Derived::select(parameters, Derived::get_input(parameters, event_number));
     }
   }
 
@@ -221,8 +221,10 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iterati
     const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line<Derived, Parameters>)(
-      grid_dim_x, derived_instance->get_block_dim_x(arguments), context)(
-      *derived_instance, arguments, first<typename Parameters::host_number_of_events_t>(arguments), pre_scaler_hash);
+      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
+      arguments,
+      first<typename Parameters::host_number_of_events_t>(arguments),
+      pre_scaler_hash);
   }
 };
 
@@ -236,8 +238,7 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::event_iteration
     const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-      grid_dim_x, derived_instance->get_block_dim_x(arguments), context)(
-      *derived_instance,
+      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
       arguments,
       size<typename Parameters::dev_event_list_t>(arguments),
       first<typename Parameters::host_number_of_events_t>(arguments),
@@ -266,7 +267,7 @@ void Line<Derived, Parameters>::operator()(
 
   // Dispatch the executing global function.
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
-    arguments, context, derived_instance, get_grid_dim_x(arguments), m_pre_scaler_hash);
+    arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
 }
 
 #endif

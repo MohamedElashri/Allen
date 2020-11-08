@@ -7,7 +7,7 @@ INSTANTIATE_LINE(low_pt_di_muon_line::low_pt_di_muon_line_t, low_pt_di_muon_line
 
 __device__ bool low_pt_di_muon_line::low_pt_di_muon_line_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+  std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
 

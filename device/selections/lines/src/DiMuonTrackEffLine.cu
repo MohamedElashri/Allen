@@ -7,7 +7,7 @@ INSTANTIATE_LINE(di_muon_track_eff_line::di_muon_track_eff_line_t, di_muon_track
 
 __device__ bool di_muon_track_eff_line::di_muon_track_eff_line_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+  std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
   if (!vertex.is_dimuon) return false;

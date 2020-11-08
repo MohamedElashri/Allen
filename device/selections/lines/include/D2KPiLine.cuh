@@ -37,7 +37,7 @@ namespace d2kpi_line {
   };
 
   struct d2kpi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<d2kpi_line_t, Parameters> {
-    __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
+    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

@@ -75,6 +75,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
 
     // Do the fit.
+    // TODO: In case doFit returns false, what should happen?
     if (doFit(trackA, trackB, event_secondary_vertices[i_sv])) {
       event_secondary_vertices[i_sv].trk1 = i_track;
       event_secondary_vertices[i_sv].trk2 = j_track;

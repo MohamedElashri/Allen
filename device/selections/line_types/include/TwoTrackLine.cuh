@@ -21,18 +21,18 @@
  */
 template<typename Derived, typename Parameters>
 struct TwoTrackLine : public Line<Derived, Parameters> {
-  unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const
+  static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
   {
     return first<typename Parameters::host_number_of_svs_t>(arguments);
   }
 
-  __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const
+  __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
   {
     return parameters.dev_sv_offsets[event_number];
   }
 
-  __device__ std::tuple<const VertexFit::TrackMVAVertex&>
-  get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const
+  __device__ static std::tuple<const VertexFit::TrackMVAVertex&>
+  get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
     const VertexFit::TrackMVAVertex* event_vertices = parameters.dev_svs + parameters.dev_sv_offsets[event_number];
     const auto& vertex = event_vertices[i];

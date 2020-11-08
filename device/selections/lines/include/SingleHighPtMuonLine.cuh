@@ -32,7 +32,7 @@ namespace single_high_pt_muon_line {
   struct single_high_pt_muon_line_t : public SelectionAlgorithm,
                                       Parameters,
                                       OneTrackLine<single_high_pt_muon_line_t, Parameters> {
-    __device__ bool select(const Parameters& ps, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+    __device__ static bool select(const Parameters& ps, std::tuple<const ParKalmanFilter::FittedTrack&> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

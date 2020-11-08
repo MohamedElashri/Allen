@@ -26,7 +26,7 @@ namespace beam_crossing_line {
   };
 
   struct beam_crossing_line_t : public SelectionAlgorithm, Parameters, ODINLine<beam_crossing_line_t, Parameters> {
-    __device__ bool select(const Parameters& parameters, std::tuple<const unsigned*> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned*> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

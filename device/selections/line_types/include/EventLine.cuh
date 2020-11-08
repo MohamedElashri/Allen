@@ -18,12 +18,12 @@ struct EventLine : public Line<Derived, Parameters> {
   /**
    * @brief Execute with a block dimension of 512.
    */
-  unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 512; }
+  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 512; }
 
   /**
    * @brief Decision size is the number of events.
    */
-  unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const
+  static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
   {
     return first<typename Parameters::host_number_of_events_t>(arguments);
   }

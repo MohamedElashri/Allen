@@ -20,20 +20,20 @@
  */
 template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
-  unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 64; }
+  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 64; }
 
-  unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const
+  static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
   {
     return first<typename Parameters::host_number_of_reconstructed_scifi_tracks_t>(arguments);
   }
 
-  __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const
+  __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
   {
     return parameters.dev_track_offsets[event_number];
   }
 
-  __device__ std::tuple<const ParKalmanFilter::FittedTrack&>
-  get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const
+  __device__ static std::tuple<const ParKalmanFilter::FittedTrack&>
+  get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
     const ParKalmanFilter::FittedTrack* event_tracks =
       parameters.dev_tracks + parameters.dev_track_offsets[event_number];

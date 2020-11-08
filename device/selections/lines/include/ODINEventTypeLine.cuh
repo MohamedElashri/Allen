@@ -26,7 +26,7 @@ namespace odin_event_type_line {
   };
 
   struct odin_event_type_line_t : public SelectionAlgorithm, Parameters, ODINLine<odin_event_type_line_t, Parameters> {
-    __device__ bool select(const Parameters& parameters, std::tuple<const unsigned*> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned*> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
