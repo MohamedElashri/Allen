@@ -121,7 +121,10 @@ void safe_assign_to_host_buffer(std::vector<T>& container, const Args& arguments
     container.resize(size<Arg>(arguments));
   }
   Allen::memcpy(
-    container.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
+    container.data(),
+    data<Arg>(arguments),
+    size<Arg>(arguments) * sizeof(typename Arg::type),
+    Allen::memcpyDeviceToHost);
 }
 
 template<typename Arg, typename Args, typename T>
