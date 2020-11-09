@@ -13,7 +13,8 @@ void ut_pre_decode::ut_pre_decode_t::set_arguments_size(
   set_size<dev_ut_pre_decoded_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
   set_size<dev_ut_hit_count_t>(
-    arguments, first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+    arguments,
+    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]);
 }
 
 void ut_pre_decode::ut_pre_decode_t::operator()(
@@ -152,12 +153,12 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
 
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
   uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
-  UT::PreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
-                                          parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::PreDecodedHits ut_pre_decoded_hits {
+    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
@@ -199,12 +200,12 @@ __global__ void ut_pre_decode::ut_pre_decode_mep(
 {
   const uint32_t number_of_events = gridDim.x;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
   uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
-  UT::PreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
-                                          parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::PreDecodedHits ut_pre_decoded_hits {
+    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);

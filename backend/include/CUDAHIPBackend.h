@@ -93,8 +93,8 @@ namespace Allen {
 
   void inline synchronize(const Context& context)
   {
-    cudaEventRecord(context.event(), context.stream());
-    cudaEventSynchronize(context.event());
+    cudaCheck(cudaEventRecord(context.event(), context.stream()));
+    cudaCheck(cudaEventSynchronize(context.event()));
   }
 
   void inline device_reset() { cudaCheck(cudaDeviceReset()); }

@@ -111,6 +111,19 @@ void safe_assign_to_host_buffer(gsl::span<T>& span, const Args& arguments, const
     context);
 }
 
+/**
+ * @brief Transfer data to a resizable host buffer, requires a std::vector.
+ */
+template<typename Arg, typename Args, typename T>
+void safe_assign_to_host_buffer(std::vector<T>& container, const Args& arguments)
+{
+  if (container.size() < size<Arg>(arguments)) {
+    container.resize(size<Arg>(arguments));
+  }
+  Allen::memcpy(
+    container.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
+}
+
 template<typename Arg, typename Args, typename T>
 void assign_to_host_buffer(T* array, const Args& arguments, const Allen::Context& context)
 {
@@ -434,15 +447,4 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
 
   Allen::memcpy_async(
     data<OFFSET_ARG>(args), std::get<2>(bno).data(), std::get<2>(bno).size_bytes(), Allen::memcpyHostToDevice, context);
-}
-
-/**
- * @brief Transfer data to the host, requires a host container with
- * random access that can be resized, for example a std::vector.
- */
-template<class HOST_CONTAINER, class DATA_ARG>
-void data_to_host(HOST_CONTAINER& hv, DATA_ARG const* d, size_t s, const Allen::Context& context)
-{
-  if (hv.size() < s) hv.resize(s);
-  Allen::memcpy_async(&hv[0], d, s * sizeof(DATA_ARG), Allen::memcpyDeviceToHost, context);
 }

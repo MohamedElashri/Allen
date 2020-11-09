@@ -26,10 +26,9 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  // Transmission device to host of Scifi consolidated tracks
-  assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
-
   if (runtime_options.do_check) {
+    // Transmission device to host of Scifi consolidated tracks
+    assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
     assign_to_host_buffer<dev_offsets_scifi_track_hit_number_t>(
       host_buffers.host_scifi_track_hit_number, arguments, context);
     assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, context);

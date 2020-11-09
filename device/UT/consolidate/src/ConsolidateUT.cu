@@ -70,7 +70,7 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
   const UT::TrackHits* event_veloUT_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 

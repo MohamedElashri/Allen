@@ -22,7 +22,7 @@ void ut_find_permutation::ut_find_permutation_t::operator()(
   const Allen::Context& context) const
 {
   global_function(ut_find_permutation)(
-    dim3(size<dev_event_list_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
+    dim3(size<dev_event_list_t>(arguments), constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]),
     property<block_dim_t>(),
     context)(arguments, constants.dev_unique_x_sector_layer_offsets.data());
 }
@@ -34,7 +34,7 @@ __global__ void ut_find_permutation::ut_find_permutation(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned sector_group_number = blockIdx.y;
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};

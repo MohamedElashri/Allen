@@ -65,8 +65,8 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
 
   // SciFi hits
   const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
+    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
   SciFi::ConstHits scifi_hits(parameters.dev_scifi_hits, total_number_of_hits);
   const auto event_offset = scifi_hit_count.event_offset();

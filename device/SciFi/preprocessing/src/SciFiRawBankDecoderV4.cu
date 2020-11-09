@@ -94,8 +94,8 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4(
     SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[event_number]);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
-  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const unsigned number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
   for (unsigned i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
@@ -130,8 +130,8 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_mep(
   const SciFiGeometry geom {scifi_geometry};
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
-  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const unsigned number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
   for (unsigned i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {

@@ -46,26 +46,9 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
 
   if (runtime_options.do_check) {
     // Event offsets to clusters
-    auto const n_events = first<host_number_of_events_t>(arguments);
-    data_to_host(
-      host_buffers.velo_clusters_offsets,
-      data<dev_offsets_estimated_input_size_t>(arguments),
-      n_events * Velo::Constants::n_module_pairs + 1,
-      context);
-
-    // Number of clusters per module
-    data_to_host(
-      host_buffers.velo_module_clusters_num,
-      data<dev_module_cluster_num_t>(arguments),
-      n_events * Velo::Constants::n_module_pairs,
-      context);
-
-    // Clusters
-    data_to_host(
-      host_buffers.velo_clusters,
-      data<dev_velo_cluster_container_t>(arguments),
-      first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size,
-      context);
+    safe_assign_to_host_buffer<dev_offsets_estimated_input_size_t>(host_buffers.velo_clusters_offsets, arguments);
+    safe_assign_to_host_buffer<dev_module_cluster_num_t>(host_buffers.velo_module_clusters_num, arguments);
+    safe_assign_to_host_buffer<dev_velo_cluster_container_t>(host_buffers.velo_clusters, arguments);
   }
 }
 

@@ -123,6 +123,9 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
   number_of_input_events = event_end - event_start;
   if (event_end > event_start) {
     for (unsigned repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
+      Timer t;
+      t.start();
+
       // Initialize selected_number_of_events with requested_number_of_events
       host_buffers->host_number_of_events = event_end - event_start;
 
@@ -166,6 +169,9 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
         return Allen::error::errorMemoryAllocation;
       }
+
+      t.stop();
+      info_cout << "Iteration " << repetition << ": " << t.get() << "\n";
     }
   }
 
