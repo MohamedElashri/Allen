@@ -448,24 +448,27 @@ def HLT1Sequence(layout_provider,
                  d2kpi_line, d2pipi_line, di_muon_high_mass_line,
                  di_muon_low_mass_line, di_muon_soft_line, low_pt_di_muon_line,
                  track_muon_mva_line, gec_passthrough_line, passthrough_line)
-        gatherer = make_selection_gatherer(
-            lines,
-            initialize_lists,
-            layout_provider,
-            odin_banks,
-            name="gather_selections")
 
-        dec_reporter = dec_reporter_t(
-            name="dec_reporter",
-            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-            host_number_of_active_lines_t=gatherer.
-            host_number_of_active_lines_t(),
-            dev_number_of_active_lines_t=gatherer.
-            dev_number_of_active_lines_t(),
-            dev_selections_t=gatherer.dev_selections_t(),
-            dev_selections_offsets_t=gatherer.dev_selections_offsets_t())
+        return extend_sequence(hlt1_sequence, *lines)
 
-        return extend_sequence(
-            extend_sequence(hlt1_sequence, *lines), gatherer, dec_reporter)
+        # gatherer = make_selection_gatherer(
+        #     lines,
+        #     initialize_lists,
+        #     layout_provider,
+        #     odin_banks,
+        #     name="gather_selections")
+
+        # dec_reporter = dec_reporter_t(
+        #     name="dec_reporter",
+        #     host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+        #     host_number_of_active_lines_t=gatherer.
+        #     host_number_of_active_lines_t(),
+        #     dev_number_of_active_lines_t=gatherer.
+        #     dev_number_of_active_lines_t(),
+        #     dev_selections_t=gatherer.dev_selections_t(),
+        #     dev_selections_offsets_t=gatherer.dev_selections_offsets_t())
+
+        # return extend_sequence(
+        #     extend_sequence(hlt1_sequence, *lines), gatherer, dec_reporter)
 
     return hlt1_sequence

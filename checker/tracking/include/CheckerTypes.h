@@ -60,7 +60,7 @@ namespace Checker {
     std::size_t n_matched_total = 0;
     float p, pt, eta;
     float muon_catboost_output;
-    bool is_muon;
+    bool is_muon = false;
 
     void addId(LHCbID id) { allids.push_back(id); }
 
