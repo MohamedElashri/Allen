@@ -36,7 +36,8 @@ namespace Allen {
   public:
     Context() {}
 
-    void initialize() {
+    void initialize()
+    {
       cudaCheck(cudaStreamCreate(&m_stream));
       cudaCheck(cudaEventCreateWithFlags(&m_event, cudaEventBlockingSync));
     }
