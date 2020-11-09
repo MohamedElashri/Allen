@@ -541,35 +541,35 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 
 # Throughput runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput:
+geforcertx2080ti:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-quadrortx6000:CUDA:hlt1_pp_default:run_throughput:
+quadrortx6000:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-teslav100:CUDA:hlt1_pp_default:run_throughput:
+teslav100:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3080:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3080:CUDA:forward:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3090:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3090:CUDA:forward:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx3090
@@ -592,7 +592,7 @@ epyc7502:CPU:hlt1_pp_default:run_throughput:
 
 # Physics efficiency runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency:
+geforcertx2080ti:CUDA:forward:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
@@ -709,7 +709,7 @@ x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
 
 # check run changes
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
+geforcertx2080ti:CUDA:forward:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - geforcertx2080ti
@@ -719,7 +719,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
     refs:
       - web
 
-x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
+x862630v4:CPU:forward:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - x862630v4
@@ -729,7 +729,7 @@ x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
     refs:
       - web
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
+geforcertx2080ti:CUDA:forward:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - geforcertx2080ti
@@ -739,7 +739,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
     refs:
       - web
 
-x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
+x862630v4:CPU:forward:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - x862630v4
@@ -753,7 +753,7 @@ x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
 # Publish
 # =======
 
-throughput:hlt1_pp_default:geforcertx3090:publish_throughput:
+throughput:forward:geforcertx3090:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - cvmfs
