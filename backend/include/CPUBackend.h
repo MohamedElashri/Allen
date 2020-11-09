@@ -165,6 +165,7 @@ using half_t = float;
 
 namespace Allen {
   struct Context {
+    void initialize() {}
   };
 
   void inline malloc(void** devPtr, size_t size) { posix_memalign(devPtr, 64, size); }

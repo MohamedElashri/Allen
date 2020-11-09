@@ -95,6 +95,9 @@ Allen::error Stream::initialize(
   start_event_offset = param_start_event_offset;
   constants = param_constants;
 
+  // Initialize context
+  m_context.initialize();
+
   // Prepare scheduler
   scheduler.initialize(do_print_memory_manager, reserve_mb, reserve_host_mb);
 
