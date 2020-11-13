@@ -233,7 +233,7 @@ namespace Allen {
 
   void inline print_device_memory_consumption() {}
 
-  std::tuple<bool, int> inline get_device_id(std::string) { return {true, 0}; }
+  std::tuple<bool, int> inline get_device_id(const std::string&) { return {true, 0}; }
 } // namespace Allen
 
 #endif
