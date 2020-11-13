@@ -101,4 +101,14 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
     constants.dev_ecal_geometry,
     constants.dev_hcal_geometry,
     property<iterations_t>().get());
+
+  if (runtime_options.do_check) {
+
+    // Number of clusters of all events
+    data_to_host(
+        host_buffers.host_ecal_cluster_offsets,
+        arguments.data<dev_ecal_cluster_offsets_t>(),
+        first<host_number_of_selected_events_t>(arguments));
+
+  }
 }

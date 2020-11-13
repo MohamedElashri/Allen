@@ -103,6 +103,9 @@ struct HostBuffers {
   unsigned* host_event_list_mf;
   bool* host_match_upstream_muon;
 
+  // Calo
+  std::vector<unsigned> host_ecal_cluster_offsets;
+
   // Secondary vertices
   unsigned* host_number_of_svs;
   unsigned* host_sv_offsets;

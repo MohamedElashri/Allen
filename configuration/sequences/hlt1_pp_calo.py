@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
 from definitions.GECSequence import GECSequence
 from definitions.VeloSequence import VeloSequence
 from definitions.PVSequence import PVSequence
@@ -5,8 +8,8 @@ from definitions.UTSequence import UTSequence
 from definitions.ForwardSequence import ForwardSequence
 from definitions.MuonSequence import MuonSequence
 from definitions.HLT1Sequence import HLT1Sequence
-from definitions.CaloSequence import CaloSequence
 from definitions.algorithms import compose_sequences
+from definitions.CaloSequence import CaloSequence
 
 gec_sequence = GECSequence()
 
@@ -46,7 +49,9 @@ muon_sequence = MuonSequence(
     scifi_consolidate_tracks_t=forward_sequence["scifi_consolidate_tracks_t"])
 
 hlt1_sequence = HLT1Sequence(
+    layout_provider=gec_sequence["mep_layout"],
     initialize_lists=gec_sequence["initialize_lists"],
+    full_event_list=gec_sequence["full_event_list"],
     velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
     velo_kalman_filter=pv_sequence["velo_kalman_filter"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[
@@ -66,5 +71,4 @@ hlt1_sequence = HLT1Sequence(
 calo_sequence = CaloSequence(gec_sequence['initialize_lists'])
 
 compose_sequences(gec_sequence, velo_sequence, pv_sequence, ut_sequence,
-                  forward_sequence, muon_sequence, calo_sequence,
-                  hlt1_sequence).generate()
+                  forward_sequence, muon_sequence, calo_sequence, hlt1_sequence).generate()
