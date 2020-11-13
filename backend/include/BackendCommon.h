@@ -18,7 +18,7 @@
 #include <tuple>
 #include <string>
 #include <cassert>
-#include "TupleTools.cuh"
+#include "AllenTypeTraits.cuh"
 #include "BackendCommonInterface.h"
 
 // Dispatch to the right backend

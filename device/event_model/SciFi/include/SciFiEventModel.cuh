@@ -42,11 +42,11 @@ namespace SciFi {
   template<typename T>
   struct HitCount_t {
   private:
-    typename ForwardType<T, unsigned>::t* m_mat_offsets;
+    Allen::forward_type_t<T, unsigned>* m_mat_offsets;
     // TODO: Add "total number of hits" to information of this struct
 
   public:
-    __host__ __device__ HitCount_t(typename ForwardType<T, unsigned>::t* base_pointer, const unsigned event_number) :
+    __host__ __device__ HitCount_t(Allen::forward_type_t<T, unsigned>* base_pointer, const unsigned event_number) :
       m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
     {}
 
@@ -65,7 +65,7 @@ namespace SciFi {
       return m_mat_offsets[corrected_mat_number];
     }
 
-    __host__ __device__ typename ForwardType<T, unsigned>::t* mat_offsets_p(const unsigned mat_number) const
+    __host__ __device__ Allen::forward_type_t<T, unsigned>* mat_offsets_p(const unsigned mat_number) const
     {
       return m_mat_offsets + mat_number;
     }
@@ -138,16 +138,19 @@ namespace SciFi {
   template<typename T>
   struct Hits_t {
   private:
-    typename ForwardType<T, float>::t* m_base_pointer;
+    Allen::forward_type_t<T, float>* m_base_pointer;
     const unsigned m_total_number_of_hits;
 
   public:
     static constexpr unsigned number_of_arrays = 5;
 
     __host__ __device__ Hits_t(T* base_pointer, const unsigned total_number_of_hits, const unsigned offset = 0) :
-      m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + offset),
+      m_base_pointer(reinterpret_cast<Allen::forward_type_t<T, float>*>(base_pointer)),
       m_total_number_of_hits(total_number_of_hits)
-    {}
+    {
+      static_assert(sizeof(float) == sizeof(unsigned));
+      assert((((size_t) base_pointer) & sizeof(float)) == 0);
+    }
 
     // Const and lvalue accessors
     __host__ __device__ float x0(const unsigned index) const
@@ -188,29 +191,30 @@ namespace SciFi {
 
     __host__ __device__ unsigned channel(const unsigned index) const
     {
+
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
         m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned& channel(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
         m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned assembled_datatype(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
         m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned& assembled_datatype(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
         m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
@@ -240,7 +244,7 @@ namespace SciFi {
     }
 
     // Pointer accessor for binary search
-    __host__ __device__ typename ForwardType<T, float>::t* x0_p(const unsigned index) const
+    __host__ __device__ Allen::forward_type_t<T, float>* x0_p(const unsigned index) const
     {
       return m_base_pointer + index;
     }

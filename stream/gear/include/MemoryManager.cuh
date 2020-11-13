@@ -32,9 +32,9 @@ struct MemoryManager;
 template<typename Target>
 struct MemoryManager<Target, memory_manager_details::SingleAlloc> {
 private:
+  constexpr static unsigned guarantee_alignment = 8192;
   char* m_base_pointer = nullptr;
-  size_t m_max_available_memory = (size_t) 8 * 1024 * 1024 * 1024; // 8 GiB
-  constexpr static unsigned guarantee_alignment = 256;
+  size_t m_max_available_memory = 0;
 
   /**
    * @brief A memory segment is composed of a start

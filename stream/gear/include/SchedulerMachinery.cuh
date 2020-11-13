@@ -9,7 +9,7 @@
 #include "Logger.h"
 #include "Argument.cuh"
 #include "ArgumentManager.cuh"
-#include "TupleTools.cuh"
+#include "AllenTypeTraits.cuh"
 
 namespace {
   // SFINAE-based invocation of member function iff class provides it.

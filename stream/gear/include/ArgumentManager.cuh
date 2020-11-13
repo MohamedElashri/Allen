@@ -8,7 +8,7 @@
 #include <cstring>
 #include "BackendCommon.h"
 #include "Logger.h"
-#include "TupleTools.cuh"
+#include "AllenTypeTraits.cuh"
 #include "Argument.cuh"
 #include "ArgumentOps.cuh"
 #include "StructToTuple.cuh"
