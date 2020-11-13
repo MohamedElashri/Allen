@@ -11,6 +11,7 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIR})
 
 allen_add_device_library(Calo STATIC
   ${calo_decoding}
