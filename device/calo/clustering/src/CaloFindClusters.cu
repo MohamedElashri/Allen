@@ -49,7 +49,7 @@ __global__ void calo_find_clusters::calo_find_clusters(
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
 
-  unsigned const event_number = blockIdx.x;
+  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
   // Build simple 3x3 clusters from seed clusters
   // Ecal
@@ -96,7 +96,7 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
 {
   // Find clusters.
   global_function(calo_find_clusters)(
-    first<host_number_of_selected_events_t>(arguments), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
     arguments,
     constants.dev_ecal_geometry,
     constants.dev_hcal_geometry,
@@ -108,7 +108,7 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
     data_to_host(
         host_buffers.host_ecal_cluster_offsets,
         arguments.data<dev_ecal_cluster_offsets_t>(),
-        first<host_number_of_selected_events_t>(arguments));
+        size<dev_event_list_t>(arguments));
 
   }
 }

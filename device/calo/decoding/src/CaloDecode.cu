@@ -12,12 +12,11 @@ __device__ void decode(const char* event_data, const uint32_t* offsets,
                        CaloDigit* digits,
                        const CaloGeometry& geometry)
 {
-  unsigned const event_number = blockIdx.x;
-  unsigned const selected_event_number = event_list[event_number];
+  unsigned const event_number = event_list[blockIdx.x];
 
   auto raw_event = Event{event_data, offsets};
   for (auto bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
-    auto raw_bank = raw_event.bank(selected_event_number, bank_number);
+    auto raw_bank = raw_event.bank(event_number, bank_number);
     while (raw_bank.data < raw_bank.end) {
       uint32_t word = *raw_bank.data;
       uint16_t trig_size = word & 0x7F;
@@ -136,12 +135,12 @@ void calo_decode::calo_decode_t::operator()(
 
   if (runtime_options.mep_layout) {
     global_function(calo_decode_mep)(
-      first<host_number_of_selected_events_t>(arguments), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
       arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }
   else {
     global_function(calo_decode)(
-      first<host_number_of_selected_events_t>(arguments), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
       arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }
 }

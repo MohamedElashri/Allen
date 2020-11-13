@@ -32,7 +32,7 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
   const int16_t ecal_min_adc,
   const int16_t hcal_min_adc)
 {
-  unsigned const event_number = blockIdx.x;
+  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
   // Get geometry.
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
@@ -57,7 +57,7 @@ void calo_seed_clusters::calo_seed_clusters_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  auto const n_events = first<host_number_of_selected_events_t>(arguments);
+  auto const n_events = size<dev_event_list_t>(arguments);
   set_size<dev_ecal_num_clusters_t>(arguments, n_events);
   set_size<dev_hcal_num_clusters_t>(arguments, n_events);
 
@@ -79,7 +79,7 @@ void calo_seed_clusters::calo_seed_clusters_t::operator()(
 
   // Find local maxima.
   global_function(calo_seed_clusters)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
     arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry,
     property<ecal_min_adc_t>().get(), property<hcal_min_adc_t>().get());
 }
