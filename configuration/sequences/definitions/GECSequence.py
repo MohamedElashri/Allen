@@ -34,6 +34,6 @@ def GECSequence(doGEC=True):
 
         
     gec_sequence = Sequence(
-        host_ut_banks, host_scifi_banks, initialize_lists, full_event_list)
+        mep_layout, host_ut_banks, host_scifi_banks, initialize_lists, full_event_list)
 
     return gec_sequence
