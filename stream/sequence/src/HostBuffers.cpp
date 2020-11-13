@@ -163,6 +163,5 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
     host_sv_atomics =
       reinterpret_cast<decltype(host_sv_atomics)>(malloc((2 * max_number_of_events + 1) * sizeof(unsigned)));
 
-    host_ecal_cluster_offsets.resize(max_number_of_events);
   }
 }

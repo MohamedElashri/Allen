@@ -104,7 +104,10 @@ struct HostBuffers {
   bool* host_match_upstream_muon;
 
   // Calo
-  std::vector<unsigned> host_ecal_cluster_offsets;
+  gsl::span<unsigned> host_ecal_cluster_offsets = {};
+  gsl::span<unsigned> host_hcal_cluster_offsets = {};
+  gsl::span<char> host_ecal_clusters = {};
+  gsl::span<char> host_hcal_clusters = {};
 
   // Secondary vertices
   unsigned* host_number_of_svs;

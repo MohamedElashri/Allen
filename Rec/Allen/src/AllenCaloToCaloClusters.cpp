@@ -41,9 +41,13 @@ std::vector<LHCb::CaloCluster> AllenCaloToCaloClusters::operator()(const HostBuf
   const unsigned number_of_events = 1;
   //  const CaloCluster::CaloCluster allen_caloclusters
 
-  unsigned number_of_caloclusters = host_buffers.host_ecal_cluster_offsets[number_of_events] - host_buffers.host_ecal_cluster_offsets[i_event];
-  
-   if (msgLevel(MSG::DEBUG)) debug() << "Number of Calo clusters to convert = " << number_of_caloclusters << endmsg;
+  unsigned number_of_ecal_clusters = host_buffers.host_ecal_cluster_offsets[number_of_events] - host_buffers.host_ecal_cluster_offsets[i_event]; 
+  unsigned number_of_hcal_clusters = host_buffers.host_hcal_cluster_offsets[number_of_events] - host_buffers.host_hcal_cluster_offsets[i_event]; 
+
+  if (msgLevel(MSG::DEBUG)) {
+    debug() << "Number of Ecal clusters to convert = " << number_of_ecal_clusters << endmsg;
+    debug() << "Number of Hcal clusters to convert = " << number_of_hcal_clusters << endmsg;
+  }
  
   return Clusters;
 }
