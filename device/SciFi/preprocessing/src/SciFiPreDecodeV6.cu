@@ -100,7 +100,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last) continue;
+    if (starting_it >= last || starting_it >= rawbank.last) continue;
 
     const unsigned number_of_iterations = last - starting_it;
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
@@ -188,7 +188,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last) continue;
+    if (starting_it >= last || starting_it >= rawbank.last) continue;
 
     const unsigned number_of_iterations = last - starting_it;
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {

@@ -170,7 +170,7 @@ using half_t = float;
 
 namespace Allen {
   // Big enough alignment to align with 512-bit vectors
-  constexpr static unsigned cpu_alignment = 16;
+  constexpr static unsigned cpu_alignment = 64;
 
   struct Context {
     void initialize() {}

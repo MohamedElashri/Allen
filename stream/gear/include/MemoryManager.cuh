@@ -55,9 +55,7 @@ private:
 public:
   MemoryManager() = default;
 
-  MemoryManager(const std::string& name) :
-    m_name(name)
-  {}
+  MemoryManager(const std::string& name) : m_name(name) {}
 
   /**
    * @brief Sets the m_max_available_memory of this manager.
@@ -81,7 +79,6 @@ public:
 
     m_guaranteed_alignment = memory_alignment;
     m_max_available_memory = memory_size;
-    free_all();
   }
 
   /**
@@ -126,7 +123,7 @@ public:
       print();
       throw MemoryException(
         "Reserve: Requested size for argument " + tag + " could not be met (" +
-        std::to_string(((float) aligned_request) / (1024 * 1024)) + " MiB)");
+        std::to_string(((float) aligned_request) / 1000000.f) + " MiB)");
     }
 
     // Start of allocation
@@ -195,6 +192,18 @@ public:
     }
   }
 
+  void test_alignment() {
+    for (const auto it : m_memory_segments) {
+      if (it.tag != "") {
+        // Note: Do an assert
+        if (!((it.start % m_guaranteed_alignment) == 0)) {
+          info_cout << "Found misaligned entry: " << it.tag << "\n";
+          print();
+        }
+      }
+    }
+  }
+
   /**
    * @brief Frees all memory segments, effectively resetting the
    *        available space.
@@ -209,9 +218,9 @@ public:
     info_cout << m_name << " segments (MiB):" << std::endl;
     for (auto& segment : m_memory_segments) {
       std::string name = segment.tag == "" ? "unused" : segment.tag;
-      info_cout << name << " (" << ((float) segment.size) / (1024 * 1024) << "), ";
+      info_cout << name << " (" << ((float) segment.size) / 1000000.f << "), ";
     }
-    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1024 * 1024)) << " MiB"
+    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / 1000000.f) << " MiB"
               << "\n\n";
   }
 };
@@ -244,12 +253,7 @@ public:
   /**
    * @brief This MultiAlloc MemoryManager does not reserve memory upon startup.
    */
-  void reserve_memory(size_t, const unsigned)
-  {
-    // Note: This function invokes free_all() in order to preserve the
-    //       same behaviour as SingleAlloc memory managers.
-    free_all();
-  }
+  void reserve_memory(size_t, const unsigned) {}
 
   /**
    * @brief Allocates a segment of the requested size.
@@ -342,6 +346,8 @@ public:
     m_memory_segments.clear();
   }
 
+  void test_alignment() {}
+
   /**
    * @brief Prints the current state of the memory segments.
    */
@@ -349,9 +355,9 @@ public:
   {
     info_cout << m_name << " segments (MiB):" << std::endl;
     for (auto const& [name, segment] : m_memory_segments) {
-      info_cout << name << " (" << ((float) segment.size) / (1024 * 1024) << "), ";
+      info_cout << name << " (" << ((float) segment.size) / 1000000.f << "), ";
     }
-    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1024 * 1024)) << " MiB"
+    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / 1000000.f) << " MiB"
               << "\n\n";
   }
 };

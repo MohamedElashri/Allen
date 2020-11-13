@@ -303,8 +303,8 @@ docker_image:build:
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - mkdir tmp
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_PROFILER_OPTIONS}
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/202002/zmumu_magdown_scifi_v6 ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile ./Allen -f /scratch/dcampora/allen_data/202002/zmumu_magdown_scifi_v6 ${RUN_PROFILER_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
     - rm -rf report1.qdrep tmp

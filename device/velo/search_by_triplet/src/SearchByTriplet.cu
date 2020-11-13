@@ -685,7 +685,7 @@ __device__ void track_seeding_vectorized(
         const auto x_prediction = h0_xs + predx;
         const auto y_prediction = h0_ys + predy;
         const auto atan_value_f =
-          (Velo::Tools::cudart_pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
+          (Velo::Tools::pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
 
         std::array<int, vector128_length()> h2_candidate_indices;
         std::array<int16_t, vector128_length()> extrapolated_phis;

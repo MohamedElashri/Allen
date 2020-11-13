@@ -2,7 +2,6 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 import clang.cindex as cindex
-from IPython import embed
 
 
 class ParsedAlgorithm():

@@ -51,7 +51,12 @@ void invoke_device_function(
 #elif defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))
   hipLaunchKernelGGL(function, grid_dim, block_dim, 0, context.stream(), std::get<I>(invoke_arguments)...);
 #elif (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__))
+#ifdef SYNCHRONOUS_DEVICE_EXECUTION
+  _unused(context);
+  function<<<grid_dim, block_dim>>>(std::get<I>(invoke_arguments)...);
+#else
   function<<<grid_dim, block_dim, 0, context.stream()>>>(std::get<I>(invoke_arguments)...);
+#endif
 #endif
 }
 #else

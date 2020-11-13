@@ -145,7 +145,7 @@ namespace SciFi {
     static constexpr unsigned number_of_arrays = 5;
 
     __host__ __device__ Hits_t(T* base_pointer, const unsigned total_number_of_hits, const unsigned offset = 0) :
-      m_base_pointer(reinterpret_cast<Allen::forward_type_t<T, float>*>(base_pointer)),
+      m_base_pointer(reinterpret_cast<Allen::forward_type_t<T, float>*>(base_pointer) + offset),
       m_total_number_of_hits(total_number_of_hits)
     {
       static_assert(sizeof(float) == sizeof(unsigned));
