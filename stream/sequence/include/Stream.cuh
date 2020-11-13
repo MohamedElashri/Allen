@@ -65,6 +65,7 @@ struct Stream {
     const unsigned param_start_event_offset,
     const size_t param_reserve_mb,
     const size_t reserve_host_mb,
+    const unsigned required_memory_alignment,
     const Constants& param_constants);
 
   void set_host_buffer_manager(HostBuffersManager* buffers_manager);

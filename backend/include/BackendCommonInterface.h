@@ -29,4 +29,7 @@ namespace Allen {
   void peek_at_last_error();
   void host_unregister(void* ptr);
   void host_register(void* ptr, size_t size, enum host_register_kind flags);
+  std::tuple<bool, std::string, unsigned> set_device(int cuda_device, size_t stream_id);
+  void print_device_memory_consumption();
+  std::tuple<bool, int> get_device_id(std::string pci_bus_id);
 } // namespace Allen

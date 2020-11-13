@@ -20,6 +20,7 @@ void StreamWrapper::initialize_streams(
   const unsigned start_event_offset,
   const size_t reserve_mb,
   const size_t reserve_host_mb,
+  const unsigned required_memory_alignment,
   const Constants& constants,
   const std::map<std::string, std::map<std::string, std::string>>& config)
 {
@@ -28,7 +29,8 @@ void StreamWrapper::initialize_streams(
   }
 
   for (size_t i = 0; i < streams.size(); ++i) {
-    streams[i]->initialize(print_memory_usage, start_event_offset, reserve_mb, reserve_host_mb, constants);
+    streams[i]->initialize(
+      print_memory_usage, start_event_offset, reserve_mb, reserve_host_mb, required_memory_alignment, constants);
 
     // Configuration of the algorithms must happen after stream initialization
     streams[i]->configure_algorithms(config);
@@ -88,6 +90,7 @@ Allen::error Stream::initialize(
   const unsigned param_start_event_offset,
   const size_t reserve_mb,
   const size_t reserve_host_mb,
+  const unsigned required_memory_alignment,
   const Constants& param_constants)
 {
   // Set options
@@ -99,7 +102,7 @@ Allen::error Stream::initialize(
   m_context.initialize();
 
   // Prepare scheduler
-  scheduler.initialize(do_print_memory_manager, reserve_mb, reserve_host_mb);
+  scheduler.initialize(do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);

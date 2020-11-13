@@ -117,10 +117,6 @@ namespace Allen {
  */
 #define _unused(x) ((void) (x))
 
-void print_gpu_memory_consumption();
-
-std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
-
 // Helper structure to deal with constness of T
 template<typename T, typename U>
 struct ForwardType {
@@ -131,8 +127,6 @@ template<typename T, typename U>
 struct ForwardType<const T, U> {
   using t = std::add_const_t<U>;
 };
-
-std::tuple<bool, int> get_device_id(std::string pci_bus_id);
 
 struct HashNotPopulatedException : public std::exception {
 private:

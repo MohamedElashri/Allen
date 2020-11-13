@@ -241,7 +241,7 @@ extern "C" int allen(
       if (arg.find(":") != std::string::npos) {
         // Get by PCI bus ID
         bool s = false;
-        std::tie(s, device_id) = get_device_id(arg);
+        std::tie(s, device_id) = Allen::get_device_id(arg);
         if (!s) exit(1);
       }
       else {
@@ -308,7 +308,7 @@ extern "C" int allen(
 #endif
 
   // Set device for main thread
-  auto [device_set, device_name] = set_device(device_id, 0);
+  auto [device_set, device_name, device_memory_alignment] = Allen::set_device(device_id, 0);
   if (!device_set) {
     return -1;
   }
@@ -463,6 +463,7 @@ extern "C" int allen(
     start_event_offset,
     reserve_mb,
     reserve_host_mb,
+    device_memory_alignment,
     constants,
     configuration_reader->params());
 
@@ -514,7 +515,7 @@ extern "C" int allen(
 
   // Notify used memory if requested verbose mode
   if (logger::verbosity() >= logger::verbose) {
-    print_gpu_memory_consumption();
+    Allen::print_device_memory_consumption();
   }
 
   auto checker_invoker = std::make_unique<CheckerInvoker>();

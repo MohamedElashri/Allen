@@ -11,6 +11,11 @@
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+#include <regex>
+
+#ifdef __linux__
+#include <ext/stdio_filebuf.h>
+#endif
 
 using std::copysignf;
 using std::max;
@@ -164,6 +169,9 @@ using half_t = float;
 #endif
 
 namespace Allen {
+  // Big enough alignment to align with 512-bit vectors
+  constexpr static unsigned cpu_alignment = 16;
+
   struct Context {
     void initialize() {}
   };
@@ -199,6 +207,33 @@ namespace Allen {
   void inline host_unregister(void*) {}
 
   void inline host_register(void*, size_t, host_register_kind) {}
+
+  std::tuple<bool, std::string, unsigned> inline set_device(int, size_t)
+  {
+#ifdef __linux__
+    // Try to get the CPU type on a linux system
+    FILE* cmd = popen("grep -m1 -hoE 'model name\\s+.*' /proc/cpuinfo | awk '{ print substr($0, index($0,$4)) }'", "r");
+    if (cmd == NULL) return {true, "CPU", 0};
+
+    // Get a string that identifies the CPU
+    const int fd = fileno(cmd);
+    __gnu_cxx::stdio_filebuf<char> filebuf {fd, std::ios::in};
+    std::istream cmd_ifstream {&filebuf};
+    std::string processor_name {(std::istreambuf_iterator<char>(cmd_ifstream)), (std::istreambuf_iterator<char>())};
+
+    // Clean the string
+    const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))|(\n)|( Processor)"};
+    processor_name = std::regex_replace(processor_name, regex_to_remove, std::string {});
+    
+    return {true, processor_name, cpu_alignment};
+#else
+    return {true, "CPU", cpu_alignment};
+#endif // linux-dependent CPU detection
+  }
+
+  void inline print_device_memory_consumption() {}
+
+  std::tuple<bool, int> inline get_device_id(std::string) { return {true, 0}; }
 } // namespace Allen
 
 #endif

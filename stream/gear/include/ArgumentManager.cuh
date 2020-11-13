@@ -19,15 +19,15 @@
  */
 struct ArgumentData {
 private:
-  char* m_base_pointer = nullptr;
+  char* m_pointer = nullptr;
   size_t m_size = 0;
   std::string m_name = "";
 
 public:
-  virtual char* pointer() const { return m_base_pointer; }
+  virtual char* pointer() const { return m_pointer; }
   virtual size_t size() const { return m_size; }
   virtual std::string name() const { return m_name; }
-  virtual void set_pointer(char* pointer) { m_base_pointer = pointer; }
+  virtual void set_pointer(char* pointer) { m_pointer = pointer; }
   virtual void set_size(size_t size) { m_size = size; }
   virtual void set_name(const std::string& name) { m_name = name; }
   virtual ~ArgumentData() {}
@@ -54,11 +54,11 @@ public:
   }
 
   template<typename T>
-  void set_pointer(char* offset)
+  void set_pointer(char* pointer)
   {
     constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].set_pointer(offset);
+    m_tuple_to_argument_data[index_of_T].set_pointer(pointer);
   }
 
   template<typename T>

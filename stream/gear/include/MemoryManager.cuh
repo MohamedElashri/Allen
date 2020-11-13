@@ -32,9 +32,9 @@ struct MemoryManager;
 template<typename Target>
 struct MemoryManager<Target, memory_manager_details::SingleAlloc> {
 private:
-  constexpr static unsigned guarantee_alignment = 8192;
   char* m_base_pointer = nullptr;
   size_t m_max_available_memory = 0;
+  unsigned m_guaranteed_alignment = 512;
 
   /**
    * @brief A memory segment is composed of a start
@@ -55,14 +55,16 @@ private:
 public:
   MemoryManager() = default;
 
-  MemoryManager(const std::string& name) : m_name(name) {}
+  MemoryManager(const std::string& name) :
+    m_name(name)
+  {}
 
   /**
    * @brief Sets the m_max_available_memory of this manager.
    *        Note: This triggers a free_all to restore the m_memory_segments
    *        to a valid state. This operation is very disruptive.
    */
-  void reserve_memory(size_t memory_size)
+  void reserve_memory(size_t memory_size, const unsigned memory_alignment)
   {
     if constexpr (std::is_same_v<Target, memory_manager_details::Host>) {
       if (m_base_pointer != nullptr) {
@@ -77,6 +79,7 @@ public:
       Allen::malloc((void**) &m_base_pointer, memory_size);
     }
 
+    m_guaranteed_alignment = memory_alignment;
     m_max_available_memory = memory_size;
     free_all();
   }
@@ -102,8 +105,8 @@ public:
     }
 
     // Aligned requested size
-    const size_t aligned_request =
-      requested_size + guarantee_alignment - 1 - ((requested_size + guarantee_alignment - 1) % guarantee_alignment);
+    const size_t aligned_request = requested_size + m_guaranteed_alignment - 1 -
+                                   ((requested_size + m_guaranteed_alignment - 1) % m_guaranteed_alignment);
 
     if (logger::verbosity() >= 5) {
       verbose_cout << "MemoryManager: Requested to reserve " << requested_size << " B (" << aligned_request
@@ -241,7 +244,7 @@ public:
   /**
    * @brief This MultiAlloc MemoryManager does not reserve memory upon startup.
    */
-  void reserve_memory(size_t)
+  void reserve_memory(size_t, const unsigned)
   {
     // Note: This function invokes free_all() in order to preserve the
     //       same behaviour as SingleAlloc memory managers.
