@@ -103,12 +103,10 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
     property<iterations_t>().get());
 
   if (runtime_options.do_check) {
-
     // Number of clusters of all events
     data_to_host(
         host_buffers.host_ecal_cluster_offsets,
         arguments.data<dev_ecal_cluster_offsets_t>(),
         size<dev_event_list_t>(arguments));
-
   }
 }
