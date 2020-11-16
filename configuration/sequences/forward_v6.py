@@ -6,7 +6,7 @@ from definitions.UTSequence import UTSequence
 from definitions.ForwardSequence import ForwardSequence
 from definitions.algorithms import compose_sequences
 
-velo_sequence = VeloSequence(doGEC=False)
+velo_sequence = VeloSequence()
 
 ut_sequence = UTSequence(
     initialize_lists=velo_sequence["initialize_lists"],

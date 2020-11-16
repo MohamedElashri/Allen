@@ -144,6 +144,20 @@ public:
     m_tuple_to_argument_data[index_of_T].get().set_size(size);
   }
 
+
+  /**
+   * @brief Reduces the size of the container.
+   * @details Reducing the size can be done in the operator(), hence this method is const.
+   */
+  template<typename T>
+  void reduce_size(const size_t size) const
+  {
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    assert(size <= m_tuple_to_argument_data[index_of_T].get().size());
+    m_tuple_to_argument_data[index_of_T].get().set_size(size);
+  }
+
   template<typename T>
   std::string name() const
   {

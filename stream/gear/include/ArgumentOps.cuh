@@ -30,8 +30,7 @@ void set_size(Args arguments, const size_t size)
 template<typename Arg, typename Args>
 void reduce_size(const Args& arguments, const size_t size)
 {
-  assert(size <= arguments.template size<Arg>());
-  const_cast<Args&>(arguments).template set_size<Arg>(size);
+  arguments.template reduce_size<Arg>(size);
 }
 
 /**

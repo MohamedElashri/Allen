@@ -324,9 +324,9 @@ public:
       Allen::free(argument_manager.template pointer<Argument>());
     }
 
+    m_total_memory_required -= it->size() * sizeof(typename Argument::type);
+    
     m_memory_segments.erase(tag);
-
-    m_total_memory_required -= argument_manager.template size<Argument>() * sizeof(typename Argument::type);
   }
 
   /**
