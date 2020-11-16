@@ -34,10 +34,9 @@ namespace host_global_event_cut {
     auto const ut_offsets = *parameters.ut_offsets;
     auto const scifi_offsets = *parameters.scifi_offsets;
 
-    unsigned insert_index = 0;
-    unsigned first_event = parameters.host_event_list[0];
+    unsigned size_of_list = 0;
     for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
-      unsigned event_number = first_event + event_index;
+      unsigned event_number = event_index;
 
       // Check SciFi clusters
       unsigned n_SciFi_clusters = 0;
@@ -63,9 +62,9 @@ namespace host_global_event_cut {
       // Bank size is given in bytes. There are 2 bytes per cluster.
       // 4 bytes are removed for the header.
       // Note that this overestimates slightly the number of clusters
-      // due to bank padding in 32b. For v5, it further overestimates the
+      // due to bank padding in 32b. For v5/v6, it further overestimates the
       // number of clusters due to the merging of clusters.
-      n_SciFi_clusters = (n_SciFi_clusters >> 1) - 2;
+      n_SciFi_clusters = (n_SciFi_clusters / 2) - 2;
 
       // Check UT clusters
       unsigned n_UT_clusters = 0;
@@ -93,13 +92,13 @@ namespace host_global_event_cut {
 
       const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
       if (
-        num_combined_clusters < parameters.max_scifi_ut_clusters &&
-        num_combined_clusters > parameters.min_scifi_ut_clusters) {
-        parameters.host_event_list[insert_index++] = event_number;
+        num_combined_clusters <= parameters.max_scifi_ut_clusters &&
+        num_combined_clusters >= parameters.min_scifi_ut_clusters) {
+        parameters.host_event_list[size_of_list++] = event_number;
       }
     }
 
-    parameters.host_number_of_selected_events[0] = insert_index;
+    parameters.host_number_of_selected_events[0] = size_of_list;
   }
 
   // Algorithm

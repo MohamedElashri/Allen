@@ -32,12 +32,6 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
 
   // Initialize number of events
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
-  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
-
-  // Initialize host event list
-  for (unsigned i = 0; i < number_of_events; ++i) {
-    data<host_event_list_t>(arguments)[i] = i;
-  }
 
   // Do the host global event cut
   if (runtime_options.mep_layout) {
@@ -47,12 +41,13 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
     host_function(host_global_event_cut<false>)(arguments);
   }
 
-  // Copy data to the device
-  copy<dev_event_list_t, host_event_list_t>(arguments, context);
-
   // Reduce the size of the event lists to the selected events
   reduce_size<host_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
   reduce_size<dev_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+
+  // Copy data to the device
+  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
+  copy<dev_event_list_t, host_event_list_t>(arguments, context);
 
   // TODO: Remove whenever the checker uses variables
   host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);
