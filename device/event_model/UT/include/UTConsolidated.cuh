@@ -11,7 +11,8 @@ namespace UT {
   namespace Consolidated {
     template<typename T>
     struct Hits_t : public UT::Hits_t<T> {
-      constexpr static unsigned element_size = 5 * sizeof(float) + sizeof(unsigned) + sizeof(uint8_t);
+      using plane_code_t = uint8_t;
+      constexpr static unsigned element_size = 5 * sizeof(float) + sizeof(unsigned) + sizeof(plane_code_t);
 
       using UT::Hits_t<T>::m_base_pointer;
       using UT::Hits_t<T>::m_total_number_of_hits;
