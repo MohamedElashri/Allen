@@ -484,7 +484,7 @@ struct MemoryManagerFree<
     DeviceMemoryManager& device_memory_manager,
     ArgumentManagerType& argument_manager)
   {
-    // Host memory manager does not free any memory
+    // Host memory manager does not free any memory.
     // host_memory_manager.template free<ArgumentManagerType, Argument>(argument_manager);
     MemoryManagerFree<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::free(
       host_memory_manager, device_memory_manager, argument_manager);

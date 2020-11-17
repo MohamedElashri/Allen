@@ -49,7 +49,6 @@ namespace Allen {
 #else
   struct Context {
   private:
-    cudaEvent_t m_event;
     cudaStream_t m_stream;
 
   public:
@@ -57,13 +56,10 @@ namespace Allen {
 
     void initialize()
     {
-      cudaCheck(cudaEventCreateWithFlags(&m_event, cudaEventBlockingSync));
       cudaCheck(cudaStreamCreate(&m_stream));
     }
 
     cudaStream_t inline stream() const { return m_stream; }
-
-    cudaEvent_t inline event() const { return m_event; }
   };
 #endif
 
@@ -132,8 +128,7 @@ namespace Allen {
 #else
   void inline synchronize(const Context& context)
   {
-    cudaCheck(cudaEventRecord(context.event(), context.stream()));
-    cudaCheck(cudaEventSynchronize(context.event()));
+    cudaCheck(cudaStreamSynchronize(context.stream()));
   }
 #endif
 
