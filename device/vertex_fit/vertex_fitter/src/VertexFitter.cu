@@ -1,4 +1,4 @@
-/*****************************************************************************\
+./*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "VertexFitter.cuh"
@@ -76,20 +76,21 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
 
     // Do the fit.
-    doFit(trackA, trackB, event_secondary_vertices[i_sv]);
-    event_secondary_vertices[i_sv].trk1 = i_track;
-    event_secondary_vertices[i_sv].trk2 = j_track;
+    if (doFit(trackA, trackB, event_secondary_vertices[i_sv])) {
+      event_secondary_vertices[i_sv].trk1 = i_track;
+      event_secondary_vertices[i_sv].trk2 = j_track;
 
-    // Fill extra info.
-    fill_extra_info(event_secondary_vertices[i_sv], trackA, trackB);
-    if (n_pvs_event > 0) {
-      int ipv = pv_table.value(i_track) < pv_table.value(j_track) ? pv_table.pv(i_track) : pv_table.pv(j_track);
-      auto pv = vertices[ipv];
-      fill_extra_pv_info(event_secondary_vertices[i_sv], pv, trackA, trackB, parameters.max_assoc_ipchi2);
-    }
-    else {
-      // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
-      event_secondary_vertices[i_sv].minipchi2 = 0;
+      // Fill extra info.
+      fill_extra_info(event_secondary_vertices[i_sv], trackA, trackB);
+      if (n_pvs_event > 0) {
+        int ipv = pv_table.value(i_track) < pv_table.value(j_track) ? pv_table.pv(i_track) : pv_table.pv(j_track);
+        auto pv = vertices[ipv];
+        fill_extra_pv_info(event_secondary_vertices[i_sv], pv, trackA, trackB, parameters.max_assoc_ipchi2);
+      }
+      else {
+        // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
+        event_secondary_vertices[i_sv].minipchi2 = 0;
+      }
     }
   }
 }
