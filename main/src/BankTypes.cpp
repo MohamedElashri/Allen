@@ -14,8 +14,8 @@ namespace {
                                                       {BankTypes::MUON, "Muon"},
                                                       {BankTypes::ODIN, "ODIN"},
                                                       {BankTypes::Rich, "Rich"},
-                                                      {BankTypes::HCal, "HCal"},
-                                                      {BankTypes::ECal, "ECal"},
+                                                      {BankTypes::HCal, "HcalPacked"},
+                                                      {BankTypes::ECal, "EcalPacked"},
                                                       {BankTypes::OTRaw, "OTRaw"},
                                                       {BankTypes::OTError, "OTError"}};
 }
