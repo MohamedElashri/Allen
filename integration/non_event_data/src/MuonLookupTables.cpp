@@ -94,7 +94,7 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
     throw StrException {string {"sizes don't match: "} + to_string(host_muon_tables_raw.size()) + " " +
                         to_string(data.size())};
   }
-  host_muon_tables_raw = std::move(data);
+  host_muon_tables_raw = data;
   cudaCheck(
     cudaMemcpy(dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), cudaMemcpyHostToDevice));
   Muon::MuonTables host_muon_tables {allOffsets, dev_muon_tables_raw, sizeOffset};

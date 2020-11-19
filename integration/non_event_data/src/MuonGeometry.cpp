@@ -59,7 +59,7 @@ void Consumers::MuonGeometry::consume(std::vector<char> const& data)
     throw StrException {string {"sizes don't match: "} + to_string(host_geometry_raw.size()) + " " +
                         to_string(data.size())};
   }
-  host_geometry_raw = std::move(data);
+  host_geometry_raw = data;
   cudaCheck(cudaMemcpy(dev_geometry_raw, host_geometry_raw.data(), host_geometry_raw.size(), cudaMemcpyHostToDevice));
   for (size_t i = 0; i < nTilesSize; i++) {
     tiles[i] = ((unsigned*) dev_geometry_raw) + tilesOffset[i];
