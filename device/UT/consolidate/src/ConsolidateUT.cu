@@ -131,8 +131,8 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
       consolidated_hits.weight(hit_number) = ut_hits.weight(j + event_offset);
     });
 
-    populate_plane_code(track, [&consolidated_hits, &event_offset](const unsigned hit_number, const unsigned j) {
-      consolidated_hits.plane_code(hit_number) = static_cast<uint8_t>(j + event_offset);
+    populate_plane_code(track, [&consolidated_hits](const unsigned hit_number, const unsigned j) {
+      consolidated_hits.plane_code(hit_number) = static_cast<uint8_t>(j);
     });
   }
 }
