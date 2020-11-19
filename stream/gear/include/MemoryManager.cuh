@@ -255,7 +255,8 @@ struct MemoryManagerFree<
   constexpr static void
   free(MemoryManager& device_memory_manager, MemoryManager& host_memory_manager, ArgumentManagerType& argument_manager)
   {
-    host_memory_manager.free<ArgumentManagerType, Argument>(argument_manager);
+    // Host memory manager does not free any memory
+    //host_memory_manager.free<ArgumentManagerType, Argument>(argument_manager);
     MemoryManagerFree<ArgumentManagerType, std::tuple<Arguments...>>::free(
       device_memory_manager, host_memory_manager, argument_manager);
   }
