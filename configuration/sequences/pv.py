@@ -1,14 +1,17 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+from definitions.GECSequence import GECSequence
 from definitions.VeloSequence import VeloSequence
 from definitions.PVSequence import PVSequence
 from definitions.algorithms import compose_sequences
 
-velo_sequence = VeloSequence()
+gec_sequence = GECSequence()
+
+velo_sequence = VeloSequence(initialize_lists=gec_sequence["initialize_lists"])
 
 pv_sequence = PVSequence(
-    initialize_lists=velo_sequence["initialize_lists"],
+    initialize_lists=gec_sequence["initialize_lists"],
     velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
     velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[

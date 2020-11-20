@@ -88,9 +88,9 @@ void calo_find_clusters::calo_find_clusters_t::set_arguments_size(
 
 __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
+  const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
+  HostBuffers& host_buffers,
   cudaStream_t& cuda_stream,
   cudaEvent_t&) const
 {
