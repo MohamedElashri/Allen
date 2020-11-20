@@ -5,8 +5,8 @@ from definitions.algorithms import *
 
 
 def CaloSequence(initialize_lists):
-    ecal_banks = data_provider_t(name="ecal_banks", bank_type="ECal")
-    hcal_banks = data_provider_t(name="hcal_banks", bank_type="HCal")
+    ecal_banks = data_provider_t(name="ecal_banks", bank_type="EcalPacked")
+    hcal_banks = data_provider_t(name="hcal_banks", bank_type="HcalPacked")
 
     calo_decode = calo_decode_t(
         name="calo_decode",
