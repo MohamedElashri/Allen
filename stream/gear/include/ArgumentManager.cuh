@@ -105,7 +105,8 @@ public:
   using parameters_struct_t = ParameterStruct;
 
 private:
-  std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>> m_tuple_to_argument_data;
+  mutable std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
+    m_tuple_to_argument_data;
 
 public:
   ArgumentRefManager(

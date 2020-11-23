@@ -79,7 +79,8 @@ __device__ void make_cluster_v4(
   hits.channel(hit_index) = chan;
   hits.endPointY(hit_index) = endPointY;
   assert(fraction <= 0x1 && plane_code <= 0x1f && pseudoSize <= 0xf && mat <= 0x7ff);
-  hits.assembled_datatype(hit_index) = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
+  hits.assembled_datatype(hit_index) =
+    ((uint32_t) fraction) << 20 | ((uint32_t) plane_code) << 15 | ((uint32_t) pseudoSize) << 11 | mat;
 }
 
 __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4(

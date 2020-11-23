@@ -192,7 +192,8 @@ public:
     }
   }
 
-  void test_alignment() {
+  void test_alignment()
+  {
     for (const auto it : m_memory_segments) {
       if (it.tag != "") {
         // Note: Do an assert
@@ -325,7 +326,7 @@ public:
     }
 
     m_total_memory_required -= it->size() * sizeof(typename Argument::type);
-    
+
     m_memory_segments.erase(tag);
   }
 

@@ -193,29 +193,25 @@ namespace SciFi {
     {
 
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
-        m_base_pointer)[3 * m_total_number_of_hits + index];
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned& channel(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
-        m_base_pointer)[3 * m_total_number_of_hits + index];
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned assembled_datatype(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
-        m_base_pointer)[4 * m_total_number_of_hits + index];
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned& assembled_datatype(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
-        m_base_pointer)[4 * m_total_number_of_hits + index];
+      return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned id(const unsigned index) const { return (10u << 28) + channel(index); };

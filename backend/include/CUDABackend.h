@@ -54,10 +54,7 @@ namespace Allen {
   public:
     Context() {}
 
-    void initialize()
-    {
-      cudaCheck(cudaStreamCreate(&m_stream));
-    }
+    void initialize() { cudaCheck(cudaStreamCreate(&m_stream)); }
 
     cudaStream_t inline stream() const { return m_stream; }
   };
@@ -108,10 +105,7 @@ namespace Allen {
   void inline memset(void* devPtr, int value, size_t count) { cudaCheck(cudaMemset(devPtr, value, count)); }
 
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
-  void inline memset_async(void* ptr, int value, size_t count, const Context&)
-  {
-    memset(ptr, value, count);
-  }
+  void inline memset_async(void* ptr, int value, size_t count, const Context&) { memset(ptr, value, count); }
 #else
   void inline memset_async(void* ptr, int value, size_t count, const Context& context)
   {
@@ -126,10 +120,7 @@ namespace Allen {
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   void inline synchronize(const Context&) {}
 #else
-  void inline synchronize(const Context& context)
-  {
-    cudaCheck(cudaStreamSynchronize(context.stream()));
-  }
+  void inline synchronize(const Context& context) { cudaCheck(cudaStreamSynchronize(context.stream())); }
 #endif
 
   void inline device_reset() { cudaCheck(cudaDeviceReset()); }
@@ -142,7 +133,7 @@ namespace Allen {
   {
     cudaCheck(cudaHostRegister(ptr, size, convert_allen_to_cuda_host_register_kind(flags)));
   }
-  
+
   /**
    * @brief Prints the memory consumption of the device.
    */
@@ -153,7 +144,8 @@ namespace Allen {
     cudaCheck(cudaMemGetInfo(&free_byte, &total_byte));
     float free_percent = (float) free_byte / total_byte * 100;
     float used_percent = (float) (total_byte - free_byte) / total_byte * 100;
-    verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
+    verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used "
+                 << std::endl;
   }
 
   std::tuple<bool, std::string, unsigned> inline set_device(int cuda_device, size_t stream_id)
@@ -185,8 +177,8 @@ namespace Allen {
         return {false, "", 0};
       }
       else {
-        debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": " << device_properties.name
-                   << "\n\n";
+        debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": "
+                   << device_properties.name << "\n\n";
       }
     } catch (const std::invalid_argument& e) {
       error_cout << e.what() << std::endl;

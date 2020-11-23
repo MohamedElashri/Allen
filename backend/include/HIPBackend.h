@@ -21,23 +21,23 @@
  * @brief Macro to check hip calls.
  */
 #define hipCheck(stmt)                                                                                            \
-  {                                                                                                                \
+  {                                                                                                               \
     hipError_t err = stmt;                                                                                        \
     if (err != hipSuccess) {                                                                                      \
-      fprintf(                                                                                                     \
+      fprintf(                                                                                                    \
         stderr, "Failed to run %s\n%s (%d) at %s: %d\n", #stmt, hipGetErrorString(err), err, __FILE__, __LINE__); \
       throw std::invalid_argument("hipCheck failed");                                                             \
-    }                                                                                                              \
+    }                                                                                                             \
   }
 
 #define hipCheckKernelCall(stmt)                                                                                  \
-  {                                                                                                                \
+  {                                                                                                               \
     hipError_t err = stmt;                                                                                        \
     if (err != hipSuccess) {                                                                                      \
-      fprintf(                                                                                                     \
+      fprintf(                                                                                                    \
         stderr, "Failed to invoke kernel\n%s (%d) at %s: %d\n", hipGetErrorString(err), err, __FILE__, __LINE__); \
       throw std::invalid_argument("hipCheckKernelCall failed");                                                   \
-    }                                                                                                              \
+    }                                                                                                             \
   }
 
 namespace Allen {
@@ -53,10 +53,7 @@ namespace Allen {
   public:
     Context() {}
 
-    void initialize()
-    {
-      hipCheck(hipStreamCreate(&m_stream));
-    }
+    void initialize() { hipCheck(hipStreamCreate(&m_stream)); }
 
     hipStream_t inline stream() const { return m_stream; }
   };
@@ -107,10 +104,7 @@ namespace Allen {
   void inline memset(void* devPtr, int value, size_t count) { hipCheck(hipMemset(devPtr, value, count)); }
 
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
-  void inline memset_async(void* ptr, int value, size_t count, const Context&)
-  {
-    memset(ptr, value, count);
-  }
+  void inline memset_async(void* ptr, int value, size_t count, const Context&) { memset(ptr, value, count); }
 #else
   void inline memset_async(void* ptr, int value, size_t count, const Context& context)
   {
@@ -125,10 +119,7 @@ namespace Allen {
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   void inline synchronize(const Context&) {}
 #else
-  void inline synchronize(const Context& context)
-  {
-    hipCheck(hipStreamSynchronize(context.stream()));
-  }
+  void inline synchronize(const Context& context) { hipCheck(hipStreamSynchronize(context.stream())); }
 #endif
 
   void inline device_reset() { hipCheck(hipDeviceReset()); }
@@ -152,9 +143,10 @@ namespace Allen {
     hipCheck(hipMemGetInfo(&free_byte, &total_byte));
     float free_percent = (float) free_byte / total_byte * 100;
     float used_percent = (float) (total_byte - free_byte) / total_byte * 100;
-    verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
+    verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used "
+                 << std::endl;
   }
-  
+
   std::tuple<bool, std::string, unsigned> inline set_device(int hip_device, size_t stream_id)
   {
     int n_devices = 0;

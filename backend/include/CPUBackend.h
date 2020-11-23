@@ -208,6 +208,8 @@ namespace Allen {
 
   void inline host_register(void*, size_t, host_register_kind) {}
 
+  void inline print_device_memory_consumption() {}
+
   std::tuple<bool, std::string, unsigned> inline set_device(int, size_t)
   {
 #ifdef __linux__
@@ -224,7 +226,7 @@ namespace Allen {
     // Clean the string
     const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))|(\n)|( Processor)"};
     processor_name = std::regex_replace(processor_name, regex_to_remove, std::string {});
-    
+
     return {true, processor_name, cpu_alignment};
 #else
     return {true, "CPU", cpu_alignment};
