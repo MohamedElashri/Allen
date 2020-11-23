@@ -243,7 +243,7 @@ private:
     char* pointer;
     size_t size;
   };
-  std::map<std::string, MemorySegment> m_memory_segments {};
+  std::unordered_map<std::string, MemorySegment> m_memory_segments {};
 
 public:
   MemoryManager() = default;

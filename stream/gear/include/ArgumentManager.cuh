@@ -47,7 +47,7 @@ public:
   template<typename T>
   typename T::type* pointer() const
   {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     auto pointer = m_tuple_to_argument_data[index_of_T].pointer();
     return reinterpret_cast<typename T::type*>(pointer);
@@ -56,7 +56,7 @@ public:
   template<typename T>
   void set_pointer(char* pointer)
   {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     m_tuple_to_argument_data[index_of_T].set_pointer(pointer);
   }
@@ -64,7 +64,7 @@ public:
   template<typename T>
   size_t size() const
   {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     return m_tuple_to_argument_data[index_of_T].size();
   }
@@ -72,7 +72,7 @@ public:
   template<typename T>
   void set_size(const size_t size)
   {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     m_tuple_to_argument_data[index_of_T].set_size(size);
   }
@@ -80,7 +80,7 @@ public:
   template<typename T>
   std::string name() const
   {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     return m_tuple_to_argument_data[index_of_T].name();
   }
@@ -88,7 +88,7 @@ public:
   template<typename T>
   void set_name(const std::string& name)
   {
-    constexpr auto index_of_T = tuple_ref_index<T, typename std::decay<Tuple>::type>::value;
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     return m_tuple_to_argument_data[index_of_T].set_name(name);
   }
