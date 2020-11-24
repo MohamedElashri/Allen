@@ -37,15 +37,17 @@ def CaloSequence(initialize_lists):
         name="calo_find_clusters",
         host_number_of_selected_events_t=initialize_lists.
         host_number_of_selected_events_t(),
-        host_ecal_number_of_clusters_t = prefix_sum_ecal_num_clusters.host_total_sum_holder_t(),
-        host_hcal_number_of_clusters_t = prefix_sum_hcal_num_clusters.host_total_sum_holder_t(),
-        dev_event_list_t = initialize_lists.dev_event_list_t(),
-        dev_ecal_digits_t = calo_decode.dev_ecal_digits_t(),
-        dev_hcal_digits_t = calo_decode.dev_hcal_digits_t(),
-        dev_ecal_seed_clusters_t = calo_seed_clusters.dev_ecal_seed_clusters_t(),
-        dev_hcal_seed_clusters_t = calo_seed_clusters.dev_hcal_seed_clusters_t(),
-        dev_ecal_cluster_offsets_t = prefix_sum_ecal_num_clusters.dev_output_buffer_t(),
-        dev_hcal_cluster_offsets_t = prefix_sum_hcal_num_clusters.dev_output_buffer_t())
+        host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.host_total_sum_holder_t(),
+        host_hcal_number_of_clusters_t=prefix_sum_hcal_num_clusters.host_total_sum_holder_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t(),
+        dev_ecal_digits_t=calo_decode.dev_ecal_digits_t(),
+        dev_hcal_digits_t=calo_decode.dev_hcal_digits_t(),
+        dev_ecal_seed_clusters_t=calo_seed_clusters.dev_ecal_seed_clusters_t(),
+        dev_hcal_seed_clusters_t=calo_seed_clusters.dev_hcal_seed_clusters_t(),
+        dev_ecal_num_clusters_t=calo_seed_clusters.dev_ecal_num_clusters_t(),
+        dev_hcal_num_clusters_t=calo_seed_clusters.dev_hcal_num_clusters_t(),
+        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.dev_output_buffer_t(),
+        dev_hcal_cluster_offsets_t=prefix_sum_hcal_num_clusters.dev_output_buffer_t())
 
     calo_sequence = Sequence(
         ecal_banks, hcal_banks, calo_decode, calo_seed_clusters,
