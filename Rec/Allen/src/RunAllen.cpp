@@ -91,6 +91,7 @@ StatusCode RunAllen::initialize()
   const bool print_memory_usage = false;
   const unsigned start_event_offset = 0;
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
+  const unsigned required_memory_alignment = 64;
 
   m_stream_wrapper.reset(new StreamWrapper());
   m_stream_wrapper->initialize_streams(
@@ -99,6 +100,7 @@ StatusCode RunAllen::initialize()
     start_event_offset,
     reserve_mb,
     reserve_mb, // host memory same as "device"
+    required_memory_alignment,
     m_constants,
     configuration_reader.params());
 
