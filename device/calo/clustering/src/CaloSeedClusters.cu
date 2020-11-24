@@ -1,5 +1,4 @@
 #include <CaloSeedClusters.cuh>
-#include <iostream>
 
 __device__ void seed_clusters(CaloDigit const* digits,
                               CaloSeedCluster* clusters,

@@ -16,6 +16,8 @@ namespace calo_find_clusters {
     (DEVICE_INPUT(dev_hcal_digits_t, CaloDigit), dev_hcal_digits),
     (DEVICE_INPUT(dev_ecal_seed_clusters_t, CaloSeedCluster), dev_ecal_seed_clusters),
     (DEVICE_INPUT(dev_hcal_seed_clusters_t, CaloSeedCluster), dev_hcal_seed_clusters),
+    (DEVICE_INPUT(dev_ecal_num_clusters_t, uint), dev_ecal_num_clusters),
+    (DEVICE_INPUT(dev_hcal_num_clusters_t, uint), dev_hcal_num_clusters),
     (DEVICE_INPUT(dev_ecal_cluster_offsets_t, uint), dev_ecal_cluster_offsets),
     (DEVICE_INPUT(dev_hcal_cluster_offsets_t, uint), dev_hcal_cluster_offsets),
     (DEVICE_OUTPUT(dev_ecal_digits_clusters_t, CaloDigitClusters), dev_ecal_digits_clusters),

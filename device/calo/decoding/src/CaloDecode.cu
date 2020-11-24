@@ -2,8 +2,6 @@
 #include <CaloConstants.cuh>
 #include <CaloDecode.cuh>
 
-#include <iomanip>
-
 // TODO thinks about blocks/threads etc. 1 block per fragment might be best for coalesced memory acces.
 
 template<typename Event>
