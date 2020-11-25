@@ -200,6 +200,12 @@ namespace example_one_track_line {
     __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
 
   private:
+    // Commonly required properties
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Line-specific properties
     Property<minPt_t> m_minPt {this, 10000.0f / Gaudi::Units::GeV};
     Property<minIPChi2_t> m_minIPChi2 {this, 25.0f};
   };
@@ -272,6 +278,12 @@ namespace example_two_track_line {
     __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
   private:
+    // Commonly required properties
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Line-specific properties
     Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::GeV};
     Property<minTrackPt_t> m_minTrackPt {this, 500.0f / Gaudi::Units::MeV};
     Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 25.0f};
@@ -351,6 +363,12 @@ namespace velo_micro_bias_line {
     __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
 
   private:
+    // Commonly required properties
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Line-specific properties
     Property<min_velo_tracks_t> m_min_velo_tracks {this, 1};
   };
 } // namespace velo_micro_bias_line
