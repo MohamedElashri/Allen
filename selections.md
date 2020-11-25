@@ -206,10 +206,10 @@ namespace example_one_track_line {
 } // namespace example_one_track_line
 ```
 
-And the source in `device/selections/lines/src/ExampleOneTrack.cu`:
+And the source in `device/selections/lines/src/ExampleOneTrackLine.cu`:
 
 ```c++
-#include "ExampleOneTrack.cuh"
+#include "ExampleOneTrackLine.cuh"
 
 // Explicit instantiation of the line
 INSTANTIATE_LINE(example_one_track_line::example_one_track_line_t, example_one_track_line::Parameters)
@@ -280,7 +280,7 @@ namespace example_two_track_line {
 } // namespace example_two_track_line
 ```
 
-And a source in `device/selections/lines/src/ExampleTwoTrack.cu` with the following:
+And a source in `device/selections/lines/src/ExampleTwoTrackLine.cu` with the following:
 
 ```c++
 #include "ExampleTwoTrackLine.cuh"
