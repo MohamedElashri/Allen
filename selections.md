@@ -1,18 +1,17 @@
 # Table of Contents
 
-1.  [Allen: Adding a new selection](#allen-adding-a-new-selection)
-    1.  [Types of selections](#types-of-selections)
-        1.  [OneTrackLine](#onetrackline)
-        2.  [TwoTrackLine](#twotrackline)
-        3.  [EventLine](#eventline)
-        4.  [Custom selections](#custom-selections)
-    2.  [Adding a new selection](#adding-a-new-selection)
-        1.  [Creating a selection](#creating-a-selection)
-            1.  [OneTrackLine example](#onetrackline-example)
-            2.  [TwoTrackLine example](#twotrackline-example)
-            3.  [EventLine example](#eventline-example)
-            4.  [CustomLine example](#customline-example)
-        2.  [Adding your selection algorithm to the Allen sequence](#adding-your-selection-to-the-allen-sequence)
+1.  [Types of selections](#types-of-selections)
+    1.  [OneTrackLine](#onetrackline)
+    2.  [TwoTrackLine](#twotrackline)
+    3.  [EventLine](#eventline)
+    4.  [Custom selections](#custom-selections)
+2.  [Adding a new selection](#adding-a-new-selection)
+    1.  [Creating a selection](#creating-a-selection)
+        1.  [OneTrackLine example](#onetrackline-example)
+        2.  [TwoTrackLine example](#twotrackline-example)
+        3.  [EventLine example](#eventline-example)
+        4.  [CustomLine example](#customline-example)
+    2.  [Adding your selection algorithm to the Allen sequence](#adding-your-selection-to-the-allen-sequence)
 
 
 # Allen: Adding a new selection
@@ -633,4 +632,7 @@ configuration file.
 
     Notice that all the values of the properties have to be given in a string even if the type of the property is an int or a float.
     Now, you should be able to build and run the newly generated `custom_sequence`.
+
+    Notice also that if you're testing only one line, the tuple of lines becomes :
+    `lines = (example_one_track_line,)`
     
