@@ -591,7 +591,7 @@ configuration file.
         dev_output_buffer_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         pre_scaler_hash_string="example_one_track_line_pre",
         post_scaler_hash_string="example_one_track_line_post")
 
@@ -606,7 +606,7 @@ configuration file.
         dev_output_buffer_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         pre_scaler_hash_string="example_two_track_line_pre",
         post_scaler_hash_string="example_two_track_line_post")
 
@@ -619,7 +619,7 @@ configuration file.
         dev_offsets_velo_track_hit_number_t=velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         pre_scaler_hash_string="velo_micro_bias_line_pre",
         post_scaler_hash_string="velo_micro_bias_line_post")
     
@@ -630,7 +630,7 @@ configuration file.
         dev_event_list_t=velo_sequence["full_event_list"].dev_event_list_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         dev_track_offsets_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
         dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
         dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
