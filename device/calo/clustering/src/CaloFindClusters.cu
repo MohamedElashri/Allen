@@ -48,22 +48,22 @@ __global__ void calo_find_clusters::calo_find_clusters(
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
 
-  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
+  unsigned const event_index = blockIdx.x;
 
   // Build simple 3x3 clusters from seed clusters
   // Ecal
-  unsigned const ecal_offset = parameters.dev_ecal_cluster_offsets[event_number];
-  unsigned const ecal_num_clusters = parameters.dev_ecal_num_clusters[event_number];
-  simple_clusters(parameters.dev_ecal_digits + (event_number * ecal_geometry.max_index),
-                  parameters.dev_ecal_seed_clusters + ecal_geometry.max_index * event_number,
+  unsigned const ecal_offset = parameters.dev_ecal_cluster_offsets[event_index];
+  unsigned const ecal_num_clusters = parameters.dev_ecal_num_clusters[event_index];
+  simple_clusters(parameters.dev_ecal_digits + ecal_geometry.max_index * event_index,
+                  parameters.dev_ecal_seed_clusters + ecal_geometry.max_index / 8 * event_index,
                   parameters.dev_ecal_clusters + ecal_offset,
                   ecal_num_clusters, ecal_geometry);
 
   // Hcal
-  unsigned const hcal_offset = parameters.dev_hcal_cluster_offsets[event_number];
-  unsigned const hcal_num_clusters = parameters.dev_hcal_num_clusters[event_number];
-  simple_clusters(parameters.dev_hcal_digits + (event_number * hcal_geometry.max_index),
-                  parameters.dev_hcal_seed_clusters + hcal_geometry.max_index * event_number,
+  unsigned const hcal_offset = parameters.dev_hcal_cluster_offsets[event_index];
+  unsigned const hcal_num_clusters = parameters.dev_hcal_num_clusters[event_index];
+  simple_clusters(parameters.dev_hcal_digits + hcal_geometry.max_index * event_index,
+                  parameters.dev_hcal_seed_clusters + hcal_geometry.max_index / 8 * event_index,
                   parameters.dev_hcal_clusters + hcal_offset,
                   hcal_num_clusters, hcal_geometry);
 

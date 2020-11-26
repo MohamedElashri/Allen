@@ -31,22 +31,22 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
   const int16_t ecal_min_adc,
   const int16_t hcal_min_adc)
 {
-  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
+  unsigned const event_index = blockIdx.x;
 
   // Get geometry.
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
 
   // ECal
-  seed_clusters(parameters.dev_ecal_digits + (event_number * ecal_geometry.max_index),
-                parameters.dev_ecal_seed_clusters + ecal_geometry.max_index * event_number,
-                parameters.dev_ecal_num_clusters + event_number,
+  seed_clusters(&parameters.dev_ecal_digits[ecal_geometry.max_index * event_index],
+                &parameters.dev_ecal_seed_clusters[ecal_geometry.max_index * event_index / 8],
+                &parameters.dev_ecal_num_clusters[event_index],
                 ecal_geometry, ecal_min_adc);
 
   // HCal
-  seed_clusters(parameters.dev_hcal_digits + (event_number * hcal_geometry.max_index),
-                parameters.dev_hcal_seed_clusters + hcal_geometry.max_index * event_number,
-                parameters.dev_hcal_num_clusters + event_number,
+  seed_clusters(&parameters.dev_hcal_digits[hcal_geometry.max_index * event_index],
+                &parameters.dev_hcal_seed_clusters[hcal_geometry.max_index * event_index / 8],
+                &parameters.dev_hcal_num_clusters[event_index],
                 hcal_geometry, hcal_min_adc);
 }
 
@@ -61,8 +61,8 @@ void calo_seed_clusters::calo_seed_clusters_t::set_arguments_size(
   set_size<dev_hcal_num_clusters_t>(arguments, n_events);
 
   // TODO: get this from the geometry too
-  set_size<dev_ecal_seed_clusters_t>(arguments, Calo::Constants::ecal_max_cells * n_events);
-  set_size<dev_hcal_seed_clusters_t>(arguments, Calo::Constants::hcal_max_cells * n_events);
+  set_size<dev_ecal_seed_clusters_t>(arguments, Calo::Constants::ecal_max_index / 8 * n_events);
+  set_size<dev_hcal_seed_clusters_t>(arguments, Calo::Constants::hcal_max_index / 8 * n_events);
 }
 
 void calo_seed_clusters::calo_seed_clusters_t::operator()(

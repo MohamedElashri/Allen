@@ -5,8 +5,6 @@ namespace Calo {
     constexpr uint16_t card_channels = 32;
     constexpr uint16_t ecal_max_index = 6016;
     constexpr uint16_t hcal_max_index = 1488;
-    constexpr uint16_t ecal_max_cells = 6015;
-    constexpr uint16_t hcal_max_cells = 6015;
 
     // Max distance based on CellIDs is 64 steps away, so the iteration in which a cell is clustered can never be more than 64.
     constexpr uint16_t unclustered = 65;
