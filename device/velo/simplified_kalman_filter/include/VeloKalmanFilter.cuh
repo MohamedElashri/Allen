@@ -135,17 +135,12 @@ namespace velo_kalman_filter {
       delta_z = Velo::Constants::z_endVelo - state.z;
     }
 
+    // Propagate the state
     state.x = state.x + state.tx * delta_z;
     state.y = state.y + state.ty * delta_z;
     state.z = state.z + delta_z;
 
-    // TODO: Is this safety check necessary ? (coming from the PV finder)
-    // if (delta_z * state.c20 < 0.f || delta_z * state.c31 < 0.f) {
-    //   state.z = -9999.f;
-    // }
-
-    // Update the covariance states
-    // TODO: Check correctness of this code
+    // Propagate the covariance matrix
     const auto dz2 = delta_z * delta_z;
     state.c00 += dz2 * state.c22 + 2.f * delta_z * state.c20;
     state.c11 += dz2 * state.c33 + 2.f * delta_z * state.c31;
