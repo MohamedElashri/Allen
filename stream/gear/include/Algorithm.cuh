@@ -10,6 +10,11 @@
 #include "Argument.cuh"
 
 namespace Allen {
+  namespace tests {
+    struct Precondition {};
+    struct Postcondition {};
+  }
+  
   // Forward declare to use in Algorithm
   template<typename V>
   class Property;
