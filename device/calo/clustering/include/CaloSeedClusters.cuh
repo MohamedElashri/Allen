@@ -8,7 +8,6 @@
 namespace calo_seed_clusters {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_ecal_digits_t, CaloDigit), dev_ecal_digits),
     (DEVICE_INPUT(dev_hcal_digits_t, CaloDigit), dev_hcal_digits),

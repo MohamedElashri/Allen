@@ -116,8 +116,8 @@ void calo_decode::calo_decode_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_ecal_digits_t>(arguments, Calo::Constants::ecal_max_index * first<host_number_of_selected_events_t>(arguments));
-  set_size<dev_hcal_digits_t>(arguments, Calo::Constants::hcal_max_index * first<host_number_of_selected_events_t>(arguments));
+  set_size<dev_ecal_digits_t>(arguments, Calo::Constants::ecal_max_index * size<dev_event_list_t>(arguments));
+  set_size<dev_hcal_digits_t>(arguments, Calo::Constants::hcal_max_index * size<dev_event_list_t>(arguments));
 }
 
 void calo_decode::calo_decode_t::operator()(

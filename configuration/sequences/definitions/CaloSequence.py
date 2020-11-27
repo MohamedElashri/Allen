@@ -10,7 +10,6 @@ def CaloSequence(initialize_lists):
 
     calo_decode = calo_decode_t(
         name="calo_decode",
-        host_number_of_selected_events_t=initialize_lists.host_number_of_selected_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t(),
         dev_ecal_raw_input_t=ecal_banks.dev_raw_banks_t(),
         dev_ecal_raw_input_offsets_t=ecal_banks.dev_raw_offsets_t(),
@@ -19,8 +18,6 @@ def CaloSequence(initialize_lists):
 
     calo_seed_clusters = calo_seed_clusters_t(
         name="calo_seed_clusters",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t(),
         dev_ecal_digits_t=calo_decode.dev_ecal_digits_t(),
         dev_hcal_digits_t=calo_decode.dev_hcal_digits_t())
@@ -35,8 +32,6 @@ def CaloSequence(initialize_lists):
 
     calo_find_clusters = calo_find_clusters_t(
         name="calo_find_clusters",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_selected_events_t(),
         host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.host_total_sum_holder_t(),
         host_hcal_number_of_clusters_t=prefix_sum_hcal_num_clusters.host_total_sum_holder_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t(),

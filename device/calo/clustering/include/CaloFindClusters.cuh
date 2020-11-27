@@ -8,7 +8,6 @@
 namespace calo_find_clusters {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
     (HOST_INPUT(host_ecal_number_of_clusters_t, unsigned), host_ecal_number_of_clusters),
     (HOST_INPUT(host_hcal_number_of_clusters_t, unsigned), host_hcal_number_of_clusters),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),

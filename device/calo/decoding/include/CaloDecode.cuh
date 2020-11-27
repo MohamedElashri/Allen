@@ -9,7 +9,6 @@
 namespace calo_decode {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
     (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_ecal_raw_input_t, char), dev_ecal_raw_input),
     (DEVICE_INPUT(dev_ecal_raw_input_offsets_t, unsigned), dev_ecal_raw_input_offsets),
