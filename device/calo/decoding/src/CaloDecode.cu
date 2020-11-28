@@ -11,6 +11,7 @@ __device__ void decode(const char* event_data, const uint32_t* offsets,
                        const CaloGeometry& geometry)
 {
   unsigned const event_number = event_list[blockIdx.x];
+  unsigned const event_index = blockIdx.x;
 
   auto raw_event = Event{event_data, offsets};
   for (auto bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
@@ -59,7 +60,7 @@ __device__ void decode(const char* event_data, const uint32_t* offsets,
         uint16_t index = geometry.channels[(code - geometry.code_offset) * Calo::Constants::card_channels + bit_num];
         // Ignore cells with invalid indices
         if (index < geometry.max_index) {
-          digits[event_number * geometry.max_index + index].adc = adc;
+          digits[event_index * geometry.max_index + index].adc = adc;
         }
       }
     }
