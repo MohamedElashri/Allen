@@ -29,6 +29,9 @@ namespace {
   struct has_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
   };
 
+// Note: Remove this ifdef block whenever the demangle function
+//       is used elsewhere.
+#ifdef ENABLE_CONTRACTS
   /**
    * @brief Demangles a name of a function.
    */
@@ -39,6 +42,7 @@ namespace {
     int status;
     return abi::__cxa_demangle(mangled_name, buff, &buff_size, &status);
   }
+#endif
 } // namespace
 
 namespace Sch {
