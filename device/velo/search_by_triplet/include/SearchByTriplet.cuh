@@ -44,7 +44,7 @@ namespace velo_search_by_triplet {
   };
 
   // Define pre and postconditions
-  struct cluster_container_checks : Allen::contract::Precondition {
+  struct cluster_container_checks : public Allen::contract::Precondition {
     void operator()(
       const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,

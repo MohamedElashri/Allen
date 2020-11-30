@@ -1,5 +1,4 @@
 #include "SearchByTriplet.cuh"
-#include <cassert>
 
 void velo_search_by_triplet::cluster_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
@@ -53,9 +52,9 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
     }
   }
 
-  assert(hit_phi_is_sorted && "Require that dev_hit_phi_t be sorted per module pair");
-  assert(x_greater_than_min_value && "Require that x be greater than min value");
-  assert(x_lower_than_max_value && "Require that x be lower than max value");
-  assert(y_greater_than_min_value && "Require that y be greater than min value");
-  assert(y_lower_than_max_value && "Require that y be lower than max value");
+  require(hit_phi_is_sorted, "Require that dev_hit_phi_t be sorted per module pair");
+  require(x_greater_than_min_value, "Require that x be greater than min value");
+  require(x_lower_than_max_value, "Require that x be lower than max value");
+  require(y_greater_than_min_value, "Require that y be greater than min value");
+  require(y_lower_than_max_value, "Require that y be lower than max value");
 }

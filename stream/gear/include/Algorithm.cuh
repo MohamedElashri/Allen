@@ -8,14 +8,9 @@
 #include "BaseTypes.cuh"
 #include "TargetFunction.cuh"
 #include "Argument.cuh"
+#include "Contract.cuh"
 
 namespace Allen {
-  // Contract classes
-  namespace contract {
-    struct Precondition {};
-    struct Postcondition {};
-  }
-
   // Forward declare to use in Algorithm
   template<typename V>
   class Property;
