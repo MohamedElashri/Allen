@@ -27,8 +27,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -117,8 +117,6 @@ option(ENABLE_CONTRACTS "Enable contracts in sequence execution" OFF)
 message(STATUS "Contracts: " ${ENABLE_CONTRACTS})
 if(ENABLE_CONTRACTS)
   add_compile_definitions(ENABLE_CONTRACTS)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-  string(APPEND CMAKE_CXX_FLAGS " -DNDEBUG")
 endif()
 
 # Deal with device target architecture
@@ -433,8 +431,8 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   enable_language(CUDA)
 
   # set(CMAKE_CUDA_STANDARD 17) # 17 not supported by current CMake version
-  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-std=c++17 -O3 -g --generate-line-info")
-  set(CMAKE_CUDA_FLAGS_RELEASE "-std=c++17 -O3 --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-std=c++17 -O3 -g -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_RELEASE "-std=c++17 -O3 -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_DEBUG "-std=c++17 -G -g -DALLEN_DEBUG")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
@@ -443,10 +441,6 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
   else()
     set(CUDA_VERBOSE_FLAGS "")
-  endif()
-
-  if(NOT ENABLE_CONTRACTS AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo"))
-    string(APPEND CMAKE_CUDA_FLAGS " -DNDEBUG")
   endif()
 
   string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
