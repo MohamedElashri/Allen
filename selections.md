@@ -1,18 +1,17 @@
 # Table of Contents
 
-1.  [Allen: Adding a new selection](#allen-adding-a-new-selection)
-    1.  [Types of selections](#types-of-selections)
-        1.  [OneTrackLine](#onetrackline)
-        2.  [TwoTrackLine](#twotrackline)
-        3.  [EventLine](#eventline)
-        4.  [Custom selections](#custom-selections)
-    2.  [Adding a new selection](#adding-a-new-selection)
-        1.  [Creating a selection](#creating-a-selection)
-            1.  [OneTrackLine example](#onetrackline-example)
-            2.  [TwoTrackLine example](#twotrackline-example)
-            3.  [EventLine example](#eventline-example)
-            4.  [CustomLine example](#customline-example)
-        2.  [Adding your selection algorithm to the Allen sequence](#adding-your-selection-to-the-allen-sequence)
+1.  [Types of selections](#types-of-selections)
+    1.  [OneTrackLine](#onetrackline)
+    2.  [TwoTrackLine](#twotrackline)
+    3.  [EventLine](#eventline)
+    4.  [Custom selections](#custom-selections)
+2.  [Adding a new selection](#adding-a-new-selection)
+    1.  [Creating a selection](#creating-a-selection)
+        1.  [OneTrackLine example](#onetrackline-example)
+        2.  [TwoTrackLine example](#twotrackline-example)
+        3.  [EventLine example](#eventline-example)
+        4.  [CustomLine example](#customline-example)
+    2.  [Adding your selection algorithm to the Allen sequence](#adding-your-selection-to-the-allen-sequence)
 
 
 # Allen: Adding a new selection
@@ -201,16 +200,22 @@ namespace example_one_track_line {
     __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
 
   private:
+    // Commonly required properties
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Line-specific properties
     Property<minPt_t> m_minPt {this, 10000.0f / Gaudi::Units::GeV};
     Property<minIPChi2_t> m_minIPChi2 {this, 25.0f};
   };
 } // namespace example_one_track_line
 ```
 
-And the source in `device/selections/lines/src/ExampleOneTrack.cu`:
+And the source in `device/selections/lines/src/ExampleOneTrackLine.cu`:
 
 ```c++
-#include "ExampleOneTrack.cuh"
+#include "ExampleOneTrackLine.cuh"
 
 // Explicit instantiation of the line
 INSTANTIATE_LINE(example_one_track_line::example_one_track_line_t, example_one_track_line::Parameters)
@@ -273,6 +278,12 @@ namespace example_two_track_line {
     __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
   private:
+    // Commonly required properties
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Line-specific properties
     Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::GeV};
     Property<minTrackPt_t> m_minTrackPt {this, 500.0f / Gaudi::Units::MeV};
     Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 25.0f};
@@ -281,7 +292,7 @@ namespace example_two_track_line {
 } // namespace example_two_track_line
 ```
 
-And a source in `device/selections/lines/src/ExampleTwoTrack.cu` with the following:
+And a source in `device/selections/lines/src/ExampleTwoTrackLine.cu` with the following:
 
 ```c++
 #include "ExampleTwoTrackLine.cuh"
@@ -352,6 +363,12 @@ namespace velo_micro_bias_line {
     __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
 
   private:
+    // Commonly required properties
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    // Line-specific properties
     Property<min_velo_tracks_t> m_min_velo_tracks {this, 1};
   };
 } // namespace velo_micro_bias_line
@@ -574,7 +591,7 @@ configuration file.
         dev_output_buffer_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         pre_scaler_hash_string="example_one_track_line_pre",
         post_scaler_hash_string="example_one_track_line_post")
 
@@ -589,7 +606,7 @@ configuration file.
         dev_output_buffer_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         pre_scaler_hash_string="example_two_track_line_pre",
         post_scaler_hash_string="example_two_track_line_post")
 
@@ -602,7 +619,7 @@ configuration file.
         dev_offsets_velo_track_hit_number_t=velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         pre_scaler_hash_string="velo_micro_bias_line_pre",
         post_scaler_hash_string="velo_micro_bias_line_post")
     
@@ -613,7 +630,7 @@ configuration file.
         dev_event_list_t=velo_sequence["full_event_list"].dev_event_list_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=hlt1_sequence["layout_provider"].dev_mep_layout_t(),
+        dev_mep_layout_t=velo_sequence["mep_layout"],
         dev_track_offsets_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
         dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
         dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
@@ -633,4 +650,7 @@ configuration file.
 
     Notice that all the values of the properties have to be given in a string even if the type of the property is an int or a float.
     Now, you should be able to build and run the newly generated `custom_sequence`.
+
+    Notice also that if you're testing only one line, the tuple of lines becomes :
+    `lines = (example_one_track_line,)`
     
