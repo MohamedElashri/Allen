@@ -10,11 +10,12 @@
 #include "Argument.cuh"
 
 namespace Allen {
-  namespace tests {
+  // Contract classes
+  namespace contract {
     struct Precondition {};
     struct Postcondition {};
   }
-  
+
   // Forward declare to use in Algorithm
   template<typename V>
   class Property;
@@ -26,6 +27,9 @@ namespace Allen {
    */
   class Algorithm : public BaseAlgorithm {
   public:
+    // Define empty contract container by default
+    using contracts = std::tuple<>;
+
     template<typename T>
     using Property = Allen::Property<T>;
 

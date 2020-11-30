@@ -332,90 +332,120 @@ namespace Sch {
     }
   };
 
+  template<typename ContractsTuple, typename Enabled = void>
+  struct AlgorithmContracts;
+
+  template<>
+  struct AlgorithmContracts<std::tuple<>, void> {
+    using preconditions = std::tuple<>;
+    using postconditions = std::tuple<>;
+  };
+
+  template<typename A, typename... T>
+  struct AlgorithmContracts<
+    std::tuple<A, T...>,
+    std::enable_if_t<std::is_base_of_v<Allen::contract::Precondition, A>>> {
+    using recursive_contracts = AlgorithmContracts<std::tuple<T...>>;
+    using preconditions = typename TupleAppend<typename recursive_contracts::preconditions, A>::t;
+    using postconditions = typename recursive_contracts::postconditions;
+  };
+
+  template<typename A, typename... T>
+  struct AlgorithmContracts<
+    std::tuple<A, T...>,
+    std::enable_if_t<std::is_base_of_v<Allen::contract::Postcondition, A>>> {
+    using recursive_contracts = AlgorithmContracts<std::tuple<T...>>;
+    using preconditions = typename recursive_contracts::preconditions;
+    using postconditions = typename TupleAppend<typename recursive_contracts::postconditions, A>::t;
+  };
+
   /**
    * @brief Runs the sequence tuple (implementation).
    */
-  template<typename Scheduler, typename SetSizeArguments, typename VisitArguments, typename Indices>
+  template<typename Scheduler, typename Indices>
   struct RunSequenceTupleImpl;
 
-  template<typename Scheduler, typename... SetSizeArguments, typename... VisitArguments>
-  struct RunSequenceTupleImpl<
-    Scheduler,
-    std::tuple<SetSizeArguments...>,
-    std::tuple<VisitArguments...>,
-    std::index_sequence<>> {
-    constexpr static void run(Scheduler&, SetSizeArguments&&..., VisitArguments&&...) {}
+  template<typename Scheduler>
+  struct RunSequenceTupleImpl<Scheduler, std::index_sequence<>> {
+    static void
+    run(Scheduler&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&)
+    {}
   };
 
-  template<
-    typename Scheduler,
-    typename... SetSizeArguments,
-    typename... VisitArguments,
-    unsigned long I,
-    unsigned long... Is>
-  struct RunSequenceTupleImpl<
-    Scheduler,
-    std::tuple<SetSizeArguments...>,
-    std::tuple<VisitArguments...>,
-    std::index_sequence<I, Is...>> {
-    constexpr static void
-    run(Scheduler& scheduler, SetSizeArguments&&... set_size_arguments, VisitArguments&&... visit_arguments)
+  template<typename Scheduler, unsigned long I, unsigned long... Is>
+  struct RunSequenceTupleImpl<Scheduler, std::index_sequence<I, Is...>> {
+    static void run(
+      Scheduler& scheduler,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      const Allen::Context& context)
     {
-      using t = typename std::tuple_element<I, typename Scheduler::configured_sequence_t>::type;
+      using t = std::tuple_element_t<I, typename Scheduler::configured_sequence_t>;
       using configured_arguments_t =
-        typename std::tuple_element<I, typename Scheduler::configured_sequence_arguments_t>::type;
+        std::tuple_element_t<I, typename Scheduler::configured_sequence_arguments_t>;
+
       auto arguments_tuple =
         ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
           scheduler.argument_manager.argument_database());
 
-      // Sets the arguments sizes, setups the scheduler and visits the algorithm.
-      std::get<I>(scheduler.sequence_tuple)
-        .set_arguments_size(arguments_tuple, std::forward<SetSizeArguments>(set_size_arguments)...);
+#ifdef ENABLE_CONTRACTS
+      // Get pre and postconditions
+      using algorithm_contracts =
+        AlgorithmContracts<typename std::tuple_element_t<I, typename Scheduler::configured_sequence_t>::contracts>;
+      const auto preconditions = typename algorithm_contracts::preconditions {};
+      const auto postconditions = typename algorithm_contracts::postconditions {};
+#endif
 
-      scheduler.template setup<I>();
+      try {
+        // Sets the arguments sizes
+        std::get<I>(scheduler.sequence_tuple)
+          .set_arguments_size(arguments_tuple, runtime_options, constants, host_buffers);
 
-      std::get<I>(scheduler.sequence_tuple)
-        .
-        operator()(arguments_tuple, std::forward<VisitArguments>(visit_arguments)...);
+        // Setup algorithm, reserving / freeing memory buffers
+        scheduler.template setup<I>();
 
-      RunSequenceTupleImpl<
-        Scheduler,
-        std::tuple<SetSizeArguments...>,
-        std::tuple<VisitArguments...>,
-        std::index_sequence<Is...>>::
-        run(
-          scheduler,
-          std::forward<SetSizeArguments>(set_size_arguments)...,
-          std::forward<VisitArguments>(visit_arguments)...);
+#ifdef ENABLE_CONTRACTS
+        // Run preconditions
+        std::apply([&](const auto&... contract) { (contract.operator()(arguments_tuple, runtime_options, constants, context), ...); }, preconditions);
+#endif
+
+        // Invoke operator() of the algorithm
+        std::get<I>(scheduler.sequence_tuple)
+          .
+          operator()(arguments_tuple, runtime_options, constants, host_buffers, context);
+
+#ifdef ENABLE_CONTRACTS
+        // Run postconditions
+        std::apply([&](const auto&... contract) { (contract.operator()(arguments_tuple, runtime_options, constants, context), ...); }, postconditions);
+#endif
+      } catch (std::invalid_argument& e) {
+        fprintf(
+          stderr,
+          "Execution of algorithm %s raised an exception\n",
+          std::get<I>(scheduler.sequence_tuple).name().c_str());
+        throw e;
+      }
+
+      RunSequenceTupleImpl<Scheduler, std::index_sequence<Is...>>::run(
+        scheduler, runtime_options, constants, host_buffers, context);
     }
   };
 
   /**
    * @brief Runs a sequence of algorithms.
-   *
-   * @tparam Tuple            Sequence of algorithms
-   * @tparam SetSizeArguments Arguments to set_arguments_size
-   * @tparam VisitArguments   Arguments to visit
    */
-  template<typename Scheduler, typename SetSizeArguments, typename VisitArguments>
-  struct RunSequenceTuple;
-
-  template<typename Scheduler, typename... SetSizeArguments, typename... VisitArguments>
-  struct RunSequenceTuple<Scheduler, std::tuple<SetSizeArguments...>, std::tuple<VisitArguments...>> {
-    constexpr static void
-    run(Scheduler& scheduler, SetSizeArguments&&... set_size_arguments, VisitArguments&&... visit_arguments)
-    {
-      RunSequenceTupleImpl<
-        Scheduler,
-        std::tuple<SetSizeArguments...>,
-        std::tuple<VisitArguments...>,
-        std::make_index_sequence<std::tuple_size<typename Scheduler::configured_sequence_t>::value>>::
-        run(
-          scheduler,
-          std::forward<SetSizeArguments>(set_size_arguments)...,
-          std::forward<VisitArguments>(visit_arguments)...);
-    }
-  };
+  template<typename Scheduler>
+  void run_sequence_tuple(
+    Scheduler& scheduler,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    const Allen::Context& context)
+  {
+    RunSequenceTupleImpl<Scheduler, std::make_index_sequence<std::tuple_size_v<typename Scheduler::configured_sequence_t>>>::run(
+      scheduler, runtime_options, constants, host_buffers, context);
+  }
 
   /**
    * @brief Runs the PrChecker for all configured algorithms in the sequence.

@@ -37,7 +37,7 @@ struct Scheduler {
   bool do_print = false;
 
   // Configured sequence
-  ConfiguredSequence sequence_tuple;
+  configured_sequence_t sequence_tuple;
 
   Scheduler() = default;
   Scheduler(const Scheduler&) = delete;
