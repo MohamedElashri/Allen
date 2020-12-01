@@ -83,7 +83,7 @@ check-formatting:
       - build*/*Allen*
       - build*/Sequence.json
       - input
-  retry: 0
+  retry: 2
   allow_failure: true
 
 .build_job: &build_clang_job_def_warnings_as_errors
@@ -118,7 +118,7 @@ check-formatting:
       - build*/*Allen*
       - build*/Sequence.json
       - input
-  retry: 0
+  retry: 2
   allow_failure: true
 
 .build_job: &build_gcc_job_def
