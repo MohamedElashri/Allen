@@ -86,7 +86,7 @@ Hlt1D2KPi:                31/  1000, (  930.00 +/-   164.42) kHz
 Hlt1D2PiPi:               26/  1000, (  780.00 +/-   150.97) kHz
 Hlt1DiMuonHighMass:       10/  1000, (  300.00 +/-    94.39) kHz
 Hlt1DiMuonLowMass:        17/  1000, (  510.00 +/-   122.64) kHz
-Hlt1DiMuonSoft:           10/  1000, (  300.00 +/-    94.39) kHz
+Hlt1DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowPtDiMuon:          41/  1000, ( 1230.00 +/-   188.11) kHz
 Hlt1TrackMuonMVA:          5/  1000, (  150.00 +/-    66.91) kHz
 Hlt1GECPassthrough:      856/  1000, (25680.00 +/-   333.07) kHz
