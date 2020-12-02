@@ -644,6 +644,7 @@ int allen(
 
   // track run changes
   std::optional<uint> next_run_number;
+  bool run_change = false;
   uint current_run_number = 0;
 
   // Lambda to check if any event processors are done processing
@@ -785,16 +786,22 @@ int allen(
     zmqSvc->poll(&items[0], items.size(), -1);
 
     // If we have a pending run change we must do that before receiving further input from the I/O threads
-    if (next_run_number) {
-      // Only process the run change once all GPU streams have finished
-      if (stream_ready.count() == number_of_threads) {
-        debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
-        updater->update(*next_run_number);
-        current_run_number = *next_run_number;
-        next_run_number.reset();
+    if (run_change) {
+      if (next_run_number) {
+        // Only process the run change once all GPU streams have finished
+        if (stream_ready.count() == number_of_threads) {
+          debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
+          updater->update(*next_run_number);
+          current_run_number = *next_run_number;
+          next_run_number.reset();
+          run_change = false;
+        }
+      } else {
+        run_change = false;
       }
     }
-    else {
+
+    if (!run_change) {
       // Check if input slices are ready or events have been written
       for (size_t i = 0; i < n_io; ++i) {
         if (items[number_of_threads + i].revents & zmq::POLLIN) {
@@ -817,6 +824,7 @@ int allen(
             break;
           }
           else if (msg == "RUN") {
+            run_change = true;
             next_run_number = zmqSvc->receive<uint>(socket);
             debug_cout << "Requested run change from " << current_run_number << " to " << *next_run_number << std::endl;
             // guard against double run changes if we have multiple input threads
@@ -999,7 +1007,7 @@ int allen(
     // Separate if statement to allow stop in different ways
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
-    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done));
+    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done)) && !run_change;
     if (t && io_cond && number_of_repetitions > 1) {
       if (!throughput_processed) {
         throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
