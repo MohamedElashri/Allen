@@ -11,10 +11,10 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
   constexpr float velo_cluster_min_y = -100.f;
   constexpr float velo_cluster_max_y = 100.f;
 
-  auto sorted_velo_cluster_container = make_vector<Parameters::dev_sorted_velo_cluster_container_t>(arguments);
-  auto offsets_estimated_input_size = make_vector<Parameters::dev_offsets_estimated_input_size_t>(arguments);
-  auto module_cluster_num = make_vector<Parameters::dev_module_cluster_num_t>(arguments);
-  auto hit_phi = make_vector<Parameters::dev_hit_phi_t>(arguments);
+  const auto sorted_velo_cluster_container = make_vector<Parameters::dev_sorted_velo_cluster_container_t>(arguments);
+  const auto offsets_estimated_input_size = make_vector<Parameters::dev_offsets_estimated_input_size_t>(arguments);
+  const auto module_cluster_num = make_vector<Parameters::dev_module_cluster_num_t>(arguments);
+  const auto hit_phi = make_vector<Parameters::dev_hit_phi_t>(arguments);
 
   // Condition to check
   bool hit_phi_is_sorted = true;
@@ -23,8 +23,8 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
   bool y_greater_than_min_value = true;
   bool y_lower_than_max_value = true;
 
-  const auto velo_container_view =
-    Velo::ConstClusters {sorted_velo_cluster_container.data(), first<Parameters::host_total_number_of_velo_clusters_t>(arguments)};
+  const auto velo_container_view = Velo::ConstClusters {
+    sorted_velo_cluster_container.data(), first<Parameters::host_total_number_of_velo_clusters_t>(arguments)};
   for (unsigned event_number = 0; event_number < first<Parameters::host_number_of_events_t>(arguments);
        ++event_number) {
     const auto event_number_of_hits =
@@ -57,4 +57,32 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
   require(x_lower_than_max_value, "Require that x be lower than max value");
   require(y_greater_than_min_value, "Require that y be greater than min value");
   require(y_lower_than_max_value, "Require that y be lower than max value");
+}
+
+void velo_search_by_triplet::track_container_checks::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const Allen::Context&) const
+{
+  const auto velo_tracks_container = make_vector<Parameters::dev_tracks_t>(arguments);
+  
+  auto maximum_number_of_hits = true;
+  auto no_repeated_hits = true;
+
+  for (const auto track : velo_tracks_container) {
+    maximum_number_of_hits &= track.hitsNum < Velo::Constants::max_track_size;
+    
+    // Check repeated hits in the hits of the track
+    std::vector<uint16_t> hits (track.hitsNum);
+    for (unsigned i = 0; i < track.hitsNum; ++i) {
+      hits[i] = track.hits[i];
+    }
+    std::sort(hits.begin(), hits.end());
+    auto it = std::adjacent_find(hits.begin(), hits.end());
+    no_repeated_hits &= it == hits.end();
+  }
+
+  require(maximum_number_of_hits, "Require that all VELO tracks have a maximum number of hits");
+  require(no_repeated_hits, "Require that all VELO tracks have no repeated hits");
 }

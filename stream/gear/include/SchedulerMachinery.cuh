@@ -6,7 +6,6 @@
 #include <tuple>
 #include <functional>
 #include <type_traits>
-#include <cxxabi.h>
 #include "Logger.h"
 #include "Argument.cuh"
 #include "ArgumentManager.cuh"
@@ -28,21 +27,6 @@ namespace {
   template<typename T>
   struct has_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
   };
-
-// Note: Remove this ifdef block whenever the demangle function
-//       is used elsewhere.
-#ifdef ENABLE_CONTRACTS
-  /**
-   * @brief Demangles a name of a function.
-   */
-  const char* demangle(const char* mangled_name)
-  {
-    size_t buff_size = 128;
-    auto buff = reinterpret_cast<char*>(std::malloc(buff_size));
-    int status;
-    return abi::__cxa_demangle(mangled_name, buff, &buff_size, &status);
-  }
-#endif
 } // namespace
 
 namespace Sch {
@@ -412,10 +396,10 @@ namespace Sch {
       // Set location
       const auto location = std::get<I>(scheduler.sequence_tuple).name();
       std::apply(
-        [&](auto&... contract) { (contract.set_location(location, demangle(typeid(decltype(contract)).name())), ...); },
+        [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
         preconditions);
       std::apply(
-        [&](auto&... contract) { (contract.set_location(location, demangle(typeid(decltype(contract)).name())), ...); },
+        [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
         postconditions);
 #endif
 

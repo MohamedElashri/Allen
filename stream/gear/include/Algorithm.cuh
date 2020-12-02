@@ -8,7 +8,7 @@
 #include "BaseTypes.cuh"
 #include "TargetFunction.cuh"
 #include "Argument.cuh"
-#include "Contract.cuh"
+#include "Contract.h"
 
 namespace Allen {
   // Forward declare to use in Algorithm

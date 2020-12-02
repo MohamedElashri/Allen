@@ -9,6 +9,7 @@
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
+#include "GenericContainerContracts.h"
 
 namespace velo_search_by_triplet {
   struct Parameters {
@@ -52,17 +53,18 @@ namespace velo_search_by_triplet {
       const Allen::Context&) const;
   };
 
-  // struct post_track_properties : Postcondition {
-  //   void operator()(
-  //     const ArgumentReferences<Parameters>&,
-  //     const RuntimeOptions&,
-  //     const Constants&,
-  //     const Allen::Context&);
-  // };
+  struct track_container_checks : public Allen::contract::Postcondition {
+    void operator()(
+      const ArgumentReferences<Parameters>&,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context&) const;
+  };
 
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
     // Register contracts for this algorithm
-    using contracts = std::tuple<cluster_container_checks>;
+    using contracts = std::tuple<cluster_container_checks, track_container_checks,
+      Allen::contract::limit_high<Velo::Constants::max_tracks, dev_number_of_velo_tracks_t, Parameters, Allen::contract::Postcondition>>;
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

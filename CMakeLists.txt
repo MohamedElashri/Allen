@@ -582,6 +582,8 @@ set(EXTERNAL_DIR "external")
 
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
+include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
+
 add_subdirectory(backend)
 add_subdirectory(device)
 add_subdirectory(stream)
