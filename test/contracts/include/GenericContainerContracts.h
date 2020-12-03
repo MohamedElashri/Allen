@@ -37,7 +37,7 @@ namespace Allen {
         const auto container_name = name<T>(arguments);
 
         bool condition = true;
-        for (size_t i = 0; i < container.size(); ++i) {
+        for (size_t i = 0; i < container.size() && condition; ++i) {
           condition &= unop(container[i]);
         }
 
@@ -63,10 +63,11 @@ namespace Allen {
 
         bool condition = true;
         if (container.size() > 0) {
-          auto previous_element = container[0];
-          for (size_t i = 1; i < container.size(); ++i) {
-            condition &= binop(container[i], previous_element);
-            previous_element = container[i];
+          auto previous = std::begin(container);
+          auto next = std::begin(container);
+          while (++next != std::end(container) && condition) {
+            condition &= binop(*next, *previous);
+            previous = next;
           }
         }
 
@@ -90,7 +91,7 @@ namespace Allen {
 
         bool condition = container_a.size() == container_b.size();
         if (condition) {
-          for (size_t i = 0; i < container_a.size(); ++i) {
+          for (size_t i = 0; i < container_a.size() && condition; ++i) {
             condition &= container_a[i] == container_b[i];
           }
         }
