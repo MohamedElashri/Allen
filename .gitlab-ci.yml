@@ -843,16 +843,6 @@ x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
     refs:
       - web
 
-x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
-  <<: *run_physics_efficiency_job_def_cpu
-  tags:
-    - x86
-  needs:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
-  only:
-    refs:
-      - web
-
 # check run changes
 
 geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
