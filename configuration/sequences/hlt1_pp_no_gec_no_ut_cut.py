@@ -52,7 +52,7 @@ hlt1_sequence = HLT1Sequence(
     velo_kalman_filter=pv_sequence["velo_kalman_filter"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[
         "prefix_sum_offsets_velo_track_hit_number"],
-    pv_beamline_multi_fitter=pv_sequence["pv_beamline_multi_fitter"],
+    pv_beamline_multi_fitter=pv_sequence["pv_beamline_cleanup"],
     prefix_sum_forward_tracks=forward_sequence["prefix_sum_forward_tracks"],
     velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
     prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],

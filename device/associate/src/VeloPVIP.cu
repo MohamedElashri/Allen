@@ -118,9 +118,9 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
                                                               sizeof(float) * event_tracks_offset,
                                                             velo_tracks.total_number_of_tracks()};
 
-  Allen::device::span<const PV::Vertex> vertices {parameters.dev_multi_fit_vertices +
+  Allen::device::span<const PV::Vertex> vertices {parameters.dev_multi_final_vertices +
                                                     event_number * PV::max_number_vertices,
-                                                  *(parameters.dev_number_of_multi_fit_vertices + event_number)};
+                                                  *(parameters.dev_number_of_multi_final_vertices + event_number)};
 
   // The track <-> PV association table for this event
   auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
