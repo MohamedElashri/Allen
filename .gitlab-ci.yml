@@ -83,7 +83,7 @@ check-formatting:
       - build*/*Allen*
       - build*/Sequence.json
       - input
-  retry: 2
+  retry: 1
   allow_failure: true
 
 .build_job: &build_clang_job_def_warnings_as_errors
@@ -118,7 +118,7 @@ check-formatting:
       - build*/*Allen*
       - build*/Sequence.json
       - input
-  retry: 2
+  retry: 1
   allow_failure: true
 
 .build_job: &build_gcc_job_def
@@ -194,6 +194,7 @@ docker_image:build:
   only:
     refs:
       - master
+      - web
   tags:
     - docker-image-build
   script: "echo 'Building Allen dev docker image"
@@ -662,6 +663,7 @@ CUDA:hlt1_pp_no_gec:RelWithDebInfo::build:
   only:
     refs:
       - master
+      - web
 
 CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
   <<: *build_clang_job_def
@@ -670,6 +672,7 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
   only:
     refs:
       - master
+      - web
 
 # ===
 # Run
@@ -742,29 +745,6 @@ x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::build
 
-# Test runs
-
-# geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
-#   <<: *run_physics_efficiency_job_def
-#   tags:
-#     - geforcertx2080ti
-#   needs:
-#     - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
-
-# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
-#   <<: *run_physics_efficiency_job_def_cpu
-#   tags:
-#     - x86
-#   needs:
-#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
-
-# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
-#   <<: *run_physics_efficiency_job_def_cpu
-#   tags:
-#     - x86
-#   needs:
-#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
-
 # Additional throughput runs, only on master
 
 geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput:
@@ -776,6 +756,7 @@ geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
+      - web
 
 quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -786,6 +767,7 @@ quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
+      - web
 
 teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -796,6 +778,7 @@ teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
+      - web
 
 geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -806,6 +789,7 @@ geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
+      - web
 
 geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput:
   <<: *run_throughput_job_def
@@ -816,6 +800,7 @@ geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput:
   only:
     refs:
       - master
+      - web
 
 x862630v4:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -826,6 +811,7 @@ x862630v4:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   only:
     refs:
       - master
+      - web
 
 epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -836,6 +822,39 @@ epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu:
   only:
     refs:
       - master
+      - web
+
+# Run debug builds
+
+geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - geforcertx2080ti
+  needs:
+    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+  only:
+    refs:
+      - web
+
+x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
+  <<: *run_physics_efficiency_job_def_cpu
+  tags:
+    - x86
+  needs:
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+  only:
+    refs:
+      - web
+
+x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
+  <<: *run_physics_efficiency_job_def_cpu
+  tags:
+    - x86
+  needs:
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+  only:
+    refs:
+      - web
 
 # check run changes
 
@@ -845,6 +864,9 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  only:
+    refs:
+      - web
 
 x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
   <<: *run_with_run_changes_job_def
@@ -852,6 +874,9 @@ x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
     - x862630v4
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::build
+  only:
+    refs:
+      - web
 
 geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
   <<: *run_no_run_changes_job_def
@@ -859,6 +884,9 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  only:
+    refs:
+      - web
 
 x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
   <<: *run_no_run_changes_job_def
@@ -866,6 +894,9 @@ x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
     - x862630v4
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::build
+  only:
+    refs:
+      - web
 
 # =======
 # Publish
@@ -901,3 +932,4 @@ throughput:hlt1_pp_no_gec:geforcertx3090:publish_throughput:
   only:
     refs:
       - master
+      - web
