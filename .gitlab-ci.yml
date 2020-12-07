@@ -519,10 +519,7 @@ test_physics_efficiency:
 test_run_changes:
   only:
     refs:
-      - master
-      - schedules
       - web
-      - merge_requests
   stage: test
   script:
     - TOPLEVEL=${PWD}
