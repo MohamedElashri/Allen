@@ -30,7 +30,7 @@ conf_path = os.path.expandvars("$ALLEN_INSTALL_DIR/constants/Sequence.json")
 lines = []
 with open(conf_path, 'r') as f:
     j = json.load(f)
-    lines = [l.encode() for l in j['configured_lines']]
+    lines = str(j["gather_selections"]["names_of_active_lines"])
 
 ids = {'Hlt1%sDecision' % l: i for i, l in enumerate(lines)}
 
