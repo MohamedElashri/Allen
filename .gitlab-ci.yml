@@ -77,14 +77,13 @@ check-formatting:
     - mkdir build_${TARGET}
     - cd build_${TARGET}
     - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
-    - ninja -j 4
+    - ninja
   artifacts:
     expire_in: 1 day
     paths:
       - build*/*Allen*
       - build*/Sequence.json
       - input
-  retry: 1
 
 docker_image:build:
   stage: build
