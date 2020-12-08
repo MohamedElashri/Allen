@@ -78,7 +78,7 @@ check-formatting:
     - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
     - ninja -j 4
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - build*/*Allen*
       - build*/Sequence.json
@@ -113,7 +113,7 @@ check-formatting:
     - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
     - ninja -j 4
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - build*/*Allen*
       - build*/Sequence.json
@@ -148,7 +148,7 @@ check-formatting:
     - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
     - ninja -j 4
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - build*/*Allen*
       - build*/Sequence.json
@@ -182,7 +182,7 @@ check-formatting:
     - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
     - ninja -j 4
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - build*/*Allen*
       - build*/Sequence.json
@@ -232,7 +232,7 @@ docker_image:build:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - validation_output/*
   allow_failure: true
@@ -268,7 +268,7 @@ docker_image:build:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - validation_output/*
   allow_failure: true
@@ -304,7 +304,7 @@ docker_image:build:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - run_changes_output/*
   allow_failure: true
@@ -340,7 +340,7 @@ docker_image:build:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - no_run_changes_output/*
   allow_failure: true
@@ -380,7 +380,7 @@ docker_image:build:
     - echo CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - output_*
   allow_failure: true
@@ -417,7 +417,7 @@ docker_image:build:
     - echo numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
     - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - output_*
   allow_failure: true
@@ -463,7 +463,7 @@ docker_image:build:
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
     - rm -rf report1.qdrep tmp
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - output_*
   allow_failure: true
@@ -509,6 +509,10 @@ test_physics_efficiency:
     - x862630v4:CPU:hlt1_pp_default:run_physics_efficiency
   tags:
     - cvmfs
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - validation_output/*_diff
   allow_failure: true
 
 test_run_changes:
