@@ -698,7 +698,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
@@ -708,7 +708,7 @@ x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
   tags:
     - x86
   needs:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
