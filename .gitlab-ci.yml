@@ -445,10 +445,10 @@ docker_image:build:
     - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
-    - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 16 -c 0"
+    - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 8 -c 0"
-    -   RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 8 -c 0"
+    -   RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
     - fi
     - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
@@ -456,12 +456,12 @@ docker_image:build:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - mkdir tmp
+    - CUSTOM_TMPDIR=`mktemp -d -p.`
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=tmp numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_PROFILER_OPTIONS}
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=${CUSTOM_TMPDIR} numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_PROFILER_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
-    - rm -rf report1.qdrep tmp
+    - rm -rf report1.qdrep ${CUSTOM_TMPDIR}
   artifacts:
     expire_in: 1 day
     paths:
