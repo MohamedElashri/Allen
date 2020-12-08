@@ -584,6 +584,11 @@ find_package(Boost REQUIRED COMPONENTS iostreams)
 
 include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
 
+if(BUILD_TESTS)
+add_subdirectory(external/Catch2)
+add_subdirectory(test/unit_tests)
+endif()
+
 add_subdirectory(backend)
 add_subdirectory(device)
 add_subdirectory(stream)
