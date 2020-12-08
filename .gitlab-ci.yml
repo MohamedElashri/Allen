@@ -141,7 +141,6 @@ docker_image:build:
     paths:
       - validation_output/*
   allow_failure: true
-  retry: 1
 
 .run_with_run_changes_job: &run_with_run_changes_job_def
   only:
@@ -185,7 +184,6 @@ docker_image:build:
     paths:
       - run_changes_output/*
   allow_failure: true
-  retry: 1
 
 .run_no_run_changes_job: &run_no_run_changes_job_def
   only:
@@ -228,7 +226,6 @@ docker_image:build:
     paths:
       - no_run_changes_output/*
   allow_failure: true
-  retry: 1
 
 .run_throughput_job_no_profiling: &run_throughput_job_no_profiling_def
   only:
@@ -274,7 +271,6 @@ docker_image:build:
     paths:
       - output_*
   allow_failure: true
-  retry: 1
 
 .run_throughput_job: &run_throughput_job_def
   only:
@@ -317,7 +313,6 @@ docker_image:build:
     paths:
       - output_*
   allow_failure: true
-  retry: 1
 
 .throughput_cli_plot_job: &publish_algo_breakdown_plot_def
   only:
