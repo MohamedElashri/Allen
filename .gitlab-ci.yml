@@ -604,20 +604,28 @@ CUDA:hlt1_pp_default:RelWithDebInfo::build:
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
-  <<: *build_clang_job_def
-  tags:
-    - cvmfs
-
 CPU:hlt1_pp_default:RelWithDebInfo::build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
 
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
+  <<: *build_clang_job_def
+  tags:
+    - cvmfs
+  only:
+    refs:
+      - master
+      - web
+
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
   <<: *build_clang_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
 # Builds with warnings treated as errors
 # gcc:
@@ -626,11 +634,19 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_error
   <<: *build_gcc_job_def_warnings_as_errors
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_gcc_job_def_warnings_as_errors
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
 # clang:
 
@@ -638,7 +654,7 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_error
   <<: *build_clang_job_def_warnings_as_errors
   tags:
     - cvmfs
-
+    
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
   <<: *build_clang_job_def_warnings_as_errors
   tags:
@@ -650,6 +666,10 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=O
   <<: *build_clang_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
 # Builds only on master of additional options
 
