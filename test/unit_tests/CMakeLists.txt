@@ -8,7 +8,7 @@ include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(generic/include)
 
 # Make currently configured sequence information available to cpp
-add_definitions(-DSEQUENCE="${SEQUENCE}")
+add_definitions(-DSEQUENCE="${SEQUENCE}" -DTARGET_DEVICE="${TARGET_DEVICE}")
 
 add_executable(unit_tests ${generic_tests})
 target_link_libraries(unit_tests Catch2::Catch2 AllenLib)

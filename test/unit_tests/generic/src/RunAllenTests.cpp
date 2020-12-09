@@ -21,27 +21,27 @@ int run_allen_on_magdown_dataset(const std::string& dataset_location)
   return allen(allen_options, &updater, zmqSvc, "");
 }
 
-TEST_CASE("Run Allen sequence " SEQUENCE " on default dataset", "[allenrun]")
+TEST_CASE("Run Allen sequence " SEQUENCE ", target " TARGET_DEVICE " with default dataset", "[allenrun]")
 {
   REQUIRE(run_allen_on_magdown_dataset(source_directory + "/input/minbias") == 0);
 }
 
-TEST_CASE("Run Allen sequence " SEQUENCE " on minbias mag down dataset", "[allenrun]")
+TEST_CASE("Run Allen sequence " SEQUENCE ", target " TARGET_DEVICE " with minbias mag down dataset", "[allenrun]")
 {
   REQUIRE(run_allen_on_magdown_dataset(base_datadir + "/201907/minbias_mag_down") == 0);
 }
 
-TEST_CASE("Run Allen sequence " SEQUENCE " on BsPhiPhi mag down dataset", "[allenrun]")
+TEST_CASE("Run Allen sequence " SEQUENCE ", target " TARGET_DEVICE " with BsPhiPhi mag down dataset", "[allenrun]")
 {
   REQUIRE(run_allen_on_magdown_dataset(base_datadir + "/201907/bsphiphi_mag_down") == 0);
 }
 
-TEST_CASE("Run Allen sequence " SEQUENCE " on Ks02MuMu mag down dataset", "[allenrun]")
+TEST_CASE("Run Allen sequence " SEQUENCE ", target " TARGET_DEVICE " with Ks02MuMu mag down dataset", "[allenrun]")
 {
   REQUIRE(run_allen_on_magdown_dataset(base_datadir + "/201907/ks02mumu_mag_down") == 0);
 }
 
-TEST_CASE("Run Allen sequence " SEQUENCE " on JPsiMuMu mag down dataset", "[allenrun]")
+TEST_CASE("Run Allen sequence " SEQUENCE ", target " TARGET_DEVICE " with JPsiMuMu mag down dataset", "[allenrun]")
 {
   REQUIRE(run_allen_on_magdown_dataset(base_datadir + "/201907/jpsimumu_mag_down") == 0);
 }

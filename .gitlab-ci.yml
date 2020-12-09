@@ -121,7 +121,6 @@ check-formatting:
       - merge_requests
   stage: build
   script:
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=${PREVIOUS_IFS}
@@ -461,10 +460,21 @@ test_run_changes:
   script:
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
     - IFS=${PREVIOUS_IFS}
     - TARGET=${JOB_NAME_SPLIT[0]}
     - cd build_${TARGET}
-    - ctest -V
+    - if [ "${TARGET}" = "CPU" ]; then
+    - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
+    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ctest -V -j ${THREADS}
+    - else
+    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ctest -V
+    - fi
   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
