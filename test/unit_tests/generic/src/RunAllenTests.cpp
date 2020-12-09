@@ -7,7 +7,8 @@
 #include <Updater.h>
 #include <RunAllenTests.h>
 
-int run_allen_on_magdown_dataset(const std::string& dataset_location) {
+int run_allen_on_magdown_dataset(const std::string& dataset_location)
+{
   // Override some paths with source and build paths
   // Note: Test paths cannot be assumed to be "build"
   std::map<std::string, std::string> allen_options {};

@@ -7,7 +7,8 @@ const std::string build_directory = "../..";
 const std::string source_directory = "../../..";
 const std::string base_datadir = "/scratch/allen_data";
 
-inline void append_default_allen_program_options(std::map<std::string, std::string>& allen_options) {
+inline void append_default_allen_program_options(std::map<std::string, std::string>& allen_options)
+{
   // Iterate all options with default values and put those in
   const auto program_options = allen_program_options();
   for (const auto& po : program_options) {
