@@ -130,23 +130,33 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[4]}
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
-    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
-    - ninja -j 4
+    - if [ "${TARGET}" = "CPU" ]; then
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - cmake -DSTANDALONE=ON -GNinja -DENABLE_CONTRACTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - elif [ "${TARGET}" = "HIP" ]; then
+    - yum install -y numactl-libs
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
+    - cmake -DSTANDALONE=ON -GNinja -DENABLE_CONTRACTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON-DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - else
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
+    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
+    - cmake -DSTANDALONE=ON -GNinja -DENABLE_CONTRACTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
+    - fi
+    - ninja
   artifacts:
     expire_in: 1 day
     paths:
       - build*/*Allen*
       - build*/Sequence.json
       - input
-      - CTestTestfile.cmake
-      - test/unit_tests/unit_tests
-      - test/unit_tests/*cmake
-  retry: 1
+      - build*/CTestTestfile.cmake
+      - build*/test/unit_tests/unit_tests
+      - build*/test/unit_tests/*cmake
+  retry: 2
 
 docker_image:build:
   stage: build
@@ -518,43 +528,61 @@ HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
       - schedules
       - merge_requests
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
+  tags:
+    - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
+  tags:
+    - cvmfs
+  only:
+    refs:
+      - master
+      - web
+
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
-  <<: *build_job_def
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
 # clang:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
   only:
@@ -564,8 +592,8 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -
       - schedules
       - merge_requests
     
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
   only:
@@ -575,8 +603,8 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON 
       - schedules
       - merge_requests
 
-HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
-  <<: *build_job_def
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
   only:
@@ -588,8 +616,8 @@ HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -
 
 # Build of default sequence without code generation
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
@@ -602,16 +630,6 @@ CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 
 CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
-
-CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
-  <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
-
-CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
-  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
@@ -847,14 +865,14 @@ geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_do
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
 
 x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
   needs:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
 
 # check run changes
 
