@@ -465,6 +465,8 @@ test_run_changes:
     - TARGET=${JOB_NAME_SPLIT[0]}
     - cd build_${TARGET}
     - if [ "${TARGET}" = "CPU" ]; then
+    - TOTAL_THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
+    - TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ctest -V -j ${THREADS}
