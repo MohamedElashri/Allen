@@ -6,4 +6,5 @@
 // of a testing binary, and other test files to link against it.
 
 // Let Catch provide main():
-// #include <internal/catch_default_main.hpp>
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"

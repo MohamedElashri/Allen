@@ -3,7 +3,7 @@
 ###############################################################################
 file(GLOB generic_tests "generic/src/*cpp")
 
-include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/include)
+include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 
 add_executable(unit_tests ${generic_tests})
 target_link_libraries(unit_tests Catch2::Catch2)
@@ -11,3 +11,5 @@ target_link_libraries(unit_tests Catch2::Catch2)
 include(CTest)
 include(Catch)
 catch_discover_tests(unit_tests)
+
+install(TARGETS unit_tests RUNTIME DESTINATION bin)

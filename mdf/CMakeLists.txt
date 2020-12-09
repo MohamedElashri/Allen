@@ -7,6 +7,7 @@ include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 
 set(mdf_sources
     src/raw_helpers.cpp
