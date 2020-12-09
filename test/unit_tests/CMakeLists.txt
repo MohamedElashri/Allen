@@ -4,14 +4,20 @@
 file(GLOB generic_tests "generic/src/*cpp")
 
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
+include_directories(${CMAKE_SOURCE_DIR}/host/prefix_sum/include)
+include_directories(${CMAKE_SOURCE_DIR}/backend/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(generic/include)
+include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
 
 # Make currently configured sequence information available to cpp
-add_definitions(-DSEQUENCE="${SEQUENCE}" -DTARGET_DEVICE="${TARGET_DEVICE}")
+add_definitions(-D${TARGET_DEFINITION})
 
 add_executable(unit_tests ${generic_tests})
-target_link_libraries(unit_tests Catch2::Catch2 AllenLib)
+target_link_libraries(unit_tests Catch2::Catch2 HostPrefixSum)
 
 include(CTest)
 include(Catch)
