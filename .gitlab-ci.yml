@@ -441,7 +441,7 @@ test_run_changes:
     - cvmfs
   allow_failure: true
 
-run_built_tests: &run_built_tests_job
+.run_built_tests: &run_built_tests_job
   only:
     refs:
       - master
