@@ -110,7 +110,7 @@ check-formatting:
   retry: 2
   needs: []
 
-.build_with_tests_job: &build_with_tests_job_def
+.build_job_with_tests: &build_job_with_tests_def
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   only:
