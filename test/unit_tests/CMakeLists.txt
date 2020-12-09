@@ -4,9 +4,14 @@
 file(GLOB generic_tests "generic/src/*cpp")
 
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
+include_directories(${CMAKE_SOURCE_DIR}/main/include)
+include_directories(generic/include)
+
+# Make currently configured sequence information available to cpp
+add_definitions(-DSEQUENCE="${SEQUENCE}")
 
 add_executable(unit_tests ${generic_tests})
-target_link_libraries(unit_tests Catch2::Catch2)
+target_link_libraries(unit_tests Catch2::Catch2 AllenLib)
 
 include(CTest)
 include(Catch)
