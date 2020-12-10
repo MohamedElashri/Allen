@@ -118,8 +118,9 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
     - RUN_OPTIONS="-n 1000 -m 1000"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir validation_output
     - ln -s validation_output output # Needed by Root build
     - cd build_${TARGET}
@@ -161,9 +162,10 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
     - RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 0"
     - JOB="./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir run_changes_output
     - ln -s run_changes_output output # Needed by Root build
     - cd build_${TARGET}
@@ -204,8 +206,9 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
     - JOB="./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down -n 1000 -m 700 --disable-run-changes 1"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir no_run_changes_output
     - ln -s no_run_changes_output output # Needed by Root build
     - cd build_${TARGET}
@@ -246,7 +249,8 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -291,13 +295,14 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
     - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
     - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
     - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
     - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -330,7 +335,7 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
 
 test_physics_efficiency:
@@ -350,8 +355,8 @@ test_physics_efficiency:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_default:run_physics_efficiency
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency
   tags:
     - cvmfs
   artifacts:
@@ -374,28 +379,13 @@ test_run_changes:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_with_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_no_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
-
-# run_built_tests:
-#   only:
-#     refs:
-#       - master
-#       - schedules
-#       - web
-#       - merge_requests
-#   stage: test
-#   script:
-#     - cd build_CUDA
-#     - ctest -V
-#   needs:
-#     - CUDA:hlt1_pp_default:Debug::build
-#   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
   only:
@@ -417,7 +407,7 @@ test_run_changes:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
 
@@ -436,7 +426,7 @@ test_run_changes:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # =====
@@ -541,49 +531,49 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 
 # Throughput runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-quadrortx6000:CUDA:hlt1_pp_default:run_throughput:
+quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-teslav100:CUDA:hlt1_pp_default:run_throughput:
+teslav100:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3080:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3090:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx3090
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:run_throughput:
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - x862630v4
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-epyc7502:CPU:hlt1_pp_default:run_throughput:
+epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - epyc7502
@@ -592,14 +582,14 @@ epyc7502:CPU:hlt1_pp_default:run_throughput:
 
 # Physics efficiency runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x862630v4
@@ -608,7 +598,7 @@ x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
 
 # Additional throughput runs, only on master
 
-geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput:
+geforcertx2080ti:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
@@ -619,7 +609,7 @@ geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput:
       - master
       - web
 
-quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput:
+quadrortx6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
@@ -630,7 +620,7 @@ quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput:
       - master
       - web
 
-teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
+teslav100:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
@@ -641,7 +631,7 @@ teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
       - master
       - web
 
-geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput:
+geforcertx3080:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
@@ -652,7 +642,7 @@ geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput:
       - master
       - web
 
-geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput:
+geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx3090
@@ -663,7 +653,7 @@ geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput:
       - master
       - web
 
-x862630v4:CPU:hlt1_pp_no_gec:run_throughput:
+x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - x862630v4
@@ -674,7 +664,7 @@ x862630v4:CPU:hlt1_pp_no_gec:run_throughput:
       - master
       - web
 
-epyc7502:CPU:hlt1_pp_no_gec:run_throughput:
+epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - epyc7502
@@ -687,7 +677,7 @@ epyc7502:CPU:hlt1_pp_no_gec:run_throughput:
 
 # Run debug builds
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
@@ -697,7 +687,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
     refs:
       - web
 
-x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
+x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
@@ -709,7 +699,7 @@ x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
 
 # check run changes
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - geforcertx2080ti
@@ -719,7 +709,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
     refs:
       - web
 
-x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - x862630v4
@@ -729,7 +719,7 @@ x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
     refs:
       - web
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - geforcertx2080ti
@@ -739,7 +729,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
     refs:
       - web
 
-x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - x862630v4
@@ -748,6 +738,7 @@ x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
   only:
     refs:
       - web
+
 
 # =======
 # Publish
@@ -758,13 +749,13 @@ throughput:hlt1_pp_default:geforcertx3090:publish_throughput:
   tags:
     - cvmfs
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput
-    - quadrortx6000:CUDA:hlt1_pp_default:run_throughput
-    - teslav100:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3080:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3090:CUDA:hlt1_pp_default:run_throughput
-    - x862630v4:CPU:hlt1_pp_default:run_throughput
-    - epyc7502:CPU:hlt1_pp_default:run_throughput
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput
+    - teslav100:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput
+    - geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput
+    - geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput
+    - epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_throughput
 
 # Publish additional throughput tests, only in master
 
@@ -773,13 +764,13 @@ throughput:hlt1_pp_no_gec:geforcertx3090:publish_throughput:
   tags:
     - x86
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput
-    - quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput
-    - teslav100:CUDA:hlt1_pp_no_gec:run_throughput
-    - geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput
-    - geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput
-    - x862630v4:CPU:hlt1_pp_no_gec:run_throughput
-    - epyc7502:CPU:hlt1_pp_no_gec:run_throughput
+    - geforcertx2080ti:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput
+    - teslav100:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput
+    - geforcertx3080:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput
+    - geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput
+    - x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput
+    - epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:run_throughput
   only:
     refs:
       - master
