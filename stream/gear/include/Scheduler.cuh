@@ -42,7 +42,11 @@ struct Scheduler {
   Scheduler() = default;
   Scheduler(const Scheduler&) = delete;
 
-  void initialize(const bool param_do_print, const size_t device_requested_mb, const size_t host_requested_mb, const unsigned required_memory_alignment)
+  void initialize(
+    const bool param_do_print,
+    const size_t device_requested_mb,
+    const size_t host_requested_mb,
+    const unsigned required_memory_alignment)
   {
     do_print = param_do_print;
 

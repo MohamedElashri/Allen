@@ -91,7 +91,8 @@ StatusCode RunAllen::initialize()
   const bool print_memory_usage = false;
   const unsigned start_event_offset = 0;
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
-  const unsigned required_memory_alignment = 64; // 64 bytes is equivalent to 512-bit alignment (currently widest vectors)
+  const unsigned required_memory_alignment =
+    64; // 64 bytes is equivalent to 512-bit alignment (currently widest vectors)
 
   m_stream_wrapper.reset(new StreamWrapper());
   m_stream_wrapper->initialize_streams(

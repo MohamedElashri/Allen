@@ -145,7 +145,6 @@ public:
     m_tuple_to_argument_data[index_of_T].get().set_size(size);
   }
 
-
   /**
    * @brief Reduces the size of the container.
    * @details Reducing the size can be done in the operator(), hence this method is const.

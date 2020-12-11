@@ -36,5 +36,5 @@ namespace Allen {
   namespace constants {
     // Do not include cmath or math_constants just for this one constant
     constexpr float pi_f_float = 3.141592654f;
-  }
+  } // namespace constants
 } // namespace Allen
