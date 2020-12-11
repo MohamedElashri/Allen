@@ -31,9 +31,9 @@ def run_selections(**kwargs):
             "dev_offsets_all_velo_tracks"],
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
-        dev_multi_fit_vertices_t=pvs["dev_multi_fit_vertices"],
-        dev_number_of_multi_fit_vertices_t=pvs[
-            "dev_number_of_multi_fit_vertices"])
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"])
 
     kalman_velo_only = Algorithm(
         kalman_velo_only_t,
@@ -60,9 +60,9 @@ def run_selections(**kwargs):
         dev_scifi_track_ut_indices_t=forward_tracks[
             "dev_scifi_track_ut_indices"],
         dev_velo_pv_ip_t=velo_pv_ip.dev_velo_pv_ip_t,
-        dev_multi_fit_vertices_t=pvs["dev_multi_fit_vertices"],
-        dev_number_of_multi_fit_vertices_t=pvs[
-            "dev_number_of_multi_fit_vertices"],
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
         dev_is_muon_t=is_muon_result["dev_is_muon"])
 
     filter_tracks = Algorithm(
@@ -78,9 +78,9 @@ def run_selections(**kwargs):
         dev_scifi_states_t=forward_tracks["dev_scifi_states"],
         dev_scifi_track_ut_indices_t=forward_tracks[
             "dev_scifi_track_ut_indices"],
-        dev_multi_fit_vertices_t=pvs["dev_multi_fit_vertices"],
-        dev_number_of_multi_fit_vertices_t=pvs[
-            "dev_number_of_multi_fit_vertices"],
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
         dev_kalman_pv_ipchi2_t=kalman_velo_only.dev_kalman_pv_ipchi2_t)
 
     prefix_sum_secondary_vertices = Algorithm(
@@ -103,9 +103,9 @@ def run_selections(**kwargs):
         dev_scifi_states_t=forward_tracks["dev_scifi_states"],
         dev_scifi_track_ut_indices_t=forward_tracks[
             "dev_scifi_track_ut_indices"],
-        dev_multi_fit_vertices_t=pvs["dev_multi_fit_vertices"],
-        dev_number_of_multi_fit_vertices_t=pvs[
-            "dev_number_of_multi_fit_vertices"],
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
         dev_kalman_pv_ipchi2_t=kalman_velo_only.dev_kalman_pv_ipchi2_t,
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t,
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t,
