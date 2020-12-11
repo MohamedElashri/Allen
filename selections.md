@@ -139,7 +139,7 @@ A `SelectionAlgorithm` can contain the following:
   ```
   A function that gets the `i`th input of `event_number`, and returns it as a tuple. The `"configurable_types"` can be anything. The return statement of the function is suggested to be a `return std::forward_as_tuple()` with the `"instances"` of the desired objects. The return type of this function will be used as the input of the `select` function.
 * ```c++
-  __device__ bool select(
+  __device__ static bool select(
       const Parameters& parameters,
       std::tuple<"configurable_types"> input) const
   {
@@ -147,7 +147,7 @@ A `SelectionAlgorithm` can contain the following:
       return [true/false];
   }
   ```
-  The function that performs the selection for a single input. The type of the input must match the `"configurable_types"` of the `get_input` function. It returns a boolean with the decision output.
+  The function that performs the selection for a single input. The type of the input must match the `"configurable_types"` of the `get_input` function. It returns a boolean with the decision output. The `select` function must be defined as static in the header file.
 * Optional: `unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { ... }`: Defines the number of threads the selection will be performed with.
 
 In addition, lines must be instantiated in their source file definition:
@@ -197,7 +197,7 @@ namespace example_one_track_line {
   // SelectionAlgorithm definition
   struct example_one_track_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<example_one_track_line_t, Parameters> {
     // Selection function.
-    __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
 
   private:
     // Commonly required properties
@@ -275,7 +275,7 @@ namespace example_two_track_line {
   // SelectionAlgorithm definition
   struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
     // Selection function.
-    __device__ bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
+    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
 
   private:
     // Commonly required properties
@@ -360,7 +360,7 @@ namespace velo_micro_bias_line {
     __device__ std::tuple<const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number) const;
 
-    __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
 
   private:
     // Commonly required properties
@@ -457,7 +457,7 @@ namespace example_one_velo_track_line {
       __device__ std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
     
       // Selection function
-      __device__ bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+      __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
 
 
   private:

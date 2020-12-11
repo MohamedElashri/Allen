@@ -175,7 +175,7 @@ namespace Allen {
     void initialize() {}
   };
 
-  void inline malloc(void** devPtr, size_t size) { posix_memalign(devPtr, 64, size); }
+  void inline malloc(void** devPtr, size_t size) { posix_memalign(devPtr, cpu_alignment, size); }
 
   void inline malloc_host(void** ptr, size_t size) { malloc(ptr, size); }
 

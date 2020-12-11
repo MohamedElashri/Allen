@@ -123,7 +123,7 @@ public:
       print();
       throw MemoryException(
         "Reserve: Requested size for argument " + tag + " could not be met (" +
-        std::to_string(((float) aligned_request) / 1000000.f) + " MiB)");
+        std::to_string(((float) aligned_request) / (1024.f * 1024.f)) + " MiB)");
     }
 
     // Start of allocation
@@ -219,9 +219,9 @@ public:
     info_cout << m_name << " segments (MiB):" << std::endl;
     for (auto& segment : m_memory_segments) {
       std::string name = segment.tag == "" ? "unused" : segment.tag;
-      info_cout << name << " (" << ((float) segment.size) / 1000000.f << "), ";
+      info_cout << name << " (" << ((float) segment.size) / (1024.f * 1024.f) << "), ";
     }
-    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / 1000000.f) << " MiB"
+    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1024.f * 1024.f)) << " MiB"
               << "\n\n";
   }
 };
@@ -356,9 +356,9 @@ public:
   {
     info_cout << m_name << " segments (MiB):" << std::endl;
     for (auto const& [name, segment] : m_memory_segments) {
-      info_cout << name << " (" << ((float) segment.size) / 1000000.f << "), ";
+      info_cout << name << " (" << ((float) segment.size) / (1024.f * 1024.f) << "), ";
     }
-    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / 1000000.f) << " MiB"
+    info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1024.f * 1024.f)) << " MiB"
               << "\n\n";
   }
 };

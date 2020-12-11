@@ -1,6 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
+
+/**
+ * @brief This file implements struct to tuple conversion with structured bindings.
+ *        The maximum number of attributes in a struct supported is 40.
+ */
+
 #include <tuple>
 #include <type_traits>
 #include <cassert>
