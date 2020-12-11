@@ -35,7 +35,6 @@ using std::signbit;
 #define __ffs __builtin_ffs
 #define __clz __builtin_clz
 #define __forceinline__ inline
-#define CUDART_PI_F M_PI
 #define copysignf_impl copysignf
 #define fmaxf_impl fmaxf
 #define fminf_impl fminf
@@ -207,8 +206,6 @@ namespace Allen {
   void inline host_unregister(void*) {}
 
   void inline host_register(void*, size_t, host_register_kind) {}
-
-  void inline print_device_memory_consumption() {}
 
   std::tuple<bool, std::string, unsigned> inline set_device(int, size_t)
   {

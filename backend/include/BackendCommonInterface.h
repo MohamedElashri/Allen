@@ -32,4 +32,9 @@ namespace Allen {
   std::tuple<bool, std::string, unsigned> set_device(int cuda_device, size_t stream_id);
   void print_device_memory_consumption();
   std::tuple<bool, int> get_device_id(const std::string& pci_bus_id);
+
+  namespace constants {
+    // Do not include cmath or math_constants just for this one constant
+    constexpr float pi_f_float = 3.141592654f;
+  }
 } // namespace Allen

@@ -26,10 +26,8 @@
 #include "CPUBackend.h"
 #elif defined(TARGET_DEVICE_HIP)
 #include "HIPBackend.h"
-#include "CUDAHIPBackend.h"
 #elif defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_CUDACLANG)
 #include "CUDABackend.h"
-#include "CUDAHIPBackend.h"
 #endif
 
 #if defined(DEVICE_COMPILER)

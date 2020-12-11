@@ -14,8 +14,13 @@
 #include <hip/math_functions.h>
 #endif
 
+#include "Logger.h"
+#include <iomanip>
 #include <hip/hip_fp16.h>
 #define half_t half
+
+// syncwarp is not supported in HIP. Use syncthreads instead
+#define __syncwarp __syncthreads
 
 /**
  * @brief Macro to check hip calls.

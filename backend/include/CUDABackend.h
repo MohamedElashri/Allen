@@ -15,6 +15,8 @@ inline const char* cudaGetErrorString(cudaError_t error) { return ""; }
 
 #endif
 
+#include "Logger.h"
+#include <iomanip>
 #include <cuda_fp16.h>
 #define half_t half
 

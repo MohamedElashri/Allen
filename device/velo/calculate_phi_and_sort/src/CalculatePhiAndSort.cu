@@ -180,7 +180,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
         const Vector<float> ys(contents.data() + vector_length());
 
         const auto atan_value = fast_atan2f(ys, xs);
-        const auto float_value = (Velo::Tools::cudart_pi_f_float + atan_value) * Velo::Tools::convert_factor;
+        const auto float_value = (Allen::constants::pi_f_float + atan_value) * Velo::Tools::convert_factor;
 
         // Cast to uint16 and store
         for (unsigned i = 0; i < vector_length(); ++i) {
