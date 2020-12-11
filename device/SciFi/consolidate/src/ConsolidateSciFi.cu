@@ -36,6 +36,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
     assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, stream);
     assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, stream);
     assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, stream);
+    assign_to_host_buffer<dev_scifi_states_t>(host_buffers.host_scifi_states, arguments, stream);
   }
 }
 

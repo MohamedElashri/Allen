@@ -12,14 +12,14 @@ we show a proposed development setup with CVMFS and CentOS 7:
 * CPU target: Any modern compiler can be used:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-clang10-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     ```
 
 * CUDA target: The latest supported compilers are gcc-9 and clang-10. CUDA is
   available in cvmfs as well:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-clang10-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     ```
 

@@ -79,6 +79,11 @@ include(GenerateConfiguration)
 
 allen_add_host_library(Stream STATIC ${stream_gear} ${stream_sequence_cpp})
 
+# Set property of compiling only this one object concurrently (ninja)
+# Rationale: Stream.cpp alone requires GBs to compile and may result otherwise in killing the build job.
+set_property(GLOBAL APPEND PROPERTY JOB_POOLS one_job=1)
+set_property(TARGET Stream PROPERTY JOB_POOL_COMPILE one_job)
+
 target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
 
 # Depend of Sequence.json instead of configuration/sequences/ConfiguredSequence.h.

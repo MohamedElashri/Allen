@@ -12,7 +12,7 @@ __device__ bool di_muon_soft_line::di_muon_soft_line_t::select(
   const auto& vertex = std::get<0>(input);
 
   if (!vertex.is_dimuon) return false;
-  if (vertex.minipchi2 < DMSoftMinIPChi2) return false;
+  if (vertex.minipchi2 < parameters.DMSoftMinIPChi2) return false;
 
   // KS pipi misid veto
   const bool decision =
