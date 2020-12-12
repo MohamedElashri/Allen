@@ -12,6 +12,8 @@
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-result"
+#elif __GNUC__ >= 8
+#pragma GCC diagnostic ignored "-Wunused-result"
 #endif
 
 #include <hip/hip_runtime_api.h>
@@ -24,6 +26,8 @@
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wignored-attributes"
+#elif __GNUC__ >= 8
+#pragma GCC diagnostic pop
 #endif
 
 #include <hip/hip_runtime.h>
