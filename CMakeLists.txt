@@ -123,17 +123,6 @@ if(NOT STANDALONE)
     message(STATUS "Configured Gaudi build - CPU target")
     set(TARGET_DEVICE "CPU")
   endif()
-elseif(TARGET_DEVICE STREQUAL "HIP")
-#Note : HIP with nvcc backend is not supported
-#Instead, compile with CUDA target
-  if(HIP_PLATFORM STREQUAL "nvcc")
-    message(STATUS "HIP with nvcc backend is not supported (HIP_PLATFORM=nvcc)")
-    message(STATUS "Please unset HIP_PLATFORM to trigger a HIP compilation")
-    message(STATUS "Continuing with CUDA backend")
-    set(TARGET_DEVICE "CUDA")
-  else()
-    message(STATUS "Note: Support for HIP is experimental")
-  endif()
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 message(STATUS "Note: Support for CUDACLANG is experimental")
 endif()
@@ -364,11 +353,10 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   # Set linker - This helps the linking process, which
   # at the moment fails if we set up hip_add_executable instead
+  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   set(CMAKE_LINKER "${HIP_PATH}/bin/hipcc_cmake_linker_helper")
   set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> ${HIP_PATH}/../llvm/bin <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
   set(CMAKE_CXX_CREATE_SHARED_LIBRARY "<CMAKE_LINKER> ${HIP_PATH}/../llvm/bin <CMAKE_SHARED_LIBRARY_CXX_FLAGS> <LANGUAGE_COMPILE_FLAGS> <LINK_FLAGS> <CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS> <SONAME_FLAG><TARGET_SONAME> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
-
-  set(HIP_SEPARABLE_COMPILATION OFF)
 
 #HCC Options(HIPCC compiler)
 #Other warning options : -Wall - Wno - bitwise - op - parentheses - Wno - unused - variable - Wno - logical - op - \parentheses
@@ -386,12 +374,9 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif()
 
-  # To avoid /opt/rocm/hip/include/hip/hcc_detail/hip_runtime_api.h:1695:24: warning: ignoring returned value of type ‘hipError_t’, declared with attribute nodiscard [-Wunused-result]
-  string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-result")
-
   # Note: The off warnings are there for reasons we cannot control:
   # clang-11: warning: argument unused during compilation: '--hip-device-lib-path=/local/rocm/rocm-3.5.1/lib' [-Wunused-command-line-argument]
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn -Wno-unused-command-line-argument")
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -fPIC -std=c++17")
 
   function(allen_add_host_library)
     add_library(${ARGV})

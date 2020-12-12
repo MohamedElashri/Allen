@@ -71,12 +71,19 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[4]}
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
-    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
+    - if [ "${TARGET}" = "CPU" ]; then
+    - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - elif [ "${TARGET}" = "HIP" ]; then
+    - source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
+    - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - else
+    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
+    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
     - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
+    - fi
     - ninja
   artifacts:
     expire_in: 1 day
@@ -453,6 +460,11 @@ CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   tags:
     - cvmfs
 
+HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+  tags:
+    - cvmfs
+
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
@@ -463,6 +475,15 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10
       - web
 
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+  tags:
+    - cvmfs
+  only:
+    refs:
+      - master
+      - web
+
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
@@ -492,6 +513,15 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ER
       - master
       - web
 
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_def
+  tags:
+    - cvmfs
+  only:
+    refs:
+      - master
+      - web
+
 # clang:
 
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
@@ -500,6 +530,11 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERR
     - cvmfs
     
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_def
+  tags:
+    - cvmfs
+
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs

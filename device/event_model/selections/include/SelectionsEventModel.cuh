@@ -39,7 +39,7 @@ namespace Selections {
       return m_base_pointer[m_offsets[line * m_number_of_events + event] + index];
     }
 
-    __host__ __device__ gsl::span<typename ForwardType<T, bool>::t> get_span(const unsigned line, const unsigned event)
+    __host__ __device__ Allen::device::span<typename ForwardType<T, bool>::t> get_span(const unsigned line, const unsigned event)
       const
     {
       assert(event < m_number_of_events);
