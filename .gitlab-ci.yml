@@ -78,7 +78,7 @@ check-formatting:
     - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
     - elif [ "${TARGET}" = "HIP" ]; then
     - source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
-    - cmake -DSTANDALONE=ON -GNinja -DCMAKE_MODULE_PATH=/cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/hip/cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
     - else
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
