@@ -357,29 +357,21 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> ${ROCM_PATH}/llvm/bin <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
   set(CMAKE_CXX_CREATE_SHARED_LIBRARY "<CMAKE_LINKER> ${ROCM_PATH}/llvm/bin <CMAKE_SHARED_LIBRARY_CXX_FLAGS> <LANGUAGE_COMPILE_FLAGS> <LINK_FLAGS> <CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS> <SONAME_FLAG><TARGET_SONAME> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
 
-#HCC Options(HIPCC compiler)
-#Other warning options : -Wall - Wno - bitwise - op - parentheses - Wno - unused - variable - Wno - logical - op - \parentheses
+  # Deal with build type (HIP)
   if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
     set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  # Note: HIP does not support asserts for now, at least in Allen:
-  #       LLVM ERROR: could not scavenge SGPR to spill in entry function
-  #       PLEASE submit a bug report to https://bugs.llvm.org/ and include the crash backtrace.
-    message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   else()
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif()
-
-  # Note: The off warnings are there for reasons we cannot control:
-  # clang-11: warning: argument unused during compilation: '--hip-device-lib-path=/local/rocm/rocm-3.5.1/lib' [-Wunused-command-line-argument]
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -fPIC -std=c++17")
 
   function(allen_add_host_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -387,14 +379,14 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 #Define allen_add_device_library and allen_add_executable HIP specializations
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
+    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
+    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
