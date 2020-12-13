@@ -23,18 +23,24 @@
 #include "VeloConsolidated.cuh"
 #include "CaloCluster.cuh"
 #include "CaloConstants.cuh"
-#include "Event/CaloCluster.h"
+//#include "Event/CaloCluster.h"
+#include "Event/CaloHypos_v2.h"
 #include "Event/CaloPosition.h"
+#include "Event/CaloClusters_v2.h"
+#include "Kernel/CaloCellID.h"
+#include "GaudiKernel/Point3DTypes.h"
+
 
 
 class AllenCaloToCaloClusters final
-  : public Gaudi::Functional::Transformer<std::vector<LHCb::CaloCluster>(const HostBuffers&)> {
+  : public Gaudi::Functional::MultiTransformer<
+ std::tuple<LHCb::Event::Calo::Clusters, LHCb::Event::Calo::Clusters>(const HostBuffers&)> {
 public:
   /// Standard constructor
   AllenCaloToCaloClusters(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  std::vector<LHCb::CaloCluster> operator()(const HostBuffers&) const override;
+  std::tuple<LHCb::Event::Calo::Clusters, LHCb::Event::Calo::Clusters> operator()(const HostBuffers&) const override;
 
 private:
   Gaudi::Property<float> m_EtCalo {this, "EtCalo", 400 * Gaudi::Units::MeV, "Default ET for Calo Clusters"};
