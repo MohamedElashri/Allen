@@ -30,11 +30,9 @@
 #include "Kernel/CaloCellID.h"
 #include "GaudiKernel/Point3DTypes.h"
 
-
-
 class AllenCaloToCaloClusters final
-  : public Gaudi::Functional::MultiTransformer<
- std::tuple<LHCb::Event::Calo::Clusters, LHCb::Event::Calo::Clusters>(const HostBuffers&)> {
+  : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Event::Calo::Clusters, LHCb::Event::Calo::Clusters>(
+      const HostBuffers&)> {
 public:
   /// Standard constructor
   AllenCaloToCaloClusters(const std::string& name, ISvcLocator* pSvcLocator);
