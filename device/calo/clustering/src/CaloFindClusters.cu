@@ -19,7 +19,7 @@ __device__ void simple_clusters(CaloDigit const* digits,
       auto const n_id = neighbors[n];
       int16_t adc = digits[n_id].adc;
       if (n_id != 0 && (adc != SHRT_MAX)) {
-        cluster.e += calo.pedestal + adc * calo.gain[n_id];
+        cluster.e += (adc - calo.pedestal) * calo.gain[n_id];
         cluster.digits[n] = n_id;
       } else {
         cluster.digits[n] = 0;
