@@ -72,6 +72,7 @@ def UTSequence(initialize_lists,
         ),  # dev_velo_kalman_beamline_states_t
         dev_accepted_velo_tracks_t=velo_consolidate_tracks.
         dev_accepted_velo_tracks_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t(),
         dev_velo_track_hits_t=velo_consolidate_tracks.dev_velo_track_hits_t())
 
