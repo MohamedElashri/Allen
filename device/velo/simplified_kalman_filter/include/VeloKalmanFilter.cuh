@@ -9,7 +9,6 @@
 #include "Common.h"
 #include "DeviceAlgorithm.cuh"
 #include "VeloConsolidated.cuh"
-// #include <Gaudi/Parsers/Factory.h>
 #include "patPV_Definitions.cuh"
 
 namespace velo_kalman_filter {
