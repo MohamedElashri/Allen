@@ -119,6 +119,7 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+
     - RUN_OPTIONS="-n 1000 -m 1000"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir validation_output
@@ -126,7 +127,7 @@ docker_image:build:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - JOB="./Allen -f /scratch/dcampora/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS}"
+    - JOB="./Allen -f /scratch/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS}"
     - if [ "${TARGET}" = "CPU" ]; then
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
@@ -164,7 +165,7 @@ docker_image:build:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
     - RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 0"
-    - JOB="./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}"
+    - JOB="./Allen --mdf /scratch/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir run_changes_output
     - ln -s run_changes_output output # Needed by Root build
@@ -207,7 +208,7 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
-    - JOB="./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down -n 1000 -m 700 --disable-run-changes 1"
+    - JOB="./Allen --mdf /scratch/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/201907/minbias_mag_down -n 1000 -m 700 --disable-run-changes 1"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir no_run_changes_output
     - ln -s no_run_changes_output output # Needed by Root build
@@ -261,14 +262,14 @@ docker_image:build:
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     - RUN_OPTIONS="-n 100 -m 100 -r 200 -t ${THREADS} -c 0"
-    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
     - else
     - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
     - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
     - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
     - fi
   artifacts:
     expire_in: 1 day
@@ -308,8 +309,8 @@ docker_image:build:
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - mkdir tmp
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_PROFILER_OPTIONS}
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile ./Allen -f /scratch/allen_data/201907/minbias_mag_down ${RUN_PROFILER_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
     - rm -rf report1.qdrep tmp
@@ -685,6 +686,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_eff
     - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
   only:
     refs:
+      - master
       - web
 
 x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency_debug:
@@ -695,6 +697,7 @@ x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency_debug:
     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
   only:
     refs:
+      - master
       - web
 
 # check run changes
@@ -707,6 +710,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_ch
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
+      - master
       - web
 
 x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
@@ -717,6 +721,7 @@ x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
+      - master
       - web
 
 geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
@@ -727,6 +732,7 @@ geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_chan
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
+      - master
       - web
 
 x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
@@ -737,6 +743,7 @@ x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
+      - master
       - web
 
 
