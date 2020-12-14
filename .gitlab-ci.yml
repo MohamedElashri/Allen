@@ -357,8 +357,8 @@ test_physics_efficiency:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_physics_efficiency
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
   tags:
     - cvmfs
   artifacts:
