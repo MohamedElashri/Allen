@@ -9,7 +9,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 set(mdf_sources
-    src/compression.cpp
     src/raw_helpers.cpp
     src/read_mdf.cpp
     src/read_mep.cpp
@@ -43,40 +42,10 @@ endif()
 
 target_include_directories(
   mdf PUBLIC
-  ${CMAKE_SOURCE_DIR}/main/include
-  ${ZLIB_INCLUDE_DIRS})
+  ${CMAKE_SOURCE_DIR}/main/include)
 
 target_link_libraries(
-  mdf PUBLIC
-  ${ZLIB_LIBRARIES})
-
-if (LZMA_FOUND)
-  target_include_directories(
-	mdf PUBLIC
-	${LIBLZMA_INCLUDE_DIRS})
-
-  target_link_libraries(
-	mdf PUBLIC
-	${LIBLZMA_LIBRARIES})
-
-  target_compile_definitions(
-	mdf	PRIVATE
-	"-DHAVE_LZMA")
-endif (LZMA_FOUND)
-
-if (LZ4_FOUND)
-  target_include_directories(
-	mdf PUBLIC
-	${LIBLZ4_INCLUDE_DIRS})
-
-  target_link_libraries(
-	mdf
-	${LIBLZ4_LIBRARIES})
-
-  target_compile_definitions(
-	mdf	PRIVATE
-	"-DHAVE_LZ4")
-endif (LZ4_FOUND)
+  mdf PUBLIC)
 
 # These tests don't need CUDA
 remove_definitions(-DTARGET_DEVICE_CUDA)

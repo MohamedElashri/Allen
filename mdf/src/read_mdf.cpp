@@ -304,7 +304,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
       hdr->setChecksum(0);
     }
     else if (checksum != 0) {
-      auto c = LHCb::genChecksum(1, buffer + 4 * sizeof(int), size);
+      auto c = LHCb::hash32Checksum(buffer + 4 * sizeof(int), size);
       if (checksum != c) {
         cerr << "Checksum doesn't match: " << std::hex << c << " instead of 0x" << checksum << std::dec << "\n";
         return false;
@@ -350,7 +350,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
       return {false, false, {buffer.data(), static_cast<span_size_t<char>>(bnkSize + new_len)}};
     }
     else {
-      cerr << "Failed to read compressed data\n";
+      cerr << "Failed to decompress data\n";
       return {false, true, {}};
     }
   }

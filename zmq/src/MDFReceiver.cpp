@@ -100,7 +100,7 @@ void write_files(
           auto* header = reinterpret_cast<LHCb::MDFHeader const*>(data);
           auto const event_size = header->recordSize();
           if (header->checkSum() != 0) {
-            auto c = LHCb::genChecksum(1, data + skip, event_size - skip);
+            auto c = LHCb::hash32Checksum(data + skip, event_size - skip);
             if (header->checkSum() != c) {
               std::cout << "Checksum failed.\n";
             }
