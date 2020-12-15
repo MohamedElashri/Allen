@@ -71,9 +71,9 @@ __device__ float qop_calculation(
   const auto yVelo_at0 = yVelo - tyO * zVelo;
   const auto FLIGHTPATH_MAGNET_SCI_SQ =  (x0SciFi-xMatch)*(x0SciFi-xMatch) + (y0SciFi-yMatch)*(y0SciFi-yMatch)+ (z0SciFi-zMatch)*(z0SciFi-zMatch) ;
   const auto FLIGHTPATH_VELO_MAGNET_SQ =  (xVelo_at0-xMatch)*(xVelo_at0-xMatch) + (yVelo_at0-yMatch)*(yVelo_at0-yMatch)+ (0-zMatch)*(0-zMatch) ;
-  const auto FLIGHTPATH = 0.001*sqrt( FLIGHTPATH_MAGNET_SCI_SQ +FLIGHTPATH_VELO_MAGNET_SQ );
+  const auto FLIGHTPATH = 0.001*sqrtf( FLIGHTPATH_MAGNET_SCI_SQ +FLIGHTPATH_VELO_MAGNET_SQ );
   const auto MAGFIELD =  FLIGHTPATH * cos(asin(tyO));
-  const auto DSLOPE = txSciFi/( sqrt( 1+ txSciFi * txSciFi + tySciFi * tySciFi)) - txO/(sqrt( 1+ txO*txO + tyO*tyO));
+  const auto DSLOPE = txSciFi/( sqrtf( 1+ txSciFi * txSciFi + tySciFi * tySciFi)) - txO/(sqrtf( 1+ txO*txO + tyO*tyO));
 
   const auto txO2 = pow(txO, 2);
   const auto txO3 = pow(txO, 3);
