@@ -71,29 +71,29 @@ __device__ float qop_calculation(
   const auto yVelo_at0 = yVelo - tyO * zVelo;
   const auto FLIGHTPATH_MAGNET_SCI_SQ =  (x0SciFi-xMatch)*(x0SciFi-xMatch) + (y0SciFi-yMatch)*(y0SciFi-yMatch)+ (z0SciFi-zMatch)*(z0SciFi-zMatch) ;
   const auto FLIGHTPATH_VELO_MAGNET_SQ =  (xVelo_at0-xMatch)*(xVelo_at0-xMatch) + (yVelo_at0-yMatch)*(yVelo_at0-yMatch)+ (0-zMatch)*(0-zMatch) ;
-  const auto FLIGHTPATH = 0.001*sqrtf( FLIGHTPATH_MAGNET_SCI_SQ +FLIGHTPATH_VELO_MAGNET_SQ );
-  const auto MAGFIELD =  FLIGHTPATH * cos(asin(tyO));
-  const auto DSLOPE = txSciFi/( sqrtf( 1+ txSciFi * txSciFi + tySciFi * tySciFi)) - txO/(sqrtf( 1+ txO*txO + tyO*tyO));
+  const float FLIGHTPATH = 0.001*sqrtf( FLIGHTPATH_MAGNET_SCI_SQ +FLIGHTPATH_VELO_MAGNET_SQ );
+  const float MAGFIELD =  FLIGHTPATH * cos(asin(tyO));
+  const float DSLOPE = txSciFi/( sqrtf( 1+ txSciFi * txSciFi + tySciFi * tySciFi)) - txO/(sqrtf( 1+ txO*txO + tyO*tyO));
 
-  const auto txO2 = pow(txO, 2);
-  const auto txO3 = pow(txO, 3);
-  const auto txO4 = pow(txO, 4);
-  const auto txO5 = pow(txO, 5);
-  const auto txO6 = pow(txO, 6);
-  const auto txO7 = pow(txO, 7);   
-  const auto tyO2 = pow(tyO, 2);
-  const auto tyO4 = pow(tyO, 4);
-  const auto tyO5 = pow(tyO, 5);
-  const auto tyO6 = pow(tyO, 6);
+  const float txO2 = pow(txO, 2);
+  const float txO3 = pow(txO, 3);
+  const float txO4 = pow(txO, 4);
+  const float txO5 = pow(txO, 5);
+  const float txO6 = pow(txO, 6);
+  const float txO7 = pow(txO, 7);   
+  const float tyO2 = pow(tyO, 2);
+  const float tyO4 = pow(tyO, 4);
+  const float tyO5 = pow(tyO, 5);
+  const float tyO6 = pow(tyO, 6);
 
-  const auto C0 = dev_looking_forward_constants->C0[0]+dev_looking_forward_constants->C0[1]*txO2 + dev_looking_forward_constants->C0[2]*txO4 + dev_looking_forward_constants->C0[3]*tyO2 + dev_looking_forward_constants->C0[4]*tyO4 + dev_looking_forward_constants->C0[5]*txO2*tyO2 + dev_looking_forward_constants->C0[6]*txO6 + dev_looking_forward_constants->C0[7]*tyO5 + dev_looking_forward_constants->C0[8]*txO4*tyO2 + dev_looking_forward_constants->C0[9]*txO2*tyO4;
-  const auto C1 = dev_looking_forward_constants->C1[0]+dev_looking_forward_constants->C1[1]*txO + dev_looking_forward_constants->C1[2]*txO3 +dev_looking_forward_constants->C1[3]*txO5 +dev_looking_forward_constants->C1[4]*txO7 + dev_looking_forward_constants->C1[5]*tyO2 + dev_looking_forward_constants->C1[6]*tyO4 + dev_looking_forward_constants->C1[7]*tyO6 + dev_looking_forward_constants->C1[8]*txO*tyO2 +dev_looking_forward_constants->C1[9]*txO*tyO4 +dev_looking_forward_constants->C1[10]*txO*tyO6 +dev_looking_forward_constants->C1[11]*txO3*tyO2 + dev_looking_forward_constants->C1[12]*txO3*tyO4 + dev_looking_forward_constants->C1[13]*txO5*tyO2;
-  const auto C2 = dev_looking_forward_constants->C2[0]+dev_looking_forward_constants->C2[1]*txO2 + dev_looking_forward_constants->C2[2]*txO4 + dev_looking_forward_constants->C2[3]*tyO2 + dev_looking_forward_constants->C2[4]*tyO4  + dev_looking_forward_constants->C2[5]*txO2*tyO2  + dev_looking_forward_constants->C2[6]*txO6 + dev_looking_forward_constants->C2[7]*tyO5 + dev_looking_forward_constants->C2[8]*txO4*tyO2 + dev_looking_forward_constants->C2[9]*txO2*tyO4;
-  const auto C3 = dev_looking_forward_constants->C3[0]+dev_looking_forward_constants->C3[1]*txO + dev_looking_forward_constants->C3[2]*txO3 +dev_looking_forward_constants->C3[3]*txO5 +dev_looking_forward_constants->C3[4]*txO7 + dev_looking_forward_constants->C3[5]*tyO2 + dev_looking_forward_constants->C3[6]*tyO4 + dev_looking_forward_constants->C3[7]*tyO6 + dev_looking_forward_constants->C3[8]*txO*tyO2 +dev_looking_forward_constants->C3[9]*txO*tyO4 +dev_looking_forward_constants->C3[10]*txO*tyO6 +dev_looking_forward_constants->C3[11]*txO3*tyO2 + dev_looking_forward_constants->C3[12]*txO3*tyO4 + dev_looking_forward_constants->C3[13]*txO5*tyO2;
-  const auto C4 = dev_looking_forward_constants->C4[0]+dev_looking_forward_constants->C4[1]*txO2 + dev_looking_forward_constants->C4[2]*txO4 + dev_looking_forward_constants->C4[3]*tyO2 + dev_looking_forward_constants->C4[4]*tyO4  + dev_looking_forward_constants->C4[5]*txO2*tyO2  + dev_looking_forward_constants->C4[6]*txO6 + dev_looking_forward_constants->C4[7]*tyO5 + dev_looking_forward_constants->C4[8]*txO4*tyO2 + dev_looking_forward_constants->C4[9]*txO2*tyO4;
+  const float C0 = dev_looking_forward_constants->C0[0]+dev_looking_forward_constants->C0[1]*txO2 + dev_looking_forward_constants->C0[2]*txO4 + dev_looking_forward_constants->C0[3]*tyO2 + dev_looking_forward_constants->C0[4]*tyO4 + dev_looking_forward_constants->C0[5]*txO2*tyO2 + dev_looking_forward_constants->C0[6]*txO6 + dev_looking_forward_constants->C0[7]*tyO5 + dev_looking_forward_constants->C0[8]*txO4*tyO2 + dev_looking_forward_constants->C0[9]*txO2*tyO4;
+  const float C1 = dev_looking_forward_constants->C1[0]+dev_looking_forward_constants->C1[1]*txO + dev_looking_forward_constants->C1[2]*txO3 +dev_looking_forward_constants->C1[3]*txO5 +dev_looking_forward_constants->C1[4]*txO7 + dev_looking_forward_constants->C1[5]*tyO2 + dev_looking_forward_constants->C1[6]*tyO4 + dev_looking_forward_constants->C1[7]*tyO6 + dev_looking_forward_constants->C1[8]*txO*tyO2 +dev_looking_forward_constants->C1[9]*txO*tyO4 +dev_looking_forward_constants->C1[10]*txO*tyO6 +dev_looking_forward_constants->C1[11]*txO3*tyO2 + dev_looking_forward_constants->C1[12]*txO3*tyO4 + dev_looking_forward_constants->C1[13]*txO5*tyO2;
+  const float C2 = dev_looking_forward_constants->C2[0]+dev_looking_forward_constants->C2[1]*txO2 + dev_looking_forward_constants->C2[2]*txO4 + dev_looking_forward_constants->C2[3]*tyO2 + dev_looking_forward_constants->C2[4]*tyO4  + dev_looking_forward_constants->C2[5]*txO2*tyO2  + dev_looking_forward_constants->C2[6]*txO6 + dev_looking_forward_constants->C2[7]*tyO5 + dev_looking_forward_constants->C2[8]*txO4*tyO2 + dev_looking_forward_constants->C2[9]*txO2*tyO4;
+  const float C3 = dev_looking_forward_constants->C3[0]+dev_looking_forward_constants->C3[1]*txO + dev_looking_forward_constants->C3[2]*txO3 +dev_looking_forward_constants->C3[3]*txO5 +dev_looking_forward_constants->C3[4]*txO7 + dev_looking_forward_constants->C3[5]*tyO2 + dev_looking_forward_constants->C3[6]*tyO4 + dev_looking_forward_constants->C3[7]*tyO6 + dev_looking_forward_constants->C3[8]*txO*tyO2 +dev_looking_forward_constants->C3[9]*txO*tyO4 +dev_looking_forward_constants->C3[10]*txO*tyO6 +dev_looking_forward_constants->C3[11]*txO3*tyO2 + dev_looking_forward_constants->C3[12]*txO3*tyO4 + dev_looking_forward_constants->C3[13]*txO5*tyO2;
+  const float C4 = dev_looking_forward_constants->C4[0]+dev_looking_forward_constants->C4[1]*txO2 + dev_looking_forward_constants->C4[2]*txO4 + dev_looking_forward_constants->C4[3]*tyO2 + dev_looking_forward_constants->C4[4]*tyO4  + dev_looking_forward_constants->C4[5]*txO2*tyO2  + dev_looking_forward_constants->C4[6]*txO6 + dev_looking_forward_constants->C4[7]*tyO5 + dev_looking_forward_constants->C4[8]*txO4*tyO2 + dev_looking_forward_constants->C4[9]*txO2*tyO4;
 
-  const auto MAGFIELD_updated = MAGFIELD * magSign * ( C0 + C1 * DSLOPE + C2 * DSLOPE*DSLOPE + C3 * DSLOPE*DSLOPE*DSLOPE + C4 * DSLOPE*DSLOPE*DSLOPE*DSLOPE);
-  const auto qop = DSLOPE / MAGFIELD_updated;
+  const float MAGFIELD_updated = MAGFIELD * magSign * ( C0 + C1 * DSLOPE + C2 * DSLOPE*DSLOPE + C3 * DSLOPE*DSLOPE*DSLOPE + C4 * DSLOPE*DSLOPE*DSLOPE*DSLOPE);
+  const float qop = DSLOPE / MAGFIELD_updated;
   return qop;
 }
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
