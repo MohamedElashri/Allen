@@ -37,7 +37,7 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   initialize<dev_atomics_scifi_t>(arguments, 0, stream);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
-    arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
+    arguments, constants.dev_looking_forward_constants);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, stream);
@@ -51,18 +51,10 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
 
 __global__ void lf_quality_filter::lf_quality_filter(
   lf_quality_filter::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_magnet_polarity)
+  const LookingForward::Constants* dev_looking_forward_constants)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-
-  // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
-  const unsigned velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {

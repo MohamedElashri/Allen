@@ -170,12 +170,6 @@ def ForwardSequence(initialize_lists,
         dev_scifi_lf_parametrization_length_filter_t=lf_quality_filter_length.
         dev_scifi_lf_parametrization_length_filter_t(),
         dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t(),
-        dev_velo_states_t=velo_kalman_filter.
-        dev_velo_kalman_endvelo_states_t(),
-        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-        dev_offsets_all_velo_tracks_t(),
-        dev_offsets_velo_track_hit_number_t=
-        prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
         dev_ut_track_velo_indices_t=ut_consolidate_tracks.
         dev_ut_track_velo_indices_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
