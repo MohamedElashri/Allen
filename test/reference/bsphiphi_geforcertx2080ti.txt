@@ -46,7 +46,7 @@ TrackChecker output                               :      3117/    49864   6.25% 
 
 Forward tracks:
 TrackChecker output                               :      1082/    33246   3.25% ghosts
-for P>3GeV,Pt>0.5GeV                              :       591/    21250   2.78% ghosts
+for P>3GeV,Pt>0.5GeV                              :       140/     5194   2.70% ghosts
 01_long                                           :     30458/    57988  52.52% ( 53.61%),       234 (  0.76%) clones, pur  98.79%, hit eff  97.53%
 02_long_P>5GeV                                    :     25367/    36811  68.91% ( 69.90%),       195 (  0.76%) clones, pur  98.89%, hit eff  97.83%
 03_long_strange                                   :       883/     2542  34.74% ( 34.87%),         2 (  0.23%) clones, pur  98.64%, hit eff  97.63%
@@ -62,16 +62,16 @@ for P>3GeV,Pt>0.5GeV                              :       591/    21250   2.78% 
 Muon matching:
 Muon fraction in all MCPs:                                              11700/   872587   0.01% 
 Muon fraction in MCPs to which a track(s) was matched:                    364/    37169   0.01% 
-Correctly identified muons with isMuon:                                   286/      364  78.57% 
+Correctly identified muons with isMuon:                                   189/      364  51.92% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
-Correctly identified muons from B decays with isMuon:                      77/       96  80.21% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      3506/    36805   9.53% 
-Ghost tracks identified as muon with isMuon:                              123/     1082  11.37% 
+Correctly identified muons from B decays with isMuon:                      60/       96  62.50% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      1038/    36805   2.82% 
+Ghost tracks identified as muon with isMuon:                              41/     1082    3.79% 
 
 
 HLT1 rates:
-Hlt1TrackMVA:            214/  1000, ( 6420.00 +/-   389.08) kHz
-Hlt1TwoTrackMVA:         384/  1000, (11520.00 +/-   461.40) kHz
+Hlt1TrackMVA:             63/  1000, ( 1890.00 +/-   230.49) kHz
+Hlt1TwoTrackMVA:          90/  1000, ( 2700.00 +/-   271.50) kHz
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
@@ -79,16 +79,16 @@ Hlt1BothBeams:             2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
-Hlt1LowPtMuon:           317/  1000, ( 9510.00 +/-   441.43) kHz
-Hlt1D2KK:                 18/  1000, (  540.00 +/-   126.13) kHz
-Hlt1D2KPi:                30/  1000, (  900.00 +/-   161.83) kHz
-Hlt1D2PiPi:               26/  1000, (  780.00 +/-   150.97) kHz
-Hlt1DiMuonHighMass:        9/  1000, (  270.00 +/-    89.59) kHz
-Hlt1DiMuonLowMass:        24/  1000, (  720.00 +/-   145.20) kHz
-Hlt1DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1LowPtDiMuon:         255/  1000, ( 7650.00 +/-   413.49) kHz
-Hlt1TrackMuonMVA:          5/  1000, (  150.00 +/-    66.91) kHz
+Hlt1SingleHighPtMuon:      2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1LowPtMuon:            96/  1000, ( 2880.00 +/-   279.47) kHz
+Hlt1D2KK:                  3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1D2KPi:                 7/  1000, (  210.00 +/-    79.09) kHz
+Hlt1D2PiPi:                5/  1000, (  150.00 +/-    66.91) kHz
+Hlt1DiMuonHighMass:        0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonLowMass:         1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1DiMuonSoft:            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LowPtDiMuon:          26/  1000, (  780.00 +/-   150.97) kHz
+Hlt1TrackMuonMVA:          3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1GECPassthrough:      856/  1000, (25680.00 +/-   333.07) kHz
 Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Inclusive:              1000/  1000, (30000.00 +/-     0.00) kHz
