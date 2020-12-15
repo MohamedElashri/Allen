@@ -350,8 +350,8 @@ test_physics_efficiency:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_default:run_physics_efficiency
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_scifi_v6:run_physics_efficiency
   tags:
     - cvmfs
   artifacts:
@@ -374,10 +374,10 @@ test_run_changes:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_with_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_no_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_with_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_no_run_changes
+    - x862630v4:CPU:hlt1_pp_scifi_v6:run_with_run_changes
+    - x862630v4:CPU:hlt1_pp_scifi_v6:run_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
@@ -394,7 +394,7 @@ test_run_changes:
 #     - cd build_CUDA
 #     - ctest -V
 #   needs:
-#     - CUDA:hlt1_pp_default:Debug::build
+#     - CUDA:hlt1_pp_scifi_v6:Debug::build
 #   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
@@ -443,17 +443,17 @@ test_run_changes:
 # Build
 # =====
 
-CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
+CUDA:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
@@ -462,7 +462,7 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10
       - master
       - web
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
+CPU:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
@@ -474,7 +474,7 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+CPU:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
@@ -483,7 +483,7 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERR
       - master
       - web
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+CUDA:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
@@ -494,19 +494,19 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ER
 
 # clang:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+CPU:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
     
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+CUDA:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
 
 # Build of default sequence without code generation
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build:
+CPU:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
@@ -541,70 +541,70 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 
 # Throughput runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-quadrortx6000:CUDA:hlt1_pp_default:run_throughput:
+quadrortx6000:CUDA:hlt1_pp_scifi_v6:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-teslav100:CUDA:hlt1_pp_default:run_throughput:
+teslav100:CUDA:hlt1_pp_scifi_v6:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3080:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3080:CUDA:hlt1_pp_scifi_v6:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3090:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3090:CUDA:hlt1_pp_scifi_v6:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx3090
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:run_throughput:
+x862630v4:CPU:hlt1_pp_scifi_v6:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-epyc7502:CPU:hlt1_pp_default:run_throughput:
+epyc7502:CPU:hlt1_pp_scifi_v6:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - epyc7502
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 # Physics efficiency runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
+x862630v4:CPU:hlt1_pp_scifi_v6:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 # Additional throughput runs, only on master
 
@@ -687,64 +687,64 @@ epyc7502:CPU:hlt1_pp_no_gec:run_throughput:
 
 # Run debug builds
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
 
-x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
+x86:CPU:hlt1_pp_scifi_v6:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
   needs:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_scifi_v6:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
 
 # check run changes
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
 
-x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
+x862630v4:CPU:hlt1_pp_scifi_v6:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
 
-x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
+x862630v4:CPU:hlt1_pp_scifi_v6:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - web
@@ -753,18 +753,18 @@ x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
 # Publish
 # =======
 
-throughput:hlt1_pp_default:geforcertx3090:publish_throughput:
+throughput:hlt1_pp_scifi_v6:geforcertx3090:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - cvmfs
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput
-    - quadrortx6000:CUDA:hlt1_pp_default:run_throughput
-    - teslav100:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3080:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3090:CUDA:hlt1_pp_default:run_throughput
-    - x862630v4:CPU:hlt1_pp_default:run_throughput
-    - epyc7502:CPU:hlt1_pp_default:run_throughput
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_scifi_v6:run_throughput
+    - teslav100:CUDA:hlt1_pp_scifi_v6:run_throughput
+    - geforcertx3080:CUDA:hlt1_pp_scifi_v6:run_throughput
+    - geforcertx3090:CUDA:hlt1_pp_scifi_v6:run_throughput
+    - x862630v4:CPU:hlt1_pp_scifi_v6:run_throughput
+    - epyc7502:CPU:hlt1_pp_scifi_v6:run_throughput
 
 # Publish additional throughput tests, only in master
 

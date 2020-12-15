@@ -196,7 +196,6 @@ def VeloSequence(doGEC=True):
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
         dev_velo_track_hits_t=velo_consolidate_tracks.dev_velo_track_hits_t())
 
-
     velo_sequence = Sequence(
         mep_layout, host_ut_banks, host_scifi_banks, initialize_lists,
         full_event_list, velo_banks, velo_calculate_number_of_candidates,
