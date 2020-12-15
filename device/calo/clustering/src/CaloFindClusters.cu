@@ -10,7 +10,7 @@ __device__ void simple_clusters(CaloDigit const* digits,
     auto const& seed_cluster = seed_clusters[c];
     auto& cluster = clusters[c];
     cluster.center_id = seed_cluster.id;
-    cluster.e = calo.pedestal + seed_cluster.adc * calo.gain[seed_cluster.id];
+    cluster.e = calo.gain[seed_cluster.id] * (seed_cluster.adc - calo.pedestal);
     cluster.x = seed_cluster.x;
     cluster.y = seed_cluster.y;
 
