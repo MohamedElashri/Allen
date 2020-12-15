@@ -99,6 +99,19 @@ if(TREAT_WARNINGS_AS_ERRORS)
   string(APPEND CMAKE_CXX_FLAGS " -Werror")
 endif()
 
+# Choice of malloc engine
+set(MALLOC_ENGINE SINGLE_ALLOC CACHE STRING "Malloc engine")
+set_property(CACHE MALLOC_ENGINE PROPERTY STRINGS SINGLE_ALLOC MULTI_ALLOC)
+message(STATUS "Memory manager: " ${MALLOC_ENGINE})
+add_compile_definitions(MEMORY_MANAGER_${MALLOC_ENGINE})
+
+# Choice of device invocation synchronicity
+option(SYNCHRONOUS_DEVICE_EXECUTION "Make device calls synchronous" OFF)
+message(STATUS "Synchronous device execution: " ${SYNCHRONOUS_DEVICE_EXECUTION})
+if(SYNCHRONOUS_DEVICE_EXECUTION)
+  add_compile_definitions(SYNCHRONOUS_DEVICE_EXECUTION)
+endif()
+
 # Deal with device target architecture
 if(NOT STANDALONE)
   message(STATUS "Configured Gaudi build")

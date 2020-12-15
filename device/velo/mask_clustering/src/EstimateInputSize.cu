@@ -21,19 +21,18 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_estimated_input_size_t>(arguments, 0, stream);
-  initialize<dev_module_candidate_num_t>(arguments, 0, stream);
+  initialize<dev_estimated_input_size_t>(arguments, 0, context);
+  initialize<dev_module_candidate_num_t>(arguments, 0, context);
 
   if (runtime_options.mep_layout) {
     global_function(velo_estimate_input_size_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
   }
   else {
-    global_function(velo_estimate_input_size)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
-      arguments);
+    global_function(velo_estimate_input_size)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
   }
 }
 

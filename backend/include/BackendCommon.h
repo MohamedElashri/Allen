@@ -4,17 +4,22 @@
 
 #pragma once
 
-#include <tuple>
-#include <string>
-#include <cassert>
-#include "TupleTools.cuh"
-
 // Host / device compiler identification
 #if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || \
   (defined(TARGET_DEVICE_CUDACLANG) && defined(__clang__) && defined(__CUDA__)) ||        \
   (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__)))
 #define DEVICE_COMPILER
 #endif
+
+#if defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_CUDACLANG) || defined(TARGET_DEVICE_HIP)
+#define TARGET_DEVICE_CUDAHIP
+#endif
+
+#include <tuple>
+#include <string>
+#include <cassert>
+#include "AllenTypeTraits.cuh"
+#include "BackendCommonInterface.h"
 
 // Dispatch to the right backend
 #if defined(TARGET_DEVICE_CPU)
@@ -110,10 +115,6 @@ namespace Allen {
  */
 #define _unused(x) ((void) (x))
 
-void print_gpu_memory_consumption();
-
-std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
-
 // Helper structure to deal with constness of T
 template<typename T, typename U>
 struct ForwardType {
@@ -124,8 +125,6 @@ template<typename T, typename U>
 struct ForwardType<const T, U> {
   using t = std::add_const_t<U>;
 };
-
-std::tuple<bool, int> get_device_id(std::string pci_bus_id);
 
 struct HashNotPopulatedException : public std::exception {
 private:

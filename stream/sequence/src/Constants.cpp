@@ -15,13 +15,13 @@
 
 void Constants::reserve_constants()
 {
-  cudaCheck(cudaMalloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float)));
-  cudaCheck(cudaMalloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations)));
-  cudaCheck(cudaMalloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants)));
-  cudaCheck(cudaMalloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest)));
-  cudaCheck(cudaMalloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float)));
-  cudaCheck(cudaMalloc((void**) &dev_muonmatch_search_muon_chambers, sizeof(MatchUpstreamMuon::MuonChambers)));
-  cudaCheck(cudaMalloc((void**) &dev_muonmatch_search_windows, sizeof(MatchUpstreamMuon::SearchWindows)));
+  Allen::malloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float));
+  Allen::malloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations));
+  Allen::malloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants));
+  Allen::malloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest));
+  Allen::malloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float));
+  Allen::malloc((void**) &dev_muonmatch_search_muon_chambers, sizeof(MatchUpstreamMuon::MuonChambers));
+  Allen::malloc((void**) &dev_muonmatch_search_windows, sizeof(MatchUpstreamMuon::SearchWindows));
 
   host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
   host_ut_dxDy.resize(UT::Constants::n_layers);
@@ -34,25 +34,25 @@ void Constants::initialize_constants(
 {
   // SciFi constants
   host_inv_clus_res = {1 / 0.05, 1 / 0.08, 1 / 0.11, 1 / 0.14, 1 / 0.17, 1 / 0.20, 1 / 0.23, 1 / 0.26, 1 / 0.29};
-  cudaCheck(
-    cudaMemcpy(dev_inv_clus_res, &host_inv_clus_res, host_inv_clus_res.size() * sizeof(float), cudaMemcpyHostToDevice));
+  Allen::memcpy(
+    dev_inv_clus_res, &host_inv_clus_res, host_inv_clus_res.size() * sizeof(float), Allen::memcpyHostToDevice);
 
   host_looking_forward_constants = new LookingForward::Constants {};
 
   // Kalman filter constants.
   ParKalmanFilter::KalmanParametrizations host_kalman_params;
   host_kalman_params.SetParameters(folder_params_kalman, ParKalmanFilter::Polarity::Down);
-  cudaCheck(cudaMemcpy(
-    dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), cudaMemcpyHostToDevice));
+  Allen::memcpy(
+    dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), Allen::memcpyHostToDevice);
 
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     dev_looking_forward_constants,
     host_looking_forward_constants,
     sizeof(LookingForward::Constants),
-    cudaMemcpyHostToDevice))
+    Allen::memcpyHostToDevice);
 
-    // Muon constants
-    Muon::Constants::FieldOfInterest host_muon_foi;
+  // Muon constants
+  Muon::Constants::FieldOfInterest host_muon_foi;
   const float* foi_iterator = muon_field_of_interest_params.data();
   for (unsigned i_station = 0; i_station < Muon::Constants::n_stations; i_station++) {
     std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_a_x[i_station]);
@@ -68,24 +68,23 @@ void Constants::initialize_constants(
     std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_c_y[i_station]);
     foi_iterator += Muon::Constants::n_regions;
   }
-  cudaCheck(
-    cudaMemcpy(dev_muon_momentum_cuts, &Muon::Constants::momentum_cuts, 3 * sizeof(float), cudaMemcpyHostToDevice));
-  cudaCheck(cudaMemcpy(dev_muon_foi, &host_muon_foi, sizeof(Muon::Constants::FieldOfInterest), cudaMemcpyHostToDevice));
+  Allen::memcpy(dev_muon_momentum_cuts, &Muon::Constants::momentum_cuts, 3 * sizeof(float), Allen::memcpyHostToDevice);
+  Allen::memcpy(dev_muon_foi, &host_muon_foi, sizeof(Muon::Constants::FieldOfInterest), Allen::memcpyHostToDevice);
 
   // Velo-UT-muon
   MatchUpstreamMuon::MuonChambers host_muonmatch_search_muon_chambers;
   MatchUpstreamMuon::SearchWindows host_muonmatch_search_windows;
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     dev_muonmatch_search_muon_chambers,
     &host_muonmatch_search_muon_chambers,
     sizeof(MatchUpstreamMuon::MuonChambers),
-    cudaMemcpyHostToDevice));
+    Allen::memcpyHostToDevice);
 
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     dev_muonmatch_search_windows,
     &host_muonmatch_search_windows,
     sizeof(MatchUpstreamMuon::SearchWindows),
-    cudaMemcpyHostToDevice));
+    Allen::memcpyHostToDevice);
 }
 
 void Constants::initialize_muon_catboost_model_constants(
@@ -98,29 +97,29 @@ void Constants::initialize_muon_catboost_model_constants(
   const std::vector<int>& split_features)
 {
   muon_catboost_n_trees = n_trees;
-  cudaCheck(cudaMalloc((void**) &dev_muon_catboost_split_features, split_features.size() * sizeof(int)));
-  cudaCheck(cudaMalloc((void**) &dev_muon_catboost_split_borders, split_borders.size() * sizeof(float)));
-  cudaCheck(cudaMalloc((void**) &dev_muon_catboost_leaf_values, leaf_values.size() * sizeof(float)));
-  cudaCheck(cudaMalloc((void**) &dev_muon_catboost_tree_depths, tree_depths.size() * sizeof(int)));
-  cudaCheck(cudaMalloc((void**) &dev_muon_catboost_tree_offsets, tree_offsets.size() * sizeof(int)));
-  cudaCheck(cudaMalloc((void**) &dev_muon_catboost_leaf_offsets, leaf_offsets.size() * sizeof(int)));
+  Allen::malloc((void**) &dev_muon_catboost_split_features, split_features.size() * sizeof(int));
+  Allen::malloc((void**) &dev_muon_catboost_split_borders, split_borders.size() * sizeof(float));
+  Allen::malloc((void**) &dev_muon_catboost_leaf_values, leaf_values.size() * sizeof(float));
+  Allen::malloc((void**) &dev_muon_catboost_tree_depths, tree_depths.size() * sizeof(int));
+  Allen::malloc((void**) &dev_muon_catboost_tree_offsets, tree_offsets.size() * sizeof(int));
+  Allen::malloc((void**) &dev_muon_catboost_leaf_offsets, leaf_offsets.size() * sizeof(int));
 
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     dev_muon_catboost_split_features,
     split_features.data(),
     split_features.size() * sizeof(int),
-    cudaMemcpyHostToDevice));
-  cudaCheck(cudaMemcpy(
+    Allen::memcpyHostToDevice);
+  Allen::memcpy(
     dev_muon_catboost_split_borders,
     split_borders.data(),
     split_borders.size() * sizeof(float),
-    cudaMemcpyHostToDevice));
-  cudaCheck(cudaMemcpy(
-    dev_muon_catboost_leaf_values, leaf_values.data(), leaf_values.size() * sizeof(float), cudaMemcpyHostToDevice));
-  cudaCheck(cudaMemcpy(
-    dev_muon_catboost_tree_depths, tree_depths.data(), tree_depths.size() * sizeof(int), cudaMemcpyHostToDevice));
-  cudaCheck(cudaMemcpy(
-    dev_muon_catboost_tree_offsets, tree_offsets.data(), tree_offsets.size() * sizeof(int), cudaMemcpyHostToDevice));
-  cudaCheck(cudaMemcpy(
-    dev_muon_catboost_leaf_offsets, leaf_offsets.data(), leaf_offsets.size() * sizeof(int), cudaMemcpyHostToDevice));
+    Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_muon_catboost_leaf_values, leaf_values.data(), leaf_values.size() * sizeof(float), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_muon_catboost_tree_depths, tree_depths.data(), tree_depths.size() * sizeof(int), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_muon_catboost_tree_offsets, tree_offsets.data(), tree_offsets.size() * sizeof(int), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_muon_catboost_leaf_offsets, leaf_offsets.data(), leaf_offsets.size() * sizeof(int), Allen::memcpyHostToDevice);
 }

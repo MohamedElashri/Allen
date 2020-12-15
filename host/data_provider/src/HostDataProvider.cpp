@@ -4,7 +4,7 @@
 #include "HostDataProvider.h"
 
 void host_data_provider::host_data_provider_t::set_arguments_size(
-  ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+  ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
   const HostBuffers&) const
@@ -18,12 +18,11 @@ void host_data_provider::host_data_provider_t::set_arguments_size(
 }
 
 void host_data_provider::host_data_provider_t::operator()(
-  const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+  const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t&,
-  cudaEvent_t&) const
+  const Allen::Context&) const
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
 

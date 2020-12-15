@@ -19,14 +19,13 @@
  *
  * @return     Return value of the function.
  */
-#if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))) || \
-  ((defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__)))
+#if defined(DEVICE_COMPILER)
 template<class Fn, class Tuple, unsigned long... I>
-void invoke_impl(
+void invoke_device_function(
   Fn&& function,
   const dim3& grid_dim,
   const dim3& block_dim,
-  cudaStream_t stream,
+  const Allen::Context& context,
   const Tuple& invoke_arguments,
   std::index_sequence<I...>)
 {
@@ -38,7 +37,7 @@ void invoke_impl(
   }
 
 #if defined(TARGET_DEVICE_CPU)
-  _unused(stream);
+  _unused(context);
 
   gridDim = {grid_dim.x, grid_dim.y, grid_dim.z};
   for (unsigned int i = 0; i < grid_dim.x; ++i) {
@@ -50,14 +49,25 @@ void invoke_impl(
     }
   }
 #elif defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))
-  hipLaunchKernelGGL(function, grid_dim, block_dim, 0, stream, std::get<I>(invoke_arguments)...);
+  hipLaunchKernelGGL(function, grid_dim, block_dim, 0, context.stream(), std::get<I>(invoke_arguments)...);
 #elif (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__))
-  function<<<grid_dim, block_dim, 0, stream>>>(std::get<I>(invoke_arguments)...);
+#ifdef SYNCHRONOUS_DEVICE_EXECUTION
+  _unused(context);
+  function<<<grid_dim, block_dim>>>(std::get<I>(invoke_arguments)...);
+#else
+  function<<<grid_dim, block_dim, 0, context.stream()>>>(std::get<I>(invoke_arguments)...);
+#endif
 #endif
 }
 #else
 template<class Fn, class Tuple, unsigned long... I>
-void invoke_impl(Fn&&, const dim3&, const dim3&, cudaStream_t, const Tuple&, std::index_sequence<I...>)
+void invoke_device_function(
+  Fn&&,
+  const dim3&,
+  const dim3&,
+  const Allen::Context&,
+  const Tuple&,
+  std::index_sequence<I...>)
 {
   error_cout << "Global function invoked with unexpected backend.\n";
 }

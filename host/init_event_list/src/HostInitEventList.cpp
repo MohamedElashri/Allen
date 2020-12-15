@@ -24,20 +24,19 @@ void host_init_event_list::host_init_event_list_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   const auto number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
   // Initialize number of events
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
-  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, stream);
+  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
 
   // Initialize buffers
   for (unsigned i = 0; i < number_of_events; ++i) {
     data<host_event_list_t>(arguments)[i] = i;
   }
 
-  copy<dev_event_list_t, host_event_list_t>(arguments, stream);
+  copy<dev_event_list_t, host_event_list_t>(arguments, context);
 }

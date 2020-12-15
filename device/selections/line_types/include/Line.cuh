@@ -16,8 +16,7 @@
     const RuntimeOptions&,                          \
     const Constants&,                               \
     HostBuffers&,                                   \
-    cudaStream_t&,                                  \
-    cudaEvent_t&) const;
+    const Allen::Context&) const;
 
 // "Enum of types" to determine dispatch to global_function
 namespace LineIteration {
@@ -31,21 +30,19 @@ namespace LineIteration {
  * @brief A generic Line.
  * @detail It assumes the line has the following parameters:
  *
- *  (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
- *  (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
- *  (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
- *  (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
- *  (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
- *  (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
- *  (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
- *  (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
- *  (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
- *  (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
- *  (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
- *  (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
- *   pre_scaler_hash_string),
- *  (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
- *   post_scaler_hash_string),
+ *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+ *  DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+ *  DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
+ *  DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
+ *  DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
+ *  DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
+ *  DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+ *  HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+ *  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+ *  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
+ *  PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
+ *  PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
+ *  PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
  *
  * The inheriting line must also provide the following methods:
  *
@@ -98,8 +95,7 @@ public:
     const Constants&,
     const HostBuffers&) const
   {
-    auto derived_instance = static_cast<const Derived*>(this);
-    set_size<typename Parameters::dev_decisions_t>(arguments, derived_instance->get_decisions_size(arguments));
+    set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
@@ -111,13 +107,12 @@ public:
     const RuntimeOptions&,
     const Constants&,
     HostBuffers&,
-    cudaStream_t&,
-    cudaEvent_t&) const;
+    const Allen::Context& context) const;
 
   /**
    * @brief Grid dimension of kernel call. get_grid_dim returns the size of the event list.
    */
-  unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments) const
+  static unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments)
   {
     if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
       return size<typename Parameters::dev_event_list_t>(arguments);
@@ -129,35 +124,26 @@ public:
   /**
    * @brief Default block dim x of kernel call. Can be "overriden".
    */
-  unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { return 256; }
+  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 256; }
 };
 
-// This #if statement means: If compiling with the device compiler
-#if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_HIP) && (defined(__HCC__) || defined(__HIP__))) || \
-  ((defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__)) || (defined(TARGET_DEVICE_CUDACLANG) && defined(__CUDA__)))
+#if defined(DEVICE_COMPILER)
 
 /**
  * @brief Processes a line by iterating over all events and all "input sizes" (ie. tracks, vertices, etc.).
  *        The way process line parallelizes is highly configurable.
  */
-template<typename Line, typename Parameters>
-__global__ void process_line(
-  Line line,
-  Parameters parameters,
-  const unsigned number_of_events,
-  const float pre_scaler_factor,
-  const unsigned pre_scaler_hash,
-  const char* dev_odin_raw_input,
-  const unsigned* dev_odin_raw_input_offsets,
-  const unsigned* dev_mep_layout)
+template<typename Derived, typename Parameters>
+__global__ void process_line(Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned input_size = line.offset(parameters, event_number + 1) - line.offset(parameters, event_number);
+  const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
 
   // ODIN data
-  const unsigned int* odin = *dev_mep_layout ?
-                               odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-                               odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+  const unsigned int* odin =
+    *parameters.dev_mep_layout ?
+      odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+      odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
 
   const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
   const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
@@ -166,18 +152,18 @@ __global__ void process_line(
   const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
 
   // Pre-scaler
-  if (deterministic_scaler(pre_scaler_hash, pre_scaler_factor, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
+  if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
     // Do selection
     for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-      parameters.dev_decisions[line.offset(parameters, event_number) + i] =
-        line.select(parameters, line.get_input(parameters, event_number, i));
+      parameters.dev_decisions[Derived::offset(parameters, event_number) + i] =
+        Derived::select(parameters, Derived::get_input(parameters, event_number, i));
     }
   }
 
   // Populate offsets in first block
   if (blockIdx.x == 0) {
     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-      parameters.dev_decisions_offsets[i] = line.offset(parameters, i);
+      parameters.dev_decisions_offsets[i] = Derived::offset(parameters, i);
     }
   }
 }
@@ -185,26 +171,22 @@ __global__ void process_line(
 /**
  * @brief Processes a line by iterating over events and applying the line.
  */
-template<typename Line, typename Parameters>
+template<typename Derived, typename Parameters>
 __global__ void process_line_iterate_events(
-  Line line,
   Parameters parameters,
   const unsigned number_of_events_in_event_list,
   const unsigned number_of_events,
-  const float pre_scaler_factor,
-  const unsigned pre_scaler_hash,
-  const char* dev_odin_raw_input,
-  const unsigned* dev_odin_raw_input_offsets,
-  const unsigned* dev_mep_layout)
+  const unsigned pre_scaler_hash)
 {
   // Do selection
   for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
     const auto event_number = parameters.dev_event_list[i];
 
     // ODIN data
-    const unsigned int* odin = *dev_mep_layout ?
-                                 odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-                                 odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+    const unsigned int* odin =
+      *parameters.dev_mep_layout ?
+        odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+        odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
 
     const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
     const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
@@ -212,8 +194,9 @@ __global__ void process_line_iterate_events(
     const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
     const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
 
-    if (deterministic_scaler(pre_scaler_hash, pre_scaler_factor, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-      parameters.dev_decisions[event_number] = line.select(parameters, line.get_input(parameters, event_number));
+    if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
+      parameters.dev_decisions[event_number] =
+        Derived::select(parameters, Derived::get_input(parameters, event_number));
     }
   }
 
@@ -230,21 +213,14 @@ template<typename Derived, typename Parameters>
 struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iteration_tag> {
   static void dispatch(
     const ArgumentReferences<Parameters>& arguments,
-    cudaStream_t& stream,
+    const Allen::Context& context,
     const Derived* derived_instance,
     const unsigned grid_dim_x,
     const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line<Derived, Parameters>)(
-      grid_dim_x, derived_instance->get_block_dim_x(arguments), stream)(
-      *derived_instance,
-      arguments,
-      first<typename Parameters::host_number_of_events_t>(arguments),
-      derived_instance->template property<typename Parameters::pre_scaler_t>(),
-      pre_scaler_hash,
-      data<typename Parameters::dev_odin_raw_input_t>(arguments),
-      data<typename Parameters::dev_odin_raw_input_offsets_t>(arguments),
-      data<typename Parameters::dev_mep_layout_t>(arguments));
+      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
+      arguments, first<typename Parameters::host_number_of_events_t>(arguments), pre_scaler_hash);
   }
 };
 
@@ -252,22 +228,17 @@ template<typename Derived, typename Parameters>
 struct LineIterationDispatch<Derived, Parameters, LineIteration::event_iteration_tag> {
   static void dispatch(
     const ArgumentReferences<Parameters>& arguments,
-    cudaStream_t& stream,
+    const Allen::Context& context,
     const Derived* derived_instance,
     const unsigned grid_dim_x,
     const unsigned pre_scaler_hash)
   {
     derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-      grid_dim_x, derived_instance->get_block_dim_x(arguments), stream)(
-      *derived_instance,
+      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
       arguments,
       size<typename Parameters::dev_event_list_t>(arguments),
       first<typename Parameters::host_number_of_events_t>(arguments),
-      derived_instance->template property<typename Parameters::pre_scaler_t>(),
-      pre_scaler_hash,
-      data<typename Parameters::dev_odin_raw_input_t>(arguments),
-      data<typename Parameters::dev_odin_raw_input_offsets_t>(arguments),
-      data<typename Parameters::dev_mep_layout_t>(arguments));
+      pre_scaler_hash);
   }
 };
 
@@ -277,11 +248,10 @@ void Line<Derived, Parameters>::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<typename Parameters::dev_decisions_t>(arguments, 0, stream);
-  initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, stream);
+  initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
+  initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
 
   const auto* derived_instance = static_cast<const Derived*>(this);
 
@@ -293,7 +263,7 @@ void Line<Derived, Parameters>::operator()(
 
   // Dispatch the executing global function.
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
-    arguments, stream, derived_instance, get_grid_dim_x(arguments), m_pre_scaler_hash);
+    arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
 }
 
 #endif

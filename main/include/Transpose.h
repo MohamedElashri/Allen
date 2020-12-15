@@ -372,8 +372,8 @@ Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>
       char* events_mem = nullptr;
       unsigned* offsets_mem = nullptr;
 
-      if (n_bytes) cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
-      if (n_offsets) cudaCheck(cudaMallocHost((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned)));
+      if (n_bytes) Allen::malloc_host((void**) &events_mem, n_bytes);
+      if (n_offsets) Allen::malloc_host((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned));
 
       for (size_t i = 0; i < n_offsets + 1; ++i) {
         offsets_mem[i] = 0;

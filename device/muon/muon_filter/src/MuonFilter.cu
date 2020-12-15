@@ -21,23 +21,22 @@ void MuonFilter::muon_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_event_list_mf_t>(arguments, 0, stream);
-  initialize<dev_selected_events_mf_t>(arguments, 0, stream);
-  initialize<dev_mf_decisions_t>(arguments, 0, stream);
-  initialize<dev_mf_track_atomics_t>(arguments, 0, stream);
+  initialize<dev_event_list_mf_t>(arguments, 0, context);
+  initialize<dev_selected_events_mf_t>(arguments, 0, context);
+  initialize<dev_mf_decisions_t>(arguments, 0, context);
+  initialize<dev_mf_track_atomics_t>(arguments, 0, context);
 
-  global_function(muon_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(muon_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, stream);
+  copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, context);
 
-  assign_to_host_buffer<dev_selected_events_mf_t>(host_buffers.host_selected_events_mf, arguments, stream);
+  assign_to_host_buffer<dev_selected_events_mf_t>(host_buffers.host_selected_events_mf, arguments, context);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_event_list_mf_t>(host_buffers.host_event_list_mf, arguments, stream);
+    assign_to_host_buffer<dev_event_list_mf_t>(host_buffers.host_event_list_mf, arguments, context);
   }
 }
 

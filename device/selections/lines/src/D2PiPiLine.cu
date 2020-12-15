@@ -7,7 +7,7 @@ INSTANTIATE_LINE(d2pipi_line::d2pipi_line_t, d2pipi_line::Parameters)
 
 __device__ bool d2pipi_line::d2pipi_line_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+  std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
   if (vertex.chi2 < 0) {

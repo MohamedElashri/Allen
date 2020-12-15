@@ -9,8 +9,7 @@
 
 namespace Velo {
   namespace Tools {
-    constexpr float cudart_pi_f_float = static_cast<float>(CUDART_PI_F);
-    constexpr float max_input_value = 2.f * cudart_pi_f_float;
+    constexpr float max_input_value = 2.f * Allen::constants::pi_f_float;
     constexpr float max_output_value = 65536.f;
     constexpr float convert_factor = max_output_value / max_input_value;
     constexpr int16_t shift_value = static_cast<int16_t>(65536 / 2);
@@ -21,8 +20,8 @@ template<typename T>
 __device__ inline T fast_atan2f(const T& y, const T& x)
 {
   // error < 0.07 rad, no 0/0 security
-  const T c1 = Velo::Tools::cudart_pi_f_float / 4.f;
-  const T c2 = 3.f * Velo::Tools::cudart_pi_f_float / 4.f;
+  const T c1 = Allen::constants::pi_f_float / 4.f;
+  const T c2 = 3.f * Allen::constants::pi_f_float / 4.f;
   const T abs_y = fabsf(y);
 
   const T x_plus_y = x + abs_y;
@@ -49,7 +48,7 @@ __device__ inline int16_t hit_phi_16(const float x, const float y)
   // We have to convert the range {-PI, +PI} into {-2^15, (2^15 - 1)}
   // Convert {0, 2 PI} into {0, 2^16}, then reinterpret cast into int16_t.
   const auto atan2_value = fast_atan2f(y, x);
-  const float float_value = (Velo::Tools::cudart_pi_f_float + atan2_value) * Velo::Tools::convert_factor;
+  const float float_value = (Allen::constants::pi_f_float + atan2_value) * Velo::Tools::convert_factor;
   const uint16_t uint16_value = static_cast<uint16_t>(float_value);
   const int16_t* int16_pointer = reinterpret_cast<const int16_t*>(&uint16_value);
   return *int16_pointer;
@@ -92,21 +91,21 @@ __host__ inline void print_velo_clusters(Arguments arguments)
   std::vector<unsigned> offsets_estimated_input_size(size<Offsets>(arguments));
   std::vector<unsigned> module_cluster_num(size<ClusterNum>(arguments));
 
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     a.data(),
     data<VeloContainer>(arguments),
     size<VeloContainer>(arguments) * sizeof(typename VeloContainer::type),
-    cudaMemcpyDeviceToHost));
-  cudaCheck(cudaMemcpy(
+    Allen::memcpyDeviceToHost);
+  Allen::memcpy(
     offsets_estimated_input_size.data(),
     data<Offsets>(arguments),
     size<Offsets>(arguments) * sizeof(typename Offsets::type),
-    cudaMemcpyDeviceToHost));
-  cudaCheck(cudaMemcpy(
+    Allen::memcpyDeviceToHost);
+  Allen::memcpy(
     module_cluster_num.data(),
     data<ClusterNum>(arguments),
     size<ClusterNum>(arguments) * sizeof(typename ClusterNum::type),
-    cudaMemcpyDeviceToHost));
+    Allen::memcpyDeviceToHost);
 
   const auto velo_cluster_container = Velo::ConstClusters {a.data(), first<TotalNumberOfClusters>(arguments)};
   for (unsigned event_number = 0; event_number < first<NumberOfEvents>(arguments); ++event_number) {
@@ -148,27 +147,27 @@ __host__ inline void print_velo_tracks(Arguments arguments)
   std::vector<Velo::TrackletHits> tracklethits(size<VeloTracklets>(arguments));
   std::vector<unsigned> number_of_velo_tracklets(size<NumberOfVeloTracklets>(arguments));
 
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     trackhits.data(),
     data<VeloTracks>(arguments),
     size<VeloTracks>(arguments) * sizeof(typename VeloTracks::type),
-    cudaMemcpyDeviceToHost));
-  cudaCheck(cudaMemcpy(
+    Allen::memcpyDeviceToHost);
+  Allen::memcpy(
     number_of_velo_tracks.data(),
     data<NumberOfVeloTracks>(arguments),
     size<NumberOfVeloTracks>(arguments) * sizeof(typename NumberOfVeloTracks::type),
-    cudaMemcpyDeviceToHost));
+    Allen::memcpyDeviceToHost);
 
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     tracklethits.data(),
     data<VeloTracklets>(arguments),
     size<VeloTracklets>(arguments) * sizeof(typename VeloTracklets::type),
-    cudaMemcpyDeviceToHost));
-  cudaCheck(cudaMemcpy(
+    Allen::memcpyDeviceToHost);
+  Allen::memcpy(
     number_of_velo_tracklets.data(),
     data<NumberOfVeloTracklets>(arguments),
     size<NumberOfVeloTracklets>(arguments) * sizeof(typename NumberOfVeloTracklets::type),
-    cudaMemcpyDeviceToHost));
+    Allen::memcpyDeviceToHost);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
@@ -208,16 +207,16 @@ __host__ inline void print_velo_three_hit_tracks(Arguments arguments)
   std::vector<Velo::TrackletHits> trackhits(size<VeloTracks>(arguments));
   std::vector<unsigned> number_of_velo_tracks(size<NumberOfVeloTracks>(arguments));
 
-  cudaCheck(cudaMemcpy(
+  Allen::memcpy(
     trackhits.data(),
     data<VeloTracks>(arguments),
     size<VeloTracks>(arguments) * sizeof(typename VeloTracks::type),
-    cudaMemcpyDeviceToHost));
-  cudaCheck(cudaMemcpy(
+    Allen::memcpyDeviceToHost);
+  Allen::memcpy(
     number_of_velo_tracks.data(),
     data<NumberOfVeloTracks>(arguments),
     size<NumberOfVeloTracks>(arguments) * sizeof(typename NumberOfVeloTracks::type),
-    cudaMemcpyDeviceToHost));
+    Allen::memcpyDeviceToHost);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];

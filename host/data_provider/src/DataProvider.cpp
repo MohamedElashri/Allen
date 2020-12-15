@@ -4,7 +4,7 @@
 #include "DataProvider.h"
 
 void data_provider::data_provider_t::set_arguments_size(
-  ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+  ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
   const HostBuffers&) const
@@ -15,15 +15,14 @@ void data_provider::data_provider_t::set_arguments_size(
 }
 
 void data_provider::data_provider_t::operator()(
-  const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+  const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
 
   // Copy data to device
-  data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(arguments, bno, stream);
+  data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(arguments, bno, context);
 }

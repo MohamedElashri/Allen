@@ -26,12 +26,11 @@ void lf_quality_filter_length::lf_quality_filter_length_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, stream);
+  initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, context);
 
-  global_function(lf_quality_filter_length)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(lf_quality_filter_length)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 }
 

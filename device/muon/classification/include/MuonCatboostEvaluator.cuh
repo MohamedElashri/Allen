@@ -7,12 +7,12 @@
 #include "MuonDefinitions.cuh"
 
 namespace muon_catboost_evaluator {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
-    (DEVICE_INPUT(dev_muon_catboost_features_t, float), dev_muon_catboost_features),
-    (DEVICE_OUTPUT(dev_muon_catboost_output_t, float), dev_muon_catboost_output),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
+    DEVICE_INPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
+    DEVICE_OUTPUT(dev_muon_catboost_output_t, float) dev_muon_catboost_output;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void muon_catboost_evaluator(
     Parameters,
@@ -36,8 +36,7 @@ namespace muon_catboost_evaluator {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};

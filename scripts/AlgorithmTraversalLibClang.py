@@ -269,28 +269,27 @@ class AlgorithmTraversal():
             c.location.file.name == filename:
             ts = [a.spelling for a in c.get_tokens()]
             # Check if it is a "new algorithm":
-            try:
-                ts.index("DEFINE_PARAMETERS")
-                last_found = -1
-                while True:
-                    try:
-                        last_found = ts.index("PROPERTY", last_found + 1)
-                        typename = ts[last_found + 2]
-                        name = ts[last_found + 4]
-                        description = ts[last_found + 6]
-                        AlgorithmTraversal.__properties[typename] = {
-                            "name": name,
-                            "description": description
-                        }
-                    except ValueError:
-                        break
-                return (c.kind, c.spelling,
-                        AlgorithmTraversal.traverse_children(
-                            c, AlgorithmTraversal.algorithm))
-            except:
-                return None
-        else:
-            return None
+            if "DeviceAlgorithm" in ts or "HostAlgorithm" in ts or "SelectionAlgorithm" in ts:
+                try:
+                    last_found = -1
+                    while True:
+                        try:
+                            last_found = ts.index("PROPERTY", last_found + 1)
+                            typename = ts[last_found + 2]
+                            name = ts[last_found + 4]
+                            description = ts[last_found + 6]
+                            AlgorithmTraversal.__properties[typename] = {
+                                "name": name,
+                                "description": description
+                            }
+                        except ValueError:
+                            break
+                    return (c.kind, c.spelling,
+                            AlgorithmTraversal.traverse_children(
+                                c, AlgorithmTraversal.algorithm))
+                except:
+                    return None
+        return None
 
     @staticmethod
     def traverse(filename, project_location="../"):

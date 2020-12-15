@@ -86,8 +86,8 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
   auto& dev_muon_tables_raw = m_dev_muon_tables_raw.get();
   auto& host_muon_tables_raw = m_host_muon_tables_raw.get();
   if (!m_muon_tables) {
-    cudaCheck(cudaMalloc((void**) &dev_muon_tables_raw, data.size()));
-    cudaCheck(cudaMalloc((void**) &m_muon_tables.get(), sizeof(Muon::MuonTables)));
+    Allen::malloc((void**) &dev_muon_tables_raw, data.size());
+    Allen::malloc((void**) &m_muon_tables.get(), sizeof(Muon::MuonTables));
     m_size = sizeof(Muon::MuonTables);
   }
   else if (host_muon_tables_raw.size() != data.size()) {
@@ -95,8 +95,8 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
                         to_string(data.size())};
   }
   host_muon_tables_raw = data;
-  cudaCheck(
-    cudaMemcpy(dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), cudaMemcpyHostToDevice));
+  Allen::memcpy(
+    dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), Allen::memcpyHostToDevice);
   Muon::MuonTables host_muon_tables {allOffsets, dev_muon_tables_raw, sizeOffset};
-  cudaCheck(cudaMemcpy(m_muon_tables.get(), &host_muon_tables, sizeof(Muon::MuonTables), cudaMemcpyHostToDevice));
+  Allen::memcpy(m_muon_tables.get(), &host_muon_tables, sizeof(Muon::MuonTables), Allen::memcpyHostToDevice);
 }

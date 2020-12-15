@@ -22,13 +22,12 @@ void ut_search_windows::ut_search_windows_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_ut_windows_layers_t>(arguments, 0, stream);
+  initialize<dev_ut_windows_layers_t>(arguments, 0, context);
 
   global_function(ut_search_windows)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), context)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_ut_dxDy.data(),

@@ -19,7 +19,7 @@ void Consumers::Beamline::consume(std::vector<char> const& data)
   if (m_dev_beamline.get().empty()) {
     // Allocate space
     float* p = nullptr;
-    cudaCheck(cudaMalloc((void**) &p, data.size()));
+    Allen::malloc((void**) &p, data.size());
     m_dev_beamline.get() = {p, static_cast<span_size_t<char>>(data.size() / sizeof(float))};
   }
   else if (data.size() != static_cast<size_t>(sizeof(float) * m_dev_beamline.get().size())) {
@@ -27,5 +27,5 @@ void Consumers::Beamline::consume(std::vector<char> const& data)
                         to_string(data.size() / sizeof(float))};
   }
 
-  cudaCheck(cudaMemcpy(m_dev_beamline.get().data(), data.data(), data.size(), cudaMemcpyHostToDevice));
+  Allen::memcpy(m_dev_beamline.get().data(), data.data(), data.size(), Allen::memcpyHostToDevice);
 }

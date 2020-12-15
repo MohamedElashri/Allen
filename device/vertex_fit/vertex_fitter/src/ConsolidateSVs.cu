@@ -17,15 +17,14 @@ void consolidate_svs::consolidate_svs_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_consolidated_svs_t>(host_buffers.host_secondary_vertices, arguments, stream);
-    assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_atomics, arguments, stream);
+    assign_to_host_buffer<dev_consolidated_svs_t>(host_buffers.host_secondary_vertices, arguments, context);
+    assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_atomics, arguments, context);
   }
 }
 

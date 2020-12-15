@@ -7,7 +7,7 @@ INSTANTIATE_LINE(two_track_mva_line::two_track_mva_line_t, two_track_mva_line::P
 
 __device__ bool two_track_mva_line::two_track_mva_line_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+  std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
   if (vertex.chi2 < 0) {
