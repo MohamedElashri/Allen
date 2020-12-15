@@ -31,13 +31,13 @@ Velo+UT tracks:
 TrackChecker output                               :      3117/    49864   6.25% ghosts
 01_velo                                           :     44602/   102077  43.69% ( 44.07%),       326 (  0.73%) clones, pur  99.49%, hit eff  96.70%
 02_velo+UT                                        :     44516/    88935  50.05% ( 50.50%),       326 (  0.73%) clones, pur  99.51%, hit eff  96.70%
-03_velo+UT_P>5GeV                                 :     32158/    44434  72.37% ( 72.95%),       237 (  0.73%) clones, pur  99.61%, hit eff  97.51% 
+03_velo+UT_P>5GeV                                 :     32158/    44434  72.37% ( 72.95%),       237 (  0.73%) clones, pur  99.61%, hit eff  97.51%
 04_velo+notLong                                   :      9082/    44089  20.60% ( 20.63%),        58 (  0.63%) clones, pur  99.28%, hit eff  95.59%
 05_velo+UT+notLong                                :      9008/    31713  28.40% ( 28.48%),        58 (  0.64%) clones, pur  99.35%, hit eff  95.57%
 06_velo+UT+notLong_P>5GeV                         :      5078/     8265  61.44% ( 61.60%),        28 (  0.55%) clones, pur  99.57%, hit eff  97.44%
 07_long                                           :     35520/    57988  61.25% ( 61.79%),       268 (  0.75%) clones, pur  99.55%, hit eff  96.99%
 08_long_P>5GeV                                    :     27092/    36811  73.60% ( 74.27%),       209 (  0.77%) clones, pur  99.61%, hit eff  97.52%
-09_long_fromB                                     :      3263/     3930  83.03% ( 85.50%),        26 (  0.79%) clones, pur  99.62%, hit eff  97.69% 
+09_long_fromB                                     :      3263/     3930  83.03% ( 85.50%),        26 (  0.79%) clones, pur  99.62%, hit eff  97.69%
 10_long_fromB_P>5GeV                              :      2926/     3219  90.90% ( 92.40%),        23 (  0.78%) clones, pur  99.64%, hit eff  97.87%
 11_long_electrons                                 :       812/     4548  17.85% ( 18.72%),        17 (  2.05%) clones, pur  98.35%, hit eff  95.61%
 12_long_fromB_electrons                           :        88/      202  43.56% ( 49.51%),         4 (  4.35%) clones, pur  99.06%, hit eff  95.31%
@@ -80,7 +80,7 @@ Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:      2/  1000, (   60.00 +/-    42.38) kHz
-Hlt1LowPtMuon:            97/  1000, ( 2910.00 +/-   280.77) kHz
+Hlt1LowPtMuon:            96/  1000, ( 2880.00 +/-   279.47) kHz
 Hlt1D2KK:                  3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1D2KPi:                 7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1D2PiPi:                5/  1000, (  150.00 +/-    66.91) kHz

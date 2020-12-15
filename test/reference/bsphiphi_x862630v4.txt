@@ -83,7 +83,7 @@ Hlt1SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1LowPtMuon:           304/  1000, ( 9120.00 +/-   436.38) kHz
 Hlt1D2KK:                 20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1D2KPi:                30/  1000, (  900.00 +/-   161.83) kHz
-Hlt1D2PiPi:               27/  1000, (  810.00 +/-   153.77) kHz 
+Hlt1D2PiPi:               27/  1000, (  810.00 +/-   153.77) kHz
 Hlt1DiMuonHighMass:        9/  1000, (  270.00 +/-    89.59) kHz
 Hlt1DiMuonLowMass:        18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz
