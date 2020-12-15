@@ -48,7 +48,9 @@ muon_sequence = MuonSequence(
     scifi_consolidate_tracks_t=forward_sequence["scifi_consolidate_tracks_t"])
 
 hlt1_sequence = HLT1Sequence(
+    layout_provider=velo_sequence["mep_layout"],
     initialize_lists=velo_sequence["initialize_lists"],
+    full_event_list=velo_sequence["full_event_list"],
     velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
     velo_kalman_filter=pv_sequence["velo_kalman_filter"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[

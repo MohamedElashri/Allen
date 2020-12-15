@@ -101,6 +101,22 @@ struct TupleElementsNotIn<std::tuple<T, Elements...>, OtherTuple> {
     conditional_t<TupleContains<T, OtherTuple>::value, previous_t, typename TupleAppend<previous_t, T>::t>;
 };
 
+template<typename, typename>
+struct ConcatTuple;
+
+template<typename... First, typename... Second>
+struct ConcatTuple<std::tuple<First...>, std::tuple<Second...>> {
+  using t = std::tuple<First..., Second...>;
+};
+
+template<typename, typename>
+struct ConcatTupleReferences;
+
+template<typename... First, typename... Second>
+struct ConcatTupleReferences<std::tuple<First...>, std::tuple<Second...>> {
+  using t = std::tuple<First&..., Second...>;
+};
+
 // Access to tuple elements by checking whether they inherit from a Base type
 template<typename Base, typename Tuple, std::size_t I = 0>
 struct tuple_ref_index;

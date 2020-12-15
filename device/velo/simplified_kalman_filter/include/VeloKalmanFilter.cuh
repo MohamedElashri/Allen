@@ -9,7 +9,6 @@
 #include "Common.h"
 #include "DeviceAlgorithm.cuh"
 #include "VeloConsolidated.cuh"
-// #include <Gaudi/Parsers/Factory.h>
 #include "patPV_Definitions.cuh"
 
 namespace velo_kalman_filter {
@@ -135,17 +134,12 @@ namespace velo_kalman_filter {
       delta_z = Velo::Constants::z_endVelo - state.z;
     }
 
+    // Propagate the state
     state.x = state.x + state.tx * delta_z;
     state.y = state.y + state.ty * delta_z;
     state.z = state.z + delta_z;
 
-    // TODO: Is this safety check necessary ? (coming from the PV finder)
-    // if (delta_z * state.c20 < 0.f || delta_z * state.c31 < 0.f) {
-    //   state.z = -9999.f;
-    // }
-
-    // Update the covariance states
-    // TODO: Check correctness of this code
+    // Propagate the covariance matrix
     const auto dz2 = delta_z * delta_z;
     state.c00 += dz2 * state.c22 + 2.f * delta_z * state.c20;
     state.c11 += dz2 * state.c33 + 2.f * delta_z * state.c31;
@@ -159,7 +153,9 @@ namespace velo_kalman_filter {
   DEFINE_PARAMETERS(
     Parameters,
     (HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned), host_number_of_reconstructed_velo_tracks),
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_offsets_all_velo_tracks),
     (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_offsets_velo_track_hit_number),
     (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
@@ -182,7 +178,7 @@ namespace velo_kalman_filter {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

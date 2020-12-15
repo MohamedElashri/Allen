@@ -9,7 +9,6 @@ import sys
 import codecs
 from collections import OrderedDict
 from AlgorithmTraversalLibClang import AlgorithmTraversal
-from LineTraversalLibClang import LineTraversal
 import argparse
 
 # Prefix folder, prepended to device / host folder
@@ -33,10 +32,7 @@ class Parser():
 
     # Pattern sought in every file, prior to parsing the file for an algorithm
     __algorithm_pattern_compiled = re.compile(
-        "(?P<scope>Host|Device)Algorithm")
-
-    # Pattern sought in every file, prior to parsing the file for a line
-    __line_pattern_compiled = re.compile("Hlt1::[\\w_]+Line")
+        "(?P<scope>Host|Device|Selection)Algorithm")
 
     # File extensions considered
     __sought_extensions_compiled = [
@@ -63,12 +59,10 @@ class Parser():
             Parser.__get_filenames(prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
-    def parse_all(algorithm_parser=AlgorithmTraversal(),
-                  line_parser=LineTraversal()):
-        """Parses all files and traverses algorithm and line definitions."""
+    def parse_all(algorithm_parser=AlgorithmTraversal()):
+        """Parses all files and traverses algorithm definitions."""
         all_filenames = Parser.get_all_filenames()
         algorithms = []
-        lines = []
         for filename in all_filenames:
             with codecs.open(filename, 'r', 'utf-8') as f:
                 try:
@@ -81,21 +75,15 @@ class Parser():
                             filename, prefix_project_folder)
                         if parsed_algorithms:
                             algorithms += parsed_algorithms
-                    # Invoke the libTooling line parser only if we find the line pattern
-                    has_line = Parser.__line_pattern_compiled.search(s)
-                    if has_line:
-                        parsed_lines = line_parser.traverse(filename)
-                        if parsed_lines:
-                            lines += parsed_lines
                 except:
                     print("Parsing file", filename, "failed")
                     raise
-        return algorithms, lines
+        return algorithms
 
 
 class AllenConf():
     """Static class that generates a python representation of
-    Allen algorithms and lines."""
+    Allen algorithms."""
 
     @staticmethod
     def prefix(indentation_level, indent_by=2):
@@ -103,40 +91,33 @@ class AllenConf():
 
     @staticmethod
     def write_preamble(i=0):
-        s = "from definitions.BaseTypes import *\n\n"
+        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
+        s = f.read()
+        f.close()
+        s += "\n"
         return s
 
     @staticmethod
-    def write_line_code(line, i=0):
-        s = AllenConf.prefix(
-            i) + "class " + line.name + "(" + line.line_type + "):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "def __init__(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "self.__name=\"" + line.name + "\"\n"
-        s += AllenConf.prefix(i) + "self.__filename=\"" + line.filename[len(
-            prefix_project_folder):] + "\"\n"
-        s += AllenConf.prefix(
-            i) + "self.__namespace=\"" + line.namespace + "\"\n"
-        i -= 1
-        s += "\n"
+    def write_postamble(i=0):
+        f = open(prefix_project_folder + "/scripts/Sequence.py")
+        s = f.read()
+        f.close()
+        return "\n" + s
 
-        s += AllenConf.prefix(i) + "def filename(self):\n"
+    @staticmethod
+    def write_aggregate_algorithms(algorithms, i=0):
+        s = "def algorithms_with_aggregates():\n"
         i += 1
-        s += AllenConf.prefix(i) + "return self.__filename\n\n"
-        i -= 1
-
-        s += AllenConf.prefix(i) + "def namespace(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__namespace\n\n"
-        i -= 1
-
-        s += AllenConf.prefix(i) + "def name(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__name\n\n"
-        i -= 2
-        s += "\n"
-
+        s += AllenConf.prefix(i) + "return ["
+        algorithms_with_aggregates = []
+        for algorithm in algorithms:
+            if len([var for var in algorithm.parameters if var.aggregate]):
+                algorithms_with_aggregates.append(algorithm)
+        if len(algorithms_with_aggregates):
+            for algorithm in algorithms_with_aggregates:
+                s += algorithm.name + ", "
+            s = s[:-2]
+        s += "]\n\n"
         return s
 
     @staticmethod
@@ -162,7 +143,14 @@ class AllenConf():
         for prop in algorithm.properties:
             s += "\n" + AllenConf.prefix(i) + "\"" + prop.name[1:-1] + "\","
         i -= 1
-        s += ")\n\n"
+        s += ")\n" + AllenConf.prefix(i) + "aggregates = ("
+        i += 1
+        for param in algorithm.parameters:
+            if param.aggregate:
+                s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
+        i -= 1
+        s += ")\n" + AllenConf.prefix(
+            i) + "namespace = \"" + algorithm.namespace + "\"\n\n"
         s += AllenConf.prefix(i) + "def __init__(self"
         i += 1
         for var in algorithm.parameters:
@@ -181,14 +169,15 @@ class AllenConf():
         s += AllenConf.prefix(i) + "self.__name = name\n"
         s += AllenConf.prefix(
             i) + "self.__original_name = \"" + algorithm.name + "\"\n"
-        s += AllenConf.prefix(
-            i) + "self.__namespace = \"" + algorithm.namespace + "\"\n"
         s += AllenConf.prefix(i) + "self.__ordered_parameters = OrderedDict(["
         i += 1
         for var in algorithm.parameters:
             if "Output" in var.kind:
                 s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + var.kind \
                   + "(\"" + var.typename + "\", \"" + var.typedef + "\", self.__name)),"
+            elif var.aggregate:
+                s += "\n" + AllenConf.prefix(
+                    i) + "(\"" + var.typename + "\", " + var.typename + "),"
             else:
                 s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", check_input_parameter(" + var.typename \
                   + ", " + var.kind + ", \"" + var.typedef + "\")),"
@@ -214,11 +203,6 @@ class AllenConf():
         s += AllenConf.prefix(i) + "def filename(self):\n"
         i += 1
         s += AllenConf.prefix(i) + "return self.__filename\n\n"
-        i -= 1
-
-        s += AllenConf.prefix(i) + "def namespace(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__namespace\n\n"
         i -= 1
 
         s += AllenConf.prefix(i) + "def original_name(self):\n"
@@ -285,7 +269,7 @@ class AllenConf():
 
 class GaudiAllenConf():
     """Static class that generates a python representation of
-    Allen algorithms and lines."""
+    Allen algorithms."""
 
     @staticmethod
     def prefix(indentation_level, indent_by=2):
@@ -315,39 +299,6 @@ def algorithm_dict(*algorithms):\n\
     for alg in algorithms:\n\
         d[alg.name] = alg\n\
     return d\n\n\n"
-
-        return s
-
-    @staticmethod
-    def write_line_code(line, i=0):
-        s = GaudiAllenConf.prefix(
-            i) + "class " + line.name + "(" + line.line_type + "):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "def __init__(self):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "self.__name=\"" + line.name + "\"\n"
-        s += GaudiAllenConf.prefix(i) + "self.__filename=\"" + line.filename[
-            len(prefix_project_folder):] + "\"\n"
-        s += GaudiAllenConf.prefix(
-            i) + "self.__namespace=\"" + line.namespace + "\"\n"
-        i -= 1
-        s += "\n"
-
-        s += GaudiAllenConf.prefix(i) + "def filename(self):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "return self.__filename\n\n"
-        i -= 1
-
-        s += GaudiAllenConf.prefix(i) + "def namespace(self):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "return self.__namespace\n\n"
-        i -= 1
-
-        s += GaudiAllenConf.prefix(i) + "def name(self):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "return self.__name\n\n"
-        i -= 2
-        s += "\n"
 
         return s
 
@@ -423,22 +374,22 @@ if __name__ == '__main__':
     prefix_project_folder = args.prefix_project_folder + "/"
 
     print("Parsing algorithms...")
-    parsed_algorithms, parsed_lines = Parser().parse_all()
+    parsed_algorithms = Parser().parse_all()
 
     if args.configured_generator == "Moore":
         print("Generating " + args.filename + " in Gaudi format...")
         s = GaudiAllenConf().write_preamble()
         for algorithm in parsed_algorithms:
             s += GaudiAllenConf().write_algorithm_code(algorithm)
-        # for line in parsed_lines:
-        #     s += GaudiAllenConf().write_line_code(line)
     else:
         print("Generating " + args.filename + " in Allen format...")
         s = AllenConf().write_preamble()
         for algorithm in parsed_algorithms:
             s += AllenConf().write_algorithm_code(algorithm)
-        for line in parsed_lines:
-            s += AllenConf().write_line_code(line)
+        # Write a function that returns all algorithms that
+        # require input aggregates
+        s += AllenConf().write_aggregate_algorithms(parsed_algorithms)
+        s += AllenConf().write_postamble()
 
     f = open(args.filename, "w")
     f.write(s)

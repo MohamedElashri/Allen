@@ -28,7 +28,6 @@ struct StreamWrapper {
   //       needing to know the size of the allocated object
   std::vector<Stream*> streams;
   bool do_check;
-  unsigned number_of_hlt1_lines;
   unsigned errorevent_line;
 
   StreamWrapper();
@@ -43,6 +42,7 @@ struct StreamWrapper {
     const bool print_memory_usage,
     const unsigned start_event_offset,
     const size_t reserve_mb,
+    const size_t reserve_host_mb,
     const Constants& constants,
     const std::map<std::string, std::map<std::string, std::string>>& config);
 
@@ -72,7 +72,6 @@ struct StreamWrapper {
 
   std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration();
 };
-
 
 /**
  * @brief Prints the configured sequence.

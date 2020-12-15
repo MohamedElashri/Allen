@@ -22,27 +22,16 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
   global_function(velo_kalman_filter)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments, constants.dev_beamline.data());
 
   if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_velo_kalman_beamline_states,
-      data<dev_velo_kalman_beamline_states_t>(arguments),
-      size<dev_velo_kalman_beamline_states_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_velo_kalman_endvelo_states,
-      data<dev_velo_kalman_endvelo_states_t>(arguments),
-      size<dev_velo_kalman_endvelo_states_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+    assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(host_buffers.host_velo_kalman_beamline_states, arguments, stream);
+    assign_to_host_buffer<dev_velo_kalman_endvelo_states_t>(host_buffers.host_velo_kalman_endvelo_states, arguments, stream);
   }
 }
 
@@ -133,8 +122,8 @@ linear_fit(Velo::Consolidated::ConstHits& consolidated_hits, const unsigned numb
 
 __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters, float* dev_beamline)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Consolidated datatypes
   const Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,

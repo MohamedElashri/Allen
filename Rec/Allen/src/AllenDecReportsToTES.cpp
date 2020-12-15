@@ -1,12 +1,5 @@
 /***************************************************************************** \
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
- *                                                                             *
- * This software is distributed under the terms of the GNU General Public      *
- * Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
- *                                                                             *
- * In applying this licence, CERN does not waive the privileges and immunities *
- * granted to it by virtue of its status as an Intergovernmental Organization  *
- * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 
 /**
@@ -45,8 +38,8 @@ LHCb::RawEvent AllenDecReportsToTES::operator()(const HostBuffers& host_buffers)
 
   std::vector<unsigned int> dec_reports;
   // First two words contain the TCK and taskID, then one word per HLT1 line
-  dec_reports.reserve(2 + host_buffers.host_number_of_hlt1_lines);
-  for (unsigned i = 0; i < 2 + host_buffers.host_number_of_hlt1_lines; i++) {
+  dec_reports.reserve(2 + host_buffers.host_number_of_lines);
+  for (unsigned i = 0; i < 2 + host_buffers.host_number_of_lines; i++) {
     dec_reports.push_back(host_buffers.host_dec_reports[i]);
   }
   LHCb::RawEvent raw_event;

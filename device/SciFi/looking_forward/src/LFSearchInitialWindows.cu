@@ -26,13 +26,12 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, cuda_stream);
+  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, stream);
 
-  global_function(lf_search_initial_windows)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
     arguments,
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
@@ -45,8 +44,8 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {

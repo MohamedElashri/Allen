@@ -18,6 +18,7 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
+option(SEQUENCE_GENERATION "Sequence generation" ON)
 
 # --------
 # Settings
@@ -32,6 +33,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # -----------------------
 # Multiple-choice options
@@ -54,7 +56,7 @@ endif()
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
-set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75)
+set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75 80 86)
 
 # HIP architecture
 # https://llvm.org/docs/AMDGPUUsage.html
@@ -93,10 +95,6 @@ if(ALWAYS_DISPATCH_TO_DEFAULT)
   add_compile_definitions(ALWAYS_DISPATCH_TO_DEFAULT)
 endif()
 
-# Support generating configuration with Allen standalone, and with Moore
-set(MOORE_GENERATOR CACHE BOOL OFF)
-set(MOORE_INSTALL_DIR CACHE STRING "")
-
 # General CMAKE CXX FLAGS option
 if(TREAT_WARNINGS_AS_ERRORS)
   message(STATUS "Treating compiler warnings as errors")
@@ -131,27 +129,17 @@ message(STATUS "Allen device target: " ${TARGET_DEVICE})
 # Add compile definition for target
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
-# Fetch submodules
-find_package(Git QUIET)
-if(GIT_FOUND)
-# Update submodules as needed
-  option(GIT_SUBMODULE "Check submodules during build" ON)
-  if(GIT_SUBMODULE)
-    message(STATUS "Submodule update")
-    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-                    RESULT_VARIABLE GIT_SUBMOD_RESULT)
-    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-      message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-    endif()
-  endif()
+# Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.
+# Support it in a future Allen release.
+if(${CMAKE_VERSION} VERSION_GREATER "3.18.0" OR ${CMAKE_VERSION} VERSION_EQUAL "3.18.0")
+  cmake_policy(SET CMP0104 OLD)
 endif()
 
 # List of all expected submodules
 set(EXPECTED_SUBMODULES umesimd)
 foreach(SUBMODULE ${EXPECTED_SUBMODULES})
   if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/${SUBMODULE}/CMakeLists.txt")
-    message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
+    message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! Please update submodules and try again. You may need to run `git submodule update --init --recursive`.")
   endif()
 endforeach()
 
@@ -162,7 +150,7 @@ macro(allen_project)
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
-    gaudi_project(Allen v1r0 USE Rec v31r1)
+    gaudi_project(Allen v1r1 USE Rec v31r2)
 
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
@@ -260,13 +248,13 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   #By default, compile for compatibility
     elseif(CUDA_ARCH STREQUAL "COMPATIBILITY")
   #Compatibility arch flag.
-  #* These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
-  #* All other 3.X, 5.X and 6.X architectures are supported through their respective
+  #* These settings support natively archs 5.0, 6.0, 7.0, 7.5, 8.0 and 8.6.
+  #* All other 5.X and 6.X architectures are supported through their respective
   #major number builds, specifics of those architectures are not used.
-  #* Forward compatibility with newer devices is also supported by generating PTX from 7.5
-  #(- gencode = arch = compute_75, compute = compute_75)
+  #* Forward compatibility with newer devices is also supported by generating PTX from 8.6
+  #(- gencode = arch = compute_86, compute = compute_86)
       message(STATUS "Setting compute capability to COMPATIBILITY:")
-      foreach(arch 53 60 70 75)
+      foreach(arch 53 60 70 75 80 86)
         list(APPEND CUDA_ARCH_LIST ${arch})
       endforeach()
   #Finally, compile for the specified architecture
@@ -275,13 +263,18 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
       list(APPEND CUDA_ARCH_LIST ${CUDA_ARCH})
     endif()
 
+    # Compatibility with CMake 3.18
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18.0")
+      set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH_LIST})
+    endif()
+
     set(DEVICE_ARCHITECTURE "")
     if(TARGET_DEVICE STREQUAL "CUDA")
       foreach(arch ${CUDA_ARCH_LIST})
         string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_${arch},code=sm_${arch}")
       endforeach()
       if(CUDA_ARCH STREQUAL "COMPATIBILITY")
-        string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_75,code=compute_75")
+        string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_86,code=compute_86")
       endif()
     elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
       foreach(arch ${CUDA_ARCH_LIST})

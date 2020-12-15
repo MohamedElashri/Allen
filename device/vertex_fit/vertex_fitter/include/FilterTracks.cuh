@@ -21,7 +21,9 @@ namespace FilterTracks {
   // works out so neatly for now is coincidental.
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
     (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_atomics_scifi),
     (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned), dev_scifi_track_hit_number),
@@ -38,7 +40,8 @@ namespace FilterTracks {
     (PROPERTY(track_min_ipchi2_t, "track_min_ipchi2", "minimum track IP chi2", float), track_min_ipchi2),
     (PROPERTY(track_muon_min_ipchi2_t, "track_muon_min_ipchi2", "minimum muon IP chi2", float), track_muon_min_ipchi2),
     (PROPERTY(track_max_chi2ndof_t, "track_max_chi2ndof", "max track chi2/ndof", float), track_max_chi2ndof),
-    (PROPERTY(track_muon_max_chi2ndof_t, "track_muon_max_chi2ndof", "max muon chi2/ndof", float), track_muon_max_chi2ndof),
+    (PROPERTY(track_muon_max_chi2ndof_t, "track_muon_max_chi2ndof", "max muon chi2/ndof", float),
+     track_muon_max_chi2ndof),
     (PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float), max_assoc_ipchi2),
     (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
 
@@ -56,7 +59,7 @@ namespace FilterTracks {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:
@@ -67,6 +70,6 @@ namespace FilterTracks {
     Property<track_muon_max_chi2ndof_t> m_muonmaxchi2ndof {this, 100.f};
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};
     Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
-  };               
-    
+  };
+
 } // namespace FilterTracks

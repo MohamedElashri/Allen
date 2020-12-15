@@ -29,7 +29,7 @@ It is possible to inspect all algorithms defined in Allen interactively by using
 foo@bar:build$ cmake ..
 foo@bar:build$ cd sequences
 foo@bar:build/sequences$ python3
-Python 3.8.2 (default, Feb 28 2020, 00:00:00) 
+Python 3.8.2 (default, Feb 28 2020, 00:00:00)
 [GCC 10.0.1 20200216 (Red Hat 10.0.1-0.8)] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> from definitions import algorithms
@@ -52,7 +52,7 @@ One can see the input and output parameters and properties of an algorithm by ju
 ```sh
 >>> algorithms.velo_calculate_number_of_candidates_t
 class AlgorithmRepr : DeviceAlgorithm
- inputs: ('host_number_of_selected_events_t', 'dev_event_list_t', 'dev_velo_raw_input_t', 'dev_velo_raw_input_offsets_t')
+ inputs: ('host_number_of_events_t', 'dev_event_list_t', 'dev_velo_raw_input_t', 'dev_velo_raw_input_offsets_t')
  outputs: ('dev_number_of_candidates_t',)
  properties: ('block_dim_x',)
 ```
@@ -66,7 +66,6 @@ You may reuse what exists already in `definitions` and extend that instead. In o
 
 * Instantiate (ie. _with parentheses_) algorithms. Algorithm inputs must be assigned other algorithm outputs.
 * Create a `Sequence` object with the desired algorithm instances in order of execution.
-* The `Sequence` class also accepts line objects.
 * `Sequences` can also be composed or extended.
 * Generate the configuration with the `generate()` method of the `Sequence` instance.
 
@@ -86,7 +85,7 @@ We should now add the SAXPY algorithm. We can use the interactive session to exp
 ```sh
 >>> saxpy_t
 class AlgorithmRepr : DeviceAlgorithm
- inputs: ('host_number_of_selected_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
+ inputs: ('host_number_of_events_t', 'dev_number_of_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
  outputs: ('dev_saxpy_output_t',)
  properties: ('saxpy_scale_factor', 'block_dim')
 ```
@@ -96,7 +95,8 @@ The inputs should be passed into our sequence to be able to instantiate `saxpy_t
 ```sh
 saxpy = saxpy_t(
   name = "saxpy",
-  host_number_of_selected_events_t = velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
+  host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
+  dev_number_of_events_t = velo_sequence["initialize_lists"].dev_number_of_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
   dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
 ```
@@ -117,7 +117,8 @@ velo_sequence = VeloSequence()
 
 saxpy = saxpy_t(
   name = "saxpy",
-  host_number_of_selected_events_t = velo_sequence["initialize_lists"].host_number_of_selected_events_t(),
+  host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
+  dev_number_of_events_t = velo_sequence["initialize_lists"].dev_number_of_events_t(),
   dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
   dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
 

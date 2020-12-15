@@ -27,6 +27,6 @@ void Consumers::SciFiGeometry::consume(std::vector<char> const& data)
     throw StrException {string {"sizes don't match: "} + to_string(host_geometry.size()) + " " +
                         to_string(data.size())};
   }
-  host_geometry = std::move(data);
+  host_geometry = data;
   cudaCheck(cudaMemcpy(dev_geometry, host_geometry.data(), host_geometry.size(), cudaMemcpyHostToDevice));
 }

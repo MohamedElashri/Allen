@@ -10,8 +10,7 @@ from UTSequence import make_ut_tracks
 def make_forward_tracks(forward_decoding="v4", **kwargs):
 
     initalized_lists = initialize_lists(**kwargs)
-    host_number_of_selected_events = initalized_lists[
-        "host_number_of_selected_events"]
+    host_number_of_events = initalized_lists["host_number_of_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
     velo_tracks = make_velo_tracks(**kwargs)
@@ -59,7 +58,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
         name="scifi_calculate_cluster_count",
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         dev_event_list_t=dev_event_list)
 
     prefix_sum_scifi_hits = Algorithm(
@@ -70,7 +69,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     scifi_pre_decode = Algorithm(
         scifi_pre_decode_algorithm,
         name="scifi_pre_decode",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         dev_event_list_t=dev_event_list,
         host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
         host_total_sum_holder_t,
@@ -81,7 +80,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     scifi_raw_bank_decoder = Algorithm(
         scifi_raw_bank_decoder_algorithm,
         name="scifi_raw_bank_decoder",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
         host_total_sum_holder_t,
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
@@ -93,7 +92,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     lf_search_initial_windows = Algorithm(
         lf_search_initial_windows_t,
         name="lf_search_initial_windows",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_number_of_reconstructed_ut_tracks_t=
         host_number_of_reconstructed_ut_tracks,
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t,
@@ -112,7 +111,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     lf_triplet_seeding = Algorithm(
         lf_triplet_seeding_t,
         name="lf_triplet_seeding",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_number_of_reconstructed_ut_tracks_t=
         host_number_of_reconstructed_ut_tracks,
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t,
@@ -132,7 +131,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     lf_create_tracks = Algorithm(
         lf_create_tracks_t,
         name="lf_create_tracks",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_number_of_reconstructed_ut_tracks_t=
         host_number_of_reconstructed_ut_tracks,
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t,
@@ -157,7 +156,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     lf_quality_filter_length = Algorithm(
         lf_quality_filter_length_t,
         name="lf_quality_filter_length",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_number_of_reconstructed_ut_tracks_t=
         host_number_of_reconstructed_ut_tracks,
         dev_offsets_ut_tracks_t=dev_offsets_ut_tracks,
@@ -170,7 +169,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     lf_quality_filter = Algorithm(
         lf_quality_filter_t,
         name="lf_quality_filter",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_number_of_reconstructed_ut_tracks_t=
         host_number_of_reconstructed_ut_tracks,
         dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t,
@@ -197,7 +196,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     scifi_copy_track_hit_number = Algorithm(
         scifi_copy_track_hit_number_t,
         name="scifi_copy_track_hit_number",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
         host_total_sum_holder_t,
         dev_offsets_ut_tracks_t=dev_offsets_ut_tracks,
@@ -214,7 +213,7 @@ def make_forward_tracks(forward_decoding="v4", **kwargs):
     scifi_consolidate_tracks = Algorithm(
         scifi_consolidate_tracks_t,
         name="scifi_consolidate_tracks",
-        host_number_of_selected_events_t=host_number_of_selected_events,
+        host_number_of_events_t=host_number_of_events,
         host_accumulated_number_of_hits_in_scifi_tracks_t=
         prefix_sum_scifi_track_hit_number.host_total_sum_holder_t,
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.

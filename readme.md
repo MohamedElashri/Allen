@@ -10,11 +10,11 @@ Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
 * CPU target: Any modern compiler can be used:
-    
+
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     ```
-    
+
 * CUDA target: The latest supported compilers are gcc-9 and clang-10. CUDA is
   available in cvmfs as well:
 
@@ -22,7 +22,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
     ```
-    
+
 * HIP target: A local installation of ROCm at least version 3.3.0 is required.
 
 * CUDACLANG target: A version of the clang compiler with ptx support is required,
@@ -55,7 +55,7 @@ If other inputs are required, follow these instructions for producing them:
 Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
 
 ```console
-python3 scripts/makeODIN.py /path/to/data/banks/
+python3 scripts/makeFakeODIN.py /path/to/data/banks/
 ```
 
 This will create a random ODIN bank for each bank in `/path/to/data/banks/VP`.
@@ -67,6 +67,7 @@ How to build it
 
 The build process doesn't differ from standard cmake projects:
 
+    git submodule update --init --recursive
     mkdir build
     cd build
     cmake -DSTANDALONE=ON ..
@@ -106,18 +107,18 @@ To compile a sequence other than the default sequence (hlt1_pp_default), compile
 ```
 make Allen CMAKEFLAGS='-DSEQUENCE=velo'.
 ```
-Note that default CMAKEFLAGS are set for Allen in `utils/default-config.json` of the stack setup. For convenience, it is easiest to change the sequence there. 
+Note that default CMAKEFLAGS are set for Allen in `utils/default-config.json` of the stack setup. For convenience, it is easiest to change the sequence there.
 
 
 ##### Using the nightlies
 
 ```
 lb-set-platform x86_64-centos7-gcc9-opt
-export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
 export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
+source /cvmfs/projects.cern.ch/intelsw/psxe/linux/all-setup.sh
 ```
 
-Create a new directory `Allen_Gaudi_integration` and clone both `Allen` and `Moore` into this new directory. 
+Create a new directory `Allen_Gaudi_integration` and clone both `Allen` and `Moore` into this new directory.
 ```
 ls Allen_Gaudi_integration
 Allen Moore
@@ -131,14 +132,13 @@ lb-project-init
 make configure
 make install
 
-cd ..
-cd Moore
+cd ../Moore
 lb-project-init
 make configure
 make install
 ```
 
-If a specific version of [Rec](https://gitlab.cern.ch/lhcb/Rec) is needed, Rec needs to be compiled as well. 
+If a specific version of [Rec](https://gitlab.cern.ch/lhcb/Rec) is needed, Rec needs to be compiled as well.
 Note that this setup uses the nightlies from Tuesday. Adopt the day of the nightly build according to when you are building. Possibly check that the nightly build was successful.
 
 #### Call Allen with Gaudi, steer event loop from Allen
@@ -234,7 +234,7 @@ Here are some example run options:
 
     # Default throughput test configuration
     ./Allen -t 16 -n 500 -m 500 -r 1000 -c 0
-    
+
 Where to develop for GPUs
 -------------------------
 

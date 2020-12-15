@@ -58,6 +58,8 @@ include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/selections/line_types/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/selections/lines/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Postscale/include)
 include_directories(${CMAKE_SOURCE_DIR}/mdf/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
@@ -76,6 +78,11 @@ file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 include(GenerateConfiguration)
 
 allen_add_host_library(Stream STATIC ${stream_gear} ${stream_sequence_cpp})
+
+# Set property of compiling only this one object concurrently (ninja)
+# Rationale: Stream.cpp alone requires GBs to compile and may result otherwise in killing the build job.
+set_property(GLOBAL APPEND PROPERTY JOB_POOLS one_job=1)
+set_property(TARGET Stream PROPERTY JOB_POOL_COMPILE one_job)
 
 target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
 
@@ -98,7 +105,6 @@ target_link_libraries(Stream PRIVATE
   UT
   Kalman
   VertexFitter
-  RawBanks
   Selections
   SciFi
   HostGEC

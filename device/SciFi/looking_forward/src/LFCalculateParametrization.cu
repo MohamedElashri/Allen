@@ -7,8 +7,8 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   lf_create_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  const auto number_of_events = gridDim.x;
-  const auto event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo consolidated types
   Velo::Consolidated::Tracks velo_tracks {

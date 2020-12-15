@@ -75,8 +75,8 @@ def main():
     '''
     Produces a plot of the performance breakdown of the sequence under execution
     '''
-    usage = '%prog [options] <-d data_file>\n' + \
-            'Example: %prog -d data.csv -m "http://{your-mattermost-site}/hooks/xxx-generatedkey-xxx"'
+    usage = '%prog [options] <data_file>\n' + \
+            'Example: %prog data.csv -m "http://{your-mattermost-site}/hooks/xxx-generatedkey-xxx"'
     parser = OptionParser(usage=usage)
     parser.add_option(
         '-m',

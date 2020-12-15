@@ -1,12 +1,5 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
-*                                                                             *
-* This software is distributed under the terms of the GNU General Public      *
-* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
-*                                                                             *
-* In applying this licence, CERN does not waive the privileges and immunities *
-* granted to it by virtue of its status as an Intergovernmental Organization  *
-* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <cstring>
 #include <fstream>
@@ -73,14 +66,13 @@ namespace LHCb {
     return StatusCode::SUCCESS;
   }
 
-
   inline std::ostream& toStream(const RawBank::BankType& bt, std::ostream& s)
   {
     return s << "'" << RawBank::typeName(bt) << "'";
   }
 } // namespace LHCb
 
-template <typename T>
+template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;
 
 // Raw bank format:
@@ -107,8 +99,8 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  *  @date   2018-08-27
  */
 class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<
-  std::array<std::vector<char>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
-                       Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+                            std::array<std::vector<char>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
+                            Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
   TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
@@ -124,7 +116,7 @@ private:
     "BankTypes",
     {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon, LHCb::RawBank::ODIN}};
 
-  std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
+  std::array<AIDA::IHistogram1D*, LHCb::RawBank::LastType> m_histos;
 };
 
 TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -139,9 +131,14 @@ TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcL
 
 StatusCode TransposeRawBanks::initialize()
 {
-  for (const auto bankType : m_bankTypes) {
-    auto tn = LHCb::RawBank::typeName(bankType);
-    m_histos[tn] = book1D(tn, -0.5, 603.5, 151);
+  for (int bt = 0; bt < LHCb::RawBank::LastType; ++bt) {
+    if (m_bankTypes.value().count(static_cast<LHCb::RawBank::BankType>(bt))) {
+      auto tn = LHCb::RawBank::typeName(static_cast<LHCb::RawBank::BankType>(bt));
+      m_histos[bt] = book1D(tn, -0.5, 603.5, 151);
+    }
+    else {
+      m_histos[bt] = nullptr;
+    }
   }
   return StatusCode::SUCCESS;
 }
@@ -151,18 +148,22 @@ std::array<std::vector<char>, LHCb::RawBank::LastType> TransposeRawBanks::operat
 {
 
   std::array<std::vector<char>, LHCb::RawBank::LastType> output;
-
-  std::unordered_map<LHCb::RawBank::BankType, LHCb::span<LHCb::RawBank const*>> rawBanks;
+  std::array<LHCb::span<LHCb::RawBank const*>, LHCb::RawBank::LastType> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
-    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks] (auto bt) {
-        auto banks = rawEvent->banks(bt);
-        if (!banks.empty()) {
-          rawBanks.emplace(bt, std::move(banks));
-        }});
+    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
+      auto banks = rawEvent->banks(bt);
+      if (!banks.empty()) {
+        rawBanks[bt] = std::move(banks);
+      }
+    });
   }
 
-  for (auto const& [bankType, banks] : rawBanks) {
+  for (int bt = 0; bt < LHCb::RawBank::LastType; ++bt) {
+    auto const bankType = static_cast<LHCb::RawBank::BankType>(bt);
+    auto const& banks = rawBanks[bt];
+    if (banks.empty()) continue;
+
     const uint32_t number_of_rawbanks = banks.size();
     uint32_t offset = 0;
 
@@ -180,13 +181,13 @@ std::array<std::vector<char>, LHCb::RawBank::LastType> TransposeRawBanks::operat
       auto bEnd = bank->end<uint32_t>();
 
       // Debug/testing histogram with the sizes of the binary data per bank
-      auto tn = LHCb::RawBank::typeName(bankType);
-      auto hit = m_histos.find(tn);
-      if (UNLIKELY(hit == end(m_histos))) {
+      auto histo = m_histos[bankType];
+      if (UNLIKELY(histo == nullptr)) {
+        auto tn = LHCb::RawBank::typeName(static_cast<LHCb::RawBank::BankType>(bankType));
         warning() << "No histogram booked for bank type " << tn << endmsg;
       }
       else {
-        hit->second->fill((bEnd - bStart) * sizeof(uint32_t));
+        histo->fill((bEnd - bStart) * sizeof(uint32_t));
       }
 
       while (bStart != bEnd) {

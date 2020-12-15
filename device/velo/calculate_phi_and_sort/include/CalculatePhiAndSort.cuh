@@ -14,11 +14,13 @@
 namespace velo_calculate_phi_and_sort {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_total_number_of_velo_clusters_t, unsigned), host_total_number_of_velo_clusters),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
     (DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned), dev_offsets_estimated_input_size),
     (DEVICE_INPUT(dev_module_cluster_num_t, unsigned), dev_module_cluster_num),
     (DEVICE_INPUT(dev_velo_cluster_container_t, char), dev_velo_cluster_container),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char), dev_sorted_velo_cluster_container),
     (DEVICE_OUTPUT(dev_hit_permutation_t, unsigned), dev_hit_permutation),
     (DEVICE_OUTPUT(dev_hit_phi_t, int16_t), dev_hit_phi),
@@ -61,7 +63,7 @@ namespace velo_calculate_phi_and_sort {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

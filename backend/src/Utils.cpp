@@ -93,8 +93,8 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
     return {false, ""};
   }
 
-  if (device_properties.major > 7 || (device_properties.major == 7 && device_properties.minor >= 5)) {
-    // Setup cache configuration on Turing onwards to L1
+  if (device_properties.major == 7 && device_properties.minor == 5) {
+    // Turing architecture benefits from setting up cache config to L1
     cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
   }
 

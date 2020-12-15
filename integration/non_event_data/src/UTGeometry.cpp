@@ -147,7 +147,7 @@ void Consumers::UTGeometry::consume(std::vector<char> const& data)
   }
 
   auto& host_ut_geometry = m_constants.get().host_ut_geometry;
-  host_ut_geometry = std::move(data);
+  host_ut_geometry = data;
   cudaCheck(
     cudaMemcpy(dev_ut_geometry.data(), host_ut_geometry.data(), host_ut_geometry.size(), cudaMemcpyHostToDevice));
 }

@@ -12,9 +12,8 @@ void compass_ut::compass_ut_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_ut_tracks_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
-  set_size<dev_atomics_ut_t>(arguments, first<host_number_of_selected_events_t>(arguments) * UT::num_atomics);
+  set_size<dev_ut_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * UT::Constants::max_num_tracks);
+  set_size<dev_atomics_ut_t>(arguments, first<host_number_of_events_t>(arguments) * UT::num_atomics);
 }
 
 void compass_ut::compass_ut_t::operator()(
@@ -22,13 +21,12 @@ void compass_ut::compass_ut_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_atomics_ut_t>(arguments, 0, cuda_stream);
+  initialize<dev_atomics_ut_t>(arguments, 0, stream);
 
-  global_function(compass_ut)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
+  global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), stream)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),
@@ -43,8 +41,8 @@ __global__ void compass_ut::compass_ut(
   const float* dev_ut_dxDy,
   const unsigned* dev_unique_x_sector_layer_offsets) // prefixsum to point to the x hit of the sector, per layer
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];

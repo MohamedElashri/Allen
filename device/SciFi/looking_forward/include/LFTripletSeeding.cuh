@@ -14,8 +14,10 @@
 namespace lf_triplet_seeding {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, unsigned), host_number_of_reconstructed_ut_tracks),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_scifi_hits_t, char), dev_scifi_hits),
     (DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned), dev_scifi_hit_count),
     (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
@@ -30,9 +32,7 @@ namespace lf_triplet_seeding {
     (DEVICE_OUTPUT(dev_scifi_lf_found_triplets_t, int), dev_scifi_lf_found_triplets),
     (DEVICE_OUTPUT(dev_scifi_lf_number_of_found_triplets_t, int8_t), dev_scifi_lf_number_of_found_triplets))
 
-  __global__ void lf_triplet_seeding(
-    Parameters,
-    const LookingForward::Constants* dev_looking_forward_constants);
+  __global__ void lf_triplet_seeding(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
   struct lf_triplet_seeding_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
@@ -46,7 +46,7 @@ namespace lf_triplet_seeding {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
   };
 } // namespace lf_triplet_seeding

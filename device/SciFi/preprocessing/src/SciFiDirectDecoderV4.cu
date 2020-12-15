@@ -79,13 +79,12 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4(
   scifi_raw_bank_decoder_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const SciFiGeometry geom(scifi_geometry);
   const auto event =
-    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
+    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[event_number]);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
                     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
@@ -116,10 +115,8 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4_mep(
   scifi_raw_bank_decoder_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const unsigned number_of_events = gridDim.x;
-  const unsigned event_number = blockIdx.x;
-  const unsigned selected_event_number = parameters.dev_event_list[event_number];
-
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const SciFiGeometry geom(scifi_geometry);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
@@ -133,7 +130,7 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4_mep(
 
     // Create SciFi raw bank from MEP layout
     auto const raw_bank = MEP::raw_bank<SciFiRawBank>(
-      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, current_raw_bank);
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number, current_raw_bank);
 
     direct_decode_raw_bank_v4(geom, raw_bank, i, raw_bank_offset, hits);
   }

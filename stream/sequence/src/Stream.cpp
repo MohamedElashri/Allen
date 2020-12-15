@@ -12,22 +12,14 @@
 #include "KalmanSequenceCheckers_impl.cuh"
 #include "RateCheckers_impl.cuh"
 
-StreamWrapper::StreamWrapper()
-{
-  number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
-  unsigned errorevent_line_index = number_of_hlt1_lines;
-  const auto lambda_fn = [&](const unsigned long i, const std::string& line_name) {
-    if (line_name == "ErrorEvent") errorevent_line_index = i;
-  };
-  Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine>::traverse(lambda_fn);
-  errorevent_line = errorevent_line_index;
-}
+StreamWrapper::StreamWrapper() {}
 
 void StreamWrapper::initialize_streams(
   const unsigned n,
   const bool print_memory_usage,
   const unsigned start_event_offset,
   const size_t reserve_mb,
+  const size_t reserve_host_mb,
   const Constants& constants,
   const std::map<std::string, std::map<std::string, std::string>>& config)
 {
@@ -36,7 +28,7 @@ void StreamWrapper::initialize_streams(
   }
 
   for (size_t i = 0; i < streams.size(); ++i) {
-    streams[i]->initialize(print_memory_usage, start_event_offset, reserve_mb, constants);
+    streams[i]->initialize(print_memory_usage, start_event_offset, reserve_mb, reserve_host_mb, constants);
 
     // Configuration of the algorithms must happen after stream initialization
     streams[i]->configure_algorithms(config);
@@ -95,10 +87,11 @@ cudaError_t Stream::initialize(
   const bool param_do_print_memory_manager,
   const unsigned param_start_event_offset,
   const size_t reserve_mb,
+  const size_t reserve_host_mb,
   const Constants& param_constants)
 {
   // Set stream and events
-  cudaCheck(cudaStreamCreate(&cuda_stream));
+  cudaCheck(cudaStreamCreate(&stream));
   cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
 
   // Set stream options
@@ -107,15 +100,18 @@ cudaError_t Stream::initialize(
   constants = param_constants;
 
   // Malloc a configurable reserved memory on the host
-  // TODO: Make configurable
-  cudaCheck(cudaMallocHost((void**) &host_base_pointer, 10 * 1024 * 1024));
+  cudaCheck(cudaMallocHost((void**) &host_base_pointer, reserve_host_mb * 1000 * 1000));
 
   // Malloc a configurable reserved memory on the device
-  cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1024 * 1024));
+  cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1000 * 1000));
 
   // Prepare scheduler
   scheduler.initialize(
-    do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 10 * 1024 * 1024, host_base_pointer);
+    do_print_memory_manager,
+    reserve_mb * 1000 * 1000,
+    dev_base_pointer,
+    reserve_host_mb * 1000 * 1000,
+    host_base_pointer);
 
   // Populate names of the algorithms in the sequence
   populate_sequence_algorithm_names(scheduler.sequence_tuple);
@@ -161,7 +157,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
             runtime_options,
             constants,
             *host_buffers,
-            cuda_stream,
+            stream,
             cuda_generic_event);
 
         // deterministic injection of ~random memory failures
@@ -172,13 +168,13 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
           uint test_mask = (1 << 15) - 1;
           if (runtime_options.inject_mem_fail < 15) test_mask = (1 << runtime_options.inject_mem_fail) - 1;
           if (
-            (host_buffers->host_number_of_selected_events[0] & test_mask) ==
+            (host_buffers->host_number_of_selected_events & test_mask) ==
             (host_buffers->host_total_number_of_velo_clusters[0] & test_mask))
             throw MemoryException("Test : Injected fake memory exception to test failure handling");
         }
 
         // Synchronize CUDA device
-        cudaEventRecord(cuda_generic_event, cuda_stream);
+        cudaEventRecord(cuda_generic_event, stream);
         cudaEventSynchronize(cuda_generic_event);
       } catch (const MemoryException& e) {
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
@@ -193,7 +189,7 @@ cudaError_t Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& r
 std::vector<bool> Stream::reconstructed_events() const
 {
   std::vector<bool> mask(number_of_input_events, false);
-  for (unsigned i = 0; i < host_buffers->host_number_of_selected_events[0]; ++i) {
+  for (unsigned i = 0; i < host_buffers->host_number_of_selected_events; ++i) {
     mask[host_buffers->host_event_list[i]] = true;
   }
   return mask;

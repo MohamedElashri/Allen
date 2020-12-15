@@ -8,9 +8,8 @@
 struct HostBuffersManager;
 
 struct RateMonitor : public BufferMonitor {
-  RateMonitor(HostBuffersManager* buffers_manager, unsigned number_of_hlt1_lines, int timeStep = 30, int offset = 0) :
-    BufferMonitor("hltRates", timeStep, offset), m_buffers_manager(buffers_manager),
-    m_number_of_hlt1_lines(number_of_hlt1_lines)
+  RateMonitor(HostBuffersManager* buffers_manager, int timeStep = 30, int offset = 0) :
+    BufferMonitor("hltRates", timeStep, offset), m_buffers_manager(buffers_manager)
   {
     init();
   };
@@ -22,6 +21,10 @@ struct RateMonitor : public BufferMonitor {
 private:
   void init();
 
+  void initialize_histograms(const unsigned host_number_of_active_lines);
+
   HostBuffersManager* m_buffers_manager;
-  const unsigned m_number_of_hlt1_lines;
+  bool m_histograms_initialized = false;
+  unsigned m_nBins;
+  double m_max;
 };

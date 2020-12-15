@@ -12,7 +12,7 @@
 namespace MFVertexFit {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_number_of_mf_svs_t, unsigned), host_number_of_mf_svs),
     (HOST_INPUT(host_selected_events_mf_t, unsigned), host_selected_events_mf),
     (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
@@ -40,7 +40,7 @@ namespace MFVertexFit {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

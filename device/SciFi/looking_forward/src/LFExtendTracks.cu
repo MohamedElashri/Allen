@@ -8,10 +8,10 @@ __global__ void lf_create_tracks::lf_extend_tracks(
   lf_create_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  const auto number_of_events = gridDim.x;
-  const auto event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-    // UT consolidated tracks
+  // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {
     parameters.dev_atomics_ut, parameters.dev_ut_track_hit_number, event_number, number_of_events};
 
@@ -23,7 +23,7 @@ __global__ void lf_create_tracks::lf_extend_tracks(
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
-  
+
   const auto event_offset = scifi_hit_count.event_offset();
   const auto number_of_tracks = parameters.dev_scifi_lf_atomics[event_number];
 
@@ -110,10 +110,11 @@ __global__ void lf_create_tracks::lf_extend_tracks(
           [ut_event_tracks_offset + track.ut_track_index +
            (relative_uv_layer * LookingForward::number_of_elements_initial_window + 3) * ut_total_number_of_tracks];
 
-      // Calculate expected X true position in z-UV layer, use expected X-position to evaluate expected Y with correction in Y
-      // Note : the correction in y is currently ONLY dependent on the x position of the choosen hit, and input VeloTracks. 
-      // Potentially stronger Y constraints can be obtained using (tx,ty from Velo(or Velo-UT)) 
-      // plus the local x-z projection under processing ( local SciFI ax,tx,cx ) , instead of a single x position of the hit
+      // Calculate expected X true position in z-UV layer, use expected X-position to evaluate expected Y with
+      // correction in Y Note : the correction in y is currently ONLY dependent on the x position of the choosen hit,
+      // and input VeloTracks. Potentially stronger Y constraints can be obtained using (tx,ty from Velo(or Velo-UT))
+      // plus the local x-z projection under processing ( local SciFI ax,tx,cx ) , instead of a single x position of the
+      // hit
       const auto dz = z4 - LookingForward::z_mid_t;
       const auto expected_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
       const auto expected_y = LookingForward::project_y(
@@ -126,13 +127,14 @@ __global__ void lf_create_tracks::lf_extend_tracks(
       const auto predicted_x =
         expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
 
-      // Pick the best, according to chi2. 
-      // TODO : This needs some dedicated tuning. We scale the max_chi2 ( i.e the max distance in the x-plane ) 
-      // as a function of ty of the track and delta_slope (  of tracks ). 
+      // Pick the best, according to chi2.
+      // TODO : This needs some dedicated tuning. We scale the max_chi2 ( i.e the max distance in the x-plane )
+      // as a function of ty of the track and delta_slope (  of tracks ).
       // Bigger windows for higher slopes and delta_slope  (small momentum)
-      // If slopees are small the track is central,  the track bends a little, thee error on the estimation is small. +-2 mm windows is ok (2^{2}  = 4) .
-      // If we have large slope the error on x can be big,  For super peripheral tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to :
-      // sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway, we need some retuning of this scaling windows.
+      // If slopees are small the track is central,  the track bends a little, thee error on the estimation is small.
+      // +-2 mm windows is ok (2^{2}  = 4) . If we have large slope the error on x can be big,  For super peripheral
+      // tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to : sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway,
+      // we need some retuning of this scaling windows.
       const float max_chi2 = 50.f * fabsf(ut_state.ty) + 50.f * fabsf(ut_state.tx);
 
       int best_index = -1;
@@ -161,4 +163,4 @@ __global__ void lf_create_tracks::lf_extend_tracks(
       }
     }
   }
-} 
+}

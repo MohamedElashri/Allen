@@ -1,39 +1,58 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
 
-#include "LineInfo.cuh"
-#include "ParKalmanDefinitions.cuh"
-#include "SystemOfUnits.h"
+#include "SelectionAlgorithm.cuh"
+#include "OneTrackLine.cuh"
 
-namespace TrackMuonMVA {
-  // One track parameters.
-  constexpr float maxChi2Ndof = 100.0f;
-  constexpr float minPt = 2000.0f / Gaudi::Units::GeV;
-  constexpr float maxPt = 26000.0f / Gaudi::Units::GeV;
-  constexpr float minIPChi2 = 7.4f;
-  constexpr float param1 = 1.0f;
-  constexpr float param2 = 2.0f;
-  constexpr float param3 = 1.248f;
-  constexpr float alpha = 0.f;
-  
-  struct TrackMuonMVA_t : public Hlt1::OneTrackLine {
-    constexpr static auto name {"TrackMuonMVA"};
+namespace track_muon_mva_line {
+  DEFINE_PARAMETERS(
+    Parameters,
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
+    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
+    (DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack), dev_tracks),
+    (DEVICE_INPUT(dev_track_offsets_t, unsigned), dev_track_offsets),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input),
+    (DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets),
+    (DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout),
+    (DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions),
+    (DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets),
+    (HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler),
+    (HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash),
+    (PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler),
+    (PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler),
+    (PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string),
+     pre_scaler_hash_string),
+    (PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string),
+     post_scaler_hash_string),
+    (PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float), maxChi2Ndof),
+    (PROPERTY(minPt_t, "minPt", "minPt description", float), minPt),
+    (PROPERTY(maxPt_t, "maxPt", "maxPt description", float), maxPt),
+    (PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float), minIPChi2),
+    (PROPERTY(param1_t, "param1", "param1 description", float), param1),
+    (PROPERTY(param2_t, "param2", "param2 description", float), param2),
+    (PROPERTY(param3_t, "param3", "param3 description", float), param3),
+    (PROPERTY(alpha_t, "alpha", "alpha description", float), alpha))
 
-    static __device__ bool function(const ParKalmanFilter::FittedTrack& track)
-    {
-      if (!track.is_muon) {
-        return false;
-      }
-      
-      float ptShift = (track.pt() - alpha) / Gaudi::Units::GeV;
-      const bool decision = track.chi2 / track.ndof < maxChi2Ndof &&
-                            ((ptShift > maxPt && track.ipChi2 > minIPChi2) ||
-                             (ptShift > minPt && ptShift < maxPt &&
-                              logf(track.ipChi2) > param1 / (ptShift - param2) / (ptShift - param2) +
-                                                     param3 / maxPt * (maxPt - ptShift) + logf(minIPChi2)));
-      return decision;
-    }
+  struct track_muon_mva_line_t : public SelectionAlgorithm,
+                                 Parameters,
+                                 OneTrackLine<track_muon_mva_line_t, Parameters> {
+    __device__ bool select(const Parameters& ps, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+
+  private:
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.0f};
+    Property<minPt_t> m_minPt {this, 2000.0f / Gaudi::Units::GeV};
+    Property<maxPt_t> m_maxPt {this, 26000.0f / Gaudi::Units::GeV};
+    Property<minIPChi2_t> m_minIPChi2 {this, 7.4f};
+    Property<param1_t> m_param1 {this, 1.0f};
+    Property<param2_t> m_param2 {this, 2.0f};
+    Property<param3_t> m_param3 {this, 1.248f};
+    Property<alpha_t> m_alpha {this, 0.f};
   };
-} // namespace TrackMuonMVA
+} // namespace track_muon_mva_line

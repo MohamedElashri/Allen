@@ -7,6 +7,12 @@
 #include "Logger.h"
 
 template<>
+std::string Configuration::from_string<std::string>(const std::string& s)
+{
+  return s;
+}
+
+template<>
 float Configuration::from_string<float>(const std::string& s)
 {
   return atof(s.c_str());

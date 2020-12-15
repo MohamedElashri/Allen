@@ -21,7 +21,7 @@ namespace VertexFit {
     float& x,
     float& y,
     float& z);
-  
+
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
   __device__ inline float addToDerivatives(
@@ -73,8 +73,10 @@ namespace VertexFit {
 
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
+    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
+    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
     (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
     (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_atomics_scifi),
     (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned), dev_scifi_track_hit_number),
@@ -105,7 +107,7 @@ namespace VertexFit {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

@@ -12,7 +12,7 @@
 namespace lf_least_mean_square_fit {
   DEFINE_PARAMETERS(
     Parameters,
-    (HOST_INPUT(host_number_of_selected_events_t, unsigned), host_number_of_selected_events),
+    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
     (DEVICE_INPUT(dev_scifi_hits_t, char), dev_scifi_hits),
     (DEVICE_INPUT(dev_scifi_hit_count_t, unsigned), dev_scifi_hit_count),
     (DEVICE_INPUT(dev_atomics_ut_t, unsigned), dev_atomics_ut),
@@ -24,18 +24,15 @@ namespace lf_least_mean_square_fit {
   __global__ void lf_least_mean_square_fit(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
   struct lf_least_mean_square_fit_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters>,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&, const HostBuffers&)
+      const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t& stream,
       cudaEvent_t&) const;
 
   private:

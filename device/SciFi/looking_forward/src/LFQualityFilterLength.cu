@@ -14,7 +14,7 @@ void lf_quality_filter_length::lf_quality_filter_length_t::set_arguments_size(
     first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
       LookingForward::maximum_number_of_candidates_per_ut_track);
   set_size<dev_scifi_lf_length_filtered_atomics_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
+    arguments, first<host_number_of_events_t>(arguments) * LookingForward::num_atomics);
   set_size<dev_scifi_lf_parametrization_length_filter_t>(
     arguments,
     4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments) *
@@ -26,19 +26,19 @@ void lf_quality_filter_length::lf_quality_filter_length_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
+  cudaStream_t& stream,
   cudaEvent_t&) const
 {
-  initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, cuda_stream);
+  initialize<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, stream);
 
-  global_function(lf_quality_filter_length)(
-    dim3(first<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(arguments);
+  global_function(lf_quality_filter_length)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+    arguments);
 }
 
 __global__ void lf_quality_filter_length::lf_quality_filter_length(lf_quality_filter_length::Parameters parameters)
 {
-  const auto event_number = blockIdx.x;
-  const auto number_of_events = gridDim.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {

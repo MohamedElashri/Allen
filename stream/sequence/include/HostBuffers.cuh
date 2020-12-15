@@ -6,6 +6,9 @@
 #include <vector>
 #include <cstdint>
 #include <cstdlib>
+#include <string>
+#include <gsl/gsl>
+#include "BackendCommon.h"
 
 // Forward declarations
 namespace PV {
@@ -28,11 +31,10 @@ namespace VertexFit {
 struct HostBuffers {
   // Pinned host datatypes
   unsigned host_number_of_events;
-  unsigned* host_number_of_selected_events;
+  unsigned host_number_of_selected_events;
   unsigned* host_event_list;
   unsigned* host_prefix_sum_buffer;
   bool* host_passing_event_list;
-  uint32_t* host_dec_reports;
   uint32_t* host_sel_rep_raw_banks;
   unsigned host_sel_rep_raw_banks_size;
   size_t host_allocated_prefix_sum_space;
@@ -57,6 +59,9 @@ struct HostBuffers {
   unsigned* host_number_of_peaks;
   PV::Vertex* host_reconstructed_multi_pvs;
   int* host_number_of_multivertex;
+  std::vector<unsigned> velo_clusters_offsets;
+  std::vector<unsigned> velo_module_clusters_num;
+  std::vector<char> velo_clusters;
 
   // UT
   unsigned* host_atomics_ut;
@@ -110,11 +115,11 @@ struct HostBuffers {
   VertexFit::TrackMVAVertex* host_mf_secondary_vertices;
 
   // Selections
-  unsigned host_number_of_hlt1_lines;
-  unsigned* host_sel_results_atomics;
-
-  unsigned host_sel_results_size;
-  bool* host_sel_results;
+  std::string host_names_of_lines;
+  unsigned host_number_of_lines;
+  gsl::span<uint32_t> host_dec_reports = {};
+  gsl::span<bool> host_selections = {};
+  gsl::span<unsigned> host_selections_offsets = {};
 
   // Non pinned datatypes: CPU algorithms
   std::vector<char> host_velo_states;
@@ -125,7 +130,7 @@ struct HostBuffers {
   /**
    * @brief Reserves all host buffers.
    */
-  void reserve(const unsigned max_number_of_events, const bool do_check, const unsigned number_of_hlt1_lines);
+  void reserve(const unsigned max_number_of_events, const bool do_check);
 
   // /**
   //  * @brief Frees all host buffers.

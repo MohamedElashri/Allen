@@ -49,7 +49,8 @@ __device__ void track_forwarding(
   unsigned* dev_number_of_velo_tracks,
   const int16_t phi_tolerance,
   const float max_scatter,
-  const unsigned max_skipped_modules);
+  const unsigned max_skipped_modules,
+  const unsigned event_number);
 
 /**
  * @brief Returns the first possible candidate, according to
