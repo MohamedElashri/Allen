@@ -24,20 +24,19 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, stream);
+  initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, context);
 
   global_function(velo_copy_track_hit_number)(
-    first<host_number_of_events_t>(arguments), property<block_dim_t>(), stream)(arguments);
+    first<host_number_of_events_t>(arguments), property<block_dim_t>(), context)(arguments);
 
-  cudaCheck(cudaMemcpyAsync(
+  Allen::memcpy_async(
     data<host_number_of_reconstructed_velo_tracks_t>(arguments),
     data<dev_offsets_all_velo_tracks_t>(arguments) + size<dev_offsets_all_velo_tracks_t>(arguments) - 1,
-    sizeof(unsigned), // Note: Only the last element needs to be copied here.
-    cudaMemcpyDeviceToHost,
-    stream));
+    sizeof(unsigned),
+    Allen::memcpyDeviceToHost,
+    context);
 
   if (property<verbosity_t>() >= logger::debug) {
     print<dev_offsets_all_velo_tracks_t>(arguments);

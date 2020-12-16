@@ -9,7 +9,7 @@
 #include "Logger.h"
 #include "Argument.cuh"
 #include "ArgumentManager.cuh"
-#include "TupleTools.cuh"
+#include "AllenTypeTraits.cuh"
 
 namespace {
   // SFINAE-based invocation of member function iff class provides it.
@@ -30,36 +30,17 @@ namespace {
 } // namespace
 
 namespace Sch {
-  // Motivation:
-  //
-  // I need somehow a struct with the inputs (things to malloc),
-  // and another one for the outputs (things to free), like so:
-  //
-  // typedef std::tuple<
-  //   In<a_t, dev_a, dev_b>,
-  //   In<b_t, dev_c, dev_d>,
-  //   In<c_t>
-  // > input_t;
-  //
-  // typedef std::tuple<
-  //   Out<a_t>,
-  //   Out<b_t, dev_a>,
-  //   Out<c_t, dev_c, dev_b, dev_d>,
-  // > output_t;
-
-  // Get the ParameterTuple from the function operator()
+  // Get the ArgumentRefManagerType from the function operator()
   template<typename Function>
   struct FunctionTraits;
 
   template<typename Function, typename T, typename S, typename R, typename... OtherArguments>
   struct FunctionTraits<void (Function::*)(const ArgumentRefManager<T, S, R>&, OtherArguments...) const> {
-    using ParameterTuple = T;
     using ArgumentRefManagerType = ArgumentRefManager<T, S, R>;
   };
 
   template<typename Algorithm>
   struct AlgorithmTraits {
-    using ParameterTuple = typename FunctionTraits<decltype(&Algorithm::operator())>::ParameterTuple;
     using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
@@ -313,27 +294,27 @@ namespace Sch {
   /**
    * @brief Produces a single argument reference.
    */
-  template<typename ArgumentsTuple, typename Argument>
+  template<typename ArgumentsTuple, typename ConfiguredArgument>
   struct ProduceSingleArgument {
-    constexpr static Argument& produce(ArgumentsTuple& arguments_tuple)
+    constexpr static auto& produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_tuple)
     {
-      Argument& argument = std::get<Argument>(arguments_tuple);
-      return argument;
+      constexpr auto index_of_T = index_of_v<ConfiguredArgument, ArgumentsTuple>;
+      return std::get<index_of_T>(arguments_tuple);
     }
   };
 
   /**
    * @brief Produces a list of argument references.
    */
-  template<typename ArgumentsTuple, typename ArgumentRefManager, typename Arguments>
+  template<typename ArgumentsTuple, typename ArgumentRefManager, typename ConfiguredArguments>
   struct ProduceArgumentsTupleHelper;
 
-  template<typename ArgumentsTuple, typename ArgumentRefManager, typename... Arguments>
-  struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<Arguments...>> {
-    constexpr static ArgumentRefManager produce(ArgumentsTuple& arguments_tuple)
+  template<typename ArgumentsTuple, typename ArgumentRefManager, typename... ConfiguredArguments>
+  struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<ConfiguredArguments...>> {
+    constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_tuple)
     {
       return ArgumentRefManager {
-        std::forward_as_tuple(ProduceSingleArgument<ArgumentsTuple, Arguments>::produce(arguments_tuple)...)};
+        {ProduceSingleArgument<ArgumentsTuple, ConfiguredArguments>::produce(arguments_tuple)...}};
     }
   };
 
@@ -342,13 +323,12 @@ namespace Sch {
    */
   template<typename ArgumentsTuple, typename Algorithm, typename ConfiguredArguments>
   struct ProduceArgumentsTuple {
-    constexpr static typename AlgorithmTraits<Algorithm>::ArgumentRefManagerType produce(
-      ArgumentsTuple& arguments_tuple)
+    constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_database)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
         typename AlgorithmTraits<Algorithm>::ArgumentRefManagerType,
-        ConfiguredArguments>::produce(arguments_tuple);
+        ConfiguredArguments>::produce(arguments_database);
     }
   };
 
@@ -386,13 +366,13 @@ namespace Sch {
         typename std::tuple_element<I, typename Scheduler::configured_sequence_arguments_t>::type;
       auto arguments_tuple =
         ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
-          scheduler.argument_manager.arguments_tuple);
+          scheduler.argument_manager.argument_database());
 
       // Sets the arguments sizes, setups the scheduler and visits the algorithm.
       std::get<I>(scheduler.sequence_tuple)
         .set_arguments_size(arguments_tuple, std::forward<SetSizeArguments>(set_size_arguments)...);
 
-      scheduler.template setup<I, t>();
+      scheduler.template setup<I>();
 
       std::get<I>(scheduler.sequence_tuple)
         .
@@ -457,5 +437,4 @@ namespace Sch {
       RunChecker<std::tuple<Algorithms...>, std::tuple<Arguments...>>::check(std::forward<Arguments>(arguments)...);
     }
   };
-
 } // namespace Sch

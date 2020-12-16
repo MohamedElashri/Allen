@@ -91,6 +91,8 @@ StatusCode RunAllen::initialize()
   const bool print_memory_usage = false;
   const unsigned start_event_offset = 0;
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
+  const unsigned required_memory_alignment =
+    64; // 64 bytes is equivalent to 512-bit alignment (currently widest vectors)
 
   m_stream_wrapper.reset(new StreamWrapper());
   m_stream_wrapper->initialize_streams(
@@ -99,6 +101,7 @@ StatusCode RunAllen::initialize()
     start_event_offset,
     reserve_mb,
     reserve_mb, // host memory same as "device"
+    required_memory_alignment,
     m_constants,
     configuration_reader.params());
 
@@ -179,8 +182,8 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
 
   const unsigned buf_idx = m_n_buffers - 1;
   const unsigned stream_index = m_number_of_streams - 1;
-  cudaError_t cuda_rv = m_stream_wrapper->run_stream(stream_index, buf_idx, runtime_options);
-  if (cuda_rv != cudaSuccess) {
+  Allen::error cuda_rv = m_stream_wrapper->run_stream(stream_index, buf_idx, runtime_options);
+  if (cuda_rv != Allen::error::success) {
     error() << "Allen exited with errorCode " << rv << endmsg;
     // how to exit a filter with failure?
   }

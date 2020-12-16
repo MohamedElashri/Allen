@@ -6,11 +6,11 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 stages:
-  - check			# Ensures the CI environment is valid
+  - check     # Ensures the CI environment is valid
   - build           # Builds all projects
-  - run       		# Runs the tests across architectures
-  - test      		# Runs various tests of the software
-  - publish   		# Publishes the results of the tests and runs in channels and grafana
+  - run           # Runs the tests across architectures
+  - test          # Runs various tests of the software
+  - publish       # Publishes the results of the tests and runs in channels and grafana
 
 variables:
   TARGET_BRANCH: master
@@ -51,7 +51,7 @@ check-formatting:
     expire_in: 1 week
   allow_failure: true
 
-.build_job: &build_gcc_job_def_warnings_as_errors
+.build_job: &build_job_def
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   only:
@@ -70,119 +70,16 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
-    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[4]}
+    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
-    - ninja -j 4
+    - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
+    - ninja
   artifacts:
-    expire_in: 2 hrs
-    paths:
-      - build*/*Allen*
-      - build*/Sequence.json
-      - input
-  retry: 2
-  allow_failure: true
-
-.build_job: &build_clang_job_def_warnings_as_errors
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  only:
-    refs:
-      - master
-      - schedules
-      - web
-      - merge_requests
-  stage: build
-  script:
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=${PREVIOUS_IFS}
-    - TARGET=${JOB_NAME_SPLIT[0]}
-    - SEQUENCE=${JOB_NAME_SPLIT[1]}
-    - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
-    - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-clang10-opt
-    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
-    - mkdir build_${TARGET}
-    - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTREAT_WARNINGS_AS_ERRORS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
-    - ninja -j 4
-  artifacts:
-    expire_in: 2 hrs
-    paths:
-      - build*/*Allen*
-      - build*/Sequence.json
-      - input
-  retry: 2
-  allow_failure: true
-
-.build_job: &build_gcc_job_def
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  only:
-    refs:
-      - master
-      - schedules
-      - web
-      - merge_requests
-  stage: build
-  script:
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=${PREVIOUS_IFS}
-    - TARGET=${JOB_NAME_SPLIT[0]}
-    - SEQUENCE=${JOB_NAME_SPLIT[1]}
-    - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
-    - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
-    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
-    - mkdir build_${TARGET}
-    - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
-    - ninja -j 4
-  artifacts:
-    expire_in: 2 hrs
-    paths:
-      - build*/*Allen*
-      - build*/Sequence.json
-      - input
-  retry: 1
-
-.build_job: &build_clang_job_def
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-  only:
-    refs:
-      - master
-      - schedules
-      - web
-      - merge_requests
-  stage: build
-  script:
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=${PREVIOUS_IFS}
-    - TARGET=${JOB_NAME_SPLIT[0]}
-    - SEQUENCE=${JOB_NAME_SPLIT[1]}
-    - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
-    - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-clang10-opt
-    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
-    - mkdir build_${TARGET}
-    - cd build_${TARGET}
-    - cmake -DSTANDALONE=ON -G Ninja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
-    - ninja -j 4
-  artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - build*/*Allen*
       - build*/Sequence.json
@@ -194,6 +91,7 @@ docker_image:build:
   only:
     refs:
       - master
+      - web
   tags:
     - docker-image-build
   script: "echo 'Building Allen dev docker image"
@@ -221,58 +119,31 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+    - DATA_TAG=${JOB_NAME_SPLIT[4]}
     - RUN_OPTIONS="-n 1000 -m 1000"
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir validation_output
     - ln -s validation_output output # Needed by Root build
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
-  artifacts:
-    expire_in: 2 hrs
-    paths:
-      - validation_output/*
-  allow_failure: true
-  retry: 1
-
-.run_physics_efficiency_job: &run_physics_efficiency_job_def_cpu
-  only:
-    refs:
-      - master
-      - schedules
-      - web
-      - merge_requests
-  stage: run
-  script:
-    - TOPLEVEL=${PWD}
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
-    - IFS=${PREVIOUS_IFS}
-    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
-    - TARGET=${JOB_NAME_SPLIT[1]}
-    - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - JOB="./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS}"
+    - if [ "${TARGET}" = "CPU" ]; then
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - RUN_OPTIONS="-n 1000 -m 1000"
+    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../validation_output/${DATA_TAG}_${DEVICE_ID}.txt
+    - else
+    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
-    - mkdir validation_output
-    - ln -s validation_output output # Needed by Root build
-    - cd build_${TARGET}
-    - ls
-    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../validation_output/${DATA_TAG}_${DEVICE_ID}.txt
+    - fi
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - validation_output/*
   allow_failure: true
-  retry: 1
 
 .run_with_run_changes_job: &run_with_run_changes_job_def
   only:
@@ -293,22 +164,30 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
     - RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 0"
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
+    - JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down ${RUN_OPTIONS}"
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir run_changes_output
     - ln -s run_changes_output output # Needed by Root build
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
+    - if [ "${TARGET}" = "CPU" ]; then
+    - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
+    - else
+    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
+    - fi
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - run_changes_output/*
   allow_failure: true
-  retry: 1
 
 .run_no_run_changes_job: &run_no_run_changes_job_def
   only:
@@ -329,22 +208,29 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
-    - RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 1"
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+    - JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down -n 1000 -m 700 --disable-run-changes 1"
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir no_run_changes_output
     - ln -s no_run_changes_output output # Needed by Root build
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --mdf /scratch/dcampora/allen_data/201907/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
+    - if [ "${TARGET}" = "CPU" ]; then
+    - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
+    - else
+    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
+    - fi
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - no_run_changes_output/*
   allow_failure: true
-  retry: 1
 
 .run_throughput_job_no_profiling: &run_throughput_job_no_profiling_def
   only:
@@ -365,63 +251,33 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
-    - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
-    - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
-    - if [ "${D_MEMORY}" = "LOW" ]; then
-    -   RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 8 -c 0"
-    - fi
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+    - DATA_TAG=${JOB_NAME_SPLIT[4]}
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - echo CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} numactl --cpunodebind=0 --membind=0 ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-  artifacts:
-    expire_in: 2 hrs
-    paths:
-      - output_*
-  allow_failure: true
-  retry: 1
-
-.run_throughput_job_no_profiling_cpu: &run_throughput_job_no_profiling_def_cpu
-  only:
-    refs:
-      - master
-      - schedules
-      - web
-      - merge_requests
-  stage: run
-  script:
-    - TOPLEVEL=${PWD}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
-    - IFS=${PREVIOUS_IFS}
-    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
-    - TARGET=${JOB_NAME_SPLIT[1]}
-    - SEQUENCE=${JOB_NAME_SPLIT[2]}
+    - if [ "${TARGET}" = "CPU" ]; then
     - TOTAL_THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
     - TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
     - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     - RUN_OPTIONS="-n 100 -m 100 -r 200 -t ${THREADS} -c 0"
+    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - else
+    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
-    - mkdir output_${DEVICE_ID}
-    - cd build_${TARGET}
-    - ls
-    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - echo numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS}
-    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - fi
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - output_*
   allow_failure: true
-  retry: 1
 
 .run_throughput_job: &run_throughput_job_def
   only:
@@ -442,32 +298,30 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
-    - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+    - DATA_TAG=${JOB_NAME_SPLIT[4]}
+    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
     - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
-    - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 16 -c 0"
-    - if [ "${D_MEMORY}" = "LOW" ]; then
-    -   RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 8 -c 0"
-    -   RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 8 -c 0"
-    - fi
+    - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - mkdir tmp
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=tmp numactl --cpunodebind=0 --membind=0 nsys profile ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_PROFILER_OPTIONS}
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_PROFILER_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
     - rm -rf report1.qdrep tmp
   artifacts:
-    expire_in: 2 hrs
+    expire_in: 1 day
     paths:
       - output_*
   allow_failure: true
-  retry: 1
 
 .throughput_cli_plot_job: &publish_algo_breakdown_plot_def
   only:
@@ -485,7 +339,7 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
 
 test_physics_efficiency:
@@ -504,20 +358,21 @@ test_physics_efficiency:
     - for i in $( ls ); do echo "Checking ${i}"; tail -n97 ${i} | head -n94 > efficiency_${i}; diff -u ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
-  dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_default:run_physics_efficiency
+  needs:
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
   tags:
     - cvmfs
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - validation_output/*_diff
   allow_failure: true
 
 test_run_changes:
   only:
     refs:
-      - master
-      - schedules
       - web
-      - merge_requests
   stage: test
   script:
     - TOPLEVEL=${PWD}
@@ -527,29 +382,14 @@ test_run_changes:
     - for i in $( ls ); do echo "Checking ${i}"; tail -n98 ${i} | head -n94 > run_changes_${i}; tail -n98 ${TOPLEVEL}/no_run_changes_output/${i} | head -n94 > no_run_changes_${i}; diff -u no_run_changes_${i} run_changes_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
-  dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_with_run_changes
-    - x862630v4:CPU:hlt1_pp_default:run_no_run_changes
+  needs:
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
-
-# run_built_tests:
-#   only:
-#     refs:
-#       - master
-#       - schedules
-#       - web
-#       - merge_requests
-#   stage: test
-#   script:
-#     - cd build_CUDA
-#     - ctest -V
-#   dependencies:
-#     - CUDA:hlt1_pp_default:Debug::build
-#   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
   only:
@@ -565,14 +405,15 @@ test_run_changes:
     - IFS=${PREVIOUS_IFS}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BREAKDOWN_DEVICE_ID=${JOB_NAME_SPLIT[2]}
+    - DATA_TAG=${JOB_NAME_SPLIT[3]}
     - cat output_*/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
     - cat output_*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs.txt
     - cat devices.txt
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
-    - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    - python3 checker/plotting/post_combined_message.py -l "Throughput of [branch ${CI_COMMIT_REF_NAME}, sequence ${SEQUENCE} over dataset ${DATA_TAG}](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
 
 .throughput_speedup_job: &publish_speedup_job_def
@@ -590,82 +431,104 @@ test_run_changes:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_98python3 x86_64-centos7-gcc9-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # =====
 # Build
 # =====
 
-CUDA:hlt1_pp_default:RelWithDebInfo::build:
-  <<: *build_clang_job_def
+CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
-  <<: *build_clang_job_def
+CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:RelWithDebInfo::build:
-  <<: *build_clang_job_def
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build:
-  <<: *build_clang_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
-  <<: *build_gcc_job_def_warnings_as_errors
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
-  <<: *build_gcc_job_def_warnings_as_errors
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
 # clang:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
-  <<: *build_clang_job_def_warnings_as_errors
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_def
   tags:
     - cvmfs
-
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build_warnings_as_errors:
-  <<: *build_clang_job_def_warnings_as_errors
+    
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_def
   tags:
     - cvmfs
 
 # Build of default sequence without code generation
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=OFF:build:
-  <<: *build_clang_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
 
 # Builds only on master of additional options
 
-CUDA:hlt1_pp_no_gec:RelWithDebInfo::build:
-  <<: *build_clang_job_def
+CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
   tags:
     - cvmfs
   only:
     refs:
       - master
+      - web
 
-CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
-  <<: *build_clang_job_def
+CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
   tags:
     - cvmfs
   only:
     refs:
       - master
+      - web
 
 # ===
 # Run
@@ -673,227 +536,253 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::build:
 
 # Throughput runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-quadrortx6000:CUDA:hlt1_pp_default:run_throughput:
+quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-teslav100:CUDA:hlt1_pp_default:run_throughput:
+teslav100:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3080:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3090:CUDA:hlt1_pp_default:run_throughput:
+geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx3090
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:run_throughput_cpu:
-  <<: *run_throughput_job_no_profiling_def_cpu
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - x862630v4
-  dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-epyc7502:CPU:hlt1_pp_default:run_throughput_cpu:
-  <<: *run_throughput_job_no_profiling_def_cpu
+epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - epyc7502
-  dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 # Physics efficiency runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:run_physics_efficiency:
-  <<: *run_physics_efficiency_job_def_cpu
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency:
+  <<: *run_physics_efficiency_job_def
   tags:
     - x862630v4
-  dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
-
-# Test runs
-
-# geforcertx2080ti:CUDA:hlt1_pp_default:run_physics_efficiency_debug:
-#   <<: *run_physics_efficiency_job_def
-#   tags:
-#     - geforcertx2080ti
-#   dependencies:
-#     - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
-
-# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug:
-#   <<: *run_physics_efficiency_job_def_cpu
-#   tags:
-#     - x86
-#   dependencies:
-#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
-
-# x86:CPU:hlt1_pp_default:run_physics_efficiency_debug_root:
-#   <<: *run_physics_efficiency_job_def_cpu
-#   tags:
-#     - x86
-#   dependencies:
-#     - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:build
+  needs:
+    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 # Additional throughput runs, only on master
 
-geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput:
+geforcertx2080ti:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx2080ti
-  dependencies:
-    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - master
+      - web
 
-quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput:
+quadrortx6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
-  dependencies:
-    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - master
+      - web
 
-teslav100:CUDA:hlt1_pp_no_gec:run_throughput:
+teslav100:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
-  dependencies:
-    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - master
+      - web
 
-geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput:
+geforcertx3080:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - geforcertx3080
-  dependencies:
-    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - master
+      - web
 
-geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput:
+geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx3090
-  dependencies:
-    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - master
+      - web
 
-x862630v4:CPU:hlt1_pp_no_gec:run_throughput_cpu:
-  <<: *run_throughput_job_no_profiling_def_cpu
+x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - x862630v4
-  dependencies:
-    - CPU:hlt1_pp_no_gec:RelWithDebInfo::build
+  needs:
+    - CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - master
+      - web
 
-epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu:
-  <<: *run_throughput_job_no_profiling_def_cpu
+epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - epyc7502
-  dependencies:
-    - CPU:hlt1_pp_no_gec:RelWithDebInfo::build
+  needs:
+    - CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   only:
     refs:
       - master
+      - web
+
+# Run debug builds
+
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency_debug:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - geforcertx2080ti
+  needs:
+    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
+  only:
+    refs:
+      - master
+      - web
+
+x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency_debug:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - x86
+  needs:
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON:x86_64-centos7-clang10-opt:build
+  only:
+    refs:
+      - master
+      - web
 
 # check run changes
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_with_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - geforcertx2080ti
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  only:
+    refs:
+      - master
+      - web
 
-x862630v4:CPU:hlt1_pp_default:run_with_run_changes:
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - x862630v4
-  dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  only:
+    refs:
+      - master
+      - web
 
-geforcertx2080ti:CUDA:hlt1_pp_default:run_no_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - geforcertx2080ti
-  dependencies:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  only:
+    refs:
+      - master
+      - web
 
-x862630v4:CPU:hlt1_pp_default:run_no_run_changes:
+x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - x862630v4
-  dependencies:
-    - CPU:hlt1_pp_default:RelWithDebInfo::build
+  needs:
+    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  only:
+    refs:
+      - master
+      - web
+
 
 # =======
 # Publish
 # =======
 
-throughput:hlt1_pp_default:geforcertx3090:publish_throughput:
+throughput:hlt1_pp_default:geforcertx3090:minbias_mag_down_201907:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - cvmfs
-  dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:run_throughput
-    - quadrortx6000:CUDA:hlt1_pp_default:run_throughput
-    - teslav100:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3080:CUDA:hlt1_pp_default:run_throughput
-    - geforcertx3090:CUDA:hlt1_pp_default:run_throughput
-    - x862630v4:CPU:hlt1_pp_default:run_throughput_cpu
-    - epyc7502:CPU:hlt1_pp_default:run_throughput_cpu
+  needs:
+    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - teslav100:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
 
 # Publish additional throughput tests, only in master
 
-throughput:hlt1_pp_no_gec:geforcertx3090:publish_throughput:
+throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - x86
-  dependencies:
-    - geforcertx2080ti:CUDA:hlt1_pp_no_gec:run_throughput
-    - quadrortx6000:CUDA:hlt1_pp_no_gec:run_throughput
-    - teslav100:CUDA:hlt1_pp_no_gec:run_throughput
-    - geforcertx3080:CUDA:hlt1_pp_no_gec:run_throughput
-    - geforcertx3090:CUDA:hlt1_pp_no_gec:run_throughput
-    - x862630v4:CPU:hlt1_pp_no_gec:run_throughput_cpu
-    - epyc7502:CPU:hlt1_pp_no_gec:run_throughput_cpu
+  needs:
+    - geforcertx2080ti:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - teslav100:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - geforcertx3080:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
   only:
     refs:
       - master
+      - web

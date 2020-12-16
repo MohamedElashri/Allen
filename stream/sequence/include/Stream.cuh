@@ -37,9 +37,8 @@ struct Stream {
   // Dynamic scheduler
   scheduler_t scheduler;
 
-  // Stream datatypes
-  cudaStream_t stream;
-  cudaEvent_t cuda_generic_event;
+  // Context
+  Allen::Context m_context {};
 
   // Launch options
   bool do_print_memory_manager;
@@ -61,11 +60,12 @@ struct Stream {
   // Constants
   Constants constants;
 
-  cudaError_t initialize(
+  Allen::error initialize(
     const bool param_print_memory_usage,
     const unsigned param_start_event_offset,
     const size_t param_reserve_mb,
     const size_t reserve_host_mb,
+    const unsigned required_memory_alignment,
     const Constants& param_constants);
 
   void set_host_buffer_manager(HostBuffersManager* buffers_manager);
@@ -77,7 +77,7 @@ struct Stream {
     MCEvents const& mc_events,
     std::vector<Checker::Tracks> const& forward_tracks);
 
-  cudaError_t run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
+  Allen::error run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
   void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
   {

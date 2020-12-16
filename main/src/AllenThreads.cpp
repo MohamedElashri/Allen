@@ -216,8 +216,7 @@ void run_stream(
   uint inject_mem_fail,
   std::string folder_name_imported_forward_tracks)
 {
-
-  auto [device_set, device_name] = set_device(device_id, stream_id);
+  Allen::set_device(device_id, stream_id);
 
   zmq::socket_t control = make_control(thread_id, zmqSvc);
   std::optional<zmq::socket_t> check_control;
@@ -268,14 +267,14 @@ void run_stream(
          mep_layout,
          inject_mem_fail});
 
-      if (status == cudaErrorMemoryAllocation) {
+      if (status == Allen::error::errorMemoryAllocation) {
         zmqSvc->send(control, "SPLIT", send_flags::sndmore);
         zmqSvc->send(control, *idx, send_flags::sndmore);
         zmqSvc->send(control, first, send_flags::sndmore);
         zmqSvc->send(control, last, send_flags::sndmore);
         zmqSvc->send(control, buf);
       }
-      else if (status == cudaSuccess) {
+      else if (status == Allen::error::success) {
         // signal that we're done
         zmqSvc->send(control, "PROCESSED", send_flags::sndmore);
         zmqSvc->send(control, *idx, send_flags::sndmore);

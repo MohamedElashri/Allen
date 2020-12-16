@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
                                             0,
                                             9750};
 
-    host_global_event_cut::host_global_event_cut_mep(interval, pars);
+    host_global_event_cut::host_global_event_cut<true>(pars);
 
     cout << "selected " << number_of_selected_events << " events" << endl;
   }

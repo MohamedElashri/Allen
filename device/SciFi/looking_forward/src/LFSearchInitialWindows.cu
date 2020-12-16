@@ -26,12 +26,11 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, stream);
+  initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, context);
 
-  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
@@ -66,8 +65,8 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
 
   // SciFi hits
   const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
+    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
   SciFi::ConstHits scifi_hits(parameters.dev_scifi_hits, total_number_of_hits);
   const auto event_offset = scifi_hit_count.event_offset();

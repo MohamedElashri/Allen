@@ -25,10 +25,10 @@ void Consumers::VPGeometry::initialize(vector<char> const&)
     using value_type = typename std::remove_reference_t<decltype(host_numbers)>::value_type;
     using span_type = typename std::remove_reference_t<decltype(device_numbers)>::value_type;
     value_type* p = nullptr;
-    cudaCheck(cudaMalloc((void**) &p, host_numbers.size() * sizeof(value_type)));
+    Allen::malloc((void**) &p, host_numbers.size() * sizeof(value_type));
     device_numbers = gsl::span {p, static_cast<span_size_t<span_type>>(host_numbers.size())};
-    cudaCheck(cudaMemcpy(
-      device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), cudaMemcpyHostToDevice));
+    Allen::memcpy(
+      device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), Allen::memcpyHostToDevice);
   };
 
   // Velo clustering candidate ks
@@ -47,7 +47,7 @@ void Consumers::VPGeometry::initialize(vector<char> const&)
   alloc_and_copy(sp_fx, m_constants.get().dev_velo_sp_fx);
   alloc_and_copy(sp_fy, m_constants.get().dev_velo_sp_fy);
 
-  cudaCheck(cudaMalloc((void**) &m_constants.get().dev_velo_geometry, sizeof(VeloGeometry)));
+  Allen::malloc((void**) &m_constants.get().dev_velo_geometry, sizeof(VeloGeometry));
 }
 
 void Consumers::VPGeometry::consume(vector<char> const& data)
@@ -59,5 +59,5 @@ void Consumers::VPGeometry::consume(vector<char> const& data)
   // FIXME need to check the size of data is as expected
 
   VeloGeometry host_velo_geometry {data};
-  cudaCheck(cudaMemcpy(dev_velo_geometry, &host_velo_geometry, sizeof(VeloGeometry), cudaMemcpyHostToDevice));
+  Allen::memcpy(dev_velo_geometry, &host_velo_geometry, sizeof(VeloGeometry), Allen::memcpyHostToDevice);
 }

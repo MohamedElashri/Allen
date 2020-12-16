@@ -17,13 +17,12 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_match_upstream_muon_t>(arguments, 0, stream);
+  initialize<dev_match_upstream_muon_t>(arguments, 0, context);
 
   global_function(match_upstream_muon)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), stream)(
+    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_magnet_polarity.data(),
     constants.dev_muonmatch_search_muon_chambers,
@@ -31,7 +30,7 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
     first<host_number_of_events_t>(arguments));
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, stream);
+    assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, context);
   }
 }
 

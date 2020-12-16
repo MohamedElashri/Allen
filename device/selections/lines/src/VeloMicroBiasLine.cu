@@ -8,7 +8,7 @@ INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_l
 
 __device__ std::tuple<const unsigned> velo_micro_bias_line::velo_micro_bias_line_t::get_input(
   const Parameters& parameters,
-  const unsigned event_number) const
+  const unsigned event_number)
 {
   Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_offsets_velo_tracks,
                                                parameters.dev_offsets_velo_track_hit_number,
@@ -20,7 +20,7 @@ __device__ std::tuple<const unsigned> velo_micro_bias_line::velo_micro_bias_line
 
 __device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
   const Parameters& parameters,
-  std::tuple<const unsigned> input) const
+  std::tuple<const unsigned> input)
 {
   const auto number_of_velo_tracks = std::get<0>(input);
   return number_of_velo_tracks >= parameters.min_velo_tracks;

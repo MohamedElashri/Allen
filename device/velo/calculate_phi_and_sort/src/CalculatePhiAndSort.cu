@@ -26,13 +26,12 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_hit_permutation_t>(arguments, 0, stream);
+  initialize<dev_hit_permutation_t>(arguments, 0, context);
 
   global_function(velo_calculate_phi_and_sort)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO clusters after velo_calculate_phi_and_sort:\n";
@@ -181,7 +180,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
         const Vector<float> ys(contents.data() + vector_length());
 
         const auto atan_value = fast_atan2f(ys, xs);
-        const auto float_value = (Velo::Tools::cudart_pi_f_float + atan_value) * Velo::Tools::convert_factor;
+        const auto float_value = (Allen::constants::pi_f_float + atan_value) * Velo::Tools::convert_factor;
 
         // Cast to uint16 and store
         for (unsigned i = 0; i < vector_length(); ++i) {

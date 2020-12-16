@@ -11,7 +11,8 @@ namespace UT {
   namespace Consolidated {
     template<typename T>
     struct Hits_t : public UT::Hits_t<T> {
-      constexpr static unsigned element_size = 5 * sizeof(float) + sizeof(unsigned) + sizeof(uint8_t);
+      using plane_code_t = uint8_t;
+      constexpr static unsigned element_size = 5 * sizeof(float) + sizeof(unsigned) + sizeof(plane_code_t);
 
       using UT::Hits_t<T>::m_base_pointer;
       using UT::Hits_t<T>::m_total_number_of_hits;
@@ -25,14 +26,16 @@ namespace UT {
       __host__ __device__ uint8_t plane_code(const unsigned index) const
       {
         assert(m_offset + index < m_total_number_of_hits);
-        auto plane_code_base_pointer = reinterpret_cast<typename ForwardType<T, uint8_t>::t*>(m_base_pointer + 6 * m_total_number_of_hits);
+        auto plane_code_base_pointer =
+          reinterpret_cast<Allen::forward_type_t<T, plane_code_t>*>(m_base_pointer + 6 * m_total_number_of_hits);
         return plane_code_base_pointer[m_offset + index];
       }
 
       __host__ __device__ uint8_t& plane_code(const unsigned index)
       {
         assert(m_offset + index < m_total_number_of_hits);
-        auto plane_code_base_pointer = reinterpret_cast<typename ForwardType<T, uint8_t>::t*>(m_base_pointer + 6 * m_total_number_of_hits);
+        auto plane_code_base_pointer =
+          reinterpret_cast<Allen::forward_type_t<T, plane_code_t>*>(m_base_pointer + 6 * m_total_number_of_hits);
         return plane_code_base_pointer[m_offset + index];
       }
 
@@ -88,7 +91,8 @@ namespace UT {
         return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __host__ std::vector<uint32_t> get_lhcbids_for_track(const char* hits_base_pointer, const unsigned track_number) const
+      __host__ std::vector<uint32_t> get_lhcbids_for_track(const char* hits_base_pointer, const unsigned track_number)
+        const
       {
         std::vector<unsigned> ids;
         const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};

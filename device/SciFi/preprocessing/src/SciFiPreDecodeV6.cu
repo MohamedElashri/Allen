@@ -20,17 +20,16 @@ void scifi_pre_decode_v6::scifi_pre_decode_v6_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   if (runtime_options.mep_layout) {
     global_function(scifi_pre_decode_v6_mep)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_pre_decode_v6)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
       arguments, constants.dev_scifi_geometry);
   }
 }
@@ -101,7 +100,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last) continue;
+    if (starting_it >= last || starting_it >= rawbank.last) continue;
 
     const unsigned number_of_iterations = last - starting_it;
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
@@ -189,7 +188,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last) continue;
+    if (starting_it >= last || starting_it >= rawbank.last) continue;
 
     const unsigned number_of_iterations = last - starting_it;
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {

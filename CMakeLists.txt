@@ -11,8 +11,6 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 option(BUILD_TESTS "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
 option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
-option(USE_LZMA "build with lzma" OFF)
-option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
@@ -99,6 +97,19 @@ endif()
 if(TREAT_WARNINGS_AS_ERRORS)
   message(STATUS "Treating compiler warnings as errors")
   string(APPEND CMAKE_CXX_FLAGS " -Werror")
+endif()
+
+# Choice of malloc engine
+set(MALLOC_ENGINE SINGLE_ALLOC CACHE STRING "Malloc engine")
+set_property(CACHE MALLOC_ENGINE PROPERTY STRINGS SINGLE_ALLOC MULTI_ALLOC)
+message(STATUS "Memory manager: " ${MALLOC_ENGINE})
+add_compile_definitions(MEMORY_MANAGER_${MALLOC_ENGINE})
+
+# Choice of device invocation synchronicity
+option(SYNCHRONOUS_DEVICE_EXECUTION "Make device calls synchronous" OFF)
+message(STATUS "Synchronous device execution: " ${SYNCHRONOUS_DEVICE_EXECUTION})
+if(SYNCHRONOUS_DEVICE_EXECUTION)
+  add_compile_definitions(SYNCHRONOUS_DEVICE_EXECUTION)
 endif()
 
 # Deal with device target architecture
@@ -524,8 +535,6 @@ if(STANDALONE)
   endif()
 endif()
 
-find_package(ZLIB REQUIRED)
-
 if (USE_MPI)
   find_package(MPI REQUIRED)
 #hwloc is also needed
@@ -536,19 +545,6 @@ if (USE_MPI)
 else(USE_MPI)
   set(MPI_FOUND OFF)
 endif()
-
-if(USE_LZMA)
-  find_package(LibLZMA REQUIRED)
-else(USE_LZMA)
-  set(LZMA_FOUND OFF)
-endif(USE_LZMA)
-
-if(USE_LZ4)
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(LZ4 REQUIRED liblz4)
-else(USE_LZ4)
-  set(LZ4_FOUND OFF)
-endif(USE_LZ4)
 
 if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)

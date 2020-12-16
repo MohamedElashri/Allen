@@ -22,8 +22,17 @@ struct Scheduler {
   using arguments_tuple_t = ConfiguredArguments;
   using argument_manager_t = ArgumentManager<arguments_tuple_t>;
 
-  MemoryManager device_memory_manager;
-  MemoryManager host_memory_manager;
+#ifdef MEMORY_MANAGER_MULTI_ALLOC
+  using host_memory_manager_t = MemoryManager<memory_manager_details::Host, memory_manager_details::MultiAlloc>;
+  using device_memory_manager_t = MemoryManager<memory_manager_details::Device, memory_manager_details::MultiAlloc>;
+#else
+  using host_memory_manager_t = MemoryManager<memory_manager_details::Host, memory_manager_details::SingleAlloc>;
+  using device_memory_manager_t = MemoryManager<memory_manager_details::Device, memory_manager_details::SingleAlloc>;
+#endif
+
+  host_memory_manager_t host_memory_manager {"Host memory manager"};
+  device_memory_manager_t device_memory_manager {"Device memory manager"};
+
   argument_manager_t argument_manager;
   bool do_print = false;
 
@@ -35,25 +44,24 @@ struct Scheduler {
 
   void initialize(
     const bool param_do_print,
-    const size_t device_reserved_mb,
-    char* device_base_pointer,
-    const size_t host_reserved_mb,
-    char* host_base_pointer)
+    const size_t device_requested_mb,
+    const size_t host_requested_mb,
+    const unsigned required_memory_alignment)
   {
     do_print = param_do_print;
 
-    // Set max mb to memory_manager
-    device_memory_manager.set_reserved_memory(device_reserved_mb);
-    host_memory_manager.set_reserved_memory(host_reserved_mb);
-    argument_manager.set_base_pointers(device_base_pointer, host_base_pointer);
+    // Reserve memory in managers
+    host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
+    device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
   }
 
   /**
    * @brief Resets the memory manager.
    */
-  void reset() {
-    device_memory_manager.free_all();
+  void reset()
+  {
     host_memory_manager.free_all();
+    device_memory_manager.free_all();
   }
 
   /**
@@ -66,28 +74,30 @@ struct Scheduler {
    *        This function should always be invoked, even when it is
    *        known there are no tags to reserve or free on this step.
    */
-  template<unsigned long I, typename T>
+  template<unsigned long I>
   void setup()
   {
     // in dependencies: Dependencies to be reserved
     // out dependencies: Dependencies to be free'd
-    //
-    // in_deps and out_deps should be in order
-    // and index I should contain algorithm type T
     using in_arguments_t = typename std::tuple_element<I, in_deps_t>::type;
     using out_arguments_t = typename std::tuple_element<I, out_deps_t>::type;
-    
+
+    if (do_print) {
+      info_cout << "Sequence step " << I << " \"" << std::get<I>(sequence_tuple).name() << "\":\n";
+    }
+
     // Free all arguments in OutDependencies
-    MemoryManagerFree<argument_manager_t, out_arguments_t>::free(device_memory_manager, host_memory_manager, argument_manager);
+    MemoryManagerFree<host_memory_manager_t, device_memory_manager_t, argument_manager_t, out_arguments_t>::free(
+      host_memory_manager, device_memory_manager, argument_manager);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerReserve<argument_manager_t, in_arguments_t>::reserve(device_memory_manager, host_memory_manager, argument_manager);
+    MemoryManagerReserve<host_memory_manager_t, device_memory_manager_t, argument_manager_t, in_arguments_t>::reserve(
+      host_memory_manager, device_memory_manager, argument_manager);
 
     // Print memory manager state
     if (do_print) {
-      info_cout << "Sequence step " << I << " \"" << std::get<I>(sequence_tuple).name() << "\":\n";
-      device_memory_manager.print();
       host_memory_manager.print();
+      device_memory_manager.print();
     }
   }
 

@@ -8,7 +8,7 @@ INSTANTIATE_LINE(track_muon_mva_line::track_muon_mva_line_t, track_muon_mva_line
 
 __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input) const
+  std::tuple<const ParKalmanFilter::FittedTrack&> input)
 {
   const auto& track = std::get<0>(input);
   if (!track.is_muon) {

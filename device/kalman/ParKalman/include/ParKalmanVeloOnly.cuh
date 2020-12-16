@@ -79,31 +79,31 @@ __device__ void simplified_fit(
 __device__ void propagate_to_beamline(FittedTrack& track);
 
 namespace kalman_velo_only {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned), host_number_of_reconstructed_scifi_tracks),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
-    (DEVICE_INPUT(dev_velo_track_hits_t, char), dev_velo_track_hits),
-    (DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned), dev_atomics_ut),
-    (DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned), dev_ut_track_hit_number),
-    (DEVICE_INPUT(dev_ut_qop_t, float), dev_ut_qop),
-    (DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned), dev_ut_track_velo_indices),
-    (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_atomics_scifi),
-    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned), dev_scifi_track_hit_number),
-    (DEVICE_INPUT(dev_scifi_qop_t, float), dev_scifi_qop),
-    (DEVICE_INPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
-    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned), dev_scifi_track_ut_indices),
-    (DEVICE_INPUT(dev_velo_pv_ip_t, char), dev_velo_pv_ip),
-    (DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex), dev_multi_final_vertices),
-    (DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned), dev_number_of_multi_final_vertices),
-    (DEVICE_INPUT(dev_is_muon_t, bool), dev_is_muon),
-    (DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
-    (DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char), dev_kalman_pv_ipchi2),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
+    DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
+    DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
+    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
+    DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+    DEVICE_INPUT(dev_velo_pv_ip_t, char) dev_velo_pv_ip;
+    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex), dev_multi_final_vertices;
+    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned), dev_number_of_multi_final_vertices;
+    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
+    DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void kalman_velo_only(Parameters, const char* dev_scifi_geometry);
 
@@ -121,8 +121,7 @@ namespace kalman_velo_only {
       const RuntimeOptions&,
       const Constants& constants,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};

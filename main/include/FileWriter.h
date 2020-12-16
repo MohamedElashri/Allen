@@ -42,7 +42,7 @@ protected:
     if (m_checksum) {
       auto* header = reinterpret_cast<LHCb::MDFHeader*>(&m_buffer[0]);
       auto const skip = 4 * sizeof(int);
-      auto c = LHCb::genChecksum(1, m_buffer.data() + skip, m_buffer.size() - skip);
+      auto c = LHCb::hash32Checksum(m_buffer.data() + skip, m_buffer.size() - skip);
       header->setChecksum(c);
     }
 

@@ -19,19 +19,18 @@ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_v6_t::opera
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_scifi_hit_count_t>(arguments, 0, stream);
+  initialize<dev_scifi_hit_count_t>(arguments, 0, context);
 
   if (runtime_options.mep_layout) {
     global_function(scifi_calculate_cluster_count_v6_mep)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
       arguments, constants.dev_scifi_geometry);
   }
   else {
     global_function(scifi_calculate_cluster_count_v6)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
       arguments, constants.dev_scifi_geometry);
   }
 }

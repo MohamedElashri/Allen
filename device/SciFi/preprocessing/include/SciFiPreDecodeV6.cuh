@@ -8,15 +8,15 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace scifi_pre_decode_v6 {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_INPUT(host_accumulated_number_of_scifi_hits_t, unsigned), host_accumulated_number_of_scifi_hits),
-    (DEVICE_INPUT(dev_scifi_raw_input_t, char), dev_scifi_raw_input),
-    (DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned), dev_scifi_raw_input_offsets),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned), dev_scifi_hit_offsets),
-    (DEVICE_OUTPUT(dev_cluster_references_t, unsigned), dev_cluster_references))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_accumulated_number_of_scifi_hits_t, unsigned) host_accumulated_number_of_scifi_hits;
+    DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
+    DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned) dev_scifi_raw_input_offsets;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
+    DEVICE_OUTPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
+  };
 
   __global__ void scifi_pre_decode_v6(Parameters, const char* scifi_geometry);
 
@@ -34,7 +34,6 @@ namespace scifi_pre_decode_v6 {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace scifi_pre_decode_v6

@@ -227,7 +227,10 @@ namespace UT {
       return (fabsf(xAtYEq0(index)) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
     }
 
-    __host__ __device__ float sinT(const unsigned index, const float dxDy) const { return tanT(dxDy) * cosT(index, dxDy); }
+    __host__ __device__ float sinT(const unsigned index, const float dxDy) const
+    {
+      return tanT(dxDy) * cosT(index, dxDy);
+    }
 
     __host__ __device__ float tanT(const float dxDy) const { return -1.f * dxDy; }
 

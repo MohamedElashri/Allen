@@ -18,18 +18,17 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, stream);
+  initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, context);
 
-  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   // Retrieve result
-  assign_to_host_buffer<dev_multi_final_vertices_t>(host_buffers.host_reconstructed_multi_pvs, arguments, stream);
+  assign_to_host_buffer<dev_multi_final_vertices_t>(host_buffers.host_reconstructed_multi_pvs, arguments, context);
   assign_to_host_buffer<dev_number_of_multi_final_vertices_t>(
-    host_buffers.host_number_of_multivertex, arguments, stream);
+    host_buffers.host_number_of_multivertex, arguments, context);
 }
 
 __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Parameters parameters)
