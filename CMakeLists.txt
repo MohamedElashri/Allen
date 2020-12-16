@@ -343,6 +343,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   # Find HIP
   set(HIP_PATH "${ROCM_PATH}/hip")
+  set(HIP_CLANG_PATH "${ROCM_PATH}/llvm/bin")
   set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP QUIET REQUIRED)
   if(HIP_FOUND)
@@ -350,12 +351,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   else()
     message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable ROCM_PATH is set.")
   endif()
-
-  # Set linker - This helps the linking process, which
-  # at the moment fails if we set up hip_add_executable instead
-  set(CMAKE_LINKER "${HIP_PATH}/bin/hipcc_cmake_linker_helper")
-  set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> ${ROCM_PATH}/llvm/bin <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-  set(CMAKE_CXX_CREATE_SHARED_LIBRARY "<CMAKE_LINKER> ${ROCM_PATH}/llvm/bin <CMAKE_SHARED_LIBRARY_CXX_FLAGS> <LANGUAGE_COMPILE_FLAGS> <LINK_FLAGS> <CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS> <SONAME_FLAG><TARGET_SONAME> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
 
   # Deal with build type (HIP)
   if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
@@ -385,7 +380,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endfunction()
 
   function(allen_add_executable)
-    add_executable(${ARGV})
+    hip_add_executable(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
