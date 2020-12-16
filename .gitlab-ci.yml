@@ -6,8 +6,8 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 stages:
-  - check     # Ensures the CI environment is valid
-  - build           # Builds all projects
+  - check         # Ensures the CI environment is valid
+  - build         # Builds all projects
   - run           # Runs the tests across architectures
   - test          # Runs various tests of the software
   - publish       # Publishes the results of the tests and runs in channels and grafana
@@ -32,6 +32,7 @@ check-copyright:
   script:
     - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/separate_license/LbDevTools/SourceTools.py?inline=false"
     - python lb-check-copyright --license=None origin/${TARGET_BRANCH}
+  allow_failure: true
 
 check-formatting:
   stage: build
@@ -365,6 +366,7 @@ test_physics_efficiency:
     - cvmfs
   artifacts:
     expire_in: 1 week
+    when: on_failure
     paths:
       - validation_output/*_diff
   allow_failure: true
