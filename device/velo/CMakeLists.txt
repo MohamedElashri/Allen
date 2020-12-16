@@ -29,7 +29,6 @@ include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/src)
 
 allen_add_device_library(Velo STATIC
   ${velo_clustering_sources}
