@@ -166,7 +166,7 @@ docker_image:build:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
     - RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 0"
-    - JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down ${RUN_OPTIONS}"
+    - JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down_201907 ${RUN_OPTIONS}"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir run_changes_output
     - ln -s run_changes_output output # Needed by Root build
@@ -209,7 +209,7 @@ docker_image:build:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
-    - JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down -n 1000 -m 700 --disable-run-changes 1"
+    - JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down_201907 -n 1000 -m 700 --disable-run-changes 1"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - mkdir no_run_changes_output
     - ln -s no_run_changes_output output # Needed by Root build
