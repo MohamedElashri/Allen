@@ -88,9 +88,9 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
   const bool* event_is_muon = parameters.dev_is_muon + event_tracks_offset;
-  Allen::device::span<PV::Vertex const> vertices {parameters.dev_multi_fit_vertices +
+  Allen::device::span<PV::Vertex const> vertices {parameters.dev_multi_final_vertices +
                                                     event_number * PV::max_number_vertices,
-                                                  *(parameters.dev_number_of_multi_fit_vertices + event_number)};
+                                                  *(parameters.dev_number_of_multi_final_vertices + event_number)};
 
   // The track <-> PV association table for this event.
   Associate::Consolidated::EventTable pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);

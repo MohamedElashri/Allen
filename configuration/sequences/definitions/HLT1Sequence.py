@@ -49,10 +49,10 @@ def HLT1Sequence(layout_provider,
         dev_offsets_all_velo_tracks_t(),
         dev_offsets_velo_track_hit_number_t=
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-        dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_multi_fit_vertices_t(),
-        dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_number_of_multi_fit_vertices_t(),
+        dev_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_multi_final_vertices_t(),
+        dev_number_of_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_number_of_multi_final_vertices_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
@@ -81,10 +81,10 @@ def HLT1Sequence(layout_provider,
         dev_scifi_track_ut_indices_t=scifi_consolidate_tracks.
         dev_scifi_track_ut_indices_t(),
         dev_velo_pv_ip_t=velo_pv_ip.dev_velo_pv_ip_t(),
-        dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_multi_fit_vertices_t(),
-        dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_number_of_multi_fit_vertices_t(),
+        dev_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_multi_final_vertices_t(),
+        dev_number_of_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_number_of_multi_final_vertices_t(),
         dev_is_muon_t=is_muon.dev_is_muon_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
@@ -100,10 +100,10 @@ def HLT1Sequence(layout_provider,
         dev_scifi_states_t=scifi_consolidate_tracks.dev_scifi_states_t(),
         dev_scifi_track_ut_indices_t=scifi_consolidate_tracks.
         dev_scifi_track_ut_indices_t(),
-        dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_multi_fit_vertices_t(),
-        dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_number_of_multi_fit_vertices_t(),
+        dev_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_multi_final_vertices_t(),
+        dev_number_of_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_number_of_multi_final_vertices_t(),
         dev_kalman_pv_ipchi2_t=kalman_velo_only.dev_kalman_pv_ipchi2_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
@@ -126,10 +126,10 @@ def HLT1Sequence(layout_provider,
         dev_scifi_states_t=scifi_consolidate_tracks.dev_scifi_states_t(),
         dev_scifi_track_ut_indices_t=scifi_consolidate_tracks.
         dev_scifi_track_ut_indices_t(),
-        dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_multi_fit_vertices_t(),
-        dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_number_of_multi_fit_vertices_t(),
+        dev_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_multi_final_vertices_t(),
+        dev_number_of_multi_final_vertices_t=pv_beamline_multi_fitter.
+        dev_number_of_multi_final_vertices_t(),
         dev_kalman_pv_ipchi2_t=kalman_velo_only.dev_kalman_pv_ipchi2_t(),
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t(),
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t(),

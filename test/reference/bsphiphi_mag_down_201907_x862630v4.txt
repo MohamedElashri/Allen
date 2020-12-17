@@ -71,7 +71,7 @@ Ghost tracks identified as muon with isMuon:                              182/  
 
 HLT1 rates:
 Hlt1TrackMVA:            212/  1000, ( 6360.00 +/-   387.75) kHz
-Hlt1TwoTrackMVA:         377/  1000, (11310.00 +/-   459.77) kHz
+Hlt1TwoTrackMVA:         378/  1000, (11340.00 +/-   460.00) kHz
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz

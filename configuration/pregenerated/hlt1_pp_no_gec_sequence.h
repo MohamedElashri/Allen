@@ -606,27 +606,27 @@ struct pv_beamline_calculate_denom__dev_pvtracks_denom_t
 };
 struct pv_beamline_multi_fitter__dev_multi_fit_vertices_t
   : pv_beamline_multi_fitter::Parameters::dev_multi_fit_vertices_t,
-    pv_beamline_cleanup::Parameters::dev_multi_fit_vertices_t,
-    velo_pv_ip::Parameters::dev_multi_fit_vertices_t,
-    kalman_velo_only::Parameters::dev_multi_fit_vertices_t,
-    FilterTracks::Parameters::dev_multi_fit_vertices_t,
-    VertexFit::Parameters::dev_multi_fit_vertices_t {
+    pv_beamline_cleanup::Parameters::dev_multi_fit_vertices_t {
   using type = pv_beamline_multi_fitter::Parameters::dev_multi_fit_vertices_t::type;
 };
 struct pv_beamline_multi_fitter__dev_number_of_multi_fit_vertices_t
   : pv_beamline_multi_fitter::Parameters::dev_number_of_multi_fit_vertices_t,
-    pv_beamline_cleanup::Parameters::dev_number_of_multi_fit_vertices_t,
-    velo_pv_ip::Parameters::dev_number_of_multi_fit_vertices_t,
-    kalman_velo_only::Parameters::dev_number_of_multi_fit_vertices_t,
-    FilterTracks::Parameters::dev_number_of_multi_fit_vertices_t,
-    VertexFit::Parameters::dev_number_of_multi_fit_vertices_t {
+    pv_beamline_cleanup::Parameters::dev_number_of_multi_fit_vertices_t {
   using type = pv_beamline_multi_fitter::Parameters::dev_number_of_multi_fit_vertices_t::type;
 };
-struct pv_beamline_cleanup__dev_multi_final_vertices_t : pv_beamline_cleanup::Parameters::dev_multi_final_vertices_t {
+struct pv_beamline_cleanup__dev_multi_final_vertices_t : pv_beamline_cleanup::Parameters::dev_multi_final_vertices_t,
+                                                         velo_pv_ip::Parameters::dev_multi_final_vertices_t,
+                                                         kalman_velo_only::Parameters::dev_multi_final_vertices_t,
+                                                         FilterTracks::Parameters::dev_multi_final_vertices_t,
+                                                         VertexFit::Parameters::dev_multi_final_vertices_t {
   using type = pv_beamline_cleanup::Parameters::dev_multi_final_vertices_t::type;
 };
 struct pv_beamline_cleanup__dev_number_of_multi_final_vertices_t
-  : pv_beamline_cleanup::Parameters::dev_number_of_multi_final_vertices_t {
+  : pv_beamline_cleanup::Parameters::dev_number_of_multi_final_vertices_t,
+    velo_pv_ip::Parameters::dev_number_of_multi_final_vertices_t,
+    kalman_velo_only::Parameters::dev_number_of_multi_final_vertices_t,
+    FilterTracks::Parameters::dev_number_of_multi_final_vertices_t,
+    VertexFit::Parameters::dev_number_of_multi_final_vertices_t {
   using type = pv_beamline_cleanup::Parameters::dev_number_of_multi_final_vertices_t::type;
 };
 struct ut_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
@@ -2183,8 +2183,8 @@ using configured_sequence_arguments_t = std::tuple<
     velo_kalman_filter__dev_velo_kalman_beamline_states_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    pv_beamline_multi_fitter__dev_multi_fit_vertices_t,
-    pv_beamline_multi_fitter__dev_number_of_multi_fit_vertices_t,
+    pv_beamline_cleanup__dev_multi_final_vertices_t,
+    pv_beamline_cleanup__dev_number_of_multi_final_vertices_t,
     velo_pv_ip_t__dev_velo_pv_ip_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
@@ -2204,8 +2204,8 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_consolidate_tracks_t__dev_scifi_states_t,
     scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t,
     velo_pv_ip_t__dev_velo_pv_ip_t,
-    pv_beamline_multi_fitter__dev_multi_fit_vertices_t,
-    pv_beamline_multi_fitter__dev_number_of_multi_fit_vertices_t,
+    pv_beamline_cleanup__dev_multi_final_vertices_t,
+    pv_beamline_cleanup__dev_number_of_multi_final_vertices_t,
     is_muon_t__dev_is_muon_t,
     kalman_velo_only__dev_kf_tracks_t,
     kalman_velo_only__dev_kalman_pv_ipchi2_t>,
@@ -2219,8 +2219,8 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_consolidate_tracks_t__dev_scifi_qop_t,
     scifi_consolidate_tracks_t__dev_scifi_states_t,
     scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t,
-    pv_beamline_multi_fitter__dev_multi_fit_vertices_t,
-    pv_beamline_multi_fitter__dev_number_of_multi_fit_vertices_t,
+    pv_beamline_cleanup__dev_multi_final_vertices_t,
+    pv_beamline_cleanup__dev_number_of_multi_final_vertices_t,
     kalman_velo_only__dev_kalman_pv_ipchi2_t,
     filter_tracks_t__dev_sv_atomics_t,
     filter_tracks_t__dev_svs_trk1_idx_t,
@@ -2241,8 +2241,8 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_consolidate_tracks_t__dev_scifi_qop_t,
     scifi_consolidate_tracks_t__dev_scifi_states_t,
     scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t,
-    pv_beamline_multi_fitter__dev_multi_fit_vertices_t,
-    pv_beamline_multi_fitter__dev_number_of_multi_fit_vertices_t,
+    pv_beamline_cleanup__dev_multi_final_vertices_t,
+    pv_beamline_cleanup__dev_number_of_multi_final_vertices_t,
     kalman_velo_only__dev_kalman_pv_ipchi2_t,
     filter_tracks_t__dev_svs_trk1_idx_t,
     filter_tracks_t__dev_svs_trk2_idx_t,
