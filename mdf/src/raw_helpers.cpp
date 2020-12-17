@@ -34,7 +34,9 @@ bool LHCb::decompressBuffer(
   size_t src_len,
   size_t& new_len)
 {
-  int in_len, out_len, res_len = 0;
+#ifdef WITH_ROOT
+  int in_len = 0, out_len = 0, res_len = 0;
+#endif
   switch (algtype) {
   case 0:
     if (tar != src && tar_len >= src_len) {
@@ -53,11 +55,12 @@ bool LHCb::decompressBuffer(
   case 8:
   case 9:
 #ifdef WITH_ROOT
-    in_len = src_len;
-    out_len = tar_len;
+    in_len = static_cast<int>(src_len);
+    out_len = static_cast<int>(tar_len);
+    res_len = 0;
     ::R__unzip(&in_len, src, &out_len, tar, &res_len);
     if (res_len > 0) {
-      new_len = res_len;
+      new_len = static_cast<size_t>(res_len);
       return true;
     }
 #endif
