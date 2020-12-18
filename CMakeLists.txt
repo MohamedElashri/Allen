@@ -385,7 +385,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endfunction()
 
   function(allen_add_executable)
-    hip_add_executable(${ARGV})
+    hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
