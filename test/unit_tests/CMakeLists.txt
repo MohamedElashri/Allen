@@ -2,6 +2,7 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 file(GLOB generic_tests "generic/src/*cpp")
+file(GLOB cu_generic_tests "generic/src/*cu")
 
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 include_directories(${CMAKE_SOURCE_DIR}/host/prefix_sum/include)
@@ -16,7 +17,8 @@ include_directories(${Boost_INCLUDE_DIRS})
 # Make currently configured sequence information available to cpp
 add_definitions(-D${TARGET_DEFINITION})
 
-add_executable(unit_tests ${generic_tests})
+allen_add_executable(unit_tests ${generic_tests} ${cu_generic_tests})
+
 target_link_libraries(unit_tests Catch2::Catch2 HostPrefixSum)
 
 include(CTest)
