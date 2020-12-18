@@ -8,9 +8,34 @@
 
 #if !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-result"
+#elif __GNUC__ >= 8
+#pragma GCC diagnostic ignored "-Wunused-result"
+#endif
+
 #include <hip/hip_runtime_api.h>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 #else
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wignored-attributes"
+#elif __GNUC__ >= 8
+#pragma GCC diagnostic pop
+#endif
+
 #include <hip/hip_runtime.h>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 #include <hip/math_functions.h>
 #endif
 
@@ -87,7 +112,7 @@ namespace Allen {
 
   void inline malloc(void** devPtr, size_t size) { hipCheck(hipMalloc(devPtr, size)); }
 
-  void inline malloc_host(void** ptr, size_t size) { hipCheck(hipMallocHost(ptr, size)); }
+  void inline malloc_host(void** ptr, size_t size) { hipCheck(hipHostMalloc(ptr, size)); }
 
   void inline memcpy(void* dst, const void* src, size_t count, Allen::memcpy_kind kind)
   {
@@ -117,7 +142,7 @@ namespace Allen {
   }
 #endif
 
-  void inline free_host(void* ptr) { hipCheck(hipFreeHost(ptr)); }
+  void inline free_host(void* ptr) { hipCheck(hipHostFree(ptr)); }
 
   void inline free(void* ptr) { hipCheck(hipFree(ptr)); }
 
@@ -155,14 +180,14 @@ namespace Allen {
   std::tuple<bool, std::string, unsigned> inline set_device(int hip_device, size_t stream_id)
   {
     int n_devices = 0;
-    hipDeviceProp device_properties;
+    hipDeviceProp_t device_properties;
 
     try {
       hipCheck(hipGetDeviceCount(&n_devices));
 
       debug_cout << "There are " << n_devices << " hip devices available\n";
       for (int cd = 0; cd < n_devices; ++cd) {
-        hipDeviceProp device_properties;
+        hipDeviceProp_t device_properties;
         hipCheck(hipGetDeviceProperties(&device_properties, cd));
         debug_cout << std::setw(3) << cd << " " << device_properties.name << "\n";
       }
