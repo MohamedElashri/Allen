@@ -85,6 +85,9 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
     float chi2tot = 0.f;
     float sum_weights = 0.f;
     unsigned nselectedtracks = 0;
+    const unsigned minTracks = seed_pos_z <= BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                                 BeamlinePVConstants::MultiFitter::SMOG2_minNumTracksPerVertex :
+                                 BeamlinePVConstants::MultiFitter::pp_minNumTracksPerVertex;
     for (unsigned iter = 0;
          (iter < BeamlinePVConstants::MultiFitter::maxFitIter || iter < BeamlinePVConstants::MultiFitter::minFitIter) &&
          !converged;
@@ -172,7 +175,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         chi2tot += local_chi2tot;
         sum_weights += local_sum_weights;
         // printf("sum weights %f\n", sum_weights);
-        if (nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex) {
+        if (nselectedtracks >= minTracks) {
           // compute the new vertex covariance using analytical inversion
           // dividing matrix elements not important for resoltuon of high mult pvs
           const auto a00 = halfD2Chi2DX2_00;
@@ -233,9 +236,10 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (
-        nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex &&
-        beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
+      const auto minTracks = vertex.position.z <= BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                               BeamlinePVConstants::MultiFitter::SMOG2_minNumTracksPerVertex :
+                               BeamlinePVConstants::MultiFitter::pp_minNumTracksPerVertex;
+      if (nselectedtracks >= minTracks && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
         unsigned vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }
