@@ -49,16 +49,23 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
     unsigned number_of_clusteredges = 0;
 
     {
-      const float inv_maxTrackZ0Err = 1.f / (10.f * BeamlinePVConstants::Common::maxTrackZ0Err);
-      const float threshold =
-        BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
       bool prevempty = true;
       float integral = zhisto[0];
       for (BinIndex i = 1; i < BeamlinePVConstants::Common::Nbins; ++i) {
+        const float zBin = BeamlinePVConstants::Common::zmin + i * BeamlinePVConstants::Common::dz;
+        const float Z0Err = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                              BeamlinePVConstants::Common::SMOG2_maxTrackZ0Err :
+                              BeamlinePVConstants::Common::pp_maxTrackZ0Err;
+        const float inv_maxTrackZ0Err = 1.f / (10.f * Z0Err);
+        const float threshold =
+          BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
         integral += zhisto[i];
         bool empty = zhisto[i] < threshold;
         if (empty != prevempty) {
-          if (prevempty || integral > BeamlinePVConstants::Peak::minTracksInSeed) {
+          const float minInSeed = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                                    BeamlinePVConstants::Peak::SMOG2_minTracksInSeed :
+                                    BeamlinePVConstants::Peak::pp_minTracksInSeed;
+          if (prevempty || integral > minInSeed) {
             clusteredges[number_of_clusteredges] = i;
             number_of_clusteredges++;
           }
@@ -135,7 +142,12 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
         unsigned number_of_subclusters = 0;
         if (N > 3) {
           for (int i = 1; i < (N / 2) + 1; ++i) {
-            if (extrema[2 * i].integral - extrema[2 * i - 2].integral > BeamlinePVConstants::Peak::minTracksInSeed) {
+            const float z_extrema =
+              BeamlinePVConstants::Common::zmin + extrema[2 * i].index * BeamlinePVConstants::Common::dz;
+            const float minInSeed = z_extrema < BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                                      BeamlinePVConstants::Peak::SMOG2_minTracksInSeed :
+                                      BeamlinePVConstants::Peak::pp_minTracksInSeed;
+            if (extrema[2 * i].integral - extrema[2 * i - 2].integral > minInSeed) {
               subclusters[number_of_subclusters] =
                 Cluster(extrema[2 * i - 2].index, extrema[2 * i].index, extrema[2 * i - 1].index);
               number_of_subclusters++;
