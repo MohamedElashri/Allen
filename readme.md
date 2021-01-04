@@ -276,6 +276,7 @@ The following readmes explain various aspects of Allen:
 * [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
 * [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore.
 * [Building and running inside Docker](readme_docker.md).
+* [Documentation on how to create contracts](doc/contracts.md).
 
 ### Mattermost discussion channels
 
