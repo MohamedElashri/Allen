@@ -1,3 +1,6 @@
+/*****************************************************************************\
+* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
 #include "SearchByTriplet.cuh"
 
 void velo_search_by_triplet::cluster_container_checks::operator()(
