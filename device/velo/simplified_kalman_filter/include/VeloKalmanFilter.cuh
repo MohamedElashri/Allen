@@ -163,7 +163,7 @@ namespace velo_kalman_filter {
     DEVICE_OUTPUT(dev_velo_lmsfit_beamline_states_t, char) dev_velo_lmsfit_beamline_states;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
-  
+
   __global__ void velo_kalman_filter(Parameters, float* dev_beamline);
 
   struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
