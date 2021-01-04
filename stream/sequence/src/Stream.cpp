@@ -137,12 +137,7 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
 
       try {
         // Visit all algorithms in configured sequence
-        Sch::run_sequence_tuple(
-            scheduler,
-            runtime_options,
-            constants,
-            *host_buffers,
-            m_context);
+        Sch::run_sequence_tuple(scheduler, runtime_options, constants, *host_buffers, m_context);
 
         // deterministic injection of ~random memory failures
         if (runtime_options.inject_mem_fail > 0) {

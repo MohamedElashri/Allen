@@ -145,4 +145,4 @@ namespace Allen {
 
   template<typename T>
   using bool_as_char_t = std::conditional_t<std::is_same_v<std::decay_t<T>, bool>, char, std::decay_t<T>>;
-}
+} // namespace Allen

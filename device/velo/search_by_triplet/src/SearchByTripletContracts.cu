@@ -69,15 +69,15 @@ void velo_search_by_triplet::track_container_checks::operator()(
   const Allen::Context&) const
 {
   const auto velo_tracks_container = make_vector<Parameters::dev_tracks_t>(arguments);
-  
+
   auto maximum_number_of_hits = true;
   auto no_repeated_hits = true;
 
   for (const auto track : velo_tracks_container) {
     maximum_number_of_hits &= track.hitsNum < Velo::Constants::max_track_size;
-    
+
     // Check repeated hits in the hits of the track
-    std::vector<uint16_t> hits (track.hitsNum);
+    std::vector<uint16_t> hits(track.hitsNum);
     for (unsigned i = 0; i < track.hitsNum; ++i) {
       hits[i] = track.hits[i];
     }

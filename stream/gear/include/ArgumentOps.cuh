@@ -165,11 +165,7 @@ struct SingleArgumentOverloadResolution<
 };
 
 template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<
-    std::is_base_of_v<host_datatype, Arg>>> {
+struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base_of_v<host_datatype, Arg>>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
@@ -196,11 +192,7 @@ struct SingleArgumentOverloadResolution<
 };
 
 template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<
-    std::is_base_of_v<device_datatype, Arg>>> {
+struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base_of_v<device_datatype, Arg>>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
   {
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
@@ -220,10 +212,12 @@ struct SingleArgumentOverloadResolution<
 
     info_cout << name<Arg>(arguments) << ": ";
     for (const auto& i : v) {
-      if constexpr (std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
+      if constexpr (
+        std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
         std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>) {
         info_cout << static_cast<int>(i) << ", ";
-      } else {
+      }
+      else {
         info_cout << i << ", ";
       }
     }
@@ -447,6 +441,7 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
  *          is irrelevant.
  */
 template<typename Arg, typename Args>
-auto make_vector(const Args& arguments) {
+auto make_vector(const Args& arguments)
+{
   return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments);
 }

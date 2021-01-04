@@ -17,7 +17,8 @@ namespace Allen {
         const std::string& contract_message,
         const std::string& contract_type) :
         m_exception_message(
-          "Contract exception in algorithm " + location + ", " + contract_type + " " + contract_name + ": " + contract_message)
+          "Contract exception in algorithm " + location + ", " + contract_type + " " + contract_name + ": " +
+          contract_message)
       {}
 
       const char* what() const noexcept override { return m_exception_message.c_str(); }
@@ -27,7 +28,8 @@ namespace Allen {
       std::string m_location;
       std::string m_contract_name;
 
-      void set_location(const std::string& location, const std::string& contract_name) {
+      void set_location(const std::string& location, const std::string& contract_name)
+      {
         m_location = location;
         m_contract_name = contract_name;
       }
