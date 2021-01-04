@@ -190,7 +190,7 @@ docker_image:build:
     - else
     - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
     - export PATH=$PATH:/usr/local/cuda/bin
     - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../run_changes_output/minbias_${DEVICE_ID}.txt
     - fi
@@ -233,7 +233,7 @@ docker_image:build:
     - else
     - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
     - export PATH=$PATH:/usr/local/cuda/bin
     - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
     - fi
@@ -279,7 +279,7 @@ docker_image:build:
     - else
     - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
     - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
     - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
@@ -313,7 +313,7 @@ docker_image:build:
     - DATA_TAG=${JOB_NAME_SPLIT[4]}
     - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
     - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
     - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
     - export PATH=$PATH:/usr/local/cuda/bin
