@@ -58,9 +58,9 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
 
   // Consolidated datatypes
   Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
-                                                parameters.dev_offsets_velo_track_hit_number,
-                                                event_number,
-                                                number_of_events};
+                                          parameters.dev_offsets_velo_track_hit_number,
+                                          event_number,
+                                          number_of_events};
   const unsigned event_total_number_of_tracks = velo_tracks.number_of_tracks(event_number);
 
   const auto event_number_of_three_hit_tracks_filtered =

@@ -28,7 +28,7 @@ namespace pv_beamline_extrapolate {
     DEVICE_OUTPUT(dev_pvtrack_unsorted_z_t, float) dev_pvtrack_unsorted_z;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
-  
+
   __global__ void pv_beamline_extrapolate(Parameters);
 
   struct pv_beamline_extrapolate_t : public DeviceAlgorithm, Parameters {
