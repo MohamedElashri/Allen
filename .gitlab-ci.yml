@@ -95,7 +95,7 @@ check-formatting:
       - build*/*Allen*
       - build*/Sequence.json
       - input
-  retry: 1
+  retry: 2
 
 docker_image:build:
   stage: build
