@@ -21,22 +21,20 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
 
-  // Transmission device to host of Scifi consolidated tracks
-  assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, stream);
-
   if (runtime_options.do_check) {
+    // Transmission device to host of Scifi consolidated tracks
+    assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
     assign_to_host_buffer<dev_offsets_scifi_track_hit_number_t>(
-      host_buffers.host_scifi_track_hit_number, arguments, stream);
-    assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, stream);
-    assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, stream);
-    assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, stream);
-    assign_to_host_buffer<dev_scifi_states_t>(host_buffers.host_scifi_states, arguments, stream);
+      host_buffers.host_scifi_track_hit_number, arguments, context);
+    assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, context);
+    assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, context);
+    assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, context);
+    assign_to_host_buffer<dev_scifi_states_t>(host_buffers.host_scifi_states, arguments, context);
   }
 }
 

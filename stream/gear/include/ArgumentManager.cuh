@@ -8,161 +8,213 @@
 #include <cstring>
 #include "BackendCommon.h"
 #include "Logger.h"
-#include "TupleTools.cuh"
+#include "AllenTypeTraits.cuh"
 #include "Argument.cuh"
 #include "ArgumentOps.cuh"
+#include "StructToTuple.cuh"
 
 /**
- * @brief Helper class to generate arguments based on
- *        the information provided by the base_pointer and offsets
+ * @brief Contains the data of an argument, namely its name, data pointer and size.
+ *
+ */
+struct ArgumentData {
+private:
+  char* m_pointer = nullptr;
+  size_t m_size = 0;
+  std::string m_name = "";
+
+public:
+  virtual char* pointer() const { return m_pointer; }
+  virtual size_t size() const { return m_size; }
+  virtual std::string name() const { return m_name; }
+  virtual void set_pointer(char* pointer) { m_pointer = pointer; }
+  virtual void set_size(size_t size) { m_size = size; }
+  virtual void set_name(const std::string& name) { m_name = name; }
+  virtual ~ArgumentData() {}
+};
+
+/**
+ * @brief Holds a database of arguments, and provides accessors for their pointers and size.
  */
 template<typename Tuple>
 struct ArgumentManager {
-  Tuple arguments_tuple;
-  char* device_base_pointer;
-  char* host_base_pointer;
+private:
+  std::array<ArgumentData, std::tuple_size_v<Tuple>> m_tuple_to_argument_data;
 
-  ArgumentManager() = default;
+public:
+  std::array<ArgumentData, std::tuple_size_v<Tuple>>& argument_database() { return m_tuple_to_argument_data; }
 
-  void set_base_pointers(char* param_device_base_pointer, char* param_host_base_pointer)
+  template<typename T>
+  typename T::type* pointer() const
   {
-    device_base_pointer = param_device_base_pointer;
-    host_base_pointer = param_host_base_pointer;
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    auto pointer = m_tuple_to_argument_data[index_of_T].pointer();
+    return reinterpret_cast<typename T::type*>(pointer);
   }
 
   template<typename T>
-  auto data() const
+  void set_pointer(char* pointer)
   {
-    auto pointer = tuple_ref_by_inheritance<T>(arguments_tuple).offset();
-    return reinterpret_cast<typename T::type*>(pointer);
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    m_tuple_to_argument_data[index_of_T].set_pointer(pointer);
   }
 
   template<typename T>
   size_t size() const
   {
-    return tuple_ref_by_inheritance<T>(arguments_tuple).size();
-  }
-
-  template<typename T>
-  std::string name() const
-  {
-    return tuple_ref_by_inheritance<T>(arguments_tuple).name();
-  }
-
-  template<typename T>
-  typename std::enable_if<std::is_base_of<device_datatype, T>::value>::type set_offset(const unsigned offset)
-  {
-    tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(device_base_pointer + offset);
-  }
-
-  template<typename T>
-  typename std::enable_if<std::is_base_of<host_datatype, T>::value>::type set_offset(const unsigned offset)
-  {
-    tuple_ref_by_inheritance<T>(arguments_tuple).set_offset(host_base_pointer + offset);
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].size();
   }
 
   template<typename T>
   void set_size(const size_t size)
   {
-    tuple_ref_by_inheritance<T>(arguments_tuple).set_size(size);
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    m_tuple_to_argument_data[index_of_T].set_size(size);
+  }
+
+  template<typename T>
+  std::string name() const
+  {
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].name();
+  }
+
+  template<typename T>
+  void set_name(const std::string& name)
+  {
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].set_name(name);
   }
 };
 
 /**
  * @brief Manager of argument references for every handler.
  */
-template<typename TupleToReferences, typename ParameterTuple = void, typename ParameterStruct = void>
+template<typename ParametersAndPropertiesTuple, typename ParameterTuple = void, typename ParameterStruct = void>
 struct ArgumentRefManager {
-  using parameter_tuple_t = ParameterTuple;
-  using parameter_struct_t = ParameterStruct;
-  using tuple_to_references_t = TupleToReferences;
+public:
+  using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
+  using parameters_tuple_t = ParameterTuple;
+  using parameters_struct_t = ParameterStruct;
 
-  TupleToReferences m_arguments;
+private:
+  mutable std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
+    m_tuple_to_argument_data;
 
-  ArgumentRefManager(TupleToReferences arguments) : m_arguments(arguments) {}
+public:
+  ArgumentRefManager(
+    std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>> tuple_to_argument_data) :
+    m_tuple_to_argument_data(tuple_to_argument_data)
+  {}
 
   template<typename T>
-  auto data() const
+  typename T::type* pointer() const
   {
-    auto pointer = std::get<T&>(m_arguments).offset();
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    auto pointer = m_tuple_to_argument_data[index_of_T].get().pointer();
     return reinterpret_cast<typename T::type*>(pointer);
   }
 
   template<typename T>
-  auto first() const
+  typename T::type first() const
   {
-    return data<T>()[0];
+    return pointer<T>()[0];
   }
 
   template<typename T>
   size_t size() const
   {
-    return std::get<T&>(m_arguments).size();
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].get().size();
   }
 
   template<typename T>
   void set_size(const size_t size)
   {
-    std::get<T&>(m_arguments).set_size(size);
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    m_tuple_to_argument_data[index_of_T].get().set_size(size);
+  }
+
+  /**
+   * @brief Reduces the size of the container.
+   * @details Reducing the size can be done in the operator(), hence this method is const.
+   */
+  template<typename T>
+  void reduce_size(const size_t size) const
+  {
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    assert(size <= m_tuple_to_argument_data[index_of_T].get().size());
+    m_tuple_to_argument_data[index_of_T].get().set_size(size);
   }
 
   template<typename T>
   std::string name() const
   {
-    return std::get<T&>(m_arguments).name();
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].get().name();
   }
 };
 
-// Wraps tuple arguments
+/**
+ * @brief Tuple wrapper that extracts tuples out of the
+ *        Parameters struct. It extracts a tuple of all parameters and properties
+ *        (parameters_and_properties_tuple_t), and a tuple of parameters (parameters_tuple_t).
+ */
 template<typename Tuple, typename Enabled = void>
 struct WrappedTuple;
 
 template<>
 struct WrappedTuple<std::tuple<>, void> {
-  using t = std::tuple<>;
-  using parameter_tuple_t = std::tuple<>;
-};
-
-template<typename T, typename... R>
-struct WrappedTuple<std::tuple<T, R...>, typename std::enable_if<std::is_base_of<aggregate_datatype, T>::value>::type> {
-  using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
-  using t = typename ConcatTupleReferences<typename T::type, previous_t>::t;
-  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
-  using parameter_tuple_t = typename ConcatTuple<typename T::type, previous_parameter_tuple_t>::t;
+  using parameters_and_properties_tuple_t = std::tuple<>;
+  using parameters_tuple_t = std::tuple<>;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<
   std::tuple<T, R...>,
-  typename std::enable_if<
-    !std::is_base_of<aggregate_datatype, T>::value &&
-    (std::is_base_of<device_datatype, T>::value || std::is_base_of<host_datatype, T>::value)>::type> {
-  using previous_t = typename WrappedTuple<std::tuple<R...>>::t;
-  using t = typename TupleAppendFirst<T&, previous_t>::t;
-  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
-  using parameter_tuple_t = typename TupleAppendFirst<T, previous_parameter_tuple_t>::t;
+  std::enable_if_t<(std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>) &&!std::
+                     is_base_of_v<aggregate_datatype, T>>> {
+  using prev_parameters_and_properties_tuple_t =
+    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
+  using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
+  using parameters_tuple_t = typename TupleAppendFirst<T, prev_parameters_tuple_t>::t;
+};
+
+template<typename T, typename... R>
+struct WrappedTuple<std::tuple<T, R...>, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
+  using prev_parameters_and_properties_tuple_t =
+    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using parameters_and_properties_tuple_t =
+    typename ConcatTuple<typename T::type, prev_parameters_and_properties_tuple_t>::t;
+  using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
+  using parameters_tuple_t = typename ConcatTuple<typename T::type, prev_parameters_tuple_t>::t;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<
   std::tuple<T, R...>,
-  typename std::enable_if<
-    !std::is_base_of<device_datatype, T>::value && !std::is_base_of<host_datatype, T>::value>::type> {
-  using t = typename WrappedTuple<std::tuple<R...>>::t;
-  using previous_parameter_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameter_tuple_t;
-  using parameter_tuple_t = typename TupleAppendFirst<T, previous_parameter_tuple_t>::t;
-};
-
-template<typename T>
-struct ParameterTuple {
-  using t = typename WrappedTuple<decltype(
-    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t;
+  std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
+  using prev_parameters_and_properties_tuple_t =
+    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
+  using parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
 };
 
 template<typename T>
 using ArgumentReferences = ArgumentRefManager<
-  typename WrappedTuple<decltype(
-    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::t,
-  typename WrappedTuple<decltype(
-    boost::hana::to<boost::hana::ext::std::tuple_tag>(boost::hana::members(std::declval<T>())))>::parameter_tuple_t,
+  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_and_properties_tuple_t,
+  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_tuple_t,
   T>;

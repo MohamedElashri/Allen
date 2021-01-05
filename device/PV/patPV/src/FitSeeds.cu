@@ -18,16 +18,15 @@ void fit_seeds::pv_fit_seeds_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  global_function(fit_seeds)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(fit_seeds)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   if (runtime_options.do_check) {
     // Retrieve result
-    assign_to_host_buffer<dev_vertex_t>(host_buffers.host_reconstructed_pvs, arguments, stream);
-    assign_to_host_buffer<dev_number_vertex_t>(host_buffers.host_number_of_vertex, arguments, stream);
+    assign_to_host_buffer<dev_vertex_t>(host_buffers.host_reconstructed_pvs, arguments, context);
+    assign_to_host_buffer<dev_number_vertex_t>(host_buffers.host_number_of_vertex, arguments, context);
   }
 }
 

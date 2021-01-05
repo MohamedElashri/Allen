@@ -135,7 +135,7 @@ struct HostBuffers {
   // /**
   //  * @brief Frees all host buffers.
   //  */
-  // cudaError_t free(const bool do_check);
+  // Allen::error free(const bool do_check);
 
   /**
    * @brief Returns total number of velo track hits.

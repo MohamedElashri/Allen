@@ -26,16 +26,15 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_muon_compact_hit_t>(arguments, 0, stream);
-  initialize<dev_muon_tile_used_t>(arguments, 0, stream);
-  initialize<dev_station_ocurrences_sizes_t>(arguments, 0, stream);
-  initialize<dev_atomics_index_insert_t>(arguments, 0, stream);
+  initialize<dev_muon_compact_hit_t>(arguments, 0, context);
+  initialize<dev_muon_tile_used_t>(arguments, 0, context);
+  initialize<dev_station_ocurrences_sizes_t>(arguments, 0, context);
+  initialize<dev_atomics_index_insert_t>(arguments, 0, context);
 
   global_function(muon_add_coords_crossing_maps)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(

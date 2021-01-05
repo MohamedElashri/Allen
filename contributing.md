@@ -126,15 +126,15 @@ The Velo include is only required if Velo objects are used in the algorithm. `De
 
 ```c++
 namespace saxpy {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-    (DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo),
-    (DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned), dev_velo_track_hit_number),
-    (DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output),
-    (PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float), saxpy_scale_factor),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
+    DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;
+    PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 ```
 
 In the `saxpy` namespace the parameters and properties are specified. Parameters _scope_ can either be the host or the device, and they can either be inputs or outputs. Parameters should be defined with the following convention:
@@ -187,8 +187,7 @@ An algorithm must define **two methods**: `set_arguments_size` and `operator()`.
       const RuntimeOptions&,
       const Constants&,
       HostBuffers&,
-      cudaStream_t&,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
@@ -241,20 +240,18 @@ void saxpy::saxpy_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(saxpy)(
     dim3(1),
-    property<block_dim_t>(),
-    stream)(arguments);
+    property<block_dim_t>(), context)(arguments);
 }
 ```
 
 In order to invoke host and global functions, wrapper methods `host_function` and `global_function` should be used. The syntax is as follows:
 
     host_function(<host_function_identifier>)(<parameters of function>)
-    global_function(<global_function_identifier>)(<grid_size>, <block_size>, <stream>)(<parameters of function>)
+    global_function(<global_function_identifier>)(<grid_size>, <block_size>, context)(<parameters of function>)
 
 `global_function` wraps a function identifier, such as `saxpy`. The object it returns can be used to invoke a _global kernel_ following a syntax that is similar to [CUDA's kernel invocation syntax](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#kernels). It expects:
 
@@ -310,8 +307,7 @@ Typically, events are processed by independent blocks of execution. When that's 
 ```c++
   global_function(kernel)(
     size<dev_event_list_t>(),
-    property<block_dim_t>(),
-    stream)(arguments);
+    property<block_dim_t>(), context)(arguments);
 ```
 
 Then, in the kernel itself, in order to access the event under execution, the following idiom is used:

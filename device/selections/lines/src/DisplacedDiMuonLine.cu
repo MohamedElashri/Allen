@@ -7,7 +7,7 @@ INSTANTIATE_LINE(displaced_di_muon_line::displaced_di_muon_line_t, displaced_di_
 
 __device__ bool displaced_di_muon_line::displaced_di_muon_line_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+  std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
 

@@ -17,16 +17,15 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   safe_assign_to_host_buffer<dev_consolidated_svs_t>(
-    host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, stream);
+    host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, context);
 
-  assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_offsets, arguments, stream);
+  assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_offsets, arguments, context);
 }
 
 __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)
@@ -59,9 +58,9 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
 
   // Primary vertices.
-  const unsigned n_pvs_event = *(parameters.dev_number_of_multi_fit_vertices + event_number);
+  const unsigned n_pvs_event = *(parameters.dev_number_of_multi_final_vertices + event_number);
   Allen::device::span<PV::Vertex const> vertices {
-    parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
+    parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices, n_pvs_event};
 
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_consolidated_svs + sv_offset;
@@ -76,6 +75,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
 
     // Do the fit.
+    // TODO: In case doFit returns false, what should happen?
     if (doFit(trackA, trackB, event_secondary_vertices[i_sv])) {
       event_secondary_vertices[i_sv].trk1 = i_track;
       event_secondary_vertices[i_sv].trk2 = j_track;

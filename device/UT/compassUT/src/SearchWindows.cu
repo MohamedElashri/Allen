@@ -22,13 +22,12 @@ void ut_search_windows::ut_search_windows_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_ut_windows_layers_t>(arguments, 0, stream);
+  initialize<dev_ut_windows_layers_t>(arguments, 0, context);
 
   global_function(ut_search_windows)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), context)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_ut_dxDy.data(),
@@ -187,9 +186,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float invTheta = min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
   const float minMom = max(min_pt * invTheta, min_momentum);
   const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
-  // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;
-
-  int layer_offset = ut_hit_offsets.layer_offset(layer);
+  const int layer_offset = ut_hit_offsets.layer_offset(layer);
 
   const float dx_dy = ut_dxDy[layer];
   const float z_at_layer = ut_hits.zAtYEq0(layer_offset);

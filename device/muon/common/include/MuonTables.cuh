@@ -86,10 +86,13 @@ namespace Muon {
     const auto index = muonTables->sizeOffset[tableNumber * Constants::n_stations * Constants::n_regions + idx] +
                        tile.quarter() * muonTables->gridY[tableNumber][idx] * 6;
     if (tile.nY() < static_cast<unsigned int>(muonTables->gridY[tableNumber][idx])) {
+      assert(static_cast<int>(tile.nX()) >= muonTables->gridX[tableNumber][idx]);
+      assert(muonTables->gridX[tableNumber][idx] > 0);
       return index + 2 * tile.nY() +
              2 * (tile.nX() - muonTables->gridX[tableNumber][idx]) / muonTables->gridX[tableNumber][idx];
     }
     else {
+      assert(muonTables->gridX[tableNumber][idx] > 0);
       return index + 4 * tile.nY() - 2 * muonTables->gridY[tableNumber][idx] +
              (2 * tile.nX() / muonTables->gridX[tableNumber][idx]);
     }

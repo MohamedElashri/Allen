@@ -6,47 +6,12 @@
 #include <tuple>
 #include <array>
 
-// Avoid warnings from the hana library from nvcc and clang
-#ifdef __CUDACC__
-#pragma push
-#pragma diag_suppress = expr_has_no_effect
-#elif defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdouble-promotion"
-#endif
-
-#include <boost/hana/members.hpp>
-#include <boost/hana/define_struct.hpp>
-#include <boost/hana/ext/std/tuple.hpp>
-
-#ifdef __CUDACC__
-#pragma pop
-#elif defined(__clang__)
-#pragma clang diagnostic pop
-#endif
-
-// Datatypes can be host or device.
+// Datatypes can be host, device or aggregates.
 // Note: These structs need to be not templated (libClang).
 struct host_datatype {
-  virtual void set_size(size_t) {}
-  virtual size_t size() const { return 0; }
-  virtual std::string name() const { return ""; }
-  virtual void set_offset(char*) {}
-  virtual char* offset() const { return nullptr; }
-  virtual ~host_datatype() {}
 };
-
 struct device_datatype {
-  virtual void set_size(size_t) {}
-  virtual size_t size() const { return 0; }
-  virtual std::string name() const { return ""; }
-  virtual void set_offset(char*) {}
-  virtual char* offset() const { return nullptr; }
-  virtual ~device_datatype() {}
 };
-
-// Datatypes can also be aggregates.
-// Note: This structs need to be not templated (libClang).
 struct aggregate_datatype {
 };
 
@@ -204,8 +169,3 @@ struct ScheduledDependencies {
   using Algorithm = T;
   using Arguments = ArgumentsTuple;
 };
-
-#define DEFINE_PARAMETERS(CLASS_NAME, ...)             \
-  struct CLASS_NAME {                                  \
-    BOOST_HANA_DEFINE_STRUCT(CLASS_NAME, __VA_ARGS__); \
-  };

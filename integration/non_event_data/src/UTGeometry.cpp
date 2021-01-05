@@ -23,10 +23,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
     using value_type = typename std::remove_reference_t<decltype(host_numbers)>::value_type;
     using span_type = typename std::remove_reference_t<decltype(device_numbers)>::value_type;
     value_type* p = nullptr;
-    cudaCheck(cudaMalloc((void**) &p, host_numbers.size() * sizeof(value_type)));
+    Allen::malloc((void**) &p, host_numbers.size() * sizeof(value_type));
     device_numbers = gsl::span {p, static_cast<span_size_t<span_type>>(host_numbers.size())};
-    cudaCheck(cudaMemcpy(
-      device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), cudaMemcpyHostToDevice));
+    Allen::memcpy(
+      device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), Allen::memcpyHostToDevice);
   };
 
   // region offsets
@@ -45,7 +45,7 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   auto& dev_ut_geometry = m_constants.get().dev_ut_geometry;
   using span_type = typename std::remove_reference_t<decltype(dev_ut_geometry)>::value_type;
   char* g = nullptr;
-  cudaCheck(cudaMalloc((void**) &g, data.size()));
+  Allen::malloc((void**) &g, data.size());
   dev_ut_geometry = gsl::span {g, static_cast<span_size_t<span_type>>(data.size())};
   const ::UTGeometry geometry {data};
 
@@ -148,6 +148,5 @@ void Consumers::UTGeometry::consume(std::vector<char> const& data)
 
   auto& host_ut_geometry = m_constants.get().host_ut_geometry;
   host_ut_geometry = data;
-  cudaCheck(
-    cudaMemcpy(dev_ut_geometry.data(), host_ut_geometry.data(), host_ut_geometry.size(), cudaMemcpyHostToDevice));
+  Allen::memcpy(dev_ut_geometry.data(), host_ut_geometry.data(), host_ut_geometry.size(), Allen::memcpyHostToDevice);
 }

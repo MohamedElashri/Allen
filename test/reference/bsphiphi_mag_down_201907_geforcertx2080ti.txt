@@ -70,8 +70,13 @@ Ghost tracks identified as muon with isMuon:                               41/  
 
 
 HLT1 rates:
+<<<<<<< HEAD:test/reference/bsphiphi_geforcertx2080ti.txt
 Hlt1TrackMVA:             63/  1000, ( 1890.00 +/-   230.49) kHz
 Hlt1TwoTrackMVA:          90/  1000, ( 2700.00 +/-   271.50) kHz
+=======
+Hlt1TrackMVA:            211/  1000, ( 6330.00 +/-   387.08) kHz
+Hlt1TwoTrackMVA:         384/  1000, (11520.00 +/-   461.40) kHz
+>>>>>>> origin/end_velo_state_maxime:test/reference/bsphiphi_mag_down_201907_geforcertx2080ti.txt
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz

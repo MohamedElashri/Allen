@@ -71,27 +71,27 @@ namespace VertexFit {
     const ParKalmanFilter::FittedTrack& trackB,
     const float max_assoc_ipchi2);
 
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (HOST_INPUT(host_number_of_svs_t, unsigned), host_number_of_svs),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events),
-    (DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack), dev_kf_tracks),
-    (DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned), dev_atomics_scifi),
-    (DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned), dev_scifi_track_hit_number),
-    (DEVICE_INPUT(dev_scifi_qop_t, float), dev_scifi_qop),
-    (DEVICE_INPUT(dev_scifi_states_t, MiniState), dev_scifi_states),
-    (DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned), dev_scifi_track_ut_indices),
-    (DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex), dev_multi_fit_vertices),
-    (DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, unsigned), dev_number_of_multi_fit_vertices),
-    (DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char), dev_kalman_pv_ipchi2),
-    (DEVICE_INPUT(dev_svs_trk1_idx_t, unsigned), dev_svs_trk1_idx),
-    (DEVICE_INPUT(dev_svs_trk2_idx_t, unsigned), dev_svs_trk2_idx),
-    (DEVICE_INPUT(dev_sv_offsets_t, unsigned), dev_sv_offsets),
-    (DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex), dev_consolidated_svs),
-    (PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float), max_assoc_ipchi2),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
+    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
+    DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
+    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
+    DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    DEVICE_INPUT(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;
+    DEVICE_INPUT(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
+    DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+    DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
+    PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void fit_secondary_vertices(Parameters);
 
@@ -107,8 +107,7 @@ namespace VertexFit {
       const RuntimeOptions&,
       const Constants&,
       HostBuffers& host_buffers,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};

@@ -20,10 +20,15 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
-    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.0RC/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
     ```
 
-* HIP target: A local installation of ROCm at least version 3.3.0 is required.
+* HIP target: Either a local installation of HIP 3.9.0 or CVMFS are required:
+
+    ```console
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
+    ```
 
 * CUDACLANG target: A version of the clang compiler with ptx support is required,
   alongside a local installation of CUDA 10.1 (currently latest supported release):

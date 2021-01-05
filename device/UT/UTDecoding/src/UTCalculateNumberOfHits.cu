@@ -11,7 +11,8 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_s
   const HostBuffers&) const
 {
   set_size<dev_ut_hit_sizes_t>(
-    arguments, first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+    arguments,
+    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]);
 }
 
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
@@ -19,14 +20,13 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_ut_hit_sizes_t>(arguments, 0, stream);
+  initialize<dev_ut_hit_sizes_t>(arguments, 0, context);
 
   if (runtime_options.mep_layout) {
     global_function(ut_calculate_number_of_hits_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
@@ -35,7 +35,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   }
   else {
     global_function(ut_calculate_number_of_hits)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
@@ -84,7 +84,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
 
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
@@ -109,7 +109,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_mep(
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
 
   const UTBoards boards(ut_boards);

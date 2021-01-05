@@ -170,8 +170,6 @@ def ForwardSequence(initialize_lists,
         dev_scifi_lf_parametrization_length_filter_t=lf_quality_filter_length.
         dev_scifi_lf_parametrization_length_filter_t(),
         dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t(),
-        dev_ut_track_velo_indices_t=ut_consolidate_tracks.
-        dev_ut_track_velo_indices_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
 

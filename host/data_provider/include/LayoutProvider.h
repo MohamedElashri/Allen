@@ -9,10 +9,10 @@
 #include <gsl/gsl>
 
 namespace layout_provider {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_OUTPUT(host_mep_layout_t, unsigned), host_mep_layout),
-    (DEVICE_OUTPUT(dev_mep_layout_t, unsigned), dev_mep_layout))
+  struct Parameters {
+    HOST_OUTPUT(host_mep_layout_t, unsigned) host_mep_layout;
+    DEVICE_OUTPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
+  };
 
   /**
    * @brief Provides layout information as
@@ -21,17 +21,16 @@ namespace layout_provider {
    */
   struct layout_provider_t : public HostAlgorithm, Parameters {
     void set_arguments_size(
-      ArgumentRefManager<ParameterTuple<Parameters>::t> arguments,
+      ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       const HostBuffers&) const;
 
     void operator()(
-      const ArgumentRefManager<ParameterTuple<Parameters>::t>& arguments,
+      const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
-      cudaStream_t&,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
   };
 } // namespace layout_provider

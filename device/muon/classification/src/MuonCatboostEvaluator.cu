@@ -17,11 +17,10 @@ void muon_catboost_evaluator::muon_catboost_evaluator_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(muon_catboost_evaluator)(
-    dim3(first<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<block_dim_t>(), stream)(
+    dim3(first<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_muon_catboost_leaf_values,
     constants.dev_muon_catboost_leaf_offsets,
@@ -32,7 +31,7 @@ void muon_catboost_evaluator::muon_catboost_evaluator_t::operator()(
     constants.muon_catboost_n_trees);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_muon_catboost_output_t>(host_buffers.host_muon_catboost_output, arguments, stream);
+    assign_to_host_buffer<dev_muon_catboost_output_t>(host_buffers.host_muon_catboost_output, arguments, context);
   }
 }
 

@@ -51,7 +51,7 @@ void Consumers::UTLookupTables::consume(std::vector<char> const& data)
   p += table_size[0] * sizeof(float);
 
   if (!m_tool) {
-    cudaCheck(cudaMalloc((void**) &m_tool.get(), sizeof(UTMagnetTool)));
+    Allen::malloc((void**) &m_tool.get(), sizeof(UTMagnetTool));
     m_size = sizeof(UTMagnetTool);
   }
   if (m_size != (data.size() - 7 * sizeof(int) - 2 * sizeof(size_t))) {
@@ -61,5 +61,5 @@ void Consumers::UTLookupTables::consume(std::vector<char> const& data)
   UTMagnetTool host_tool {deflection, bdl};
 
   // deflection table
-  cudaCheck(cudaMemcpy(m_tool.get(), &host_tool, sizeof(UTMagnetTool), cudaMemcpyHostToDevice));
+  Allen::memcpy(m_tool.get(), &host_tool, sizeof(UTMagnetTool), Allen::memcpyHostToDevice);
 }

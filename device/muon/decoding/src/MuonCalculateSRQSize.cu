@@ -22,30 +22,29 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   // FIXME: this should be done as part of the consumers, but
   // currently it cannot. This is because it is not possible to
   // indicate dependencies between Consumer and/or Producers.
   Muon::MuonRawToHits muonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
 
-  cudaCheck(cudaMemcpyAsync(
-    data<dev_muon_raw_to_hits_t>(arguments), &muonRawToHits, sizeof(muonRawToHits), cudaMemcpyHostToDevice, stream));
+  Allen::memcpy_async(
+    data<dev_muon_raw_to_hits_t>(arguments), &muonRawToHits, sizeof(muonRawToHits), Allen::memcpyHostToDevice, context);
 
-  initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, stream);
+  initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
 
   if (runtime_options.mep_layout) {
     global_function(muon_calculate_srq_size_mep)(
       size<dev_event_list_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      stream)(arguments);
+      context)(arguments);
   }
   else {
     global_function(muon_calculate_srq_size)(
       size<dev_event_list_t>(arguments),
       Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-      stream)(arguments);
+      context)(arguments);
   }
 }
 

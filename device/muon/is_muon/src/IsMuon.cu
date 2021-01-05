@@ -20,18 +20,17 @@ void is_muon::is_muon_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_muon_track_occupancies_t>(arguments, 0, stream);
+  initialize<dev_muon_track_occupancies_t>(arguments, 0, context);
 
   global_function(is_muon)(
     dim3(size<dev_event_list_t>(arguments)),
     dim3(property<block_dim_x_t>().get(), Muon::Constants::n_stations),
-    stream)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+    context)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, stream);
+    assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, context);
   }
 }
 

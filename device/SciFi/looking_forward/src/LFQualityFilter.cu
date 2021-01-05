@@ -31,17 +31,16 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_atomics_scifi_t>(arguments, 0, stream);
+  initialize<dev_atomics_scifi_t>(arguments, 0, context);
 
-  global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, stream);
-    assign_to_host_buffer<dev_scifi_tracks_t>(host_buffers.host_scifi_tracks, arguments, stream);
+    assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, context);
+    assign_to_host_buffer<dev_scifi_tracks_t>(host_buffers.host_scifi_tracks, arguments, context);
   }
 
   if (property<verbosity_t>() >= logger::debug) {

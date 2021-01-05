@@ -8,7 +8,7 @@ INSTANTIATE_LINE(low_pt_muon_line::low_pt_muon_line_t, low_pt_muon_line::Paramet
 
 __device__ bool low_pt_muon_line::low_pt_muon_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input) const
+  std::tuple<const ParKalmanFilter::FittedTrack&> input)
 {
   const auto& track = std::get<0>(input);
   return track.is_muon && track.ip >= parameters.minIP && track.ipChi2 >= parameters.minIPChi2 &&

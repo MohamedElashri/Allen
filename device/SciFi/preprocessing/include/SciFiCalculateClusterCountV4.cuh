@@ -8,14 +8,14 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace scifi_calculate_cluster_count_v4 {
-  DEFINE_PARAMETERS(
-    Parameters,
-    (HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events),
-    (DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list),
-    (DEVICE_INPUT(dev_scifi_raw_input_t, char), dev_scifi_raw_input),
-    (DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned), dev_scifi_raw_input_offsets),
-    (DEVICE_OUTPUT(dev_scifi_hit_count_t, unsigned), dev_scifi_hit_count),
-    (PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions), block_dim))
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
+    DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned) dev_scifi_raw_input_offsets;
+    DEVICE_OUTPUT(dev_scifi_hit_count_t, unsigned) dev_scifi_hit_count;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
 
   __global__ void scifi_calculate_cluster_count_v4(Parameters, const char* scifi_geometry);
 
@@ -33,8 +33,7 @@ namespace scifi_calculate_cluster_count_v4 {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers&,
-      cudaStream_t& stream,
-      cudaEvent_t&) const;
+      const Allen::Context& context) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{240, 1, 1}}};

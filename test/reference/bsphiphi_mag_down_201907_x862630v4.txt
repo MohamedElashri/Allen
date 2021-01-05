@@ -70,8 +70,13 @@ Ghost tracks identified as muon with isMuon:                              124/  
 
 
 HLT1 rates:
+<<<<<<< HEAD:test/reference/bsphiphi_x862630v4.txt
 Hlt1TrackMVA:            215/  1000, ( 6450.00 +/-   389.74) kHz
 Hlt1TwoTrackMVA:         374/  1000, (11220.00 +/-   459.03) kHz
+=======
+Hlt1TrackMVA:            212/  1000, ( 6360.00 +/-   387.75) kHz
+Hlt1TwoTrackMVA:         378/  1000, (11340.00 +/-   460.00) kHz
+>>>>>>> origin/end_velo_state_maxime:test/reference/bsphiphi_mag_down_201907_x862630v4.txt
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz

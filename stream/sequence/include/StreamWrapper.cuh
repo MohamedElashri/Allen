@@ -43,13 +43,14 @@ struct StreamWrapper {
     const unsigned start_event_offset,
     const size_t reserve_mb,
     const size_t reserve_host_mb,
+    const unsigned required_memory_alignment,
     const Constants& constants,
     const std::map<std::string, std::map<std::string, std::string>>& config);
 
   /**
    * @brief Runs stream.
    */
-  cudaError_t run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options);
+  Allen::error run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options);
 
   /**
    * @brief Mask of the events selected by the stream

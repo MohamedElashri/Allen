@@ -21,12 +21,11 @@ void compass_ut::compass_ut_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_atomics_ut_t>(arguments, 0, stream);
+  initialize<dev_atomics_ut_t>(arguments, 0, context);
 
-  global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), stream)(
+  global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), context)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),

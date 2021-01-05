@@ -39,14 +39,13 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_atomics_velo_t>(arguments, 0, stream);
-  initialize<dev_hit_used_t>(arguments, 0, stream);
-  initialize<dev_number_of_velo_tracks_t>(arguments, 0, stream);
+  initialize<dev_atomics_velo_t>(arguments, 0, context);
+  initialize<dev_hit_used_t>(arguments, 0, context);
+  initialize<dev_number_of_velo_tracks_t>(arguments, 0, context);
 
-  global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), stream)(
+  global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), context)(
     arguments, constants.dev_velo_geometry);
 
   if (property<verbosity_t>() >= logger::debug) {
@@ -686,7 +685,7 @@ __device__ void track_seeding_vectorized(
         const auto x_prediction = h0_xs + predx;
         const auto y_prediction = h0_ys + predy;
         const auto atan_value_f =
-          (Velo::Tools::cudart_pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
+          (Allen::constants::pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
 
         std::array<int, vector128_length()> h2_candidate_indices;
         std::array<int16_t, vector128_length()> extrapolated_phis;

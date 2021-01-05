@@ -8,7 +8,7 @@ INSTANTIATE_LINE(track_mva_line::track_mva_line_t, track_mva_line::Parameters)
 
 __device__ bool track_mva_line::track_mva_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input) const
+  std::tuple<const ParKalmanFilter::FittedTrack&> input)
 {
   const auto& track = std::get<0>(input);
   const auto ptShift = (track.pt() - parameters.alpha) / Gaudi::Units::GeV;

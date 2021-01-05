@@ -17,11 +17,10 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
   global_function(ut_copy_track_hit_number)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), stream)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 /**

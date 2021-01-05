@@ -51,8 +51,8 @@ void Consumers::MuonGeometry::consume(std::vector<char> const& data)
   auto& dev_geometry_raw = m_dev_geometry_raw.get();
   auto& host_geometry_raw = m_host_geometry_raw.get();
   if (!m_muon_geometry) {
-    cudaCheck(cudaMalloc((void**) &dev_geometry_raw, data.size()));
-    cudaCheck(cudaMalloc((void**) &m_muon_geometry.get(), sizeof(Muon::MuonGeometry)));
+    Allen::malloc((void**) &dev_geometry_raw, data.size());
+    Allen::malloc((void**) &m_muon_geometry.get(), sizeof(Muon::MuonGeometry));
     m_size = sizeof(Muon::MuonGeometry);
   }
   else if (host_geometry_raw.size() != data.size()) {
@@ -60,10 +60,12 @@ void Consumers::MuonGeometry::consume(std::vector<char> const& data)
                         to_string(data.size())};
   }
   host_geometry_raw = data;
-  cudaCheck(cudaMemcpy(dev_geometry_raw, host_geometry_raw.data(), host_geometry_raw.size(), cudaMemcpyHostToDevice));
+  Allen::memcpy(dev_geometry_raw, host_geometry_raw.data(), host_geometry_raw.size(), Allen::memcpyHostToDevice);
+
   for (size_t i = 0; i < nTilesSize; i++) {
     tiles[i] = ((unsigned*) dev_geometry_raw) + tilesOffset[i];
   }
+
   Muon::MuonGeometry host_muon_geometry {sizes, tiles};
-  cudaCheck(cudaMemcpy(m_muon_geometry.get(), &host_muon_geometry, sizeof(Muon::MuonGeometry), cudaMemcpyHostToDevice));
+  Allen::memcpy(m_muon_geometry.get(), &host_muon_geometry, sizeof(Muon::MuonGeometry), Allen::memcpyHostToDevice);
 }

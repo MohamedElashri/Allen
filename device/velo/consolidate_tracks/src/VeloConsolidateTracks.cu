@@ -22,20 +22,19 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), stream)(
+  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
     arguments);
 
   // Set all found tracks to accepted
-  initialize<dev_accepted_velo_tracks_t>(arguments, 1, stream);
+  initialize<dev_accepted_velo_tracks_t>(arguments, 1, context);
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, stream);
+    assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, context);
     assign_to_host_buffer<dev_offsets_velo_track_hit_number_t>(
-      host_buffers.host_velo_track_hit_number, arguments, stream);
-    assign_to_host_buffer<dev_velo_track_hits_t>(host_buffers.host_velo_track_hits, arguments, stream);
+      host_buffers.host_velo_track_hit_number, arguments, context);
+    assign_to_host_buffer<dev_velo_track_hits_t>(host_buffers.host_velo_track_hits, arguments, context);
   }
 }
 
@@ -59,9 +58,9 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
 
   // Consolidated datatypes
   Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
-                                                parameters.dev_offsets_velo_track_hit_number,
-                                                event_number,
-                                                number_of_events};
+                                          parameters.dev_offsets_velo_track_hit_number,
+                                          event_number,
+                                          number_of_events};
   const unsigned event_total_number_of_tracks = velo_tracks.number_of_tracks(event_number);
 
   const auto event_number_of_three_hit_tracks_filtered =

@@ -137,16 +137,8 @@ class Sequence():
                     for inheriting_class in inheriting_classes:
                         s += inheriting_class + ", "
                     s = s[:-2]
-                    s += " { \
-using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; \
-void set_size(size_t size) override { m_size = size; } \
-size_t size() const override { return m_size; } \
-std::string name() const override { return \"" + parameter_name + "\"; } \
-void set_offset(char* offset) override { m_offset = offset; } \
-char* offset() const override { return m_offset; } \
-private: \
-size_t m_size = 0; \
-char* m_offset = nullptr; };\n"
+                    s += " { using type = " + v[0][1] + "::Parameters::" + v[
+                        0][2] + "::type; };\n"
 
             # Generate argument tuple
             s += "\nusing configured_arguments_t = std::tuple<\n"
@@ -187,6 +179,15 @@ char* m_offset = nullptr; };\n"
                     i) + ">(sequence).set_name(\"" + algorithm.name(
                     ) + "\");\n"
                 i += 1
+            s += "}\n\n"
+            # Generate populate_sequence_parameter_names
+            s += "template<typename T>\nvoid populate_sequence_argument_names(T& argument_manager) {\n"
+            i = 0
+            for parameter_name in iter(parameters.keys()):
+                s += prefix(
+                    1
+                ) + "argument_manager.template set_name<" + parameter_name + ">(\"" + parameter_name + "\");\n"
+                i += 1
             s += "}\n"
             f = open(output_filename, "w")
             f.write(s)
@@ -214,16 +215,8 @@ char* m_offset = nullptr; };\n"
                 for inheriting_class in inheriting_classes:
                     s += inheriting_class + ", "
                 s = s[:-2]
-                s += " { \
-using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; \
-void set_size(size_t size) override { m_size = size; } \
-size_t size() const override { return m_size; } \
-std::string name() const override { return \"" + parameter_name + "\"; } \
-void set_offset(char* offset) override { m_offset = offset; } \
-char* offset() const override { return m_offset; } \
-private: \
-size_t m_size = 0; \
-char* m_offset = nullptr; };\n"
+                s += " { using type = " + v[0][1] + "::Parameters::" + v[0][
+                    2] + "::type; };\n"
 
             s += "\n"
             for algorithm_with_aggregate_class in algorithms_with_aggregates_list:

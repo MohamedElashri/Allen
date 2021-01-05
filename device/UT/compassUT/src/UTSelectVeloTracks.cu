@@ -19,12 +19,11 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, stream);
+  initialize<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, context);
 
-  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 }
 
@@ -36,7 +35,7 @@ __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_trac
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_beamline_states {parameters.dev_velo_beamline_states,
+  Velo::Consolidated::ConstStates velo_beamline_states {parameters.dev_velo_states,
                                                         velo_tracks.total_number_of_tracks()};
 
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);

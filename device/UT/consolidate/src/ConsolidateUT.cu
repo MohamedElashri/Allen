@@ -23,21 +23,20 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
   if (runtime_options.do_check) {
-    assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, stream);
-    assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, stream);
-    assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, stream);
-    assign_to_host_buffer<dev_ut_qop_t>(host_buffers.host_ut_qop, arguments, stream);
-    assign_to_host_buffer<dev_ut_x_t>(host_buffers.host_ut_x, arguments, stream);
-    assign_to_host_buffer<dev_ut_tx_t>(host_buffers.host_ut_tx, arguments, stream);
-    assign_to_host_buffer<dev_ut_z_t>(host_buffers.host_ut_z, arguments, stream);
-    assign_to_host_buffer<dev_ut_track_velo_indices_t>(host_buffers.host_ut_track_velo_indices, arguments, stream);
+    assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, context);
+    assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, context);
+    assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, context);
+    assign_to_host_buffer<dev_ut_qop_t>(host_buffers.host_ut_qop, arguments, context);
+    assign_to_host_buffer<dev_ut_x_t>(host_buffers.host_ut_x, arguments, context);
+    assign_to_host_buffer<dev_ut_tx_t>(host_buffers.host_ut_tx, arguments, context);
+    assign_to_host_buffer<dev_ut_z_t>(host_buffers.host_ut_z, arguments, context);
+    assign_to_host_buffer<dev_ut_track_velo_indices_t>(host_buffers.host_ut_track_velo_indices, arguments, context);
   }
 }
 
@@ -71,7 +70,7 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
   const UT::TrackHits* event_veloUT_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 

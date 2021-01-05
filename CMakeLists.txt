@@ -11,8 +11,6 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 option(BUILD_TESTS "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
 option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
-option(USE_LZMA "build with lzma" OFF)
-option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
@@ -61,7 +59,7 @@ set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 
 # HIP architecture
 # https://llvm.org/docs/AMDGPUUsage.html
 set(HIP_ARCH gfx906 CACHE STRING "HIP target architecture")
-set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 gfx909 gfx1010 gfx1011 gfx1012)
+set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 gfx909 gfx1010 gfx1011 gfx1012 gfx1030)
 
 # --------------------
 # Unrestricted options
@@ -101,6 +99,19 @@ if(TREAT_WARNINGS_AS_ERRORS)
   string(APPEND CMAKE_CXX_FLAGS " -Werror")
 endif()
 
+# Choice of malloc engine
+set(MALLOC_ENGINE SINGLE_ALLOC CACHE STRING "Malloc engine")
+set_property(CACHE MALLOC_ENGINE PROPERTY STRINGS SINGLE_ALLOC MULTI_ALLOC)
+message(STATUS "Memory manager: " ${MALLOC_ENGINE})
+add_compile_definitions(MEMORY_MANAGER_${MALLOC_ENGINE})
+
+# Choice of device invocation synchronicity
+option(SYNCHRONOUS_DEVICE_EXECUTION "Make device calls synchronous" OFF)
+message(STATUS "Synchronous device execution: " ${SYNCHRONOUS_DEVICE_EXECUTION})
+if(SYNCHRONOUS_DEVICE_EXECUTION)
+  add_compile_definitions(SYNCHRONOUS_DEVICE_EXECUTION)
+endif()
+
 # Deal with device target architecture
 if(NOT STANDALONE)
   message(STATUS "Configured Gaudi build")
@@ -109,17 +120,6 @@ if(NOT STANDALONE)
   else()
     message(STATUS "Configured Gaudi build - CPU target")
     set(TARGET_DEVICE "CPU")
-  endif()
-elseif(TARGET_DEVICE STREQUAL "HIP")
-#Note : HIP with nvcc backend is not supported
-#Instead, compile with CUDA target
-  if(HIP_PLATFORM STREQUAL "nvcc")
-    message(STATUS "HIP with nvcc backend is not supported (HIP_PLATFORM=nvcc)")
-    message(STATUS "Please unset HIP_PLATFORM to trigger a HIP compilation")
-    message(STATUS "Continuing with CUDA backend")
-    set(TARGET_DEVICE "CUDA")
-  else()
-    message(STATUS "Note: Support for HIP is experimental")
   endif()
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 message(STATUS "Note: Support for CUDACLANG is experimental")
@@ -297,7 +297,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
   function(allen_add_host_library)
     add_library(${ARGV})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION lib OPTIONAL)
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
   endfunction()
 
   function(allen_add_device_library)
@@ -309,14 +309,14 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_library(${ARGV})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -328,77 +328,59 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
    allen_project()
 elseif(TARGET_DEVICE STREQUAL "HIP")
+  allen_project()
+
   # Setup HIPCC compiler
-  if(NOT DEFINED HIP_PATH)
-    if(NOT DEFINED ENV{HIP_PATH})
-      set(HIP_PATH "/opt/rocm/hip" CACHE PATH "Path to which HIP has been installed")
+  if(NOT DEFINED ROCM_PATH)
+    if(NOT DEFINED ENV{ROCM_PATH})
+      set(ROCM_PATH "/opt/rocm" CACHE PATH "Path where ROCM has been installed")
     else()
-      set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
+      set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "Path where ROCM has been installed")
     endif()
   endif()
 
-  allen_project()
-
   # Find HIP
-  set(HCC_PATH "${HIP_PATH}/../hcc")
+  set(HIP_PATH "${ROCM_PATH}/hip")
+  set(HIP_CLANG_PATH "${ROCM_PATH}/llvm/bin")
   set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP QUIET REQUIRED)
   if(HIP_FOUND)
     message(STATUS "Found HIP: " ${HIP_VERSION})
   else()
-    message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable HIP_PATH is set.")
+    message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable ROCM_PATH is set.")
   endif()
 
-  # Set linker - This helps the linking process, which
-  # at the moment fails if we set up hip_add_executable instead
-  set(CMAKE_LINKER "${HIP_PATH}/bin/hipcc_cmake_linker_helper")
-  set(CMAKE_CXX_LINK_EXECUTABLE "<CMAKE_LINKER> ${HIP_PATH}/../llvm/bin <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-  set(CMAKE_CXX_CREATE_SHARED_LIBRARY "<CMAKE_LINKER> ${HIP_PATH}/../llvm/bin <CMAKE_SHARED_LIBRARY_CXX_FLAGS> <LANGUAGE_COMPILE_FLAGS> <LINK_FLAGS> <CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS> <SONAME_FLAG><TARGET_SONAME> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>")
-
-  set(HIP_SEPARABLE_COMPILATION OFF)
-
-#HCC Options(HIPCC compiler)
-#Other warning options : -Wall - Wno - bitwise - op - parentheses - Wno - unused - variable - Wno - logical - op - \parentheses
+  # Deal with build type (HIP)
   if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
     set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  # Note: HIP does not support asserts for now, at least in Allen:
-  #       LLVM ERROR: could not scavenge SGPR to spill in entry function
-  #       PLEASE submit a bug report to https://bugs.llvm.org/ and include the crash backtrace.
-    message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   else()
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif()
-
-  # To avoid /opt/rocm/hip/include/hip/hcc_detail/hip_runtime_api.h:1695:24: warning: ignoring returned value of type ‘hipError_t’, declared with attribute nodiscard [-Wunused-result]
-  string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-result")
-
-  # Note: The off warnings are there for reasons we cannot control:
-  # clang-11: warning: argument unused during compilation: '--hip-device-lib-path=/local/rocm/rocm-3.5.1/lib' [-Wunused-command-line-argument]
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn -Wno-unused-command-line-argument")
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
   function(allen_add_host_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
 #Define allen_add_device_library and allen_add_executable HIP specializations
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
-    add_executable(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${HIP_PATH}/../hsa/include)
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    hip_add_executable(${ARGV})
+    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
@@ -409,7 +391,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 
   function(allen_add_host_library)
     add_library(${ARGV})
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     target_include_directories(${ARGV0} PRIVATE /cvmfs/sft.cern.ch/lcg/releases/cuda/10.1-6ddea/x86_64-centos7-gcc62-opt/include)
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -424,7 +406,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
     target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} ${DEVICE_ARCHITECTURE})
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     # target_link_libraries(Threads::Threads)
   endfunction()
 
@@ -432,7 +414,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     message(STATUS "Please use nvcc to link the executable.")
     add_executable(${ARGV})
     target_include_directories(${ARGV0} PRIVATE /cvmfs/sft.cern.ch/lcg/releases/cuda/10.1-6ddea/x86_64-centos7-gcc62-opt/include)
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -461,7 +443,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_host_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -475,13 +457,13 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     else()
       set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     endif()
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    target_compile_definitions(${ARGV0} PRIVATE "-D${TARGET_DEFINITION}")
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -524,8 +506,6 @@ if(STANDALONE)
   endif()
 endif()
 
-find_package(ZLIB REQUIRED)
-
 if (USE_MPI)
   find_package(MPI REQUIRED)
 #hwloc is also needed
@@ -536,19 +516,6 @@ if (USE_MPI)
 else(USE_MPI)
   set(MPI_FOUND OFF)
 endif()
-
-if(USE_LZMA)
-  find_package(LibLZMA REQUIRED)
-else(USE_LZMA)
-  set(LZMA_FOUND OFF)
-endif(USE_LZMA)
-
-if(USE_LZ4)
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(LZ4 REQUIRED liblz4)
-else(USE_LZ4)
-  set(LZ4_FOUND OFF)
-endif(USE_LZ4)
 
 if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)

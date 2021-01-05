@@ -20,10 +20,9 @@ void pv_beamline_histo::pv_beamline_histo_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  global_function(pv_beamline_histo)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), stream)(
+  global_function(pv_beamline_histo)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_beamline.data());
 }
 
@@ -50,7 +49,7 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
 
   float* histo_base_pointer = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
 
-  // find better wy to intialize histogram bins to zero
+  // find better way to intialize histogram bins to zero
   if (threadIdx.x == 0) {
     for (int i = 0; i < BeamlinePVConstants::Common::Nbins; i++) {
       *(histo_base_pointer + i) = 0.f;
@@ -76,7 +75,11 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
       const float zweight = trk.tx.x * trk.tx.x * trk.W_00 + trk.tx.y * trk.tx.y * trk.W_11;
       const float zerr = 1.f / sqrtf(zweight);
       // get rid of useless tracks. must be a bit carefull with this.
-      if (zerr < BeamlinePVConstants::Common::maxTrackZ0Err) { // m_nsigma < 10*m_dz ) {
+      const float maxTrackZ0Err = trk.z < BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                                    BeamlinePVConstants::Common::SMOG2_maxTrackZ0Err :
+                                    BeamlinePVConstants::Common::pp_maxTrackZ0Err;
+
+      if (zerr < maxTrackZ0Err) { // m_nsigma < 10*m_dz ) {
         // find better place to define this
         const float a = sqrtf(float(2 * BeamlinePVConstants::Histo::order_polynomial + 3));
         const float halfwindow = a * zerr / BeamlinePVConstants::Common::dz;
