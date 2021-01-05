@@ -104,8 +104,7 @@ namespace Velo {
 
       __host__ __device__ States_t(T* base_pointer, const unsigned total_number_of_tracks, const unsigned offset = 0) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
-        m_total_number_of_tracks(total_number_of_tracks),
-        m_offset(offset)
+        m_total_number_of_tracks(total_number_of_tracks), m_offset(offset)
       {}
 
       __host__ __device__ States_t(const States_t<T>& states) :
