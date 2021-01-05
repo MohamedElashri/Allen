@@ -95,15 +95,17 @@ namespace Velo {
     private:
       typename ForwardType<T, float>::t* m_base_pointer;
       const unsigned m_total_number_of_tracks;
+      const unsigned m_offset;
 
     public:
       constexpr static unsigned size = 11 * sizeof(uint32_t);
       constexpr static unsigned nb_elements_state = 5;
       constexpr static unsigned nb_elements_cov = 6;
 
-      __host__ __device__ States_t(T* base_pointer, const unsigned total_number_of_tracks) :
+      __host__ __device__ States_t(T* base_pointer, const unsigned total_number_of_tracks, const unsigned offset = 0) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
-        m_total_number_of_tracks(total_number_of_tracks)
+        m_total_number_of_tracks(total_number_of_tracks),
+        m_offset(offset)
       {}
 
       __host__ __device__ States_t(const States_t<T>& states) :
@@ -113,134 +115,134 @@ namespace Velo {
       // Accessors and lvalue references for all types
       __host__ __device__ float x(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index)];
       }
 
       __host__ __device__ float& x(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index)];
       }
 
       __host__ __device__ float y(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 1];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 1];
       }
 
       __host__ __device__ float& y(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 1];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 1];
       }
 
       __host__ __device__ float z(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 2];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 2];
       }
 
       __host__ __device__ float& z(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 2];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 2];
       }
 
       __host__ __device__ float tx(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 3];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 3];
       }
 
       __host__ __device__ float& tx(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 3];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 3];
       }
 
       __host__ __device__ float ty(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 4];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 4];
       }
 
       __host__ __device__ float& ty(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * index + 4];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 4];
       }
 
       __host__ __device__ float c00(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index)];
       }
 
       __host__ __device__ float& c00(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index)];
       }
 
       __host__ __device__ float c20(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 1];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 1];
       }
 
       __host__ __device__ float& c20(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 1];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 1];
       }
 
       __host__ __device__ float c22(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 2];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 2];
       }
 
       __host__ __device__ float& c22(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 2];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 2];
       }
 
       __host__ __device__ float c11(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 3];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 3];
       }
 
       __host__ __device__ float& c11(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 3];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 3];
       }
 
       __host__ __device__ float c31(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 4];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 4];
       }
 
       __host__ __device__ float& c31(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 4];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 4];
       }
 
       __host__ __device__ float c33(const unsigned index) const
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 5];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 5];
       }
 
       __host__ __device__ float& c33(const unsigned index)
       {
-        assert(index < m_total_number_of_tracks);
-        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * index + 5];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 5];
       }
 
       __host__ __device__ void set(const unsigned track_number, const KalmanVeloState& state)
