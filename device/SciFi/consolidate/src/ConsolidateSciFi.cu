@@ -180,7 +180,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
 
     auto consolidated_hits = scifi_tracks.get_hits(parameters.dev_scifi_track_hits, i);
     const SciFi::TrackHits& track = event_scifi_tracks[i];
-/*    const auto magSign = dev_magnet_polarity[0];
+    const auto magSign = dev_magnet_polarity[0];
     const auto z0 = LookingForward::z_mid_t;
     const auto xVelo = velo_state.x;
     const auto yVelo = velo_state.y;
@@ -201,7 +201,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
       txO,
       tyO,
       tx,
-      ty); */    
+      ty);   
     
     // Populate arrays
     populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
