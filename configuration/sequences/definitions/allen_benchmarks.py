@@ -14,6 +14,8 @@ benchmark_weights = dict(
         ("global_event_cut", 10.0),
         ("gather_selections", 100.0),
         ("initialize_event_lists", 1.0),
+        ("mep_layout", 1.0),
+        ("dec_reporter", 10.0),
         # Automatic entries
         ("lf_triplet_seeding", 5766.6),
         ("velo_search_by_triplet", 3086.5),
