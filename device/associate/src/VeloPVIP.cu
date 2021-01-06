@@ -111,9 +111,8 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
   velo_pv_ip.cutoff() = Associate::VeloPVIP::baseline;
 
   // Consolidated Velo fitted states for this event
-  Velo::Consolidated::ConstStates velo_kalman_states {parameters.dev_velo_kalman_beamline_states +
-                                                        sizeof(float) * event_tracks_offset,
-                                                      velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_kalman_states {
+    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks(), event_tracks_offset};
 
   Allen::device::span<const PV::Vertex> vertices {parameters.dev_multi_final_vertices +
                                                     event_number * PV::max_number_vertices,

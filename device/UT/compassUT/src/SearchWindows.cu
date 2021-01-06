@@ -173,11 +173,15 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float min_pt,
   const float min_momentum)
 {
+  // TODO: Understand and fix this logic
   // -- This is hardcoded, so faster
   // -- If you ever change the Table in the magnet tool, this will be wrong
   const float absSlopeY = fabsf(velo_state.ty);
-  const int index = static_cast<int>(absSlopeY * 100 + 0.5f);
-  assert(3 + 4 * index < UTMagnetTool::N_dxLay_vals);
+  int index = static_cast<int>(absSlopeY * 100 + 0.5f);
+  // assert(3 + 4 * index < UTMagnetTool::N_dxLay_vals);
+  if (3 + 4 * index >= UTMagnetTool::N_dxLay_vals) {
+    index = 2 + 4 * index;
+  }
   const float normFact[4] {
     fudge_factors[4 * index], fudge_factors[1 + 4 * index], fudge_factors[2 + 4 * index], fudge_factors[3 + 4 * index]};
 
