@@ -41,30 +41,31 @@ __device__ void simple_clusters(CaloDigit const* digits,
 __global__ void calo_find_clusters::calo_find_clusters(
   calo_find_clusters::Parameters parameters,
   const char* raw_ecal_geometry,
-  const char* raw_hcal_geometry,
-  const unsigned)
+  const char* raw_hcal_geometry)
 {
   // Get proper geometry.
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
 
-  unsigned const event_index = blockIdx.x;
+  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
   // Build simple 3x3 clusters from seed clusters
   // Ecal
-  unsigned const ecal_offset = parameters.dev_ecal_cluster_offsets[event_index];
-  unsigned const ecal_num_clusters = parameters.dev_ecal_num_clusters[event_index];
-  simple_clusters(parameters.dev_ecal_digits + ecal_geometry.max_index * event_index,
-                  parameters.dev_ecal_seed_clusters + ecal_geometry.max_index / 8 * event_index,
-                  parameters.dev_ecal_clusters + ecal_offset,
+  unsigned const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
+  unsigned const ecal_num_clusters = parameters.dev_ecal_num_clusters[event_number];
+  unsigned const ecal_clusters_offset = parameters.dev_ecal_cluster_offsets[event_number];
+  simple_clusters(parameters.dev_ecal_digits + ecal_digits_offset,
+                  parameters.dev_ecal_seed_clusters + ecal_clusters_offset,
+                  parameters.dev_ecal_clusters + ecal_clusters_offset,
                   ecal_num_clusters, ecal_geometry);
 
   // Hcal
-  unsigned const hcal_offset = parameters.dev_hcal_cluster_offsets[event_index];
-  unsigned const hcal_num_clusters = parameters.dev_hcal_num_clusters[event_index];
-  simple_clusters(parameters.dev_hcal_digits + hcal_geometry.max_index * event_index,
-                  parameters.dev_hcal_seed_clusters + hcal_geometry.max_index / 8 * event_index,
-                  parameters.dev_hcal_clusters + hcal_offset,
+  unsigned const hcal_digits_offset = parameters.dev_hcal_digits_offsets[event_number];
+  unsigned const hcal_clusters_offset = parameters.dev_hcal_cluster_offsets[event_number];
+  unsigned const hcal_num_clusters = parameters.dev_hcal_num_clusters[event_number];
+  simple_clusters(parameters.dev_hcal_digits + hcal_digits_offset,
+                  parameters.dev_hcal_seed_clusters + hcal_clusters_offset,
+                  parameters.dev_hcal_clusters + hcal_clusters_offset,
                   hcal_num_clusters, hcal_geometry);
 
 }
@@ -76,11 +77,9 @@ void calo_find_clusters::calo_find_clusters_t::set_arguments_size(
   const HostBuffers&) const
 {
   auto const n_ecal_clusters = first<host_ecal_number_of_clusters_t>(arguments);
-  set_size<dev_ecal_digits_clusters_t>(arguments, n_ecal_clusters);
   set_size<dev_ecal_clusters_t>(arguments, n_ecal_clusters);
 
   auto const n_hcal_clusters = first<host_hcal_number_of_clusters_t>(arguments);
-  set_size<dev_hcal_digits_clusters_t>(arguments, n_hcal_clusters);
   set_size<dev_hcal_clusters_t>(arguments, n_hcal_clusters);
 }
 
@@ -90,21 +89,19 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t&) const
+  Allen::Context const& context) const
 {
   // Find clusters.
   global_function(calo_find_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments,
     constants.dev_ecal_geometry,
-    constants.dev_hcal_geometry,
-    property<iterations_t>().get());
+    constants.dev_hcal_geometry);
 
   if (runtime_options.do_check) {
-    safe_assign_to_host_buffer<dev_ecal_cluster_offsets_t>(host_buffers.host_ecal_cluster_offsets, arguments, cuda_stream);
-    safe_assign_to_host_buffer<dev_hcal_cluster_offsets_t>(host_buffers.host_hcal_cluster_offsets, arguments, cuda_stream);
-    safe_assign_to_host_buffer<dev_ecal_clusters_t>(host_buffers.host_ecal_clusters, arguments, cuda_stream);
-    safe_assign_to_host_buffer<dev_hcal_clusters_t>(host_buffers.host_hcal_clusters, arguments, cuda_stream);
+    safe_assign_to_host_buffer<dev_ecal_cluster_offsets_t>(host_buffers.host_ecal_cluster_offsets, arguments, context);
+    safe_assign_to_host_buffer<dev_hcal_cluster_offsets_t>(host_buffers.host_hcal_cluster_offsets, arguments, context);
+    safe_assign_to_host_buffer<dev_ecal_clusters_t>(host_buffers.host_ecal_clusters, arguments, context);
+    safe_assign_to_host_buffer<dev_hcal_clusters_t>(host_buffers.host_hcal_clusters, arguments, context);
   }
 }

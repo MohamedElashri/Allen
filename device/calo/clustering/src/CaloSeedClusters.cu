@@ -1,12 +1,13 @@
 #include <CaloSeedClusters.cuh>
 
 __device__ void seed_clusters(CaloDigit const* digits,
+                              unsigned const num_digits,
                               CaloSeedCluster* clusters,
                               unsigned* num_clusters,
                               const CaloGeometry& geometry,
                               const int16_t min_adc) {
   // Loop over all CellIDs.
-  for (unsigned i = threadIdx.x; i < geometry.max_index; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < num_digits; i += blockDim.x) {
     int16_t adc = digits[i].adc;
     if (adc == SHRT_MAX || adc < min_adc) {
       continue;
@@ -31,22 +32,26 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
   const int16_t ecal_min_adc,
   const int16_t hcal_min_adc)
 {
-  unsigned const event_index = blockIdx.x;
+  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
   // Get geometry.
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
 
   // ECal
-  seed_clusters(&parameters.dev_ecal_digits[ecal_geometry.max_index * event_index],
-                &parameters.dev_ecal_seed_clusters[ecal_geometry.max_index * event_index / 8],
-                &parameters.dev_ecal_num_clusters[event_index],
+  auto const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
+  seed_clusters(&parameters.dev_ecal_digits[ecal_digits_offset],
+                parameters.dev_ecal_num_digits[event_number],
+                &parameters.dev_ecal_seed_clusters[ecal_geometry.max_index * event_number / 8],
+                &parameters.dev_ecal_num_clusters[event_number],
                 ecal_geometry, ecal_min_adc);
 
   // HCal
-  seed_clusters(&parameters.dev_hcal_digits[hcal_geometry.max_index * event_index],
-                &parameters.dev_hcal_seed_clusters[hcal_geometry.max_index * event_index / 8],
-                &parameters.dev_hcal_num_clusters[event_index],
+  auto const hcal_digits_offset = parameters.dev_hcal_digits_offsets[event_number];
+  seed_clusters(&parameters.dev_hcal_digits[hcal_digits_offset],
+                parameters.dev_hcal_num_digits[event_number],
+                &parameters.dev_hcal_seed_clusters[hcal_geometry.max_index * event_number / 8],
+                &parameters.dev_hcal_num_clusters[event_number],
                 hcal_geometry, hcal_min_adc);
 }
 
@@ -56,7 +61,7 @@ void calo_seed_clusters::calo_seed_clusters_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  auto const n_events = size<dev_event_list_t>(arguments);
+  auto const n_events = first<host_number_of_events_t>(arguments);
   set_size<dev_ecal_num_clusters_t>(arguments, n_events);
   set_size<dev_hcal_num_clusters_t>(arguments, n_events);
 
@@ -70,15 +75,14 @@ void calo_seed_clusters::calo_seed_clusters_t::operator()(
   const RuntimeOptions&,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t&) const
+  Allen::Context const& context) const
 {
-  initialize<dev_ecal_num_clusters_t>(arguments, 0, cuda_stream);
-  initialize<dev_hcal_num_clusters_t>(arguments, 0, cuda_stream);
+  initialize<dev_ecal_num_clusters_t>(arguments, 0, context);
+  initialize<dev_hcal_num_clusters_t>(arguments, 0, context);
 
   // Find local maxima.
   global_function(calo_seed_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry,
     property<ecal_min_adc_t>().get(), property<hcal_min_adc_t>().get());
 }

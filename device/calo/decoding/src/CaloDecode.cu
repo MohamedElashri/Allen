@@ -8,6 +8,7 @@ template<typename Event>
 __device__ void decode(const char* event_data, const uint32_t* offsets,
                        const unsigned* event_list,
                        CaloDigit* digits,
+                       unsigned* number_of_digits,
                        const CaloGeometry& geometry)
 {
   unsigned const event_number = event_list[blockIdx.x];
@@ -61,6 +62,7 @@ __device__ void decode(const char* event_data, const uint32_t* offsets,
         // Ignore cells with invalid indices
         if (index < geometry.max_index) {
           digits[event_index * geometry.max_index + index].adc = adc;
+          atomicAdd(number_of_digits + event_number, 1);
         }
       }
     }
@@ -78,6 +80,7 @@ __global__ void calo_decode::calo_decode(
                        parameters.dev_ecal_raw_input_offsets,
                        parameters.dev_event_list,
                        parameters.dev_ecal_digits,
+                       parameters.dev_ecal_num_digits,
                        ecal_geometry);
 
   // HCal
@@ -86,6 +89,7 @@ __global__ void calo_decode::calo_decode(
                        parameters.dev_hcal_raw_input_offsets,
                        parameters.dev_event_list,
                        parameters.dev_hcal_digits,
+                       parameters.dev_hcal_num_digits,
                        hcal_geometry);
 }
 
@@ -100,6 +104,7 @@ __global__ void calo_decode::calo_decode_mep(
                        parameters.dev_ecal_raw_input_offsets,
                        parameters.dev_event_list,
                        parameters.dev_ecal_digits,
+                       parameters.dev_ecal_num_digits,
                        ecal_geometry);
 
   // HCal
@@ -108,6 +113,7 @@ __global__ void calo_decode::calo_decode_mep(
                        parameters.dev_hcal_raw_input_offsets,
                        parameters.dev_event_list,
                        parameters.dev_hcal_digits,
+                       parameters.dev_hcal_num_digits,
                        hcal_geometry);
 }
 
@@ -118,7 +124,9 @@ void calo_decode::calo_decode_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_ecal_digits_t>(arguments, Calo::Constants::ecal_max_index * size<dev_event_list_t>(arguments));
+  set_size<dev_ecal_num_digits_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_hcal_digits_t>(arguments, Calo::Constants::hcal_max_index * size<dev_event_list_t>(arguments));
+  set_size<dev_hcal_num_digits_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void calo_decode::calo_decode_t::operator()(
@@ -126,20 +134,21 @@ void calo_decode::calo_decode_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t&) const
+  const Allen::Context& context) const
 {
-  initialize<dev_ecal_digits_t>(arguments, SHRT_MAX, cuda_stream);
-  initialize<dev_hcal_digits_t>(arguments, SHRT_MAX, cuda_stream);
+  initialize<dev_ecal_digits_t>(arguments, SHRT_MAX, context);
+  initialize<dev_ecal_num_digits_t>(arguments, 0, context);
+  initialize<dev_hcal_digits_t>(arguments, SHRT_MAX, context);
+  initialize<dev_hcal_num_digits_t>(arguments, 0, context);
 
   if (runtime_options.mep_layout) {
     global_function(calo_decode_mep)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
       arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }
   else {
     global_function(calo_decode)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
+      dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
       arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }
 }
