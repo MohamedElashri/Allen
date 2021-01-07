@@ -46,7 +46,7 @@ __device__ void populate(const SciFi::TrackHits& track, const F& assign)
     assign(i, hit_index);
   }
 }
-
+/*
 __device__ float qop_calculation(
   LookingForward::Constants const* dev_looking_forward_constants,
   float const magSign,
@@ -92,7 +92,7 @@ __device__ float qop_calculation(
   const auto MAGFIELD_updated = MAGFIELD * magSign * ( C0 + C1 * DSLOPE + C2 * DSLOPE*DSLOPE + C3 * DSLOPE*DSLOPE*DSLOPE + C4 * DSLOPE*DSLOPE*DSLOPE*DSLOPE);
   const auto qop = DSLOPE / MAGFIELD_updated;
   return qop;
-}
+}*/
 
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
   scifi_consolidate_tracks::Parameters parameters,
@@ -180,7 +180,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
 
     auto consolidated_hits = scifi_tracks.get_hits(parameters.dev_scifi_track_hits, i);
     const SciFi::TrackHits& track = event_scifi_tracks[i];
-    const auto magSign = dev_magnet_polarity[0];
+/*    const auto magSign = dev_magnet_polarity[0];
     const auto z0 = LookingForward::z_mid_t;
     const auto xVelo = velo_state.x;
     const auto yVelo = velo_state.y;
@@ -201,7 +201,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
       txO,
       tyO,
       tx,
-      ty);   
+      ty);   */
     
     // Populate arrays
     populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
