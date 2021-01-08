@@ -101,5 +101,4 @@ docker_image:build:
   allow_failure: true
   needs: []
 
-
 include: "scripts/ci/config/main.yaml"
