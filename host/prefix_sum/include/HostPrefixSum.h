@@ -5,6 +5,7 @@
 
 #include "BackendCommon.h"
 #include "HostAlgorithm.cuh"
+#include "GenericContainerContracts.h"
 
 namespace host_prefix_sum {
   struct Parameters {
@@ -23,6 +24,11 @@ namespace host_prefix_sum {
     unsigned* host_total_sum_holder = nullptr);
 
   struct host_prefix_sum_t : public HostAlgorithm, Parameters {
+    using contracts = std::tuple<
+      Allen::contract::is_monotonically_increasing<host_output_buffer_t, Parameters, Allen::contract::Postcondition>,
+      Allen::contract::
+        are_equal<host_output_buffer_t, dev_output_buffer_t, Parameters, Allen::contract::Postcondition>>;
+
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,

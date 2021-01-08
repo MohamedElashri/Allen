@@ -112,6 +112,13 @@ if(SYNCHRONOUS_DEVICE_EXECUTION)
   add_compile_definitions(SYNCHRONOUS_DEVICE_EXECUTION)
 endif()
 
+# Choice of enabling contracts
+option(ENABLE_CONTRACTS "Enable contracts in sequence execution" OFF)
+message(STATUS "Contracts: " ${ENABLE_CONTRACTS})
+if(ENABLE_CONTRACTS)
+  add_compile_definitions(ENABLE_CONTRACTS)
+endif()
+
 # Deal with device target architecture
 if(NOT STANDALONE)
   message(STATUS "Configured Gaudi build")
@@ -574,6 +581,8 @@ endif()
 set(EXTERNAL_DIR "external")
 
 find_package(Boost REQUIRED COMPONENTS iostreams)
+
+include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
 
 add_subdirectory(backend)
 add_subdirectory(device)

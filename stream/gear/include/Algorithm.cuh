@@ -8,6 +8,7 @@
 #include "BaseTypes.cuh"
 #include "TargetFunction.cuh"
 #include "Argument.cuh"
+#include "Contract.h"
 
 namespace Allen {
   // Forward declare to use in Algorithm
@@ -21,6 +22,9 @@ namespace Allen {
    */
   class Algorithm : public BaseAlgorithm {
   public:
+    // Define empty contract container by default
+    using contracts = std::tuple<>;
+
     template<typename T>
     using Property = Allen::Property<T>;
 

@@ -31,6 +31,9 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
     data<dev_output_buffer_t>(arguments),
     size<dev_input_buffer_t>(arguments),
     data<host_total_sum_holder_t>(arguments));
+
+  // Ensure host_output_buffer and dev_output_buffer contain the same
+  copy<host_output_buffer_t, dev_output_buffer_t>(arguments, context);
 #else
   // Copy data over to the host
   copy<host_output_buffer_t, dev_input_buffer_t>(arguments, context);

@@ -9,6 +9,7 @@
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
+#include "GenericContainerContracts.h"
 
 namespace velo_search_by_triplet {
   struct Parameters {
@@ -43,9 +44,34 @@ namespace velo_search_by_triplet {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;
   };
 
-  __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
+  // Define pre and postconditions
+  struct cluster_container_checks : public Allen::contract::Precondition {
+    void operator()(
+      const ArgumentReferences<Parameters>&,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context&) const;
+  };
+
+  struct track_container_checks : public Allen::contract::Postcondition {
+    void operator()(
+      const ArgumentReferences<Parameters>&,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context&) const;
+  };
 
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
+    // Register contracts for this algorithm
+    using contracts = std::tuple<
+      cluster_container_checks,
+      track_container_checks,
+      Allen::contract::limit_high<
+        Velo::Constants::max_tracks,
+        dev_number_of_velo_tracks_t,
+        Parameters,
+        Allen::contract::Postcondition>>;
+
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
@@ -65,4 +91,6 @@ namespace velo_search_by_triplet {
     Property<max_skipped_modules_t> m_skip {this, 1};
     Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
+
+  __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
 } // namespace velo_search_by_triplet

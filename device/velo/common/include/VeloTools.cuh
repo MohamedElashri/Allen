@@ -87,25 +87,9 @@ template<
 __host__ inline void print_velo_clusters(Arguments arguments)
 {
   // Prints the velo clusters
-  std::vector<char> a(size<VeloContainer>(arguments));
-  std::vector<unsigned> offsets_estimated_input_size(size<Offsets>(arguments));
-  std::vector<unsigned> module_cluster_num(size<ClusterNum>(arguments));
-
-  Allen::memcpy(
-    a.data(),
-    data<VeloContainer>(arguments),
-    size<VeloContainer>(arguments) * sizeof(typename VeloContainer::type),
-    Allen::memcpyDeviceToHost);
-  Allen::memcpy(
-    offsets_estimated_input_size.data(),
-    data<Offsets>(arguments),
-    size<Offsets>(arguments) * sizeof(typename Offsets::type),
-    Allen::memcpyDeviceToHost);
-  Allen::memcpy(
-    module_cluster_num.data(),
-    data<ClusterNum>(arguments),
-    size<ClusterNum>(arguments) * sizeof(typename ClusterNum::type),
-    Allen::memcpyDeviceToHost);
+  const auto a = make_vector<VeloContainer>(arguments);
+  const auto offsets_estimated_input_size = make_vector<Offsets>(arguments);
+  const auto module_cluster_num = make_vector<ClusterNum>(arguments);
 
   const auto velo_cluster_container = Velo::ConstClusters {a.data(), first<TotalNumberOfClusters>(arguments)};
   for (unsigned event_number = 0; event_number < first<NumberOfEvents>(arguments); ++event_number) {
@@ -142,32 +126,10 @@ template<
 __host__ inline void print_velo_tracks(Arguments arguments)
 {
   // Prints the velo clusters
-  std::vector<Velo::TrackHits> trackhits(size<VeloTracks>(arguments));
-  std::vector<unsigned> number_of_velo_tracks(size<NumberOfVeloTracks>(arguments));
-  std::vector<Velo::TrackletHits> tracklethits(size<VeloTracklets>(arguments));
-  std::vector<unsigned> number_of_velo_tracklets(size<NumberOfVeloTracklets>(arguments));
-
-  Allen::memcpy(
-    trackhits.data(),
-    data<VeloTracks>(arguments),
-    size<VeloTracks>(arguments) * sizeof(typename VeloTracks::type),
-    Allen::memcpyDeviceToHost);
-  Allen::memcpy(
-    number_of_velo_tracks.data(),
-    data<NumberOfVeloTracks>(arguments),
-    size<NumberOfVeloTracks>(arguments) * sizeof(typename NumberOfVeloTracks::type),
-    Allen::memcpyDeviceToHost);
-
-  Allen::memcpy(
-    tracklethits.data(),
-    data<VeloTracklets>(arguments),
-    size<VeloTracklets>(arguments) * sizeof(typename VeloTracklets::type),
-    Allen::memcpyDeviceToHost);
-  Allen::memcpy(
-    number_of_velo_tracklets.data(),
-    data<NumberOfVeloTracklets>(arguments),
-    size<NumberOfVeloTracklets>(arguments) * sizeof(typename NumberOfVeloTracklets::type),
-    Allen::memcpyDeviceToHost);
+  const auto trackhits = make_vector<VeloTracks>(arguments);
+  const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments);
+  const auto tracklethits = make_vector<VeloTracklets>(arguments);
+  const auto number_of_velo_tracklets = make_vector<NumberOfVeloTracklets>(arguments);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
@@ -204,19 +166,8 @@ template<typename VeloTracks, typename NumberOfVeloTracks, typename Arguments>
 __host__ inline void print_velo_three_hit_tracks(Arguments arguments)
 {
   // Prints the velo clusters
-  std::vector<Velo::TrackletHits> trackhits(size<VeloTracks>(arguments));
-  std::vector<unsigned> number_of_velo_tracks(size<NumberOfVeloTracks>(arguments));
-
-  Allen::memcpy(
-    trackhits.data(),
-    data<VeloTracks>(arguments),
-    size<VeloTracks>(arguments) * sizeof(typename VeloTracks::type),
-    Allen::memcpyDeviceToHost);
-  Allen::memcpy(
-    number_of_velo_tracks.data(),
-    data<NumberOfVeloTracks>(arguments),
-    size<NumberOfVeloTracks>(arguments) * sizeof(typename NumberOfVeloTracks::type),
-    Allen::memcpyDeviceToHost);
+  const auto trackhits = make_vector<VeloTracks>(arguments);
+  const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];

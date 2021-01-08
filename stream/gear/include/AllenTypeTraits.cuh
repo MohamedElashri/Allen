@@ -142,4 +142,7 @@ auto tuple_ref_by_inheritance(Tuple&& tuple)
 namespace Allen {
   template<typename T, typename U>
   using forward_type_t = std::conditional_t<std::is_const_v<T>, std::add_const_t<U>, std::remove_const_t<U>>;
-}
+
+  template<typename T>
+  using bool_as_char_t = std::conditional_t<std::is_same_v<std::decay_t<T>, bool>, char, std::decay_t<T>>;
+} // namespace Allen
