@@ -126,8 +126,11 @@ def _is_configurable_tool(t):
 
 def _check_input_integrity(t, inputs, other_args, input_transform=None):
     dh_inputs = configurable_inputs(t)
-    inputs = set(i for i in set(inputs) if "dev_event_list_t" not in i)
-    dh_inputs = set(d for d in dh_inputs if "dev_event_list_t" not in d)
+
+    # Exclude masks (inputs with type mask_t) from the DataHandle inputs to consider
+    dh_inputs = set(d for d, v in dh_inputs.items() if v.type() != "mask_t")
+    inputs = set(inputs)
+
     if set(dh_inputs).intersection(other_args):
         raise TypeError(
             'Inputs must be provided as DataHandles or Algorithms, '

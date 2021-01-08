@@ -9,7 +9,7 @@ namespace event_list_union {
     HOST_OUTPUT(host_event_list_a_t, unsigned) host_event_list_a;
     HOST_OUTPUT(host_event_list_b_t, unsigned) host_event_list_b;
     HOST_OUTPUT(host_event_list_output_t, unsigned) host_event_list_output;
-    DEVICE_OUTPUT(dev_event_list_output_t, unsigned) dev_event_list_output;
+    MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
   };
 
   struct event_list_union_t : public HostAlgorithm, Parameters {

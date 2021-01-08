@@ -71,9 +71,14 @@ def add_event_list_combiners(order):
             )
 
     def combine(logic, *nodes):  # needs to return pyconf algorithm
+        output_masks = []
+        for n in nodes:
+            m = [a for a in n.outputs.values() if a.type == "mask_t"]
+            assert(len(m) == 1)
+            output_masks.append(m[0])
+
         return _make_combiner(
-            inputs=[n.dev_event_list_output_t for n in nodes], logic=logic
-        )
+            inputs=output_masks, logic=logic)
 
     def _has_only_leafs(node):
         return all(isinstance(c, Leaf) for c in node.children)
@@ -141,19 +146,33 @@ def add_event_list_combiners(order):
 
     # Update all algorithm event lists
     for alg, mask in final_sequence_unique:
-        if "dev_event_list_t" in configurable_inputs(alg.type):
-            alg.inputs["dev_event_list_t"] = combiners[mask][-1].dev_event_list_output_t
+        mask_input = [k for k,v in configurable_inputs(alg.type).items() if v.type() == "mask_t"]
+        if len(mask_input):
+            output_mask = [v for v in combiners[mask][-1].outputs.values() if v.type == "mask_t"]
+            assert(len(mask_input) == 1 and len(output_mask) == 1)
+            alg.inputs[mask_input[0]] = output_mask[0]
 
     return [alg for alg, _ in final_sequence_unique]
 
-
-def generate(node):
+def map_alg_to_node(root):
+    algorithm_with_output_mask_to_leaf = {}
+    for leaf in gather_leafs(root):
+        top_algorithm = leaf.top_alg
+        contains_output_mask = [a for a in top_algorithm.outputs.values() if a.type == "mask_t"]
+        if contains_output_mask:
+            algorithm_with_output_mask_to_leaf[top_algorithm] = leaf
+    return algorithm_with_output_mask_to_leaf
+    
+def generate(root):
     """Generates an Allen sequence out of a root node."""
     best_order = get_execution_list_for(node)
 
     print("Generated sequence represented as algorithms with execution masks:")
+    alg_to_leaf = map_alg_to_node(root)
     for a, b in best_order[0].items():
-        print(f"  {a} ({b})")
-    
+        in_mask = f" in:{b}" if b else ""
+        out_mask = f" out:{alg_to_leaf[a]}" if a in alg_to_leaf.keys() else ""
+        print(f"  {a}{in_mask}{out_mask}")
+
     final_seq = add_event_list_combiners(best_order)
     return generate_allen_sequence(final_seq)

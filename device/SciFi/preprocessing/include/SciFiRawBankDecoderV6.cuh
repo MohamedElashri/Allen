@@ -15,7 +15,7 @@ namespace scifi_raw_bank_decoder_v6 {
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_INPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

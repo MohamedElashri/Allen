@@ -21,7 +21,7 @@ namespace ut_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
     DEVICE_OUTPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_OUTPUT(dev_ut_x_t, float) dev_ut_x;

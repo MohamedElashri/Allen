@@ -221,14 +221,24 @@ def ForwardSequence(initialize_lists,
         dev_ut_track_velo_indices_t(),
         dev_scifi_tracks_t=lf_quality_filter.dev_scifi_tracks_t(),
         dev_scifi_lf_parametrization_consolidate_t=lf_quality_filter.
-        dev_scifi_lf_parametrization_consolidate_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t())
+        dev_scifi_lf_parametrization_consolidate_t,
+        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
+        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
+        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"])
 
-    return Sequence(
-        scifi_banks, scifi_calculate_cluster_count, prefix_sum_scifi_hits,
-        scifi_pre_decode, scifi_raw_bank_decoder, lf_search_initial_windows,
-        lf_triplet_seeding, lf_create_tracks, lf_quality_filter_length,
-        lf_quality_filter, prefix_sum_forward_tracks,
-        scifi_copy_track_hit_number, prefix_sum_scifi_track_hit_number,
-        scifi_consolidate_tracks)
+    return {
+        "dev_scifi_track_hits":
+        scifi_consolidate_tracks.dev_scifi_track_hits_t,
+        "dev_scifi_qop":
+        scifi_consolidate_tracks.dev_scifi_qop_t,
+        "dev_scifi_states":
+        scifi_consolidate_tracks.dev_scifi_states_t,
+        "dev_scifi_track_ut_indices":
+        scifi_consolidate_tracks.dev_scifi_track_ut_indices_t,
+        "host_number_of_reconstructed_scifi_tracks":
+        prefix_sum_forward_tracks.host_total_sum_holder_t,
+        "dev_offsets_forward_tracks":
+        prefix_sum_forward_tracks.dev_output_buffer_t,
+        "dev_offsets_scifi_track_hit_number":
+        prefix_sum_scifi_track_hit_number.dev_output_buffer_t
+    }

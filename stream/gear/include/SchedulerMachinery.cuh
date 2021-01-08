@@ -171,28 +171,6 @@ namespace Sch {
     }
   };
 
-  // Iterate the types (In or Out) and print them for each iteration
-  template<typename Dependencies>
-  struct PrintAlgorithmDependencies;
-
-  template<>
-  struct PrintAlgorithmDependencies<std::tuple<>> {
-    static constexpr void print() {};
-  };
-
-  template<typename Algorithm, typename... Arguments, typename... Dependencies>
-  struct PrintAlgorithmDependencies<
-    std::tuple<ScheduledDependencies<Algorithm, std::tuple<Arguments...>>, Dependencies...>> {
-    static constexpr void print()
-    {
-      // info_cout << "  ['" << Algorithm::name << "', [";
-      // PrintArguments<std::tuple<Arguments...>>::print();
-      // info_cout << "]]," << std::endl;
-
-      PrintAlgorithmDependencies<std::tuple<Dependencies...>>::print();
-    }
-  };
-
   // Print the configured sequence
   template<typename Dependencies>
   struct PrintAlgorithmSequence;

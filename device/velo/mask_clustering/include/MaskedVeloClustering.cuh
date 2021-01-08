@@ -19,7 +19,7 @@ namespace velo_masked_clustering {
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_module_candidate_num_t, unsigned) dev_module_pair_candidate_num;
     DEVICE_INPUT(dev_cluster_candidates_t, unsigned) dev_cluster_candidates;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_candidates_offsets_t, unsigned) dev_candidates_offsets;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_module_cluster_num_t, unsigned) dev_module_pair_cluster_num;

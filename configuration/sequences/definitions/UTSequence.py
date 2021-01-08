@@ -64,159 +64,87 @@ def UTSequence(initialize_lists,
 
     ut_select_velo_tracks = ut_select_velo_tracks_t(
         name="ut_select_velo_tracks",
-        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-        host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
-        host_number_of_reconstructed_velo_tracks_t(),
-        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-        dev_offsets_all_velo_tracks_t(),
-        dev_offsets_velo_track_hit_number_t=
-        prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-        dev_velo_states_t=velo_kalman_filter.dev_velo_kalman_beamline_states_t(
-        ),  # dev_velo_kalman_beamline_states_t
-        dev_accepted_velo_tracks_t=velo_consolidate_tracks.
-        dev_accepted_velo_tracks_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t(),
-        dev_velo_track_hits_t=velo_consolidate_tracks.dev_velo_track_hits_t())
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        host_number_of_reconstructed_velo_tracks_t=
+        host_number_of_reconstructed_velo_tracks_t,
+        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number_t,
+        dev_velo_states_t=velo_states["dev_velo_kalman_beamline_states"],
+        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks_t,
+        dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"])
 
-    ut_search_windows = None
-    compass_ut = None
-    if restricted:
-        ut_search_windows = ut_search_windows_t(
-            name="ut_search_windows",
-            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-            host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
-            .host_number_of_reconstructed_velo_tracks_t(),
-            dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
-            dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t(),
-            dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-            dev_offsets_all_velo_tracks_t(),
-            dev_offsets_velo_track_hit_number_t=
-            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.
-            dev_velo_kalman_endvelo_states_t(),
-            dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_number_of_selected_velo_tracks_t(),
-            dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_selected_velo_tracks_t(),
-            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-            dev_event_list_t=initialize_lists.dev_event_list_t(),
-            min_momentum="1500.0",
-            min_pt="300.0")
+    ut_search_windows_min_momentum = "1500.0"
+    ut_search_windows_min_pt = "300.0"
+    compass_ut_max_considered_before_found = "6"
+    compass_ut_min_momentum_final = "2500.0"
+    compass_ut_min_pt_final = "425.0"
 
-        ut_select_velo_tracks_with_windows = ut_select_velo_tracks_with_windows_t(
-            name="ut_select_velo_tracks_with_windows",
-            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-            host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
-            .host_number_of_reconstructed_velo_tracks_t(),
-            dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-            dev_offsets_all_velo_tracks_t(),
-            dev_offsets_velo_track_hit_number_t=
-            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_accepted_velo_tracks_t=velo_consolidate_tracks.
-            dev_accepted_velo_tracks_t(),
-            dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_number_of_selected_velo_tracks_t(),
-            dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_selected_velo_tracks_t(),
-            dev_ut_windows_layers_t=ut_search_windows.
-            dev_ut_windows_layers_t(),
-            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-            dev_event_list_t=initialize_lists.dev_event_list_t())
+    if not restricted:
+        ut_search_windows_min_momentum = "3000.0"
+        ut_search_windows_min_pt = "0.0"
+        compass_ut_max_considered_before_found = "16"
+        compass_ut_min_momentum_final = "0.0"
+        compass_ut_min_pt_final = "0.0"
 
-        compass_ut = compass_ut_t(
-            name="compass_ut",
-            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-            dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
-            dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t(),
-            dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-            dev_offsets_all_velo_tracks_t(),
-            dev_offsets_velo_track_hit_number_t=
-            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.
-            dev_velo_lmsfit_beamline_states_t(),
-            dev_ut_windows_layers_t=ut_search_windows.
-            dev_ut_windows_layers_t(),
-            dev_ut_number_of_selected_velo_tracks_with_windows_t=
-            ut_select_velo_tracks_with_windows.
-            dev_ut_number_of_selected_velo_tracks_with_windows_t(),
-            dev_ut_selected_velo_tracks_with_windows_t=
-            ut_select_velo_tracks_with_windows.
-            dev_ut_selected_velo_tracks_with_windows_t(),
-            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-            dev_event_list_t=initialize_lists.dev_event_list_t(),
-            max_considered_before_found="6",
-            min_momentum_final="2500.0",
-            min_pt_final="425.0")
-    else:
-        ut_search_windows = ut_search_windows_t(
-            name="ut_search_windows",
-            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-            host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
-            .host_number_of_reconstructed_velo_tracks_t(),
-            dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
-            dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t(),
-            dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-            dev_offsets_all_velo_tracks_t(),
-            dev_offsets_velo_track_hit_number_t=
-            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.
-            dev_velo_kalman_endvelo_states_t(),
-            dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_number_of_selected_velo_tracks_t(),
-            dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_selected_velo_tracks_t(),
-            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-            dev_event_list_t=initialize_lists.dev_event_list_t(),
-            min_momentum="3000.0",
-            min_pt="0.0")
+    ut_search_windows = make_algorithm(
+        ut_search_windows_t,
+        name="ut_search_windows",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        host_number_of_reconstructed_velo_tracks_t=
+        host_number_of_reconstructed_velo_tracks_t,
+        dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t,
+        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
+        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number_t,
+        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"],
+        dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
+        dev_ut_number_of_selected_velo_tracks_t,
+        dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
+        dev_ut_selected_velo_tracks_t,
+        min_momentum=ut_search_windows_min_momentum,
+        min_pt=ut_search_windows_min_pt)
 
-        ut_select_velo_tracks_with_windows = ut_select_velo_tracks_with_windows_t(
-            name="ut_select_velo_tracks_with_windows",
-            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-            host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number
-            .host_number_of_reconstructed_velo_tracks_t(),
-            dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-            dev_offsets_all_velo_tracks_t(),
-            dev_offsets_velo_track_hit_number_t=
-            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_accepted_velo_tracks_t=velo_consolidate_tracks.
-            dev_accepted_velo_tracks_t(),
-            dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_number_of_selected_velo_tracks_t(),
-            dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
-            dev_ut_selected_velo_tracks_t(),
-            dev_ut_windows_layers_t=ut_search_windows.
-            dev_ut_windows_layers_t(),
-            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-            dev_event_list_t=initialize_lists.dev_event_list_t())
+    ut_select_velo_tracks_with_windows = make_algorithm(
+        ut_select_velo_tracks_with_windows_t,
+        name="ut_select_velo_tracks_with_windows",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        host_number_of_reconstructed_velo_tracks_t=
+        host_number_of_reconstructed_velo_tracks_t,
+        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number_t,
+        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks_t,
+        dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
+        dev_ut_number_of_selected_velo_tracks_t,
+        dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
+        dev_ut_selected_velo_tracks_t,
+        dev_ut_windows_layers_t=ut_search_windows.dev_ut_windows_layers_t)
 
-        compass_ut = compass_ut_t(
-            name="compass_ut",
-            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-            dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t(),
-            dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t(),
-            dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-            dev_offsets_all_velo_tracks_t(),
-            dev_offsets_velo_track_hit_number_t=
-            prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-            dev_velo_states_t=velo_kalman_filter.
-            dev_velo_lmsfit_beamline_states_t(),
-            dev_ut_windows_layers_t=ut_search_windows.
-            dev_ut_windows_layers_t(),
-            dev_ut_number_of_selected_velo_tracks_with_windows_t=
-            ut_select_velo_tracks_with_windows.
-            dev_ut_number_of_selected_velo_tracks_with_windows_t(),
-            dev_ut_selected_velo_tracks_with_windows_t=
-            ut_select_velo_tracks_with_windows.
-            dev_ut_selected_velo_tracks_with_windows_t(),
-            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-            dev_event_list_t=initialize_lists.dev_event_list_t(),
-            max_considered_before_found="16",
-            min_momentum_final="0.0",
-            min_pt_final="0.0")
+    compass_ut = make_algorithm(
+        compass_ut_t,
+        name="compass_ut",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_ut_hits_t=ut_decode_raw_banks_in_order.dev_ut_hits_t,
+        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
+        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number_t,
+        dev_velo_states_t=velo_states["dev_velo_lmsfit_beamline_states"],
+        dev_ut_windows_layers_t=ut_search_windows.dev_ut_windows_layers_t,
+        dev_ut_number_of_selected_velo_tracks_with_windows_t=
+        ut_select_velo_tracks_with_windows.
+        dev_ut_number_of_selected_velo_tracks_with_windows_t,
+        dev_ut_selected_velo_tracks_with_windows_t=
+        ut_select_velo_tracks_with_windows.
+        dev_ut_selected_velo_tracks_with_windows_t,
+        max_considered_before_found=compass_ut_max_considered_before_found,
+        min_momentum_final=compass_ut_min_momentum_final,
+        min_pt_final=compass_ut_min_pt_final)
 
-    prefix_sum_ut_tracks = host_prefix_sum_t(
+    prefix_sum_ut_tracks = make_algorithm(
+        host_prefix_sum_t,
         name="prefix_sum_ut_tracks",
         dev_input_buffer_t=compass_ut.dev_atomics_ut_t())
 

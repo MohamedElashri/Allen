@@ -14,6 +14,16 @@ class ParsedAlgorithm():
         self.parameters = parameters
         self.properties = properties
 
+        # Check parameters contains at most one input mask and one output mask
+        input_masks = [a for a in parameters if "Input" in a.kind and a.typedef == "mask_t"]
+        output_masks = [a for a in parameters if "Output" in a.kind and a.typedef == "mask_t"]
+        assert len(input_masks) <= 1 and len(output_masks) <= 1,\
+            f"Algorithm {self.name} does not fulfill condition: At most one input and one output mask are allowed per algorithm."
+
+        # Check maximum number of parameters does not exceed 40
+        assert len(parameters) <= 40,\
+            f"Algorithm {self.name} does not fulfill condition: At most 40 parameters may be defined per algorithm."
+
     def __repr__(self):
         return self.scope + " " + self.name
 

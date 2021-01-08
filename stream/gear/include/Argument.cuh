@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #pragma once
 
-#include <tuple>
 #include <array>
 
 // Traits to get type and dependencies
@@ -103,6 +102,24 @@ struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t.
     using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                           \
   }
 
+// Support for masks
+// Masks are unsigned inputs / outputs, which the parser and multi ev scheduler
+// deal with in a special way. A maximum of one input mask and one output mask per algorithm
+// is allowed.
+struct mask_t {};
+
+#define MASK_INPUT(ARGUMENT_NAME)                                           \
+  struct ARGUMENT_NAME : public device_datatype, input_datatype<unsigned> { \
+    using input_datatype<unsigned>::input_datatype;                         \
+    void inline parameter(mask_t) const {}                                \
+  }
+
+#define MASK_OUTPUT(ARGUMENT_NAME)                                           \
+  struct ARGUMENT_NAME : public device_datatype, output_datatype<unsigned> { \
+    using output_datatype<unsigned>::output_datatype;                        \
+    void inline parameter(mask_t) {}                                       \
+  }
+
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.
 struct DeviceDimensions {
   unsigned x;
@@ -178,13 +195,3 @@ protected:
     using property_datatype<__VA_ARGS__>::property_datatype; \
     void property(__VA_ARGS__) {}                            \
   }
-
-/**
- * @brief Dependencies for an algorithm, after
- *        being processed by the scheduler machinery.
- */
-template<typename T, typename ArgumentsTuple>
-struct ScheduledDependencies {
-  using Algorithm = T;
-  using Arguments = ArgumentsTuple;
-};

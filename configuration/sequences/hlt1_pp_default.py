@@ -71,11 +71,11 @@ line_algorithms = {
 
 
 # Helper function to make composite nodes with the gec
-def make_line_composite_node_with_gec(alg_name, gec_name="gec"):
+def make_line_composite_node_with_gec(alg_name, gec_name="gec", **kwargs):
     return CompositeNode(
         alg_name,
         NodeLogic.AND, [
-            make_leaf(name=gec_name, alg=gec()),
+            make_leaf(name=gec_name, alg=gec(**kwargs)),
             make_leaf(alg_name, alg=line_algorithms[alg_name])
         ],
         forceOrder=True)
