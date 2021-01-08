@@ -106,18 +106,19 @@ struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t.
 // Masks are unsigned inputs / outputs, which the parser and multi ev scheduler
 // deal with in a special way. A maximum of one input mask and one output mask per algorithm
 // is allowed.
-struct mask_t {};
+struct mask_t {
+};
 
 #define MASK_INPUT(ARGUMENT_NAME)                                           \
   struct ARGUMENT_NAME : public device_datatype, input_datatype<unsigned> { \
     using input_datatype<unsigned>::input_datatype;                         \
-    void inline parameter(mask_t) const {}                                \
+    void inline parameter(mask_t) const {}                                  \
   }
 
 #define MASK_OUTPUT(ARGUMENT_NAME)                                           \
   struct ARGUMENT_NAME : public device_datatype, output_datatype<unsigned> { \
     using output_datatype<unsigned>::output_datatype;                        \
-    void inline parameter(mask_t) {}                                       \
+    void inline parameter(mask_t) {}                                         \
   }
 
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.
