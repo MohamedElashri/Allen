@@ -722,6 +722,7 @@ target_link_libraries(AllenLib PUBLIC
   AllenMonitoring
   NonEventData
   AllenZMQ
+  HostCombiners
   Threads::Threads)
 
 if (USE_MPI AND MPI_FOUND)
