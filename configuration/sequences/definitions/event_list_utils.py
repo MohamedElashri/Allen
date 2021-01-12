@@ -4,14 +4,13 @@ from minipyconf.cftree_ops import get_best_order, get_execution_list_for
 from minipyconf.control_flow import Leaf, NodeLogic, CompositeNode
 from definitions.AllenSequenceGenerator import generate_allen_sequence
 from definitions.allen_benchmarks import benchmark_weights, benchmark_efficiencies
-from definitions.algorithms import AlgorithmCategory
 from definitions.algorithms import (
+    AlgorithmCategory,
     host_init_event_list_t,
     event_list_intersection_t,
     event_list_union_t,
     event_list_inversion_t,
 )
-
 
 
 def make_algorithm(alg_type, name, **kwargs):

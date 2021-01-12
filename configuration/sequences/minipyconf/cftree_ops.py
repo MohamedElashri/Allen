@@ -110,7 +110,7 @@ def parse_boolean(expr: str):
                     my_name, NodeLogic.AND, [node.left, node.right]
                 )
             else:
-                raise NotImplementedError("WTH MAN")
+                raise NotImplementedError("Unexpected binary operation in node")
             if self.root_node == None:
                 self.root_node = self.astToNode[node]
             return super().generic_visit(node)
