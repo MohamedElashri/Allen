@@ -280,8 +280,17 @@ def order_algs(alg_dependencies: dict) -> (list, float):
             sortd[algs.pop(algs.index(alg))] = evaluable_tree
     return sortd, score
 
+def map_alg_to_node(root):
+    algorithm_with_output_mask_to_leaf = {}
+    for leaf in gather_leafs(root):
+        top_algorithm = leaf.top_alg
+        contains_output_mask = [a for a in top_algorithm.outputs.values() if a.type == "mask_t"]
+        if contains_output_mask:
+            algorithm_with_output_mask_to_leaf[top_algorithm] = leaf
+    return algorithm_with_output_mask_to_leaf
 
 def get_execution_list_for(tree):
+
     dependencies = dict()
     exec_masks = find_execution_masks_for_algorithms(tree)
     exec_masks = merge_execution_masks(exec_masks)
@@ -295,12 +304,17 @@ def get_execution_list_for(tree):
             else:
                 producers.add(inp.producer)
         dependencies[alg] = (gather_algs(mini_tree), producers, mini_tree)
-    return order_algs(dependencies)
+
+    (seq, val) = order_algs(dependencies)
+
+    #add the output masks to seq
+    alg_to_leaf = map_alg_to_node(tree)
+    return ([(alg, in_, alg_to_leaf.get(alg)) for (alg,in_) in seq.items()], val)
 
 
 def get_best_order(tree):
     import numpy as np
 
     all_orders = get_ordered_trees(tree)
-    x = [get_execution_list_for(order) for order in all_orders]
+    x = map(get_execution_list_for, all_orders)
     return (x, min(x, key=lambda x: x[-1]))

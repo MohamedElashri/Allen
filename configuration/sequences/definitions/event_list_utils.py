@@ -13,6 +13,7 @@ from definitions.algorithms import (
 )
 
 
+
 def make_algorithm(alg_type, name, **kwargs):
     """Makes an Algorithm with a weight extracted from the benchmark weights."""
     if name in benchmark_weights:
@@ -44,8 +45,8 @@ def initialize_event_lists(**kwargs):
 
 def add_event_list_combiners(order):
     # gather all combinations that have to be made
-    seq, val = order
-    trees = tuple(set(seq.values()))
+    seq = order[0]
+    trees = tuple(set([s[1] for s in seq]))
 
     def _make_combiner(inputs, logic):
 
@@ -125,54 +126,44 @@ def add_event_list_combiners(order):
     combiners = {t: make_combiners_from(t) for t in trees}
 
     # Generate the final sequence in a list of tuples (algorithm, execution mask)
-    final_sequence = list(order[0].items())
+    final_sequence = seq
 
     # Add combiners in the right place
     for mask, combiner in combiners.items():
-        for i, (alg, _mask) in enumerate(final_sequence):
+        for i, (alg, _mask, _) in enumerate(final_sequence):
             if mask == _mask:
                 for comb in combiner[::-1]:
-                    final_sequence.insert(i, (comb, None))
+                    final_sequence.insert(i, (comb, None, mask))
                 break
 
     # Remove duplicate combiners
     final_sequence_unique = list()
-    for alg, mask in final_sequence:
-        for alg_, _ in final_sequence_unique:
+    for (alg, mask_in, mask_out) in final_sequence:
+        for (alg_, _, _) in final_sequence_unique:
             if alg == alg_:
                 break
         else:
-            final_sequence_unique.append((alg, mask))
+            final_sequence_unique.append((alg, mask_in, mask_out))
 
     # Update all algorithm event lists
-    for alg, mask in final_sequence_unique:
+    for alg, mask, _ in final_sequence_unique:
         mask_input = [k for k,v in configurable_inputs(alg.type).items() if v.type() == "mask_t"]
         if len(mask_input):
             output_mask = [v for v in combiners[mask][-1].outputs.values() if v.type == "mask_t"]
             assert(len(mask_input) == 1 and len(output_mask) == 1)
             alg.inputs[mask_input[0]] = output_mask[0]
 
-    return [alg for alg, _ in final_sequence_unique]
-
-def map_alg_to_node(root):
-    algorithm_with_output_mask_to_leaf = {}
-    for leaf in gather_leafs(root):
-        top_algorithm = leaf.top_alg
-        contains_output_mask = [a for a in top_algorithm.outputs.values() if a.type == "mask_t"]
-        if contains_output_mask:
-            algorithm_with_output_mask_to_leaf[top_algorithm] = leaf
-    return algorithm_with_output_mask_to_leaf
+    return final_sequence_unique
     
 def generate(root):
     """Generates an Allen sequence out of a root node."""
-    best_order = get_execution_list_for(node)
-
-    print("Generated sequence represented as algorithms with execution masks:")
-    alg_to_leaf = map_alg_to_node(root)
-    for a, b in best_order[0].items():
-        in_mask = f" in:{b}" if b else ""
-        out_mask = f" out:{alg_to_leaf[a]}" if a in alg_to_leaf.keys() else ""
-        print(f"  {a}{in_mask}{out_mask}")
-
+    best_order = get_execution_list_for(root)
     final_seq = add_event_list_combiners(best_order)
-    return generate_allen_sequence(final_seq)
+    
+    print("Generated sequence represented as algorithms with execution masks:")
+    for alg, mask_in, mask_out in final_seq:
+        mask_in_str = f" in:{mask_in}" if mask_in else ""
+        mask_out_str = f" out:{mask_out}" if mask_out else ""
+        print(f"  {alg}{mask_in_str}{mask_out_str}")
+    
+    return generate_allen_sequence([alg for (alg,_,_) in final_seq])
