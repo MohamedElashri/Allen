@@ -45,22 +45,7 @@ def to_string(node):
         )
     else:
         raise RuntimeError("please provide CompositeNodes or Leafs.")
-
-@memoizing
-def score(node):
-    if isinstance(node, Leaf):
-        return node.execution_weight, node.average_eff
-    elif isinstance(node, CompositeNode):
-        weight, eff = score(node.children[0])
-        if node.logic == NodeLogic.AND:
-            weight2, eff2 = score(node.children[1])
-            return weight + eff * weight2, eff * eff2
-        elif node.logic == NodeLogic.OR:
-            weight2, eff2 = score(node.children[1])
-            return weight + (1 - eff) * weight2, 1 - ((1 - eff) * (1 - eff2))
-        elif node.logic == NodeLogic.NOT:
-            return weight, 1 - eff
-
+    
 
 def gather_leafs(node):
     def impl(node):

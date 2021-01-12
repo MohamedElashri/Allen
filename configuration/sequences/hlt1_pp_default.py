@@ -93,7 +93,7 @@ def make_line_composite_node_with_gec(alg_name, gec_name="gec", **kwargs):
         forceOrder=True)
 
 
-track_mva_line = make_line_composite_node_with_gec("Hlt1TrackMVA", "gec2", min_scifi_ut_clusters="1000")
+track_mva_line = make_line_composite_node_with_gec("Hlt1TrackMVA")
 two_track_mva_line = make_line_composite_node_with_gec("Hlt1TwoTrackMVA")
 no_beam_line = make_line_composite_node_with_gec("Hlt1NoBeam")
 one_beam_line = make_line_composite_node_with_gec("Hlt1BeamOne")
