@@ -18,19 +18,31 @@ line_algorithms = {
     "Hlt1TwoTrackMVA":
     make_two_track_mva_line(),
     "Hlt1NoBeam":
-    make_beam_line(beam_crossing_type=0),
+    make_beam_line(beam_crossing_type="0",
+        pre_scaler_hash_string="no_beam_line_pre",
+        post_scaler_hash_string="no_beam_line_post"),
     "Hlt1BeamOne":
-    make_beam_line(beam_crossing_type=1),
+    make_beam_line(beam_crossing_type="1",
+        pre_scaler_hash_string="beam_one_line_pre",
+        post_scaler_hash_string="beam_one_line_post"),
     "Hlt1BeamTwo":
-    make_beam_line(beam_crossing_type=2),
+    make_beam_line(beam_crossing_type="2",
+        pre_scaler_hash_string="beam_two_line_pre",
+        post_scaler_hash_string="beam_two_line_post"),
     "Hlt1BothBeams":
-    make_beam_line(beam_crossing_type=3),
+    make_beam_line(beam_crossing_type="3",
+        pre_scaler_hash_string="both_beams_line_pre",
+        post_scaler_hash_string="both_beams_line_post"),
     "Hlt1VeloMicroBias":
     make_velo_micro_bias_line(),
     "Hlt1ODINLumi":
-    make_odin_event_type_line(odin_event_type="0x8"),
+    make_odin_event_type_line(odin_event_type="0x8",
+        pre_scaler_hash_string="odin_lumi_line_pre",
+        post_scaler_hash_string="odin_lumi_line_post"),
     "Hlt1ODINNoBias":
-    make_odin_event_type_line(odin_event_type="0x4"),
+    make_odin_event_type_line(odin_event_type="0x4",
+        pre_scaler_hash_string="odin_no_bias_pre",
+        post_scaler_hash_string="odin_no_bias_post"),
     "Hlt1SingleHighPtMuon":
     make_single_high_pt_muon_line(),
     "Hlt1LowPtMuon":
