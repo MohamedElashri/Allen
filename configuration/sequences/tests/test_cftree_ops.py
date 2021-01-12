@@ -23,7 +23,8 @@ from minipyconf.cftree_ops import (
     parse_boolean,
     get_execution_list_for,
     get_best_order,
-    merge_execution_masks
+    merge_execution_masks,
+    find_execution_masks_for_algorithms
 )
 from minipyconf.utils import memoizing
 from definitions.event_list_utils import make_algorithm
@@ -34,8 +35,8 @@ from definitions.algorithms import *
 def sample_tree_0():
     pre0 = Algorithm(decider_1_t, name="pre0_st0", conf=2)
     pre1 = Algorithm(decider_1_t, name="pre1_st0", conf=1)
-    x = Algorithm(decider_1_t, name="producer1_st0", conf=3)
-    y = Algorithm(decider_1_t, name="decider1_st0", conf=4)
+    x = Algorithm(decider_1_t, name="decider0_st0", conf=3)
+    y = Algorithm(decider_1_t, name="decider0_st0", conf=4)
 
     PRE0 = Leaf("PRE0_st0", 1, 0.7, alg=pre0)
     PRE1 = Leaf("PRE1_st0", 2, 0.3, alg=pre1)
@@ -72,15 +73,6 @@ def sample_tree_2():
     PRE2 = Leaf("PRE2_st2", 2, 0.3, alg=pre2)
     pre12 = CompositeNode("pre12_st2", Logic.AND, [PRE1, PRE2], forceOrder=True, lazy=True)
     return CompositeNode("boom_st2", Logic.OR, [PRE0, pre12], forceOrder=True, lazy=True)
-
-def line():
-    alg1 = make_alg1()
-    alg2 = make_alg2()
-    return Line(CompositeNode([Leaf(alg1), Leaf(alg2)], AND, lazy=True, forceOrder=True), persistency)
-
-def moore():
-    all_lines = get_all_lines()
-    return Moore(CompositeNode(OR, all_lines, not_lazy))
 
 
 def test_gather_leafs():
@@ -131,3 +123,16 @@ def test_parse_boolean():
     root = get_ordered_trees(root)[0]
     other_root = parse_boolean("((PRE0_st1 & X_st1) | ~(PRE1_st1 & Y_st1))")
     assert root == other_root
+
+
+def test_find_execution_masks_for_algorithms():
+    root = sample_tree_0()
+    exec_masks = find_execution_masks_for_algorithms(root)
+    pre0 = root.children[0].children[0].top_alg
+    pre1 = root.children[1].children[0].top_alg
+    dec0 = root.children[0].children[1].top_alg
+    dec1 = root.children[1].children[1].top_alg
+    assert exec_masks == [(pre0, 'True'),
+                          (dec0, 'PRE0_st0'),
+                          (pre1, '~PRE0_st0 | ~X_st0'),
+                          (dec1, 'PRE1_st0 & (~PRE0_st0 | ~X_st0)')]

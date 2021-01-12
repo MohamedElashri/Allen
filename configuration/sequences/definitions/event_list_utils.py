@@ -14,7 +14,15 @@ from definitions.algorithms import (
 
 
 def make_algorithm(alg_type, name, **kwargs):
-    """Makes an Algorithm with a weight extracted from the benchmark weights."""
+    """
+    Makes an Algorithm with a weight extracted from the benchmark weights.
+    
+    In order to determine the weight of Allen algorithms, a profiled benchmark is used for
+    most entries. Each algorithm has an entry in the file `allen_benchmarks.py`, with the
+    exception of:
+
+    * Prefix sum algorithms (identified by prefix_sum in its name): Manually 
+    """
     if name in benchmark_weights:
         weight = benchmark_weights[name]
     elif "prefix_sum" in name:
