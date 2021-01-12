@@ -154,37 +154,6 @@ class event_list_inversion_t(AllenAlgorithm):
   @classmethod
   def getType(cls):
     return "event_list_inversion_t"
-
-
-class host_global_event_cut_t(AllenAlgorithm):
-  __slots__ = OrderedDict(
-    dev_event_list_output_t = DataObjectHandleBase("dev_event_list_output_t", "W", "mask_t"),
-    min_clusters = "",
-    max_clusters = ""
-  )
-  aggregates = ()
-
-  @staticmethod
-  def category():
-    return AlgorithmCategory.HostAlgorithm
-
-  def __new__(self, name, **kwargs):
-    instance = AllenAlgorithm.__new__(self, name)
-    for n,v in kwargs.items():
-      setattr(instance, n, v)
-    return instance
-
-  @classmethod
-  def namespace(cls):
-    return "host_global_event_cut"
-
-  @classmethod
-  def filename(cls):
-    return ""
-
-  @classmethod
-  def getType(cls):
-    return "host_global_event_cut_t"
   
 
 class generic_algorithm_t(AllenAlgorithm):
@@ -216,7 +185,8 @@ class generic_algorithm_t(AllenAlgorithm):
 
 class producer_1_t(generic_algorithm_t):
   __slots__ = OrderedDict(
-    a_t = DataObjectHandleBase("a_t", "W", "int")
+    a_t = DataObjectHandleBase("a_t", "W", "int"),
+    conf = ""
   )
 
   @classmethod
@@ -227,7 +197,8 @@ class producer_1_t(generic_algorithm_t):
 class producer_2_t(generic_algorithm_t):
   __slots__ = OrderedDict(
     a_t = DataObjectHandleBase("a_t", "W", "int"),
-    b_t = DataObjectHandleBase("b_t", "W", "int")
+    b_t = DataObjectHandleBase("b_t", "W", "int"),
+    conf = ""
   )
 
   @classmethod
@@ -237,7 +208,8 @@ class producer_2_t(generic_algorithm_t):
 
 class consumer_1_t(generic_algorithm_t):
   __slots__ = OrderedDict(
-    a_t = DataObjectHandleBase("a_t", "R", "int")
+    a_t = DataObjectHandleBase("a_t", "R", "int"),
+    conf = ""
   )
 
   @classmethod
@@ -248,12 +220,24 @@ class consumer_1_t(generic_algorithm_t):
 class consumer_2_t(generic_algorithm_t):
   __slots__ = OrderedDict(
     a_t = DataObjectHandleBase("a_t", "R", "int"),
-    b_t = DataObjectHandleBase("b_t", "R", "int")
+    b_t = DataObjectHandleBase("b_t", "R", "int"),
+    conf = ""
   )
 
   @classmethod
   def getType(cls):
     return "consumer_2_t"
+
+
+class decider_1_t(generic_algorithm_t):
+  __slots__ = OrderedDict(
+    a_t = DataObjectHandleBase("a_t", "W", "mask_t"),
+    conf = ""
+  )
+
+  @classmethod
+  def getType(cls):
+    return "decider_1_t"
 
 
 def algorithms_with_aggregates():

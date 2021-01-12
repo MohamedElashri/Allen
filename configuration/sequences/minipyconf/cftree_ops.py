@@ -15,19 +15,19 @@ def simplify(string):
 @memoizing
 def get_ordered_trees(node):
     if isinstance(node, Leaf):
-        return [node]
+        return (node,)
     elif not node.is_ordered and node.is_lazy:
         return [
             CompositeNode(node.name, node.logic, x, lazy=node.is_lazy, forceOrder=True)
             for children in itertools.permutations(
-                [get_ordered_trees(c) for c in node.children]
+                tuple(get_ordered_trees(c) for c in node.children)
             )
             for x in itertools.product(*children)
         ]
     else:
         return [
             CompositeNode(node.name, node.logic, x, lazy=node.is_lazy, forceOrder=True)
-            for x in itertools.product(*[get_ordered_trees(c) for c in node.children])
+            for x in itertools.product(*tuple(get_ordered_trees(c) for c in node.children))
         ]
 
 
@@ -85,64 +85,34 @@ def parse_boolean(expr: str):
             "your tree will never evaluate to true, do you really want this?"
         )
 
-    class visitor(ast.NodeVisitor):
-        astToNode = dict()
-        root_node = None
-
-        def visit_BoolOp(self, node):
-            raise NotImplementedError(
-                'please provide "AND" as &, "OR" as |, "NOT" as ~'
-            )
-
-        def visit_Not(self, node):
-            raise NotImplementedError(
-                'please provide "AND" as &, "OR" as |, "NOT" as ~'
-            )
-
-        def visit_BinOp(self, node):
-            my_name = uniqueify("LN")
+    def build_tree(node):
+        my_name = uniqueify("LN")
+        if isinstance(node, ast.BinOp):
             if isinstance(node.op, ast.BitOr):
-                self.astToNode[node] = CompositeNode(
-                    my_name, NodeLogic.OR, [node.left, node.right]
+                return CompositeNode(
+                    my_name, NodeLogic.OR, (build_tree(node.left), build_tree(node.right))
                 )
             elif isinstance(node.op, ast.BitAnd):
-                self.astToNode[node] = CompositeNode(
-                    my_name, NodeLogic.AND, [node.left, node.right]
+                return CompositeNode(
+                    my_name, NodeLogic.AND, (build_tree(node.left), build_tree(node.right))
                 )
             else:
                 raise NotImplementedError("Unexpected binary operation in node")
-            if self.root_node == None:
-                self.root_node = self.astToNode[node]
-            return super().generic_visit(node)
-
-        def visit_UnaryOp(self, node):
+        if isinstance(node, ast.UnaryOp):
             if isinstance(node.op, ast.Invert):
-                my_name = uniqueify("LN")
-                self.astToNode[node] = CompositeNode(my_name, NodeLogic.NOT, [node.operand])
-            if self.root_node == None:
-                self.root_node = self.astToNode[node]
-            return super().generic_visit(node)
-
-        def visit_Name(self, node):
+                return CompositeNode(my_name, NodeLogic.NOT, (build_tree(node.operand),))
+            else:
+                raise NotImplementedError("Unexpected unary operation in node")
+        if isinstance(node, ast.Name):
             if node.id in Leaf.leafs:
-                self.astToNode[node] = Leaf.leafs[node.id]
+                return Leaf.leafs[node.id]
             else:
                 # TODO or do we require them to appear already?
                 print("Warning: generating new Leaf in parse_boolean")
-                self.astToNode[node] = Leaf(node.id, 1, 1, [])
-            if self.root_node == None:
-                self.root_node = self.astToNode[node]
-            return super().generic_visit(node)
+                return Leaf(node.id, 1, 1, tuple())
 
-    tree = ast.parse(expr)
-    v = visitor()
-    v.visit(tree)
-    # fix node children
-    for node in v.astToNode.values():
-        if isinstance(node, CompositeNode):
-            node.children = [v.astToNode[child] for child in node.children]
+    return build_tree(ast.parse(expr).body[0].value)
 
-    return v.root_node
 
 @memoizing
 def find_execution_masks_for_algorithms(node, execution_mask="true"):

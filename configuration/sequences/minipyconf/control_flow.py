@@ -93,7 +93,7 @@ class Leaf(object):
 class CompositeNode(object):
     """A container for a set of subnodes/child nodes."""
 
-    def __init__(self, name, combineLogic, children, lazy=True, forceOrder=False):
+    def __init__(self, name, combineLogic, children, lazy=True, forceOrder=True):
         if not isinstance(combineLogic, NodeLogic):
             raise TypeError("combineLogic must take an instance of NodeLogic")
         self.name = name
@@ -117,7 +117,7 @@ class CompositeNode(object):
         self.lazy = lazy
         self.forceOrder = forceOrder
         self._id = hash(f"{self.combineLogic},{self.lazy},{[hash(child) for child in self.children]}")
-
+    
     def __eq__(self, other):  # TODO maybe not needed
         if not isinstance(other, CompositeNode):
             return False
