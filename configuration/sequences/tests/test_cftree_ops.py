@@ -27,9 +27,10 @@ from minipyconf.cftree_ops import (
     get_best_order,
     merge_execution_masks,
     find_execution_masks_for_algorithms,
+    avrg_efficiency,
+    make_independent_of_algs,
 )
 from minipyconf.utils import memoizing
-from definitions.event_list_utils import make_algorithm
 from definitions.algorithms import *
 
 
@@ -43,7 +44,7 @@ def sample_tree_0():
     PRE0 = Leaf("PRE0_st0", 1, 0.7, alg=pre0)
     PRE1 = Leaf("PRE1_st0", 2, 0.3, alg=pre1)
     X = Leaf("X_st0", 3, 1, alg=x)
-    Y = Leaf("Y_st0", 4, 0.5, alg=y)
+    Y = Leaf("Y_st0", 4, 1, alg=y)
 
     line1 = CompositeNode("L1_st0", Logic.AND, [PRE0, X], forceOrder=True)
     line2 = CompositeNode("L2_st0", Logic.AND, [PRE1, Y], forceOrder=True)
@@ -54,9 +55,9 @@ def sample_tree_0():
 @memoizing
 def sample_tree_1():
     PRE0 = Leaf("PRE0_st1", 1, 0.7, alg=None)
-    PRE1 = Leaf("PRE1_st1", 2, 0.7, alg=None)
+    PRE1 = Leaf("PRE1_st1", 2, 0.6, alg=None)
     X = Leaf("X_st1", 3, 0.5, alg=None)
-    Y = Leaf("Y_st1", 5, 0.5, alg=None)
+    Y = Leaf("Y_st1", 5, 0.4, alg=None)
 
     line1 = CompositeNode("L1_st1", Logic.AND, [PRE0, X], forceOrder=True)
     line2 = CompositeNode("L2_st1", Logic.AND, [PRE1, Y], forceOrder=True)
@@ -109,13 +110,6 @@ def test_gather_leafs():
         )
     )
     assert gather_leafs(root) == leafs
-
-
-def test_merge_execution_masks():
-    masks = [("alg1", "true"), ("alg1", "false")]
-    should_be_merged = merge_execution_masks(masks)
-    merged = {"alg1": "true"}
-    assert simplify(should_be_merged["alg1"]) == simplify(merged["alg1"])
 
 
 def test_gather_algs():
@@ -181,3 +175,46 @@ def test_find_execution_masks_for_algorithms():
         (pre2_st2, "PRE1_st2 & (~PRE0_st2 | ~PRE2_st2)"),
     ]
     assert exec_masks == should_be_exec_masks
+
+
+def test_merge_execution_masks():
+    masks = [("alg1", "true"), ("alg1", "false")]
+    should_be_merged = merge_execution_masks(masks)
+    merged = {"alg1": "true"}
+    assert simplify(should_be_merged["alg1"]) == simplify(merged["alg1"])
+
+    root = sample_tree_2()
+    pre0_st2 = root.children[0].children[0].top_alg
+    pre1_st2 = root.children[1].children[0].top_alg
+    pre2_st2 = root.children[0].children[1].top_alg
+    should_be_exec_masks = find_execution_masks_for_algorithms(root)
+    should_be_exec_masks = merge_execution_masks(should_be_exec_masks)
+    exec_masks = {
+        pre0_st2: "(True)",
+        pre2_st2: "(PRE0_st2) | (PRE1_st2 & (~PRE0_st2 | ~PRE2_st2))",
+        pre1_st2: "(~PRE0_st2 | ~PRE2_st2)",
+    }
+
+    assert exec_masks == should_be_exec_masks
+
+
+def test_avrg_efficiency():
+    root = sample_tree_0()
+    should_be_eff = avrg_efficiency(root)
+    eff = 0.79
+    assert should_be_eff == eff
+
+    root = sample_tree_1()
+    should_be_eff = avrg_efficiency(root)
+    eff = 0.844
+    assert should_be_eff == eff
+
+
+def test_make_independent_of_algs():
+    root = sample_tree_2()
+    pre0_st2 = root.children[0].children[0].top_alg
+    pre1_st2 = root.children[1].children[0].top_alg
+    pre2_st2 = root.children[0].children[1].top_alg
+    should_be_ind = to_string(make_independent_of_algs(root, (pre2_st2,)))
+    ind = '(PRE0_st2 | PRE1_st2)'
+    assert ind == should_be_ind

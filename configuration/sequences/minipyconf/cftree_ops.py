@@ -254,7 +254,7 @@ def avrg_efficiency(node):
 def make_independent_of_algs(node, algs):
     """
     This function takes an execution mask in form of a tree and a list of algs.
-    It returns a (smaller) tree which does not depend on the control flow
+    It returns a looser mask which does not depend on the control flow
     outcome of these algorithms.
     This function is used when building an execution sequence, whenever the
     execution masks of all algorithms depend on the outcomes of other
@@ -265,7 +265,7 @@ def make_independent_of_algs(node, algs):
     algs = set(algs)
 
     def has_unknown_cf(leaf):
-        return leaf.average_eff not in [0, 1]
+        return leaf.average_eff not in [0, 1] and leaf.top_alg in algs
 
     unknown_outcome_leafs = set(filter(has_unknown_cf, gather_leafs(node)))
 
@@ -275,13 +275,12 @@ def make_independent_of_algs(node, algs):
     mini_repr = to_string(node)
     all_reprs = []
     for decisions in itertools.product(
-        *(["true", "false"] for x in unknown_outcome_leafs)
+        *(["true", "false"] for _ in unknown_outcome_leafs)
     ):
         curr_repr = mini_repr
         for i, leaf in enumerate(unknown_outcome_leafs):
             curr_repr = curr_repr.replace(leaf.name, decisions[i])
         all_reprs.append(curr_repr)
-
     combined = simplify("(" + " | ".join(all_reprs) + ")")
     return parse_boolean(combined)
 
