@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
 
@@ -25,6 +25,7 @@
 #include "../../device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
 #include "../../host/prefix_sum/include/HostPrefixSum.h"
 #include "../../device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
+#include "../../device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
 #include "../../host/data_provider/include/DataProvider.h"
 #include "../../device/UT/UTDecoding/include/UTCalculateNumberOfHits.cuh"
 #include "../../host/prefix_sum/include/HostPrefixSum.h"
@@ -93,6 +94,7 @@ struct initialize_lists__host_number_of_events_t
     velo_three_hit_tracks_filter::Parameters::host_number_of_events_t,
     velo_copy_track_hit_number::Parameters::host_number_of_events_t,
     velo_consolidate_tracks::Parameters::host_number_of_events_t,
+    velo_kalman_filter::Parameters::host_number_of_events_t,
     ut_calculate_number_of_hits::Parameters::host_number_of_events_t,
     ut_pre_decode::Parameters::host_number_of_events_t,
     ut_find_permutation::Parameters::host_number_of_events_t,
@@ -126,6 +128,7 @@ struct initialize_lists__dev_number_of_events_t
     velo_search_by_triplet::Parameters::dev_number_of_events_t,
     velo_three_hit_tracks_filter::Parameters::dev_number_of_events_t,
     velo_consolidate_tracks::Parameters::dev_number_of_events_t,
+    velo_kalman_filter::Parameters::dev_number_of_events_t,
     ut_pre_decode::Parameters::dev_number_of_events_t,
     ut_find_permutation::Parameters::dev_number_of_events_t,
     ut_decode_raw_banks_in_order::Parameters::dev_number_of_events_t,
@@ -151,6 +154,7 @@ struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::d
                                             velo_search_by_triplet::Parameters::dev_event_list_t,
                                             velo_three_hit_tracks_filter::Parameters::dev_event_list_t,
                                             velo_consolidate_tracks::Parameters::dev_event_list_t,
+                                            velo_kalman_filter::Parameters::dev_event_list_t,
                                             ut_calculate_number_of_hits::Parameters::dev_event_list_t,
                                             ut_pre_decode::Parameters::dev_event_list_t,
                                             ut_find_permutation::Parameters::dev_event_list_t,
@@ -349,6 +353,7 @@ struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer
 struct velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t
   : velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t,
     velo_consolidate_tracks::Parameters::host_number_of_reconstructed_velo_tracks_t,
+    velo_kalman_filter::Parameters::host_number_of_reconstructed_velo_tracks_t,
     ut_select_velo_tracks::Parameters::host_number_of_reconstructed_velo_tracks_t,
     ut_search_windows::Parameters::host_number_of_reconstructed_velo_tracks_t,
     ut_select_velo_tracks_with_windows::Parameters::host_number_of_reconstructed_velo_tracks_t {
@@ -362,6 +367,7 @@ struct velo_copy_track_hit_number__dev_velo_track_hit_number_t
 struct velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t
   : velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t,
     velo_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t,
+    velo_kalman_filter::Parameters::dev_offsets_all_velo_tracks_t,
     ut_select_velo_tracks::Parameters::dev_offsets_all_velo_tracks_t,
     ut_search_windows::Parameters::dev_offsets_all_velo_tracks_t,
     ut_select_velo_tracks_with_windows::Parameters::dev_offsets_all_velo_tracks_t,
@@ -384,6 +390,7 @@ struct prefix_sum_offsets_velo_track_hit_number__host_output_buffer_t
 struct prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
     velo_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
+    velo_kalman_filter::Parameters::dev_offsets_velo_track_hit_number_t,
     ut_select_velo_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
     ut_search_windows::Parameters::dev_offsets_velo_track_hit_number_t,
     ut_select_velo_tracks_with_windows::Parameters::dev_offsets_velo_track_hit_number_t,
@@ -399,19 +406,29 @@ struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
     ut_select_velo_tracks_with_windows::Parameters::dev_accepted_velo_tracks_t {
   using type = velo_consolidate_tracks::Parameters::dev_accepted_velo_tracks_t::type;
 };
-struct velo_consolidate_tracks__dev_velo_states_t : velo_consolidate_tracks::Parameters::dev_velo_states_t,
-                                                    ut_select_velo_tracks::Parameters::dev_velo_states_t,
-                                                    ut_search_windows::Parameters::dev_velo_states_t,
-                                                    ut_select_velo_tracks_with_windows::Parameters::dev_velo_states_t,
-                                                    compass_ut::Parameters::dev_velo_states_t,
-                                                    lf_search_initial_windows::Parameters::dev_velo_states_t,
-                                                    lf_triplet_seeding::Parameters::dev_velo_states_t,
-                                                    lf_create_tracks::Parameters::dev_velo_states_t,
-                                                    lf_quality_filter::Parameters::dev_velo_states_t {
-  using type = velo_consolidate_tracks::Parameters::dev_velo_states_t::type;
-};
-struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t {
+struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t,
+                                                        velo_kalman_filter::Parameters::dev_velo_track_hits_t,
+                                                        ut_select_velo_tracks::Parameters::dev_velo_track_hits_t {
   using type = velo_consolidate_tracks::Parameters::dev_velo_track_hits_t::type;
+};
+struct velo_kalman_filter__dev_velo_kalman_beamline_states_t
+  : velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t,
+    ut_select_velo_tracks::Parameters::dev_velo_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t::type;
+};
+struct velo_kalman_filter__dev_velo_kalman_endvelo_states_t
+  : velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t,
+    ut_search_windows::Parameters::dev_velo_states_t,
+    lf_search_initial_windows::Parameters::dev_velo_states_t,
+    lf_triplet_seeding::Parameters::dev_velo_states_t,
+    lf_create_tracks::Parameters::dev_velo_states_t,
+    lf_quality_filter::Parameters::dev_velo_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t::type;
+};
+struct velo_kalman_filter__dev_velo_lmsfit_beamline_states_t
+  : velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t,
+    compass_ut::Parameters::dev_velo_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t::type;
 };
 struct ut_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
                                    ut_calculate_number_of_hits::Parameters::dev_ut_raw_input_t,
@@ -819,8 +836,10 @@ using configured_arguments_t = std::tuple<
   prefix_sum_offsets_velo_track_hit_number__host_output_buffer_t,
   prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
   velo_consolidate_tracks__dev_accepted_velo_tracks_t,
-  velo_consolidate_tracks__dev_velo_states_t,
   velo_consolidate_tracks__dev_velo_track_hits_t,
+  velo_kalman_filter__dev_velo_kalman_beamline_states_t,
+  velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+  velo_kalman_filter__dev_velo_lmsfit_beamline_states_t,
   ut_banks__dev_raw_banks_t,
   ut_banks__dev_raw_offsets_t,
   ut_calculate_number_of_hits__dev_ut_hit_sizes_t,
@@ -908,6 +927,7 @@ using configured_sequence_t = std::tuple<
   velo_copy_track_hit_number::velo_copy_track_hit_number_t,
   host_prefix_sum::host_prefix_sum_t,
   velo_consolidate_tracks::velo_consolidate_tracks_t,
+  velo_kalman_filter::velo_kalman_filter_t,
   data_provider::data_provider_t,
   ut_calculate_number_of_hits::ut_calculate_number_of_hits_t,
   host_prefix_sum::host_prefix_sum_t,
@@ -1079,8 +1099,18 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t,
     initialize_lists__dev_number_of_events_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
-    velo_consolidate_tracks__dev_velo_states_t,
     velo_consolidate_tracks__dev_velo_track_hits_t>,
+  std::tuple<
+    velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
+    initialize_lists__host_number_of_events_t,
+    initialize_lists__dev_event_list_t,
+    initialize_lists__dev_number_of_events_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
+    velo_kalman_filter__dev_velo_kalman_beamline_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+    velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>,
   std::tuple<ut_banks__dev_raw_banks_t, ut_banks__dev_raw_offsets_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
@@ -1128,9 +1158,10 @@ using configured_sequence_arguments_t = std::tuple<
     initialize_lists__dev_number_of_events_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_beamline_states_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
     initialize_lists__dev_event_list_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
     ut_select_velo_tracks__dev_ut_number_of_selected_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t>,
   std::tuple<
@@ -1141,7 +1172,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_ut_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     ut_select_velo_tracks__dev_ut_number_of_selected_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t,
     initialize_lists__dev_event_list_t,
@@ -1152,7 +1183,6 @@ using configured_sequence_arguments_t = std::tuple<
     initialize_lists__dev_number_of_events_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_number_of_selected_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t,
@@ -1167,7 +1197,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_ut_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_lmsfit_beamline_states_t,
     ut_search_windows__dev_ut_windows_layers_t,
     ut_select_velo_tracks_with_windows__dev_ut_number_of_selected_velo_tracks_with_windows_t,
     ut_select_velo_tracks_with_windows__dev_ut_selected_velo_tracks_with_windows_t,
@@ -1247,7 +1277,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_scifi_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     prefix_sum_ut_track_hit_number__dev_output_buffer_t,
     ut_consolidate_tracks__dev_ut_x_t,
@@ -1266,7 +1296,7 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,
     prefix_sum_scifi_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     prefix_sum_ut_track_hit_number__dev_output_buffer_t,
     ut_consolidate_tracks__dev_ut_track_velo_indices_t,
@@ -1291,7 +1321,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_scifi_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     ut_consolidate_tracks__dev_ut_track_velo_indices_t,
     ut_consolidate_tracks__dev_ut_qop_t,
     lf_search_initial_windows_t__dev_ut_states_t,
@@ -1325,7 +1355,7 @@ using configured_sequence_arguments_t = std::tuple<
     lf_quality_filter_length_t__dev_scifi_lf_length_filtered_atomics_t,
     lf_quality_filter_length_t__dev_scifi_lf_parametrization_length_filter_t,
     lf_search_initial_windows_t__dev_ut_states_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
     ut_consolidate_tracks__dev_ut_track_velo_indices_t,
@@ -1391,34 +1421,35 @@ void inline populate_sequence_algorithm_names(configured_sequence_t& sequence)
   std::get<16>(sequence).set_name("velo_copy_track_hit_number");
   std::get<17>(sequence).set_name("prefix_sum_offsets_velo_track_hit_number");
   std::get<18>(sequence).set_name("velo_consolidate_tracks");
-  std::get<19>(sequence).set_name("ut_banks");
-  std::get<20>(sequence).set_name("ut_calculate_number_of_hits");
-  std::get<21>(sequence).set_name("prefix_sum_ut_hits");
-  std::get<22>(sequence).set_name("ut_pre_decode");
-  std::get<23>(sequence).set_name("ut_find_permutation");
-  std::get<24>(sequence).set_name("ut_decode_raw_banks_in_order");
-  std::get<25>(sequence).set_name("ut_select_velo_tracks");
-  std::get<26>(sequence).set_name("ut_search_windows");
-  std::get<27>(sequence).set_name("ut_select_velo_tracks_with_windows");
-  std::get<28>(sequence).set_name("compass_ut");
-  std::get<29>(sequence).set_name("prefix_sum_ut_tracks");
-  std::get<30>(sequence).set_name("ut_copy_track_hit_number");
-  std::get<31>(sequence).set_name("prefix_sum_ut_track_hit_number");
-  std::get<32>(sequence).set_name("ut_consolidate_tracks");
-  std::get<33>(sequence).set_name("scifi_banks");
-  std::get<34>(sequence).set_name("scifi_calculate_cluster_count_v4_t");
-  std::get<35>(sequence).set_name("prefix_sum_scifi_hits");
-  std::get<36>(sequence).set_name("scifi_pre_decode_v4_t");
-  std::get<37>(sequence).set_name("scifi_raw_bank_decoder_v4_t");
-  std::get<38>(sequence).set_name("lf_search_initial_windows_t");
-  std::get<39>(sequence).set_name("lf_triplet_seeding_t");
-  std::get<40>(sequence).set_name("lf_create_tracks_t");
-  std::get<41>(sequence).set_name("lf_quality_filter_length_t");
-  std::get<42>(sequence).set_name("lf_quality_filter_t");
-  std::get<43>(sequence).set_name("prefix_sum_forward_tracks");
-  std::get<44>(sequence).set_name("scifi_copy_track_hit_number_t");
-  std::get<45>(sequence).set_name("prefix_sum_scifi_track_hit_number");
-  std::get<46>(sequence).set_name("scifi_consolidate_tracks_t");
+  std::get<19>(sequence).set_name("velo_kalman_filter");
+  std::get<20>(sequence).set_name("ut_banks");
+  std::get<21>(sequence).set_name("ut_calculate_number_of_hits");
+  std::get<22>(sequence).set_name("prefix_sum_ut_hits");
+  std::get<23>(sequence).set_name("ut_pre_decode");
+  std::get<24>(sequence).set_name("ut_find_permutation");
+  std::get<25>(sequence).set_name("ut_decode_raw_banks_in_order");
+  std::get<26>(sequence).set_name("ut_select_velo_tracks");
+  std::get<27>(sequence).set_name("ut_search_windows");
+  std::get<28>(sequence).set_name("ut_select_velo_tracks_with_windows");
+  std::get<29>(sequence).set_name("compass_ut");
+  std::get<30>(sequence).set_name("prefix_sum_ut_tracks");
+  std::get<31>(sequence).set_name("ut_copy_track_hit_number");
+  std::get<32>(sequence).set_name("prefix_sum_ut_track_hit_number");
+  std::get<33>(sequence).set_name("ut_consolidate_tracks");
+  std::get<34>(sequence).set_name("scifi_banks");
+  std::get<35>(sequence).set_name("scifi_calculate_cluster_count_v4_t");
+  std::get<36>(sequence).set_name("prefix_sum_scifi_hits");
+  std::get<37>(sequence).set_name("scifi_pre_decode_v4_t");
+  std::get<38>(sequence).set_name("scifi_raw_bank_decoder_v4_t");
+  std::get<39>(sequence).set_name("lf_search_initial_windows_t");
+  std::get<40>(sequence).set_name("lf_triplet_seeding_t");
+  std::get<41>(sequence).set_name("lf_create_tracks_t");
+  std::get<42>(sequence).set_name("lf_quality_filter_length_t");
+  std::get<43>(sequence).set_name("lf_quality_filter_t");
+  std::get<44>(sequence).set_name("prefix_sum_forward_tracks");
+  std::get<45>(sequence).set_name("scifi_copy_track_hit_number_t");
+  std::get<46>(sequence).set_name("prefix_sum_scifi_track_hit_number");
+  std::get<47>(sequence).set_name("scifi_consolidate_tracks_t");
 }
 
 template<typename T>
@@ -1520,10 +1551,14 @@ void populate_sequence_argument_names(T& argument_manager)
     "prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t");
   argument_manager.template set_name<velo_consolidate_tracks__dev_accepted_velo_tracks_t>(
     "velo_consolidate_tracks__dev_accepted_velo_tracks_t");
-  argument_manager.template set_name<velo_consolidate_tracks__dev_velo_states_t>(
-    "velo_consolidate_tracks__dev_velo_states_t");
   argument_manager.template set_name<velo_consolidate_tracks__dev_velo_track_hits_t>(
     "velo_consolidate_tracks__dev_velo_track_hits_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_kalman_beamline_states_t>(
+    "velo_kalman_filter__dev_velo_kalman_beamline_states_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_kalman_endvelo_states_t>(
+    "velo_kalman_filter__dev_velo_kalman_endvelo_states_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>(
+    "velo_kalman_filter__dev_velo_lmsfit_beamline_states_t");
   argument_manager.template set_name<ut_banks__dev_raw_banks_t>("ut_banks__dev_raw_banks_t");
   argument_manager.template set_name<ut_banks__dev_raw_offsets_t>("ut_banks__dev_raw_offsets_t");
   argument_manager.template set_name<ut_calculate_number_of_hits__dev_ut_hit_sizes_t>(

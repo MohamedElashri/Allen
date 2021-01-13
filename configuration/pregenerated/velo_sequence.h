@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
 
@@ -25,6 +25,7 @@
 #include "../../device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
 #include "../../host/prefix_sum/include/HostPrefixSum.h"
 #include "../../device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
+#include "../../device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
 
 struct mep_layout__host_mep_layout_t : layout_provider::Parameters::host_mep_layout_t {
   using type = layout_provider::Parameters::host_mep_layout_t::type;
@@ -64,7 +65,8 @@ struct initialize_lists__host_number_of_events_t
     velo_search_by_triplet::Parameters::host_number_of_events_t,
     velo_three_hit_tracks_filter::Parameters::host_number_of_events_t,
     velo_copy_track_hit_number::Parameters::host_number_of_events_t,
-    velo_consolidate_tracks::Parameters::host_number_of_events_t {
+    velo_consolidate_tracks::Parameters::host_number_of_events_t,
+    velo_kalman_filter::Parameters::host_number_of_events_t {
   using type = host_global_event_cut::Parameters::host_number_of_events_t::type;
 };
 struct initialize_lists__host_number_of_selected_events_t
@@ -76,7 +78,8 @@ struct initialize_lists__dev_number_of_events_t : host_global_event_cut::Paramet
                                                   velo_calculate_phi_and_sort::Parameters::dev_number_of_events_t,
                                                   velo_search_by_triplet::Parameters::dev_number_of_events_t,
                                                   velo_three_hit_tracks_filter::Parameters::dev_number_of_events_t,
-                                                  velo_consolidate_tracks::Parameters::dev_number_of_events_t {
+                                                  velo_consolidate_tracks::Parameters::dev_number_of_events_t,
+                                                  velo_kalman_filter::Parameters::dev_number_of_events_t {
   using type = host_global_event_cut::Parameters::dev_number_of_events_t::type;
 };
 struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::dev_event_list_t,
@@ -86,7 +89,8 @@ struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::d
                                             velo_calculate_phi_and_sort::Parameters::dev_event_list_t,
                                             velo_search_by_triplet::Parameters::dev_event_list_t,
                                             velo_three_hit_tracks_filter::Parameters::dev_event_list_t,
-                                            velo_consolidate_tracks::Parameters::dev_event_list_t {
+                                            velo_consolidate_tracks::Parameters::dev_event_list_t,
+                                            velo_kalman_filter::Parameters::dev_event_list_t {
   using type = host_global_event_cut::Parameters::dev_event_list_t::type;
 };
 struct full_event_list__host_number_of_events_t : host_init_event_list::Parameters::host_number_of_events_t {
@@ -266,7 +270,8 @@ struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer
 };
 struct velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t
   : velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t,
-    velo_consolidate_tracks::Parameters::host_number_of_reconstructed_velo_tracks_t {
+    velo_consolidate_tracks::Parameters::host_number_of_reconstructed_velo_tracks_t,
+    velo_kalman_filter::Parameters::host_number_of_reconstructed_velo_tracks_t {
   using type = velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t::type;
 };
 struct velo_copy_track_hit_number__dev_velo_track_hit_number_t
@@ -276,7 +281,8 @@ struct velo_copy_track_hit_number__dev_velo_track_hit_number_t
 };
 struct velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t
   : velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t,
-    velo_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t {
+    velo_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t,
+    velo_kalman_filter::Parameters::dev_offsets_all_velo_tracks_t {
   using type = velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t::type;
 };
 struct prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t
@@ -290,18 +296,29 @@ struct prefix_sum_offsets_velo_track_hit_number__host_output_buffer_t
 };
 struct prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
-    velo_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t {
+    velo_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
+    velo_kalman_filter::Parameters::dev_offsets_velo_track_hit_number_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
 };
 struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
   : velo_consolidate_tracks::Parameters::dev_accepted_velo_tracks_t {
   using type = velo_consolidate_tracks::Parameters::dev_accepted_velo_tracks_t::type;
 };
-struct velo_consolidate_tracks__dev_velo_states_t : velo_consolidate_tracks::Parameters::dev_velo_states_t {
-  using type = velo_consolidate_tracks::Parameters::dev_velo_states_t::type;
-};
-struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t {
+struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t,
+                                                        velo_kalman_filter::Parameters::dev_velo_track_hits_t {
   using type = velo_consolidate_tracks::Parameters::dev_velo_track_hits_t::type;
+};
+struct velo_kalman_filter__dev_velo_kalman_beamline_states_t
+  : velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t::type;
+};
+struct velo_kalman_filter__dev_velo_kalman_endvelo_states_t
+  : velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t::type;
+};
+struct velo_kalman_filter__dev_velo_lmsfit_beamline_states_t
+  : velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t::type;
 };
 
 using configured_arguments_t = std::tuple<
@@ -360,8 +377,10 @@ using configured_arguments_t = std::tuple<
   prefix_sum_offsets_velo_track_hit_number__host_output_buffer_t,
   prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
   velo_consolidate_tracks__dev_accepted_velo_tracks_t,
-  velo_consolidate_tracks__dev_velo_states_t,
-  velo_consolidate_tracks__dev_velo_track_hits_t>;
+  velo_consolidate_tracks__dev_velo_track_hits_t,
+  velo_kalman_filter__dev_velo_kalman_beamline_states_t,
+  velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+  velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>;
 
 using configured_sequence_t = std::tuple<
   layout_provider::layout_provider_t,
@@ -382,7 +401,8 @@ using configured_sequence_t = std::tuple<
   host_prefix_sum::host_prefix_sum_t,
   velo_copy_track_hit_number::velo_copy_track_hit_number_t,
   host_prefix_sum::host_prefix_sum_t,
-  velo_consolidate_tracks::velo_consolidate_tracks_t>;
+  velo_consolidate_tracks::velo_consolidate_tracks_t,
+  velo_kalman_filter::velo_kalman_filter_t>;
 
 using configured_sequence_arguments_t = std::tuple<
   std::tuple<mep_layout__host_mep_layout_t, mep_layout__dev_mep_layout_t>,
@@ -526,8 +546,18 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t,
     initialize_lists__dev_number_of_events_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
-    velo_consolidate_tracks__dev_velo_states_t,
-    velo_consolidate_tracks__dev_velo_track_hits_t>>;
+    velo_consolidate_tracks__dev_velo_track_hits_t>,
+  std::tuple<
+    velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
+    initialize_lists__host_number_of_events_t,
+    initialize_lists__dev_event_list_t,
+    initialize_lists__dev_number_of_events_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
+    velo_kalman_filter__dev_velo_kalman_beamline_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+    velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>>;
 
 void inline populate_sequence_algorithm_names(configured_sequence_t& sequence)
 {
@@ -550,6 +580,7 @@ void inline populate_sequence_algorithm_names(configured_sequence_t& sequence)
   std::get<16>(sequence).set_name("velo_copy_track_hit_number");
   std::get<17>(sequence).set_name("prefix_sum_offsets_velo_track_hit_number");
   std::get<18>(sequence).set_name("velo_consolidate_tracks");
+  std::get<19>(sequence).set_name("velo_kalman_filter");
 }
 
 template<typename T>
@@ -651,8 +682,12 @@ void populate_sequence_argument_names(T& argument_manager)
     "prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t");
   argument_manager.template set_name<velo_consolidate_tracks__dev_accepted_velo_tracks_t>(
     "velo_consolidate_tracks__dev_accepted_velo_tracks_t");
-  argument_manager.template set_name<velo_consolidate_tracks__dev_velo_states_t>(
-    "velo_consolidate_tracks__dev_velo_states_t");
   argument_manager.template set_name<velo_consolidate_tracks__dev_velo_track_hits_t>(
     "velo_consolidate_tracks__dev_velo_track_hits_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_kalman_beamline_states_t>(
+    "velo_kalman_filter__dev_velo_kalman_beamline_states_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_kalman_endvelo_states_t>(
+    "velo_kalman_filter__dev_velo_kalman_endvelo_states_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>(
+    "velo_kalman_filter__dev_velo_lmsfit_beamline_states_t");
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
 
@@ -552,28 +552,32 @@ struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
     ut_select_velo_tracks_with_windows::Parameters::dev_accepted_velo_tracks_t {
   using type = velo_consolidate_tracks::Parameters::dev_accepted_velo_tracks_t::type;
 };
-struct velo_consolidate_tracks__dev_velo_states_t : velo_consolidate_tracks::Parameters::dev_velo_states_t,
-                                                    velo_kalman_filter::Parameters::dev_velo_states_t,
-                                                    ut_select_velo_tracks::Parameters::dev_velo_states_t,
-                                                    ut_search_windows::Parameters::dev_velo_states_t,
-                                                    ut_select_velo_tracks_with_windows::Parameters::dev_velo_states_t,
-                                                    compass_ut::Parameters::dev_velo_states_t,
-                                                    lf_search_initial_windows::Parameters::dev_velo_states_t,
-                                                    lf_triplet_seeding::Parameters::dev_velo_states_t,
-                                                    lf_create_tracks::Parameters::dev_velo_states_t,
-                                                    lf_quality_filter::Parameters::dev_velo_states_t {
-  using type = velo_consolidate_tracks::Parameters::dev_velo_states_t::type;
-};
 struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t,
                                                         velo_kalman_filter::Parameters::dev_velo_track_hits_t,
+                                                        ut_select_velo_tracks::Parameters::dev_velo_track_hits_t,
                                                         kalman_velo_only::Parameters::dev_velo_track_hits_t {
   using type = velo_consolidate_tracks::Parameters::dev_velo_track_hits_t::type;
 };
 struct velo_kalman_filter__dev_velo_kalman_beamline_states_t
   : velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t,
     pv_beamline_extrapolate::Parameters::dev_velo_kalman_beamline_states_t,
+    ut_select_velo_tracks::Parameters::dev_velo_states_t,
     velo_pv_ip::Parameters::dev_velo_kalman_beamline_states_t {
   using type = velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t::type;
+};
+struct velo_kalman_filter__dev_velo_kalman_endvelo_states_t
+  : velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t,
+    ut_search_windows::Parameters::dev_velo_states_t,
+    lf_search_initial_windows::Parameters::dev_velo_states_t,
+    lf_triplet_seeding::Parameters::dev_velo_states_t,
+    lf_create_tracks::Parameters::dev_velo_states_t,
+    lf_quality_filter::Parameters::dev_velo_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t::type;
+};
+struct velo_kalman_filter__dev_velo_lmsfit_beamline_states_t
+  : velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t,
+    compass_ut::Parameters::dev_velo_states_t {
+  using type = velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t::type;
 };
 struct pv_beamline_extrapolate__dev_pvtracks_t : pv_beamline_extrapolate::Parameters::dev_pvtracks_t,
                                                  pv_beamline_histo::Parameters::dev_pvtracks_t,
@@ -584,6 +588,10 @@ struct pv_beamline_extrapolate__dev_pvtracks_t : pv_beamline_extrapolate::Parame
 struct pv_beamline_extrapolate__dev_pvtrack_z_t : pv_beamline_extrapolate::Parameters::dev_pvtrack_z_t,
                                                   pv_beamline_multi_fitter::Parameters::dev_pvtrack_z_t {
   using type = pv_beamline_extrapolate::Parameters::dev_pvtrack_z_t::type;
+};
+struct pv_beamline_extrapolate__dev_pvtrack_unsorted_z_t
+  : pv_beamline_extrapolate::Parameters::dev_pvtrack_unsorted_z_t {
+  using type = pv_beamline_extrapolate::Parameters::dev_pvtrack_unsorted_z_t::type;
 };
 struct pv_beamline_histo__dev_zhisto_t : pv_beamline_histo::Parameters::dev_zhisto_t,
                                          pv_beamline_peak::Parameters::dev_zhisto_t {
@@ -1309,11 +1317,13 @@ using configured_arguments_t = std::tuple<
   prefix_sum_offsets_velo_track_hit_number__host_output_buffer_t,
   prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
   velo_consolidate_tracks__dev_accepted_velo_tracks_t,
-  velo_consolidate_tracks__dev_velo_states_t,
   velo_consolidate_tracks__dev_velo_track_hits_t,
   velo_kalman_filter__dev_velo_kalman_beamline_states_t,
+  velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+  velo_kalman_filter__dev_velo_lmsfit_beamline_states_t,
   pv_beamline_extrapolate__dev_pvtracks_t,
   pv_beamline_extrapolate__dev_pvtrack_z_t,
+  pv_beamline_extrapolate__dev_pvtrack_unsorted_z_t,
   pv_beamline_histo__dev_zhisto_t,
   pv_beamline_peak__dev_zpeaks_t,
   pv_beamline_peak__dev_number_of_zpeaks_t,
@@ -1752,7 +1762,6 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t,
     initialize_lists__dev_number_of_events_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
-    velo_consolidate_tracks__dev_velo_states_t,
     velo_consolidate_tracks__dev_velo_track_hits_t>,
   std::tuple<
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
@@ -1762,8 +1771,9 @@ using configured_sequence_arguments_t = std::tuple<
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
     velo_consolidate_tracks__dev_velo_track_hits_t,
-    velo_consolidate_tracks__dev_velo_states_t,
-    velo_kalman_filter__dev_velo_kalman_beamline_states_t>,
+    velo_kalman_filter__dev_velo_kalman_beamline_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+    velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>,
   std::tuple<
     velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
     initialize_lists__host_number_of_events_t,
@@ -1773,7 +1783,8 @@ using configured_sequence_arguments_t = std::tuple<
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
     pv_beamline_extrapolate__dev_pvtracks_t,
-    pv_beamline_extrapolate__dev_pvtrack_z_t>,
+    pv_beamline_extrapolate__dev_pvtrack_z_t,
+    pv_beamline_extrapolate__dev_pvtrack_unsorted_z_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
     initialize_lists__dev_event_list_t,
@@ -1867,9 +1878,10 @@ using configured_sequence_arguments_t = std::tuple<
     initialize_lists__dev_number_of_events_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_beamline_states_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
     initialize_lists__dev_event_list_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
     ut_select_velo_tracks__dev_ut_number_of_selected_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t>,
   std::tuple<
@@ -1880,7 +1892,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_ut_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     ut_select_velo_tracks__dev_ut_number_of_selected_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t,
     initialize_lists__dev_event_list_t,
@@ -1891,7 +1903,6 @@ using configured_sequence_arguments_t = std::tuple<
     initialize_lists__dev_number_of_events_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_number_of_selected_velo_tracks_t,
     ut_select_velo_tracks__dev_ut_selected_velo_tracks_t,
@@ -1906,7 +1917,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_ut_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_lmsfit_beamline_states_t,
     ut_search_windows__dev_ut_windows_layers_t,
     ut_select_velo_tracks_with_windows__dev_ut_number_of_selected_velo_tracks_with_windows_t,
     ut_select_velo_tracks_with_windows__dev_ut_selected_velo_tracks_with_windows_t,
@@ -1986,7 +1997,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_scifi_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     prefix_sum_ut_track_hit_number__dev_output_buffer_t,
     ut_consolidate_tracks__dev_ut_x_t,
@@ -2005,7 +2016,7 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,
     prefix_sum_scifi_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     prefix_sum_ut_track_hit_number__dev_output_buffer_t,
     ut_consolidate_tracks__dev_ut_track_velo_indices_t,
@@ -2030,7 +2041,7 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_scifi_hits__dev_output_buffer_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     ut_consolidate_tracks__dev_ut_track_velo_indices_t,
     ut_consolidate_tracks__dev_ut_qop_t,
     lf_search_initial_windows_t__dev_ut_states_t,
@@ -2064,7 +2075,7 @@ using configured_sequence_arguments_t = std::tuple<
     lf_quality_filter_length_t__dev_scifi_lf_length_filtered_atomics_t,
     lf_quality_filter_length_t__dev_scifi_lf_parametrization_length_filter_t,
     lf_search_initial_windows_t__dev_ut_states_t,
-    velo_consolidate_tracks__dev_velo_states_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
     prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
     ut_consolidate_tracks__dev_ut_track_velo_indices_t,
@@ -2804,16 +2815,20 @@ void populate_sequence_argument_names(T& argument_manager)
     "prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t");
   argument_manager.template set_name<velo_consolidate_tracks__dev_accepted_velo_tracks_t>(
     "velo_consolidate_tracks__dev_accepted_velo_tracks_t");
-  argument_manager.template set_name<velo_consolidate_tracks__dev_velo_states_t>(
-    "velo_consolidate_tracks__dev_velo_states_t");
   argument_manager.template set_name<velo_consolidate_tracks__dev_velo_track_hits_t>(
     "velo_consolidate_tracks__dev_velo_track_hits_t");
   argument_manager.template set_name<velo_kalman_filter__dev_velo_kalman_beamline_states_t>(
     "velo_kalman_filter__dev_velo_kalman_beamline_states_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_kalman_endvelo_states_t>(
+    "velo_kalman_filter__dev_velo_kalman_endvelo_states_t");
+  argument_manager.template set_name<velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>(
+    "velo_kalman_filter__dev_velo_lmsfit_beamline_states_t");
   argument_manager.template set_name<pv_beamline_extrapolate__dev_pvtracks_t>(
     "pv_beamline_extrapolate__dev_pvtracks_t");
   argument_manager.template set_name<pv_beamline_extrapolate__dev_pvtrack_z_t>(
     "pv_beamline_extrapolate__dev_pvtrack_z_t");
+  argument_manager.template set_name<pv_beamline_extrapolate__dev_pvtrack_unsorted_z_t>(
+    "pv_beamline_extrapolate__dev_pvtrack_unsorted_z_t");
   argument_manager.template set_name<pv_beamline_histo__dev_zhisto_t>("pv_beamline_histo__dev_zhisto_t");
   argument_manager.template set_name<pv_beamline_peak__dev_zpeaks_t>("pv_beamline_peak__dev_zpeaks_t");
   argument_manager.template set_name<pv_beamline_peak__dev_number_of_zpeaks_t>(

@@ -29,23 +29,23 @@ float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& v
 
 // Velo tracks.
 float ipVelo(
-  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const Velo::Consolidated::States& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex);
 float ipxVelo(
-  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const Velo::Consolidated::States& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex);
 float ipyVelo(
-  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const Velo::Consolidated::States& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex);
 float ipChi2Velo(
-  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const Velo::Consolidated::States& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex);
 float veloDOCAz(
-  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const Velo::Consolidated::States& velo_kalman_states,
   const unsigned state_index,
   const PV::Vertex& vertex);
 

@@ -28,7 +28,6 @@ namespace velo_consolidate_tracks {
     dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
-    DEVICE_OUTPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

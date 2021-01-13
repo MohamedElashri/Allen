@@ -223,7 +223,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
       // Update qop of the track
       const auto velo_track_index = parameters.dev_ut_track_velo_indices[ut_event_tracks_offset + track.ut_track_index];
       const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const auto velo_state = velo_states.getMiniState(velo_states_index);
+      const auto velo_state = velo_states.get(velo_states_index);
 
       const auto x0 = scifi_hits.x0(event_offset + track.hits[0]);
       const auto x1 = scifi_hits.x0(event_offset + track.hits[2]);

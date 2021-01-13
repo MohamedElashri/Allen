@@ -183,6 +183,19 @@ def VeloSequence(doGEC=True):
         dev_output_buffer_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
+    velo_kalman_filter = velo_kalman_filter_t(
+        name="velo_kalman_filter",
+        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
+        host_number_of_reconstructed_velo_tracks_t(),
+        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
+        dev_offsets_all_velo_tracks_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t(),
+        dev_offsets_velo_track_hit_number_t=
+        prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
+        dev_velo_track_hits_t=velo_consolidate_tracks.dev_velo_track_hits_t())
+
     velo_sequence = Sequence(
         mep_layout, host_ut_banks, host_scifi_banks, initialize_lists,
         full_event_list, velo_banks, velo_calculate_number_of_candidates,
@@ -192,6 +205,6 @@ def VeloSequence(doGEC=True):
         prefix_sum_offsets_velo_tracks, velo_three_hit_tracks_filter,
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
         velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
-        velo_consolidate_tracks)
+        velo_consolidate_tracks, velo_kalman_filter)
 
     return velo_sequence

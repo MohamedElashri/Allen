@@ -74,7 +74,6 @@ __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_w
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -83,7 +82,6 @@ __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_w
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
   const auto ut_windows_layers =
     parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
-  ;
 
   auto ut_number_of_selected_velo_tracks_with_windows =
     parameters.dev_ut_number_of_selected_velo_tracks_with_windows + event_number;
