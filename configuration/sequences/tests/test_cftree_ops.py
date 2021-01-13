@@ -5,9 +5,11 @@
 # See https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
 import sys
 import os
-PACKAGE_PARENT = '..'
+
+PACKAGE_PARENT = ".."
 SCRIPT_DIR = os.path.dirname(
-    os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+    os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__)))
+)
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 # import pytest
@@ -24,7 +26,7 @@ from minipyconf.cftree_ops import (
     get_execution_list_for,
     get_best_order,
     merge_execution_masks,
-    find_execution_masks_for_algorithms
+    find_execution_masks_for_algorithms,
 )
 from minipyconf.utils import memoizing
 from definitions.event_list_utils import make_algorithm
@@ -65,20 +67,46 @@ def sample_tree_1():
 
 @memoizing
 def sample_tree_2():
-    pre0 = Algorithm(decider_1_t, name="pre0_st2", conf=1, weight=1)
-    pre1 = Algorithm(decider_1_t, name="pre1_st2", conf=2, weight=1)
-    pre2 = Algorithm(decider_1_t, name="pre2_st2", conf=3, weight=1)
+    """
+    In Moore (or rather the HltControlflowMgr), this would be an invalid tree
+    to operate, because forceOrder there means that the order of evaluation
+    of the children is hard. Because PRE2 appears in both pre02 and pre12,
+    this would mean that PRE2 ultimately has to evaluate before PRE2, which
+    is impossible.
+
+    However, in this scheduler forceOrder is used to build control flow
+    dependencies. A forceOrder = False in boom_st2 causes two trees to be
+    evaluated, one with [pre02, pre12] and one with [pre12, pre02]. A score
+    is calculated on both sequences that come out of these trees to see which
+    one executes faster. Therefore, forceOrder here can rather be interpreted
+    as "preferredOrder" of the topalgs involved in the ordering.
+    """
+    pre0 = Algorithm(decider_1_t, name="pre0_st2", conf=5, weight=1)
+    pre1 = Algorithm(decider_1_t, name="pre1_st2", conf=6, weight=1)
+    pre2 = Algorithm(decider_1_t, name="pre2_st2", conf=7, weight=1)
     PRE0 = Leaf("PRE0_st2", 1, 0.7, alg=pre0)
     PRE1 = Leaf("PRE1_st2", 1, 0.3, alg=pre1)
     PRE2 = Leaf("PRE2_st2", 2, 0.3, alg=pre2)
-    pre12 = CompositeNode("pre12_st2", Logic.AND, [PRE1, PRE2], forceOrder=True, lazy=True)
-    return CompositeNode("boom_st2", Logic.OR, [PRE0, pre12], forceOrder=True, lazy=True)
+    pre12 = CompositeNode(
+        "pre12_st2", Logic.AND, [PRE1, PRE2], forceOrder=True, lazy=True
+    )
+    pre02 = CompositeNode(
+        "pre02_st2", Logic.AND, [PRE0, PRE2], forceOrder=True, lazy=True
+    )
+    return CompositeNode(
+        "boom_st2", Logic.OR, [pre02, pre12], forceOrder=True, lazy=True
+    )
 
 
 def test_gather_leafs():
     root = sample_tree_0()
     leafs = set(
-        (Leaf.leafs["PRE0_st0"], Leaf.leafs["PRE1_st0"], Leaf.leafs["X_st0"], Leaf.leafs["Y_st0"])
+        (
+            Leaf.leafs["PRE0_st0"],
+            Leaf.leafs["PRE1_st0"],
+            Leaf.leafs["X_st0"],
+            Leaf.leafs["Y_st0"],
+        )
     )
     assert gather_leafs(root) == leafs
 
@@ -126,13 +154,30 @@ def test_parse_boolean():
 
 
 def test_find_execution_masks_for_algorithms():
+    # test sample tree 0
     root = sample_tree_0()
     exec_masks = find_execution_masks_for_algorithms(root)
-    pre0 = root.children[0].children[0].top_alg
-    pre1 = root.children[1].children[0].top_alg
-    dec0 = root.children[0].children[1].top_alg
-    dec1 = root.children[1].children[1].top_alg
-    assert exec_masks == [(pre0, 'True'),
-                          (dec0, 'PRE0_st0'),
-                          (pre1, '~PRE0_st0 | ~X_st0'),
-                          (dec1, 'PRE1_st0 & (~PRE0_st0 | ~X_st0)')]
+    pre0_st0 = root.children[0].children[0].top_alg
+    pre1_st0 = root.children[1].children[0].top_alg
+    dec0_st0 = root.children[0].children[1].top_alg
+    dec1_st0 = root.children[1].children[1].top_alg
+    assert exec_masks == [
+        (pre0_st0, "True"),
+        (dec0_st0, "PRE0_st0"),
+        (pre1_st0, "~PRE0_st0 | ~X_st0"),
+        (dec1_st0, "PRE1_st0 & (~PRE0_st0 | ~X_st0)"),
+    ]
+
+    # test sample tree 2
+    root = sample_tree_2()
+    pre0_st2 = root.children[0].children[0].top_alg
+    pre1_st2 = root.children[1].children[0].top_alg
+    pre2_st2 = root.children[0].children[1].top_alg
+    exec_masks = find_execution_masks_for_algorithms(root)
+    should_be_exec_masks = [
+        (pre0_st2, "True"),
+        (pre2_st2, "PRE0_st2"),
+        (pre1_st2, "~PRE0_st2 | ~PRE2_st2"),
+        (pre2_st2, "PRE1_st2 & (~PRE0_st2 | ~PRE2_st2)"),
+    ]
+    assert exec_masks == should_be_exec_masks
