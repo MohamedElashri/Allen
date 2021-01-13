@@ -2,20 +2,40 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 from definitions.algorithms import *
+from definitions.InitSequence import initialize_number_of_events
+from definitions.VeloSequence import make_velo_tracks, run_velo_kalman_filter
+from definitions.UTSequence import make_ut_tracks
+from definitions.event_list_utils import make_algorithm
+from minipyconf.tonic import configurable
 
+@configurable
+def make_forward_tracks(forward_decoding="v4", hit_window_size="32", **kwargs):
+    number_of_events = initialize_number_of_events(**kwargs)
+    velo_tracks = make_velo_tracks(**kwargs)
+    host_number_of_reconstructed_velo_tracks = velo_tracks[
+        "host_number_of_reconstructed_velo_tracks"]
+    dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
+    dev_offsets_velo_track_hit_number = velo_tracks[
+        "dev_offsets_velo_track_hit_number"]
+    dev_accepted_velo_tracks = velo_tracks["dev_accepted_velo_tracks"]
 
-def ForwardSequence(initialize_lists,
-                    velo_copy_track_hit_number,
-                    velo_consolidate_tracks,
-                    prefix_sum_offsets_velo_track_hit_number,
-                    prefix_sum_ut_tracks,
-                    prefix_sum_ut_track_hit_number,
-                    ut_consolidate_tracks,
-                    velo_kalman_filter,
-                    forward_decoding="v4",
-                    hit_window_size="32"):
+    ut_tracks = make_ut_tracks(**kwargs)
+    dev_ut_track_hits = ut_tracks["dev_ut_track_hits"]
+    host_number_of_reconstructed_ut_tracks = ut_tracks[
+        "host_number_of_reconstructed_ut_tracks"]
+    dev_offsets_ut_tracks = ut_tracks["dev_offsets_ut_tracks"]
+    dev_offsets_ut_track_hit_number = ut_tracks[
+        "dev_offsets_ut_track_hit_number"]
+    dev_ut_track_velo_indices = ut_tracks["dev_ut_track_velo_indices"]
+    dev_ut_x = ut_tracks["dev_ut_x"]
+    dev_ut_tx = ut_tracks["dev_ut_tx"]
+    dev_ut_z = ut_tracks["dev_ut_z"]
+    dev_ut_qop = ut_tracks["dev_ut_qop"]
 
-    scifi_banks = data_provider_t(name="scifi_banks", bank_type="FTCluster")
+    scifi_banks = make_algorithm(
+        data_provider_t, name="scifi_banks", bank_type="FTCluster")
+
+    velo_states = run_velo_kalman_filter(**kwargs)
 
     scifi_calculate_cluster_count_algorithm = None
     scifi_pre_decode_algorithm = None

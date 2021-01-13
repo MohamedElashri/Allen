@@ -2,16 +2,17 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 from definitions.algorithms import *
+from definitions.VeloSequence import make_velo_tracks, run_velo_kalman_filter
+from definitions.InitSequence import initialize_number_of_events
+from definitions.event_list_utils import make_algorithm
+from minipyconf.tonic import configurable
 
 
-def UTSequence(initialize_lists,
-               prefix_sum_offsets_velo_track_hit_number,
-               velo_copy_track_hit_number,
-               velo_consolidate_tracks,
-               velo_kalman_filter,
-               host_ut_banks,
-               restricted=True):
-    ut_banks = data_provider_t(name="ut_banks", bank_type="UT")
+@configurable
+def make_ut_tracks(restricted=True, **kwargs):
+    number_of_events = initialize_number_of_events(**kwargs)
+    velo_tracks = make_velo_tracks(**kwargs)
+    velo_states = run_velo_kalman_filter(**kwargs)
 
     ut_calculate_number_of_hits = ut_calculate_number_of_hits_t(
         name="ut_calculate_number_of_hits",
