@@ -263,31 +263,14 @@ namespace Sch {
   };
 
   // Return constants for algorithms in the sequence
-  template<typename Dependencies, typename Indices>
-  struct GetSequenceConfigurationImpl;
-
-  template<typename Tuple>
-  struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<>> {
-    static auto get(Tuple const&, std::map<std::string, std::map<std::string, std::string>>& config) { return config; };
-  };
-
-  template<typename Tuple, unsigned long I, unsigned long... Is>
-  struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<I, Is...>> {
-    static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
-    {
-      const auto& algorithm = std::get<I>(algs);
-      auto props = algorithm.get_properties();
-      config.emplace(algorithm.name(), props);
-      return GetSequenceConfigurationImpl<Tuple, std::index_sequence<Is...>>::get(algs, config);
-    }
-  };
-
   template<typename Tuple>
   struct GetSequenceConfiguration {
     static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
     {
-      return GetSequenceConfigurationImpl<Tuple, std::make_index_sequence<std::tuple_size<Tuple>::value>>::get(
-        algs, config);
+      std::apply(
+        [&config](const auto&... algorithm) { (config.emplace(algorithm.name(), algorithm.get_properties()), ...); },
+        algs);
+      return config;
     }
   };
 
