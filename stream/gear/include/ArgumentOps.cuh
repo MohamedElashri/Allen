@@ -7,6 +7,7 @@
 #include <gsl/gsl>
 #include "BankTypes.h"
 #include "BackendCommon.h"
+#include "AllenTypeTraits.cuh"
 
 /**
  * @brief Sets the size of a container to the specified size.
@@ -164,16 +165,18 @@ struct SingleArgumentOverloadResolution<
 };
 
 template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<
-    std::is_base_of_v<host_datatype, Arg> &&
-    !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-      std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>)>> {
+struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base_of_v<host_datatype, Arg>>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
+  }
+
+  static auto make_vector(const Args& arguments)
+  {
+    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy(
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost);
+    return v;
   }
 
   static void print(const Args& arguments)
@@ -189,54 +192,34 @@ struct SingleArgumentOverloadResolution<
 };
 
 template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<
-    std::is_base_of_v<device_datatype, Arg> &&
-    (std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-     std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>)>> {
+struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base_of_v<device_datatype, Arg>>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
   {
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
   }
 
-  static void print(const Args& arguments)
+  static auto make_vector(const Args& arguments)
   {
-    std::vector<char> v(size<Arg>(arguments));
+    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy(
       v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
-
-    info_cout << name<Arg>(arguments) << ": ";
-    for (const auto& i : v) {
-      info_cout << ((int) i) << ", ";
-    }
-    info_cout << "\n";
-  }
-};
-
-template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<
-    std::is_base_of_v<device_datatype, Arg> &&
-    !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-      std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>)>> {
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
-  {
-    Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
+    return v;
   }
 
   static void print(const Args& arguments)
   {
-    std::vector<typename Arg::type> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
+    const auto v = make_vector(arguments);
 
     info_cout << name<Arg>(arguments) << ": ";
     for (const auto& i : v) {
-      info_cout << i << ", ";
+      if constexpr (
+        std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
+        std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>) {
+        info_cout << static_cast<int>(i) << ", ";
+      }
+      else {
+        info_cout << i << ", ";
+      }
     }
     info_cout << "\n";
   }
@@ -449,4 +432,16 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
 
   Allen::memcpy_async(
     data<OFFSET_ARG>(args), std::get<2>(bno).data(), std::get<2>(bno).size_bytes(), Allen::memcpyHostToDevice, context);
+}
+
+/**
+ * @brief Makes a std::vector out of an Allen container.
+ * @details The copy mechanism to create the std::vector is blocking and synchronous.
+ *          This function should only be used where the performance of the application
+ *          is irrelevant.
+ */
+template<typename Arg, typename Args>
+auto make_vector(const Args& arguments)
+{
+  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments);
 }

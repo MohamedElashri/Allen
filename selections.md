@@ -128,10 +128,10 @@ In the above, `"name_of_algorithm"` is the name of the algorithm, and `"line_typ
 A `SelectionAlgorithm` can contain the following:
 
 * `using iteration_t = LineIteration::event_iteration_tag;`: Used if each selection is to be applied exactly once per event (eg. a lumi line).
-* `unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const { ... }`: A function that returns the size of the decisions container.
-* `__device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const { ... }`: A function that returns the `event_number`th offset of the decisions container.
+* `static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const { ... }`: A function that returns the size of the decisions container.
+* `__device__ static unsigned offset(const Parameters& parameters, const unsigned event_number) const { ... }`: A function that returns the `event_number`th offset of the decisions container.
 * ```c++
-  __device__ std::tuple<"configurable_types">
+  __device__ static std::tuple<"configurable_types">
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const {
       ...
       return std::forward_as_tuple("instances");
@@ -357,7 +357,7 @@ namespace velo_micro_bias_line {
   };
 
   struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
-    __device__ std::tuple<const unsigned>
+    __device__ static std::tuple<const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number) const;
 
     __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
@@ -448,13 +448,13 @@ namespace example_one_velo_track_line {
   struct example_one_velo_track_line_t : public SelectionAlgorithm, Parameters, Line<example_one_velo_track_line_t, Parameters> {
 
       // Offset function
-      __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const;
+      __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number) const;
     
       //Get decision size function
-      unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
+      static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
     
       // Get input function
-      __device__ std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
+      __device__ static std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
     
       // Selection function
       __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;

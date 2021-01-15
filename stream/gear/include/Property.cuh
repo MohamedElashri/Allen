@@ -17,15 +17,6 @@
 #include <functional>
 #include <iostream>
 
-// Functionality for defining names
-template<char... Cs>
-struct Name {
-  constexpr static const char s[sizeof...(Cs) + 1] = {Cs..., '\0'};
-};
-
-template<char... Cs>
-constexpr char Name<Cs...>::s[sizeof...(Cs) + 1];
-
 namespace Configuration {
   namespace Detail {
     std::regex const array_expr {"\\{(?:\\s*(\\d+)\\s*,?)+\\}"};

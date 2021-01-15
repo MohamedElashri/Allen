@@ -10,7 +10,7 @@
 #include <utility>
 #include <functional>
 #include <gsl/gsl>
-
+#include <cxxabi.h>
 #include "SystemOfUnits.h"
 
 /**
@@ -141,3 +141,15 @@ using span_size_t = typename span_size<T>::type;
 
 using events_size = span_size_t<char>;
 using offsets_size = span_size_t<unsigned int>;
+
+/**
+ * @brief Demangles a name of a type.
+ */
+template<typename T>
+std::string demangle()
+{
+  const auto mangled_name = typeid(T).name();
+  int status = -4; // some arbitrary value to eliminate the compiler warning
+  std::unique_ptr<char, void (*)(void*)> res {abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status), std::free};
+  return (status == 0) ? res.get() : mangled_name;
+}
