@@ -198,12 +198,12 @@ def ForwardSequence(initialize_lists,
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
         host_total_sum_holder_t(),
         dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-	dev_offsets_all_velo_tracks_t(),
-	dev_offsets_velo_track_hit_number_t=
-	prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-	dev_velo_states_t=velo_kalman_filter.
-	dev_velo_kalman_endvelo_states_t(),
-	dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t(),
+        dev_offsets_all_velo_tracks_t(),
+        dev_offsets_velo_track_hit_number_t=
+        prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
+        dev_velo_states_t=velo_kalman_filter.
+        dev_velo_kalman_endvelo_states_t(),
+        dev_scifi_hits_t=scifi_raw_bank_decoder.dev_scifi_hits_t(),
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t(),
         dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
         dev_output_buffer_t(),
@@ -212,8 +212,8 @@ def ForwardSequence(initialize_lists,
         dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t(),
         dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
         dev_output_buffer_t(),
-	dev_ut_qop_t=ut_consolidate_tracks.dev_ut_qop_t(),
-	dev_ut_track_velo_indices_t=ut_consolidate_tracks.
+        dev_ut_qop_t=ut_consolidate_tracks.dev_ut_qop_t(),
+        dev_ut_track_velo_indices_t=ut_consolidate_tracks.
         dev_ut_track_velo_indices_t(),
         dev_scifi_tracks_t=lf_quality_filter.dev_scifi_tracks_t(),
         dev_scifi_lf_parametrization_consolidate_t=lf_quality_filter.

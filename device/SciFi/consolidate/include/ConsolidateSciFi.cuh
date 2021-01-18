@@ -39,7 +39,8 @@ namespace scifi_consolidate_tracks {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void scifi_consolidate_tracks(Parameters,
+  __global__ void scifi_consolidate_tracks(
+    Parameters,
     const LookingForward::Constants* dev_looking_forward_constants,
     const float* dev_magnet_polarity);
 

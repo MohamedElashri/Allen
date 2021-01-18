@@ -211,7 +211,6 @@ __global__ void lf_quality_filter::lf_quality_filter(
         [4 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_b;
       parameters.dev_scifi_lf_parametrization_consolidate
         [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_m;
-
     }
   }
 }
