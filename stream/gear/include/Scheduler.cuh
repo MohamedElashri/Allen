@@ -8,6 +8,55 @@
 #include "ArgumentManager.cuh"
 #include "Logger.h"
 #include <utility>
+#include <type_traits>
+
+namespace details {
+
+    template <auto I, typename Callable, typename... Tuples>
+    constexpr auto invoke_at(Callable&& f, Tuples&&... tuples) {
+        return std::invoke( f, std::get<I>(std::forward<Tuples>(tuples))...);
+    }       
+    template < typename Callable, typename... Tuples ,std::size_t... Is >
+    constexpr void invoke_for_each_slice_impl(  std::index_sequence<Is...>,  Callable&& f, Tuples&&... tuples ) {
+        (invoke_at<Is>(std::forward<Callable>(f), std::forward<Tuples>(tuples)...), ...);
+    } 
+    template <typename Callable, typename Tuple, typename... Tuples  >
+    constexpr void invoke_for_each_slice(Callable&& f, Tuple&& tuple, Tuples&&... tuples ) {
+        constexpr auto N = std::tuple_size_v<std::remove_reference_t<Tuple>>;
+        static_assert( ( ( N == std::tuple_size_v<std::remove_reference_t<Tuples>> ) && ... ) );
+        invoke_for_each_slice_impl(  std::make_index_sequence<N>{} , std::forward<Callable>(f), std::forward<Tuple>(tuple), std::forward<Tuples>(tuples)...);
+    }
+
+    struct VTable {
+        void *algorithm = nullptr;
+        void (*configure)(void* self, const std::map<std::string, std::map<std::string, std::string>>& config) = nullptr;
+        void (*get_configuration)(const void* self,std::map<std::string, std::map<std::string, std::string>>& config) = nullptr;
+        std::string (*name)(const void* self) = nullptr;
+        // void (*set_arguments_size)(void* self, arguments_tuple, const RuntimeOptoons&, const Constants&, HostBuffers&) = nullptr;
+    };
+
+    template <typename Alg>
+    constexpr auto vtable_for(Alg& alg) {
+        return VTable{ 
+            // Payload
+            /* .algorithm = */ &alg,
+            // Configure constants for algorithms 
+            /* .configure = */ [](void *self,  const std::map<std::string, std::map<std::string, std::string>>& config) {
+                    auto *algorithm = static_cast<Alg*>(self);
+                    auto c = config.find(algorithm->name());
+                    if (c != config.end()) algorithm->set_properties(c->second);
+                    // * Invoke void initialize() const, iff it exists
+                    if constexpr (has_member_fn<Alg>::value) { algorithm->init(); };
+            },
+            /* .get_configuration = */ [](const void* self,std::map<std::string, std::map<std::string, std::string>>& config) {
+                    auto *algorithm = static_cast<const Alg*>(self);
+                    config.emplace(algorithm->name(), algorithm->get_properties() );
+            },
+            /* .name = */ [](const void* self) { return static_cast<const Alg*>(self)->name(); }
+        };
+    }
+}
+
 
 template<typename ConfiguredSequence, typename ConfiguredArguments, typename ConfiguredSequenceArguments>
 struct Scheduler {
@@ -37,10 +86,16 @@ struct Scheduler {
   bool do_print = false;
 
   // Configured sequence
-  configured_sequence_t sequence_tuple;
+  configured_sequence_t sequence_tuple; // TODO: GR: remove any direct use of this variable...
+  std::array< details::VTable, std::tuple_size_v<configured_sequence_t> > vtbls;
 
-  Scheduler() = default;
+  Scheduler() {
+      details::invoke_for_each_slice( [](auto& alg, details::VTable& vtbl) { vtbl = details::vtable_for(alg); } , sequence_tuple,  vtbls   );
+  }
   Scheduler(const Scheduler&) = delete;
+  Scheduler& operator=(const Scheduler&) = delete;
+  Scheduler(Scheduler&&) = delete;
+  Scheduler& operator=(Scheduler&&) = delete;
 
   void initialize(
     const bool param_do_print,
@@ -83,7 +138,7 @@ struct Scheduler {
     using out_arguments_t = typename std::tuple_element<I, out_deps_t>::type;
 
     if (do_print) {
-      info_cout << "Sequence step " << I << " \"" << std::get<I>(sequence_tuple).name() << "\":\n";
+      info_cout << "Sequence step " << I << " \"" << std::invoke( vtbls[I].name, vtbls[I].algorithm ) << "\":\n";
     }
 
     // Free all arguments in OutDependencies
@@ -101,14 +156,29 @@ struct Scheduler {
     }
   }
 
+  // Configure constants for algorithms in the sequence
   void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
   {
-    Sch::ConfigureAlgorithmSequence<ConfiguredSequence>::configure(sequence_tuple, config);
+    std::for_each( vtbls.begin(), vtbls.end(), [&config](auto& vtbl) {
+        std::invoke( vtbl.configure, vtbl.algorithm, config );
+    } );
   }
 
+  // Return constants for algorithms in the sequence
   auto get_algorithm_configuration()
   {
     std::map<std::string, std::map<std::string, std::string>> config;
-    return Sch::GetSequenceConfiguration<ConfiguredSequence>::get(sequence_tuple, config);
+    std::for_each( vtbls.begin(), vtbls.end(), [&config](auto& vtbl) {
+        std::invoke( vtbl.get_configuration, vtbl.algorithm, config );
+    } );
+    return config;
+  }
+
+  //  Runs a sequence of algorithms.
+  void run( const RuntimeOptions& runtime_options,  const Constants& constants, HostBuffers* host_buffers, const Allen::Context& context ) {
+    //TODO: GR: type erase me
+    constexpr auto N = std::tuple_size_v<typename Scheduler::configured_sequence_t>;
+    static_assert(N>0);
+    Sch::run_sequence_tuple(*this, runtime_options, constants, *host_buffers, context, std::make_index_sequence<N>{});
   }
 };
