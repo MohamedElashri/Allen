@@ -12,14 +12,6 @@
 #include "AllenTypeTraits.cuh"
 
 namespace {
-
-    // use constexpr flag to enable/disable contracts 
-#ifdef ENABLE_CONTRACTS
-    constexpr bool contracts_enabled = true;
-#else
-    constexpr bool contracts_enabled = false;
-#endif
-    
   // SFINAE-based invocation of member function iff class provides it.
   // This is just one way to write a type trait, it's not necessarily
   // the best way. You could use the Detection Idiom, for example
@@ -237,7 +229,7 @@ namespace Sch {
   struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<ConfiguredArguments...>> {
     constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array)
     {
-      return ArgumentRefManager {{arguments_array[index_of_v<ConfiguredArguments,ArgumentsTuple>]...}};
+      return ArgumentRefManager {{arguments_array[index_of_v<ConfiguredArguments, ArgumentsTuple>]...}};
     }
   };
 
@@ -281,79 +273,6 @@ namespace Sch {
     using preconditions = typename recursive_contracts::preconditions;
     using postconditions = typename TupleAppend<typename recursive_contracts::postconditions, A>::t;
   };
-
-  /**
-   * @brief Runs the sequence tuple (implementation).
-   */
-
-  template<typename Scheduler, unsigned long I, unsigned long... Is>
-  void run_sequence_tuple(
-      Scheduler& scheduler,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
-      const Allen::Context& context,
-      std::index_sequence<I,Is...>)
-    {
-      using t = std::tuple_element_t<I, typename Scheduler::configured_sequence_t>;
-      using configured_arguments_t = std::tuple_element_t<I, typename Scheduler::configured_sequence_arguments_t>;
-
-      auto arguments_tuple =
-        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
-          scheduler.argument_manager.argument_database());
-
-      // Get pre and postconditions -- conditional on `contracts_enabled`
-      // Starting at -O1, gcc will entirely remove the contracts code when not enabled, see https://godbolt.org/z/67jxx7
-      using algorithm_contracts = AlgorithmContracts<typename t::contracts>;
-      auto preconditions = std::conditional_t< contracts_enabled, typename algorithm_contracts::preconditions, std::tuple<>> {};
-      auto postconditions = std::conditional_t< contracts_enabled, typename algorithm_contracts::postconditions, std::tuple<>> {};
-
-      // Set location
-      const auto location = std::invoke( scheduler.vtbls[I].name, scheduler.vtbls[I].algorithm );
-      std::apply(
-        [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-        preconditions);
-      std::apply(
-        [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-        postconditions);
-
-      // Sets the arguments sizes
-      std::get<I>(scheduler.sequence_tuple)
-        .set_arguments_size(arguments_tuple, runtime_options, constants, host_buffers);
-
-      // Setup algorithm, reserving / freeing memory buffers
-      scheduler.template setup<I>();
-
-      // Run preconditions
-      std::apply(
-        [&](const auto&... contract) {
-          (contract(arguments_tuple, runtime_options, constants, context), ...);
-        },
-        preconditions);
-
-      try {
-        // Invoke operator() of the algorithm
-        std::get<I>(scheduler.sequence_tuple)(arguments_tuple, runtime_options, constants, host_buffers, context);
-      } catch (std::invalid_argument& e) {
-        fprintf(
-          stderr,
-          "Execution of algorithm %s raised an exception\n",
-          std::invoke( scheduler.vtbls[I].name, scheduler.vtbls[I].algorithm ).c_str());
-        throw e;
-      }
-
-      // Run postconditions
-      std::apply(
-        [&](const auto&... contract) {
-          (contract(arguments_tuple, runtime_options, constants, context), ...);
-        },
-        postconditions);
-
-      if constexpr (sizeof...(Is)!=0) {
-         run_sequence_tuple( scheduler, runtime_options, constants, host_buffers, context, std::index_sequence<Is...>{});
-      }
-    }
-
 
   /**
    * @brief Runs the PrChecker for all configured algorithms in the sequence.
