@@ -87,12 +87,10 @@ struct Scheduler {
     }
 
     // Free all arguments in OutDependencies
-    MemoryManagerFree<host_memory_manager_t, device_memory_manager_t, argument_manager_t, out_arguments_t>::free(
-      host_memory_manager, device_memory_manager, argument_manager);
+    MemoryManagerHelper<out_arguments_t>::free(host_memory_manager, device_memory_manager, argument_manager);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerReserve<host_memory_manager_t, device_memory_manager_t, argument_manager_t, in_arguments_t>::reserve(
-      host_memory_manager, device_memory_manager, argument_manager);
+    MemoryManagerHelper<in_arguments_t>::reserve(host_memory_manager, device_memory_manager, argument_manager);
 
     // Print memory manager state
     if (do_print) {

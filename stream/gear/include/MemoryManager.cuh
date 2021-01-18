@@ -87,7 +87,7 @@ public:
    *        If there are no available segments of the requested size,
    *        it throws an exception.
    */
-  template<typename ArgumentManagerType, typename Argument>
+  template<typename Argument, typename ArgumentManagerType>
   void reserve(ArgumentManagerType& argument_manager)
   {
     // Tag and requested size
@@ -150,7 +150,7 @@ public:
   /**
    * @brief Recursive free, implementation for Argument.
    */
-  template<typename ArgumentManagerType, typename Argument>
+  template<typename Argument, typename ArgumentManagerType>
   void free(ArgumentManagerType& argument_manager)
   {
     const auto tag = argument_manager.template name<Argument>();
@@ -259,7 +259,7 @@ public:
   /**
    * @brief Allocates a segment of the requested size.
    */
-  template<typename ArgumentManagerType, typename Argument>
+  template<typename Argument, typename ArgumentManagerType>
   void reserve(ArgumentManagerType& argument_manager)
   {
     // Tag and requested size
@@ -301,7 +301,7 @@ public:
   /**
    * @brief Frees the requested argument.
    */
-  template<typename ArgumentManagerType, typename Argument>
+  template<typename Argument, typename ArgumentManagerType>
   void free(ArgumentManagerType& argument_manager)
   {
     const auto tag = argument_manager.template name<Argument>();
@@ -365,129 +365,64 @@ public:
 
 /**
  * @brief  Helper struct to iterate in compile time over the
- *         arguments to reserve. Using SFINAE to choose at compile time
- *         whether to reserve on the host or device memory.
+ *         arguments to reserve/free. Using `if constexpr` to choose at compile time
+ *         whether to reserve/free on the host or device memory.
  */
-template<
-  typename HostMemoryManager,
-  typename DeviceMemoryManager,
-  typename ArgumentManagerType,
-  typename Arguments,
-  typename Enabled = void>
-struct MemoryManagerReserve;
 
-template<typename HostMemoryManager, typename DeviceMemoryManager, typename ArgumentManagerType>
-struct MemoryManagerReserve<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<>, void> {
-  constexpr static void reserve(HostMemoryManager&, DeviceMemoryManager&, ArgumentManagerType&) {}
-};
-
-template<
-  typename HostMemoryManager,
-  typename DeviceMemoryManager,
-  typename ArgumentManagerType,
-  typename Argument,
-  typename... Arguments>
-struct MemoryManagerReserve<
-  HostMemoryManager,
-  DeviceMemoryManager,
-  ArgumentManagerType,
-  std::tuple<Argument, Arguments...>,
-  typename std::enable_if<std::is_base_of<device_datatype, Argument>::value>::type> {
-  constexpr static void reserve(
-    HostMemoryManager& host_memory_manager,
-    DeviceMemoryManager& device_memory_manager,
-    ArgumentManagerType& argument_manager)
+namespace details {
+  template<typename Argument, typename MemoryManager, typename ArgumentManagerType>
+  constexpr void reserve(MemoryManager& memory_manager, ArgumentManagerType& argument_manager)
   {
-    device_memory_manager.template reserve<ArgumentManagerType, Argument>(argument_manager);
-    MemoryManagerReserve<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::
-      reserve(host_memory_manager, device_memory_manager, argument_manager);
+    static_assert((std::is_base_of_v<device_datatype, Argument>) || std::is_base_of_v<host_datatype, Argument>);
+    memory_manager.template reserve<Argument>(argument_manager);
   }
-};
-
-template<
-  typename HostMemoryManager,
-  typename DeviceMemoryManager,
-  typename ArgumentManagerType,
-  typename Argument,
-  typename... Arguments>
-struct MemoryManagerReserve<
-  HostMemoryManager,
-  DeviceMemoryManager,
-  ArgumentManagerType,
-  std::tuple<Argument, Arguments...>,
-  typename std::enable_if<std::is_base_of<host_datatype, Argument>::value>::type> {
-  constexpr static void reserve(
-    HostMemoryManager& host_memory_manager,
-    DeviceMemoryManager& device_memory_manager,
-    ArgumentManagerType& argument_manager)
+  template<typename Argument, typename MemoryManager, typename ArgumentManagerType>
+  constexpr void free(MemoryManager& memory_manager, ArgumentManagerType& argument_manager)
   {
-    host_memory_manager.template reserve<ArgumentManagerType, Argument>(argument_manager);
-    MemoryManagerReserve<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::
-      reserve(host_memory_manager, device_memory_manager, argument_manager);
-  }
-};
-
-/**
- * @brief Helper struct to iterate in compile time over the
- *        arguments to free. Using SFINAE to choose at compile time
- *        whether to free on the host or device memory.
- */
-template<
-  typename HostMemoryManager,
-  typename DeviceMemoryManager,
-  typename ArgumentManagerType,
-  typename Arguments,
-  typename Enabled = void>
-struct MemoryManagerFree;
-
-template<typename HostMemoryManager, typename DeviceMemoryManager, typename ArgumentManagerType>
-struct MemoryManagerFree<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<>, void> {
-  constexpr static void free(HostMemoryManager&, DeviceMemoryManager&, ArgumentManagerType&) {}
-};
-
-template<
-  typename HostMemoryManager,
-  typename DeviceMemoryManager,
-  typename ArgumentManagerType,
-  typename Argument,
-  typename... Arguments>
-struct MemoryManagerFree<
-  HostMemoryManager,
-  DeviceMemoryManager,
-  ArgumentManagerType,
-  std::tuple<Argument, Arguments...>,
-  typename std::enable_if<std::is_base_of<device_datatype, Argument>::value>::type> {
-  constexpr static void free(
-    HostMemoryManager& host_memory_manager,
-    DeviceMemoryManager& device_memory_manager,
-    ArgumentManagerType& argument_manager)
-  {
-    device_memory_manager.template free<ArgumentManagerType, Argument>(argument_manager);
-    MemoryManagerFree<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::free(
-      host_memory_manager, device_memory_manager, argument_manager);
-  }
-};
-
-template<
-  typename HostMemoryManager,
-  typename DeviceMemoryManager,
-  typename ArgumentManagerType,
-  typename Argument,
-  typename... Arguments>
-struct MemoryManagerFree<
-  HostMemoryManager,
-  DeviceMemoryManager,
-  ArgumentManagerType,
-  std::tuple<Argument, Arguments...>,
-  typename std::enable_if<std::is_base_of<host_datatype, Argument>::value>::type> {
-  constexpr static void free(
-    HostMemoryManager& host_memory_manager,
-    DeviceMemoryManager& device_memory_manager,
-    ArgumentManagerType& argument_manager)
-  {
+    static_assert(std::is_base_of_v<device_datatype, Argument> || std::is_base_of_v<host_datatype, Argument>);
     // Host memory manager does not free any memory.
-    // host_memory_manager.template free<ArgumentManagerType, Argument>(argument_manager);
-    MemoryManagerFree<HostMemoryManager, DeviceMemoryManager, ArgumentManagerType, std::tuple<Arguments...>>::free(
-      host_memory_manager, device_memory_manager, argument_manager);
+    if constexpr (std::is_base_of_v<host_datatype, Argument>) {
+      return;
+    }
+    memory_manager.template free<Argument>(argument_manager);
+  }
+  template<typename Argument, typename HostMemoryManager, typename DeviceMemoryManager>
+  constexpr auto& select_memory_manager_for(HostMemoryManager& host, DeviceMemoryManager& device)
+  {
+    if constexpr (std::is_base_of_v<device_datatype, Argument>) {
+      return device;
+    }
+    else if constexpr (std::is_base_of_v<host_datatype, Argument>) {
+      return host;
+    }
+  }
+} // namespace details
+
+template<typename ArgumentTuple>
+struct MemoryManagerHelper;
+
+template<typename... Arguments>
+struct MemoryManagerHelper<std::tuple<Arguments...>> {
+
+  template<typename HostMemoryManager, typename DeviceMemoryManager, typename ArgumentManagerType>
+  constexpr static void reserve(
+    HostMemoryManager& host_memory_manager,
+    DeviceMemoryManager& device_memory_manager,
+    ArgumentManagerType& argument_manager)
+  {
+    (details::reserve<Arguments>(
+       details::select_memory_manager_for<Arguments>(host_memory_manager, device_memory_manager), argument_manager),
+     ...);
+  }
+
+  template<typename HostMemoryManager, typename DeviceMemoryManager, typename ArgumentManagerType>
+  constexpr static void free(
+    HostMemoryManager& host_memory_manager,
+    DeviceMemoryManager& device_memory_manager,
+    ArgumentManagerType& argument_manager)
+  {
+    (details::free<Arguments>(
+       details::select_memory_manager_for<Arguments>(host_memory_manager, device_memory_manager), argument_manager),
+     ...);
   }
 };
