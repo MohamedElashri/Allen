@@ -88,7 +88,7 @@ int allen(
   unsigned number_of_slices = 0;
   unsigned number_of_buffers = 0;
   long number_of_events_requested = 0;
-  auto events_per_slice = boost::make_optional(false, unsigned {});
+  unsigned events_per_slice = 0;
   unsigned start_event_offset = 0;
   unsigned number_of_threads = 1;
   unsigned number_of_repetitions = 1;
@@ -300,11 +300,8 @@ int allen(
   // print_configured_sequence();
 
   // Set a sane default for the number of events per input slice
-  if (!events_per_slice && number_of_events_requested != 0) {
+  if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
     events_per_slice = number_of_events_requested;
-  }
-  else if (!events_per_slice) {
-    events_per_slice = 1000;
   }
 
   // Raw data input folders
@@ -355,20 +352,20 @@ int allen(
                               receivers};           // Map of receiver to MPI rank to receive from
     input_provider =
       std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
+        number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
     MDFProviderConfig config {false,                      // verify MDF checksums
                               10,                         // number of read buffers
                               4,                          // number of transpose threads
-                              *events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
-                              *events_per_slice,          // number of events per read buffer
+                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
+                              events_per_slice,          // number of events per read buffer
                               n_io_reps,                  // number of loops over the input files
                               !disable_run_changes};      // Whether to split slices by run number
     input_provider =
       std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
+        number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
     mep_layout = false;
@@ -377,7 +374,7 @@ int allen(
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
     input_provider =
       std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
+        number_of_slices, events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
   // Load constant parameters from JSON
@@ -423,7 +420,7 @@ int allen(
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
-    number_of_buffers, *events_per_slice, do_check, stream_wrapper.errorevent_line);
+    number_of_buffers, events_per_slice, do_check, stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 
@@ -440,10 +437,10 @@ int allen(
     try {
       if (output_file.substr(0, 6) == "tcp://") {
         output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, zmqSvc);
+          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, events_per_slice, zmqSvc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, *events_per_slice);
+        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, events_per_slice);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
