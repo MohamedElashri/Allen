@@ -44,6 +44,15 @@ namespace Sch {
     using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
+  // invoke callable for each element of a tuple
+  template<typename Tuple, typename Callable>
+  void for_each_element(Tuple&& tuple, Callable c)
+  {
+    std::apply(
+      [c = std::move(c)](auto&&... i) { (std::invoke(c, std::forward<decltype(i)>(i)), ...); },
+      std::forward<Tuple>(tuple));
+  }
+
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Arguments>
   struct IsInAnyArgumentTuple;
@@ -220,74 +229,34 @@ namespace Sch {
   };
 
   // Configure constants for algorithms in the sequence
-  template<typename Dependencies, typename Indices>
-  struct ConfigureAlgorithmSequenceImpl;
-
-  template<typename Tuple>
-  struct ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<>> {
-    static constexpr void configure(Tuple&, const std::map<std::string, std::map<std::string, std::string>>&) {};
-  };
-
-  template<typename Tuple, unsigned long I, unsigned long... Is>
-  struct ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<I, Is...>> {
-    static constexpr void configure(
-      Tuple& algs,
-      const std::map<std::string, std::map<std::string, std::string>>& config)
-    {
-      // Initialization-time:
-      // * Set properties
-      const auto algorithm_name = std::get<I>(algs).name();
-      auto& algorithm = std::get<I>(algs);
-      if (config.find(algorithm_name) != config.end()) {
-        algorithm.set_properties(config.at(algorithm_name));
-      }
-
-      // * Invoke void initialize() const, iff it exists
-      if constexpr (has_member_fn<decltype(algorithm)>::value) {
-        algorithm.init();
-      };
-
-      ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<Is...>>::configure(algs, config);
-    }
-  };
-
   template<typename Tuple>
   struct ConfigureAlgorithmSequence {
     static constexpr void configure(
       Tuple& algs,
       const std::map<std::string, std::map<std::string, std::string>>& config)
     {
-      ConfigureAlgorithmSequenceImpl<Tuple, std::make_index_sequence<std::tuple_size<Tuple>::value>>::configure(
-        algs, config);
+      for_each_element(algs, [&config](auto& algorithm) {
+        const auto algorithm_name = algorithm.name();
+        auto c = config.find(algorithm.name());
+        if (c != config.end()) algorithm.set_properties(c->second);
+
+        // * Invoke void initialize() const, iff it exists
+        if constexpr (has_member_fn<decltype(algorithm)>::value) {
+          algorithm.init();
+        };
+      });
     }
   };
 
   // Return constants for algorithms in the sequence
-  template<typename Dependencies, typename Indices>
-  struct GetSequenceConfigurationImpl;
-
-  template<typename Tuple>
-  struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<>> {
-    static auto get(Tuple const&, std::map<std::string, std::map<std::string, std::string>>& config) { return config; };
-  };
-
-  template<typename Tuple, unsigned long I, unsigned long... Is>
-  struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<I, Is...>> {
-    static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
-    {
-      const auto& algorithm = std::get<I>(algs);
-      auto props = algorithm.get_properties();
-      config.emplace(algorithm.name(), props);
-      return GetSequenceConfigurationImpl<Tuple, std::index_sequence<Is...>>::get(algs, config);
-    }
-  };
-
   template<typename Tuple>
   struct GetSequenceConfiguration {
     static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
     {
-      return GetSequenceConfigurationImpl<Tuple, std::make_index_sequence<std::tuple_size<Tuple>::value>>::get(
-        algs, config);
+      std::apply(
+        [&config](const auto&... algorithm) { (config.emplace(algorithm.name(), algorithm.get_properties()), ...); },
+        algs);
+      return config;
     }
   };
 
