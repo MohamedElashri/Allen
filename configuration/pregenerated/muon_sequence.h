@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -424,7 +431,7 @@ struct velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t
     lf_search_initial_windows::Parameters::dev_offsets_all_velo_tracks_t,
     lf_triplet_seeding::Parameters::dev_offsets_all_velo_tracks_t,
     lf_create_tracks::Parameters::dev_offsets_all_velo_tracks_t,
-    lf_quality_filter::Parameters::dev_offsets_all_velo_tracks_t {
+    scifi_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t {
   using type = velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t::type;
 };
 struct prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t
@@ -450,7 +457,7 @@ struct prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t
     compass_ut::Parameters::dev_offsets_velo_track_hit_number_t,
     lf_search_initial_windows::Parameters::dev_offsets_velo_track_hit_number_t,
     lf_create_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
-    lf_quality_filter::Parameters::dev_offsets_velo_track_hit_number_t {
+    scifi_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
 };
 struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
@@ -476,7 +483,7 @@ struct velo_kalman_filter__dev_velo_kalman_endvelo_states_t
     lf_search_initial_windows::Parameters::dev_velo_states_t,
     lf_triplet_seeding::Parameters::dev_velo_states_t,
     lf_create_tracks::Parameters::dev_velo_states_t,
-    lf_quality_filter::Parameters::dev_velo_states_t {
+    scifi_consolidate_tracks::Parameters::dev_velo_states_t {
   using type = velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t::type;
 };
 struct velo_kalman_filter__dev_velo_lmsfit_beamline_states_t
@@ -683,7 +690,8 @@ struct ut_consolidate_tracks__dev_ut_track_hits_t : ut_consolidate_tracks::Param
 struct ut_consolidate_tracks__dev_ut_qop_t : ut_consolidate_tracks::Parameters::dev_ut_qop_t,
                                              lf_search_initial_windows::Parameters::dev_ut_qop_t,
                                              lf_triplet_seeding::Parameters::dev_ut_qop_t,
-                                             lf_create_tracks::Parameters::dev_ut_qop_t {
+                                             lf_create_tracks::Parameters::dev_ut_qop_t,
+                                             scifi_consolidate_tracks::Parameters::dev_ut_qop_t {
   using type = ut_consolidate_tracks::Parameters::dev_ut_qop_t::type;
 };
 struct ut_consolidate_tracks__dev_ut_x_t : ut_consolidate_tracks::Parameters::dev_ut_x_t,
@@ -703,7 +711,7 @@ struct ut_consolidate_tracks__dev_ut_track_velo_indices_t
     lf_search_initial_windows::Parameters::dev_ut_track_velo_indices_t,
     lf_triplet_seeding::Parameters::dev_ut_track_velo_indices_t,
     lf_create_tracks::Parameters::dev_ut_track_velo_indices_t,
-    lf_quality_filter::Parameters::dev_ut_track_velo_indices_t {
+    scifi_consolidate_tracks::Parameters::dev_ut_track_velo_indices_t {
   using type = ut_consolidate_tracks::Parameters::dev_ut_track_velo_indices_t::type;
 };
 struct scifi_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
@@ -1665,10 +1673,6 @@ using configured_sequence_arguments_t = std::tuple<
     lf_quality_filter_length_t__dev_scifi_lf_length_filtered_atomics_t,
     lf_quality_filter_length_t__dev_scifi_lf_parametrization_length_filter_t,
     lf_search_initial_windows_t__dev_ut_states_t,
-    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
-    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
-    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
-    ut_consolidate_tracks__dev_ut_track_velo_indices_t,
     lf_quality_filter_t__dev_lf_quality_of_tracks_t,
     lf_quality_filter_t__dev_atomics_scifi_t,
     lf_quality_filter_t__dev_scifi_tracks_t,
@@ -1695,6 +1699,9 @@ using configured_sequence_arguments_t = std::tuple<
     initialize_lists__host_number_of_events_t,
     prefix_sum_scifi_track_hit_number__host_total_sum_holder_t,
     prefix_sum_forward_tracks__host_total_sum_holder_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     initialize_lists__dev_event_list_t,
     initialize_lists__dev_number_of_events_t,
     scifi_raw_bank_decoder_v4_t__dev_scifi_hits_t,
@@ -1703,6 +1710,8 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_scifi_track_hit_number__dev_output_buffer_t,
     prefix_sum_ut_tracks__dev_output_buffer_t,
     prefix_sum_ut_track_hit_number__dev_output_buffer_t,
+    ut_consolidate_tracks__dev_ut_qop_t,
+    ut_consolidate_tracks__dev_ut_track_velo_indices_t,
     lf_quality_filter_t__dev_scifi_tracks_t,
     lf_quality_filter_t__dev_scifi_lf_parametrization_consolidate_t,
     scifi_consolidate_tracks_t__dev_scifi_track_hits_t,

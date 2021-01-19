@@ -36,7 +36,7 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   initialize<dev_atomics_scifi_t>(arguments, 0, context);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
+    arguments, constants.dev_looking_forward_constants);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, context);
@@ -50,18 +50,10 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
 
 __global__ void lf_quality_filter::lf_quality_filter(
   lf_quality_filter::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_magnet_polarity)
+  const LookingForward::Constants* dev_looking_forward_constants)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-
-  // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
-  const unsigned velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
   // UT consolidated tracks
   UT::Consolidated::ConstTracks ut_tracks {
@@ -219,33 +211,6 @@ __global__ void lf_quality_filter::lf_quality_filter(
         [4 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_b;
       parameters.dev_scifi_lf_parametrization_consolidate
         [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_m;
-
-      // Update qop of the track
-      const auto velo_track_index = parameters.dev_ut_track_velo_indices[ut_event_tracks_offset + track.ut_track_index];
-      const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const auto velo_state = velo_states.get(velo_states_index);
-
-      const auto x0 = scifi_hits.x0(event_offset + track.hits[0]);
-      const auto x1 = scifi_hits.x0(event_offset + track.hits[2]);
-      const auto layer0 = scifi_hits.planeCode(event_offset + track.hits[0]) / 2;
-      const auto layer1 = scifi_hits.planeCode(event_offset + track.hits[2]) / 2;
-      const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
-      const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
-      const auto bx = (x0 - x1) / (z0 - z1);
-
-      const auto bx2 = bx * bx;
-      const auto ty2 = velo_state.ty * velo_state.ty;
-      const auto coef =
-        (dev_looking_forward_constants->momentumParams[0] + dev_looking_forward_constants->momentumParams[1] * bx2 +
-         dev_looking_forward_constants->momentumParams[2] * bx2 * bx2 +
-         dev_looking_forward_constants->momentumParams[3] * bx * velo_state.tx +
-         dev_looking_forward_constants->momentumParams[4] * ty2 +
-         dev_looking_forward_constants->momentumParams[5] * ty2 * ty2);
-      const auto tx2 = velo_state.tx * velo_state.tx;
-      const auto slope2 = tx2 + ty2;
-      const auto proj = sqrtf((1.f + slope2) / (1.f + tx2));
-      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * dev_magnet_polarity[0]);
-      parameters.dev_scifi_tracks[new_scifi_track_index].qop = updated_qop;
     }
   }
 }

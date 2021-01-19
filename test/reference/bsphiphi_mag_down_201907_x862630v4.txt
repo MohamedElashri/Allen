@@ -46,7 +46,7 @@ TrackChecker output                               :      3118/    49877   6.25% 
 
 Forward tracks:
 TrackChecker output                               :      1755/    33035   5.31% ghosts
-for P>3GeV,Pt>0.5GeV                              :       889/    21199   4.19% ghosts
+for P>3GeV,Pt>0.5GeV                              :       889/    21177   4.20% ghosts
 01_long                                           :     29657/    57988  51.14% ( 52.37%),       230 (  0.77%) clones, pur  96.64%, hit eff  92.90%
 02_long_P>5GeV                                    :     24980/    36811  67.86% ( 69.01%),       191 (  0.76%) clones, pur  96.94%, hit eff  93.55%
 03_long_strange                                   :       855/     2542  33.63% ( 33.63%),         2 (  0.23%) clones, pur  96.05%, hit eff  92.60%
@@ -65,12 +65,12 @@ Muon fraction in MCPs to which a track(s) was matched:                    357/  
 Correctly identified muons with isMuon:                                   284/      357  79.55% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                      79/       98  80.61% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      3315/    34599   9.58% 
-Ghost tracks identified as muon with isMuon:                              176/     1755  10.03% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      3299/    34599   9.53% 
+Ghost tracks identified as muon with isMuon:                              175/     1755   9.97% 
 
 
 HLT1 rates:
-Hlt1TrackMVA:            212/  1000, ( 6360.00 +/-   387.75) kHz
+Hlt1TrackMVA:            215/  1000, ( 6450.00 +/-   389.74) kHz
 Hlt1TwoTrackMVA:         374/  1000, (11220.00 +/-   459.03) kHz
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
@@ -82,8 +82,8 @@ Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1LowPtMuon:           123/  1000, ( 3690.00 +/-   311.58) kHz
 Hlt1D2KK:                 18/  1000, (  540.00 +/-   126.13) kHz
-Hlt1D2KPi:                31/  1000, (  930.00 +/-   164.42) kHz
-Hlt1D2PiPi:               25/  1000, (  750.00 +/-   148.11) kHz
+Hlt1D2KPi:                30/  1000, (  900.00 +/-   161.83) kHz
+Hlt1D2PiPi:               28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1DiMuonHighMass:        9/  1000, (  270.00 +/-    89.59) kHz
 Hlt1DiMuonLowMass:        17/  1000, (  510.00 +/-   122.64) kHz
 Hlt1DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz

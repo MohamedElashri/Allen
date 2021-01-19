@@ -25,10 +25,6 @@ namespace lf_quality_filter {
     DEVICE_INPUT(dev_scifi_lf_length_filtered_atomics_t, unsigned) dev_scifi_lf_length_filtered_atomics;
     DEVICE_INPUT(dev_scifi_lf_parametrization_length_filter_t, float) dev_scifi_lf_parametrization_length_filter;
     DEVICE_INPUT(dev_ut_states_t, MiniState) dev_ut_states;
-    DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
     DEVICE_OUTPUT(dev_lf_quality_of_tracks_t, float) dev_scifi_quality_of_tracks;
     DEVICE_OUTPUT(dev_atomics_scifi_t, unsigned) dev_atomics_scifi;
     DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
@@ -38,10 +34,7 @@ namespace lf_quality_filter {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void lf_quality_filter(
-    Parameters,
-    const LookingForward::Constants* dev_looking_forward_constants,
-    const float* dev_magnet_polarity);
+  __global__ void lf_quality_filter(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
   struct lf_quality_filter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
