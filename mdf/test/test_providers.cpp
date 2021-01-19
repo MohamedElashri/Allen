@@ -47,6 +47,11 @@ namespace {
   Slices mep_slices;
   EventIDs events_mep;
   std::vector<int> ids;
+  std::unordered_set<BankTypes> const types {BankTypes::VP,
+                                             BankTypes::UT,
+                                             BankTypes::FT,
+                                             BankTypes::MUON,
+                                             BankTypes::ODIN};
   std::array<unsigned int, LHCb::RawBank::LastType> banks_count;
 } // namespace
 
@@ -84,7 +89,7 @@ size_t transpose_mep(
   MEP::fragment_offsets(blocks, input_offsets);
 
   auto r = MEP::transpose_events(
-    mep_slices, output_index, ids, banks_count, events_mep, mep_header, blocks, input_offsets, {0, chunk_size});
+    mep_slices, output_index, ids, types, banks_count, events_mep, mep_header, blocks, input_offsets, {0, chunk_size});
   return std::get<2>(r);
 }
 
@@ -140,11 +145,14 @@ int main(int argc, char* argv[])
       s_config.n_events,
       s_config.n_events,
       s_config.banks_dirs,
-      false,
+      1,
       boost::optional<std::string> {},
       events_mdf);
 
     std::tie(good, done, timed_out, slice_binary, filled_binary, runno) = binary->get_slice();
+    assert(good);
+    assert(!timed_out);
+    assert(filled_binary == s_config.n_events);
   }
 
   if (s_config.run) {

@@ -153,12 +153,29 @@ public:
             if (it == end(BankSizes)) {
               throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
             }
-            auto n_banks = m_banks_count[ib];
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
-            return {std::lround(
-                      ((1 + n_banks) * sizeof(uint32_t) + it->second) * allocate_events * bank_size_fudge_factor * kB),
-                    events_per_slice};
+
+            // Lookup LHCb bank type corresponding to Allen bank type
+            auto type_it =
+              std::find_if(Allen::bank_types.begin(), Allen::bank_types.end(), [bank_type](const auto& entry) {
+                return entry.second == bank_type;
+              });
+            if (type_it == Allen::bank_types.end()) {
+              throw std::out_of_range {std::string {"Failed to lookup LHCb type for bank type "} + std::to_string(ib)};
+            }
+            auto lhcb_type = to_integral<LHCb::RawBank::BankType>(type_it->first);
+
+            // Allocate a minimum size to make sure the full
+            // estimation works. That uses the size of the full next
+            // event, so we need some extra space.
+            auto n_bytes = std::lround(
+              ((1 + m_banks_count[lhcb_type]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
+              bank_size_fudge_factor);
+            auto const min_bytes = std::lround(average_event_size * 10 * bank_size_fudge_factor * kB);
+            n_bytes = std::max(n_bytes, min_bytes);
+
+            return {n_bytes, events_per_slice};
           };
           m_slices = allocate_slices<Banks...>(n_slices, size_fun);
         }
@@ -445,11 +462,12 @@ private:
       reset_slice<Banks...>(m_slices, *slice_index, event_ids);
 
       // Transpose the events in the read buffer into the slice
-      std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(
+      std::tie(good, transpose_full, n_transposed) = transpose_events(
         m_buffers[i_read],
         m_slices,
         *slice_index,
         m_bank_ids,
+        this->types(),
         m_banks_count,
         m_event_ids[*slice_index],
         this->events_per_slice(),

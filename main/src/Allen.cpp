@@ -356,13 +356,13 @@ int allen(
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
-    MDFProviderConfig config {false,                      // verify MDF checksums
-                              10,                         // number of read buffers
-                              4,                          // number of transpose threads
+    MDFProviderConfig config {false,                     // verify MDF checksums
+                              10,                        // number of read buffers
+                              4,                         // number of transpose threads
                               events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
                               events_per_slice,          // number of events per read buffer
-                              n_io_reps,                  // number of loops over the input files
-                              !disable_run_changes};      // Whether to split slices by run number
+                              n_io_reps,                 // number of loops over the input files
+                              !disable_run_changes};     // Whether to split slices by run number
     input_provider =
       std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
         number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
@@ -419,8 +419,8 @@ int allen(
     configuration_reader->params());
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
-    number_of_buffers, events_per_slice, do_check, stream_wrapper.errorevent_line);
+  std::unique_ptr<HostBuffersManager> buffer_manager =
+    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, do_check, stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 
@@ -436,8 +436,7 @@ int allen(
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, events_per_slice, zmqSvc);
+        output_handler = std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, events_per_slice, zmqSvc);
       }
       else {
         output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, events_per_slice);
@@ -793,7 +792,8 @@ int allen(
           next_run_number.reset();
           run_change = false;
         }
-      } else {
+      }
+      else {
         run_change = false;
       }
     }
@@ -1004,7 +1004,8 @@ int allen(
     // Separate if statement to allow stop in different ways
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
-    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done)) && !run_change;
+    bool io_cond =
+      ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done)) && !run_change;
     if (t && io_cond && number_of_repetitions > 1) {
       if (!throughput_processed) {
         throughput_processed = n_events_processed * number_of_repetitions - throughput_start;

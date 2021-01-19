@@ -72,8 +72,7 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
   // of 5000 BsPhiPhi events. The monitoring of secondary vertices
   // should be improved to not require allocating a large chunk of
   // memory and an initial estimate of the number of vertices
-  host_secondary_vertices_size =
-    max_number_of_events * 500 * sizeof(VertexFit::TrackMVAVertex);
+  host_secondary_vertices_size = max_number_of_events * 500 * sizeof(VertexFit::TrackMVAVertex);
   Allen::malloc_host((void**) &host_secondary_vertices, host_secondary_vertices_size);
   auto const sv_offsets_size = (max_number_of_events + 1) * sizeof(unsigned);
   Allen::malloc_host((void**) &host_sv_offsets, sv_offsets_size);

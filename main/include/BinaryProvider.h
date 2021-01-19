@@ -118,7 +118,7 @@ public:
 
     // Get event IDs from file names; assume they are all the same in
     // different folders
-    auto const& some_files = std::get<1>(m_files.front());
+    auto const& some_files = std::get<1>(m_files[to_integral(*this->types().begin())]);
     m_all_events.reserve(some_files.size());
     std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
     std::smatch result;
@@ -129,16 +129,35 @@ public:
     }
     m_to_read = this->n_events() ? std::min(*this->n_events(), some_files.size()) : some_files.size();
 
-    auto size_fun = [events_per_slice](BankTypes bank_type) -> std::tuple<size_t, size_t> {
+    // Count the number of banks in each type of file by reading the
+    // first unsigned int from each of them
+    std::array<unsigned, sizeof...(Banks)> bank_counts;
+    bank_counts.fill(0);
+    auto files = open_files(0);
+    if (m_read_error) {
+      throw StrException {"Failed to open files to read number banks"};
+    }
+    for (auto bank_type : this->types()) {
+      auto ib = to_integral<BankTypes>(bank_type);
+      std::get<1>(files[ib]).read(reinterpret_cast<char*>(&bank_counts[ib]), sizeof(unsigned));
+      auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[0];
+      std::get<1>(files[ib]).close();
+    }
+
+    // Lambda that returns the amount of memory to allocate for a slice
+    auto size_fun = [events_per_slice, bank_counts](BankTypes bank_type) -> std::tuple<size_t, size_t> {
       auto it = BankSizes.find(bank_type);
       auto ib = to_integral<BankTypes>(bank_type);
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
       auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
-      return {std::lround((10 * sizeof(uint32_t) + it->second) * allocate_events * bank_size_fudge_factor * kB),
-              events_per_slice};
+      return {
+        std::lround(
+          ((bank_counts[ib] + 1) * sizeof(unsigned) + it->second * kB) * allocate_events * bank_size_fudge_factor),
+        events_per_slice};
     };
+
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
     // Reserve space for event IDs
@@ -271,7 +290,7 @@ private:
     size_t n_reps = 0;
     size_t eps = this->events_per_slice();
 
-    size_t n_files = std::get<1>(m_files.front()).size();
+    size_t n_files = std::get<1>(m_files[to_integral(*this->types().begin())]).size();
 
     // Loop until the flag is set to exit, or the number of requested
     // event is reached
@@ -310,7 +329,7 @@ private:
         if (m_read_error) break;
 
         // Check if any of the slices would be full
-        for (auto bank_type : {Banks...}) {
+        for (auto bank_type : this->types()) {
           auto ib = to_integral<BankTypes>(bank_type);
           const auto& [slice, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
           if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > static_cast<size_t>(slice[0].size())) {
@@ -365,7 +384,7 @@ private:
   std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> open_files(size_t n)
   {
     std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> result;
-    for (auto bank_type : {Banks...}) {
+    for (auto bank_type : this->types()) {
       auto ib = to_integral<BankTypes>(bank_type);
       auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[n];
       std::ifstream input(filename, std::ifstream::binary);
@@ -438,8 +457,8 @@ private:
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
 
   // Sizes of all files
-  std::array<std::vector<size_t>, sizeof...(Banks)> m_sizes;
+  std::array<std::vector<size_t>, NBankTypes> m_sizes;
 
   // Folder and file names per bank type
-  std::array<std::tuple<std::string, std::vector<std::string>>, sizeof...(Banks)> m_files;
+  std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
 };
