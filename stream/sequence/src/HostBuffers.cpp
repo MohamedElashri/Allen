@@ -67,9 +67,13 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
   Allen::malloc_host((void**) &host_number_of_multivertex, max_number_of_events * sizeof(int));
   ::memset(host_number_of_multivertex, 0, max_number_of_events * sizeof(int));
 
-  // Needed for SV monitoring
+  // Needed for SV monitoring,
+  // FIXME: 500 was estimated as a sane starting value from a sample
+  // of 5000 BsPhiPhi events. The monitoring of secondary vertices
+  // should be improved to not require allocating a large chunk of
+  // memory and an initial estimate of the number of vertices
   host_secondary_vertices_size =
-    max_number_of_events * SciFi::Constants::max_tracks * 10 * sizeof(VertexFit::TrackMVAVertex);
+    max_number_of_events * 500 * sizeof(VertexFit::TrackMVAVertex);
   Allen::malloc_host((void**) &host_secondary_vertices, host_secondary_vertices_size);
   auto const sv_offsets_size = (max_number_of_events + 1) * sizeof(unsigned);
   Allen::malloc_host((void**) &host_sv_offsets, sv_offsets_size);
