@@ -16,11 +16,6 @@ variables:
   TARGET_BRANCH: master
 
 check-env:
-  only:
-    refs:
-      - master
-      - web
-      - merge_requests
   stage: check
   except:
     - /.*/@lhcb/Allen
