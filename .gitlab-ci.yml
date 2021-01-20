@@ -106,6 +106,7 @@ check-formatting:
       - build*/Sequence.json
       - input
   retry: 2
+  needs: []
 
 docker_image:build:
   stage: build
@@ -120,6 +121,7 @@ docker_image:build:
     TO: $CI_REGISTRY_IMAGE:latest
     GIT_SUBMODULE_STRATEGY: recursive
   allow_failure: true
+  needs: []
 
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
   only:
