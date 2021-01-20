@@ -35,7 +35,7 @@ struct Stream {
   Stream() = default;
 
   // Dynamic scheduler
-  scheduler_t scheduler;
+  scheduler_t scheduler{ sequence_algorithm_names };
 
   // Context
   Allen::Context m_context {};

@@ -111,17 +111,21 @@ class Scheduler {
 
   bool do_print = false;
 
-public:
-  ArgumentManager<ConfiguredArguments> argument_manager; // TOOD: GR: type erase me
   ConfiguredSequence sequence_tuple; // TODO: GR: replace with type-erased storage inside constructor;
 
-  constexpr Scheduler()
+public:
+  ArgumentManager<ConfiguredArguments> argument_manager; // TOOD: GR: type erase me
+
+  template<typename Names>
+  constexpr Scheduler(Names&& names)
   {
     details::invoke_for_each_slice(
-      [](auto& alg, auto traits, VTable& vtbl) {
+      [](auto& alg, auto&& name, auto traits, VTable& vtbl) {
+        alg.set_name(std::forward<decltype(name)>(name));
         vtbl = VTable {alg, traits};
       },
       sequence_tuple,
+      std::forward<Names>(names),
       details::Traits_for<ConfiguredSequenceArguments> {},
       vtbls);
   }

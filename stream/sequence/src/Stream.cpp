@@ -104,9 +104,6 @@ Allen::error Stream::initialize(
   // Prepare scheduler
   scheduler.initialize(do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment);
 
-  // Populate names of the algorithms in the sequence
-  populate_sequence_algorithm_names(scheduler.sequence_tuple);
-
   // Populate names of parameters in the sequence
   populate_sequence_argument_names(scheduler.argument_manager);
 
@@ -137,7 +134,7 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
 
       try {
         // Visit all algorithms in configured sequence
-        scheduler.run( runtime_options, constants, host_buffers, m_context );
+        scheduler.run(runtime_options, constants, host_buffers, m_context);
 
         // deterministic injection of ~random memory failures
         if (runtime_options.inject_mem_fail > 0) {
