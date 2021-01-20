@@ -37,6 +37,7 @@ check-copyright:
   script:
     - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/master/LbDevTools/SourceTools.py?inline=False"
     - python lb-check-copyright --license=Apache-2.0 origin/${TARGET_BRANCH}
+  needs: []
   allow_failure: true
 
 check-formatting:
@@ -60,6 +61,7 @@ check-formatting:
       - apply-formatting.patch
     when: on_failure
     expire_in: 1 week
+  needs: []
   allow_failure: true
 
 .build_job: &build_job_def
