@@ -30,12 +30,12 @@
 class Timer;
 
 struct Stream {
-  using scheduler_t = Scheduler<configured_sequence_t, configured_arguments_t, configured_sequence_arguments_t>;
+  using scheduler_t = SchedulerFor_t<configured_sequence_t, configured_arguments_t, configured_sequence_arguments_t>;
 
   Stream() = default;
 
   // Dynamic scheduler
-  scheduler_t scheduler{ sequence_algorithm_names };
+  scheduler_t scheduler {configured_sequence_t {}, sequence_algorithm_names};
 
   // Context
   Allen::Context m_context {};

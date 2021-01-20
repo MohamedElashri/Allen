@@ -74,7 +74,7 @@ namespace details {
 
 } // namespace details
 
-template<typename ConfiguredSequence, typename ConfiguredArguments, typename ConfiguredSequenceArguments>
+template<size_t BufferSize, size_t N, typename ConfiguredArguments, typename ConfiguredSequenceArguments>
 class Scheduler {
 
   struct VTable {
@@ -104,21 +104,26 @@ class Scheduler {
   };
 
   // Configured sequence
-  std::array<VTable, std::tuple_size_v<ConfiguredSequence>> vtbls;
+  std::aligned_storage_t<BufferSize> sequence_storage;
+  std::array<VTable, N> vtbls;
 
   host_memory_manager_t host_memory_manager {"Host memory manager"};
   device_memory_manager_t device_memory_manager {"Device memory manager"};
 
   bool do_print = false;
 
-  ConfiguredSequence sequence_tuple; // TODO: GR: replace with type-erased storage inside constructor;
-
 public:
   ArgumentManager<ConfiguredArguments> argument_manager; // TOOD: GR: type erase me
 
-  template<typename Names>
-  constexpr Scheduler(Names&& names)
+  template<typename ConfiguredSequence, typename Names>
+  constexpr Scheduler(ConfiguredSequence, Names&& names)
   {
+    static_assert(sizeof(ConfiguredSequence) == BufferSize);
+    static_assert(N == std::tuple_size_v<ConfiguredSequence>);
+
+    new (&sequence_storage) ConfiguredSequence {};
+    auto& sequence_tuple = *std::launder(reinterpret_cast<ConfiguredSequence*>(&sequence_storage));
+
     details::invoke_for_each_slice(
       [](auto& alg, auto&& name, auto traits, VTable& vtbl) {
         alg.set_name(std::forward<decltype(name)>(name));
@@ -321,3 +326,10 @@ private:
       postconditions);
   }
 };
+
+template<typename configured_sequence_t, typename configured_arguments_t, typename configured_sequence_arguments_t>
+using SchedulerFor_t = Scheduler<
+  sizeof(configured_sequence_t),
+  std::tuple_size_v<configured_sequence_t>,
+  configured_arguments_t,
+  configured_sequence_arguments_t>;
