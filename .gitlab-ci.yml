@@ -45,7 +45,7 @@ check-formatting:
       - master
       - web
       - merge_requests
-  stage: build
+  stage: check
   image: gitlab-registry.cern.ch/lhcb-docker/style-checker
   script:
     - if [ ! -e .clang-format ] ; then
