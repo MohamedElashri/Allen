@@ -11,21 +11,21 @@
 #pragma once
 
 #include <tuple>
-#include "../../device/selections/lines/include/DiMuonMassLine.cuh"
-#include "../../device/selections/lines/include/D2KKLine.cuh"
-#include "../../device/selections/lines/include/TrackMVALine.cuh"
 #include "../../device/selections/lines/include/D2KPiLine.cuh"
 #include "../../device/selections/lines/include/LowPtMuonLine.cuh"
-#include "../../device/selections/lines/include/TrackMuonMVALine.cuh"
-#include "../../device/selections/lines/include/LowPtDiMuonLine.cuh"
-#include "../../device/selections/lines/include/VeloMicroBiasLine.cuh"
+#include "../../device/selections/lines/include/DiMuonMassLine.cuh"
 #include "../../device/selections/lines/include/BeamCrossingLine.cuh"
+#include "../../device/selections/lines/include/TrackMVALine.cuh"
+#include "../../device/selections/lines/include/TrackMuonMVALine.cuh"
+#include "../../device/selections/lines/include/D2KKLine.cuh"
+#include "../../device/selections/lines/include/LowPtDiMuonLine.cuh"
+#include "../../device/selections/lines/include/TwoTrackMVALine.cuh"
 #include "../../device/selections/lines/include/SingleHighPtMuonLine.cuh"
 #include "../../device/selections/lines/include/DiMuonSoftLine.cuh"
-#include "../../device/selections/lines/include/D2PiPiLine.cuh"
 #include "../../device/selections/lines/include/ODINEventTypeLine.cuh"
+#include "../../device/selections/lines/include/VeloMicroBiasLine.cuh"
 #include "../../device/selections/lines/include/PassthroughLine.cuh"
-#include "../../device/selections/lines/include/TwoTrackMVALine.cuh"
+#include "../../device/selections/lines/include/D2PiPiLine.cuh"
 
 struct Hlt1TrackMVA__dev_decisions_t : track_mva_line::Parameters::dev_decisions_t {
   using type = track_mva_line::Parameters::dev_decisions_t::type;

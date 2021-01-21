@@ -1409,57 +1409,54 @@ using configured_sequence_arguments_t = std::tuple<
     scifi_consolidate_tracks_t__dev_scifi_states_t,
     scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t>>;
 
-void inline populate_sequence_algorithm_names(configured_sequence_t& sequence)
-{
-  std::get<0>(sequence).set_name("mep_layout");
-  std::get<1>(sequence).set_name("host_ut_banks");
-  std::get<2>(sequence).set_name("host_scifi_banks");
-  std::get<3>(sequence).set_name("initialize_lists");
-  std::get<4>(sequence).set_name("full_event_list");
-  std::get<5>(sequence).set_name("velo_banks");
-  std::get<6>(sequence).set_name("velo_calculate_number_of_candidates");
-  std::get<7>(sequence).set_name("prefix_sum_offsets_velo_candidates");
-  std::get<8>(sequence).set_name("velo_estimate_input_size");
-  std::get<9>(sequence).set_name("prefix_sum_offsets_estimated_input_size");
-  std::get<10>(sequence).set_name("velo_masked_clustering");
-  std::get<11>(sequence).set_name("velo_calculate_phi_and_sort");
-  std::get<12>(sequence).set_name("velo_search_by_triplet");
-  std::get<13>(sequence).set_name("prefix_sum_offsets_velo_tracks");
-  std::get<14>(sequence).set_name("velo_three_hit_tracks_filter");
-  std::get<15>(sequence).set_name("prefix_sum_offsets_number_of_three_hit_tracks_filtered");
-  std::get<16>(sequence).set_name("velo_copy_track_hit_number");
-  std::get<17>(sequence).set_name("prefix_sum_offsets_velo_track_hit_number");
-  std::get<18>(sequence).set_name("velo_consolidate_tracks");
-  std::get<19>(sequence).set_name("velo_kalman_filter");
-  std::get<20>(sequence).set_name("ut_banks");
-  std::get<21>(sequence).set_name("ut_calculate_number_of_hits");
-  std::get<22>(sequence).set_name("prefix_sum_ut_hits");
-  std::get<23>(sequence).set_name("ut_pre_decode");
-  std::get<24>(sequence).set_name("ut_find_permutation");
-  std::get<25>(sequence).set_name("ut_decode_raw_banks_in_order");
-  std::get<26>(sequence).set_name("ut_select_velo_tracks");
-  std::get<27>(sequence).set_name("ut_search_windows");
-  std::get<28>(sequence).set_name("ut_select_velo_tracks_with_windows");
-  std::get<29>(sequence).set_name("compass_ut");
-  std::get<30>(sequence).set_name("prefix_sum_ut_tracks");
-  std::get<31>(sequence).set_name("ut_copy_track_hit_number");
-  std::get<32>(sequence).set_name("prefix_sum_ut_track_hit_number");
-  std::get<33>(sequence).set_name("ut_consolidate_tracks");
-  std::get<34>(sequence).set_name("scifi_banks");
-  std::get<35>(sequence).set_name("scifi_calculate_cluster_count_v4_t");
-  std::get<36>(sequence).set_name("prefix_sum_scifi_hits");
-  std::get<37>(sequence).set_name("scifi_pre_decode_v4_t");
-  std::get<38>(sequence).set_name("scifi_raw_bank_decoder_v4_t");
-  std::get<39>(sequence).set_name("lf_search_initial_windows_t");
-  std::get<40>(sequence).set_name("lf_triplet_seeding_t");
-  std::get<41>(sequence).set_name("lf_create_tracks_t");
-  std::get<42>(sequence).set_name("lf_quality_filter_length_t");
-  std::get<43>(sequence).set_name("lf_quality_filter_t");
-  std::get<44>(sequence).set_name("prefix_sum_forward_tracks");
-  std::get<45>(sequence).set_name("scifi_copy_track_hit_number_t");
-  std::get<46>(sequence).set_name("prefix_sum_scifi_track_hit_number");
-  std::get<47>(sequence).set_name("scifi_consolidate_tracks_t");
-}
+constexpr auto sequence_algorithm_names = std::array {"mep_layout",
+                                                      "host_ut_banks",
+                                                      "host_scifi_banks",
+                                                      "initialize_lists",
+                                                      "full_event_list",
+                                                      "velo_banks",
+                                                      "velo_calculate_number_of_candidates",
+                                                      "prefix_sum_offsets_velo_candidates",
+                                                      "velo_estimate_input_size",
+                                                      "prefix_sum_offsets_estimated_input_size",
+                                                      "velo_masked_clustering",
+                                                      "velo_calculate_phi_and_sort",
+                                                      "velo_search_by_triplet",
+                                                      "prefix_sum_offsets_velo_tracks",
+                                                      "velo_three_hit_tracks_filter",
+                                                      "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
+                                                      "velo_copy_track_hit_number",
+                                                      "prefix_sum_offsets_velo_track_hit_number",
+                                                      "velo_consolidate_tracks",
+                                                      "velo_kalman_filter",
+                                                      "ut_banks",
+                                                      "ut_calculate_number_of_hits",
+                                                      "prefix_sum_ut_hits",
+                                                      "ut_pre_decode",
+                                                      "ut_find_permutation",
+                                                      "ut_decode_raw_banks_in_order",
+                                                      "ut_select_velo_tracks",
+                                                      "ut_search_windows",
+                                                      "ut_select_velo_tracks_with_windows",
+                                                      "compass_ut",
+                                                      "prefix_sum_ut_tracks",
+                                                      "ut_copy_track_hit_number",
+                                                      "prefix_sum_ut_track_hit_number",
+                                                      "ut_consolidate_tracks",
+                                                      "scifi_banks",
+                                                      "scifi_calculate_cluster_count_v4_t",
+                                                      "prefix_sum_scifi_hits",
+                                                      "scifi_pre_decode_v4_t",
+                                                      "scifi_raw_bank_decoder_v4_t",
+                                                      "lf_search_initial_windows_t",
+                                                      "lf_triplet_seeding_t",
+                                                      "lf_create_tracks_t",
+                                                      "lf_quality_filter_length_t",
+                                                      "lf_quality_filter_t",
+                                                      "prefix_sum_forward_tracks",
+                                                      "scifi_copy_track_hit_number_t",
+                                                      "prefix_sum_scifi_track_hit_number",
+                                                      "scifi_consolidate_tracks_t"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)
