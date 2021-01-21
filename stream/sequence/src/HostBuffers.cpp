@@ -54,21 +54,26 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
   Allen::malloc_host((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(unsigned));
 
   // Needed for track monitoring
-  Allen::malloc_host((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int));
+  auto const atomics_scifi_size = max_number_of_events * SciFi::num_atomics * sizeof(int);
+  Allen::malloc_host((void**) &host_atomics_scifi, atomics_scifi_size);
   Allen::malloc_host(
     (void**) &host_kf_tracks,
     max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack));
+  ::memset(host_atomics_scifi, 0, atomics_scifi_size);
 
   // Needed for PV monitoring
   Allen::malloc_host(
     (void**) &host_reconstructed_multi_pvs, max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex));
   Allen::malloc_host((void**) &host_number_of_multivertex, max_number_of_events * sizeof(int));
+  ::memset(host_number_of_multivertex, 0, max_number_of_events * sizeof(int));
 
   // Needed for SV monitoring
   host_secondary_vertices_size =
     max_number_of_events * SciFi::Constants::max_tracks * 10 * sizeof(VertexFit::TrackMVAVertex);
   Allen::malloc_host((void**) &host_secondary_vertices, host_secondary_vertices_size);
-  Allen::malloc_host((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(unsigned));
+  auto const sv_offsets_size = (max_number_of_events + 1) * sizeof(unsigned);
+  Allen::malloc_host((void**) &host_sv_offsets, sv_offsets_size);
+  ::memset(host_sv_offsets, 0, sv_offsets_size);
 
   if (do_check) {
     // Datatypes to be reserved only if checking is on
