@@ -197,7 +197,7 @@ namespace example_one_track_line {
   // SelectionAlgorithm definition
   struct example_one_track_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<example_one_track_line_t, Parameters> {
     // Selection function.
-    __device__ static bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input);
 
   private:
     // Commonly required properties
@@ -222,7 +222,7 @@ INSTANTIATE_LINE(example_one_track_line::example_one_track_line_t, example_one_t
 
 __device__ bool example_one_track_line::example_one_track_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input) const
+  std::tuple<const ParKalmanFilter::FittedTrack&> input)
 {
   const auto& track = std::get<0>(input);
   const bool decision = track.pt() > parameters.minPt && track.ipChi2 > parameters.minIPChi2;
@@ -591,7 +591,7 @@ configuration file.
         dev_output_buffer_t(),
         dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
         dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=velo_sequence["mep_layout"],
+        dev_mep_layout_t=velo_sequence["mep_layout"].dev_mep_layout_t(),
         pre_scaler_hash_string="example_one_track_line_pre",
         post_scaler_hash_string="example_one_track_line_post")
 
@@ -641,7 +641,7 @@ configuration file.
     lines = (example_one_track_line, example_two_track_line, velo_micro_bias_line, example_one_velo_track_line)
 
     gatherer = make_selection_gatherer(
-        lines, velo_sequence["initialize_lists"], hlt1_sequence["layout_provider"], hlt1_sequence["odin_banks"], name="gather_selections")
+        lines, velo_sequence["initialize_lists"], velo_sequence["mep_layout"], hlt1_sequence["odin_banks"], name="gather_selections")
 
     # Compose final sequence with lines
     extend_sequence(compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
