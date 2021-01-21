@@ -27,15 +27,26 @@ check-env:
     - exit 1
 
 check-copyright:
+  only:
+    refs:
+      - master
+      - web
+      - merge_requests
   stage: check
   image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   script:
     - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/master/LbDevTools/SourceTools.py?inline=False"
     - python lb-check-copyright --license=Apache-2.0 origin/${TARGET_BRANCH}
+  needs: []
   allow_failure: true
 
 check-formatting:
-  stage: build
+  only:
+    refs:
+      - master
+      - web
+      - merge_requests
+  stage: check
   image: gitlab-registry.cern.ch/lhcb-docker/style-checker
   script:
     - if [ ! -e .clang-format ] ; then
@@ -50,6 +61,7 @@ check-formatting:
       - apply-formatting.patch
     when: on_failure
     expire_in: 1 week
+  needs: []
   allow_failure: true
 
 .build_job: &build_job_def
@@ -58,12 +70,10 @@ check-formatting:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: build
   script:
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=${PREVIOUS_IFS}
@@ -96,6 +106,7 @@ check-formatting:
       - build*/Sequence.json
       - input
   retry: 2
+  needs: []
 
 docker_image:build:
   stage: build
@@ -110,19 +121,17 @@ docker_image:build:
     TO: $CI_REGISTRY_IMAGE:latest
     GIT_SUBMODULE_STRATEGY: recursive
   allow_failure: true
+  needs: []
 
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: run
   script:
     - TOPLEVEL=${PWD}
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
@@ -160,14 +169,11 @@ docker_image:build:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: run
   script:
     - TOPLEVEL=${PWD}
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
@@ -204,14 +210,11 @@ docker_image:build:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: run
   script:
     - TOPLEVEL=${PWD}
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
@@ -247,14 +250,11 @@ docker_image:build:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: run
   script:
     - TOPLEVEL=${PWD}
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
@@ -294,14 +294,11 @@ docker_image:build:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: run
   script:
     - TOPLEVEL=${PWD}
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
-    - declare -A DEVICE_MEMORY_MAP=${DEVICE_MEMORY}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
@@ -338,12 +335,10 @@ docker_image:build:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: publish
   script:
-    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=${PREVIOUS_IFS}
@@ -357,7 +352,6 @@ test_physics_efficiency:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: test
@@ -407,7 +401,6 @@ test_run_changes:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: publish
@@ -432,7 +425,6 @@ test_run_changes:
   only:
     refs:
       - master
-      - schedules
       - web
       - merge_requests
   stage: publish
