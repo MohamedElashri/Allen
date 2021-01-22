@@ -14,7 +14,7 @@ import urllib
 def get_master_throughput(job_name, scale=1.0):
     master_throughput = {}
     if job_name:
-        base_url = "https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/devices_throughput.csv"
+        base_url = "https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/devices_throughputs.csv"
         f = {"job": job_name}
         url = base_url + "?" + urllib.parse.urlencode(f)
         r = requests.get(url, allow_redirects=True)
