@@ -17,7 +17,7 @@ def get_master_throughput(job_name, scale=1.0):
         base_url = "https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/devices_throughput.csv"
         f = {"job": job_name}
         url = base_url + "?" + urllib.parse.urlencode(f)
-        r = requests.get(direct_url, allow_redirects=True)
+        r = requests.get(url, allow_redirects=True)
         content = r.content.decode("utf-8")
         content_reader = csv.reader(content.splitlines())
         for row in content_reader:
