@@ -35,17 +35,17 @@ def main():
         default='',
         help='Title for your graph. (default: empty string)')
     parser.add_option(
-        '-j',
-        '--job',
-        dest='job',
-        default='',
-        help='Name of CI job')
+        '-j', '--job', dest='job', default='', help='Name of CI job')
 
     (options, args) = parser.parse_args()
 
     master_throughput = get_master_throughput(options.job, scale=1e-3)
     throughput_text = produce_plot(
-        options.throughput, master_throughput=master_throughput, unit="kHz", scale=1e-3, print_text=True)
+        options.throughput,
+        master_throughput=master_throughput,
+        unit="kHz",
+        scale=1e-3,
+        print_text=True)
     breakdown_text = produce_plot(options.breakdown, unit="%", print_text=True)
 
     text = '{"text": "%s:\n```\n%s```\n\nBreakdown of sequence:\n```\n%s```"}' % (

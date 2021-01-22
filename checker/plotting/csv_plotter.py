@@ -20,8 +20,8 @@ def get_master_throughput(job_name, scale=1.0):
         content = r.content.decode("utf-8")
         content_reader = csv.reader(content.splitlines())
         for row in content_reader:
-          if row:
-            master_throughput[row[0]] = float(row[1]) * scale
+            if row:
+                master_throughput[row[0]] = float(row[1]) * scale
     return master_throughput
 
 
@@ -45,7 +45,10 @@ def format_text(title, plot_data, unit, x_max, master_throughput={}):
 
     # Add relative throughputs if requested
     if master_throughput:
-        speedup_wrt_master = {a:plot_data.get(a, b) / b for a, b in master_throughput.items()}
+        speedup_wrt_master = {
+            a: plot_data.get(a, b) / b
+            for a, b in master_throughput.items()
+        }
         annotated_output = ""
         for line in output.splitlines():
             for key, speedup in speedup_wrt_master.items():
@@ -91,7 +94,8 @@ def produce_plot(filename,
         for k in plot_data.keys():
             plot_data[k] /= norm
 
-    text, raw_output = format_text(title, plot_data, unit, x_max, master_throughput=master_throughput)
+    text, raw_output = format_text(
+        title, plot_data, unit, x_max, master_throughput=master_throughput)
     if print_text:
         print(text)
 
