@@ -55,7 +55,7 @@ private:
 public:
   MemoryManager() = default;
 
-  MemoryManager(const std::string& name) : m_name(name) {}
+  MemoryManager(std::string name) : m_name {std::move(name)} {}
 
   /**
    * @brief Sets the m_max_available_memory of this manager.

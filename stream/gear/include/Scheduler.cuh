@@ -28,21 +28,27 @@ using device_memory_manager_t = MemoryManager<memory_manager_details::Device, me
 namespace details {
 
   template<auto I, typename Callable, typename... Tuples>
-  constexpr auto invoke_at(Callable&& f, Tuples&&... tuples)
+  constexpr auto invoke_row_at(Callable&& f, Tuples&&... tuples)
   {
-    return std::invoke(f, std::get<I>(std::forward<Tuples>(tuples))...);
+    return std::invoke(std::forward<Callable>(f), std::get<I>(std::forward<Tuples>(tuples))...);
   }
   template<typename Callable, typename... Tuples, std::size_t... Is>
-  constexpr void invoke_for_each_slice_impl(std::index_sequence<Is...>, Callable&& f, Tuples&&... tuples)
+  constexpr void invoke_for_each_row_impl(std::index_sequence<Is...>, Callable&& f, Tuples&&... tuples)
   {
-    (invoke_at<Is>(std::forward<Callable>(f), std::forward<Tuples>(tuples)...), ...);
+    (invoke_row_at<Is>(f, std::forward<Tuples>(tuples)...), ...);
   }
+
+  /*
+   * loop over each 'row' (aka slice) of the provided N tuples, and for each row,
+   * invoke an N-ary callable on the thus-obtained N arguments
+   * or to put it another way: 'zip tuples, followed by for_each'
+   */
   template<typename Callable, typename Tuple, typename... Tuples>
-  constexpr void invoke_for_each_slice(Callable&& f, Tuple&& tuple, Tuples&&... tuples)
+  constexpr void invoke_for_each_row(Callable&& f, Tuple&& tuple, Tuples&&... tuples)
   {
     constexpr auto N = std::tuple_size_v<std::remove_reference_t<Tuple>>;
     static_assert(((N == std::tuple_size_v<std::remove_reference_t<Tuples>>) &&...));
-    invoke_for_each_slice_impl(
+    invoke_for_each_row_impl(
       std::make_index_sequence<N> {},
       std::forward<Callable>(f),
       std::forward<Tuple>(tuple),
@@ -124,7 +130,7 @@ public:
     new (&sequence_storage) ConfiguredSequence {};
     auto& sequence_tuple = *std::launder(reinterpret_cast<ConfiguredSequence*>(&sequence_storage));
 
-    details::invoke_for_each_slice(
+    details::invoke_for_each_row(
       [](auto& alg, auto&& name, auto traits, VTable& vtbl) {
         alg.set_name(std::forward<decltype(name)>(name));
         vtbl = VTable {alg, traits};
