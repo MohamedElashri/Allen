@@ -435,46 +435,49 @@ CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
 
 CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
 
 HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
 
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 # Builds with warnings treated as errors
 # gcc:
@@ -483,31 +486,16 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 # clang:
 
@@ -515,16 +503,34 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -
   <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
     
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
 
 HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_def
   tags:
     - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
 
 # Build of default sequence without code generation
 
@@ -532,11 +538,6 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 # Builds only on master of additional options
 
@@ -544,21 +545,11 @@ CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
 
 # ===
 # Run
