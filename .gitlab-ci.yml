@@ -845,6 +845,10 @@ throughput:hlt1_pp_default:geforcertx3090:minbias_mag_down_201907:publish_throug
       - web
       - schedules
       - merge_requests
+  artifacts:
+    paths:
+      - devices_throughputs.csv
+    expire_in: 1 week
 
 # Publish additional throughput tests, only in master
 
@@ -860,6 +864,10 @@ throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_through
     - geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+  artifacts:
+    paths:
+      - devices_throughputs.csv
+    expire_in: 1 week
 
 throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
   <<: *publish_throughput_job_def
@@ -873,3 +881,7 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
     - geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
+  artifacts:
+    paths:
+      - devices_throughputs.csv
+    expire_in: 1 week
