@@ -8,6 +8,7 @@ import traceback
 from optparse import OptionParser
 from termgraph import TermGraph
 import requests
+import urllib
 
 
 def get_master_throughput(job_name, scale=1.0):
