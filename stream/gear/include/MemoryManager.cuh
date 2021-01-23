@@ -11,8 +11,14 @@
 namespace memory_manager_details {
   // Distinguish between Host and Device memory managers
   struct Host {
+    using datatype = host_datatype;
+    static void free(void* ptr) { Allen::free_host(ptr); }
+    static void malloc(void** ptr, size_t s) { Allen::malloc_host(ptr, s); }
   };
   struct Device {
+    using datatype = device_datatype;
+    static void free(void* ptr) { Allen::free(ptr); }
+    static void malloc(void** ptr, size_t s) { Allen::malloc(ptr, s); }
   };
 
   // Distinguish between single and multi alloc memory managers
@@ -20,17 +26,18 @@ namespace memory_manager_details {
   };
   struct MultiAlloc {
   };
+
 } // namespace memory_manager_details
 
 template<typename Target, typename AllocPolicy>
-struct MemoryManager;
+class MemoryManager;
 
 /**
  * @brief This memory manager allocates a single chunk of memory at the beginning,
  *        and reserves / frees using this memory chunk from that point onwards.
  */
 template<typename Target>
-struct MemoryManager<Target, memory_manager_details::SingleAlloc> {
+class MemoryManager<Target, memory_manager_details::SingleAlloc> : public Target {
 private:
   char* m_base_pointer = nullptr;
   size_t m_max_available_memory = 0;
@@ -64,18 +71,8 @@ public:
    */
   void reserve_memory(size_t memory_size, const unsigned memory_alignment)
   {
-    if constexpr (std::is_same_v<Target, memory_manager_details::Host>) {
-      if (m_base_pointer != nullptr) {
-        Allen::free_host(m_base_pointer);
-      }
-      Allen::malloc_host((void**) &m_base_pointer, memory_size);
-    }
-    else {
-      if (m_base_pointer != nullptr) {
-        Allen::free(m_base_pointer);
-      }
-      Allen::malloc((void**) &m_base_pointer, memory_size);
-    }
+    if (m_base_pointer) Target::free(m_base_pointer);
+    Target::malloc((void**) &m_base_pointer, memory_size);
 
     m_guaranteed_alignment = memory_alignment;
     m_max_available_memory = memory_size;
@@ -90,6 +87,7 @@ public:
   template<typename Argument, typename ArgumentManagerType>
   void reserve(ArgumentManagerType& argument_manager)
   {
+    static_assert(std::is_base_of_v<typename Target::datatype, Argument>);
     // Tag and requested size
     const auto tag = argument_manager.template name<Argument>();
     size_t requested_size = argument_manager.template size<Argument>() * sizeof(typename Argument::type);
@@ -110,13 +108,10 @@ public:
                    << " B aligned) for argument " << tag << std::endl;
     }
 
-    // Finds first free segment providing that space
-    auto it = m_memory_segments.begin();
-    for (; it != m_memory_segments.end(); ++it) {
-      if (it->tag == "" && it->size >= aligned_request) {
-        break;
-      }
-    }
+    // Finds first free segment providing sufficient space
+    auto it = std::find_if(m_memory_segments.begin(), m_memory_segments.end(), [&](const auto& ms) {
+      return ms.tag == "" && ms.size >= aligned_request;
+    });
 
     // Complain if no space was available
     if (it == m_memory_segments.end()) {
@@ -153,6 +148,8 @@ public:
   template<typename Argument, typename ArgumentManagerType>
   void free(ArgumentManagerType& argument_manager)
   {
+    static_assert(std::is_base_of_v<typename Target::datatype, Argument>);
+
     const auto tag = argument_manager.template name<Argument>();
 
     if (logger::verbosity() >= 5) {
@@ -176,8 +173,7 @@ public:
       if (previous_it->tag == "") {
         previous_it->size += it->size;
         // Remove current element, and point to previous one
-        it = m_memory_segments.erase(it);
-        it--;
+        it = std::prev(m_memory_segments.erase(it));
       }
     }
 
@@ -209,7 +205,7 @@ public:
    * @brief Frees all memory segments, effectively resetting the
    *        available space.
    */
-  void free_all() { m_memory_segments = std::list<MemorySegment> {{0, m_max_available_memory, ""}}; }
+  void free_all() { m_memory_segments = {{0, m_max_available_memory, ""}}; }
 
   /**
    * @brief Prints the current state of the memory segments.
@@ -231,7 +227,7 @@ public:
  *        It is slower but better at debugging out-of-bound accesses.
  */
 template<typename Target>
-struct MemoryManager<Target, memory_manager_details::MultiAlloc> {
+class MemoryManager<Target, memory_manager_details::MultiAlloc> : public Target {
 private:
   size_t m_total_memory_required = 0;
   std::string m_name = "Memory manager";
@@ -249,7 +245,7 @@ private:
 public:
   MemoryManager() = default;
 
-  MemoryManager(const std::string& name) : m_name(name) {}
+  MemoryManager(std::string name) : m_name {std::move(name)} {}
 
   /**
    * @brief This MultiAlloc MemoryManager does not reserve memory upon startup.
@@ -283,12 +279,7 @@ public:
     // We will allocate in a char*
     char* memory_pointer;
 
-    if constexpr (std::is_same_v<Target, memory_manager_details::Host>) {
-      Allen::malloc_host((void**) &memory_pointer, requested_size);
-    }
-    else {
-      Allen::malloc((void**) &memory_pointer, requested_size);
-    }
+    Target::malloc(&memory_pointer, requested_size);
 
     argument_manager.template set_pointer<Argument>(memory_pointer);
 
@@ -318,12 +309,7 @@ public:
       verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
     }
 
-    if constexpr (std::is_same_v<Target, memory_manager_details::Host>) {
-      Allen::free_host(argument_manager.template pointer<Argument>());
-    }
-    else {
-      Allen::free(argument_manager.template pointer<Argument>());
-    }
+    Target::free(argument_manager.template pointer<Argument>());
 
     m_total_memory_required -= it->size() * sizeof(typename Argument::type);
 
@@ -337,12 +323,7 @@ public:
   void free_all()
   {
     for (const auto& it : m_memory_segments) {
-      if constexpr (std::is_same_v<Target, memory_manager_details::Host>) {
-        Allen::free_host(it.second.pointer);
-      }
-      else {
-        Allen::free(it.second.pointer);
-      }
+      Target::free(it.second.pointer);
     }
     m_memory_segments.clear();
   }
@@ -369,34 +350,33 @@ public:
  *         whether to reserve/free on the host or device memory.
  */
 
-namespace details {
+namespace memory_manager_details {
   template<typename Argument, typename MemoryManager, typename ArgumentManagerType>
   constexpr void reserve(MemoryManager& memory_manager, ArgumentManagerType& argument_manager)
   {
-    static_assert((std::is_base_of_v<device_datatype, Argument>) || std::is_base_of_v<host_datatype, Argument>);
+    static_assert(std::is_base_of_v<typename MemoryManager::datatype, Argument>);
     memory_manager.template reserve<Argument>(argument_manager);
   }
   template<typename Argument, typename MemoryManager, typename ArgumentManagerType>
   constexpr void free(MemoryManager& memory_manager, ArgumentManagerType& argument_manager)
   {
-    static_assert(std::is_base_of_v<device_datatype, Argument> || std::is_base_of_v<host_datatype, Argument>);
+    static_assert(std::is_base_of_v<typename MemoryManager::datatype, Argument>);
     // Host memory manager does not free any memory.
-    if constexpr (std::is_base_of_v<host_datatype, Argument>) {
-      return;
+    if constexpr (!std::is_base_of_v<Host, MemoryManager>) {
+      memory_manager.template free<Argument>(argument_manager);
     }
-    memory_manager.template free<Argument>(argument_manager);
   }
   template<typename Argument, typename HostMemoryManager, typename DeviceMemoryManager>
-  constexpr auto& select_memory_manager_for(HostMemoryManager& host, DeviceMemoryManager& device)
+  constexpr auto& select_manager_for(HostMemoryManager& host, DeviceMemoryManager& device)
   {
-    if constexpr (std::is_base_of_v<device_datatype, Argument>) {
+    if constexpr (std::is_base_of_v<typename DeviceMemoryManager::datatype, Argument>) {
       return device;
     }
-    else if constexpr (std::is_base_of_v<host_datatype, Argument>) {
+    if constexpr (std::is_base_of_v<typename HostMemoryManager::datatype, Argument>) {
       return host;
     }
   }
-} // namespace details
+} // namespace memory_manager_details
 
 template<typename ArgumentTuple>
 struct MemoryManagerHelper;
@@ -410,8 +390,9 @@ struct MemoryManagerHelper<std::tuple<Arguments...>> {
     DeviceMemoryManager& device_memory_manager,
     ArgumentManagerType& argument_manager)
   {
-    (details::reserve<Arguments>(
-       details::select_memory_manager_for<Arguments>(host_memory_manager, device_memory_manager), argument_manager),
+    (memory_manager_details::reserve<Arguments>(
+       memory_manager_details::select_manager_for<Arguments>(host_memory_manager, device_memory_manager),
+       argument_manager),
      ...);
   }
 
@@ -421,8 +402,9 @@ struct MemoryManagerHelper<std::tuple<Arguments...>> {
     DeviceMemoryManager& device_memory_manager,
     ArgumentManagerType& argument_manager)
   {
-    (details::free<Arguments>(
-       details::select_memory_manager_for<Arguments>(host_memory_manager, device_memory_manager), argument_manager),
+    (memory_manager_details::free<Arguments>(
+       memory_manager_details::select_manager_for<Arguments>(host_memory_manager, device_memory_manager),
+       argument_manager),
      ...);
   }
 };
