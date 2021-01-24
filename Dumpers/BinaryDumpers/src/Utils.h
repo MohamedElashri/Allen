@@ -21,7 +21,9 @@
 template<class Tuple, class F>
 void for_each(Tuple&& tup, F&& f)
 {
-  std::apply( [f=std::forward<F>(f)](auto&&... args) { (std::invoke(f,std::forward<decltype(args)>(args)),...); }, std::forward<Tuple>(tup) );
+  std::apply(
+    [f = std::forward<F>(f)](auto&&... args) { (std::invoke(f, std::forward<decltype(args)>(args)), ...); },
+    std::forward<Tuple>(tup));
 }
 
 template<class T>
