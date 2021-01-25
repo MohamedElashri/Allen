@@ -7,9 +7,30 @@ import subprocess
 import traceback
 from optparse import OptionParser
 from termgraph import TermGraph
+import requests
+import urllib
 
 
-def format_text(title, plot_data, unit, x_max):
+def get_master_throughput(job_name, scale=1.0):
+    try:
+        master_throughput = {}
+        if job_name:
+            base_url = "https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/devices_throughputs.csv"
+            f = {"job": job_name}
+            url = base_url + "?" + urllib.parse.urlencode(f)
+            r = requests.get(url, allow_redirects=True)
+            content = r.content.decode("utf-8")
+            content_reader = csv.reader(content.splitlines())
+            for row in content_reader:
+                if row:
+                    master_throughput[row[0]] = float(row[1]) * scale
+        return master_throughput
+    except Exception as e:
+        print("get_master_throughput exception:", e)
+        return {}
+
+
+def format_text(title, plot_data, unit, x_max, master_throughput={}):
     # Prepare data
     final_vals = []
     final_tags = []
@@ -26,6 +47,22 @@ def format_text(title, plot_data, unit, x_max):
     print(final_vals)
     tg = TermGraph(suffix=unit, x_max=x_max)
     output = tg.chart(final_vals, final_tags)
+
+    # Add relative throughputs if requested
+    if master_throughput:
+        speedup_wrt_master = {
+            a: plot_data.get(a, b) / b
+            for a, b in master_throughput.items()
+        }
+        annotated_output = ""
+        for line in output.splitlines():
+            for key, speedup in speedup_wrt_master.items():
+                if key in line and key in plot_data:
+                    annotated_output += "{} ({:.2f}x)\n".format(line, speedup)
+                    break
+            else:
+                annotated_output += line + "\n"
+        output = annotated_output
 
     text = '{"text": "%s:\n```\n%s```"}' % (title, output)
     return text, output
@@ -45,7 +82,8 @@ def produce_plot(filename,
                  mattermost_url=None,
                  scale=1.0,
                  normalize=False,
-                 print_text=True):
+                 print_text=True,
+                 master_throughput={}):
     plot_data = {}
     with open(filename) as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',')
@@ -61,7 +99,8 @@ def produce_plot(filename,
         for k in plot_data.keys():
             plot_data[k] /= norm
 
-    text, raw_output = format_text(title, plot_data, unit, x_max)
+    text, raw_output = format_text(
+        title, plot_data, unit, x_max, master_throughput=master_throughput)
     if print_text:
         print(text)
 
