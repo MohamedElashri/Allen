@@ -244,7 +244,9 @@ def make_forward_tracks(forward_decoding="v4", hit_window_size="32", **kwargs):
         dev_scifi_lf_parametrization_consolidate_t,
         dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
         dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
-        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"])
+        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"],
+        dev_ut_qop_t=dev_ut_qop,
+        dev_ut_track_velo_indices_t=dev_ut_track_velo_indices)
 
     return {
         "dev_scifi_track_hits":

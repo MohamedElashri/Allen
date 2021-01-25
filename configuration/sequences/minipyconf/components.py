@@ -132,9 +132,12 @@ def _check_input_integrity(t, inputs, other_args, input_transform=None):
     inputs = set(inputs)
 
     if set(dh_inputs).intersection(other_args):
+        from IPython import embed
+        embed()
         raise TypeError(
-            'Inputs must be provided as DataHandles or Algorithms, '
-            'please check these arguments: {}'.format(dh_inputs))
+            'Inputs must be provided as DataHandles or Algorithms.'
+            'Please check algorithm {}, arguments {}'.format(t.getType(),
+                set(dh_inputs).intersection(other_args)))
     if not set(dh_inputs).issubset(inputs):
         raise ConfigurationError(
             'Please provide all inputs. The ones need here are: {}, while you only give {}'.format(

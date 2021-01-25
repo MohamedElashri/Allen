@@ -186,7 +186,8 @@ def VeloSequence(doGEC=True):
         dev_output_buffer_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
 
-    velo_kalman_filter = velo_kalman_filter_t(
+    velo_kalman_filter = make_algorithm(
+        velo_kalman_filter_t,
         name="velo_kalman_filter",
         host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),

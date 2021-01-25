@@ -8,19 +8,27 @@ def PVSequence(initialize_lists, velo_copy_track_hit_number,
                velo_consolidate_tracks,
                prefix_sum_offsets_velo_track_hit_number, velo_kalman_filter):
 
-    pv_beamline_extrapolate = pv_beamline_extrapolate_t(
+    velo_tracks = make_velo_tracks(**kwargs)
+    host_number_of_reconstructed_velo_tracks = velo_tracks[
+        "host_number_of_reconstructed_velo_tracks"]
+    dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
+    dev_offsets_velo_track_hit_number = velo_tracks[
+        "dev_offsets_velo_track_hit_number"]
+    dev_velo_track_hits = velo_tracks["dev_velo_track_hits"]
+
+    velo_states = run_velo_kalman_filter(**kwargs)
+
+    pv_beamline_extrapolate = make_algorithm(
+        pv_beamline_extrapolate_t,
         name="pv_beamline_extrapolate",
-        host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
-        host_number_of_reconstructed_velo_tracks_t(),
-        host_number_of_events_t=initialize_lists.host_number_of_events_t(),
-        dev_velo_kalman_beamline_states_t=velo_kalman_filter.
-        dev_velo_kalman_beamline_states_t(),
-        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-        dev_offsets_all_velo_tracks_t(),
-        dev_offsets_velo_track_hit_number_t=
-        prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
+        host_number_of_reconstructed_velo_tracks_t=
+        host_number_of_reconstructed_velo_tracks,
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        dev_velo_kalman_beamline_states_t=velo_states[
+            "dev_velo_kalman_beamline_states"],
+        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
+        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number)
 
     pv_beamline_histo = pv_beamline_histo_t(
         name="pv_beamline_histo",

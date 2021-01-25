@@ -14,7 +14,17 @@ def make_ut_tracks(restricted=True, **kwargs):
     velo_tracks = make_velo_tracks(**kwargs)
     velo_states = run_velo_kalman_filter(**kwargs)
 
-    ut_calculate_number_of_hits = ut_calculate_number_of_hits_t(
+    host_number_of_reconstructed_velo_tracks_t = velo_tracks[
+        "host_number_of_reconstructed_velo_tracks"]
+    dev_offsets_all_velo_tracks_t = velo_tracks["dev_offsets_all_velo_tracks"]
+    dev_offsets_velo_track_hit_number_t = velo_tracks[
+        "dev_offsets_velo_track_hit_number"]
+    dev_accepted_velo_tracks_t = velo_tracks["dev_accepted_velo_tracks"]
+
+    ut_banks = make_algorithm(data_provider_t, name="ut_banks", bank_type="UT")
+
+    ut_calculate_number_of_hits = make_algorithm(
+        ut_calculate_number_of_hits_t,
         name="ut_calculate_number_of_hits",
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t(),
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t(),
