@@ -191,10 +191,8 @@ def make_forward_tracks(forward_decoding="v4", hit_window_size="32", **kwargs):
         dev_scifi_lf_length_filtered_tracks_t=lf_quality_filter_length.
         dev_scifi_lf_length_filtered_tracks_t(),
         dev_scifi_lf_parametrization_length_filter_t=lf_quality_filter_length.
-        dev_scifi_lf_parametrization_length_filter_t(),
-        dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t())
+        dev_scifi_lf_parametrization_length_filter_t,
+        dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t)
 
     prefix_sum_forward_tracks = host_prefix_sum_t(
         name="prefix_sum_forward_tracks",

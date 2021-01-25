@@ -29,7 +29,6 @@ def gec(min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750", **kwargs):
         host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t,
         host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t,
         host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t,
-        host_number_of_events_t=number_of_events["host_number_of_events"],
         min_scifi_ut_clusters=min_scifi_ut_clusters,
         max_scifi_ut_clusters=max_scifi_ut_clusters,
     )
