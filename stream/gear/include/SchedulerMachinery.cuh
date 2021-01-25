@@ -435,21 +435,15 @@ namespace Sch {
   /**
    * @brief Runs the PrChecker for all configured algorithms in the sequence.
    */
-  template<typename ConfiguredSequence, typename Arguments>
+  template<typename ConfiguredSequence>
   struct RunChecker;
 
-  template<typename... Arguments>
-  struct RunChecker<std::tuple<>, std::tuple<Arguments...>> {
-    constexpr static void check(Arguments&&...) {}
-  };
-
-  template<typename Algorithm, typename... Algorithms, typename... Arguments>
-  struct RunChecker<std::tuple<Algorithm, Algorithms...>, std::tuple<Arguments...>> {
+  template<typename... Algorithm>
+  struct RunChecker<std::tuple<Algorithm...>> {
+    template<typename... Arguments>
     constexpr static void check(Arguments&&... arguments)
     {
-      SequenceVisitor<Algorithm>::check(std::forward<Arguments>(arguments)...);
-
-      RunChecker<std::tuple<Algorithms...>, std::tuple<Arguments...>>::check(std::forward<Arguments>(arguments)...);
+      (SequenceVisitor<Algorithm>::check(std::forward<Arguments>(arguments)...), ...);
     }
   };
 } // namespace Sch

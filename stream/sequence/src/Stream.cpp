@@ -178,10 +178,7 @@ void Stream::run_monte_carlo_test(
   MCEvents const& mc_events,
   std::vector<Checker::Tracks> const& forward_tracks)
 {
-  Sch::RunChecker<
-    configured_sequence_t,
-    std::tuple<HostBuffers&, const Constants&, const CheckerInvoker&, const MCEvents&>>::
-    check(*host_buffers, constants, invoker, mc_events);
+  Sch::RunChecker<configured_sequence_t>::check(*host_buffers, constants, invoker, mc_events);
 
   if (forward_tracks.size() > 0) {
     info_cout << "Running test on imported tracks" << std::endl;
