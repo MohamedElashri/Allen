@@ -44,15 +44,6 @@ namespace Sch {
     using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
-  // invoke callable for each element of a tuple
-  template<typename Tuple, typename Callable>
-  void for_each_element(Tuple&& tuple, Callable c)
-  {
-    std::apply(
-      [c = std::move(c)](auto&&... i) { (std::invoke(c, std::forward<decltype(i)>(i)), ...); },
-      std::forward<Tuple>(tuple));
-  }
-
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Arguments>
   struct IsInAnyArgumentTuple;
@@ -228,50 +219,6 @@ namespace Sch {
     }
   };
 
-  // Configure constants for algorithms in the sequence
-  template<typename Tuple>
-  struct ConfigureAlgorithmSequence {
-    static constexpr void configure(
-      Tuple& algs,
-      const std::map<std::string, std::map<std::string, std::string>>& config)
-    {
-      for_each_element(algs, [&config](auto& algorithm) {
-        const auto algorithm_name = algorithm.name();
-        auto c = config.find(algorithm.name());
-        if (c != config.end()) algorithm.set_properties(c->second);
-
-        // * Invoke void initialize() const, iff it exists
-        if constexpr (has_member_fn<decltype(algorithm)>::value) {
-          algorithm.init();
-        };
-      });
-    }
-  };
-
-  // Return constants for algorithms in the sequence
-  template<typename Tuple>
-  struct GetSequenceConfiguration {
-    static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
-    {
-      std::apply(
-        [&config](const auto&... algorithm) { (config.emplace(algorithm.name(), algorithm.get_properties()), ...); },
-        algs);
-      return config;
-    }
-  };
-
-  /**
-   * @brief Produces a single argument reference.
-   */
-  template<typename ArgumentsTuple, typename ConfiguredArgument>
-  struct ProduceSingleArgument {
-    constexpr static auto& produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_tuple)
-    {
-      constexpr auto index_of_T = index_of_v<ConfiguredArgument, ArgumentsTuple>;
-      return std::get<index_of_T>(arguments_tuple);
-    }
-  };
-
   /**
    * @brief Produces a list of argument references.
    */
@@ -280,10 +227,9 @@ namespace Sch {
 
   template<typename ArgumentsTuple, typename ArgumentRefManager, typename... ConfiguredArguments>
   struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<ConfiguredArguments...>> {
-    constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_tuple)
+    constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array)
     {
-      return ArgumentRefManager {
-        {ProduceSingleArgument<ArgumentsTuple, ConfiguredArguments>::produce(arguments_tuple)...}};
+      return ArgumentRefManager {{arguments_array[index_of_v<ConfiguredArguments, ArgumentsTuple>]...}};
     }
   };
 
@@ -327,110 +273,6 @@ namespace Sch {
     using preconditions = typename recursive_contracts::preconditions;
     using postconditions = typename TupleAppend<typename recursive_contracts::postconditions, A>::t;
   };
-
-  /**
-   * @brief Runs the sequence tuple (implementation).
-   */
-  template<typename Scheduler, typename Indices>
-  struct RunSequenceTupleImpl;
-
-  template<typename Scheduler>
-  struct RunSequenceTupleImpl<Scheduler, std::index_sequence<>> {
-    static void run(Scheduler&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&) {}
-  };
-
-  template<typename Scheduler, unsigned long I, unsigned long... Is>
-  struct RunSequenceTupleImpl<Scheduler, std::index_sequence<I, Is...>> {
-    static void run(
-      Scheduler& scheduler,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
-      const Allen::Context& context)
-    {
-      using t = std::tuple_element_t<I, typename Scheduler::configured_sequence_t>;
-      using configured_arguments_t = std::tuple_element_t<I, typename Scheduler::configured_sequence_arguments_t>;
-
-      auto arguments_tuple =
-        ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t, configured_arguments_t>::produce(
-          scheduler.argument_manager.argument_database());
-
-#ifdef ENABLE_CONTRACTS
-      // Get pre and postconditions
-      using algorithm_contracts =
-        AlgorithmContracts<typename std::tuple_element_t<I, typename Scheduler::configured_sequence_t>::contracts>;
-      auto preconditions = typename algorithm_contracts::preconditions {};
-      auto postconditions = typename algorithm_contracts::postconditions {};
-
-      // Set location
-      const auto location = std::get<I>(scheduler.sequence_tuple).name();
-      std::apply(
-        [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-        preconditions);
-      std::apply(
-        [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-        postconditions);
-#endif
-
-      // Sets the arguments sizes
-      std::get<I>(scheduler.sequence_tuple)
-        .set_arguments_size(arguments_tuple, runtime_options, constants, host_buffers);
-
-      // Setup algorithm, reserving / freeing memory buffers
-      scheduler.template setup<I>();
-
-#ifdef ENABLE_CONTRACTS
-      // Run preconditions
-      std::apply(
-        [&](const auto&... contract) {
-          (contract.operator()(arguments_tuple, runtime_options, constants, context), ...);
-        },
-        preconditions);
-#endif
-
-      try {
-        // Invoke operator() of the algorithm
-        std::get<I>(scheduler.sequence_tuple)
-          .
-          operator()(arguments_tuple, runtime_options, constants, host_buffers, context);
-      } catch (std::invalid_argument& e) {
-        fprintf(
-          stderr,
-          "Execution of algorithm %s raised an exception\n",
-          std::get<I>(scheduler.sequence_tuple).name().c_str());
-        throw e;
-      }
-
-#ifdef ENABLE_CONTRACTS
-      // Run postconditions
-      std::apply(
-        [&](const auto&... contract) {
-          (contract.operator()(arguments_tuple, runtime_options, constants, context), ...);
-        },
-        postconditions);
-#endif
-
-      RunSequenceTupleImpl<Scheduler, std::index_sequence<Is...>>::run(
-        scheduler, runtime_options, constants, host_buffers, context);
-    }
-  };
-
-  /**
-   * @brief Runs a sequence of algorithms.
-   */
-  template<typename Scheduler>
-  void run_sequence_tuple(
-    Scheduler& scheduler,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    const Allen::Context& context)
-  {
-    RunSequenceTupleImpl<
-      Scheduler,
-      std::make_index_sequence<std::tuple_size_v<typename Scheduler::configured_sequence_t>>>::
-      run(scheduler, runtime_options, constants, host_buffers, context);
-  }
 
   /**
    * @brief Runs the PrChecker for all configured algorithms in the sequence.

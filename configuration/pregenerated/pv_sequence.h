@@ -724,35 +724,32 @@ using configured_sequence_arguments_t = std::tuple<
     pv_beamline_cleanup__dev_multi_final_vertices_t,
     pv_beamline_cleanup__dev_number_of_multi_final_vertices_t>>;
 
-void inline populate_sequence_algorithm_names(configured_sequence_t& sequence)
-{
-  std::get<0>(sequence).set_name("mep_layout");
-  std::get<1>(sequence).set_name("host_ut_banks");
-  std::get<2>(sequence).set_name("host_scifi_banks");
-  std::get<3>(sequence).set_name("initialize_lists");
-  std::get<4>(sequence).set_name("full_event_list");
-  std::get<5>(sequence).set_name("velo_banks");
-  std::get<6>(sequence).set_name("velo_calculate_number_of_candidates");
-  std::get<7>(sequence).set_name("prefix_sum_offsets_velo_candidates");
-  std::get<8>(sequence).set_name("velo_estimate_input_size");
-  std::get<9>(sequence).set_name("prefix_sum_offsets_estimated_input_size");
-  std::get<10>(sequence).set_name("velo_masked_clustering");
-  std::get<11>(sequence).set_name("velo_calculate_phi_and_sort");
-  std::get<12>(sequence).set_name("velo_search_by_triplet");
-  std::get<13>(sequence).set_name("prefix_sum_offsets_velo_tracks");
-  std::get<14>(sequence).set_name("velo_three_hit_tracks_filter");
-  std::get<15>(sequence).set_name("prefix_sum_offsets_number_of_three_hit_tracks_filtered");
-  std::get<16>(sequence).set_name("velo_copy_track_hit_number");
-  std::get<17>(sequence).set_name("prefix_sum_offsets_velo_track_hit_number");
-  std::get<18>(sequence).set_name("velo_consolidate_tracks");
-  std::get<19>(sequence).set_name("velo_kalman_filter");
-  std::get<20>(sequence).set_name("pv_beamline_extrapolate");
-  std::get<21>(sequence).set_name("pv_beamline_histo");
-  std::get<22>(sequence).set_name("pv_beamline_peak");
-  std::get<23>(sequence).set_name("pv_beamline_calculate_denom");
-  std::get<24>(sequence).set_name("pv_beamline_multi_fitter");
-  std::get<25>(sequence).set_name("pv_beamline_cleanup");
-}
+constexpr auto sequence_algorithm_names = std::array {"mep_layout",
+                                                      "host_ut_banks",
+                                                      "host_scifi_banks",
+                                                      "initialize_lists",
+                                                      "full_event_list",
+                                                      "velo_banks",
+                                                      "velo_calculate_number_of_candidates",
+                                                      "prefix_sum_offsets_velo_candidates",
+                                                      "velo_estimate_input_size",
+                                                      "prefix_sum_offsets_estimated_input_size",
+                                                      "velo_masked_clustering",
+                                                      "velo_calculate_phi_and_sort",
+                                                      "velo_search_by_triplet",
+                                                      "prefix_sum_offsets_velo_tracks",
+                                                      "velo_three_hit_tracks_filter",
+                                                      "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
+                                                      "velo_copy_track_hit_number",
+                                                      "prefix_sum_offsets_velo_track_hit_number",
+                                                      "velo_consolidate_tracks",
+                                                      "velo_kalman_filter",
+                                                      "pv_beamline_extrapolate",
+                                                      "pv_beamline_histo",
+                                                      "pv_beamline_peak",
+                                                      "pv_beamline_calculate_denom",
+                                                      "pv_beamline_multi_fitter",
+                                                      "pv_beamline_cleanup"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)

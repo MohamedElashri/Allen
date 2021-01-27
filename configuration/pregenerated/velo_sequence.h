@@ -566,29 +566,26 @@ using configured_sequence_arguments_t = std::tuple<
     velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
     velo_kalman_filter__dev_velo_lmsfit_beamline_states_t>>;
 
-void inline populate_sequence_algorithm_names(configured_sequence_t& sequence)
-{
-  std::get<0>(sequence).set_name("mep_layout");
-  std::get<1>(sequence).set_name("host_ut_banks");
-  std::get<2>(sequence).set_name("host_scifi_banks");
-  std::get<3>(sequence).set_name("initialize_lists");
-  std::get<4>(sequence).set_name("full_event_list");
-  std::get<5>(sequence).set_name("velo_banks");
-  std::get<6>(sequence).set_name("velo_calculate_number_of_candidates");
-  std::get<7>(sequence).set_name("prefix_sum_offsets_velo_candidates");
-  std::get<8>(sequence).set_name("velo_estimate_input_size");
-  std::get<9>(sequence).set_name("prefix_sum_offsets_estimated_input_size");
-  std::get<10>(sequence).set_name("velo_masked_clustering");
-  std::get<11>(sequence).set_name("velo_calculate_phi_and_sort");
-  std::get<12>(sequence).set_name("velo_search_by_triplet");
-  std::get<13>(sequence).set_name("prefix_sum_offsets_velo_tracks");
-  std::get<14>(sequence).set_name("velo_three_hit_tracks_filter");
-  std::get<15>(sequence).set_name("prefix_sum_offsets_number_of_three_hit_tracks_filtered");
-  std::get<16>(sequence).set_name("velo_copy_track_hit_number");
-  std::get<17>(sequence).set_name("prefix_sum_offsets_velo_track_hit_number");
-  std::get<18>(sequence).set_name("velo_consolidate_tracks");
-  std::get<19>(sequence).set_name("velo_kalman_filter");
-}
+constexpr auto sequence_algorithm_names = std::array {"mep_layout",
+                                                      "host_ut_banks",
+                                                      "host_scifi_banks",
+                                                      "initialize_lists",
+                                                      "full_event_list",
+                                                      "velo_banks",
+                                                      "velo_calculate_number_of_candidates",
+                                                      "prefix_sum_offsets_velo_candidates",
+                                                      "velo_estimate_input_size",
+                                                      "prefix_sum_offsets_estimated_input_size",
+                                                      "velo_masked_clustering",
+                                                      "velo_calculate_phi_and_sort",
+                                                      "velo_search_by_triplet",
+                                                      "prefix_sum_offsets_velo_tracks",
+                                                      "velo_three_hit_tracks_filter",
+                                                      "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
+                                                      "velo_copy_track_hit_number",
+                                                      "prefix_sum_offsets_velo_track_hit_number",
+                                                      "velo_consolidate_tracks",
+                                                      "velo_kalman_filter"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)

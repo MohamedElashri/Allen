@@ -171,15 +171,14 @@ class Sequence():
                         s += ", "
                 s = s[:-2] + ">,\n"
             s = s[:-2] + ">;\n\n"
-            # Generate populate_sequence_algorithm_names function
-            s += "void inline populate_sequence_algorithm_names(configured_sequence_t& sequence) {\n"
-            i = 0
+            # Generate get_sequence_algorithm_names function
+            s += "constexpr auto sequence_algorithm_names = std::array{\n"
+            i = len(self.__sequence)
             for _, algorithm in iter(self.__sequence.items()):
-                s += prefix(1) + "std::get<" + str(
-                    i) + ">(sequence).set_name(\"" + algorithm.name(
-                    ) + "\");\n"
-                i += 1
-            s += "}\n\n"
+                s += prefix(1) + "\"" + algorithm.name() + "\""
+                if i != 1: s += ",\n"
+                i -= 1
+            s += "};\n\n"
             # Generate populate_sequence_parameter_names
             s += "template<typename T>\nvoid populate_sequence_argument_names(T& argument_manager) {\n"
             i = 0
