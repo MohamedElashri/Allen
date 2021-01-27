@@ -21,14 +21,16 @@ pv_sequence = PVSequence(
     velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
     velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[
-        "prefix_sum_offsets_velo_track_hit_number"])
+        "prefix_sum_offsets_velo_track_hit_number"],
+    velo_kalman_filter=velo_sequence["velo_kalman_filter"])
 
 ut_sequence = UTSequence(
     initialize_lists=gec_sequence["initialize_lists"],
     velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
     velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[
-        "prefix_sum_offsets_velo_track_hit_number"])
+        "prefix_sum_offsets_velo_track_hit_number"],
+    velo_kalman_filter=velo_sequence["velo_kalman_filter"])
 
 forward_sequence = ForwardSequence(
     initialize_lists=gec_sequence["initialize_lists"],
@@ -39,7 +41,8 @@ forward_sequence = ForwardSequence(
     prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],
     prefix_sum_ut_track_hit_number=ut_sequence[
         "prefix_sum_ut_track_hit_number"],
-    ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"])
+    ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"],
+    velo_kalman_filter=velo_sequence["velo_kalman_filter"])
 
 muon_sequence = MuonSequence(
     initialize_lists=gec_sequence["initialize_lists"],
@@ -56,7 +59,7 @@ hlt1_sequence = HLT1Sequence(
     velo_kalman_filter=pv_sequence["velo_kalman_filter"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[
         "prefix_sum_offsets_velo_track_hit_number"],
-    pv_beamline_multi_fitter=pv_sequence["pv_beamline_multi_fitter"],
+    pv_beamline_multi_fitter=pv_sequence["pv_beamline_cleanup"],
     prefix_sum_forward_tracks=forward_sequence["prefix_sum_forward_tracks"],
     velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
     prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],
