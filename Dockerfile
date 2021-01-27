@@ -1,19 +1,23 @@
-FROM nvidia/cuda:10.2-devel-centos7
+FROM nvidia/cuda:11.1-cudnn8-devel-centos8
+RUN dnf install -y dnf-plugins-core epel-release && \
+    dnf config-manager --set-enabled PowerTools
+RUN dnf install -y -q \
+                      boost-devel \
+                      clang \
+                      json-devel \
+                      patch \
+                      python3-devel \
+                      openssl-devel \
+                      ninja-build \
+                      wget \
+                      zeromq-devel \
+                      zlib-devel && \
+    dnf clean -q all
 
-RUN yum install -y -q zlib1g-dev git libx11-dev \
-                    libxpm-dev libxft-dev libxext-dev python python-dev \
-                    libboost-all-dev zlib1g-dev git libx11-dev libxpm-dev \
-                    libxft-dev libxext-dev python python-dev cmake gcc-c++ \
-                    centos-release-scl devtoolset-8-gcc devtoolset-8-gcc-c++ \
- > /dev/null
-RUN yum install -y -q epel-release
-RUN yum install -y -q devtoolset-8-gcc devtoolset-8-gcc-c++ zeromq-devel zlib-devel boost-devel
-RUN yum group install -y "Development Tools"
+RUN wget -q https://cmake.org/files/v3.14/cmake-3.14.7-Linux-x86_64.sh -O /cmake-3.14.7-Linux-x86_64.sh && \
+    mkdir /opt/cmake && \
+    sh /cmake-3.14.7-Linux-x86_64.sh -q --prefix=/opt/cmake --skip-license && \
+    ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake && \
+    ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
 
-ADD https://cmake.org/files/v3.14/cmake-3.14.7-Linux-x86_64.sh /cmake-3.14.7-Linux-x86_64.sh
-RUN mkdir /opt/cmake
-RUN sh /cmake-3.14.7-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
-RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
-RUN ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
-COPY . /app
 WORKDIR /app/build
