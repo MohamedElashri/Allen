@@ -41,16 +41,16 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
   // ECal
   auto const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   seed_clusters(&parameters.dev_ecal_digits[ecal_digits_offset],
-                parameters.dev_ecal_num_digits[event_number],
-                &parameters.dev_ecal_seed_clusters[ecal_geometry.max_index * event_number / 8],
+                parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,
+                &parameters.dev_ecal_seed_clusters[Calo::Constants::ecal_max_index / 8 * event_number],
                 &parameters.dev_ecal_num_clusters[event_number],
                 ecal_geometry, ecal_min_adc);
 
   // HCal
   auto const hcal_digits_offset = parameters.dev_hcal_digits_offsets[event_number];
   seed_clusters(&parameters.dev_hcal_digits[hcal_digits_offset],
-                parameters.dev_hcal_num_digits[event_number],
-                &parameters.dev_hcal_seed_clusters[hcal_geometry.max_index * event_number / 8],
+                parameters.dev_hcal_digits_offsets[event_number + 1] - hcal_digits_offset,
+                &parameters.dev_hcal_seed_clusters[Calo::Constants::hcal_max_index / 8 * event_number],
                 &parameters.dev_hcal_num_clusters[event_number],
                 hcal_geometry, hcal_min_adc);
 }

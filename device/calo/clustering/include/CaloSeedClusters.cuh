@@ -11,8 +11,6 @@ namespace calo_seed_clusters {
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_hcal_digits_t, CaloDigit) dev_hcal_digits;
-    DEVICE_INPUT(dev_ecal_num_digits_t, unsigned) dev_ecal_num_digits;
-    DEVICE_INPUT(dev_hcal_num_digits_t, unsigned) dev_hcal_num_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_INPUT(dev_hcal_digits_offsets_t, unsigned) dev_hcal_digits_offsets;
     DEVICE_OUTPUT(dev_ecal_num_clusters_t, unsigned) dev_ecal_num_clusters;

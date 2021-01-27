@@ -52,19 +52,19 @@ __global__ void calo_find_clusters::calo_find_clusters(
   // Build simple 3x3 clusters from seed clusters
   // Ecal
   unsigned const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
-  unsigned const ecal_num_clusters = parameters.dev_ecal_num_clusters[event_number];
   unsigned const ecal_clusters_offset = parameters.dev_ecal_cluster_offsets[event_number];
+  unsigned const ecal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_clusters_offset;
   simple_clusters(parameters.dev_ecal_digits + ecal_digits_offset,
-                  parameters.dev_ecal_seed_clusters + ecal_clusters_offset,
+                  parameters.dev_ecal_seed_clusters + Calo::Constants::ecal_max_index / 8 * event_number,
                   parameters.dev_ecal_clusters + ecal_clusters_offset,
                   ecal_num_clusters, ecal_geometry);
 
   // Hcal
   unsigned const hcal_digits_offset = parameters.dev_hcal_digits_offsets[event_number];
   unsigned const hcal_clusters_offset = parameters.dev_hcal_cluster_offsets[event_number];
-  unsigned const hcal_num_clusters = parameters.dev_hcal_num_clusters[event_number];
+  unsigned const hcal_num_clusters = parameters.dev_hcal_cluster_offsets[event_number + 1] - hcal_clusters_offset;
   simple_clusters(parameters.dev_hcal_digits + hcal_digits_offset,
-                  parameters.dev_hcal_seed_clusters + hcal_clusters_offset,
+                  parameters.dev_hcal_seed_clusters + Calo::Constants::hcal_max_index / 8 * event_number,
                   parameters.dev_hcal_clusters + hcal_clusters_offset,
                   hcal_num_clusters, hcal_geometry);
 
@@ -76,11 +76,8 @@ void calo_find_clusters::calo_find_clusters_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  auto const n_ecal_clusters = first<host_ecal_number_of_clusters_t>(arguments);
-  set_size<dev_ecal_clusters_t>(arguments, n_ecal_clusters);
-
-  auto const n_hcal_clusters = first<host_hcal_number_of_clusters_t>(arguments);
-  set_size<dev_hcal_clusters_t>(arguments, n_hcal_clusters);
+  set_size<dev_ecal_clusters_t>(arguments, first<host_ecal_number_of_clusters_t>(arguments));
+  set_size<dev_hcal_clusters_t>(arguments, first<host_hcal_number_of_clusters_t>(arguments));
 }
 
 

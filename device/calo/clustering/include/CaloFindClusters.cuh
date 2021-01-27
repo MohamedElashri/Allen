@@ -12,20 +12,15 @@ namespace calo_find_clusters {
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_hcal_digits_t, CaloDigit) dev_hcal_digits;
-    DEVICE_INPUT(dev_ecal_num_digits_t, unsigned) dev_ecal_num_digits;
-    DEVICE_INPUT(dev_hcal_num_digits_t, unsigned) dev_hcal_num_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_INPUT(dev_hcal_digits_offsets_t, unsigned) dev_hcal_digits_offsets;
     DEVICE_INPUT(dev_ecal_seed_clusters_t, CaloSeedCluster) dev_ecal_seed_clusters;
     DEVICE_INPUT(dev_hcal_seed_clusters_t, CaloSeedCluster) dev_hcal_seed_clusters;
-    DEVICE_INPUT(dev_ecal_num_clusters_t, unsigned) dev_ecal_num_clusters;
-    DEVICE_INPUT(dev_hcal_num_clusters_t, unsigned) dev_hcal_num_clusters;
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
     DEVICE_INPUT(dev_hcal_cluster_offsets_t, unsigned) dev_hcal_cluster_offsets;
     DEVICE_OUTPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
     DEVICE_OUTPUT(dev_hcal_clusters_t, CaloCluster) dev_hcal_clusters;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
-    PROPERTY(iterations_t, "iterations", "number of clustering iterations", unsigned) iterations;
   };
 
   // Global function
@@ -47,6 +42,5 @@ namespace calo_find_clusters {
 
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 32};
-    Property<iterations_t> m_iterations {this, 1};
   };
 } // namespace calo_find_clusters
