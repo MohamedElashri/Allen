@@ -9,7 +9,7 @@ __device__ void offsets(unsigned const* event_list,
                         unsigned* number_of_digits,
                         CaloGeometry const& geometry)
 {
-  for (auto idx = threadIdx.x; idx < n_events; idx += blockDim.x) {
+  for (unsigned idx = threadIdx.x; idx < n_events; idx += blockDim.x) {
     auto event_number = event_list[idx];
     number_of_digits[event_number] = geometry.max_index;
   }

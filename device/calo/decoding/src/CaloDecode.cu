@@ -12,7 +12,7 @@ __device__ void decode(const char* event_data, const uint32_t* event_offsets,
                        CaloGeometry const& geometry)
 {
   auto raw_event = Event{event_data, event_offsets};
-  for (auto bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
+  for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
     auto raw_bank = raw_event.bank(event_number, bank_number);
     while (raw_bank.data < raw_bank.end) {
       uint32_t word = *raw_bank.data;
