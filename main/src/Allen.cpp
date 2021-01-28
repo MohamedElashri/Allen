@@ -56,6 +56,7 @@
 #include "RegisterConsumers.h"
 #include "CPUID.h"
 #include <tuple>
+#include "Provider.h"
 
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
@@ -76,6 +77,7 @@ namespace {
 int allen(
   std::map<std::string, std::string> options,
   Allen::NonEventData::IUpdater* updater,
+  IInputProvider* input_provider,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
 {
@@ -89,23 +91,16 @@ int allen(
   unsigned number_of_slices = 0;
   unsigned number_of_buffers = 0;
   long number_of_events_requested = 0;
-  unsigned events_per_slice = 0;
+  unsigned events_per_slice = input_provider->events_per_slice();
   unsigned number_of_threads = 1;
   unsigned number_of_repetitions = 1;
   unsigned verbosity = 3;
   bool print_memory_usage = false;
-  bool non_stop = false;
   bool write_config = false;
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
-  // MPI options
-  bool with_mpi = false;
-  std::map<std::string, int> receivers = {{"mem", 1}};
-  int mpi_window_size = 4;
+
   // Input file options
-  std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf";
-  std::string mep_input;
-  bool mep_layout = true;
   std::string output_file;
   int device_id = 0;
   int cpu_offload = 1;
@@ -135,26 +130,14 @@ int allen(
     else if (flag_in({"params"})) {
       folder_parameters = arg + "/";
     }
-    else if (flag_in({"mdf"})) {
-      mdf_input = arg;
-    }
-    else if (flag_in({"mep"})) {
-      mep_input = arg;
-    }
-    else if (flag_in({"transpose-mep"})) {
-      mep_layout = !atoi(arg.c_str());
-    }
     else if (flag_in({"write-configuration"})) {
       write_config = atoi(arg.c_str());
     }
-    else if (flag_in({"n", "number-of-events"})) {
-      number_of_events_requested = atol(arg.c_str());
+       else if (flag_in({"n", "number-of-events"})) {
+     number_of_events_requested = atol(arg.c_str());
     }
     else if (flag_in({"s", "number-of-slices"})) {
       number_of_slices = atoi(arg.c_str());
-    }
-    else if (flag_in({"events-per-slice"})) {
-      events_per_slice = atoi(arg.c_str());
     }
     else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
@@ -205,26 +188,11 @@ int allen(
         device_id = atoi(arg.c_str());
       }
     }
-    else if (flag_in({"with-mpi"})) {
-      with_mpi = true;
-      bool parsed = false;
-      std::tie(parsed, receivers) = parse_receivers(arg);
-      if (!parsed) {
-        error_cout << "Failed to parse argument to with-mpi\n";
-        exit(1);
-      }
-    }
     else if (flag_in({"file-list"})) {
       file_list = arg;
     }
-    else if (flag_in({"mpi-window-size"})) {
-      mpi_window_size = atoi(arg.c_str());
-    }
     else if (flag_in({"print-config"})) {
       print_config = atoi(arg.c_str());
-    }
-    else if (flag_in({"non-stop"})) {
-      non_stop = atoi(arg.c_str());
     }
     else if (flag_in({"print-status"})) {
       print_status = atoi(arg.c_str());
@@ -303,26 +271,11 @@ int allen(
 
   number_of_buffers = number_of_threads + n_mon + 1;
 
-  // Set a sane default for the number of events per input slice
-  if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
-    events_per_slice = number_of_events_requested;
-  }
-
   std::unique_ptr<ConfigurationReader> configuration_reader;
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
-
   std::unique_ptr<CatboostModelReader> two_track_catboost_model_reader;
-
   std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
-
-  std::shared_ptr<IInputProvider> input_provider;
-
-  // Number of requested events as an optional
-  boost::optional<size_t> n_events = boost::make_optional(false, size_t {});
-  if (number_of_events_requested != 0) {
-    n_events = number_of_events_requested;
-  }
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -336,42 +289,6 @@ int allen(
     allen_control->connect(control_connection.data());
     control_index = items.size() - 1;
     items[control_index] = {*allen_control, 0, zmq::POLLIN, 0};
-  }
-
-  // Create the InputProvider, either MDF or MEP
-  // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
-  if (!mep_input.empty() || with_mpi) {
-    MEPProviderConfig config {false,                // verify MEP checksums
-                              10,                   // number of read buffers
-                              mep_layout ? 1u : 4u, // number of transpose threads
-                              mpi_window_size,      // MPI sliding window size
-                              with_mpi,             // Receive from MPI or read files
-                              non_stop,             // Run the application non-stop
-                              !mep_layout,          // MEPs should be transposed to Allen layout
-                              !disable_run_changes, // Whether to split slices by run number
-                              receivers};           // Map of receiver to MPI rank to receive from
-    input_provider = std::make_shared<
-      MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal>>(
-      number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
-  }
-  else if (!mdf_input.empty()) {
-    mep_layout = false;
-    MDFProviderConfig config {false,                     // verify MDF checksums
-                              10,                        // number of read buffers
-                              4,                         // number of transpose threads
-                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
-                              events_per_slice,          // number of events per read buffer
-                              n_io_reps,                 // number of loops over the input files
-                              !disable_run_changes};     // Whether to split slices by run number
-    input_provider = std::make_shared<MDFProvider<
-      BankTypes::VP,
-      BankTypes::UT,
-      BankTypes::FT,
-      BankTypes::MUON,
-      BankTypes::ODIN,
-      BankTypes::ECal,
-      BankTypes::OTRaw,
-      BankTypes::OTError>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
 
   // Load constant parameters from JSON
@@ -443,8 +360,8 @@ int allen(
   }
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, error_line);
+  std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
+    number_of_buffers, input_provider->events_per_slice(), n_lines, error_line);
 
   if (print_status) {
     buffers_manager->printStatus();
@@ -460,10 +377,11 @@ int allen(
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, events_per_slice, zmqSvc);
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider, output_file, events_per_slice, zmqSvc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, events_per_slice);
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, events_per_slice);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
@@ -531,14 +449,14 @@ int allen(
                         root_service.get(),
                         number_of_repetitions,
                         cpu_offload,
-                        mep_layout,
+                        input_provider->layout() == IInputProvider::Layout::MEP,
                         inject_mem_fail};
   };
 
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_slices, thread_id, zmqSvc, input_provider.get()};
+    return std::thread {run_slices, thread_id, zmqSvc, input_provider};
   };
 
   // Lambda with the execution of the output thread

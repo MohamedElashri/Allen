@@ -82,7 +82,7 @@ std::tuple<bool, bool, bool> transpose_event(
   Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
-  std::unordered_set<BankTypes> const& to_transpose,
+  std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,

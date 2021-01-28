@@ -26,8 +26,8 @@
 template<BankTypes... Banks>
 class TESProvider final : public InputProvider<TESProvider<Banks...>> {
 public:
-  TESProvider(size_t n_slices, size_t events_per_slice, boost::optional<size_t> n_events) :
-    InputProvider<TESProvider<Banks...>> {n_slices, events_per_slice, n_events}, m_bank_ids_mapping(bank_ids())
+  TESProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
+    InputProvider<TESProvider<Banks...>> {n_slices, events_per_slice, IInputProvider::Layout::Allen, n_events}
   {}
 
   /**
@@ -91,7 +91,7 @@ public:
 
 private:
   // Mapping of LHCb::RawBank::BankType to Allen::BankType
-  const std::vector<int> m_bank_ids_mapping;
+  const std::vector<int> m_bank_ids_mapping = bank_ids();
 
   std::array<BanksAndOffsets, NBankTypes> m_banks_and_offsets;
   std::array<std::array<unsigned int, 2>, NBankTypes> m_offsets;

@@ -15,6 +15,22 @@ std::vector<int> bank_ids()
   return ids;
 }
 
+/**
+ * @brief      read events from input file into prefetch buffer
+ *
+ * @details    NOTE: It is assumed that the header has already been
+ *             read, calling read_events will read the subsequent
+ *             banks and then header of the next event.
+ *
+ * @param      input stream
+ * @param      prefetch buffer to read into
+ * @param      storage for the MDF header
+ * @param      buffer for temporary storage of the compressed banks
+ * @param      number of events to read
+ * @param      check the MDF checksum if it is available
+ *
+ * @return     (eof, error, full, n_bytes)
+ */
 std::tuple<bool, bool, bool, size_t> read_events(
   Allen::IO& input,
   ReadBuffer& read_buffer,
@@ -72,6 +88,15 @@ std::tuple<bool, bool, bool, size_t> read_events(
   return {eof, error, full, n_bytes};
 }
 
+/**
+ * @brief      Fill the array the contains the number of banks per type
+ *
+ * @details    detailed description
+ *
+ * @param      prefetched buffer of events (a single event is needed)
+ *
+ * @return     (success, number of banks per bank type; 0 if the bank is not needed)
+ */
 std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::span<char const> bank_data)
 {
 

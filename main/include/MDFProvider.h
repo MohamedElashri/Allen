@@ -88,10 +88,10 @@ public:
   MDFProvider(
     size_t n_slices,
     size_t events_per_slice,
-    boost::optional<size_t> n_events,
+    std::optional<size_t> n_events,
     std::vector<std::string> connections,
     MDFProviderConfig config = MDFProviderConfig {}) :
-    InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, n_events},
+    InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, IInputProvider::Layout::Allen, n_events},
     m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, -1), m_slice_free(n_slices, true), m_banks_count {0},
     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
@@ -237,7 +237,7 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
     const override
   {
     auto const& ids = m_event_ids[slice_index];
@@ -276,7 +276,7 @@ public:
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
   std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
+    std::optional<unsigned int> timeout = {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;

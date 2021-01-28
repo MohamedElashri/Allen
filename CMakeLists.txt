@@ -291,15 +291,10 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_library(${ARGV})
-<<<<<<< HEAD
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
 
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib OPTIONAL)
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-=======
     install(TARGETS ${ARGV0} LIBRARY DESTINATION lib)
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
->>>>>>> WIP cmake-modernization
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
   endfunction()
 
   function(allen_add_device_library)
@@ -563,7 +558,7 @@ file(GLOB common_sources "main/src/*.cpp")
 set(allen_lib_sources)
 
 #Remove main.cpp from common_sources
-foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend RegisterConsumers Stream)
+foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend Provider RegisterConsumers Stream)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -573,6 +568,7 @@ set(allen_lib_sources
   ${AllenThreads_cpp_path}
   ${OutputHandler_cpp_path}
   ${ZMQOutputSender_cpp_path}
+  ${Provider_cpp_path}
   ${RegisterConsumers_cpp_path}
   ${StreamLoader_cpp_path})
 
@@ -645,7 +641,7 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 target_link_libraries(HostCommon PRIVATE AllenFS nlohmann_json::nlohmann_json
   EventModel Gear Backend mdf NonEventData Common LHCbEvent)
 
-target_link_libraries(AllenCommon PUBLIC mdf allen_fs nlohmann_json::nlohmann_json)
+target_link_libraries(AllenCommon PUBLIC mdf AllenFS nlohmann_json::nlohmann_json)
 
 allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
 

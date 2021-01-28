@@ -9,17 +9,36 @@
 #include <cmath>
 #include <mutex>
 
-#include <boost/optional.hpp>
 #include <gsl/gsl>
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Common.h>
 #include <AllenUnits.h>
 
+
 struct IInputProvider {
+
+  enum class Layout {
+    Allen,
+    MEP
+  };
 
   /// Desctructor
   virtual ~IInputProvider() {};
+
+  /**
+   * @brief      Are slices provided in MEP layout or not
+   *
+   * @return     layout
+   */
+  virtual Layout layout() const = 0;
+
+  /**
+   * @brief      Get the maximum number of events per slice
+   *
+   * @return     number of events per slice
+   */
+  virtual size_t events_per_slice() const = 0;
 
   /**
    * @brief      Get event ids in a given slice
@@ -28,7 +47,7 @@ struct IInputProvider {
    *
    * @return     event ids
    */
-  virtual EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
+  virtual EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
     const = 0;
 
   /**
@@ -46,7 +65,7 @@ struct IInputProvider {
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
   virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) = 0;
+    std::optional<unsigned int> timeout = {}) = 0;
 
   /**
    * @brief      Get banks and offsets of a given type
@@ -76,12 +95,19 @@ class InputProvider;
 template<template<BankTypes...> typename Derived, BankTypes... Banks>
 class InputProvider<Derived<Banks...>> : public IInputProvider {
 public:
-  explicit InputProvider(size_t n_slices, size_t events_per_slice, boost::optional<size_t> n_events) :
-    m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {banks_set<Banks...>()}
+  explicit InputProvider(size_t n_slices, size_t events_per_slice, Layout layout, std::optional<size_t> n_events) :
+    m_layout{layout }, m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {banks_set<Banks...>()}
   {}
 
   /// Descturctor
   virtual ~InputProvider() {};
+
+  /**
+   * @brief      Are slices provided in MEP layout or not
+   *
+   * @return     layout
+   */
+  Layout layout() const override { return m_layout; }
 
   /**
    * @brief      Get the bank types filled by this provider
@@ -102,9 +128,9 @@ public:
    *
    * @return     number of events per slice
    */
-  size_t events_per_slice() const { return m_events_per_slice; }
+  size_t events_per_slice() const override { return m_events_per_slice; }
 
-  boost::optional<size_t> const& n_events() const { return m_nevents; }
+  std::optional<size_t> const& n_events() const { return m_nevents; }
 
   /**
    * @brief      Get event ids in a given slice
@@ -113,7 +139,7 @@ public:
    *
    * @return     event ids
    */
-  EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
     const override
   {
     return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index, first, last);
@@ -127,7 +153,7 @@ public:
    * @return     tuple of (succes, eof, timed_out, slice_index, n_filled)
    */
   std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
+    std::optional<unsigned int> timeout = {}) override
   {
     return static_cast<Derived<Banks...>*>(this)->get_slice(timeout);
   }
@@ -173,7 +199,7 @@ public:
 
 protected:
   template<typename MSG>
-  void debug_output(const MSG& msg, boost::optional<size_t> const thread_id = {}) const
+  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const
   {
     if (logger::verbosity() >= logger::debug) {
       std::unique_lock<std::mutex> lock {m_output_mut};
@@ -182,6 +208,10 @@ protected:
   }
 
 private:
+
+  // MEP layout
+  const Layout m_layout = Layout::Allen;
+
   // Number of slices to be provided
   const size_t m_nslices = 0;
 
@@ -189,7 +219,7 @@ private:
   const size_t m_events_per_slice = 0;
 
   // Optional total number of events to be provided
-  const boost::optional<size_t> m_nevents;
+  const std::optional<size_t> m_nevents;
 
   // BankTypes provided by this provider
   const std::unordered_set<BankTypes> m_types;
