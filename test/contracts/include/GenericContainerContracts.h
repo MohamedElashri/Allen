@@ -33,10 +33,10 @@ namespace Allen {
         const ArgumentReferences<Parameters>& arguments,
         const RuntimeOptions&,
         const Constants&,
-        const Allen::Context&) const
+        const Allen::Context& context) const
       {
         const UnOp unop {};
-        const auto container = make_vector<T>(arguments);
+        const auto container = make_vector<T>(arguments, context);
         const auto container_name = name<T>(arguments);
 
         bool condition = true;
@@ -58,10 +58,10 @@ namespace Allen {
         const ArgumentReferences<Parameters>& arguments,
         const RuntimeOptions&,
         const Constants&,
-        const Allen::Context&) const
+        const Allen::Context& context) const
       {
         const BinOp binop {};
-        const auto container = make_vector<T>(arguments);
+        const auto container = make_vector<T>(arguments, context);
         const auto container_name = name<T>(arguments);
 
         bool condition = true;
@@ -85,10 +85,10 @@ namespace Allen {
         const ArgumentReferences<Parameters>& arguments,
         const RuntimeOptions&,
         const Constants&,
-        const Allen::Context&) const
+        const Allen::Context& context) const
       {
-        const auto container_a = make_vector<A>(arguments);
-        const auto container_b = make_vector<B>(arguments);
+        const auto container_a = make_vector<A>(arguments, context);
+        const auto container_b = make_vector<B>(arguments, context);
         const auto container_a_name = name<A>(arguments);
         const auto container_b_name = name<B>(arguments);
 
