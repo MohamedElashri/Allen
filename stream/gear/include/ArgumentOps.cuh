@@ -8,6 +8,7 @@
 #include "BankTypes.h"
 #include "BackendCommon.h"
 #include "AllenTypeTraits.cuh"
+#include "PinnedVector.h"
 
 /**
  * @brief Sets the size of a container to the specified size.
@@ -171,12 +172,25 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
   }
 
-  static auto make_vector(const Args& arguments)
+  static auto make_vector(const Args& arguments, const Allen::Context& context)
   {
-    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost);
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy_async(
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost, context);
     return v;
+  }
+
+  template<typename T, typename U>
+  static void copy_vector(const Args& arguments, const Allen::Context&, const std::vector<T, U>& vector)
+  {
+    assert(size<Arg>(arguments) >= vector.size());
+    assert(sizeof(typename Arg::type) == sizeof(T));
+
+    Allen::memcpy(
+      data<Arg>(arguments),
+      vector.data(),
+      vector.size() * sizeof(T),
+      Allen::memcpyHostToHost);
   }
 
   static void print(const Args& arguments)
@@ -198,17 +212,33 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
   }
 
-  static auto make_vector(const Args& arguments)
+  static auto make_vector(const Args& arguments, const Allen::Context& context)
   {
-    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy_async(
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost, context);
     return v;
+  }
+
+  template<typename T, typename U>
+  static void copy_vector(const Args& arguments, const Allen::Context& context, const std::vector<T, U>& vector)
+  {
+    assert(size<Arg>(arguments) >= vector.size());
+    assert(sizeof(typename Arg::type) == sizeof(T));
+
+    Allen::memcpy_async(
+      data<Arg>(arguments),
+      vector.data(),
+      vector.size() * sizeof(T),
+      Allen::memcpyHostToHost,
+      context);
   }
 
   static void print(const Args& arguments)
   {
-    const auto v = make_vector(arguments);
+    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy(
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
 
     info_cout << name<Arg>(arguments) << ": ";
     for (const auto& i : v) {
@@ -441,7 +471,16 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
  *          is irrelevant.
  */
 template<typename Arg, typename Args>
-auto make_vector(const Args& arguments)
+auto make_vector(const Args& arguments, const Allen::Context& context)
 {
-  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments);
+  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments, context);
+}
+
+/**
+ * @brief Copies the contents of a vector to a datatype.
+ */
+template<typename Arg, typename Args, typename T, typename U>
+void copy_vector(const Args& arguments, const Allen::Context& context, const std::vector<T, U>& vector)
+{
+  return SingleArgumentOverloadResolution<Arg, Args>::copy_vector(arguments, context, vector);
 }

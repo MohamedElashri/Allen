@@ -84,12 +84,12 @@ template<
   typename TotalNumberOfClusters,
   typename NumberOfEvents,
   typename Arguments>
-__host__ inline void print_velo_clusters(Arguments arguments)
+__host__ inline void print_velo_clusters(Arguments arguments, const Allen::Context& context)
 {
   // Prints the velo clusters
-  const auto a = make_vector<VeloContainer>(arguments);
-  const auto offsets_estimated_input_size = make_vector<Offsets>(arguments);
-  const auto module_cluster_num = make_vector<ClusterNum>(arguments);
+  const auto a = make_vector<VeloContainer>(arguments, context);
+  const auto offsets_estimated_input_size = make_vector<Offsets>(arguments, context);
+  const auto module_cluster_num = make_vector<ClusterNum>(arguments, context);
 
   const auto velo_cluster_container = Velo::ConstClusters {a.data(), first<TotalNumberOfClusters>(arguments)};
   for (unsigned event_number = 0; event_number < first<NumberOfEvents>(arguments); ++event_number) {
@@ -123,13 +123,13 @@ template<
   typename VeloTracklets,
   typename NumberOfVeloTracklets,
   typename Arguments>
-__host__ inline void print_velo_tracks(Arguments arguments)
+__host__ inline void print_velo_tracks(Arguments arguments, const Allen::Context& context)
 {
   // Prints the velo clusters
-  const auto trackhits = make_vector<VeloTracks>(arguments);
-  const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments);
-  const auto tracklethits = make_vector<VeloTracklets>(arguments);
-  const auto number_of_velo_tracklets = make_vector<NumberOfVeloTracklets>(arguments);
+  const auto trackhits = make_vector<VeloTracks>(arguments, context);
+  const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments, context);
+  const auto tracklethits = make_vector<VeloTracklets>(arguments, context);
+  const auto number_of_velo_tracklets = make_vector<NumberOfVeloTracklets>(arguments, context);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
@@ -163,11 +163,11 @@ __host__ inline void print_velo_tracks(Arguments arguments)
 }
 
 template<typename VeloTracks, typename NumberOfVeloTracks, typename Arguments>
-__host__ inline void print_velo_three_hit_tracks(Arguments arguments)
+__host__ inline void print_velo_three_hit_tracks(Arguments arguments, const Allen::Context& context)
 {
   // Prints the velo clusters
-  const auto trackhits = make_vector<VeloTracks>(arguments);
-  const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments);
+  const auto trackhits = make_vector<VeloTracks>(arguments, context);
+  const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments, context);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];

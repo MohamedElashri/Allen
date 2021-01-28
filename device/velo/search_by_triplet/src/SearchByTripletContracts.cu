@@ -7,17 +7,17 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
   constexpr float velo_cluster_min_x = -100.f;
   constexpr float velo_cluster_max_x = 100.f;
   constexpr float velo_cluster_min_y = -100.f;
   constexpr float velo_cluster_max_y = 100.f;
 
-  const auto sorted_velo_cluster_container = make_vector<Parameters::dev_sorted_velo_cluster_container_t>(arguments);
-  const auto offsets_estimated_input_size = make_vector<Parameters::dev_offsets_estimated_input_size_t>(arguments);
-  const auto module_cluster_num = make_vector<Parameters::dev_module_cluster_num_t>(arguments);
-  const auto hit_phi = make_vector<Parameters::dev_hit_phi_t>(arguments);
+  const auto sorted_velo_cluster_container = make_vector<Parameters::dev_sorted_velo_cluster_container_t>(arguments, context);
+  const auto offsets_estimated_input_size = make_vector<Parameters::dev_offsets_estimated_input_size_t>(arguments, context);
+  const auto module_cluster_num = make_vector<Parameters::dev_module_cluster_num_t>(arguments, context);
+  const auto hit_phi = make_vector<Parameters::dev_hit_phi_t>(arguments, context);
 
   // Condition to check
   bool hit_phi_is_sorted = true;
@@ -66,9 +66,9 @@ void velo_search_by_triplet::track_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto velo_tracks_container = make_vector<Parameters::dev_tracks_t>(arguments);
+  const auto velo_tracks_container = make_vector<Parameters::dev_tracks_t>(arguments, context);
 
   auto maximum_number_of_hits = true;
   auto no_repeated_hits = true;
