@@ -158,6 +158,8 @@ check-formatting:
       - build*/test/unit_tests/*cmake
   retry: 2
   needs: []
+  tags:
+    - cvmfs
 
 docker_image:build:
   stage: build
@@ -551,36 +553,15 @@ test_run_changes:
 
 CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
 
 CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
 
 HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
 
 CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
@@ -671,13 +652,9 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7
 
 CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
 
 CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
 
 
 # Build SciFi v6 sequence
@@ -686,20 +663,14 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 
 CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
   <<: *active_branches
 
 CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
   <<: *active_branches
 
 HIP:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  tags:
-    - cvmfs
   <<: *active_branches
 
 # ===
@@ -714,12 +685,8 @@ geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_dow
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
 
 quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -727,12 +694,8 @@ quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_2
     - quadrortx6000
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
 
 teslav100:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -740,12 +703,8 @@ teslav100:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_20190
     - teslav100
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
 
 geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -753,12 +712,8 @@ geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_
     - geforcertx3080
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
 
 geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_def
@@ -766,12 +721,8 @@ geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_
     - geforcertx3090
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
 
 x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -779,12 +730,8 @@ x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907
     - x862630v4
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
 
 epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -792,12 +739,8 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
     - epyc7502
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
 
 
 ### SciFi v6 Throughput
@@ -1076,12 +1019,8 @@ throughput:hlt1_pp_default:geforcertx3090:minbias_mag_down_201907:publish_throug
     - geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
+
   artifacts:
     paths:
       - devices_throughputs.csv
