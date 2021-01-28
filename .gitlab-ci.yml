@@ -4,6 +4,11 @@
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
+  TARGET_BRANCH: master
+
+  ALLEN_DATA: "/scratch/allen_data"
+  LCG_VERSION: "LCG_97apython3"
+
 
 stages:
   - check         # Ensures the CI environment is valid
@@ -12,8 +17,6 @@ stages:
   - test          # Runs various tests of the software
   - publish       # Publishes the results of the tests and runs in channels and grafana
 
-variables:
-  TARGET_BRANCH: master
 
 check-env:
   stage: check
@@ -201,18 +204,18 @@ docker_image:build:
       RUN_OPTIONS="-n 1000 -m 1000"
 
       if [ ! -z ${GEOMETRY+x} ]; then
-        RUN_OPTIONS="$RUN_OPTIONS -g ${GEOMETRY}"
+        RUN_OPTIONS="$RUN_OPTIONS -g ${ALLEN_DATA}/${GEOMETRY}"
       fi
 
     - |
-      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
       mkdir validation_output && ln -s validation_output output # Needed by Root build
 
       cd build_${TARGET} && ls
       export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
 
     - |
-      JOB="./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS}"
+      JOB="./Allen -f ${ALLEN_DATA}/${DATA_TAG} ${RUN_OPTIONS}"
       if [ "${TARGET}" = "CPU" ]; then
         NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
         ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB}"
@@ -242,8 +245,8 @@ docker_image:build:
   stage: run
 
   variables:
-    MDF_INPUT: "/scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf"
-    INPUT_FILES: "/scratch/allen_data/minbias_mag_down_201907"
+    MDF_INPUT: "mdf/upgrade_mc_minbias_scifi_v5_000.mdf"
+    INPUT_FILES: "minbias_mag_down_201907"
 
   script:
     - |
@@ -260,9 +263,9 @@ docker_image:build:
       LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
       RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 0"
 
-      JOB="./Allen --mdf ${MDF_INPUT}-f ${INPUT_FILES} ${RUN_OPTIONS}"
+      JOB="./Allen --mdf ${ALLEN_DATA}/${MDF_INPUT}-f ${ALLEN_DATA}/${INPUT_FILES} ${RUN_OPTIONS}"
 
-      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
       mkdir run_changes_output && ln -s run_changes_output output # Needed by Root build
       cd build_${TARGET} && ls
       export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
@@ -310,9 +313,9 @@ docker_image:build:
       SEQUENCE=${JOB_NAME_SPLIT[2]}
       LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
 
-      JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down_201907 -n 1000 -m 700 --disable-run-changes 1"
+      JOB="./Allen --mdf ${ALLEN_DATA}/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f ${ALLEN_DATA}/minbias_mag_down_201907 -n 1000 -m 700 --disable-run-changes 1"
 
-      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
       mkdir no_run_changes_output && ln -s no_run_changes_output output # Needed by Root build
       cd build_${TARGET} && ls
       export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
@@ -360,7 +363,7 @@ docker_image:build:
       DATA_TAG=${JOB_NAME_SPLIT[4]}
 
     - |
-      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
 
     - |
       mkdir output_${DEVICE_ID} && cd build_${TARGET} && ls
@@ -375,15 +378,15 @@ docker_image:build:
 
       # if a geometry folder is specified, pass it to Allen.
       if [ ! -z ${GEOMETRY+x} ]; then
-        RUN_OPTIONS="$RUN_OPTIONS -g ${GEOMETRY}"
+        RUN_OPTIONS="$RUN_OPTIONS -g ${ALLEN_DATA}/${GEOMETRY}"
       fi
 
       # if INPUT_FILES is set, use that instead of $DATA_TAG
       # otherwise, keep normal behaviour.
       if [ ! -z ${INPUT_FILES+x} ]; then
-        RUN_OPTIONS="-f /scratch/allen_data/${INPUT_FILES} ${RUN_OPTIONS}"
+        RUN_OPTIONS="-f ${ALLEN_DATA}/${INPUT_FILES} ${RUN_OPTIONS}"
       else
-        RUN_OPTIONS="-f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS}"
+        RUN_OPTIONS="-f ${ALLEN_DATA}/${DATA_TAG} ${RUN_OPTIONS}"
       fi
 
     - |
@@ -443,15 +446,15 @@ docker_image:build:
       RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
       export PATH=$PATH:/usr/local/cuda/bin
 
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
 
     - |
       mkdir output_${DEVICE_ID} && cd build_${TARGET} && ls
       export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
       mkdir tmp
 
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile --trace=cuda ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_PROFILER_OPTIONS}
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f ${ALLEN_DATA}/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile --trace=cuda ./Allen -f ${ALLEN_DATA}/${DATA_TAG} ${RUN_PROFILER_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
 
@@ -476,7 +479,7 @@ docker_image:build:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} x86_64-centos7-clang10-opt
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
 
 test_physics_efficiency:
@@ -586,7 +589,7 @@ test_run_changes:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} x86_64-centos7-clang10-opt
     - python3 checker/plotting/post_combined_message.py -j "${CI_JOB_NAME}" -l "Throughput of [branch ${CI_COMMIT_REF_NAME}, sequence ${SEQUENCE} over dataset ${DATA_TAG}](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
 
@@ -790,6 +793,7 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
 
 .scifi_v6_throughput_job: &scifi_v6_throughput_job
   variables:
+    # TODO: rename "Hackathon_AllenTests" to something more descriptive
     INPUT_FILES: "Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD/dump"
     GEOMETRY: "Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD/geometry"
   <<: *run_throughput_job_no_profiling_def
