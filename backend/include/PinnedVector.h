@@ -19,7 +19,7 @@ namespace Allen {
    * Allocator that pins data on the host. It can be used to transmit data
    * between host and device with a reasonable performance. The only price to
    * pay is the allocation / deallocation on the host.
-   * 
+   *
    * Note: This allocator is not intended for use with types T that themselves
    * also allocate data.
    *
