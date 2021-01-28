@@ -50,7 +50,8 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO tracks found:\n";
-    print_velo_tracks<dev_tracks_t, dev_number_of_velo_tracks_t, dev_three_hit_tracks_t, dev_atomics_velo_t>(arguments, context);
+    print_velo_tracks<dev_tracks_t, dev_number_of_velo_tracks_t, dev_three_hit_tracks_t, dev_atomics_velo_t>(
+      arguments, context);
   }
 }
 

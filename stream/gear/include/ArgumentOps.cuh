@@ -176,7 +176,11 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   {
     Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy_async(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost, context);
+      v.data(),
+      data<Arg>(arguments),
+      size<Arg>(arguments) * sizeof(typename Arg::type),
+      Allen::memcpyHostToHost,
+      context);
     return v;
   }
 
@@ -186,11 +190,7 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     assert(size<Arg>(arguments) >= vector.size());
     assert(sizeof(typename Arg::type) == sizeof(T));
 
-    Allen::memcpy(
-      data<Arg>(arguments),
-      vector.data(),
-      vector.size() * sizeof(T),
-      Allen::memcpyHostToHost);
+    Allen::memcpy(data<Arg>(arguments), vector.data(), vector.size() * sizeof(T), Allen::memcpyHostToHost);
   }
 
   static void print(const Args& arguments)
@@ -216,7 +216,11 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   {
     Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy_async(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost, context);
+      v.data(),
+      data<Arg>(arguments),
+      size<Arg>(arguments) * sizeof(typename Arg::type),
+      Allen::memcpyDeviceToHost,
+      context);
     return v;
   }
 
@@ -227,11 +231,7 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     assert(sizeof(typename Arg::type) == sizeof(T));
 
     Allen::memcpy_async(
-      data<Arg>(arguments),
-      vector.data(),
-      vector.size() * sizeof(T),
-      Allen::memcpyHostToHost,
-      context);
+      data<Arg>(arguments), vector.data(), vector.size() * sizeof(T), Allen::memcpyHostToHost, context);
   }
 
   static void print(const Args& arguments)

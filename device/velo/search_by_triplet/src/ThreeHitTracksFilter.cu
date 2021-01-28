@@ -29,7 +29,8 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO three hit tracks found:\n";
-    print_velo_three_hit_tracks<dev_three_hit_tracks_output_t, dev_number_of_three_hit_tracks_output_t>(arguments, context);
+    print_velo_three_hit_tracks<dev_three_hit_tracks_output_t, dev_number_of_three_hit_tracks_output_t>(
+      arguments, context);
   }
 }
 
