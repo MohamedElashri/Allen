@@ -26,13 +26,19 @@ check-env:
       echo "repository at https://gitlab.cern.ch/lhcb/Allen/"
     - exit 1
 
-check-copyright:
+
+.active_branches: &active_branches
   only:
     refs:
       - master
       - web
       - schedules
       - merge_requests
+
+
+check-copyright:
+  <<: *active_branches
+
   stage: check
   image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   script:
@@ -42,22 +48,20 @@ check-copyright:
   allow_failure: true
 
 check-formatting:
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
   stage: check
   image: gitlab-registry.cern.ch/lhcb-docker/style-checker
   script:
-    - if [ ! -e .clang-format ] ; then
-    -   curl -o .clang-format "https://gitlab.cern.ch/lhcb-parallelization/Allen/raw/master/.clang-format?inline=false"
-    -   echo '.clang-format' >> .gitignore
-    -   git add .gitignore
-    - fi
-    - curl -o lb-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
-    - python lb-format --format-patch apply-formatting.patch origin/master
+    - >
+      if [ ! -e .clang-format ] ; then
+        curl -o .clang-format "https://gitlab.cern.ch/lhcb-parallelization/Allen/raw/master/.clang-format?inline=false"
+        echo '.clang-format' >> .gitignore
+        git add .gitignore
+      fi
+
+      curl -o lb-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
+
+      python lb-format --format-patch apply-formatting.patch origin/master
   artifacts:
     paths:
       - apply-formatting.patch
@@ -179,34 +183,43 @@ docker_image:build:
       - schedules
   stage: run
   script:
-    - TOPLEVEL=${PWD}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
-    - IFS=${PREVIOUS_IFS}
-    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
-    - TARGET=${JOB_NAME_SPLIT[1]}
-    - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
-    - DATA_TAG=${JOB_NAME_SPLIT[4]}
-    - RUN_OPTIONS="-n 1000 -m 1000"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
-    - mkdir validation_output
-    - ln -s validation_output output # Needed by Root build
-    - cd build_${TARGET}
-    - ls
-    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - JOB="./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS}"
-    - if [ "${TARGET}" = "CPU" ]; then
-    - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../validation_output/${DATA_TAG}_${DEVICE_ID}.txt
-    - else
-    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../validation_output/${DATA_TAG}_${DEVICE_ID}.txt
-    - fi
+    - >
+      TOPLEVEL=${PWD}
+      PREVIOUS_IFS=${IFS}
+      IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+      IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
+
+      IFS=${PREVIOUS_IFS}
+      DEVICE_ID=${JOB_NAME_SPLIT[0]}
+      TARGET=${JOB_NAME_SPLIT[1]}
+      SEQUENCE=${JOB_NAME_SPLIT[2]}
+      LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+      DATA_TAG=${JOB_NAME_SPLIT[4]}
+      RUN_OPTIONS="-n 1000 -m 1000"
+      if [ ! -z ${GEOMETRY+x} ]; then
+        RUN_OPTIONS="$RUN_OPTIONS -g ${GEOMETRY}"
+      fi
+
+      echo "Allen run options: $RUN_OPTIONS"
+
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+      mkdir validation_output && ln -s validation_output output # Needed by Root build
+
+      cd build_${TARGET}
+      ls
+      export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+
+      JOB="./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS}"
+      if [ "${TARGET}" = "CPU" ]; then
+        NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+        numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../validation_output/${DATA_TAG}_${DEVICE_ID}.txt
+      else
+        GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+        GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+        NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
+        export PATH=$PATH:/usr/local/cuda/bin
+        CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../validation_output/${DATA_TAG}_${DEVICE_ID}.txt
+      fi
   artifacts:
     expire_in: 1 day
     paths:
@@ -262,32 +275,35 @@ docker_image:build:
       - schedules
   stage: run
   script:
-    - TOPLEVEL=${PWD}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
-    - IFS=${PREVIOUS_IFS}
-    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
-    - TARGET=${JOB_NAME_SPLIT[1]}
-    - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
-    - JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down_201907 -n 1000 -m 700 --disable-run-changes 1"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
-    - mkdir no_run_changes_output
-    - ln -s no_run_changes_output output # Needed by Root build
-    - cd build_${TARGET}
-    - ls
-    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - if [ "${TARGET}" = "CPU" ]; then
-    - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
-    - else
-    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
-    - fi
+    - >
+      TOPLEVEL=${PWD}
+      PREVIOUS_IFS=${IFS}
+      IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+      IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
+      IFS=${PREVIOUS_IFS}
+      DEVICE_ID=${JOB_NAME_SPLIT[0]}
+      TARGET=${JOB_NAME_SPLIT[1]}
+      SEQUENCE=${JOB_NAME_SPLIT[2]}
+      LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+
+      JOB="./Allen --mdf /scratch/allen_data/mdf/upgrade_mc_minbias_scifi_v5_000.mdf -f /scratch/allen_data/minbias_mag_down_201907 -n 1000 -m 700 --disable-run-changes 1"
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+      mkdir no_run_changes_output && ln -s no_run_changes_output output # Needed by Root build
+
+      cd build_${TARGET}
+      ls
+      export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+
+      if [ "${TARGET}" = "CPU" ]; then
+        NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+        numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
+      else
+        GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+        GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+        NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
+        export PATH=$PATH:/usr/local/cuda/bin
+        CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB} 2>&1 | tee ../no_run_changes_output/minbias_${DEVICE_ID}.txt
+      fi
   artifacts:
     expire_in: 1 day
     paths:
@@ -302,36 +318,38 @@ docker_image:build:
       - schedules
   stage: run
   script:
-    - TOPLEVEL=${PWD}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
-    - IFS=${PREVIOUS_IFS}
-    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
-    - TARGET=${JOB_NAME_SPLIT[1]}
-    - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
-    - DATA_TAG=${JOB_NAME_SPLIT[4]}
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
-    - mkdir output_${DEVICE_ID}
-    - cd build_${TARGET}
-    - ls
-    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - if [ "${TARGET}" = "CPU" ]; then
-    - TOTAL_THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
-    - TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
-    - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
-    - RUN_OPTIONS="-n 100 -m 100 -r 200 -t ${THREADS} -c 0"
-    - numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - else
-    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-    - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - fi
+    - >
+      TOPLEVEL=${PWD}
+      PREVIOUS_IFS=${IFS}
+      IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+      IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
+      IFS=${PREVIOUS_IFS}
+      DEVICE_ID=${JOB_NAME_SPLIT[0]}
+      TARGET=${JOB_NAME_SPLIT[1]}
+      SEQUENCE=${JOB_NAME_SPLIT[2]}
+      LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+      DATA_TAG=${JOB_NAME_SPLIT[4]}
+
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+      mkdir output_${DEVICE_ID} && cd build_${TARGET}
+      ls
+      export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+      
+      if [ "${TARGET}" = "CPU" ]; then
+        TOTAL_THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
+        TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
+        NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+        THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
+        RUN_OPTIONS="-n 100 -m 100 -r 200 -t ${THREADS} -c 0"
+        numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+      else
+        GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+        GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+        NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
+        RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
+        export PATH=$PATH:/usr/local/cuda/bin
+        CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+      fi
   artifacts:
     expire_in: 1 day
     paths:
@@ -346,33 +364,40 @@ docker_image:build:
       - schedules
   stage: run
   script:
-    - TOPLEVEL=${PWD}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
-    - IFS=${PREVIOUS_IFS}
-    - DEVICE_ID=${JOB_NAME_SPLIT[0]}
-    - TARGET=${JOB_NAME_SPLIT[1]}
-    - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
-    - DATA_TAG=${JOB_NAME_SPLIT[4]}
-    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
-    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-    - RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
-    - RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
-    - export PATH=$PATH:/usr/local/cuda/bin
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
-    - mkdir output_${DEVICE_ID}
-    - cd build_${TARGET}
-    - ls
-    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - mkdir tmp
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile --trace=cuda ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_PROFILER_OPTIONS}
-    - nsys stats --report gpukernsum report1.qdrep -o allen_report
-    - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
-    - rm -rf report1.qdrep tmp
+    - >
+      TOPLEVEL=${PWD}
+      PREVIOUS_IFS=${IFS}
+      IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+      IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
+      IFS=${PREVIOUS_IFS}
+      DEVICE_ID=${JOB_NAME_SPLIT[0]}
+      TARGET=${JOB_NAME_SPLIT[1]}
+      SEQUENCE=${JOB_NAME_SPLIT[2]}
+      LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+      DATA_TAG=${JOB_NAME_SPLIT[4]}
+      GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+      GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+      NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
+      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
+      RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
+      export PATH=$PATH:/usr/local/cuda/bin
+
+      source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+
+      mkdir output_${DEVICE_ID} && cd build_${TARGET}
+      ls
+      export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+      mkdir tmp
+
+      CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+
+      CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile --trace=cuda ./Allen -f /scratch/allen_data/${DATA_TAG} ${RUN_PROFILER_OPTIONS}
+
+      nsys stats --report gpukernsum report1.qdrep -o allen_report
+
+      python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
+
+      rm -rf report1.qdrep tmp
   artifacts:
     expire_in: 1 day
     paths:
@@ -645,6 +670,21 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   tags:
     - cvmfs
+
+
+# Build SciFi v6 sequence
+
+CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+  tags:
+    - cvmfs
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
+
 
 # ===
 # Run
