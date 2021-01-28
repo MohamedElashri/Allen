@@ -16,7 +16,12 @@
 
 namespace Allen {
   /**
-   * Minimal allocator for aligned data.
+   * Allocator that pins data on the host. It can be used to transmit data
+   * between host and device with a reasonable performance. The only price to
+   * pay is the allocation / deallocation on the host.
+   * 
+   * Note: This allocator is not intended for use with types T that themselves
+   * also allocate data.
    *
    * Based on
    * https://www.youtube.com/watch?v=dTeKf5Oek2c&feature=youtu.be&t=26m27s
@@ -60,7 +65,6 @@ namespace Allen {
 
       void* pv;
 
-      // Mallocator wraps Allen::malloc_host
       Allen::malloc_host(&pv, n * sizeof(T));
 
       // Allocators should throw std::bad_alloc in the case of memory allocation failure.
