@@ -56,9 +56,10 @@ __device__ void decode(const char* event_data, const uint32_t* event_offsets,
          }
 
         uint16_t index = geometry.channels[(code - geometry.code_offset) * Calo::Constants::card_channels + bit_num];
-        // Ignore cells with invalid indices
-        assert(index < number_of_digits);
-        digits[index].adc = adc;
+        // Ignore cells with invalid indices; these include LED diodes.
+        if(index < number_of_digits) {
+          digits[index].adc = adc;
+        }
       }
     }
   }
