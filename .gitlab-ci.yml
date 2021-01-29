@@ -203,8 +203,17 @@ docker_image:build:
       DATA_TAG=${JOB_NAME_SPLIT[4]}
       RUN_OPTIONS="-n 1000 -m 1000"
 
+      # Configure the input files (-f) and geometry (-g)
+
       if [ ! -z ${GEOMETRY+x} ]; then
-        RUN_OPTIONS="$RUN_OPTIONS -g ${ALLEN_DATA}/${GEOMETRY}"
+        RUN_OPTIONS="${RUN_OPTIONS} -g ${ALLEN_DATA}/${GEOMETRY}"
+      fi
+
+      # INPUT_FILES will override DATA_TAG
+      if [ ! -z ${INPUT_FILES+x} ]; then
+        RUN_OPTIONS="${RUN_OPTIONS} -f ${ALLEN_DATA}/${INPUT_FILES}"
+      else
+        RUN_OPTIONS="${RUN_OPTIONS} -f ${ALLEN_DATA}/${DATA_TAG}"
       fi
 
     - |
@@ -215,7 +224,7 @@ docker_image:build:
       export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
 
     - |
-      JOB="./Allen -f ${ALLEN_DATA}/${DATA_TAG} ${RUN_OPTIONS}"
+      JOB="./Allen ${RUN_OPTIONS}"
       if [ "${TARGET}" = "CPU" ]; then
         NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
         ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB}"
@@ -798,6 +807,11 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
     GEOMETRY: "Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD/geometry"
   <<: *run_throughput_job_no_profiling_def
 
+.scifi_v6_efficiency_data: &scifi_v6_efficiency_data
+  variables:
+    INPUT_FILES: "Hackathon_AllenTests/upgrade_DC19_01_Bs2PhiPhiMD/dump"
+    GEOMETRY: "Hackathon_AllenTests/upgrade_DC19_01_Bs2PhiPhiMD/geometry"
+
 
 geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -848,7 +862,7 @@ x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBia
     - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   <<: *active_branches
 
-epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD:run_throughput:
+epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
     - epyc7502
@@ -875,6 +889,29 @@ x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_20190
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   <<: *active_branches
+
+# Efficiency for Sci
+
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
+  <<: *scifi_v6_efficiency_data
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - geforcertx2080ti
+  needs:
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  <<: *active_branches
+
+
+x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
+  <<: *scifi_v6_efficiency_data
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - x862630v4
+  needs:
+    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  <<: *active_branches
+
+
 
 
 # Additional throughput runs, only on master
@@ -1113,3 +1150,27 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
     paths:
       - devices_throughputs.csv
     expire_in: 1 week
+
+### SciFi v6 tests
+
+.scifi-v6-jobs-for-publish-throughput: &scifi-v6-jobs-for-publish-throughput
+  needs:
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+    - teslav100:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+    - geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+    - geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+    - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+    - epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+  tags:
+    - cvmfs
+  artifacts:
+    paths:
+      - devices_throughputs.csv
+    expire_in: 1 week
+
+throughput:hlt1_pp_scifi_v6:geforcertx3090:upgrade_DC19_01_MinBiasMD:publish_throughput:
+  <<: *publish_throughput_job_def
+  <<: *scifi-v6-jobs-for-publish-throughput
+
+
