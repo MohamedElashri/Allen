@@ -24,41 +24,44 @@ template<typename T, typename Tuple>
 struct TupleContains;
 
 template<typename T, typename... Ts>
-struct TupleContains<T, std::tuple<Ts...>> {
+struct TupleContains<T, std::tuple<Ts...>> : std::bool_constant<((std::is_same_v<T, Ts> || ...))> {
   static constexpr auto index()
   {
     int idx = 0;
     bool contains = ((++idx, std::is_same_v<T, Ts>) || ...);
     return contains ? idx - 1 : idx;
   }
-  static constexpr auto value = (std::is_same_v<T, Ts> || ...);
 };
 
 template<typename T, typename Tuple>
 inline constexpr std::size_t index_of_v = TupleContains<T, Tuple>::index();
 
 // Appends a Tuple with the Element
-template<typename Tuple, typename Element>
-struct TupleAppend;
+namespace details {
+  template<typename, typename>
+  struct TupleAppend;
 
-template<typename... T, typename E>
-struct TupleAppend<std::tuple<T...>, E> {
-  using t = std::tuple<T..., E>;
-};
+  template<typename... T, typename E>
+  struct TupleAppend<std::tuple<T...>, E> {
+    using type = std::tuple<T..., E>;
+  };
+} // namespace details
+template<typename Tuple, typename Element>
+using append_to_tuple_t = typename details::TupleAppend<Tuple, Element>::type;
 
 // Appends a Tuple with the Element
-template<typename Tuple, typename Element>
-struct TupleAppendFirst;
+namespace details {
+  template<typename, typename>
+  struct TupleAppendFirst;
 
-template<typename E, typename... T>
-struct TupleAppendFirst<E, std::tuple<T...>> {
-  using t = std::tuple<E, T...>;
-};
+  template<typename E, typename... T>
+  struct TupleAppendFirst<E, std::tuple<T...>> {
+    using type = std::tuple<E, T...>;
+  };
+} // namespace details
 
-template<typename E>
-struct TupleAppendFirst<E, std::tuple<>> {
-  using t = std::tuple<E>;
-};
+template<typename Element, typename Tuple>
+using prepend_to_tuple_t = typename details::TupleAppendFirst<Element, Tuple>::type;
 
 // Reverses a tuple
 namespace details {
@@ -77,30 +80,24 @@ using reverse_tuple_t = typename details::ReverseTuple<Tuple, std::make_index_se
 template<typename Tuple, typename OtherTuple>
 struct TupleElementsNotIn;
 
-template<typename OtherTuple>
-struct TupleElementsNotIn<std::tuple<>, OtherTuple> {
-  using t = std::tuple<>;
-};
-
-template<typename Tuple>
-struct TupleElementsNotIn<Tuple, std::tuple<>> {
-  using t = Tuple;
-};
-
 template<typename T, typename... Elements, typename OtherTuple>
 struct TupleElementsNotIn<std::tuple<T, Elements...>, OtherTuple> {
   using previous_t = typename TupleElementsNotIn<std::tuple<Elements...>, OtherTuple>::t;
-  using t = typename std::
-    conditional_t<TupleContains<T, OtherTuple>::value, previous_t, typename TupleAppend<previous_t, T>::t>;
+  using t = std::conditional_t<TupleContains<T, OtherTuple>::value, previous_t, append_to_tuple_t<previous_t, T>>;
 };
 
-template<typename, typename>
-struct ConcatTuple;
+namespace details {
+  template<typename, typename>
+  struct ConcatTuple;
 
-template<typename... First, typename... Second>
-struct ConcatTuple<std::tuple<First...>, std::tuple<Second...>> {
-  using t = std::tuple<First..., Second...>;
-};
+  template<typename... First, typename... Second>
+  struct ConcatTuple<std::tuple<First...>, std::tuple<Second...>> {
+    using type = std::tuple<First..., Second...>;
+  };
+} // namespace details
+
+template<typename First, typename Second>
+using cat_tuples_t = typename details::ConcatTuple<First, Second>::type;
 
 // Access to tuple elements by checking whether they inherit from a Base type
 template<typename Base, typename Tuple, std::size_t I = 0>
@@ -108,17 +105,17 @@ struct tuple_ref_index;
 
 template<typename Base, typename Head, typename... Tail, std::size_t I>
 struct tuple_ref_index<Base, std::tuple<Head, Tail...>, I>
-  : std::conditional<
-      std::is_base_of<typename std::decay<Base>::type, typename std::decay<Head>::type>::value,
+  : std::conditional_t<
+      std::is_base_of_v<std::decay_t<Base>, std::decay_t<Head>>,
       std::integral_constant<std::size_t, I>,
-      tuple_ref_index<Base, std::tuple<Tail...>, I + 1>>::type {
+      tuple_ref_index<Base, std::tuple<Tail...>, I + 1>> {
 };
 
 template<typename Base, typename Tuple>
 auto tuple_ref_by_inheritance(Tuple&& tuple)
-  -> decltype(std::get<tuple_ref_index<Base, typename std::decay<Tuple>::type>::value>(std::forward<Tuple>(tuple)))
+  -> decltype(std::get<tuple_ref_index<Base, std::decay_t<Tuple>>::value>(std::forward<Tuple>(tuple)))
 {
-  return std::get<tuple_ref_index<Base, typename std::decay<Tuple>::type>::value>(std::forward<Tuple>(tuple));
+  return std::get<tuple_ref_index<Base, std::decay_t<Tuple>>::value>(std::forward<Tuple>(tuple));
 }
 
 namespace Allen {

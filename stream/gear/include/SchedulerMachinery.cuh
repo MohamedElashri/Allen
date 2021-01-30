@@ -83,10 +83,10 @@ namespace Sch {
     using previous_t = typename ArgumentsNotIn<std::tuple<Args...>, std::tuple<OtherArguments, RestOfArguments...>>::t;
 
     // We append Arg only if it is _not_ on the previous algorithms
-    using t = typename std::conditional_t<
+    using t = std::conditional_t<
       IsInAnyArgumentTuple<Arg, std::tuple<OtherArguments, RestOfArguments...>>::value,
       previous_t,
-      typename TupleAppend<previous_t, Arg>::t>;
+      append_to_tuple_t<previous_t, Arg>>;
   };
 
   // Consume the algorithms and put their dependencies one by one
@@ -102,7 +102,7 @@ namespace Sch {
   struct OutDependenciesImpl<std::tuple<Arguments, NextArguments...>> {
     static_assert(sizeof...(NextArguments) != 0);
     using previous_t = typename OutDependenciesImpl<std::tuple<NextArguments...>>::t;
-    using t = typename TupleAppend<previous_t, typename ArgumentsNotIn<Arguments, std::tuple<NextArguments...>>::t>::t;
+    using t = append_to_tuple_t<previous_t, typename ArgumentsNotIn<Arguments, std::tuple<NextArguments...>>::t>;
   };
 
   // Helper to calculate OUT dependencies
@@ -113,7 +113,7 @@ namespace Sch {
   struct OutDependencies<std::tuple<Arguments...>> {
     static_assert(sizeof...(Arguments) != 0);
     using t = reverse_tuple_t<
-      typename TupleAppend<typename OutDependenciesImpl<typename std::tuple<Arguments...>>::t, std::tuple<>>::t>;
+      append_to_tuple_t<typename OutDependenciesImpl<typename std::tuple<Arguments...>>::t, std::tuple<>>>;
   };
 
   // Consume the algorithms and put their dependencies one by one
@@ -128,8 +128,7 @@ namespace Sch {
   template<typename Arguments, typename... RestOfArguments>
   struct InDependenciesImpl<std::tuple<Arguments, RestOfArguments...>> {
     using previous_t = typename InDependenciesImpl<std::tuple<RestOfArguments...>>::t;
-    using t =
-      typename TupleAppend<previous_t, typename ArgumentsNotIn<Arguments, std::tuple<RestOfArguments...>>::t>::t;
+    using t = append_to_tuple_t<previous_t, typename ArgumentsNotIn<Arguments, std::tuple<RestOfArguments...>>::t>;
   };
 
   template<typename ConfiguredArguments>
@@ -260,7 +259,7 @@ namespace Sch {
     std::tuple<A, T...>,
     std::enable_if_t<std::is_base_of_v<Allen::contract::Precondition, A>>> {
     using recursive_contracts = AlgorithmContracts<std::tuple<T...>>;
-    using preconditions = typename TupleAppend<typename recursive_contracts::preconditions, A>::t;
+    using preconditions = append_to_tuple_t<typename recursive_contracts::preconditions, A>;
     using postconditions = typename recursive_contracts::postconditions;
   };
 
@@ -270,7 +269,7 @@ namespace Sch {
     std::enable_if_t<std::is_base_of_v<Allen::contract::Postcondition, A>>> {
     using recursive_contracts = AlgorithmContracts<std::tuple<T...>>;
     using preconditions = typename recursive_contracts::preconditions;
-    using postconditions = typename TupleAppend<typename recursive_contracts::postconditions, A>::t;
+    using postconditions = append_to_tuple_t<typename recursive_contracts::postconditions, A>;
   };
 
   /**
