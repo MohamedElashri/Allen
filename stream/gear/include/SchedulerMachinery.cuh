@@ -48,16 +48,8 @@ namespace Sch {
   template<typename T, typename Arguments>
   struct IsInAnyArgumentTuple;
 
-  template<typename T>
-  struct IsInAnyArgumentTuple<T, std::tuple<>> : std::false_type {
-  };
-
-  template<typename T, typename Arguments, typename... RestOfArguments>
-  struct IsInAnyArgumentTuple<T, std::tuple<Arguments, RestOfArguments...>>
-    : std::conditional_t<
-        TupleContains<T, Arguments>::value,
-        std::true_type,
-        IsInAnyArgumentTuple<T, std::tuple<RestOfArguments...>>> {
+  template<typename T, typename... Arguments>
+  struct IsInAnyArgumentTuple<T, std::tuple<Arguments...>> : std::disjunction<TupleContains<T, Arguments>...> {
   };
 
   // A mechanism to only return the arguments in Algorithm

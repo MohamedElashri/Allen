@@ -76,28 +76,23 @@ namespace details {
 template<typename Tuple>
 using reverse_tuple_t = typename details::ReverseTuple<Tuple, std::make_index_sequence<std::tuple_size_v<Tuple>>>::type;
 
-// Returns types in Tuple not in OtherTuple
-template<typename Tuple, typename OtherTuple>
-struct TupleElementsNotIn;
-
-template<typename T, typename... Elements, typename OtherTuple>
-struct TupleElementsNotIn<std::tuple<T, Elements...>, OtherTuple> {
-  using previous_t = typename TupleElementsNotIn<std::tuple<Elements...>, OtherTuple>::t;
-  using t = std::conditional_t<TupleContains<T, OtherTuple>::value, previous_t, append_to_tuple_t<previous_t, T>>;
-};
-
 namespace details {
-  template<typename, typename>
+  template<typename...>
   struct ConcatTuple;
 
   template<typename... First, typename... Second>
   struct ConcatTuple<std::tuple<First...>, std::tuple<Second...>> {
     using type = std::tuple<First..., Second...>;
   };
+
+  template<typename T1, typename T2, typename... Ts>
+  struct ConcatTuple<T1, T2, Ts...> {
+    using type = typename ConcatTuple<typename ConcatTuple<T1, T2>::type, Ts...>::type;
+  };
 } // namespace details
 
-template<typename First, typename Second>
-using cat_tuples_t = typename details::ConcatTuple<First, Second>::type;
+template<typename... Tuples>
+using cat_tuples_t = typename details::ConcatTuple<Tuples...>::type;
 
 // Access to tuple elements by checking whether they inherit from a Base type
 template<typename Base, typename Tuple, std::size_t I = 0>
