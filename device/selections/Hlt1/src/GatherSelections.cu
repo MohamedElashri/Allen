@@ -158,23 +158,23 @@ void gather_selections::gather_selections_t::operator()(
   copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
 
   // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
-  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
+  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<dev_input_selections_t::type>>::
     template populate_event_offsets<host_selections_lines_offsets_t>(arguments);
 
   // Populate dev_selections_t
-  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_t::type>::t>::
+  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<dev_input_selections_t::type>>::
     template populate_selections<host_selections_lines_offsets_t, dev_selections_t>(arguments, context);
 
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
-  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<dev_input_selections_offsets_t::type>::t>::
+  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<dev_input_selections_offsets_t::type>>::
     template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, context);
 
   // Populate host_post_scale_factors_t
-  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<host_input_post_scale_factors_t::type>::t>::
+  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<host_input_post_scale_factors_t::type>>::
     template populate_scalars<host_post_scale_factors_t>(arguments, context);
 
   // Populate host_post_scale_hashes_t
-  TupleTraits<ArgumentReferences<Parameters>, TupleReverse<host_input_post_scale_hashes_t::type>::t>::
+  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<host_input_post_scale_hashes_t::type>>::
     template populate_scalars<host_post_scale_hashes_t>(arguments, context);
 
   // Copy host_post_scale_factors_t to dev_post_scale_factors_t,

@@ -98,23 +98,22 @@ namespace Sch {
     using t = std::tuple<>;
   };
 
-  template<typename Arguments, typename NextArguments, typename... RestOfArguments>
-  struct OutDependenciesImpl<std::tuple<Arguments, NextArguments, RestOfArguments...>> {
-    using previous_t = typename OutDependenciesImpl<std::tuple<NextArguments, RestOfArguments...>>::t;
-    using t = typename TupleAppend<
-      previous_t,
-      typename ArgumentsNotIn<Arguments, std::tuple<NextArguments, RestOfArguments...>>::t>::t;
+  template<typename Arguments, typename... NextArguments>
+  struct OutDependenciesImpl<std::tuple<Arguments, NextArguments...>> {
+    static_assert(sizeof...(NextArguments) != 0);
+    using previous_t = typename OutDependenciesImpl<std::tuple<NextArguments...>>::t;
+    using t = typename TupleAppend<previous_t, typename ArgumentsNotIn<Arguments, std::tuple<NextArguments...>>::t>::t;
   };
 
   // Helper to calculate OUT dependencies
   template<typename ConfiguredSequence>
   struct OutDependencies;
 
-  template<typename Arguments, typename... RestOfArguments>
-  struct OutDependencies<std::tuple<Arguments, RestOfArguments...>> {
-    using t = typename TupleReverse<typename TupleAppend<
-      typename OutDependenciesImpl<typename std::tuple<Arguments, RestOfArguments...>>::t,
-      std::tuple<>>::t>::t;
+  template<typename... Arguments>
+  struct OutDependencies<std::tuple<Arguments...>> {
+    static_assert(sizeof...(Arguments) != 0);
+    using t = reverse_tuple_t<
+      typename TupleAppend<typename OutDependenciesImpl<typename std::tuple<Arguments...>>::t, std::tuple<>>::t>;
   };
 
   // Consume the algorithms and put their dependencies one by one
@@ -134,7 +133,7 @@ namespace Sch {
   };
 
   template<typename ConfiguredArguments>
-  using InDependencies = InDependenciesImpl<typename TupleReverse<ConfiguredArguments>::t>;
+  using InDependencies = InDependenciesImpl<reverse_tuple_t<ConfiguredArguments>>;
 
   // Helper to just print the arguments
   template<typename Arguments>

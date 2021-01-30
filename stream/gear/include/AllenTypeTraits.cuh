@@ -19,26 +19,23 @@
  *
  *        std::cout << "int in index " << TupleContains<int, decltype(t)>::index << std::endl;
  */
+
 template<typename T, typename Tuple>
 struct TupleContains;
 
-template<typename T>
-struct TupleContains<T, std::tuple<>> : std::false_type {
-  static constexpr int index = 0;
-};
-
 template<typename T, typename... Ts>
-struct TupleContains<T, std::tuple<T, Ts...>> : std::true_type {
-  static constexpr int index = 0;
-};
-
-template<typename T, typename U, typename... Ts>
-struct TupleContains<T, std::tuple<U, Ts...>> : TupleContains<T, std::tuple<Ts...>> {
-  static constexpr int index = 1 + TupleContains<T, std::tuple<Ts...>>::index;
+struct TupleContains<T, std::tuple<Ts...>> {
+  static constexpr auto index()
+  {
+    int idx = 0;
+    bool contains = ((++idx, std::is_same_v<T, Ts>) || ...);
+    return contains ? idx - 1 : idx;
+  }
+  static constexpr auto value = (std::is_same_v<T, Ts> || ...);
 };
 
 template<typename T, typename Tuple>
-inline constexpr std::size_t index_of_v = TupleContains<T, Tuple>::index;
+inline constexpr std::size_t index_of_v = TupleContains<T, Tuple>::index();
 
 // Appends a Tuple with the Element
 template<typename Tuple, typename Element>
@@ -47,11 +44,6 @@ struct TupleAppend;
 template<typename... T, typename E>
 struct TupleAppend<std::tuple<T...>, E> {
   using t = std::tuple<T..., E>;
-};
-
-template<typename E>
-struct TupleAppend<std::tuple<>, E> {
-  using t = std::tuple<E>;
 };
 
 // Appends a Tuple with the Element
@@ -69,19 +61,17 @@ struct TupleAppendFirst<E, std::tuple<>> {
 };
 
 // Reverses a tuple
+namespace details {
+  template<typename T, typename I>
+  struct ReverseTuple;
+
+  template<typename T, auto... Is>
+  struct ReverseTuple<T, std::index_sequence<Is...>> {
+    using type = std::tuple<std::tuple_element_t<sizeof...(Is) - 1 - Is, T>...>;
+  };
+} // namespace details
 template<typename Tuple>
-struct TupleReverse;
-
-template<>
-struct TupleReverse<std::tuple<>> {
-  using t = std::tuple<>;
-};
-
-template<typename T, typename... Elements>
-struct TupleReverse<std::tuple<T, Elements...>> {
-  using previous_t = typename TupleReverse<std::tuple<Elements...>>::t;
-  using t = typename TupleAppend<previous_t, T>::t;
-};
+using reverse_tuple_t = typename details::ReverseTuple<Tuple, std::make_index_sequence<std::tuple_size_v<Tuple>>>::type;
 
 // Returns types in Tuple not in OtherTuple
 template<typename Tuple, typename OtherTuple>
@@ -110,14 +100,6 @@ struct ConcatTuple;
 template<typename... First, typename... Second>
 struct ConcatTuple<std::tuple<First...>, std::tuple<Second...>> {
   using t = std::tuple<First..., Second...>;
-};
-
-template<typename, typename>
-struct ConcatTupleReferences;
-
-template<typename... First, typename... Second>
-struct ConcatTupleReferences<std::tuple<First...>, std::tuple<Second...>> {
-  using t = std::tuple<First&..., Second...>;
 };
 
 // Access to tuple elements by checking whether they inherit from a Base type
