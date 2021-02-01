@@ -461,6 +461,8 @@ test_run_changes:
     - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
     - IFS=${PREVIOUS_IFS}
     - TARGET=${JOB_NAME_SPLIT[0]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[2]}
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - cd build_${TARGET}
     - BUILD_DIR=`cat CTestTestfile.cmake | grep "# Build directory:" | awk '{ print $4 }'`
     - REPLACEMENT_DIR=${PWD}
@@ -914,14 +916,14 @@ x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
 # Test
 # ====
 
-CPU:hlt1_pp_default:test:
+CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:test:
   <<: *run_built_tests_job
   tags:
     - x862630v4
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests
 
-CUDA:hlt1_pp_default:test:
+CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:test:
   <<: *run_built_tests_job
   tags:
     - geforcertx2080ti
