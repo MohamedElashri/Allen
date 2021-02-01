@@ -447,7 +447,7 @@ void copy(
 
 /**
  * @brief Copies the contents of a data container to a datatype. The data container
- * can be either a span or anything that can be automatically converted to a span. 
+ * can be either a span or anything that can be automatically converted to a span.
  */
 template<typename Arg, typename Args, typename T>
 void copy(const Args& arguments, const Allen::Context& context, const gsl::span<T>& data_container)
