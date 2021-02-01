@@ -70,24 +70,30 @@ namespace host_global_event_cut {
       unsigned n_UT_clusters = 0;
 
       if constexpr (mep_layout) {
-        auto const number_of_ut_raw_banks = ut_offsets[0];
-        for (unsigned i = 0; i < number_of_ut_raw_banks; ++i) {
-          auto sourceID = ut_offsets[2 + i];
-          // We're on the host, so use the blocks directly
-          auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
-          auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
-          const UTRawBank ut_bank {sourceID, parameters.ut_banks[i].data() + fragment_offset};
-          n_UT_clusters += ut_bank.number_of_hits;
-        }
+        throw std::runtime_error("This still needs to be implemented!");
+        //TODO: understand and rewrite the code below
+
+        // auto const number_of_ut_raw_banks = ut_offsets[0];
+        // for (unsigned i = 0; i < number_of_ut_raw_banks; ++i) {
+        //   auto sourceID = ut_offsets[2 + i];
+        //   // We're on the host, so use the blocks directly
+        //   auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
+        //   auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
+        //   const UTRawBank ut_bank {sourceID, parameters.ut_banks[i].data() + fragment_offset};
+        //   n_UT_clusters += ut_bank.number_of_hits;
+        // }
       }
       else {
         const uint32_t ut_event_offset = ut_offsets[event_number];
         const UTRawEvent ut_event(parameters.ut_banks[0].data() + ut_event_offset);
 
-        for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i) {
-          const UTRawBank ut_bank = ut_event.getUTRawBank(i);
-          n_UT_clusters += ut_bank.number_of_hits;
+        for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i){
+          // mstahl: far from optimal...
+          const auto version = ut_event.get_raw_bank_version(i);
+          if( version == 4 ) n_UT_clusters += ut_event.getUTRawBank<UTRawBank_v5>(i).get_n_hits();
+          else n_UT_clusters += ut_event.getUTRawBank<UTRawBank_v4>(i).get_n_hits();
         }
+
       }
 
       const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;

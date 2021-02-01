@@ -23,7 +23,8 @@ namespace ranges {
 #endif
 
 #include <Kernel/IUTReadoutTool.h>
-#include <Kernel/UTTell1Board.h>
+#include <Kernel/UTTell1Board.h> //v4
+#include <Kernel/UTDAQBoard.h> //v5
 
 #include "DumpUTGeometry.h"
 
@@ -59,43 +60,18 @@ DumpUtils::Dump DumpUTGeometry::dumpGeom() const
   p0Y.reserve(number_of_sectors);
   p0Z.reserve(number_of_sectors);
 
-  // This code comes from DeUTSector::cacheInfo
-  for (const auto sector : sectors) {
-    auto firstTraj = sector->trajectoryFirstStrip();
-
-    // get the start and end point. for piecewise trajectories, we
-    // effectively make an approximation by a straight line.
-    const Gaudi::XYZPoint g1 = firstTraj.beginPoint();
-    const Gaudi::XYZPoint g2 = firstTraj.endPoint();
-
-    const double activeWidth = sector->sensors().front()->activeWidth();
-
-    // direction
-    Gaudi::XYZVector direction = g2 - g1;
-    direction = direction.Unit();
-
-    // cross with normal along z
-    Gaudi::XYZVector zVec(0, 0, 1);
-    Gaudi::XYZVector norm = direction.Cross(zVec);
-
-    // trajectory of middle
-    const Gaudi::XYZPoint g3 = g1 + 0.5 * (g2 - g1);
-    const Gaudi::XYZPoint g4 = g3 + activeWidth * norm;
-
-    // creating the 'fast' trajectories
-    const Gaudi::XYZVector vectorlayer = (g4 - g3).unit() * sector->pitch();
-    const Gaudi::XYZPoint p0 = g3 - 0.5 * sector->stripLength() * direction;
-    auto dxdy = direction.x() / direction.y();
-    auto dzdy = direction.z() / direction.y();
-    auto sdy = sector->stripLength() * direction.y();
-
-    dy.push_back(sdy);
-    dp0diX.push_back(vectorlayer.x() - vectorlayer.y() * dxdy);
-    dp0diY.push_back(vectorlayer.y());
-    dp0diZ.push_back(vectorlayer.z() - vectorlayer.y() * dzdy);
-    p0X.push_back(p0.x() - p0.y() * dxdy);
+  for (const auto sector : sectors) { //loop DeUTSector
+    dy.push_back(sector->get_dy());
+    const auto dp0di = sector->get_dp0di();
+    dp0diX.push_back(dp0di.x());
+    dp0diY.push_back(dp0di.y());
+    dp0diZ.push_back(dp0di.z());
+    const auto p0 = sector->get_p0();
+    p0X.push_back(p0.x());
     p0Y.push_back(p0.y());
-    p0Z.push_back(p0.z() - p0.y() * dzdy);
+    // hack: since p0z is always positive, we can use the signbit to encode whether or not to "stripflip"
+    p0Z.push_back(((sector->xInverted() && sector->getStripflip()) ? -1 : 1)*p0.z());
+    // this hack will be used in UTPreDecode.cu and UTDecodeRawBanksInOrder.cu
   }
 
   DumpUtils::Writer ut_geometry {};
@@ -113,62 +89,82 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
   std::vector<uint32_t> sectors;
   std::vector<uint32_t> chanIDs;
 
-  auto readout = tool<IUTReadoutTool>("UTReadoutTool");
-  if (!readout) {
-    throw GaudiException {"Failed to obtain readout tool.", name(), StatusCode::FAILURE};
-  }
+  const auto readout = tool<IUTReadoutTool>("UTReadoutTool");
+  if (!readout) throw GaudiException {"Failed to obtain readout tool.", name(), StatusCode::FAILURE};
 
   // Strips per hybrid cannot be obtained from the boards, so use the
   // condition where it came from instead.
   // This can be found in UTReadoutTool
-  std::string conditionLocation = "/dd/Conditions/ReadoutConf/UT/ReadoutMap";
-  Condition* rInfo = getDet<Condition>(conditionLocation);
-  auto hybridsPerBoard = rInfo->param<int>("hybridsPerBoard");
-  unsigned int stripsPerHybrid = UTDAQ::nStripsPerBoard / hybridsPerBoard;
+  Condition* rInfo = getDet<Condition>("/dd/Conditions/ReadoutConf/UT/ReadoutMap");
+
+  UTDAQ::version UT_version; // Kernel/UTDAQDefinitions.h
+  constexpr uint32_t n_lanes_max = 6;
+  // mstahl: this is the condition for the new UT geometry. we might want a version field in the readout map
+  if (rInfo->exists("nTell40InUT")) UT_version = UTDAQ::v5;
+  else if (rInfo->exists("hybridsPerBoard")) UT_version = UTDAQ::v4;
+  else throw GaudiException {"Cannot parse UT geometry version from ReadoutMap.", name(), StatusCode::FAILURE};
+  // things that (might) depend on the decoding version
+  const bool geometry_v5 = UT_version == UTDAQ::v5;
+  const auto stripsPerHybrid = geometry_v5 ? UTDAQ::nStripsPerBoard/n_lanes_max : UTDAQ::nStripsPerBoard / rInfo->param<int>("hybridsPerBoard");
+  const auto n_boards = geometry_v5 ? rInfo->param<int>( "nTell40InUT" ) * 2 : readout->nBoard();
 
   uint32_t currentBoardID = 0, cbID = 0;
-  for (; cbID < readout->nBoard(); ++cbID) {
-    auto b = readout->findByOrder(cbID);
-    const uint32_t boardID = b->boardID().id();
+  for (; cbID < n_boards; ++cbID) { // In v5 there are no gaps in the numbering, so that the readouttool will always find a board
+    if(geometry_v5){
+      const auto b = readout->findByDAQOrder(cbID);// UTDAQ::Board
+      const auto sector_ids = b->sectorIDs();
+      stripsPerHybrids.push_back(stripsPerHybrid);
+      for (unsigned lane = 0; lane < n_lanes_max; ++lane) {// old lingo: sectors, new lingo: lanes
+        const auto s = sector_ids[lane];// LHCb::UTChannelID
+        stations.push_back(s.station());
+        layers.push_back(s.layer());
+        detRegions.push_back(s.detRegion());
+        sectors.push_back(s.sector());
+        chanIDs.push_back(s.channelID());
+      }
+      ++currentBoardID;
+    }
+    else{
+      const auto b = readout->findByOrder(cbID);// UTTell1Board
+      const auto boardID = b->boardID().id();
+      // Insert empty boards if there is a gap between the last boardID and the
+      // current one
+      for (; boardID != 0 && currentBoardID < boardID; ++currentBoardID) {
+        stripsPerHybrids.push_back(0);
+        for (auto i = 0u; i < n_lanes_max; ++i) {
+          stations.push_back(0);
+          layers.push_back(0);
+          detRegions.push_back(0);
+          sectors.push_back(0);
+          chanIDs.push_back(0);
+        }
+      }
 
-    // Insert empty boards if there is a gap between the last boardID and the
-    // current one
-    for (; boardID != 0 && currentBoardID < boardID; ++currentBoardID) {
-      stripsPerHybrids.push_back(0);
-      for (uint32_t i = 0; i < 6; ++i) {
+      stripsPerHybrids.push_back(stripsPerHybrid);
+
+      for (auto is = 0u; is < b->nSectors(); ++is) {
+        auto s = std::get<0>(b->DAQToOfflineFull(0, UT_version, is * stripsPerHybrid));// UTTell1Board::ExpandedChannelID (Kernel/UTTell1Board.h)
+        stations.push_back(s.station);
+        layers.push_back(s.layer);
+        detRegions.push_back(s.detRegion);
+        sectors.push_back(s.sector);
+        chanIDs.push_back(s.chanID);
+      }
+      // If the number of sectors is less than 6, fill the remaining ones up to 6 with zeros
+      // this is necessary to be compatible with the Allen UT boards layout
+      for (auto is = b->nSectors(); is < n_lanes_max; ++is) {
         stations.push_back(0);
         layers.push_back(0);
         detRegions.push_back(0);
         sectors.push_back(0);
         chanIDs.push_back(0);
       }
-    }
-
-    stripsPerHybrids.push_back(stripsPerHybrid);
-
-    for (size_t is = 0; is < b->nSectors(); ++is) {
-      auto r = b->DAQToOfflineFull(0, UTDAQ::version::v4, is * stripsPerHybrid);
-      auto s = std::get<0>(r);
-      stations.push_back(s.station);
-      layers.push_back(s.layer);
-      detRegions.push_back(s.detRegion);
-      sectors.push_back(s.sector);
-      chanIDs.push_back(s.chanID);
-    }
-    // If the number of sectors is less than 6, fill the remaining ones up to 6 with zeros
-    // this is necessary to be compatible with the Allen UT boards layout
-    for (size_t is = b->nSectors(); is < 6; ++is) {
-      stations.push_back(0);
-      layers.push_back(0);
-      detRegions.push_back(0);
-      sectors.push_back(0);
-      chanIDs.push_back(0);
-    }
-    ++currentBoardID;
-  }
+      ++currentBoardID;
+    }// geometry version
+  }// end loop boards
 
   DumpUtils::Writer ut_boards {};
-  ut_boards.write(currentBoardID, stripsPerHybrids, stations, layers, detRegions, sectors, chanIDs);
+  ut_boards.write(currentBoardID, static_cast<uint32_t>(UT_version), stripsPerHybrids, stations, layers, detRegions, sectors, chanIDs);
 
   return std::tuple {ut_boards.buffer(), "ut_boards", Allen::NonEventData::UTBoards::id};
 }
