@@ -245,6 +245,31 @@ docker_image:build:
       - validation_output/*
   allow_failure: true
 
+.test_phys_eff_job: &test_phys_eff_job
+  only:
+    refs:
+      - master
+      - web
+      - schedules
+      - merge_requests
+  stage: test
+  script:
+    - TOPLEVEL=${PWD}
+    - ls validation_output
+    - ls ${TOPLEVEL}/test/reference
+    - cd validation_output
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n97 ${i} | head -n94 > efficiency_${i}; diff -u ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
+    - cat *_diff > alldiffs
+    - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
+  tags:
+    - cvmfs
+  artifacts:
+    expire_in: 1 week
+    when: on_failure
+    paths:
+      - validation_output/*_diff
+  allow_failure: true
+
 .run_with_run_changes_job: &run_with_run_changes_job_def
   only:
     refs:
@@ -492,32 +517,10 @@ docker_image:build:
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
 
 test_physics_efficiency:
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
-  stage: test
-  script:
-    - TOPLEVEL=${PWD}
-    - ls validation_output
-    - ls ${TOPLEVEL}/test/reference
-    - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n97 ${i} | head -n94 > efficiency_${i}; diff -u ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
-    - cat *_diff > alldiffs
-    - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
+  <<: *test_phys_eff_job
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
     - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
-  tags:
-    - cvmfs
-  artifacts:
-    expire_in: 1 week
-    when: on_failure
-    paths:
-      - validation_output/*_diff
-  allow_failure: true
 
 test_run_changes:
   only:
@@ -1172,5 +1175,11 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
 throughput:hlt1_pp_scifi_v6:geforcertx3090:upgrade_DC19_01_MinBiasMD:publish_throughput:
   <<: *publish_throughput_job_def
   <<: *scifi-v6-jobs-for-publish-throughput
+
+scifiv6_test_physics_efficiency:
+  <<: *test_phys_eff_job
+  needs:
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
 
 
