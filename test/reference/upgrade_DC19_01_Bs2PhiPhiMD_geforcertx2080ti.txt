@@ -1,3 +1,4 @@
+
 Velo tracks:
 TrackChecker output                               :       178/    22122   0.80% ghosts
 01_velo                                           :      9362/     9514  98.40% ( 98.50%),       192 (  2.01%) clones, pur  99.74%, hit eff  96.91%
@@ -10,17 +11,22 @@ TrackChecker output                               :       178/    22122   0.80% 
 08_long_electrons                                 :       440/      456  96.49% ( 96.69%),         8 (  1.79%) clones, pur  98.31%, hit eff  97.73%
 09_long_fromB_electrons                           :        19/       19 100.00% (100.00%),         0 (  0.00%) clones, pur  97.74%, hit eff  98.39%
 10_long_fromB_electrons_P>5GeV                    :        12/       12 100.00% (100.00%),         0 (  0.00%) clones, pur  98.81%, hit eff  97.46%
+
+
 Primary vertices:
 REC and MC vertices matched by dz distance
 MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
+
 All                  :  0.928 (   475/   512)
 Isolated             :  0.988 (   244/   247)
 Close                :  0.872 (   231/   265)
 False rate           :  0.010 (     5/   480)
 Real false rate      :  0.010 (     5/   480)
 Clones               :  0.000 (     0/   475)
+
+
 Velo+UT tracks:
 TrackChecker output                               :       265/     5329   4.97% ghosts
 01_velo                                           :      4774/     9514  50.18% ( 51.06%),        45 (  0.93%) clones, pur  99.54%, hit eff  96.13%
@@ -36,6 +42,8 @@ TrackChecker output                               :       265/     5329   4.97% 
 11_long_electrons                                 :       105/      456  23.03% ( 22.34%),         2 (  1.87%) clones, pur  98.77%, hit eff  96.03%
 12_long_fromB_electrons                           :         6/       19  31.58% ( 26.04%),         0 (  0.00%) clones, pur  98.48%, hit eff  96.67%
 13_long_fromB_electrons_P>5GeV                    :         6/       12  50.00% ( 46.67%),         0 (  0.00%) clones, pur  98.48%, hit eff  96.67%
+
+
 Forward tracks:
 TrackChecker output                               :        99/     3675   2.69% ghosts
 for P>3GeV,Pt>0.5GeV                              :        60/     2730   2.20% ghosts
@@ -49,6 +57,8 @@ for P>3GeV,Pt>0.5GeV                              :        60/     2730   2.20% 
 08_long_electrons_P>5GeV                          :        66/      256  25.78% ( 26.41%),         1 (  1.49%) clones, pur  98.76%, hit eff  98.10%
 09_long_fromB_electrons                           :         5/       19  26.32% ( 19.79%),         0 (  0.00%) clones, pur  98.21%, hit eff 100.00%
 10_long_fromB_electrons_P>5GeV                    :         5/       12  41.67% ( 36.67%),         0 (  0.00%) clones, pur  98.21%, hit eff 100.00%
+
+
 Muon matching:
 Muon fraction in all MCPs:                                               1156/    86785   0.01%
 Muon fraction in MCPs to which a track(s) was matched:                     39/     4188   0.01%
@@ -57,6 +67,8 @@ Correctly identified muons from strange decays with isMuon:                 0/  
 Correctly identified muons from B decays with isMuon:                       6/        7  85.71%
 Tracks identified as muon with isMuon, but matched to non-muon MCP:       302/     4149   7.28%
 Ghost tracks identified as muon with isMuon:                                8/       99   8.08%
+
+
 HLT1 rates:
 Hlt1TrackMVA:             30/   100, ( 9000.00 +/-  1374.77) kHz
 Hlt1TwoTrackMVA:          36/   100, (10800.00 +/-  1440.00) kHz

@@ -1175,6 +1175,7 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
 throughput:hlt1_pp_scifi_v6:geforcertx3090:upgrade_DC19_01_MinBiasMD:publish_throughput:
   <<: *publish_throughput_job_def
   <<: *scifi-v6-jobs-for-publish-throughput
+  <<: *active_branches
 
 scifiv6_test_physics_efficiency:
   <<: *test_phys_eff_job
