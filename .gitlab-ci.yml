@@ -117,7 +117,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - merge_requests
   stage: build
   script:
     - PREVIOUS_IFS=${IFS}
@@ -154,6 +153,7 @@ check-formatting:
       - build*/test/unit_tests/unit_tests
       - build*/test/unit_tests/*cmake
   retry: 2
+  needs: []
 
 docker_image:build:
   stage: build
@@ -551,10 +551,6 @@ CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
       
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
@@ -565,10 +561,6 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_te
   <<: *build_job_with_tests_def
   tags:
     - cvmfs
-  only:
-    refs:
-      - master
-      - web
 
 HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
@@ -968,7 +960,7 @@ throughput:hlt1_pp_default:geforcertx3090:minbias_mag_down_201907:publish_throug
 throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
-    - x86
+    - cvmfs
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - quadrortx6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
@@ -985,7 +977,7 @@ throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_through
 throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
-    - x86
+    - cvmfs
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
