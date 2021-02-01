@@ -17,20 +17,21 @@ __device__ void offsets(unsigned const* event_list,
 
 __global__ void calo_count_digits::calo_count_digits(
   calo_count_digits::Parameters parameters,
+  unsigned const n_events,
   const char* raw_ecal_geometry,
   const char* raw_hcal_geometry)
 {
   // ECal
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   offsets(parameters.dev_event_list,
-          parameters.dev_number_of_events[0],
+          n_events,
           parameters.dev_ecal_num_digits,
           ecal_geometry);
 
   // HCal
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
   offsets(parameters.dev_event_list,
-          parameters.dev_number_of_events[0],
+          n_events,
           parameters.dev_hcal_num_digits,
           hcal_geometry);
 
@@ -58,5 +59,5 @@ void calo_count_digits::calo_count_digits_t::operator()(
 
   global_function(calo_count_digits)(
     dim3(1), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
+      arguments, size<dev_event_list_t>(arguments), constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }

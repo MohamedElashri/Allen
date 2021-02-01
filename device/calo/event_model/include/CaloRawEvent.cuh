@@ -11,7 +11,7 @@ struct CaloRawEvent {
 
   // For Allen format
   __device__ CaloRawEvent(const char* events, const uint32_t* o)
-  : number_of_raw_banks{((uint32_t*) events)[0]},
+  : number_of_raw_banks{((uint32_t*) (events + o[0]))[0]},
     data{events},
     offsets{o}
   {

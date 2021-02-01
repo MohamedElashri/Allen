@@ -13,7 +13,7 @@ namespace calo_count_digits {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
   };
 
-  __global__ void calo_count_digits(Parameters parameters, const char* dev_ecal_geometry, const char* dev_hcal_geometry);
+  __global__ void calo_count_digits(Parameters parameters, unsigned const n_events, char const* dev_ecal_geometry, char const* dev_hcal_geometry);
 
   // Algorithm
   struct calo_count_digits_t : public DeviceAlgorithm, Parameters {
