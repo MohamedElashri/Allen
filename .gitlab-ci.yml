@@ -251,7 +251,6 @@ docker_image:build:
       - master
       - web
       - schedules
-      - merge_requests
   stage: test
   script:
     - TOPLEVEL=${PWD}
@@ -521,6 +520,7 @@ test_physics_efficiency:
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
     - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
+  <<: *active_branches
 
 test_run_changes:
   only:
@@ -721,15 +721,12 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 
 CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  <<: *active_branches
 
 CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  <<: *active_branches
 
 HIP:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  <<: *active_branches
 
 # ===
 # Run
@@ -822,7 +819,6 @@ geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_0
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 
 quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
@@ -831,7 +827,6 @@ quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_M
     - quadrortx6000
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 teslav100:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -839,7 +834,6 @@ teslav100:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBi
     - teslav100
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -847,7 +841,6 @@ geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_
     - geforcertx3080
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -855,7 +848,6 @@ geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_
     - geforcertx3090
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -863,7 +855,6 @@ x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBia
     - x862630v4
   needs:
     - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -871,7 +862,6 @@ epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBias
     - epyc7502
   needs:
     - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 
 # Physics efficiency runs
@@ -902,7 +892,6 @@ geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_0
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 
 x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
@@ -912,7 +901,6 @@ x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2Phi
     - x862630v4
   needs:
     - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-  <<: *active_branches
 
 
 
@@ -1166,7 +1154,7 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
     - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
     - epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
   tags:
-    - cvmfs
+    - x86
   artifacts:
     paths:
       - devices_throughputs.csv
@@ -1175,7 +1163,6 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
 throughput:hlt1_pp_scifi_v6:geforcertx3090:upgrade_DC19_01_MinBiasMD:publish_throughput:
   <<: *publish_throughput_job_def
   <<: *scifi-v6-jobs-for-publish-throughput
-  <<: *active_branches
 
 scifiv6_test_physics_efficiency:
   <<: *test_phys_eff_job
