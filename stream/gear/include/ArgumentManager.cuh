@@ -188,19 +188,18 @@ struct WrappedTuple<
                      is_base_of_v<aggregate_datatype, T>>> {
   using prev_parameters_and_properties_tuple_t =
     typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
-  using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
+  using parameters_and_properties_tuple_t = prepend_to_tuple_t<T, prev_parameters_and_properties_tuple_t>;
   using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
-  using parameters_tuple_t = typename TupleAppendFirst<T, prev_parameters_tuple_t>::t;
+  using parameters_tuple_t = prepend_to_tuple_t<T, prev_parameters_tuple_t>;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<std::tuple<T, R...>, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
   using prev_parameters_and_properties_tuple_t =
     typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
-  using parameters_and_properties_tuple_t =
-    typename ConcatTuple<typename T::type, prev_parameters_and_properties_tuple_t>::t;
+  using parameters_and_properties_tuple_t = cat_tuples_t<typename T::type, prev_parameters_and_properties_tuple_t>;
   using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
-  using parameters_tuple_t = typename ConcatTuple<typename T::type, prev_parameters_tuple_t>::t;
+  using parameters_tuple_t = cat_tuples_t<typename T::type, prev_parameters_tuple_t>;
 };
 
 template<typename T, typename... R>
@@ -209,7 +208,7 @@ struct WrappedTuple<
   std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
   using prev_parameters_and_properties_tuple_t =
     typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
-  using parameters_and_properties_tuple_t = typename TupleAppendFirst<T, prev_parameters_and_properties_tuple_t>::t;
+  using parameters_and_properties_tuple_t = prepend_to_tuple_t<T, prev_parameters_and_properties_tuple_t>;
   using parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
 };
 
