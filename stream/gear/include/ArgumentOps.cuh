@@ -184,13 +184,12 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     return v;
   }
 
-  template<typename T, typename U>
-  static void copy_vector(const Args& arguments, const Allen::Context&, const std::vector<T, U>& vector)
+  template<typename T>
+  static void copy(const Args& arguments, const Allen::Context& context, const gsl::span<T>& container)
   {
-    assert(size<Arg>(arguments) >= vector.size());
-    assert(sizeof(typename Arg::type) == sizeof(T));
-
-    Allen::memcpy(data<Arg>(arguments), vector.data(), vector.size() * sizeof(T), Allen::memcpyHostToHost);
+    const auto size_bytes = gsl::as_bytes(container);
+    assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
+    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
   }
 
   static void print(const Args& arguments)
@@ -224,14 +223,12 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     return v;
   }
 
-  template<typename T, typename U>
-  static void copy_vector(const Args& arguments, const Allen::Context& context, const std::vector<T, U>& vector)
+  template<typename T>
+  static void copy(const Args& arguments, const Allen::Context& context, const gsl::span<T>& container)
   {
-    assert(size<Arg>(arguments) >= vector.size());
-    assert(sizeof(typename Arg::type) == sizeof(T));
-
-    Allen::memcpy_async(
-      data<Arg>(arguments), vector.data(), vector.size() * sizeof(T), Allen::memcpyHostToHost, context);
+    const auto size_bytes = gsl::as_bytes(container);
+    assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
+    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
   }
 
   static void print(const Args& arguments)
@@ -449,6 +446,16 @@ void copy(
 }
 
 /**
+ * @brief Copies the contents of a data container to a datatype. The data container
+ * can be either a span or anything that can be automatically converted to a span. 
+ */
+template<typename Arg, typename Args, typename T>
+void copy(const Args& arguments, const Allen::Context& context, const gsl::span<T>& data_container)
+{
+  return SingleArgumentOverloadResolution<Arg, Args>::copy(arguments, context, data_container);
+}
+
+/**
  * @brief Transfer data to the device, populating raw banks and offsets.
  */
 template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
@@ -474,13 +481,4 @@ template<typename Arg, typename Args>
 auto make_vector(const Args& arguments, const Allen::Context& context)
 {
   return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments, context);
-}
-
-/**
- * @brief Copies the contents of a vector to a datatype.
- */
-template<typename Arg, typename Args, typename T, typename U>
-void copy_vector(const Args& arguments, const Allen::Context& context, const std::vector<T, U>& vector)
-{
-  return SingleArgumentOverloadResolution<Arg, Args>::copy_vector(arguments, context, vector);
 }
