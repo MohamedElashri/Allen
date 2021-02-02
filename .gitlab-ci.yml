@@ -799,13 +799,20 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
 
 
 ### SciFi v6 throughput jobs
-
-.scifi_v6_throughput_job: &scifi_v6_throughput_job
+.scifi_v6_throughput_job_data: &scifi_v6_throughput_job_data
   variables:
     # TODO: rename "Hackathon_AllenTests" to something more descriptive
     INPUT_FILES: "Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD/dump"
     GEOMETRY: "Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD/geometry"
+
+.scifi_v6_throughput_job: &scifi_v6_throughput_job
+  <<: *scifi_v6_throughput_job_data
   <<: *run_throughput_job_no_profiling_def
+
+.scifi_v6_throughput_job_profiling: &scifi_v6_throughput_job_profiling
+  <<: *scifi_v6_throughput_job_data
+  <<: *run_throughput_job_def
+
 
 .scifi_v6_efficiency_data: &scifi_v6_efficiency_data
   variables:
@@ -843,7 +850,7 @@ geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
-  <<: *scifi_v6_throughput_job
+  <<: *scifi_v6_throughput_job_profiling
   tags:
     - geforcertx3090
   needs:
