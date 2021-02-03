@@ -510,6 +510,9 @@ if(STANDALONE)
   #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
     string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
     -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "apple_silicon")
+  # Apple silicon
+    string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
   endif()
 endif()
 

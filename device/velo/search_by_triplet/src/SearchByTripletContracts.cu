@@ -73,7 +73,7 @@ void velo_search_by_triplet::track_container_checks::operator()(
   auto maximum_number_of_hits = true;
   auto no_repeated_hits = true;
 
-  for (const auto track : velo_tracks_container) {
+  for (const auto& track : velo_tracks_container) {
     maximum_number_of_hits &= track.hitsNum <= Velo::Constants::max_track_size;
 
     // Check repeated hits in the hits of the track

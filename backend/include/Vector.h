@@ -8,7 +8,7 @@
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdouble-promotion"
-#if __clang_major__ >= 10
+#if __clang_major__ >= 10 && !defined(__APPLE__)
 #pragma clang diagnostic ignored "-Wdeprecated-copy"
 #endif
 #elif __GNUC__ >= 8

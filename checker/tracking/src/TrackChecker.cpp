@@ -317,7 +317,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
       n_meas++;
       total_counter.n_velo++;
       const auto it_vec = mc_assoc.find_ids(id);
-      for (const auto it : it_vec) {
+      for (const auto& it : it_vec) {
         truth_counters[it->second].n_velo++;
       }
     }
@@ -325,7 +325,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
       n_meas++;
       total_counter.n_ut++;
       const auto it_vec = mc_assoc.find_ids(id);
-      for (const auto it : it_vec) {
+      for (const auto& it : it_vec) {
         truth_counters[it->second].n_ut++;
       }
     }
@@ -333,7 +333,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
       n_meas++;
       total_counter.n_scifi++;
       const auto it_vec = mc_assoc.find_ids(id);
-      for (const auto it : it_vec) {
+      for (const auto& it : it_vec) {
         truth_counters[it->second].n_scifi++;
       }
     }
