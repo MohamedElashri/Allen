@@ -20,10 +20,7 @@ namespace {
 
 namespace Utils {
 #ifdef __APPLE__
-  std::string hostname()
-  {
-    return "";
-  }
+  std::string hostname() { return ""; }
 #else
   std::string hostname()
   {
