@@ -26,8 +26,10 @@ namespace cpu_id {
 
   struct CpuID {
   private:
+#if !defined(__APPLE__) && defined(__x86_64__)
     unsigned m_level = 0;
-    std::array<uint32_t, cpu_id_register_size> m_registers;
+#endif
+    std::array<uint32_t, cpu_id_register_size> m_registers {0, 0, 0, 0};
 
   public:
     CpuID(const unsigned level);

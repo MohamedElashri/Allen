@@ -6,12 +6,14 @@
 namespace cpu_id {
   static std::unique_ptr<CpuID> cpu_id_instance;
 
+#if !defined(__APPLE__) && defined(__x86_64__)
   CpuID::CpuID(const unsigned level) : m_level(level)
   {
-#if !defined(__APPLE__) && defined(__x86_64__)
     __get_cpuid(m_level, &m_registers[0], &m_registers[1], &m_registers[2], &m_registers[3]);
-#endif
   }
+#else
+  CpuID::CpuID(const unsigned) {}
+#endif
 
   bool CpuID::supports_feature(const unsigned bit, const CpuIDRegister reg_index) const
   {
