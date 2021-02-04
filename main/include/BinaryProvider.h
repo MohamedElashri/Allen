@@ -30,7 +30,7 @@ namespace {
         files.emplace_back(std::move(file_it->second));
       }
       else {
-        auto [run, event] = file_it->first;
+        auto [run, event] = event_id;
         throw StrException {std::string {"file with event ID "} + std::to_string(run) + " " + std::to_string(event) +
                             " not found in " + folder};
       }
