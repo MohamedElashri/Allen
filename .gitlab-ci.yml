@@ -471,12 +471,27 @@ docker_image:build:
       SEQUENCE=${JOB_NAME_SPLIT[2]}
       LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
       DATA_TAG=${JOB_NAME_SPLIT[4]}
+      RUN_OPTIONS=""
+
+      # if a geometry folder is specified, pass it to Allen.
+      if [ ! -z ${GEOMETRY+x} ]; then
+        RUN_OPTIONS="$RUN_OPTIONS -g ${ALLEN_DATA}/${GEOMETRY}"
+      fi
+
+      # if INPUT_FILES is set, use that instead of $DATA_TAG
+      # otherwise, keep normal behaviour.
+      if [ ! -z ${INPUT_FILES+x} ]; then
+        RUN_OPTIONS="-f ${ALLEN_DATA}/${INPUT_FILES} ${RUN_OPTIONS}"
+      else
+        INPUT_FILES="${DATA_TAG}"
+        RUN_OPTIONS="-f ${ALLEN_DATA}/${DATA_TAG} ${RUN_OPTIONS}"
+      fi
 
       GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
       GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
       NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0"
-      RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0"
+      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0 ${RUN_OPTIONS}"
+      RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0 ${RUN_OPTIONS}"
       export PATH=$PATH:/usr/local/cuda/bin
 
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
@@ -486,8 +501,8 @@ docker_image:build:
       export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
       mkdir tmp
 
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen -f ${ALLEN_DATA}/${DATA_TAG} ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile --trace=cuda ./Allen -f ${ALLEN_DATA}/${DATA_TAG} ${RUN_PROFILER_OPTIONS}
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile --trace=cuda ./Allen ${RUN_PROFILER_OPTIONS}
     - nsys stats --report gpukernsum report1.qdrep -o allen_report
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ../output_${DEVICE_ID}
 
@@ -722,11 +737,15 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
 
+  <<: *active_branches
+
 CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
+  <<: *active_branches
 
 HIP:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
+  <<: *active_branches
 
 # ===
 # Run
@@ -801,26 +820,26 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
 ### SciFi v6 throughput jobs
 .scifi_v6_throughput_job_data: &scifi_v6_throughput_job_data
   variables:
-    # TODO: rename "Hackathon_AllenTests" to something more descriptive
-    INPUT_FILES: "Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD/dump"
-    GEOMETRY: "Hackathon_AllenTests/upgrade_DC19_01_MinBiasMD/geometry"
+    INPUT_FILES: "SciFiv6_upgrade_DC19_01_MinBiasMD"
+    GEOMETRY: "SciFiv6_upgrade_DC19_01_MinBiasMD_geom"
+  <<: *active_branches
 
 .scifi_v6_throughput_job: &scifi_v6_throughput_job
-  <<: *scifi_v6_throughput_job_data
   <<: *run_throughput_job_no_profiling_def
+  <<: *scifi_v6_throughput_job_data
 
 .scifi_v6_throughput_job_profiling: &scifi_v6_throughput_job_profiling
-  <<: *scifi_v6_throughput_job_data
   <<: *run_throughput_job_def
+  <<: *scifi_v6_throughput_job_data
 
 
 .scifi_v6_efficiency_data: &scifi_v6_efficiency_data
   variables:
-    INPUT_FILES: "Hackathon_AllenTests/upgrade_DC19_01_Bs2PhiPhiMD/dump"
-    GEOMETRY: "Hackathon_AllenTests/upgrade_DC19_01_Bs2PhiPhiMD/geometry"
+    INPUT_FILES: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD"
+    GEOMETRY: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_geom"
+  <<: *active_branches
 
-
-geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
     - geforcertx2080ti
@@ -828,42 +847,42 @@ geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_0
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 
-quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
+quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
     - quadrortx6000
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-teslav100:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
+teslav100:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
     - teslav100
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
+geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
     - geforcertx3080
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
+geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job_profiling
   tags:
     - geforcertx3090
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
+x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
     - x862630v4
   needs:
     - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput:
+epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
     - epyc7502
@@ -892,18 +911,18 @@ x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_20190
 
 # Efficiency for Sci
 
-geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
-  <<: *scifi_v6_efficiency_data
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
+  <<: *scifi_v6_efficiency_data
   tags:
     - geforcertx2080ti
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 
-x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
-  <<: *scifi_v6_efficiency_data
+x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
+  <<: *scifi_v6_efficiency_data
   tags:
     - x862630v4
   needs:
@@ -1153,13 +1172,13 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
 
 .scifi-v6-jobs-for-publish-throughput: &scifi-v6-jobs-for-publish-throughput
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
-    - quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
-    - teslav100:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
-    - geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
-    - geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
-    - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
-    - epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_MinBiasMD:run_throughput
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
+    - quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
+    - teslav100:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
+    - geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
+    - geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
+    - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
+    - epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
   tags:
     - x86
   artifacts:
@@ -1167,14 +1186,16 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
       - devices_throughputs.csv
     expire_in: 1 week
 
-throughput:hlt1_pp_scifi_v6:geforcertx3090:upgrade_DC19_01_MinBiasMD:publish_throughput:
+throughput:hlt1_pp_scifi_v6:geforcertx3090:SciFiv6_upgrade_DC19_01_MinBiasMD:publish_throughput:
   <<: *publish_throughput_job_def
   <<: *scifi-v6-jobs-for-publish-throughput
+  <<: *active_branches
 
 scifiv6_test_physics_efficiency:
   <<: *test_phys_eff_job
+  <<: *active_branches
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
 
 
