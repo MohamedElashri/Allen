@@ -490,8 +490,8 @@ docker_image:build:
       GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
       GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
       NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0 ${RUN_OPTIONS}"
       RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0 ${RUN_OPTIONS}"
+      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0 ${RUN_OPTIONS}"
       export PATH=$PATH:/usr/local/cuda/bin
 
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
@@ -821,7 +821,7 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
 .scifi_v6_throughput_job_data: &scifi_v6_throughput_job_data
   variables:
     INPUT_FILES: "SciFiv6_upgrade_DC19_01_MinBiasMD"
-    GEOMETRY: "SciFiv6_upgrade_DC19_01_MinBiasMD_geom"
+    GEOMETRY: "SciFiv6_upgrade_DC19_01_geom"
   <<: *active_branches
 
 .scifi_v6_throughput_job: &scifi_v6_throughput_job
@@ -836,7 +836,7 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
 .scifi_v6_efficiency_data: &scifi_v6_efficiency_data
   variables:
     INPUT_FILES: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD"
-    GEOMETRY: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_geom"
+    GEOMETRY: "SciFiv6_upgrade_DC19_01_geom"
   <<: *active_branches
 
 geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
