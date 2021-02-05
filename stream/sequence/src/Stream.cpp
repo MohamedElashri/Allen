@@ -49,15 +49,6 @@ Allen::error StreamWrapper::run_stream(const unsigned i, const unsigned buf_idx,
   return streams[i]->run_sequence(buf_idx, runtime_options);
 }
 
-void StreamWrapper::run_monte_carlo_test(
-  unsigned const i,
-  CheckerInvoker& invoker,
-  MCEvents const& mc_events,
-  std::vector<Checker::Tracks> const& forward_tracks)
-{
-  streams[i]->run_monte_carlo_test(invoker, mc_events, forward_tracks);
-}
-
 std::map<std::string, std::map<std::string, std::string>> StreamWrapper::get_algorithm_configuration()
 {
   return streams.front()->get_algorithm_configuration();
@@ -154,18 +145,4 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
   }
 
   return Allen::error::success;
-}
-
-void Stream::run_monte_carlo_test(
-  CheckerInvoker& invoker,
-  MCEvents const& mc_events,
-  std::vector<Checker::Tracks> const& forward_tracks)
-{
-  Sch::RunChecker<configured_sequence_t>::check(*host_buffers, constants, invoker, mc_events);
-
-  if (forward_tracks.size() > 0) {
-    info_cout << "Running test on imported tracks" << std::endl;
-    auto& checker = invoker.checker<TrackCheckerForward>("PrCheckerPlots.root");
-    checker.accumulate<TrackCheckerForward>(mc_events, forward_tracks);
-  }
 }

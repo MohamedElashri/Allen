@@ -72,7 +72,6 @@ public:
     std::vector<Checker::HistoCategory> histo_categories,
     CheckerInvoker const* invoker,
     std::string const& root_file,
-    std::string const& directory,
     bool print = false);
 
   // FIXME: required until nvcc supports C++17 and m_histos
@@ -83,11 +82,15 @@ public:
   void report(size_t n_events) const override;
 
   template<typename T>
-  void accumulate(const MCEvents& mc_events, const std::vector<Checker::Tracks>& tracks)
+  void accumulate(
+    const MCEvents& mc_events,
+    const std::vector<Checker::Tracks>& tracks,
+    const std::vector<unsigned>& event_list)
   {
-    for (size_t evnum = 0; evnum < tracks.size(); ++evnum) {
+    for (size_t i = 0; i < event_list.size(); ++i) {
+      const auto evnum = event_list[i];
+      const auto& event_tracks = tracks[i];
       const auto& mc_event = mc_events[evnum];
-      const auto& event_tracks = tracks[evnum];
 
       (*this)(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
 
@@ -134,15 +137,15 @@ public:
 
 struct TrackCheckerVelo : public TrackChecker {
   using subdetector_t = Checker::Subdetector::Velo;
-  TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file);
+  TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
 };
 
 struct TrackCheckerVeloUT : public TrackChecker {
   using subdetector_t = Checker::Subdetector::UT;
-  TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file);
+  TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
 };
 
 struct TrackCheckerForward : public TrackChecker {
   using subdetector_t = Checker::Subdetector::SciFi;
-  TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file);
+  TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
 };

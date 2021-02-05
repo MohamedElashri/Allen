@@ -113,7 +113,8 @@ target_link_libraries(Stream PRIVATE
   Examples
   HostDataProvider
   HostInitEventList
-  Backend)
+  Backend
+  Validators)
 
 # FIXME: this hack will not be needed once all upstream projects are migrated to new cmake configuration
 if (TARGET Gaudi::GaudiKernel)

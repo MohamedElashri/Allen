@@ -56,18 +56,12 @@ float eta_from_rho(const float rho)
   return z + 22756.f;
 }
 
-// Not very pretty, will be better once nvcc supports C++17
-std::string const Checker::Subdetector::Velo::name = "Velo";
-std::string const Checker::Subdetector::UT::name = "VeloUT";
-std::string const Checker::Subdetector::SciFi::name = "Forward";
-
 TrackChecker::TrackChecker(
   std::string name,
   std::vector<Checker::TrackEffReport> categories,
   std::vector<Checker::HistoCategory> histo_categories,
   CheckerInvoker const* invoker,
   std::string const& root_file,
-  std::string const& directory,
   bool print) :
   m_print {print},
   m_categories {std::move(categories)}, m_histo_categories {std::move(histo_categories)}, m_trackerName {
@@ -76,7 +70,7 @@ TrackChecker::TrackChecker(
   // FIXME: Need to use a forward declaration to keep all ROOT objects
   // out of headers that are compiled with CUDA until NVCC supports
   // C++17
-  m_histos = new TrackCheckerHistos {invoker, root_file, directory, m_histo_categories};
+  m_histos = new TrackCheckerHistos {invoker, root_file, name, m_histo_categories};
 }
 
 TrackChecker::~TrackChecker() { delete m_histos; }
@@ -559,20 +553,19 @@ void TrackChecker::operator()(
   m_ntrackstrigger += ntrackstriggerperevt;
 }
 
-TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file) :
-  TrackChecker {subdetector_t::name, Categories::Velo, Categories::VeloHisto, invoker, root_file, subdetector_t::name}
+TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name) :
+  TrackChecker {name, Categories::Velo, Categories::VeloHisto, invoker, root_file}
 {}
 
-TrackCheckerVeloUT::TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file) :
-  TrackChecker {subdetector_t::name, Categories::VeloUT, Categories::VeloUTHisto, invoker, root_file, "Upstream"}
+TrackCheckerVeloUT::TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name) :
+  TrackChecker {name, Categories::VeloUT, Categories::VeloUTHisto, invoker, root_file}
 {}
 
-TrackCheckerForward::TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file) :
-  TrackChecker {subdetector_t::name,
+TrackCheckerForward::TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name) :
+  TrackChecker {name,
                 Categories::Forward,
                 Categories::ForwardHisto,
                 invoker,
                 root_file,
-                subdetector_t::name,
                 true}
 {}

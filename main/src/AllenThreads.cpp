@@ -274,7 +274,8 @@ void run_stream(
          cpu_offload,
          mep_layout,
          inject_mem_fail,
-         mc_events});
+         mc_events,
+         checker_invoker});
 
       if (status == Allen::error::errorMemoryAllocation) {
         zmqSvc->send(control, "SPLIT", send_flags::sndmore);

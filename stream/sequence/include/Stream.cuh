@@ -70,11 +70,6 @@ struct Stream {
 
   void set_host_buffer_manager(HostBuffersManager* buffers_manager);
 
-  void run_monte_carlo_test(
-    CheckerInvoker& invoker,
-    MCEvents const& mc_events,
-    std::vector<Checker::Tracks> const& forward_tracks);
-
   Allen::error run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
   void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)

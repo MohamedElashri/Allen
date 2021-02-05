@@ -109,10 +109,10 @@ void CheckerInvoker::report(size_t n_events) const
   for (auto const& entry : m_report_order) {
     auto it = m_checkers.find(std::get<0>(entry));
     // Print stored header
-    info_cout << std::get<1>(entry) << std::endl;
+    info_cout << "\n" << std::get<1>(entry) << "\n";
     // Print report
     it->second->report(n_events);
-    info_cout << std::endl;
+    info_cout << "\n";
   }
 
 #ifdef WITH_ROOT
