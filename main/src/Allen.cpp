@@ -85,7 +85,6 @@ int allen(
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string json_constants_configuration_file = "Sequence.json";
 
-  std::string folder_name_imported_forward_tracks = "";
   unsigned number_of_slices = 0;
   unsigned number_of_buffers = 0;
   long number_of_events_requested = 0;
@@ -188,9 +187,6 @@ int allen(
     }
     else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
-    }
-    else if (flag_in({"i", "import-tracks"})) {
-      folder_name_imported_forward_tracks = arg;
     }
     else if (flag_in({"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
@@ -503,8 +499,7 @@ int allen(
                    do_check,
                    cpu_offload,
                    mep_layout,
-                   inject_mem_fail,
-                   folder_name_imported_forward_tracks},
+                   inject_mem_fail},
       std::move(check_control));
   };
 
@@ -765,7 +760,6 @@ int allen(
           auto& check_control = std::get<2>(streams[i]);
 
           if (do_check && check_control) {
-            zmqSvc->send(*check_control, folder_data + "/MC_info");
             auto success = zmqSvc->receive<bool>(*check_control);
             if (!success) {
               warning_cout << "Failed to load MC events.\n";
@@ -935,6 +929,7 @@ int allen(
         zmqSvc->send(socket, size_t(0), send_flags::sndmore);
         zmqSvc->send(socket, events_in_slice[*slice_index][0], send_flags::sndmore);
         zmqSvc->send(socket, *buffer_index);
+        zmqSvc->send(socket, folder_data + "/MC_info");
         stream_ready[processor_index] = false;
 
         if (logger::verbosity() >= logger::debug) {

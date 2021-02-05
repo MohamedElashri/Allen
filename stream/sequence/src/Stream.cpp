@@ -49,11 +49,6 @@ Allen::error StreamWrapper::run_stream(const unsigned i, const unsigned buf_idx,
   return streams[i]->run_sequence(buf_idx, runtime_options);
 }
 
-std::vector<bool> StreamWrapper::reconstructed_events(const unsigned i) const
-{
-  return streams[i]->reconstructed_events();
-}
-
 void StreamWrapper::run_monte_carlo_test(
   unsigned const i,
   CheckerInvoker& invoker,
@@ -159,15 +154,6 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
   }
 
   return Allen::error::success;
-}
-
-std::vector<bool> Stream::reconstructed_events() const
-{
-  std::vector<bool> mask(number_of_input_events, false);
-  for (unsigned i = 0; i < host_buffers->host_number_of_selected_events; ++i) {
-    mask[host_buffers->host_event_list[i]] = true;
-  }
-  return mask;
 }
 
 void Stream::run_monte_carlo_test(

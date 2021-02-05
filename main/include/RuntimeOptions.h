@@ -5,6 +5,7 @@
 
 #include <vector>
 #include "BankTypes.h"
+#include "MCEvent.h"
 
 // Forward declare IInputProvider to avoid including "InputProvider.h" from device code
 struct IInputProvider;
@@ -22,6 +23,7 @@ struct RuntimeOptions {
   bool cpu_offload;
   bool mep_layout;
   uint inject_mem_fail;
+  MCEvents mc_events;
 
   RuntimeOptions(
     IInputProvider const* ip,
@@ -31,11 +33,13 @@ struct RuntimeOptions {
     bool param_do_check,
     bool param_cpu_offload,
     bool param_mep_layout,
-    uint param_inject_mem_fail) :
+    uint param_inject_mem_fail,
+    MCEvents param_mc_events) :
     input_provider {ip},
     slice_index {index}, event_interval(param_event_interval),
     number_of_selected_events(std::get<1>(param_event_interval) - std::get<0>(param_event_interval)),
     number_of_repetitions(param_number_of_repetitions), do_check(param_do_check),
-    cpu_offload(param_cpu_offload), mep_layout {param_mep_layout}, inject_mem_fail {param_inject_mem_fail}
+    cpu_offload(param_cpu_offload), mep_layout {param_mep_layout}, inject_mem_fail {param_inject_mem_fail},
+    mc_events(param_mc_events)
   {}
 };

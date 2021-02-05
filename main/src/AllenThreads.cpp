@@ -213,8 +213,7 @@ void run_stream(
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
-  uint inject_mem_fail,
-  std::string folder_name_imported_forward_tracks)
+  uint inject_mem_fail)
 {
   Allen::set_device(device_id, stream_id);
 
@@ -237,6 +236,7 @@ void run_stream(
     size_t buf;
     size_t first;
     size_t last;
+    std::string mc_folder;
     if (items[0].revents & zmq::POLLIN) {
       command = zmqSvc->receive<std::string>(control);
       if (command == "DONE") {
@@ -250,10 +250,18 @@ void run_stream(
         first = zmqSvc->receive<size_t>(control);
         last = zmqSvc->receive<size_t>(control);
         buf = zmqSvc->receive<size_t>(control);
+        mc_folder = zmqSvc->receive<std::string>(control);
       }
     }
 
     if (idx) {
+      MCEvents mc_events;
+      if (do_check) {
+        // Get list of events that are in the slice
+        auto const& events = input_provider->event_ids(*idx, first, last);
+        mc_events = checker_invoker->load(mc_folder, events);
+      }
+
       // Run the stream
       auto status = wrapper->run_stream(
         stream_id,
@@ -265,7 +273,8 @@ void run_stream(
          do_check,
          cpu_offload,
          mep_layout,
-         inject_mem_fail});
+         inject_mem_fail,
+         mc_events});
 
       if (status == Allen::error::errorMemoryAllocation) {
         zmqSvc->send(control, "SPLIT", send_flags::sndmore);
@@ -281,31 +290,10 @@ void run_stream(
         zmqSvc->send(control, first, send_flags::sndmore);
         zmqSvc->send(control, buf);
         if (do_check && check_control) {
-          // Get list of events that are in the slice
-          auto const& events = input_provider->event_ids(*idx, first, last);
-
-          // synchronise to avoid threading issues with
-          // CheckerInvoker. The main thread will send the folder to
-          // only one stream at a time and will block until it receives
-          // the message that informs it the checker is done.
-          auto mc_folder = zmqSvc->receive<std::string>(*check_control);
-          auto mask = wrapper->reconstructed_events(stream_id);
-          auto mc_events = checker_invoker->load(mc_folder, events, mask);
-
           if (mc_events.empty()) {
             zmqSvc->send(*check_control, false);
           }
           else {
-            // Run the checker
-            std::vector<Checker::Tracks> forward_tracks;
-            if (!folder_name_imported_forward_tracks.empty()) {
-              std::vector<char> events_tracks;
-              std::vector<unsigned> event_tracks_offsets;
-              read_folder(folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
-              forward_tracks = read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
-            }
-
-            wrapper->run_monte_carlo_test(stream_id, *checker_invoker, mc_events, forward_tracks);
             zmqSvc->send(*check_control, true);
           }
         }

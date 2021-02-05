@@ -23,7 +23,6 @@ struct CheckerInvoker {
   MCEvents load(
     std::string const mc_folder,
     std::vector<std::tuple<unsigned, unsigned long>> const& events,
-    std::vector<bool> const& event_mask,
     std::string const tracks_folder = "tracks",
     std::string const pvs_folder = "PVs") const;
 

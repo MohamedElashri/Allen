@@ -70,8 +70,6 @@ struct Stream {
 
   void set_host_buffer_manager(HostBuffersManager* buffers_manager);
 
-  std::vector<bool> reconstructed_events() const;
-
   void run_monte_carlo_test(
     CheckerInvoker& invoker,
     MCEvents const& mc_events,
