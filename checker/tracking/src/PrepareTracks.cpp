@@ -24,14 +24,15 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   const std::vector<unsigned>& event_list)
 {
   /* Tracks to be checked, save in format for checker */
-  std::vector<Checker::Tracks> checker_tracks(event_list.size()); // all tracks from the selected events
+  std::vector<Checker::Tracks> checker_tracks(event_list.size());
   for (unsigned i = 0; i < event_list.size(); i++) {
     const auto event_number = event_list[i];
 
     // Tracks of this event
     auto& tracks = checker_tracks[i];
 
-    Velo::Consolidated::ConstTracks velo_tracks {track_atomics.data(), track_hit_number.data(), event_number, number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {
+      track_atomics.data(), track_hit_number.data(), event_number, number_of_events};
     const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
     tracks.resize(number_of_tracks_event);
 
@@ -62,7 +63,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
   const std::vector<float>& ut_qop,
   const std::vector<unsigned>& event_list)
 {
-  std::vector<Checker::Tracks> checker_tracks (event_list.size()); // all tracks from the selected events
+  std::vector<Checker::Tracks> checker_tracks(event_list.size());
   for (unsigned i = 0; i < event_list.size(); i++) {
     const auto event_number = event_list[i];
 
@@ -74,7 +75,12 @@ std::vector<Checker::Tracks> prepareUTTracks(
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states.data(), velo_tracks.total_number_of_tracks()};
     const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
     UT::Consolidated::ConstExtendedTracks ut_tracks {
-      ut_track_atomics.data(), ut_track_hit_number.data(), ut_qop.data(), ut_track_velo_indices.data(), event_number, number_of_events};
+      ut_track_atomics.data(),
+      ut_track_hit_number.data(),
+      ut_qop.data(),
+      ut_track_velo_indices.data(),
+      event_number,
+      number_of_events};
     const unsigned number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
     tracks.resize(number_of_tracks_event);
 
@@ -113,57 +119,54 @@ std::vector<Checker::Tracks> prepareUTTracks(
   return checker_tracks;
 }
 
-std::vector<Checker::Tracks> prepareSciFiTracks(
-  const unsigned* velo_track_atomics,
-  const unsigned* velo_track_hit_number,
-  const char* velo_track_hits,
-  const char* kalman_velo_states,
-  const unsigned* ut_track_atomics,
-  const unsigned* ut_track_hit_number,
-  const char* ut_track_hits,
-  const unsigned* ut_track_velo_indices,
-  const float* ut_qop,
-  const unsigned* scifi_track_atomics,
-  const unsigned* scifi_track_hit_number,
-  const char* scifi_track_hits,
-  const unsigned* scifi_track_ut_indices,
-  const float* scifi_qop,
-  const MiniState* scifi_states,
-  const char* scifi_geometry,
-  const std::array<float, 9>&,
-  const float* muon_catboost_output,
-  const bool* is_muon,
+std::vector<Checker::Tracks> prepareForwardTracks(
   const unsigned number_of_events,
-  const unsigned event_list_size,
-  const unsigned* event_list)
+  const std::vector<unsigned>& velo_track_atomics,
+  const std::vector<unsigned>& velo_track_hit_number,
+  const std::vector<char>& velo_track_hits,
+  const std::vector<char>& kalman_velo_states,
+  const std::vector<unsigned>& ut_track_atomics,
+  const std::vector<unsigned>& ut_track_hit_number,
+  const std::vector<char>& ut_track_hits,
+  const std::vector<unsigned>& ut_track_velo_indices,
+  const std::vector<float>& ut_qop,
+  const std::vector<unsigned>& scifi_track_atomics,
+  const std::vector<unsigned>& scifi_track_hit_number,
+  const std::vector<char>& scifi_track_hits,
+  const std::vector<unsigned>& scifi_track_ut_indices,
+  const std::vector<float>& scifi_qop,
+  const std::vector<MiniState>& scifi_states,
+  const char* scifi_geometry,
+  const std::vector<unsigned>& event_list)
 {
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
-  std::vector<Checker::Tracks> checker_tracks; // all tracks from the selected events
-  int n_is_muon = 0;
-  int n_total_tracks = 0;
+  std::vector<Checker::Tracks> checker_tracks(event_list.size());
   float n_hits_per_track_events = 0;
 
-  checker_tracks.reserve(event_list_size);
-  for (unsigned i = 0; i < event_list_size; i++) {
+  for (unsigned i = 0; i < event_list.size(); i++) {
     const auto event_number = event_list[i];
-    Checker::Tracks tracks; // all tracks within one event
+
+    // Tracks of this event
+    auto& tracks = checker_tracks[i];
 
     Velo::Consolidated::ConstTracks velo_tracks {
-      velo_track_atomics, velo_track_hit_number, event_number, number_of_events};
-    Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
+      velo_track_atomics.data(), velo_track_hit_number.data(), event_number, number_of_events};
+    Velo::Consolidated::ConstStates velo_states {kalman_velo_states.data(), velo_tracks.total_number_of_tracks()};
     const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
     UT::Consolidated::ConstExtendedTracks ut_tracks {
-      ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, event_number, number_of_events};
+      ut_track_atomics.data(), ut_track_hit_number.data(), ut_qop.data(), ut_track_velo_indices.data(), event_number, number_of_events};
 
-    SciFi::Consolidated::ConstTracks scifi_tracks {scifi_track_atomics,
-                                                   scifi_track_hit_number,
-                                                   scifi_qop,
-                                                   scifi_states,
-                                                   scifi_track_ut_indices,
-                                                   event_number,
-                                                   number_of_events};
+    SciFi::Consolidated::ConstTracks scifi_tracks {
+      scifi_track_atomics.data(),
+      scifi_track_hit_number.data(),
+      scifi_qop.data(),
+      scifi_states.data(),
+      scifi_track_ut_indices.data(),
+      event_number,
+      number_of_events};
+
     const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
-    const unsigned event_offset = scifi_tracks.tracks_offset(event_number);
+    tracks.resize(number_of_tracks_event);
 
     float n_hits_per_track = 0;
 
@@ -173,7 +176,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       const auto velo_state_index = velo_event_tracks_offset + velo_track_index;
       const auto velo_state = velo_states.get(velo_state_index);
 
-      Checker::Track t;
+      auto& t = tracks[i_track];
 
       // momentum
       const float qop = scifi_tracks.qop(i_track);
@@ -189,7 +192,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       t.eta = eta_from_rho(rho);
 
       // add SciFi hits
-      const auto scifi_lhcb_ids = scifi_tracks.get_lhcbids_for_track(scifi_track_hits, i_track);
+      const auto scifi_lhcb_ids = scifi_tracks.get_lhcbids_for_track(scifi_track_hits.data(), i_track);
       for (const auto id : scifi_lhcb_ids) {
         t.addId(id);
       }
@@ -197,40 +200,28 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       n_hits_per_track += scifi_tracks.number_of_hits(i_track);
 
       // add UT hits
-      const auto ut_lhcb_ids = ut_tracks.get_lhcbids_for_track(ut_track_hits, ut_track_index);
+      const auto ut_lhcb_ids = ut_tracks.get_lhcbids_for_track(ut_track_hits.data(), ut_track_index);
       for (const auto id : ut_lhcb_ids) {
         t.addId(id);
       }
 
       // add Velo hits
-      const auto velo_lhcb_ids = velo_tracks.get_lhcbids_for_track(velo_track_hits, velo_track_index);
+      const auto velo_lhcb_ids = velo_tracks.get_lhcbids_for_track(velo_track_hits.data(), velo_track_index);
       for (const auto id : velo_lhcb_ids) {
         t.addId(id);
       }
-
-      // add muon information
-      t.muon_catboost_output = muon_catboost_output[event_offset + i_track];
-      t.is_muon = is_muon[event_offset + i_track];
-
-      if (t.is_muon) n_is_muon++;
-
-      n_total_tracks++;
-
-      tracks.push_back(t);
     } // tracks
+
     if (number_of_tracks_event > 0) {
       n_hits_per_track /= number_of_tracks_event;
       n_hits_per_track_events += n_hits_per_track;
     }
-
-    checker_tracks.emplace_back(tracks);
   }
+
   if (number_of_events > 0) {
     n_hits_per_track_events /= number_of_events;
     debug_cout << "Average number of hits on SciFi segment of tracks = " << n_hits_per_track_events << std::endl;
   }
-
-  debug_cout << "Number of tracks with is_muon true = " << n_is_muon << " / " << n_total_tracks << std::endl;
 
   return checker_tracks;
 }

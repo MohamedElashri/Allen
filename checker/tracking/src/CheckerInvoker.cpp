@@ -112,7 +112,6 @@ void CheckerInvoker::report(size_t n_events) const
     info_cout << "\n" << std::get<1>(entry) << "\n";
     // Print report
     it->second->report(n_events);
-    info_cout << "\n";
   }
 
 #ifdef WITH_ROOT

@@ -213,7 +213,8 @@ void run_stream(
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
-  uint inject_mem_fail)
+  uint inject_mem_fail,
+  const std::string& mc_folder)
 {
   Allen::set_device(device_id, stream_id);
 
@@ -236,7 +237,6 @@ void run_stream(
     size_t buf;
     size_t first;
     size_t last;
-    std::string mc_folder;
     if (items[0].revents & zmq::POLLIN) {
       command = zmqSvc->receive<std::string>(control);
       if (command == "DONE") {
@@ -250,7 +250,6 @@ void run_stream(
         first = zmqSvc->receive<size_t>(control);
         last = zmqSvc->receive<size_t>(control);
         buf = zmqSvc->receive<size_t>(control);
-        mc_folder = zmqSvc->receive<std::string>(control);
       }
     }
 
@@ -290,6 +289,7 @@ void run_stream(
         zmqSvc->send(control, *idx, send_flags::sndmore);
         zmqSvc->send(control, first, send_flags::sndmore);
         zmqSvc->send(control, buf);
+        
         if (do_check && check_control) {
           if (mc_events.empty()) {
             zmqSvc->send(*check_control, false);

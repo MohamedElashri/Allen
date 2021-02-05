@@ -4,8 +4,8 @@
 #pragma once
 
 #include <memory>
-#include "TrackChecker.h"
 #include "ROOTHeaders.h"
+#include "CheckerInvoker.h"
 
 struct TrackCheckerHistos {
 #ifdef WITH_ROOT

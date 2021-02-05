@@ -499,7 +499,8 @@ int allen(
                    do_check,
                    cpu_offload,
                    mep_layout,
-                   inject_mem_fail},
+                   inject_mem_fail,
+                   folder_data + "/MC_info"},
       std::move(check_control));
   };
 
@@ -929,7 +930,6 @@ int allen(
         zmqSvc->send(socket, size_t(0), send_flags::sndmore);
         zmqSvc->send(socket, events_in_slice[*slice_index][0], send_flags::sndmore);
         zmqSvc->send(socket, *buffer_index);
-        zmqSvc->send(socket, folder_data + "/MC_info");
         stream_ready[processor_index] = false;
 
         if (logger::verbosity() >= logger::debug) {
