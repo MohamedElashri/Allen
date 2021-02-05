@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
       }
     }
   }
+  long_options.push_back({nullptr, 0, nullptr, 0});
 
   int option_index = 0;
   signed char c;
