@@ -9,11 +9,20 @@ namespace {
 } // namespace
 #endif
 
-PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
+PVCheckerHistos::PVCheckerHistos(
+  CheckerInvoker const* invoker,
+  std::string const& root_file,
+  std::string const& directory) :
+  m_directory {directory}
 {
 #ifdef WITH_ROOT
   m_file = invoker->root_file(root_file);
-  m_file->cd();
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  if (!dir) {
+    dir = m_file->mkdir(m_directory.c_str());
+    dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  }
+  dir->cd();
 
   eff_vs_z = std::make_unique<TH1F>("eff_vs_z", "eff_vs_z", m_bins_norm_z, -300, 300);
   eff_matched_vs_z = std::make_unique<TH1F>("eff_matched_z", "eff_matched_z", m_bins_norm_z, -300, 300);
@@ -195,17 +204,18 @@ void PVCheckerHistos::write()
 {
 #ifdef WITH_ROOT
   m_file->cd();
-  std::tuple to_write {std::ref(m_tree),
-                       std::ref(m_mctree),
-                       std::ref(m_allPV),
-                       std::ref(eff_vs_z),
-                       std::ref(eff_vs_mult),
-                       std::ref(eff_matched_vs_z),
-                       std::ref(eff_matched_vs_mult),
-                       std::ref(eff_norm_z),
-                       std::ref(eff_norm_mult),
-                       std::ref(fakes_vs_mult),
-                       std::ref(fakes_norm)};
+  std::tuple to_write {
+    std::ref(m_tree),
+    std::ref(m_mctree),
+    std::ref(m_allPV),
+    std::ref(eff_vs_z),
+    std::ref(eff_vs_mult),
+    std::ref(eff_matched_vs_z),
+    std::ref(eff_matched_vs_mult),
+    std::ref(eff_norm_z),
+    std::ref(eff_norm_mult),
+    std::ref(fakes_vs_mult),
+    std::ref(fakes_norm)};
   for_each(to_write, [this](auto& o) {
     o.get()->SetDirectory(nullptr);
     m_file->WriteTObject(o.get().get());

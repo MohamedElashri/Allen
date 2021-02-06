@@ -8,13 +8,11 @@
 class PVCheckerHistos {
 public:
 #ifdef WITH_ROOT
-
   TFile* m_file;
+#endif
   std::string const m_directory;
 
-#endif
-
-  PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file);
+  PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file, std::string const& directory);
 
   void accumulate(
     std::vector<RecPVInfo> const& vec_all_rec,

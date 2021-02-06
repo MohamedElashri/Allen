@@ -30,16 +30,15 @@ public:
     static std::string const name;
   };
 
-  PVChecker(CheckerInvoker const* invoker, std::string const& root_file);
+  PVChecker(CheckerInvoker const* invoker, std::string const& root_file, std::string const& name);
 
   virtual ~PVChecker();
 
   void accumulate(
     MCEvents const& mc_events,
-    PV::Vertex* rec_vertex,
-    int* number_of_vertex,
-    const unsigned event_list_size,
-    const unsigned* event_list);
+    const std::vector<PV::Vertex>& rec_vertex,
+    const std::vector<unsigned>& number_of_vertex,
+    const std::vector<unsigned>& event_list);
 
   void report(size_t n_events) const override;
 
