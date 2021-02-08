@@ -9,7 +9,7 @@ from definitions.MuonSequence import MuonSequence
 from definitions.HLT1Sequence import HLT1Sequence
 from definitions.algorithms import compose_sequences, Sequence, mc_data_provider_t, \
     host_velo_validator_t, host_velo_ut_validator_t, host_forward_validator_t, \
-    host_pv_validator_t
+    host_pv_validator_t, host_rate_validator_t
 
 velo_sequence = VeloSequence()
 
@@ -118,11 +118,18 @@ host_pv_validator = host_pv_validator_t(name="host_pv_validator",
     dev_multi_final_vertices_t=pv_sequence["pv_beamline_cleanup"].dev_multi_final_vertices_t(),
     dev_number_of_multi_final_vertices_t=pv_sequence["pv_beamline_cleanup"].dev_number_of_multi_final_vertices_t())
 
-velo_validation = Sequence(mc_data_provider, host_velo_validator, host_velo_ut_validator, host_forward_validator,
-    host_pv_validator)
+host_rate_validator = host_rate_validator_t(name="host_rate_validator",
+    host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
+    host_names_of_lines_t=hlt1_sequence["gather_selections"].host_names_of_active_lines_t(),
+    host_number_of_active_lines_t=hlt1_sequence["gather_selections"].host_number_of_active_lines_t(),
+    dev_selections_t=hlt1_sequence["gather_selections"].dev_selections_t(),
+    dev_selections_offsets_t=hlt1_sequence["gather_selections"].dev_selections_offsets_t())
+
+validation_sequence = Sequence(mc_data_provider, host_velo_validator, host_velo_ut_validator, host_forward_validator,
+    host_pv_validator, host_rate_validator)
 
 my_sequence = compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
-                  muon_sequence, hlt1_sequence, velo_validation)
+                  muon_sequence, hlt1_sequence, validation_sequence)
 
 print(my_sequence)
 my_sequence.generate()

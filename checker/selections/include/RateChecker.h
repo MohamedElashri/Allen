@@ -27,20 +27,16 @@ private:
   unsigned m_tot;
 
 public:
-  struct RateTag {
-    static std::string const name;
-  };
-
-  using subdetector_t = RateTag;
-
-  RateChecker(CheckerInvoker const*, std::string const&) { m_tot = 0; }
+  RateChecker(CheckerInvoker const*, std::string const&, std::string const&) {
+    m_tot = 0;
+  }
 
   virtual ~RateChecker() = default;
 
   void accumulate(
     const std::vector<std::string>& names_of_lines,
-    const gsl::span<bool>& selections,
-    const gsl::span<unsigned>& selections_offsets,
+    const std::vector<Allen::bool_as_char_t<bool>>& selections,
+    const std::vector<unsigned>& selections_offsets,
     const unsigned number_of_events);
 
   void report(const size_t requested_events) const override;
