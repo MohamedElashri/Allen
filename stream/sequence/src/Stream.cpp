@@ -4,14 +4,6 @@
 #include "Stream.cuh"
 #include "StreamWrapper.cuh"
 
-// Include the sequence checker specializations
-#include "VeloSequenceCheckers_impl.cuh"
-#include "UTSequenceCheckers_impl.cuh"
-#include "SciFiSequenceCheckers_impl.cuh"
-#include "PVSequenceCheckers_impl.cuh"
-#include "KalmanSequenceCheckers_impl.cuh"
-#include "RateCheckers_impl.cuh"
-
 StreamWrapper::StreamWrapper() {}
 
 void StreamWrapper::initialize_streams(

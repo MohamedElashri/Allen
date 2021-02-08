@@ -21,7 +21,6 @@
 #include "EstimateInputSize.cuh"
 #include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"
-#include "SequenceVisitor.cuh"
 #include "SchedulerMachinery.cuh"
 #include "Scheduler.cuh"
 #include "CheckerInvoker.h"

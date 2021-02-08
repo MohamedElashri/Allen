@@ -263,19 +263,4 @@ namespace Sch {
     using preconditions = typename recursive_contracts::preconditions;
     using postconditions = append_to_tuple_t<typename recursive_contracts::postconditions, A>;
   };
-
-  /**
-   * @brief Runs the PrChecker for all configured algorithms in the sequence.
-   */
-  template<typename ConfiguredSequence>
-  struct RunChecker;
-
-  template<typename... Algorithm>
-  struct RunChecker<std::tuple<Algorithm...>> {
-    template<typename... Arguments>
-    constexpr static void check(Arguments&&... arguments)
-    {
-      (SequenceVisitor<Algorithm>::check(std::forward<Arguments>(arguments)...), ...);
-    }
-  };
 } // namespace Sch
