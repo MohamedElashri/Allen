@@ -21,17 +21,14 @@ class TFile;
 
 class KalmanChecker : public Checker::BaseChecker {
 public:
-  struct KalmanTag {
-    static std::string const name;
-  };
-
-  using subdetector_t = KalmanTag;
-
-  KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file);
+  KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
 
   virtual ~KalmanChecker() = default;
 
-  void accumulate(MCEvents const& mc_events, std::vector<Checker::Tracks> const& tracks);
+  void accumulate(
+    MCEvents const& mc_events,
+    std::vector<Checker::Tracks> const& tracks,
+    const std::vector<unsigned>& event_list);
 
   void report(size_t n_events) const override;
 

@@ -108,8 +108,11 @@ void CheckerInvoker::report(size_t n_events) const
 {
   for (auto const& entry : m_report_order) {
     auto it = m_checkers.find(std::get<0>(entry));
-    // Print stored header
-    info_cout << "\n" << std::get<1>(entry) << "\n";
+    // Print stored header if it is not empty
+    const auto header = std::get<1>(entry);
+    if (!header.empty()) {
+      info_cout << "\n" << std::get<1>(entry) << "\n";
+    }
     // Print report
     it->second->report(n_events);
   }

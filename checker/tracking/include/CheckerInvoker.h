@@ -30,9 +30,9 @@ struct CheckerInvoker {
   TFile* root_file(std::string const& file = std::string {}) const;
 
   template<typename T>
-  T& checker(std::string const& name, std::string const& root_file = std::string {}) const
+  T& checker(std::string const& name, std::string const& root_file = std::string {}, bool print_header = true) const
   {
-    const auto header = name + " validation:";
+    const auto header = print_header ? name + " validation:" : "";
     auto it = m_checkers.find(name);
     if (it == m_checkers.end()) {
       auto r = m_checkers.emplace(name, std::unique_ptr<Checker::BaseChecker> {new T {this, root_file, name}});
