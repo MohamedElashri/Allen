@@ -2,7 +2,6 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include <cstdio>
-
 #include <KalmanChecker.h>
 #include <ROOTHeaders.h>
 
@@ -60,6 +59,7 @@ void KalmanChecker::accumulate(
   std::vector<Checker::Tracks> const& tracks,
   const std::vector<unsigned>& event_list)
 {
+  std::lock_guard<std::mutex> guard(m_mutex);
   for (size_t i = 0; i < event_list.size(); ++i) {
     const auto evnum = event_list[i];
     const auto& event_tracks = tracks[i];

@@ -7,6 +7,7 @@
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
 #include "BackendCommon.h"
+#include <mutex>
 
 void checkHlt1Rate(
   const bool* decisions,
@@ -25,6 +26,7 @@ private:
   std::vector<unsigned> m_counters;
   std::vector<std::string> m_line_names;
   unsigned m_tot;
+  std::mutex m_mutex;
 
 public:
   RateChecker(CheckerInvoker const*, std::string const&, std::string const&) {

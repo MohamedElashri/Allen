@@ -11,8 +11,8 @@
 #include <CheckerInvoker.h>
 #include <MCEvent.h>
 #include <MCVertex.h>
-
 #include <algorithm>
+#include <mutex>
 
 // configuration for PV checker -> check values
 static constexpr int nTracksToBeRecble = 4;
@@ -43,6 +43,7 @@ public:
   void report(size_t n_events) const override;
 
 private:
+  std::mutex m_mutex;
   PVCheckerHistos* m_histos = nullptr;
 
   size_t passed = 0;

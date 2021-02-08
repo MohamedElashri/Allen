@@ -9,6 +9,7 @@
 #include "CheckerTypes.h"
 #include "MCEvent.h"
 #include "InputTools.h"
+#include <mutex>
 
 class TFile;
 
@@ -27,11 +28,13 @@ struct CheckerInvoker {
     std::string const pvs_folder = "PVs") const;
 
   void report(size_t n_events) const;
+
   TFile* root_file(std::string const& file = std::string {}) const;
 
   template<typename T>
   T& checker(std::string const& name, std::string const& root_file = std::string {}, bool print_header = true) const
   {
+    std::lock_guard<std::mutex> guard(m_mutex);
     const auto header = print_header ? name + " validation:" : "";
     auto it = m_checkers.find(name);
     if (it == m_checkers.end()) {
@@ -43,6 +46,7 @@ struct CheckerInvoker {
   }
 
 private:
+  std::mutex mutable m_mutex;
   bool m_check_events = false;
   std::string const m_output_dir;
   std::map<std::string, std::unique_ptr<Checker::BaseChecker>> mutable m_checkers;

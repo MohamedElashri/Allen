@@ -20,6 +20,7 @@ void PVChecker::accumulate(
   const std::vector<unsigned>& number_of_vertex,
   const std::vector<unsigned>& event_list)
 {
+  std::lock_guard<std::mutex> guard(m_mutex);
   passed += event_list.size();
 
   std::vector<RecPVInfo> vec_all_rec;

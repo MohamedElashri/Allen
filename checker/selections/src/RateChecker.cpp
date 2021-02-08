@@ -12,6 +12,7 @@ void RateChecker::accumulate(
   const std::vector<unsigned>& selections_offsets,
   const unsigned number_of_events)
 {
+  std::lock_guard<std::mutex> guard(m_mutex);
   const auto number_of_lines = names_of_lines.size();
   if (!m_counters.size()) {
     m_line_names = names_of_lines;

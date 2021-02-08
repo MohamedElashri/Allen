@@ -27,15 +27,18 @@
 #include "CheckerTypes.h"
 #include "CheckerInvoker.h"
 #include "MCEvent.h"
-
 #include "ROOTHeaders.h"
 #include "TrackCheckerHistos.h"
 #include "TrackCheckerCategories.h"
+#include <mutex>
 
 float eta_from_rho(const float rho);
 
 template<typename T>
 class TrackChecker : public Checker::BaseChecker {
+private:
+  std::mutex m_mutex;
+
 protected:
   std::vector<Checker::TrackEffReport> m_categories;
   std::vector<Checker::HistoCategory> m_histo_categories;
@@ -81,12 +84,14 @@ public:
 
   void report(size_t) const override
   {
-    std::printf(
-      "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
-      "TrackChecker output",
-      m_nghosts,
-      m_ntracks,
-      (100.0 * static_cast<double>(m_nghosts)) / (static_cast<double>(m_ntracks)));
+    if (!std::is_same_v<T, Checker::Subdetector::Muon>) {
+      std::printf(
+        "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
+        "TrackChecker output",
+        m_nghosts,
+        m_ntracks,
+        (100.0 * static_cast<double>(m_nghosts)) / (static_cast<double>(m_ntracks)));
+    }
 
     if (std::is_same_v<T, Checker::Subdetector::SciFi>) {
       std::printf(
@@ -160,6 +165,7 @@ public:
     const std::vector<Checker::Tracks>& tracks,
     const std::vector<unsigned>& event_list)
   {
+    std::lock_guard<std::mutex> guard(m_mutex);
     for (size_t i = 0; i < event_list.size(); ++i) {
       const auto evnum = event_list[i];
       const auto& event_tracks = tracks[i];

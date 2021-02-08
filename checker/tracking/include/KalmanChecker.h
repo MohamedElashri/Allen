@@ -13,8 +13,8 @@
 #include <CheckerInvoker.h>
 #include <MCAssociator.h>
 #include <MCEvent.h>
-
 #include <algorithm>
+#include <mutex>
 
 class TTree;
 class TFile;
@@ -38,6 +38,7 @@ private:
   TFile* m_file = nullptr;
 #endif
 
+  std::mutex m_mutex;
   float m_trk_z = 0.f;
   float m_trk_x = 0.f;
   float m_trk_y = 0.f;
