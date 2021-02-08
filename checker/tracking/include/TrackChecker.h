@@ -30,16 +30,15 @@
 
 #include "ROOTHeaders.h"
 #include "TrackCheckerHistos.h"
+#include "TrackCheckerCategories.h"
 
 float eta_from_rho(const float rho);
 
+template<typename T>
 class TrackChecker : public Checker::BaseChecker {
 protected:
-  bool m_print = false;
-
   std::vector<Checker::TrackEffReport> m_categories;
   std::vector<Checker::HistoCategory> m_histo_categories;
-  std::string m_trackerName = "";
 
   const float m_minweight = 0.7f;
   std::size_t m_nevents = 0;
@@ -66,21 +65,96 @@ protected:
 
 public:
   TrackChecker(
-    std::string name,
-    std::vector<Checker::TrackEffReport> categories,
-    std::vector<Checker::HistoCategory> histo_categories,
     CheckerInvoker const* invoker,
     std::string const& root_file,
-    bool print = false);
+    std::string const& name) :
+    m_categories {Categories::make_track_eff_report_vector<T>()},
+    m_histo_categories {Categories::make_histo_category_vector<T>()}
+  {
+    // FIXME: Need to use a forward declaration to keep all ROOT objects
+    // out of headers that are compiled with CUDA until NVCC supports
+    // C++17
+    m_histos = new TrackCheckerHistos {invoker, root_file, name, m_histo_categories};
+  }
 
-  // FIXME: required until nvcc supports C++17 and m_histos
-  virtual ~TrackChecker();
+  ~TrackChecker() { delete m_histos; }
 
-  std::string const& name() { return m_trackerName; }
+  void report(size_t) const override
+  {
+    std::printf(
+      "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
+      "TrackChecker output",
+      m_nghosts,
+      m_ntracks,
+      (100.0 * static_cast<double>(m_nghosts)) / (static_cast<double>(m_ntracks)));
 
-  void report(size_t n_events) const override;
+    if (std::is_same_v<T, Checker::Subdetector::SciFi>) {
+      std::printf(
+        "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
+        "for P>3GeV,Pt>0.5GeV",
+        m_nghoststrigger,
+        m_ntrackstrigger,
+        100.0 * static_cast<double>(m_nghoststrigger) / static_cast<double>(m_ntrackstrigger));
+    }
 
-  template<typename T>
+    for (auto const& report : m_categories) {
+      report.report();
+    }
+
+    if (std::is_same_v<T, Checker::Subdetector::Muon>) {
+      if (n_matched_muons > 0) {
+        // std::printf("Total number of tracks matched to an MCP = %lu, non muon MCPs = %lu, muon MCPs = %lu, total =
+        // %lu \n", m_n_tracks_matched_to_MCP, n_matched_not_muons, n_matched_muons,
+        // n_matched_muons+n_matched_not_muons);
+        std::printf(
+          "Muon fraction in all MCPs:                                          %9lu/%9lu %6.2f%% \n",
+          m_n_MCPs_muon,
+          m_n_MCPs_not_muon + m_n_MCPs_muon,
+          static_cast<double>(m_n_MCPs_muon) / (m_n_MCPs_not_muon + m_n_MCPs_muon));
+        std::printf(
+          "Muon fraction in MCPs to which a track(s) was matched:              %9lu/%9lu %6.2f%% \n",
+          n_matched_muons,
+          n_matched_muons + n_matched_not_muons,
+          static_cast<double>(n_matched_muons) / (n_matched_muons + n_matched_not_muons));
+        std::printf(
+          "Correctly identified muons with isMuon:                             %9lu/%9lu %6.2f%% \n",
+          n_is_muon_true,
+          n_matched_muons,
+          100 * static_cast<double>(n_is_muon_true) / static_cast<double>(n_matched_muons));
+        std::printf(
+          "Correctly identified muons from strange decays with isMuon:         %9lu/%9lu %6.2f%% \n",
+          n_is_muon_true_fromS,
+          n_matched_muons_fromS,
+          100 * static_cast<double>(n_is_muon_true_fromS) / static_cast<double>(n_matched_muons_fromS));
+        std::printf(
+          "Correctly identified muons from B decays with isMuon:               %9lu/%9lu %6.2f%% \n",
+          n_is_muon_true_fromB,
+          n_matched_muons_fromB,
+          100 * static_cast<double>(n_is_muon_true_fromB) / static_cast<double>(n_matched_muons_fromB));
+      }
+      if (n_matched_not_muons > 0) {
+        std::printf(
+          "Tracks identified as muon with isMuon, but matched to non-muon MCP: %9lu/%9lu %6.2f%% \n",
+          n_is_muon_misID,
+          n_matched_not_muons,
+          100 * static_cast<double>(n_is_muon_misID) / static_cast<double>(n_matched_not_muons));
+      }
+      if (m_nghosts > 0) {
+        std::printf(
+          "Ghost tracks identified as muon with isMuon:                        %9lu/%9lu %6.2f%% \n",
+          n_is_muon_ghost,
+          m_nghosts,
+          100 * static_cast<double>(n_is_muon_ghost) / static_cast<double>(m_nghosts));
+      }
+    }
+    printf("\n");
+
+    // write histograms to file
+#ifdef WITH_ROOT
+    m_histos->write();
+#endif
+  }
+
   void accumulate(
     const MCEvents& mc_events,
     const std::vector<Checker::Tracks>& tracks,
@@ -91,7 +165,7 @@ public:
       const auto& event_tracks = tracks[i];
       const auto& mc_event = mc_events[evnum];
 
-      accumulate_impl<T>(event_tracks, mc_event);
+      accumulate_impl(event_tracks, mc_event);
 
       // Check all tracks for duplicate LHCb IDs
       for (size_t i_track = 0; i_track < event_tracks.size(); ++i_track) {
@@ -110,7 +184,6 @@ public:
     }
   }
 
-  template<typename T>
   std::tuple<bool, MCParticles::const_iterator> match_track_to_MCPs(
     const MCAssociator& mc_assoc,
     const Checker::Tracks& tracks,
@@ -217,11 +290,11 @@ public:
         // save matched hits per subdetector
         // -> needed for hit efficiency
         int subdetector_counter = 0;
-        if (std::is_same_v<typename T::subdetector_t, Checker::Subdetector::Velo>)
+        if (std::is_same_v<T, Checker::Subdetector::Velo>)
           subdetector_counter = id_counter.second.n_velo;
-        else if (std::is_same_v<typename T::subdetector_t, Checker::Subdetector::UT>)
+        else if (std::is_same_v<T, Checker::Subdetector::UT>)
           subdetector_counter = id_counter.second.n_ut;
-        else if (std::is_same_v<typename T::subdetector_t, Checker::Subdetector::SciFi>)
+        else if (std::is_same_v<T, Checker::Subdetector::SciFi>)
           subdetector_counter = id_counter.second.n_scifi;
         const float weight = ((float) counter_sum) / ((float) n_meas);
         const MCAssociator::TrackWithWeight track_weight = {i_track, weight, subdetector_counter};
@@ -252,18 +325,15 @@ public:
     return {match, track_best_matched_MCP};
   }
 
-  template<typename T>
-  void accumulate_impl(
-    const Checker::Tracks& tracks,
-    const MCEvent& mc_event)
+  void accumulate_impl(const Checker::Tracks& tracks, const MCEvent& mc_event)
   {
-    for (auto& report : m_categories) {
-      report.event_start();
+    for (auto& category : m_categories) {
+      category.event_start();
     }
 
     // register MC particles
-    for (auto& report : m_categories) {
-      report(mc_event.m_mcps);
+    for (auto& category : m_categories) {
+      category(mc_event.m_mcps);
     }
 
     // fill histograms of reconstructible MC particles in various categories
@@ -284,7 +354,7 @@ public:
       const auto& track = tracks[i_track];
       m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
 
-      auto [match, track_best_matched_MCP] = match_track_to_MCPs<T>(mc_assoc, tracks, i_track, assoc_table);
+      auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
 
       ++ntracksperevt;
 
@@ -334,9 +404,9 @@ public:
       auto const& track = tracks[track_with_weight->m_idx];
 
       // add to various categories
-      for (auto& report : m_categories) {
-        // report(track, mcp, weight, get_num_hits);
-        report(matched_tracks, mcp, get_num_hits_subdetector<typename T::subdetector_t>);
+      for (auto& category : m_categories) {
+        // category(track, mcp, weight, get_num_hits);
+        category(matched_tracks, mcp, get_num_hits_subdetector<Checker::Subdetector::muon_as_scifi_t<T>>);
       }
 
       // Muon ID checker
@@ -348,17 +418,18 @@ public:
       }
       // fill histogram of momentum resolution
       if (
-        std::is_same_v<typename T::subdetector_t, Checker::Subdetector::SciFi> && mcp.hasVelo && mcp.hasUT &&
-        mcp.hasSciFi) {
+        (std::is_same_v<T, Checker::Subdetector::SciFi> ||
+         std::is_same_v<T, Checker::Subdetector::Muon>) &&mcp.hasVelo &&
+        mcp.hasUT && mcp.hasSciFi) {
         m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
       }
-      if (std::is_same_v<typename T::subdetector_t, Checker::Subdetector::UT> && mcp.hasVelo && mcp.hasUT) {
+      if (std::is_same_v<T, Checker::Subdetector::UT> && mcp.hasVelo && mcp.hasUT) {
         m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
       }
     }
 
-    for (auto& report : m_categories) {
-      report.event_done();
+    for (auto& category : m_categories) {
+      category.event_done();
     }
 
     // almost done, notify of end of event...
@@ -384,7 +455,59 @@ public:
   void muon_id_matching(
     const std::vector<MCAssociator::TrackWithWeight> tracks_with_weight,
     MCParticles::const_reference& mcp,
-    const Checker::Tracks& tracks);
+    const Checker::Tracks& tracks)
+  {
+
+    if (std::is_same_v<T, Checker::Subdetector::Muon>) {
+      m_histos->fillMuonReconstructible(mcp);
+
+      bool match_is_muon = false;
+
+      for (const auto& track_with_weight : tracks_with_weight) {
+        const int track_index = track_with_weight.m_idx;
+        const Checker::Track& track = tracks[track_index];
+        if (track.is_muon) {
+          match_is_muon = true;
+        }
+      }
+      // Correctly identified muons
+      if (std::abs(mcp.pid) == 13) {
+        n_matched_muons++;
+        if (match_is_muon) {
+          n_is_muon_true++;
+          m_histos->fillMuonReconstructedMatchedIsMuon(mcp);
+        }
+      }
+      // Correctly identified muons from strange decays
+      if (std::abs(mcp.pid) == 13 && mcp.fromStrangeDecay) {
+        n_matched_muons_fromS++;
+        if (match_is_muon) {
+          n_is_muon_true_fromS++;
+          m_histos->fillMuonFromSReconstructedMatchedIsMuon(mcp);
+        }
+      }
+      // Correctly identified muons from b decays
+      if (std::abs(mcp.pid) == 13 && mcp.fromBeautyDecay) {
+        n_matched_muons_fromB++;
+        if (match_is_muon) {
+          n_is_muon_true_fromB++;
+          m_histos->fillMuonFromBReconstructedMatchedIsMuon(mcp);
+        }
+      }
+      // Track identified as muon, but was matched to non-muon MCP
+      else if (std::abs(mcp.pid) != 13) {
+        n_matched_not_muons++;
+        if (match_is_muon) {
+          n_is_muon_misID++;
+          m_histos->fillMuonReconstructedNotMatchedIsMuon(mcp);
+        }
+      }
+
+      // fill muon ID histograms
+      const Checker::Track& track = tracks[tracks_with_weight.front().m_idx];
+      m_histos->fillMuonIDMatchedHistos(track, mcp);
+    }
+  }
 
   // FIXME: Can't use unique_ptr here because we need a forward
   // declaration of TrackCheckerHistos to allow C++17 in host-only
@@ -392,17 +515,7 @@ public:
   TrackCheckerHistos* m_histos = nullptr;
 };
 
-struct TrackCheckerVelo : public TrackChecker {
-  using subdetector_t = Checker::Subdetector::Velo;
-  TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
-};
-
-struct TrackCheckerVeloUT : public TrackChecker {
-  using subdetector_t = Checker::Subdetector::UT;
-  TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
-};
-
-struct TrackCheckerForward : public TrackChecker {
-  using subdetector_t = Checker::Subdetector::SciFi;
-  TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
-};
+using TrackCheckerVelo = TrackChecker<Checker::Subdetector::Velo>;
+using TrackCheckerVeloUT = TrackChecker<Checker::Subdetector::UT>;
+using TrackCheckerForward = TrackChecker<Checker::Subdetector::SciFi>;
+using TrackCheckerMuon = TrackChecker<Checker::Subdetector::Muon>;

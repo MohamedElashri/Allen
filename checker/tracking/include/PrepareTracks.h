@@ -61,4 +61,5 @@ std::vector<Checker::Tracks> prepareForwardTracks(
   const std::vector<float>& scifi_qop,
   const std::vector<MiniState>& scifi_states,
   const char* host_scifi_geometry,
-  const std::vector<unsigned>& event_list);
+  const std::vector<unsigned>& event_list,
+  const std::vector<Allen::bool_as_char_t<bool>>& is_muon = {});

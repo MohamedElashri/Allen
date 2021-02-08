@@ -137,7 +137,8 @@ std::vector<Checker::Tracks> prepareForwardTracks(
   const std::vector<float>& scifi_qop,
   const std::vector<MiniState>& scifi_states,
   const char* scifi_geometry,
-  const std::vector<unsigned>& event_list)
+  const std::vector<unsigned>& event_list,
+  const std::vector<Allen::bool_as_char_t<bool>>& is_muon)
 {
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
@@ -166,6 +167,7 @@ std::vector<Checker::Tracks> prepareForwardTracks(
       number_of_events};
 
     const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
+    const unsigned event_offset = scifi_tracks.tracks_offset(event_number);
     tracks.resize(number_of_tracks_event);
 
     float n_hits_per_track = 0;
@@ -209,6 +211,10 @@ std::vector<Checker::Tracks> prepareForwardTracks(
       const auto velo_lhcb_ids = velo_tracks.get_lhcbids_for_track(velo_track_hits.data(), velo_track_index);
       for (const auto id : velo_lhcb_ids) {
         t.addId(id);
+      }
+
+      if (is_muon.size()) {
+        t.is_muon = is_muon[event_offset + i_track];
       }
     } // tracks
 

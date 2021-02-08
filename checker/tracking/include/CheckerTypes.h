@@ -29,14 +29,16 @@ namespace Checker {
 
   namespace Subdetector {
     struct Velo {
-      static std::string const name;
     };
     struct UT {
-      static std::string const name;
     };
     struct SciFi {
-      static std::string const name;
     };
+    struct Muon {
+    };
+
+    template<typename T>
+    using muon_as_scifi_t = std::conditional_t<std::is_same_v<T, Muon>, SciFi, T>;
   } // namespace Subdetector
 
   struct TruthCounter {
