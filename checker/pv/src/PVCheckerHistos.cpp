@@ -204,18 +204,17 @@ void PVCheckerHistos::write()
 {
 #ifdef WITH_ROOT
   m_file->cd();
-  std::tuple to_write {
-    std::ref(m_tree),
-    std::ref(m_mctree),
-    std::ref(m_allPV),
-    std::ref(eff_vs_z),
-    std::ref(eff_vs_mult),
-    std::ref(eff_matched_vs_z),
-    std::ref(eff_matched_vs_mult),
-    std::ref(eff_norm_z),
-    std::ref(eff_norm_mult),
-    std::ref(fakes_vs_mult),
-    std::ref(fakes_norm)};
+  std::tuple to_write {std::ref(m_tree),
+                       std::ref(m_mctree),
+                       std::ref(m_allPV),
+                       std::ref(eff_vs_z),
+                       std::ref(eff_vs_mult),
+                       std::ref(eff_matched_vs_z),
+                       std::ref(eff_matched_vs_mult),
+                       std::ref(eff_norm_z),
+                       std::ref(eff_norm_mult),
+                       std::ref(fakes_vs_mult),
+                       std::ref(fakes_norm)};
   for_each(to_write, [this](auto& o) {
     o.get()->SetDirectory(nullptr);
     m_file->WriteTObject(o.get().get());

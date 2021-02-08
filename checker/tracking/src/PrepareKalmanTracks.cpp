@@ -184,21 +184,19 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
     // Make the consolidated tracks.
     Velo::Consolidated::ConstTracks velo_tracks {
       velo_track_atomics.data(), velo_track_hit_number.data(), i_event, number_of_events};
-    UT::Consolidated::ConstExtendedTracks ut_tracks {
-      ut_track_atomics.data(),
-      ut_track_hit_number.data(),
-      ut_qop.data(),
-      ut_track_velo_indices.data(),
-      i_event,
-      number_of_events};
-    SciFi::Consolidated::ConstTracks scifi_tracks {
-      scifi_track_atomics.data(),
-      scifi_track_hit_number.data(),
-      scifi_qop.data(),
-      scifi_states.data(),
-      scifi_track_ut_indices.data(),
-      i_event,
-      number_of_events};
+    UT::Consolidated::ConstExtendedTracks ut_tracks {ut_track_atomics.data(),
+                                                     ut_track_hit_number.data(),
+                                                     ut_qop.data(),
+                                                     ut_track_velo_indices.data(),
+                                                     i_event,
+                                                     number_of_events};
+    SciFi::Consolidated::ConstTracks scifi_tracks {scifi_track_atomics.data(),
+                                                   scifi_track_hit_number.data(),
+                                                   scifi_qop.data(),
+                                                   scifi_states.data(),
+                                                   scifi_track_ut_indices.data(),
+                                                   i_event,
+                                                   number_of_events};
 
     // Make the VELO states.
     const unsigned event_velo_tracks_offset = velo_tracks.tracks_offset(i_event);

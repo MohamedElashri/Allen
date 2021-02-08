@@ -19,7 +19,8 @@ void RateChecker::accumulate(
     m_counters = std::vector<unsigned>(number_of_lines, 0);
   }
 
-  Selections::ConstSelections sels {reinterpret_cast<const bool*>(selections.data()), selections_offsets.data(), number_of_events};
+  Selections::ConstSelections sels {
+    reinterpret_cast<const bool*>(selections.data()), selections_offsets.data(), number_of_events};
 
   for (auto i = 0u; i < number_of_events; ++i) {
     bool any_line_fired = false;

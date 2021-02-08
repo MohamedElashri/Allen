@@ -28,7 +28,8 @@ namespace host_velo_ut_validator {
       ArgumentReferences<Parameters>,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const {}
+      const HostBuffers&) const
+    {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,

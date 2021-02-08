@@ -35,7 +35,8 @@ namespace host_forward_validator {
       ArgumentReferences<Parameters>,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const {}
+      const HostBuffers&) const
+    {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,

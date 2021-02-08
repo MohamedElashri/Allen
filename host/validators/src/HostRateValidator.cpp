@@ -24,9 +24,5 @@ void host_rate_validator::host_rate_validator_t::operator()(
   }
 
   auto& checker = runtime_options.checker_invoker->checker<RateChecker>(name());
-  checker.accumulate(
-    line_names,
-    selections,
-    selections_offsets,
-    first<host_number_of_events_t>(arguments));
+  checker.accumulate(line_names, selections, selections_offsets, first<host_number_of_events_t>(arguments));
 }

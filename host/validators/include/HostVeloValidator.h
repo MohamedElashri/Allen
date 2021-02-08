@@ -22,7 +22,8 @@ namespace host_velo_validator {
       ArgumentReferences<Parameters>,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const {}
+      const HostBuffers&) const
+    {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,

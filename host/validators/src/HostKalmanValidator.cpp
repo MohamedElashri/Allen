@@ -55,7 +55,7 @@ void host_kalman_validator::host_kalman_validator_t::operator()(
     number_of_multi_final_vertices,
     event_list);
 
-  auto& checker = runtime_options.checker_invoker->checker<KalmanChecker>(name(), property<root_output_filename_t>(), false);
+  auto& checker =
+    runtime_options.checker_invoker->checker<KalmanChecker>(name(), property<root_output_filename_t>(), false);
   checker.accumulate(first<host_mc_events_t>(arguments), tracks, event_list);
 }
-

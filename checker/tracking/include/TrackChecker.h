@@ -67,12 +67,9 @@ protected:
   std::size_t n_is_muon_ghost = 0;
 
 public:
-  TrackChecker(
-    CheckerInvoker const* invoker,
-    std::string const& root_file,
-    std::string const& name) :
-    m_categories {Categories::make_track_eff_report_vector<T>()},
-    m_histo_categories {Categories::make_histo_category_vector<T>()}
+  TrackChecker(CheckerInvoker const* invoker, std::string const& root_file, std::string const& name) :
+    m_categories {Categories::make_track_eff_report_vector<T>()}, m_histo_categories {
+                                                                    Categories::make_histo_category_vector<T>()}
   {
     // FIXME: Need to use a forward declaration to keep all ROOT objects
     // out of headers that are compiled with CUDA until NVCC supports
@@ -401,9 +398,8 @@ public:
       // find track with highest weight
       auto const& matched_tracks = tracks_it->second;
       auto track_with_weight = std::max_element(
-        matched_tracks.cbegin(),
-        matched_tracks.cend(),
-        [](const MCAssociator::TrackWithWeight& a, const MCAssociator::TrackWithWeight& b) noexcept {
+        matched_tracks.cbegin(), matched_tracks.cend(), [
+        ](const MCAssociator::TrackWithWeight& a, const MCAssociator::TrackWithWeight& b) noexcept {
           return a.m_w < b.m_w;
         });
 

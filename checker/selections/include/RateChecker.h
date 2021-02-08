@@ -29,9 +29,7 @@ private:
   std::mutex m_mutex;
 
 public:
-  RateChecker(CheckerInvoker const*, std::string const&, std::string const&) {
-    m_tot = 0;
-  }
+  RateChecker(CheckerInvoker const*, std::string const&, std::string const&) { m_tot = 0; }
 
   virtual ~RateChecker() = default;
 

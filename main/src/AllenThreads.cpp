@@ -289,7 +289,7 @@ void run_stream(
         zmqSvc->send(control, *idx, send_flags::sndmore);
         zmqSvc->send(control, first, send_flags::sndmore);
         zmqSvc->send(control, buf);
-        
+
         if (do_check && check_control) {
           if (mc_events.empty()) {
             zmqSvc->send(*check_control, false);
