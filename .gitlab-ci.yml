@@ -871,7 +871,6 @@ geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrad
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-
 quadrortx6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
   tags:
@@ -1270,5 +1269,4 @@ scifiv6_test_physics_efficiency:
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
     - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
-
 
