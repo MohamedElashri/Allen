@@ -5,8 +5,8 @@
 #include <KalmanChecker.h>
 #include <ROOTHeaders.h>
 
-KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name)
-  : m_directory{name}
+KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name) :
+  m_directory {name}
 {
 #ifdef WITH_ROOT
   // Setup the TTree.

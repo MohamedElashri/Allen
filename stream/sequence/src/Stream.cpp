@@ -61,7 +61,8 @@ void print_configured_sequence()
   info_cout << std::endl;
 }
 
-bool contains_validator_algorithm() {
+bool contains_validator_algorithm()
+{
   return Sch::ContainsAlgorithmType<ValidationAlgorithm, configured_sequence_t>::value;
 }
 

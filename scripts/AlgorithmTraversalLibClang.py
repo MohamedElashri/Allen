@@ -104,7 +104,8 @@ class AlgorithmTraversal():
 
     # Accepted tokens for algorithm definitions
     __algorithm_tokens = [
-        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm", "ValidationAlgorithm"
+        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm",
+        "ValidationAlgorithm"
     ]
 
     # Accepted tokens for parameter parsing

@@ -477,25 +477,25 @@ int allen(
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
     return std::thread {run_stream,
-                 thread_id,
-                 stream_id,
-                 device_id,
-                 &stream_wrapper,
-                 input_provider.get(),
-                 zmqSvc,
-                 checker_invoker.get(),
-                 number_of_repetitions,
-                 do_check,
-                 cpu_offload,
-                 mep_layout,
-                 inject_mem_fail,
-                 folder_data + "/MC_info"};
+                        thread_id,
+                        stream_id,
+                        device_id,
+                        &stream_wrapper,
+                        input_provider.get(),
+                        zmqSvc,
+                        checker_invoker.get(),
+                        number_of_repetitions,
+                        do_check,
+                        cpu_offload,
+                        mep_layout,
+                        inject_mem_fail,
+                        folder_data + "/MC_info"};
   };
 
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](unsigned thread_id, unsigned) {
-     return std::thread {run_slices, thread_id, zmqSvc, input_provider.get()};
+    return std::thread {run_slices, thread_id, zmqSvc, input_provider.get()};
   };
 
   // Lambda with the execution of the output thread
