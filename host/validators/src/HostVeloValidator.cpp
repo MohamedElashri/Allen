@@ -25,5 +25,5 @@ void host_velo_validator::host_velo_validator_t::operator()(
 
   auto& checker =
     runtime_options.checker_invoker->checker<TrackCheckerVelo>(name(), property<root_output_filename_t>());
-  checker.accumulate(first<host_mc_events_t>(arguments), tracks, event_list);
+  checker.accumulate(*first<host_mc_events_t>(arguments), tracks, event_list);
 }

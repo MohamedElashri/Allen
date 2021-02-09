@@ -19,5 +19,5 @@ void mc_data_provider::mc_data_provider_t::operator()(
   HostBuffers&,
   const Allen::Context&) const
 {
-  data<host_mc_events_t>(arguments)[0] = runtime_options.mc_events;
+  data<host_mc_events_t>(arguments)[0] = &runtime_options.mc_events;
 }
