@@ -219,10 +219,6 @@ void run_stream(
   Allen::set_device(device_id, stream_id);
 
   zmq::socket_t control = make_control(thread_id, zmqSvc);
-  std::optional<zmq::socket_t> check_control;
-  if (do_check) {
-    check_control = make_control(thread_id, zmqSvc, "check");
-  }
 
   zmq::pollitem_t items[] = {
     {control, 0, ZMQ_POLLIN, 0},
@@ -289,15 +285,6 @@ void run_stream(
         zmqSvc->send(control, *idx, send_flags::sndmore);
         zmqSvc->send(control, first, send_flags::sndmore);
         zmqSvc->send(control, buf);
-
-        if (do_check && check_control) {
-          if (mc_events.empty()) {
-            zmqSvc->send(*check_control, false);
-          }
-          else {
-            zmqSvc->send(*check_control, true);
-          }
-        }
       }
     }
   }

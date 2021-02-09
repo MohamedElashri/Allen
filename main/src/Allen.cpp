@@ -476,56 +476,43 @@ int allen(
 
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
-    std::optional<zmq::socket_t> check_control;
-    if (do_check || !output_file.empty()) {
-      check_control = zmqSvc->socket(zmq::PAIR);
-      zmq::setsockopt(*check_control, zmq::LINGER, 0);
-      auto con = connection(thread_id, "check");
-      check_control->bind(con.c_str());
-    }
-    return std::make_tuple(
-      std::thread {run_stream,
-                   thread_id,
-                   stream_id,
-                   device_id,
-                   &stream_wrapper,
-                   input_provider.get(),
-                   zmqSvc,
-                   checker_invoker.get(),
-                   number_of_repetitions,
-                   do_check,
-                   cpu_offload,
-                   mep_layout,
-                   inject_mem_fail,
-                   folder_data + "/MC_info"},
-      std::move(check_control));
+    return std::thread {run_stream,
+                 thread_id,
+                 stream_id,
+                 device_id,
+                 &stream_wrapper,
+                 input_provider.get(),
+                 zmqSvc,
+                 checker_invoker.get(),
+                 number_of_repetitions,
+                 do_check,
+                 cpu_offload,
+                 mep_layout,
+                 inject_mem_fail,
+                 folder_data + "/MC_info"};
   };
 
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](unsigned thread_id, unsigned) {
-    return std::make_tuple(
-      std::thread {run_slices, thread_id, zmqSvc, input_provider.get()}, std::optional<zmq::socket_t> {});
+     return std::thread {run_slices, thread_id, zmqSvc, input_provider.get()};
   };
 
   // Lambda with the execution of the output thread
   const auto output_thread = [&](unsigned thread_id, unsigned) {
-    return std::make_tuple(
-      std::thread {
-        run_output, thread_id, zmqSvc, output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
-      std::optional<zmq::socket_t> {});
+    return std::thread {
+      run_output, thread_id, zmqSvc, output_handler ? output_handler.get() : nullptr, buffer_manager.get()};
   };
 
   // Lambda with the execution of the monitoring thread
   const auto mon_thread = [&](unsigned thread_id, unsigned mon_id) {
-    return std::make_tuple(
-      std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id}, std::optional<zmq::socket_t> {});
+    return std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id};
   };
 
-  using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(unsigned, unsigned)>;
+  using start_thread = std::function<std::thread(unsigned, unsigned)>;
 
   // Vector of worker threads
-  using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t, std::optional<zmq::socket_t>>>;
+  using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t>>;
   workers_t streams;
   streams.reserve(number_of_threads);
   workers_t io_workers;
@@ -549,15 +536,6 @@ int allen(
       --tries;
     }
     return thread_id;
-  };
-
-  auto thread_ready = [&socket_ready](workers_t::value_type& worker) {
-    auto success = socket_ready(std::get<1>(worker));
-    auto& extra_socket = std::get<2>(worker);
-    if (success && extra_socket) {
-      return socket_ready(*extra_socket);
-    }
-    return success;
   };
 
   // processing stream status
@@ -600,12 +578,11 @@ int allen(
       // some race condition I haven't noticed.
       std::this_thread::sleep_for(std::chrono::milliseconds {50});
 
-      auto [thread, check_control] = start(thread_id, i);
-      workers->emplace_back(std::move(thread), std::move(control), std::move(check_control));
+      workers->emplace_back(start(thread_id, i), std::move(control));
       items[thread_id] = {std::get<1>(workers->back()), 0, zmq::POLLIN, 0};
 
       // Check if thread is ready
-      auto ready = thread_ready(workers->back());
+      auto ready = socket_ready(std::get<1>(workers->back()));
       if (ready) handle(i);
       debug_cout << type << " thread " << std::setw(2) << std::setw(2) << i + 1 << "/" << std::setw(2) << n
                  << (ready ? " ready." : " failed to start.") << "\n";
@@ -752,20 +729,6 @@ int allen(
           // Add the slice and buffer to the queue for output
           write_queue.push(std::make_tuple(slice_index, first_event, buffer_index));
 
-          // Run the checker accumulation here in a blocking fashion;
-          // the blocking is ensured by sending a message and
-          // immediately waiting for a reply
-          auto& check_control = std::get<2>(streams[i]);
-
-          if (do_check && check_control) {
-            auto success = zmqSvc->receive<bool>(*check_control);
-            if (!success) {
-              warning_cout << "Failed to load MC events.\n";
-            }
-            else {
-              info_cout << "Checked " << n_events_processed << " events\n";
-            }
-          }
           input_slice_status[slice_index][first_event] = SliceStatus::Processed;
           buffer_manager->returnBufferFilled(buffer_index);
         }
@@ -1079,9 +1042,7 @@ loop_error:
     t->stop();
   }
 
-  // Send stop signal to all threads and join them if they haven't
-  // exited yet (as indicated by pred)
-  // this now needs to be done for all workers as I/O workers never finish early - could remove pred
+  // Send stop signal to all threads and join them
   for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(streams)}) {
     for (auto& worker : workers.get()) {
       zmqSvc->send(std::get<1>(worker), "DONE");
