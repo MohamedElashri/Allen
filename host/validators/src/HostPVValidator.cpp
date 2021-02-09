@@ -17,5 +17,5 @@ void host_pv_validator::host_pv_validator_t::operator()(
 
   auto& checker = runtime_options.checker_invoker->checker<GPUPVChecker>(name(), property<root_output_filename_t>());
   checker.accumulate(
-    first<host_mc_events_t>(arguments), multi_final_vertices, number_of_multi_final_vertices, event_list);
+    *first<host_mc_events_t>(arguments), multi_final_vertices, number_of_multi_final_vertices, event_list);
 }

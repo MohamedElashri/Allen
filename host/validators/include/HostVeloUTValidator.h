@@ -19,7 +19,7 @@ namespace host_velo_ut_validator {
     DEVICE_INPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
     DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
-    HOST_INPUT(host_mc_events_t, MCEvents) host_mc_events;
+    HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 

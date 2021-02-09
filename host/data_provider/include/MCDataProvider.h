@@ -10,7 +10,7 @@
 
 namespace mc_data_provider {
   struct Parameters {
-    HOST_OUTPUT(host_mc_events_t, MCEvents const*) host_mc_events;
+    HOST_OUTPUT(host_mc_events_t, const MCEvents*) host_mc_events;
   };
 
   struct mc_data_provider_t : public HostAlgorithm, Parameters {

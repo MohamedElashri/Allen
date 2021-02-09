@@ -26,7 +26,7 @@ namespace host_forward_validator {
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    HOST_INPUT(host_mc_events_t, MCEvents) host_mc_events;
+    HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
