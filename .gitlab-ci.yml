@@ -737,15 +737,12 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
 
-  <<: *active_branches
 
 CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  <<: *active_branches
 
 HIP:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
-  <<: *active_branches
 
 # ===
 # Run
@@ -822,7 +819,6 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
   variables:
     INPUT_FILES: "SciFiv6_upgrade_DC19_01_MinBiasMD"
     GEOMETRY: "SciFiv6_upgrade_DC19_01_geom"
-  <<: *active_branches
 
 .scifi_v6_throughput_job: &scifi_v6_throughput_job
   <<: *run_throughput_job_no_profiling_def
@@ -837,7 +833,6 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
   variables:
     INPUT_FILES: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD"
     GEOMETRY: "SciFiv6_upgrade_DC19_01_geom"
-  <<: *active_branches
 
 geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -1189,11 +1184,9 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
 throughput:hlt1_pp_scifi_v6:geforcertx3090:SciFiv6_upgrade_DC19_01_MinBiasMD:publish_throughput:
   <<: *publish_throughput_job_def
   <<: *scifi-v6-jobs-for-publish-throughput
-  <<: *active_branches
 
 scifiv6_test_physics_efficiency:
   <<: *test_phys_eff_job
-  <<: *active_branches
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
     - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
