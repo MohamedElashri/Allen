@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "HostAlgorithm.cuh"
+#include "ValidationAlgorithm.cuh"
 
 namespace host_pv_validator {
   struct Parameters {
@@ -15,7 +15,7 @@ namespace host_pv_validator {
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
-  struct host_pv_validator_t : public HostAlgorithm, Parameters {
+  struct host_pv_validator_t : public ValidationAlgorithm, Parameters {
     inline void set_arguments_size(
       ArgumentReferences<Parameters>,
       const RuntimeOptions&,

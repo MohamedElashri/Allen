@@ -263,4 +263,13 @@ namespace Sch {
     using preconditions = typename recursive_contracts::preconditions;
     using postconditions = append_to_tuple_t<typename recursive_contracts::postconditions, A>;
   };
+
+  // Checks whether the sequence contains any validation algorithm
+  template<typename AlgorithmT, typename Dependencies>
+  struct ContainsAlgorithmType;
+
+  template<typename T, typename... Ts>
+  struct ContainsAlgorithmType<T, std::tuple<Ts...>>
+    : std::bool_constant<((std::is_base_of_v<std::decay_t<T>, std::decay_t<Ts>> || ...))> {
+  };
 } // namespace Sch

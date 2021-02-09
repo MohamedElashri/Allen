@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "HostAlgorithm.cuh"
+#include "ValidationAlgorithm.cuh"
 
 namespace host_rate_validator {
   struct Parameters {
@@ -15,7 +15,7 @@ namespace host_rate_validator {
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
   };
 
-  struct host_rate_validator_t : public HostAlgorithm, Parameters {
+  struct host_rate_validator_t : public ValidationAlgorithm, Parameters {
     inline void set_arguments_size(
       ArgumentReferences<Parameters>,
       const RuntimeOptions&,

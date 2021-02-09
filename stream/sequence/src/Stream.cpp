@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #include "Stream.cuh"
 #include "StreamWrapper.cuh"
+#include "ValidationAlgorithm.cuh"
 
 StreamWrapper::StreamWrapper() {}
 
@@ -58,6 +59,10 @@ void print_configured_sequence()
   info_cout << "\nConfigured sequence of algorithms:\n";
   Sch::PrintAlgorithmSequence<configured_sequence_t>::print();
   info_cout << std::endl;
+}
+
+bool contains_validator_algorithm() {
+  return Sch::ContainsAlgorithmType<ValidationAlgorithm, configured_sequence_t>::value;
 }
 
 /**

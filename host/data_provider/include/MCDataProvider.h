@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Common.h"
-#include "HostAlgorithm.cuh"
+#include "ValidationAlgorithm.cuh"
 #include "InputProvider.h"
 #include "MCEvent.h"
 
@@ -13,7 +13,7 @@ namespace mc_data_provider {
     HOST_OUTPUT(host_mc_events_t, const MCEvents*) host_mc_events;
   };
 
-  struct mc_data_provider_t : public HostAlgorithm, Parameters {
+  struct mc_data_provider_t : public ValidationAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&, const HostBuffers&)
       const;
 

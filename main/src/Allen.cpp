@@ -96,8 +96,8 @@ int allen(
   bool print_memory_usage = false;
   bool non_stop = false;
   bool write_config = false;
-  // By default, do_check will be true when mc_check is enabled
-  bool do_check = true;
+  // do_check will be true when a MC validator algorithm was configured
+  bool do_check = contains_validator_algorithm();
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
   // MPI options
@@ -172,9 +172,6 @@ int allen(
         error_cout << "Error: number of repetitions must be at least 1\n";
         return -1;
       }
-    }
-    else if (flag_in({"c", "validate"})) {
-      do_check = atoi(arg.c_str());
     }
     else if (flag_in({"m", "memory"})) {
       reserve_mb = atoi(arg.c_str());

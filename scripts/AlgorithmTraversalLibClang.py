@@ -104,7 +104,7 @@ class AlgorithmTraversal():
 
     # Accepted tokens for algorithm definitions
     __algorithm_tokens = [
-        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm"
+        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm", "ValidationAlgorithm"
     ]
 
     # Accepted tokens for parameter parsing
@@ -233,7 +233,7 @@ class AlgorithmTraversal():
     @staticmethod
     def algorithm(c):
         """Traverses an algorithm. First, it identifies whether the struct has
-        either "HostAlgorithm" or "DeviceAlgorithm" among its tokens. If so,
+        an Algorithm token among its tokens (eg. "HostAlgorithm", "DeviceAlgorithm", etc.). If so,
         it proceeds to find algorithm parameters, template parameters, and returns a quintuplet:
         (kind, spelling, algorithm class, algorithm parameters)."""
         if c.kind in [
@@ -269,7 +269,7 @@ class AlgorithmTraversal():
             c.location.file.name == filename:
             ts = [a.spelling for a in c.get_tokens()]
             # Check if it is a "new algorithm":
-            if "DeviceAlgorithm" in ts or "HostAlgorithm" in ts or "SelectionAlgorithm" in ts:
+            if [a for a in AlgorithmTraversal.__algorithm_tokens if a in ts]:
                 try:
                     last_found = -1
                     while True:
