@@ -33,9 +33,11 @@ PVCheckerHistos::PVCheckerHistos(
   fakes_vs_mult = std::make_unique<TH1F>("fakes_vs_mult", "fakes_vs_mult", m_bins_fake_mult, 0, 20);
   fakes_norm = std::make_unique<TH1F>("fakes_norm_mult", "fakes_norm_mult", m_bins_fake_mult, 0, 20);
 
-  std::string tree_name = "PV_tree";
+  auto make_tree = [dir = m_directory](const std::string& name) {
+    return std::make_unique<TTree>(name.c_str(), name.c_str());
+  };
 
-  m_tree = std::make_unique<TTree>(tree_name.c_str(), tree_name.c_str());
+  m_tree = make_tree("PV_tree");
   m_tree->Branch("nmcpv", &m_nmcpv);
   m_tree->Branch("ntrinmcpv", &m_ntrinmcpv);
 
@@ -50,12 +52,12 @@ PVCheckerHistos::PVCheckerHistos(
   m_tree->Branch("err_y", &m_err_y);
   m_tree->Branch("err_z", &m_err_z);
 
-  m_mctree = std::make_unique<TTree>("MC_tree", "MC_tree");
+  m_mctree = make_tree("MC_tree");
   m_mctree->Branch("x", &m_mc_x);
   m_mctree->Branch("y", &m_mc_y);
   m_mctree->Branch("z", &m_mc_z);
 
-  m_allPV = std::make_unique<TTree>("allPV", "allPV");
+  m_allPV = make_tree("allPV");
   m_allPV->Branch("x", &m_x);
   m_allPV->Branch("y", &m_y);
   m_allPV->Branch("z", &m_z);
@@ -203,7 +205,7 @@ void PVCheckerHistos::accumulate(
 void PVCheckerHistos::write()
 {
 #ifdef WITH_ROOT
-  m_file->cd();
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
   std::tuple to_write {std::ref(m_tree),
                        std::ref(m_mctree),
                        std::ref(m_allPV),
@@ -215,9 +217,9 @@ void PVCheckerHistos::write()
                        std::ref(eff_norm_mult),
                        std::ref(fakes_vs_mult),
                        std::ref(fakes_norm)};
-  for_each(to_write, [this](auto& o) {
+  for_each(to_write, [dir](auto& o) {
     o.get()->SetDirectory(nullptr);
-    m_file->WriteTObject(o.get().get());
+    dir->WriteTObject(o.get().get());
   });
 #endif
 }

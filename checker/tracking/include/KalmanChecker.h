@@ -66,4 +66,6 @@ private:
   float m_trk_ndofT = 0.f;
   float m_trk_ghost = 0.f;
   float m_mcp_p = 0.f;
+
+  std::string m_directory;
 };

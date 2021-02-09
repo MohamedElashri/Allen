@@ -6,6 +6,7 @@
 #include <ROOTHeaders.h>
 
 KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name)
+  : m_directory{name}
 {
 #ifdef WITH_ROOT
   // Setup the TTree.
@@ -120,7 +121,7 @@ void KalmanChecker::accumulate(
 void KalmanChecker::report(size_t) const
 {
 #ifdef WITH_ROOT
-  m_file->cd();
-  m_file->WriteTObject(m_tree);
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  dir->WriteTObject(m_tree);
 #endif
 }

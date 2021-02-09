@@ -23,13 +23,6 @@ class PVCheckerHistos;
 
 class PVChecker : public Checker::BaseChecker {
 public:
-  struct GPUTag {
-    static std::string const name;
-  };
-  struct CPUTag {
-    static std::string const name;
-  };
-
   PVChecker(CheckerInvoker const* invoker, std::string const& root_file, std::string const& name);
 
   virtual ~PVChecker();
@@ -59,16 +52,6 @@ private:
   int sum_nFalsePV_real = 0;
   int sum_clones = 0;
   int sum_norm_clones = 0;
-};
-
-struct GPUPVChecker : public PVChecker {
-  using subdetector_t = typename PVChecker::GPUTag;
-  using PVChecker::PVChecker;
-};
-
-struct CPUPVChecker : public PVChecker {
-  using subdetector_t = typename PVChecker::CPUTag;
-  using PVChecker::PVChecker;
 };
 
 void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec);
