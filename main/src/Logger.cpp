@@ -5,7 +5,9 @@
 
 #if defined(__clang__) && __clang_major__ >= 10
 #pragma clang diagnostic push
+#if !defined(__APPLE__)
 #pragma clang diagnostic ignored "-Wdeprecated-copy"
+#endif
 #endif
 
 #include "boost/iostreams/stream.hpp"

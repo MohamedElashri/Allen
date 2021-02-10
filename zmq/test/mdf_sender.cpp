@@ -19,6 +19,9 @@ namespace {
 } // namespace
 
 namespace Utils {
+#ifdef __APPLE__
+  std::string hostname() { return ""; }
+#else
   std::string hostname()
   {
     char hname[HOST_NAME_MAX];
@@ -32,6 +35,7 @@ namespace Utils {
     }
     return hn;
   }
+#endif
 } // namespace Utils
 
 int main(int argc, char* argv[])
