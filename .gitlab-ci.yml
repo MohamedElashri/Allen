@@ -86,16 +86,15 @@ check-formatting:
     - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[4]}
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - if [ "${TARGET}" = "CPU" ]; then
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
-    - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
-    - elif [ "${TARGET}" = "HIP" ]; then
     - yum install -y numactl-libs
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
+    - if [ "${TARGET}" = "CPU" ]; then
+    - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - elif [ "${TARGET}" = "HIP" ]; then
     - source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
     - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
     - else
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
     - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
     - cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
@@ -107,6 +106,52 @@ check-formatting:
       - build*/*Allen*
       - build*/Sequence.json
       - input
+  retry: 2
+  needs: []
+
+.build_job_with_tests: &build_job_with_tests_def
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  only:
+    refs:
+      - master
+      - schedules
+      - web
+  stage: build
+  script:
+    - PREVIOUS_IFS=${IFS}
+    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=${PREVIOUS_IFS}
+    - TARGET=${JOB_NAME_SPLIT[0]}
+    - SEQUENCE=${JOB_NAME_SPLIT[1]}
+    - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
+    - ADDITIONAL_OPTIONS="${JOB_NAME_SPLIT[3]}"
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[4]}
+    - mkdir build_${TARGET}
+    - cd build_${TARGET}
+    - yum install -y numactl-libs
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
+    - if [ "${TARGET}" = "CPU" ]; then
+    - cmake -DSTANDALONE=ON -GNinja -DENABLE_CONTRACTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - elif [ "${TARGET}" = "HIP" ]; then
+    - source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
+    - cmake -DSTANDALONE=ON -GNinja -DENABLE_CONTRACTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON-DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ..
+    - else
+    - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
+    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
+    - cmake -DSTANDALONE=ON -GNinja -DENABLE_CONTRACTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_TESTS=ON -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=haswell -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
+    - fi
+    - ninja
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - build*/*Allen*
+      - build*/Sequence.json
+      - input
+      - build*/CTestTestfile.cmake
+      - build*/test/unit_tests/unit_tests
+      - build*/test/unit_tests/*cmake
   retry: 2
   needs: []
 
@@ -403,6 +448,41 @@ test_run_changes:
     - cvmfs
   allow_failure: true
 
+.run_built_tests: &run_built_tests_job
+  only:
+    refs:
+      - master
+      - schedules
+      - web
+  stage: test
+  script:
+    - PREVIOUS_IFS=${IFS}
+    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
+    - IFS=${PREVIOUS_IFS}
+    - TARGET=${JOB_NAME_SPLIT[0]}
+    - LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 ${LCG_ARCHITECTURE}
+    - cd build_${TARGET}
+    - BUILD_DIR=`cat CTestTestfile.cmake | grep "# Build directory:" | awk '{ print $4 }'`
+    - REPLACEMENT_DIR=${PWD}
+    - sed -i CTestTestfile.cmake -e s:${BUILD_DIR}:${REPLACEMENT_DIR}:g
+    - sed -i test/unit_tests/*.cmake -e s:${BUILD_DIR}:${REPLACEMENT_DIR}:g
+    - if [ "${TARGET}" = "CPU" ]; then
+    - TOTAL_THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
+    - TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
+    - NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
+    - LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ctest -V -j ${THREADS}
+    - else
+    - GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    - GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
+    - NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $8; }'`
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ctest -V
+    - fi
+  allow_failure: true
+
 .publish_throughput_job: &publish_throughput_job_def
   only:
     refs:
@@ -464,43 +544,58 @@ HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
       - schedules
       - merge_requests
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
+  tags:
+    - cvmfs
+      
+HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
+  tags:
+    - cvmfs
+
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
+  tags:
+    - cvmfs
+
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
-  <<: *build_job_def
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
 # clang:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
   only:
@@ -510,8 +605,8 @@ CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -
       - schedules
       - merge_requests
     
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
-  <<: *build_job_def
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
   only:
@@ -521,8 +616,8 @@ CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON 
       - schedules
       - merge_requests
 
-HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
-  <<: *build_job_def
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
   only:
@@ -534,8 +629,8 @@ HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -
 
 # Build of default sequence without code generation
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build:
-  <<: *build_job_def
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build_with_tests:
+  <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
@@ -783,14 +878,14 @@ geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_do
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
 
 x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
   needs:
-    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON:x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
 
 # check run changes
 
@@ -822,6 +917,37 @@ x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
   needs:
     - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
+# ====
+# Test
+# ====
+
+CPU:hlt1_pp_default:RelWithDebInfo:x86_64-centos7-clang10-opt:test:
+  <<: *run_built_tests_job
+  tags:
+    - x862630v4
+  needs:
+    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests
+
+CUDA:hlt1_pp_default:RelWithDebInfo:x86_64-centos7-clang10-opt:test:
+  <<: *run_built_tests_job
+  tags:
+    - geforcertx2080ti
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests
+
+CPU:hlt1_pp_default:Debug:x86_64-centos7-clang10-opt:test:
+  <<: *run_built_tests_job
+  tags:
+    - x862630v4
+  needs:
+    - CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
+
+CUDA:hlt1_pp_default:Debug:x86_64-centos7-clang10-opt:test:
+  <<: *run_built_tests_job
+  tags:
+    - geforcertx2080ti
+  needs:
+    - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
 
 # =======
 # Publish
@@ -855,7 +981,7 @@ throughput:hlt1_pp_default:geforcertx3090:minbias_mag_down_201907:publish_throug
 throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
-    - x86
+    - cvmfs
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - quadrortx6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
@@ -872,7 +998,7 @@ throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_through
 throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
-    - x86
+    - cvmfs
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - quadrortx6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput

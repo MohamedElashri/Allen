@@ -1,3 +1,6 @@
 [submodule "external/umesimd"]
 	path = external/umesimd
 	url = https://github.com/edanor/umesimd.git
+[submodule "external/Catch2"]
+	path = external/Catch2
+	url = https://github.com/catchorg/Catch2

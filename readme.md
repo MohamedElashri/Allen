@@ -5,7 +5,7 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------------
-The project requires CMake 3.12, Python3, a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support), boost, ZeroMQ and the nlohmann json library (https://github.com/nlohmann/json).
+The project requires CMake 3.18, Python3, a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support), boost, ZeroMQ and the nlohmann json library (https://github.com/nlohmann/json).
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
@@ -13,6 +13,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
     ```
 
 * CUDA target: The latest supported compilers are gcc-9 and clang-10. CUDA is
@@ -21,6 +22,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
+    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
     ```
 
 * HIP target: Either a local installation of HIP 3.9.0 or CVMFS are required:
@@ -28,6 +30,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
     source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
+    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
     ```
 
 * CUDACLANG target: A version of the clang compiler with ptx support is required,
@@ -36,6 +39,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
     ```console
     source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.1/x86_64-centos7/setup.sh
+    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
     ```
 
 Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).

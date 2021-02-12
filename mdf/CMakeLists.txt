@@ -7,6 +7,7 @@ include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 
 set(mdf_sources
     src/raw_helpers.cpp
@@ -18,7 +19,7 @@ if (ROOT_FOUND AND USE_ROOT)
   list(APPEND mdf_sources src/root_mdf.cpp)
 endif()
 
-allen_add_host_library(mdf ${mdf_sources})
+allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if (NOT GaudiProject_FOUND)
   target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lhcb)
