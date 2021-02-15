@@ -736,13 +736,16 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 
 CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
+  <<: *active_branches
 
 
 CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
+  <<: *active_branches
 
 HIP:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
+  <<: *active_branches
 
 # ===
 # Run
@@ -833,6 +836,7 @@ epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:
   variables:
     INPUT_FILES: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD"
     GEOMETRY: "SciFiv6_upgrade_DC19_01_geom"
+  <<: *active_branches
 
 geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
   <<: *scifi_v6_throughput_job
@@ -1190,5 +1194,6 @@ scifiv6_test_physics_efficiency:
   needs:
     - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
     - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
+  <<: *active_branches
 
 
