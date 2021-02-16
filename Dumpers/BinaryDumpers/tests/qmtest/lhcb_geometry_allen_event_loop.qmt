@@ -1,0 +1,49 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+    (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+-->
+<!--
+#######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Roel Aaij
+# Purpose: Use ROOT python bindings to obtain the geometry directly
+#          from the stack and run the Allen event loop
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>python</text></argument>
+  <argument name="args"><set>
+    <text>../../options/Allen.py</text>
+  </set></argument>
+  <arguement name="timeout"><integer>600</integer></arguement>
+  <argument name="validator"><text>
+countErrorLines({"FATAL":0,"ERROR":0,"WARNING":2})
+
+import re
+
+# Check that lines analogous to the following are present:
+# 59.622596 events/s
+# Ran test for 0.167722 seconds
+
+throughput_pattern = re.compile(r'\s*(\d+\.\d+)\s+events/s')
+time_pattern = re.compile(r'Ran test for (\d+\.\d+)\s+seconds')
+
+throughput = None
+runtime = None
+
+for line in stdout.split('\n'):
+    m = throughput_pattern.match(line)
+    if m:
+        throughput = float(m.group(1))
+    n = time_pattern.match(line)
+    if n:
+       runtime = float(n.group(1))
+
+if throughput is None:
+    causes.append('could not parse throughput from stdout')
+if runtime is None:
+    causes.append('could not parse runtime from stdout')
+
+  </text></argument>
+</extension>

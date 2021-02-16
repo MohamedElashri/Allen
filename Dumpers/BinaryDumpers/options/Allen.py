@@ -27,11 +27,12 @@ default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
 
 # Handle commandline arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("-f", dest="folder",
-                    default=os.path.join(allen_dir, "input", "minbias"))
-parser.add_argument("-g", dest="det_folder",
-                    default=os.path.join(allen_dir, "input",
-                                         "detector_configuration", "down"))
+parser.add_argument(
+    "-f", dest="folder", default=os.path.join(allen_dir, "input", "minbias"))
+parser.add_argument(
+    "-g",
+    dest="det_folder",
+    default=os.path.join(allen_dir, "input", "detector_configuration", "down"))
 parser.add_argument("-n", dest="n_events", default="0")
 parser.add_argument("-o", dest="event_offset", default="0")
 parser.add_argument("-t", dest="threads", default="1")
@@ -43,8 +44,8 @@ parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
 parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
-parser.add_argument("--configuration", dest="configuration",
-                    default=default_configuration)
+parser.add_argument(
+    "--configuration", dest="configuration", default=default_configuration)
 parser.add_argument("--device", dest="device", default="0")
 
 args = parser.parse_args()
@@ -89,8 +90,10 @@ updater = gbl.cast_updater(svc)
 options = gbl.std.map("std::string", "std::string")()
 for flag, value in (("f", args.folder), ("g", args.det_folder),
                     ("n", args.n_events), ("o", args.event_offset),
-                    ("t", args.threads), ("r", args.repetitions),
-                    ("configuration", args.configuration),
+                    ("t",
+                     args.threads), ("r",
+                                     args.repetitions), ("configuration",
+                                                         args.configuration),
                     ("c", args.check), ("m", args.reserve), ("v",
                                                              args.verbosity),
                     ("p", args.print_memory), ("i", args.import_fwd),
