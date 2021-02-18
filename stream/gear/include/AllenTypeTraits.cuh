@@ -28,7 +28,16 @@ struct TupleContains<T, std::tuple<Ts...>> : std::bool_constant<((std::is_same_v
   static constexpr auto index()
   {
     int idx = 0;
+// FIXME: remove the pragma workaround when we move to clang 10.
+// Clang 8 wrongfully flags the logical or as unsequenced.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunsequenced"
+#endif
     bool contains = ((++idx, std::is_same_v<T, Ts>) || ...);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
     return contains ? idx - 1 : idx;
   }
 };
