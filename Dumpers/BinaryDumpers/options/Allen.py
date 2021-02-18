@@ -1,8 +1,8 @@
 #!/usr/bin/env python2
 ###############################################################################
-# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-import HeaderPath
+import os
 from GaudiPython.Bindings import AppMgr, gbl
 from Configurables import LHCbApp, CondDB, ApplicationMgr
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
@@ -14,14 +14,25 @@ import argparse
 gbl.gSystem.Load("libAllenLib")
 gbl.gSystem.Load("libBinaryDumpersLib")
 interpreter = gbl.gInterpreter
-interpreter.Declare("#include <main/include/Allen.h>")
+
+# FIXME: Once the headers are installed properly, this should not be
+# necessary anymore
+allen_dir = os.path.join(os.environ['ALLEN_INSTALL_DIR'], '..', '..')
+header_path = os.path.join(allen_dir, 'main', 'include', 'Allen.h')
+interpreter.Declare("#include <{}>".format(header_path))
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
+
+default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
+                                     'constants', 'Sequence.json')
 
 # Handle commandline arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("-f", dest="folder", default="../input/minbias")
 parser.add_argument(
-    "-g", dest="det_folder", default="../input/detector_configuration/down")
+    "-f", dest="folder", default=os.path.join(allen_dir, "input", "minbias"))
+parser.add_argument(
+    "-g",
+    dest="det_folder",
+    default=os.path.join(allen_dir, "input", "detector_configuration", "down"))
 parser.add_argument("-n", dest="n_events", default="0")
 parser.add_argument("-o", dest="event_offset", default="0")
 parser.add_argument("-t", dest="threads", default="1")
@@ -33,6 +44,8 @@ parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
 parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
+parser.add_argument(
+    "--configuration", dest="configuration", default=default_configuration)
 parser.add_argument("--device", dest="device", default="0")
 
 args = parser.parse_args()
@@ -61,7 +74,7 @@ ApplicationMgr().ExtSvc += [
 
 # Some extra stuff for timing table
 ApplicationMgr().EvtSel = "NONE"
-ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc']
+ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc', 'ZeroMQSvc']
 
 # until here
 
@@ -69,6 +82,7 @@ ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc']
 gaudi = AppMgr()
 gaudi.initialize()
 svc = gaudi.service("AllenUpdater", interface=gbl.IService)
+zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
 updater = gbl.cast_updater(svc)
 
@@ -76,7 +90,10 @@ updater = gbl.cast_updater(svc)
 options = gbl.std.map("std::string", "std::string")()
 for flag, value in (("f", args.folder), ("g", args.det_folder),
                     ("n", args.n_events), ("o", args.event_offset),
-                    ("t", args.threads), ("r", args.repetitions),
+                    ("t",
+                     args.threads), ("r",
+                                     args.repetitions), ("configuration",
+                                                         args.configuration),
                     ("c", args.check), ("m", args.reserve), ("v",
                                                              args.verbosity),
                     ("p", args.print_memory), ("i", args.import_fwd),
@@ -85,5 +102,7 @@ for flag, value in (("f", args.folder), ("g", args.det_folder),
                                                             args.device)):
     options[flag] = value
 
+con = gbl.std.string("")
+
 # run Allen
-gbl.allen(options, updater)
+gbl.allen(options, updater, zmqSvc, con.c_str())

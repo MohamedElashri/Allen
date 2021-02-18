@@ -13,7 +13,7 @@ struct Constants;
 
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants);
 
-extern "C" int allen(
+int allen(
   std::map<std::string, std::string> options,
   Allen::NonEventData::IUpdater* updater,
   IZeroMQSvc* zmqSvc,
