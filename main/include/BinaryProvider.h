@@ -131,7 +131,7 @@ public:
 
     // Count the number of banks in each type of file by reading the
     // first unsigned int from each of them
-    std::array<unsigned, sizeof...(Banks)> bank_counts;
+    std::array<unsigned, NBankTypes> bank_counts;
     bank_counts.fill(0);
     auto files = open_files(0);
     if (m_read_error) {
