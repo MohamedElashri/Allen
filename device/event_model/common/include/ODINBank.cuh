@@ -21,9 +21,10 @@ struct odin_data_t {
   static __host__ __device__ const unsigned*
   data(const char* dev_odin_data, const uint* dev_odin_offsets, const uint event_number)
   {
-    // In Allen layout, the first N + 2 uint are the number of banks
-    // (1 in this case) and N + 1 offsets.
-    return ODINRawBank(dev_odin_data + dev_odin_offsets[event_number] + 3 * sizeof(uint32_t)).data;
+    // In Allen layout, the first uint is the number of banks,
+    // followed by 2 offsets and then the source ID of the bank; 4
+    // uint in total
+    return ODINRawBank(dev_odin_data + dev_odin_offsets[event_number] + 4 * sizeof(uint32_t)).data;
   }
 };
 
