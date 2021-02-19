@@ -250,4 +250,5 @@ validation_sequence = Sequence(mc_data_provider, host_velo_validator,
                                host_rate_validator, host_kalman_validator)
 
 compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
-                  muon_sequence, hlt1_sequence, validation_sequence).generate()
+                  muon_sequence, hlt1_sequence,
+                  validation_sequence).generate()
