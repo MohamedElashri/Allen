@@ -216,6 +216,7 @@ void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right)
 TEMPLATE_TEST_CASE(
   "MDF versus Binary",
   "[MDF binary]",
+  BTTag<BankTypes::ODIN>,
   BTTag<BankTypes::VP>,
   BTTag<BankTypes::UT>,
   BTTag<BankTypes::FT>,
@@ -256,6 +257,7 @@ TEMPLATE_TEST_CASE(
 TEMPLATE_TEST_CASE(
   "Binary vs MEP",
   "[MEP binary]",
+  BTTag<BankTypes::ODIN>,
   BTTag<BankTypes::VP>,
   BTTag<BankTypes::UT>,
   BTTag<BankTypes::FT>,
