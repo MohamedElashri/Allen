@@ -83,8 +83,9 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR} ${RANGEV3
 
 set(ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 _make_relocatable(ALLEN_INSTALL_DIR MAPPINGS "${CMAKE_SOURCE_DIR}" "\${ALLEN_PROJECT_ROOT}")
-message(STATUS "Setting Allen install dir env variable to ${CMAKE_INSTALL_PREFIX}")
-gaudi_env(SET ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+message(STATUS "Setting Allen install dir env variable to ${ALLEN_INSTALL_DIR}")
+gaudi_env(SET ALLEN_INSTALL_DIR ${ALLEN_INSTALL_DIR})
+
 gaudi_add_module(AllenWrapper
                  src/*.cpp
                  LINK_LIBRARIES AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
