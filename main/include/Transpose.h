@@ -50,7 +50,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
   Allen::IO& input,
   ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
-  std::vector<char> compress_buffer,
+  std::vector<char>& compress_buffer,
   size_t n_events,
   bool check_checksum);
 

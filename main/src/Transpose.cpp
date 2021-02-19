@@ -24,7 +24,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
   Allen::IO& input,
   ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
-  std::vector<char> compress_buffer,
+  std::vector<char>& compress_buffer,
   size_t n_events,
   bool check_checksum)
 {
@@ -132,6 +132,24 @@ std::tuple<bool, bool, bool> transpose_event(
 
   auto bank = bank_data.data(), bank_end = bank_data.data() + bank_data.size();
 
+  // Check if any of the per-bank-type slices potentially has too
+  // little space to fit this event
+  for(unsigned lhcb_type = 0; lhcb_type < bank_ids.size(); ++lhcb_type) {
+    auto allen_type = bank_ids[lhcb_type];
+    if (!bank_types.count(BankTypes{allen_type})) continue;
+
+    const auto& [slice, slice_size, slice_offsets, offsets_size] = slices[allen_type][slice_index];
+    // Use the event size of the next event here instead of the
+    // per bank size because that's not yet known for the next
+    // event
+    if ((slice_offsets[offsets_size - 1]
+         + (1 + banks_count[lhcb_type]) * sizeof(uint32_t)
+         + static_cast<size_t>(bank_data.size()))
+        > slice_size) {
+      return {true, true, false};
+    }
+  }
+
   // L0Calo doesn't exist in the upgrade
   LHCb::RawBank::BankType prev_type = LHCb::RawBank::L0Calo;
 
@@ -230,19 +248,6 @@ std::tuple<bool, bool, bool> transpose_event(
     bank += b->totalSize();
   }
 
-  // Check if any of the per-bank-type slices potentially has too
-  // little space to fit the next event
-  for (auto bank_type : bank_types) {
-    auto ib = to_integral<BankTypes>(bank_type);
-    const auto& [slice, slice_size, slice_offsets, offsets_size] = slices[ib][slice_index];
-    // Use the event size of the next event here instead of the
-    // per bank size because that's not yet known for the next
-    // event
-    if ((slice_offsets[offsets_size - 1] + static_cast<size_t>(bank_data.size())) > slice_size) {
-      info_cout << "Slice for " << ib << " is full\n";
-      return {true, true, false};
-    }
-  }
   return {true, false, false};
 }
 
@@ -265,14 +270,14 @@ std::tuple<bool, bool, size_t> transpose_events(
 
   // Loop over events in the prefetch buffer
   size_t i_event = event_start;
-  for (; i_event < event_end && success && !full; ++i_event) {
+  for (; i_event < event_end && success; ++i_event) {
     // Offsets are to the start of the event, which includes the header
     auto const* bank = buffer.data() + event_offsets[i_event];
     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
     std::tie(success, full, run_change) = transpose_event(
       slices, slice_index, bank_ids, bank_types, banks_count, event_ids, {bank, bank_end}, split_by_run);
-    // break the loop if we detect a run change to avoid incrementing i_event
-    if (run_change) break;
+    // break the loop if we detect a run change or the slice is full to avoid incrementing i_event
+    if (run_change || full) break;
   }
 
   return {success, full, i_event - event_start};
