@@ -1165,7 +1165,7 @@ void transpose(int thread_id)
         interval);
       this->debug_output(
         "Transposed slice " + std::to_string(*slice_index) + "; good: " + std::to_string(good) +
-          ";full: " + std::to_string(transpose_full) + "; n_transposed:  " + std::to_string(n_transposed),
+          "; full: " + std::to_string(transpose_full) + "; n_transposed:  " + std::to_string(n_transposed),
         thread_id);
     }
     else {

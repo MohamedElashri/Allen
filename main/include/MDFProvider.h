@@ -166,15 +166,17 @@ public:
             }
             auto lhcb_type = to_integral<LHCb::RawBank::BankType>(type_it->first);
 
-            // Allocate a minimum size to make sure the full
-            // estimation works. That uses the size of the full next
-            // event, so we need some extra space.
+            // When events are transposed from the read buffer into
+            // the per-rawbank-type slices, a check is made each time
+            // to see if there is enough space available in a slice.
+            // To avoid having to read every event twice to get the
+            // size of all the banks, the size of the entire event is
+            // used for the check - 65 kB on average. To avoid
+            // problems for banks with very low average size like the
+            // ODIN bank - 0.1 kB, a fixed amount is also added.
             auto n_bytes = std::lround(
               ((1 + m_banks_count[lhcb_type]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
-              bank_size_fudge_factor);
-            auto const min_bytes = std::lround(average_event_size * 10 * bank_size_fudge_factor * kB);
-            n_bytes = std::max(n_bytes, min_bytes);
-
+              bank_size_fudge_factor + 2 * MB);
             return {n_bytes, events_per_slice};
           };
           m_slices = allocate_slices<Banks...>(n_slices, size_fun);
@@ -497,6 +499,7 @@ private:
       if (n_transposed < std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read])) {
         // Put this prefetched slice back on the prefetched queue so
         // somebody else can finish it
+        std::get<3>(m_buffers[i_read]) += n_transposed;
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
         m_prefetched.push_front(i_read);
       }
