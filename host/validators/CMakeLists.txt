@@ -84,6 +84,11 @@ allen_add_host_library(Validators STATIC
   ${validators}
 )
 
+target_link_libraries(Validators PRIVATE
+  TrackChecking
+  SelChecking
+  PVChecking)
+
 if(ROOT_FOUND)
   target_compile_definitions(Validators PRIVATE ${ALLEN_ROOT_DEFINITIONS})
   target_include_directories(Validators SYSTEM BEFORE PRIVATE ${ROOT_INCLUDE_DIRS}
