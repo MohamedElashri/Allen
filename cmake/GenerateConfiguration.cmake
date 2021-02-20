@@ -14,9 +14,23 @@ file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 # We need Python 3
 find_package (Python3 COMPONENTS Interpreter QUIET)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(MACOSX TRUE)
+  set(CLANG10_LD_LIBRARY_PATH /Library/Developer/CommandLineTools/usr/lib)
+else()
+  find_package(LibClang REQUIRED)
+
+  message(STATUS "LIBCLANG_LLVM_CONFIG_EXECUTABLE: " LIBCLANG_LLVM_CONFIG_EXECUTABLE)
+  message(STATUS "LIBCLANG_LIBRARIES: " LIBCLANG_LIBRARIES)
+  message(STATUS "LIBCLANG_LIBDIR: " LIBCLANG_LIBDIR)
+  message(STATUS "LIBCLANG_FOUND: " LIBCLANG_FOUND)
+  message(STATUS "LIBCLANG_VERSION_STRING: " LIBCLANG_VERSION_STRING)
+  message(STATUS "LIBCLANG_CXXFLAGS: " LIBCLANG_CXXFLAGS)
+endif()
+
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this
-set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64:/Library/Developer/CommandLineTools/usr/lib)
+set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64)
 set(REQUIRED_CPLUS_PATH /cvmfs/sft.cern.ch/lcg/views/LCG_97python3/x86_64-centos7-gcc8-opt/include)
 
 message(STATUS "Generating sequence using LLVM")
