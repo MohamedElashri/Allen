@@ -8,8 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-# FindLibClang
-#
+
 # This module looks for libClang, and uses the llvm-config utility to find out
 # information about the libClang installation.
 #
@@ -49,7 +48,7 @@ else ()
     if (NOT EXISTS ${LIBCLANG_LIBDIR})
         message(FATAL_ERROR "Could not find libClang libdir. Please set LIBCLANG_LIBDIR manually.")
     endif ()
-    set(LIBCLANG_LIBDIR ${LIBCLANG_LIBDIR} CACHE STRING "Path to the clang library.")
+    set(LIBCLANG_LIBDIR ${LIBCLANG_LIBDIR} CACHE STRING "Path to libClang.")
 
     # Obtain full version
     execute_process(COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LIBCLANG_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
