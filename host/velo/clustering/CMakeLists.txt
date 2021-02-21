@@ -14,4 +14,6 @@ file(GLOB host_clustering "src/*cpp")
 # we should make them __host__ and __device__ functions
 allen_add_host_library(HostClustering STATIC ${host_clustering})
 
+target_link_libraries(HostClustering PRIVATE EventModel)
+
 target_include_directories(HostClustering PRIVATE ${CPPGSL_INCLUDE_DIR})

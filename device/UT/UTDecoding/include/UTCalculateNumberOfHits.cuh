@@ -5,6 +5,7 @@
 
 #include "UTDefinitions.cuh"
 #include "AlgorithmTypes.cuh"
+#include "UTRaw.cuh"
 
 namespace ut_calculate_number_of_hits {
   struct Parameters {

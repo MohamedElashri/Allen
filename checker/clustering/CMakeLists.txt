@@ -14,7 +14,7 @@ allen_add_host_library(CheckClustering STATIC
   ${clustering}
 )
 
-target_link_libraries(CheckClustering PRIVATE HostClustering)
+target_link_libraries(CheckClustering PRIVATE HostClustering EventModel)
 target_include_directories(CheckClustering PUBLIC ${CPPGSL_INCLUDE_DIR})
 set_property(TARGET CheckClustering PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)

@@ -7,29 +7,6 @@ file(GLOB velo_search_by_triplet "search_by_triplet/src/*cu")
 file(GLOB velo_simplified_kalman_filter "simplified_kalman_filter/src/*cu")
 file(GLOB velo_consolidate_tracks "consolidate_tracks/src/*cu")
 
-include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-include_directories(common/include)
-include_directories(prefix_sum/include)
-include_directories(mask_clustering/include)
-include_directories(search_by_triplet/include)
-include_directories(simplified_kalman_filter/include)
-include_directories(consolidate_tracks/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/velo/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/calo/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/PV/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/utils/sorting/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/utils/binary_search/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/utils/prefix_sum/include)
-include_directories(${CMAKE_SOURCE_DIR}/main/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
-include_directories(${CMAKE_SOURCE_DIR}/external)
-include_directories(${CMAKE_SOURCE_DIR}/backend/include)
-include_directories(${CPPGSL_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
-
 allen_add_device_library(Velo STATIC
   ${velo_clustering_sources}
   ${velo_prefix_sum}
@@ -37,3 +14,14 @@ allen_add_device_library(Velo STATIC
   ${velo_simplified_kalman_filter}
   ${velo_consolidate_tracks}
 )
+
+target_link_libraries(Velo PRIVATE Backend EventModel Utils)
+
+target_include_directories(Velo PUBLIC
+  common/include
+  prefix_sum/include
+  mask_clustering/include
+  calculate_phi_and_sort/include
+  search_by_triplet/include
+  simplified_kalman_filter/include
+  consolidate_tracks/include)

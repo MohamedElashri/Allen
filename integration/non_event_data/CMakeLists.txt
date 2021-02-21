@@ -10,10 +10,11 @@ include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 
-target_link_libraries(NonEventData
+target_link_libraries(NonEventData PRIVATE
   HostClustering
   Backend
-  AllenCommon)
+  AllenCommon
+  EventModel)
 
 target_include_directories(NonEventData PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

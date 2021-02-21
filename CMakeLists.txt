@@ -708,6 +708,12 @@ endif()
 
 #common libraries
 allen_add_host_library(AllenCommon SHARED ${common_sources})
+target_include_directories(AllenCommon PUBLIC
+  main/include
+  ${CPPGSL_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIRS}
+  PRIVATE
+  SYSTEM ${ZMQ_INCLUDE_DIRS})
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 

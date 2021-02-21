@@ -4,6 +4,7 @@
 #pragma once
 
 #include "SciFiDefinitions.cuh"
+#include "SciFiRaw.cuh"
 #include "SciFiEventModel.cuh"
 #include "AlgorithmTypes.cuh"
 
