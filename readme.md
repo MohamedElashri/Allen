@@ -5,7 +5,7 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------------
-The project requires CMake 3.18, Python3, Clang 9 or more recent, Boost, ZeroMQ and the nlohmann json library.
+The project requires CMake 3.18, Python3, Clang 9 or more recent (in addition `clang-dev` on Ubuntu), Boost, ZeroMQ and the nlohmann json library.
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
@@ -36,7 +36,6 @@ we show a proposed development setup with CVMFS and CentOS 7:
     ```console
     source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.1/x86_64-centos7/setup.sh
-    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
     ```
 
 Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
