@@ -73,15 +73,16 @@ endif()
 if(NOT SEQUENCE_GENERATION_SUCCESS)
   if(SEQUENCE_GENERATION)
     if(NOT Python3_FOUND)
-      message(STATUS "Testing code generation with LLVM - Failed. Please note that Python 3 is required to be able to generate configurations.")
+      message(STATUS "Testing code generation with LLVM - Failed. No Python3 interpreter was found.")
     elseif(NOT LIBCLANG_FOUND)
       message(STATUS "Testing code generation with LLVM - Failed. No suitable libClang installation found.")
     else()
-      message(STATUS "Testing code generation with LLVM - Failed. A pregenerated sequence will be used instead.")
+      message(STATUS "Testing code generation with LLVM - Failed.")
     endif()
   else()
     message(STATUS "Testing code generation with LLVM - Disabled")
   endif()
+  message(STATUS "A pregenerated sequence will be used instead.")
 
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
