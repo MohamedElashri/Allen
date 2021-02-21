@@ -5,32 +5,29 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------------
-The project requires CMake 3.18, Python3, a [compiler supporting C++17](https://en.cppreference.com/w/cpp/compiler_support), boost, ZeroMQ and the nlohmann json library (https://github.com/nlohmann/json).
+The project requires CMake 3.18, Python3, Clang 9 or more recent, Boost, ZeroMQ and the nlohmann json library.
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
 * CPU target: Any modern compiler can be used:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
-    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
     ```
 
 * CUDA target: The latest supported compilers are gcc-9 and clang-10. CUDA is
   available in cvmfs as well:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
-    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
     ```
 
 * HIP target: Either a local installation of HIP 3.9.0 or CVMFS are required:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_97apython3 x86_64-centos7-clang10-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
     source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
-    export PATH=/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/1043/stable/linux-64/bin:$PATH
     ```
 
 * CUDACLANG target: A version of the clang compiler with ptx support is required,
