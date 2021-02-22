@@ -36,6 +36,16 @@ public:
     intDecisionIDMask = 0xffff0000L
   };
 
+  __device__ __host__ HltDecReport() = default;
+
+  __device__ __host__ HltDecReport(unsigned int report) : m_decReport {report} {}
+
+  // get line decision.
+  __device__ __host__ bool decision() const { return (m_decReport & decisionMask) >> decisionBits; }
+
+  // get line decision.
+  __device__ __host__ unsigned int decisionID() const { return (m_decReport & intDecisionIDMask) >> intDecisionIDBits; }
+
   // Set line decision.
   __device__ __host__ void setDecision(const bool dec)
   {
