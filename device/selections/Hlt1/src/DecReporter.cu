@@ -17,7 +17,7 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
 
 void dec_reporter::dec_reporter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
@@ -25,9 +25,7 @@ void dec_reporter::dec_reporter_t::operator()(
   global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  if (runtime_options.do_check) {
-    safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
-  }
+  safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
 }
 
 __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)

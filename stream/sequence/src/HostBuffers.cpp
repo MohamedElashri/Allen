@@ -47,6 +47,7 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
 
   // Buffer for saving events passing Hlt1 selections.
   Allen::malloc_host((void**) &host_passing_event_list, max_number_of_events * sizeof(bool));
+  ::memset(host_passing_event_list, 0, max_number_of_events * sizeof(bool));
 
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated
