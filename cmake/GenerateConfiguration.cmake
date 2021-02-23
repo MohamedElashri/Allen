@@ -11,20 +11,32 @@ set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
 set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 
-# We need Python 3
+# We need a Python 3 interpreter
 find_package (Python3 COMPONENTS Interpreter QUIET)
 
-# We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
-# TODO: Figure out if there is a cleaner way to do this
-set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64:/Library/Developer/CommandLineTools/usr/lib)
-set(REQUIRED_CPLUS_PATH /cvmfs/sft.cern.ch/lcg/views/LCG_97python3/x86_64-centos7-gcc8-opt/include)
+# Find libClang, required for parsing the Allen codebase
+set(MINIMUM_REQUIRED_LIBCLANG_VERSION 9)
 
-message(STATUS "Generating sequence using LLVM")
+find_package(LibClang QUIET)
+if(LIBCLANG_FOUND AND "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
+  message(STATUS "libClang version found (${LIBCLANG_VERSION}) does not meet minimum version requirement (${MINIMUM_REQUIRED_LIBCLANG_VERSION})")
+endif()
+
+if(NOT LIBCLANG_FOUND OR "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # In macOS, libClang typically exists even if llvm was not installed.
+    # Attempt default directory
+    set(LIBCLANG_LIBDIR /Library/Developer/CommandLineTools/usr/lib)
+  elseif(EXISTS /cvmfs/sft.cern.ch)
+    # As a last resource, try a hard-coded directory in cvmfs
+    set(LIBCLANG_LIBDIR /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib)
+  endif()
+endif()
+
+message(STATUS "Testing code generation with LLVM")
 
 # From CMake on execute_process:
 # "If a sequential execution of multiple commands is required, use multiple execute_process() calls with a single COMMAND argument."
-message(STATUS "Testing code generation with LLVM - Configured generator: Allen")
-
 if (SEQUENCE_GENERATION AND Python3_FOUND)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
@@ -32,7 +44,7 @@ if (SEQUENCE_GENERATION AND Python3_FOUND)
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_1)
-  execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen"
+  execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_2)
   execute_process(COMMAND ${Python3_EXECUTABLE} ${SEQUENCE}.py
@@ -47,7 +59,7 @@ if (SEQUENCE_GENERATION AND Python3_FOUND)
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
       COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=${REQUIRED_CPLUS_PATH}:${CPLUS_INCLUDE_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" ${Python3_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Allen" &&
         ${Python3_EXECUTABLE} ${SEQUENCE}.py &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
@@ -59,14 +71,18 @@ if (SEQUENCE_GENERATION AND Python3_FOUND)
 endif()
 
 if(NOT SEQUENCE_GENERATION_SUCCESS)
-  if(SEQUENCE_GENERATION AND Python3_FOUND)
-    message(STATUS "Testing code generation with LLVM - Failed. Please note that cvmfs (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
-    message(STATUS "A pregenerated sequence will be used instead.")
-  elseif(SEQUENCE_GENERATION)
-    message(STATUS "Testing code generation with LLVM - Failed. Please note that Python 3 is required to be able to generate configurations.")
+  if(SEQUENCE_GENERATION)
+    if(NOT Python3_FOUND)
+      message(STATUS "Testing code generation with LLVM - Failed. No Python3 interpreter was found.")
+    elseif(NOT LIBCLANG_FOUND)
+      message(STATUS "Testing code generation with LLVM - Failed. No suitable libClang installation found.")
+    else()
+      message(STATUS "Testing code generation with LLVM - Failed.")
+    endif()
   else()
     message(STATUS "Testing code generation with LLVM - Disabled")
   endif()
+  message(STATUS "A pregenerated sequence will be used instead.")
 
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
