@@ -1,5 +1,5 @@
 
-Velo tracks:
+host_velo_validator validation:
 TrackChecker output                               :      1698/   222577   0.76% ghosts
 01_velo                                           :     94306/    95852  98.39% ( 98.46%),      1812 (  1.89%) clones, pur  99.72%, hit eff  96.92%
 02_long                                           :     56497/    56923  99.25% ( 99.28%),       729 (  1.27%) clones, pur  99.83%, hit eff  98.02%
@@ -13,21 +13,7 @@ TrackChecker output                               :      1698/   222577   0.76% 
 10_long_fromB_electrons_P>5GeV                    :       150/      153  98.04% ( 99.10%),         6 (  3.85%) clones, pur  97.58%, hit eff  97.02%
 
 
-Primary vertices:
-REC and MC vertices matched by dz distance
-MC PV is reconstructible if at least 4 tracks are reconstructed
-MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
-REC and MC vertices matched by dz distance
-
-All                  :  0.944 (  4715/  4996)
-Isolated             :  0.982 (  2585/  2633)
-Close                :  0.901 (  2130/  2363)
-False rate           :  0.007 (    34/  4749)
-Real false rate      :  0.007 (    34/  4749)
-Clones               :  0.000 (     0/  4715)
-
-
-Velo+UT tracks:
+host_velo_ut_validator validation:
 TrackChecker output                               :      2735/    54521   5.02% ghosts
 01_velo                                           :     48710/    95852  50.82% ( 51.24%),       378 (  0.77%) clones, pur  99.56%, hit eff  96.14%
 02_velo+UT                                        :     48625/    83670  58.12% ( 58.53%),       377 (  0.77%) clones, pur  99.57%, hit eff  96.14%
@@ -44,7 +30,7 @@ TrackChecker output                               :      2735/    54521   5.02% 
 13_long_fromB_electrons_P>5GeV                    :        93/      153  60.78% ( 63.33%),         1 (  1.06%) clones, pur  98.48%, hit eff  95.94%
 
 
-Forward tracks:
+host_forward_validator validation:
 TrackChecker output                               :      1064/    38478   2.77% ghosts
 for P>3GeV,Pt>0.5GeV                              :       657/    28730   2.29% ghosts
 01_long                                           :     35038/    56923  61.55% ( 62.42%),       266 (  0.75%) clones, pur  99.43%, hit eff  98.67%
@@ -59,7 +45,7 @@ for P>3GeV,Pt>0.5GeV                              :       657/    28730   2.29% 
 10_long_fromB_electrons_P>5GeV                    :        78/      153  50.98% ( 52.08%),         1 (  1.27%) clones, pur  98.77%, hit eff  98.20%
 
 
-Muon matching:
+host_muon_validator validation:
 Muon fraction in all MCPs:                                              11305/   830894   0.01% 
 Muon fraction in MCPs to which a track(s) was matched:                    435/    44077   0.01% 
 Correctly identified muons with isMuon:                                   367/      435  84.37% 
@@ -69,7 +55,21 @@ Tracks identified as muon with isMuon, but matched to non-muon MCP:      3598/  
 Ghost tracks identified as muon with isMuon:                              106/     1064   9.96% 
 
 
-HLT1 rates:
+host_pv_validator validation:
+REC and MC vertices matched by dz distance
+MC PV is reconstructible if at least 4 tracks are reconstructed
+MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
+REC and MC vertices matched by dz distance
+
+All                  :  0.944 (  4715/  4996)
+Isolated             :  0.982 (  2585/  2633)
+Close                :  0.901 (  2130/  2363)
+False rate           :  0.007 (    34/  4749)
+Real false rate      :  0.007 (    34/  4749)
+Clones               :  0.000 (     0/  4715)
+
+
+host_rate_validator validation:
 Hlt1TrackMVA:            245/  1000, ( 7350.00 +/-   408.02) kHz
 Hlt1TwoTrackMVA:         425/  1000, (12750.00 +/-   468.97) kHz
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
