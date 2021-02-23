@@ -794,7 +794,7 @@ geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_
 
 
 a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - a40
   needs:
@@ -878,7 +878,7 @@ geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 a40:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
-  <<: *scifi_v6_throughput_job_profiling
+  <<: *scifi_v6_throughput_job
   tags:
     - a40
   needs:
@@ -978,7 +978,7 @@ geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_2
     - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 a40:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - a40
   needs:
@@ -1034,7 +1034,7 @@ geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_t
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - a40
   needs:
