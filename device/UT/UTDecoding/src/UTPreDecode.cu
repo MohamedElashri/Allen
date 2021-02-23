@@ -26,8 +26,13 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
 {
   initialize<dev_ut_hit_count_t>(arguments, 0, context);
 
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+
   if (runtime_options.mep_layout) {
-    global_function(ut_pre_decode_mep)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    auto fun = bank_version == 3 ?
+      global_function(ut_pre_decode_mep<3>) :
+      global_function(ut_pre_decode_mep<4>);
+    fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -36,7 +41,10 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
       constants.dev_unique_x_sector_offsets.data());
   }
   else {
-    global_function(ut_pre_decode)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    auto fun = bank_version == 3 ?
+      global_function(ut_pre_decode<3>) :
+      global_function(ut_pre_decode<4>);
+    fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_geometry.data(),
@@ -47,25 +55,43 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
 }
 
 /**
- * @details Given a v4 RawBank, this function partly decodes the hits to sort them by yBegin.
- *          In case hits have the same yBegin, they are sorted by x (xAtYEq0_local).
- *          Hit indices in the RawBank are persisted along with the variable for sorting
- *          to enable a loop over hits later on.
- */
+* @details Given a RawBank, this function partly decodes the hits to sort them by yBegin.
+*          In case hits have the same yBegin, they are sorted by x (xAtYEq0_local).
+*          Hit indices in the RawBank are persisted along with the variable for sorting
+*          to enable a loop over hits later on.
+*/
+template<int decoding_version>
 __device__ void pre_decode_raw_bank(
   unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
-  UTRawBank_v4 const& raw_bank,
+  UTRawBank<decoding_version> const& raw_bank,
+  unsigned const raw_bank_index,
+  UT::PreDecodedHits& ut_pre_decoded_hits,
+  uint32_t* hit_count)
+{
+  throw std::runtime_error("UTDecoding: Unknown version "+std::to_string(decoding_version));
+}
+
+/**
+* @brief Implementation for v4 UTRawBanks (version number 3 in the RawBank enum in LHCb)
+*/
+template<>
+__device__ void pre_decode_raw_bank(
+  unsigned const* dev_ut_region_offsets,
+  unsigned const* dev_unique_x_sector_offsets,
+  uint32_t const* hit_offsets,
+  UTGeometry const& geometry,
+  UTBoards const& boards,
+  UTRawBank<3> const& raw_bank,
   unsigned const raw_bank_index,
   UT::PreDecodedHits& ut_pre_decoded_hits,
   uint32_t* hit_count)
 {
   const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
-
-  for (unsigned i = threadIdx.y; i < raw_bank.number_of_hits; i += blockDim.y) {
+  for (unsigned i = threadIdx.y; i < raw_bank.number_of_hits[0]; i += blockDim.y) {
     // Extract values from raw_data
     const uint16_t value = raw_bank.data[i];
     const uint32_t fracStrip = (value & UT::Decoding::v4::frac_mask) >> UT::Decoding::v4::frac_offset;
@@ -140,27 +166,24 @@ __device__ void pre_decode_raw_bank(
 }
 
 /**
- * @details Given a v5 RawBank, this function partly decodes the hits to sort them by yBegin.
- *          In case hits have the same yBegin, they are sorted by x (xAtYEq0_local).
- *          Hit indices in the RawBank are persisted along with the variable for sorting
- *          to enable a loop over hits later on.
- */
- __device__ void pre_decode_raw_bank(
+* @brief Implementation for v5 UTRawBanks (version number 4 in the RawBank enum in LHCb)
+*/
+template<>
+__device__ void pre_decode_raw_bank(
   unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
-  UTRawBank_v5 const& raw_bank,
+  UTRawBank<4> const& raw_bank,
   unsigned const raw_bank_index,
   UT::PreDecodedHits& ut_pre_decoded_hits,
   uint32_t* hit_count)
 {
   const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
-
   for (unsigned lane = threadIdx.y; lane < UT::Decoding::ut_number_of_sectors_per_board; lane += blockDim.y) {
     // skip if there's nothing
-    if(raw_bank.number_of_hits_per_lane[lane]==0) continue;
+    if(raw_bank.number_of_hits[lane]==0) continue;
     // we can do some things that only depend on lane and sourceID before decoding individual hits
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
     const uint32_t station = boards.stations[fullChanIndex] - 1;
@@ -180,7 +203,7 @@ __device__ void pre_decode_raw_bank(
     // So there is something in lane 5 (1280) and 0 (669913862), all other lanes don't have hits.
     // These words have been encoded as 32 bit integers with the corresponding bitshifts that allow reading them as 16 bit integers, which is what we will do.
     // This means we can loop individual hits but have to do slighty more complicated indexing gymnastics.
-    for(unsigned ihit = 0; ihit < raw_bank.number_of_hits_per_lane[lane]; ihit++){// loop hits
+    for(unsigned ihit = 0; ihit < raw_bank.number_of_hits[lane]; ihit++){// loop hits
       const auto hit_index_inside_raw_bank = 16*(ihit/2) + 2*(5-lane) + ihit%2;
       const uint16_t word = raw_bank.data[hit_index_inside_raw_bank];
       // this is the magic step that tells us which strip was hit
@@ -223,14 +246,16 @@ __device__ void pre_decode_raw_bank(
   }// end loop lanes
 }
 
+
 /**
- * Iterate over raw banks / hits and store only the Y coordinate,
- * and an uint32_t encoding the following:
- * raw_bank number and hit id inside the raw bank.
- * Let's refer to this array as raw_bank_hits.
- *
- * Kernel suitable for decoding from Allen layout
- */
+* Iterate over raw banks / hits and store only the Y coordinate,
+* and an uint32_t encoding the following:
+* raw_bank number and hit id inside the raw bank.
+* Let's refer to this array as raw_bank_hits.
+*
+* Kernel suitable for decoding from Allen layout
+*/
+template<int decoding_version>
 __global__ void ut_pre_decode::ut_pre_decode(
   ut_pre_decode::Parameters parameters,
   const char* ut_boards,
@@ -254,22 +279,9 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
-  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
-       raw_bank_index += blockDim.x) {
-    const auto version = raw_event.get_raw_bank_version(raw_bank_index);
-    if( version == 4 ){ // (sic) https://gitlab.cern.ch/lhcb/LHCb/-/blob/a7260f691ea22625f9256dd8a60b6ec4504d7aa4/UT/UTKernel/Kernel/UTDAQDefinitions.h#L37
-      const auto raw_bank = raw_event.getUTRawBank<UTRawBank_v5>(raw_bank_index);
-      assert(boards.version == raw_bank.version());
+  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks; raw_bank_index += blockDim.x)
       pre_decode_raw_bank(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, geometry,
-        boards, raw_bank, raw_bank_index, ut_pre_decoded_hits, hit_count);
-    }
-    else {
-      const auto raw_bank = raw_event.getUTRawBank<UTRawBank_v4>(raw_bank_index);
-      assert(boards.version == raw_bank.version());
-      pre_decode_raw_bank(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, geometry,
-        boards, raw_bank, raw_bank_index, ut_pre_decoded_hits, hit_count);
-    }
-  }
+        boards, raw_event.getUTRawBank<decoding_version>(raw_bank_index), raw_bank_index, ut_pre_decoded_hits, hit_count);
 }
 
 /**
@@ -280,6 +292,7 @@ __global__ void ut_pre_decode::ut_pre_decode(
  *
  * Kernel suitable for decoding from MEP layout
  */
+ template<int decoding_version>
 __global__ void ut_pre_decode::ut_pre_decode_mep(
   ut_pre_decode::Parameters parameters,
   const char* ut_boards,

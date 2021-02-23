@@ -12,6 +12,7 @@ namespace host_global_event_cut {
   struct Parameters {
     HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>) ut_banks;
     HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>) ut_offsets;
+    HOST_INPUT(host_ut_raw_bank_version_t, int) ut_raw_bank_version;
     HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
     HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
     HOST_OUTPUT(host_event_list_t, unsigned) host_event_list;
@@ -32,6 +33,7 @@ namespace host_global_event_cut {
     const auto number_of_events = parameters.host_number_of_events[0];
 
     auto const ut_offsets = *parameters.ut_offsets;
+    auto const ut_raw_bank_version = *parameters.ut_raw_bank_version;
     auto const scifi_offsets = *parameters.scifi_offsets;
 
     unsigned size_of_list = 0;
@@ -88,12 +90,10 @@ namespace host_global_event_cut {
         const UTRawEvent ut_event(parameters.ut_banks[0].data() + ut_event_offset);
 
         for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i){
-          // mstahl: far from optimal...
-          const auto version = ut_event.get_raw_bank_version(i);
-          if( version == 4 ) n_UT_clusters += ut_event.getUTRawBank<UTRawBank_v5>(i).get_n_hits();
-          else n_UT_clusters += ut_event.getUTRawBank<UTRawBank_v4>(i).get_n_hits();
+          if( ut_raw_bank_version == 4 ) n_UT_clusters += ut_event.getUTRawBank<4>(i).get_n_hits();
+          else if( ut_raw_bank_version == 3 ) n_UT_clusters += ut_event.getUTRawBank<3>(i).get_n_hits();
+          else throw std::runtime_error("Unknown UT raw bank version "+std::to_string(ut_raw_bank_version));
         }
-
       }
 
       const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;

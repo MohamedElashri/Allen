@@ -89,6 +89,7 @@ namespace MEP {
    * @param      slices to fill with transposed banks, slices are addressed by bank type
    * @param      index of bank slices
    * @param      number of banks per event
+   * @param      bank versions to fill
    * @param      event ids of banks in this slice
    * @param      start of bank data for this event
    *
@@ -100,6 +101,7 @@ namespace MEP {
     std::vector<int> const& bank_ids,
     std::unordered_set<BankTypes> const& bank_types,
     std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+    std::array<int, LHCb::NBankTypes>& banks_version,
     EventIDs& event_ids,
     EB::Header const& mep_header,
     Blocks const& blocks,
@@ -112,6 +114,7 @@ namespace MEP {
    * @param      slices to fill with transposed banks, slices are addressed by bank type
    * @param      index of bank slices
    * @param      number of banks per event
+   * @param      bank versions to fill
    * @param      event ids of banks in this slice
    * @param      start of bank data for this event
    *
@@ -123,6 +126,7 @@ namespace MEP {
     std::vector<int> const& bank_ids,
     std::unordered_set<BankTypes> const& bank_types,
     std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+    std::array<int, LHCb::NBankTypes>& banks_version,
     EventIDs& event_ids,
     EB::Header const& mep_header,
     Blocks const& blocks,

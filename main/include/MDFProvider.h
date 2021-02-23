@@ -257,10 +257,8 @@ public:
     auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
+    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
   }
-
-  //
 
   /**
    * @brief      Get a slice that is ready for processing; thread-safe
@@ -472,6 +470,7 @@ private:
         m_bank_ids,
         this->types(),
         m_banks_count,
+        m_banks_version,
         m_event_ids[*slice_index],
         this->events_per_slice(),
         m_config.split_by_run);
@@ -717,6 +716,9 @@ private:
   // Memory slices, N for each raw bank type
   Slices m_slices;
   std::vector<size_t> m_slice_to_buffer;
+
+  // Array to store the version of banks per bank type
+  mutable std::array<int, LHCb::NBankTypes> m_banks_version;
 
   // Mutex, condition varaible and queue for parallel transposition of slices
   std::mutex m_transpose_mut;

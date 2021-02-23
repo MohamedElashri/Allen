@@ -25,39 +25,60 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
 {
   initialize<dev_ut_hit_sizes_t>(arguments, 0, context);
 
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+
   if (runtime_options.mep_layout) {
-    global_function(ut_calculate_number_of_hits_mep)(
+    // TODO: check compatibility of decoding version with geometry and numbering scheme
+    auto fun = bank_version == 3 ?
+      global_function(ut_calculate_number_of_hits_mep<3>) :
+      global_function(ut_calculate_number_of_hits_mep<4>);
+    fun(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
-      constants.dev_unique_x_sector_offsets.data());
+      constants.dev_unique_x_sector_offsets.data() );
   }
   else {
-    global_function(ut_calculate_number_of_hits)(
+    auto fun = bank_version == 3 ?
+      global_function(ut_calculate_number_of_hits<3>) :
+      global_function(ut_calculate_number_of_hits<4>);
+    fun(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
-      constants.dev_unique_x_sector_offsets.data());
+      constants.dev_unique_x_sector_offsets.data() );
   }
 }
 
 /**
- * @brief Given a v4 RawBank, this function calculates the number of hits in a sector_group
+ * @brief Given a UT RawBank, this function calculates the number of hits in a sector_group
   ("virtual" structure for optimized processing; a group of sectors where the start X is of a certain value).
  */
+template<int decoding_version>
 __device__ void calculate_number_of_hits(
   unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t* hit_offsets,
   UTBoards const& boards,
-  UTRawBank_v4 const& raw_bank)
+  UTRawBank<decoding_version> const& raw_bank)
 {
-  const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
+  throw std::runtime_error("UTDecoding: Unknown version "+std::to_string(decoding_version));
+}
 
+
+template<>
+__device__ void calculate_number_of_hits<3>(
+  unsigned const* dev_ut_region_offsets,
+  unsigned const* dev_unique_x_sector_offsets,
+  uint32_t* hit_offsets,
+  UTBoards const& boards,
+  UTRawBank<3> const& raw_bank)
+{
+  const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID]; \
   for (unsigned i = threadIdx.y; i < raw_bank.get_n_hits(); i += blockDim.y) {
     const uint32_t channelID = (raw_bank.data[i] & UT::Decoding::v4::chan_mask) >> UT::Decoding::v4::chan_offset;
     const uint32_t index = channelID / m_nStripsPerHybrid;
@@ -76,20 +97,17 @@ __device__ void calculate_number_of_hits(
   }
 }
 
-/**
- * @brief Given a v5 RawBank, this function calculates the number of hits in a sector_group
-  ("virtual" structure for optimized processing; a group of sectors where the start X is of a certain value).
- */
- __device__ void calculate_number_of_hits(
+template<>
+__device__ void calculate_number_of_hits<4>(
   unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t* hit_offsets,
   UTBoards const& boards,
-  UTRawBank_v5 const& raw_bank)
+  UTRawBank<4> const& raw_bank)
 {
   if(raw_bank.get_n_hits() == 0) return;
   for (unsigned lane = threadIdx.y; lane < UT::Decoding::ut_number_of_sectors_per_board; lane += blockDim.y) {
-    if(raw_bank.number_of_hits_per_lane[lane] == 0) continue;
+    if(raw_bank.number_of_hits[lane] == 0) continue;
     // find the sector group to which these hits are added
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
     const uint32_t station = boards.stations[fullChanIndex] - 1;
@@ -101,13 +119,14 @@ __device__ void calculate_number_of_hits(
     const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
     const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
     unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[idx_offset];
-    atomicAdd(hits_sector_group, raw_bank.number_of_hits_per_lane[lane]);
+    atomicAdd(hits_sector_group, raw_bank.number_of_hits[lane]);
   }
 }
 
 /**
  * @brief Calculates the number of hits to be decoded for the UT detector.
  */
+template<int decoding_version>
 __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   ut_calculate_number_of_hits::Parameters parameters,
   const char* ut_boards,
@@ -124,26 +143,14 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
 
-  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
-       raw_bank_index += blockDim.x) {
-    // mstahl: far from optimal...
-    const auto version = raw_event.get_raw_bank_version(raw_bank_index);
-    if( version == 4 ){
-      const auto raw_bank = raw_event.getUTRawBank<UTRawBank_v5>(raw_bank_index);
-      assert(boards.version == raw_bank.version());
-      calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_bank);
-    }
-    else {
-      const auto raw_bank = raw_event.getUTRawBank<UTRawBank_v4>(raw_bank_index);
-      assert(boards.version == raw_bank.version());
-      calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_bank);
-    }
-  }
+  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks; raw_bank_index += blockDim.x)
+    calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_event.getUTRawBank<decoding_version>(raw_bank_index));
 }
 
 /**
  * @brief Calculates the number of hits to be decoded for the UT detector.
  */
+template<int decoding_version>
 __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_mep(
   ut_calculate_number_of_hits::Parameters parameters,
   const char* ut_boards,
@@ -151,7 +158,6 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_mep(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets)
 {
-  printf("sorry, i can't do that yet");
   // const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   // const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
@@ -163,7 +169,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_mep(
   // for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
 
   //   // Construct UT raw bank from MEP layout
-  //   const auto raw_bank = MEP::raw_bank<UTRawBank>(
+  //   const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(
   //     parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
 
   //   calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_bank);

@@ -9,6 +9,7 @@
 namespace ut_calculate_number_of_hits {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned) dev_ut_raw_input_offsets;
@@ -16,6 +17,7 @@ namespace ut_calculate_number_of_hits {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
+  template<int decoding_version>
   __global__ void ut_calculate_number_of_hits(
     Parameters,
     const char* ut_boards,
@@ -23,12 +25,13 @@ namespace ut_calculate_number_of_hits {
     const unsigned* dev_unique_x_sector_layer_offsets,
     const unsigned* dev_unique_x_sector_offsets);
 
+  template<int decoding_version>
   __global__ void ut_calculate_number_of_hits_mep(
-    Parameters,
-    const char* ut_boards,
-    const unsigned* dev_ut_region_offsets,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const unsigned* dev_unique_x_sector_offsets);
+  Parameters,
+  const char* ut_boards,
+  const unsigned* dev_ut_region_offsets,
+  const unsigned* dev_unique_x_sector_layer_offsets,
+  const unsigned* dev_unique_x_sector_offsets);
 
   struct ut_calculate_number_of_hits_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
