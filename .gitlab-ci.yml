@@ -667,17 +667,17 @@ HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_te
 # Builds with warnings treated as errors
 # gcc:
 
-CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
   tags:
     - cvmfs
 
-HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc9-opt:build_warnings_as_errors:
+HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
   tags:
     - cvmfs
