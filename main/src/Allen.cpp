@@ -329,7 +329,7 @@ int allen(
   std::unique_ptr<IInputProvider> input_provider;
 
   // Number of requested events as an optional
-  boost::optional<size_t> n_events;
+  boost::optional<size_t> n_events = boost::make_optional(false, size_t {});
   if (number_of_events_requested != 0) {
     n_events = number_of_events_requested;
   }

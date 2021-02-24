@@ -20,7 +20,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
-    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.1/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.2/x86_64-centos7/setup.sh
     ```
 
 * HIP target: Either a local installation of HIP 3.9.0 or CVMFS are required:
