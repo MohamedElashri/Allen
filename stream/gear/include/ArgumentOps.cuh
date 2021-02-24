@@ -172,6 +172,9 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
   }
 
+  /**
+   * @brief Asynchronous make_vector.
+   */
   static auto make_vector(const Args& arguments, const Allen::Context& context)
   {
     Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
@@ -181,6 +184,20 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
       size<Arg>(arguments) * sizeof(typename Arg::type),
       Allen::memcpyHostToHost,
       context);
+    return v;
+  }
+
+  /**
+   * @brief Synchronous make_vector.
+   */
+  static auto make_vector(const Args& arguments)
+  {
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy(
+      v.data(),
+      data<Arg>(arguments),
+      size<Arg>(arguments) * sizeof(typename Arg::type),
+      Allen::memcpyHostToHost);
     return v;
   }
 
@@ -211,6 +228,9 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
   }
 
+  /**
+   * @brief Asynchronous make_vector.
+   */
   static auto make_vector(const Args& arguments, const Allen::Context& context)
   {
     Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
@@ -220,6 +240,20 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
       size<Arg>(arguments) * sizeof(typename Arg::type),
       Allen::memcpyDeviceToHost,
       context);
+    return v;
+  }
+
+  /**
+   * @brief Synchronous make_vector.
+   */
+  static auto make_vector(const Args& arguments)
+  {
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy(
+      v.data(),
+      data<Arg>(arguments),
+      size<Arg>(arguments) * sizeof(typename Arg::type),
+      Allen::memcpyDeviceToHost);
     return v;
   }
 
@@ -473,12 +507,23 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
 
 /**
  * @brief Makes a std::vector out of an Allen container.
- * @details The copy mechanism to create the std::vector is blocking and synchronous.
- *          This function should only be used where the performance of the application
- *          is irrelevant.
+ * @details The copy function here is asynchronous. The only small caveat of this
+ *          function is the requirement to dynamically allocate a buffer on the host.
  */
 template<typename Arg, typename Args>
 auto make_vector(const Args& arguments, const Allen::Context& context)
 {
   return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments, context);
+}
+
+/**
+ * @brief Makes a std::vector out of an Allen container.
+ * @details This copy mechanism to create a std::vector is blocking and synchronous.
+ *          This function should only be used where the performance of the application
+ *          is irrelevant.
+ */
+template<typename Arg, typename Args>
+auto make_vector(const Args& arguments)
+{
+  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments);
 }
