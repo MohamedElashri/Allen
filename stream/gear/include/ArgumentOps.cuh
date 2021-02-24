@@ -194,10 +194,7 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   {
     Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy(
-      v.data(),
-      data<Arg>(arguments),
-      size<Arg>(arguments) * sizeof(typename Arg::type),
-      Allen::memcpyHostToHost);
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost);
     return v;
   }
 
@@ -250,10 +247,7 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   {
     Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy(
-      v.data(),
-      data<Arg>(arguments),
-      size<Arg>(arguments) * sizeof(typename Arg::type),
-      Allen::memcpyDeviceToHost);
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
     return v;
   }
 
