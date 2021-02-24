@@ -17,7 +17,7 @@ allen_add_device_library(Muon STATIC
   ${muon_filter}
 )
 
-target_link_libraries(Muon PRIVATE Common Backend EventModel Utils)
+target_link_libraries(Muon PRIVATE Common Backend HostEventModel EventModel Utils)
 
 target_include_directories(Muon PUBLIC
   preprocessing/include

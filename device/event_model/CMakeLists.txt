@@ -8,4 +8,6 @@ target_include_directories(EventModel INTERFACE
   SciFi/include
   selections/include
   UT/include
-  velo/include)
+  velo/include
+  kalman/include
+  PV/include)

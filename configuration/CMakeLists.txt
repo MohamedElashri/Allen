@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 #                                                                             #
@@ -13,3 +14,8 @@ if (NOT STANDALONE)
       COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_configuration.sh ${CMAKE_CURRENT_SOURCE_DIR})
     gaudi_install_python_modules()
 endif()
+=======
+# Configuration interface library
+add_library(Configuration INTERFACE)
+target_include_directories(Configuration INTERFACE ${CMAKE_BINARY_DIR}/configuration/sequences)
+>>>>>>> Converted all CMakeLists include_directories into target_include_directories.

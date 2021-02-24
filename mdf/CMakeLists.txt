@@ -1,16 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-find_package(Boost REQUIRED COMPONENTS iostreams)
 
-include_directories(${CMAKE_SOURCE_DIR}/backend/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/UT/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/muon/common/include)
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${CPPGSL_INCLUDE_DIR})
+# Interface library for lhcb includes
+add_library(LHCbEvent INTERFACE)
+
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 
 set(mdf_sources
@@ -24,7 +18,9 @@ if (ROOT_FOUND AND USE_ROOT)
 endif()
 
 allen_add_host_library(mdf STATIC ${mdf_sources})
-target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories (mdf PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
 if (STANDALONE)
   # Make sure we have a local copy of ODIN.h if building in standalone mode
   set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
@@ -41,11 +37,11 @@ if (STANDALONE)
   endforeach()
   list(APPEND mdf_sources ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
   target_sources(mdf PRIVATE ${mdf_sources})
-  target_include_directories(mdf PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/lhcb
-    ${PROJECT_BINARY_DIR}/sequences/Gaudi/GaudiKernel/include
-    ${PROJECT_BINARY_DIR}/imported_include)
-  target_compile_definitions(mdf PUBLIC ODIN_WITHOUT_GAUDI)
+  target_include_directories(LHCbEvent INTERFACE lhcb)
+  target_include_directories(LHCbEvent INTERFACE
+    ${PROJECT_BINARY_DIR}/imported_include
+    ${PROJECT_BINARY_DIR}/sequences/Gaudi/GaudiKernel/include)
+  target_compile_definitions(LHCbEvent INTERFACE ODIN_WITHOUT_GAUDI)
 else()
   find_package(Boost COMPONENTS filesystem thread regex)
   target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
@@ -53,17 +49,15 @@ else()
 endif()
 
 if (ROOT_FOUND AND USE_ROOT)
-  target_compile_definitions(mdf PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(mdf SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+  target_compile_definitions(mdf PUBLIC
+    $<BUILD_INTERFACE:${ALLEN_ROOT_DEFINITIONS}>)
+  target_include_directories(mdf SYSTEM PUBLIC
+    $<BUILD_INTERFACE:${ROOT_INCLUDE_DIRS}>)
   target_link_libraries(mdf PUBLIC ${ALLEN_ROOT_LIBRARIES})
 endif()
 
-target_include_directories(
-  mdf PUBLIC
-  ${CMAKE_SOURCE_DIR}/main/include)
-
 target_link_libraries(
-  mdf PUBLIC)
+  mdf PRIVATE Gear Backend AllenCommon LHCbEvent)
 
 # These tests don't need CUDA
 remove_definitions(-DTARGET_DEVICE_CUDA)
@@ -75,15 +69,10 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  target_include_directories(${PARSED_ARGS_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/mdf/include
-    ${CMAKE_SOURCE_DIR}/main/include)
-
-  if (STANDALONE)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads)
-  else()
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads mdf Common EventModel LHCbEvent)
+  if (NOT STANDALONE)
     find_package(fmt REQUIRED)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads fmt::fmt)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
   endif()
 
   if (USE_MPI AND MPI_FOUND)
@@ -105,7 +94,7 @@ foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp Transpose.cpp TransposeMEP
   list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
 endforeach()
 allen_add_host_library(MdfTestCommon STATIC ${common_sources} ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
-target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs)
+target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs Backend LHCbEvent)
 
 test_program(NAME mdf_to_mep)
 

@@ -7,6 +7,7 @@
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanMethods.cuh"
+#include "ParKalmanFittedTrack.cuh"
 
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"

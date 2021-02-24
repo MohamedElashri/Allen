@@ -1,18 +1,19 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
+#include <cmath>
+
 #include "HostBuffers.cuh"
 #include "BackendCommon.h"
 #include "VeloEventModel.cuh"
 #include "UTDefinitions.cuh"
 #include "SciFiDefinitions.cuh"
 #include "MuonDefinitions.cuh"
-#include "TrackChecker.h"
 #include "SciFiEventModel.cuh"
 #include "UTEventModel.cuh"
 #include "patPV_Definitions.cuh"
 #include "PV_Definitions.cuh"
-#include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "VertexDefinitions.cuh"
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"

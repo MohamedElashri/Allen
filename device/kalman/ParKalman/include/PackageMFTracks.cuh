@@ -5,6 +5,7 @@
 
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "States.cuh"

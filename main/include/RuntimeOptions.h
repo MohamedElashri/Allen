@@ -6,11 +6,11 @@
 #include <vector>
 #include "BankTypes.h"
 #include "MCEvent.h"
-#include "CheckerInvoker.h"
-#include "ROOTService.h"
 
 // Forward declare IInputProvider to avoid including "InputProvider.h" from device code
 struct IInputProvider;
+struct CheckerInvoker;
+struct ROOTService;
 
 /**
  * @brief Runtime options singleton.

@@ -114,10 +114,10 @@ function(zmq_program)
 
   find_package(Threads REQUIRED)
   if (STANDALONE)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads LHCbEvent)
   else()
     find_package(fmt REQUIRED)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads fmt::fmt)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads LHCbEvent fmt::fmt)
   endif()
 
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)

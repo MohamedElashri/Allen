@@ -11,7 +11,7 @@ allen_add_device_library(UT STATIC
   ${CompassUT_tracking}
 )
 
-target_link_libraries(UT PRIVATE Backend EventModel Utils)
+target_link_libraries(UT PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(UT PUBLIC
   common/include

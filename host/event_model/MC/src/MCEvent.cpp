@@ -1,9 +1,9 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-/** @file velopix-input-reader.cpp
+/** @file MCEvent.cpp
  *
- * @brief reader of velopix input files
+ * @brief reader of MC input files
  *
  * @author Rainer Schwemmer
  * @author Daniel Campora

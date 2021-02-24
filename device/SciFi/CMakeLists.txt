@@ -10,7 +10,7 @@ allen_add_device_library(SciFi STATIC
   ${scifi_looking_forward}
   ${scifi_consolidate})
 
-target_link_libraries(SciFi PRIVATE Backend EventModel Utils)
+target_link_libraries(SciFi PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(SciFi PUBLIC
   common/include

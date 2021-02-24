@@ -3,9 +3,9 @@
 \*****************************************************************************/
 #pragma once
 
-#include "Common.h"
-#include "KalmanParametrizationsCoef.cuh"
+#include "BackendCommon.h"
 #include "ParKalmanDefinitions.cuh"
+#include "KalmanParametrizationsCoef.cuh"
 #include "ParKalmanMath.cuh"
 
 #include <fstream>
@@ -64,7 +64,7 @@ namespace ParKalmanFilter {
     __device__ __host__ inline float UTTExtrEndZ() const;
 
     __device__ __host__ inline float UTTExtrBeginZ() const;
-    
+
     __device__ __host__ inline float VUTExtrEndZ() const;
 
     // Pierre's extrapolation.

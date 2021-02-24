@@ -13,11 +13,7 @@
 #include "BackendCommon.h"
 #include "Logger.h"
 #include "ClusteringDefinitions.cuh"
-#include "MuonDefinitions.cuh"
-#include "CheckerTypes.h"
 
 bool check_velopix_events(const std::vector<char>& events, const std::vector<unsigned>& event_offsets, size_t n_events);
 
 std::map<std::string, float> calcResults(std::vector<float>& times);
-
-std::vector<Checker::Tracks> read_forward_tracks(const char* events, const unsigned* event_offsets, const int n_events);

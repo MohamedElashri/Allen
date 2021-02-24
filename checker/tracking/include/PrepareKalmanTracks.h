@@ -15,7 +15,7 @@
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
-#include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "ParKalmanMath.cuh"
 #include "PV_Definitions.cuh"
 #include "patPV_Definitions.cuh"

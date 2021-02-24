@@ -6,7 +6,7 @@
 #include "HostBuffersManager.cuh"
 #include "Logger.h"
 
-#include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 
 #include <cmath>
 

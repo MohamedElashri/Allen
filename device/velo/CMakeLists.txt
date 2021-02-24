@@ -15,7 +15,7 @@ allen_add_device_library(Velo STATIC
   ${velo_consolidate_tracks}
 )
 
-target_link_libraries(Velo PRIVATE Backend EventModel Utils)
+target_link_libraries(Velo PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(Velo PUBLIC
   common/include

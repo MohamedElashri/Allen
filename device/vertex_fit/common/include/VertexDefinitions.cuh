@@ -6,9 +6,6 @@
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "BackendCommon.h"
-#if !defined(__NVCC__) && !defined(__CUDACC__)
-#include <cmath>
-#endif
 
 namespace VertexFit {
 

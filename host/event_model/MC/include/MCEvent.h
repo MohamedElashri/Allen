@@ -26,7 +26,6 @@
 #include "Logger.h"
 #include "LHCbID.h"
 #include "MCVertex.h"
-#include "CheckerTypes.h"
 
 struct MCEvent {
 

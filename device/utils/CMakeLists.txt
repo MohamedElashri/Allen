@@ -12,4 +12,5 @@ target_link_libraries(Utils PRIVATE Backend EventModel)
 target_include_directories(Utils PUBLIC
   prefix_sum/include
   binary_search/include
-  sorting/include)
+  sorting/include
+  float_operations/include)

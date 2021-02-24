@@ -348,7 +348,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_executable(${ARGV})
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -420,7 +419,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
@@ -595,7 +594,7 @@ endif()
 
 set(EXTERNAL_DIR "external")
 
-find_package(Boost REQUIRED COMPONENTS iostreams)
+find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
 
 # Determine which sequences to generate or copy configurations for
 file(GLOB available_sequences "configuration/sequences/*.py")
@@ -608,80 +607,24 @@ foreach(sequence_filename ${available_sequences})
   endif()
 endforeach()
 
-include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
-include_directories(checker/tracking/include)
-include_directories(device/PV/beamlinePV/include)
-include_directories(device/PV/common/include)
+if(NOT BUILD_SEQUENCES)
+  message(FATAL_ERROR "No sequences selected to be built with pattern ${SEQUENCES}.")
+endif()
 
 if(BUILD_TESTS)
 add_subdirectory(external/Catch2)
 add_subdirectory(test/unit_tests)
 endif()
 
+add_subdirectory(configuration)
 add_subdirectory(backend)
+add_subdirectory(host)
 add_subdirectory(device)
 add_subdirectory(checker)
-add_subdirectory(host)
 add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
-
 add_subdirectory(stream)
-
-#Make sure extra search paths get included as system to avoid
-#warnings in external headers
-if (DEFINED ENV{CPLUS_INCLUDE_PATH})
-  include_directories(SYSTEM $ENV{CPLUS_INCLUDE_PATH})
-elseif (DEFINED ENV{CPATH})
-  include_directories(SYSTEM $ENV{CPATH})
-endif()
-
-#Include directories
-include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-include_directories(main/include)
-include_directories(backend/include)
-include_directories(host/velo/clustering/include)
-include_directories(host/utils/prefix_sum/include)
-include_directories(device/global_event_cut/include)
-include_directories(device/UT/common/include)
-include_directories(device/UT/compassUT/include)
-include_directories(device/UT/UTDecoding/include)
-include_directories(device/UT/consolidate/include)
-include_directories(device/velo/common/include)
-include_directories(device/velo/calculate_phi_and_sort/include)
-include_directories(device/velo/consolidate_tracks/include)
-include_directories(device/velo/mask_clustering/include)
-include_directories(device/velo/search_by_triplet/include)
-include_directories(device/velo/simplified_kalman_filter/include)
-include_directories(device/SciFi/common/include)
-include_directories(device/SciFi/looking_forward/include)
-include_directories(device/SciFi/consolidate/include)
-include_directories(device/calo/event_model/include)
-include_directories(device/muon/common/include)
-include_directories(device/muon/decoding/include)
-include_directories(device/muon/match_upstream_muon/include)
-include_directories(device/utils/prefix_sum/include)
-include_directories(device/event_model/velo/include)
-include_directories(device/event_model/UT/include)
-include_directories(device/event_model/SciFi/include)
-include_directories(device/event_model/muon/include)
-include_directories(device/event_model/common/include)
-include_directories(device/vertex_fit/common/include)
-include_directories(device/selections/Hlt1/include)
-include_directories(device/raw_banks/include)
-include_directories(checker/pv/include)
-include_directories(checker/selections/include)
-include_directories(stream/sequence/include)
-include_directories(stream/gear/include)
-include_directories(device/UT/UTDecoding/include)
-include_directories(device/kalman/ParKalman/include)
-include_directories(mdf/include)
-include_directories(integration/monitoring/include)
-include_directories(integration/non_event_data/include)
-include_directories(external)
-include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
-include_directories(${CPPGSL_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
 
 #Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")
@@ -705,27 +648,52 @@ if (USE_MPI AND MPI_FOUND)
   list(APPEND allen_lib_sources "main/src/MPISend.cpp")
 endif()
 
-
-#common libraries
-allen_add_host_library(AllenCommon SHARED ${common_sources})
-target_include_directories(AllenCommon PUBLIC
+# Interface library that will be used for common functionality
+add_library(AllenCommon INTERFACE)
+target_include_directories(AllenCommon INTERFACE
   main/include
+  test/contracts/include)
+target_include_directories(AllenCommon INTERFACE SYSTEM
   ${CPPGSL_INCLUDE_DIR}
-  ${Boost_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS})
+
+#Make sure extra search paths get included as system to avoid
+#warnings in external headers
+if (DEFINED ENV{CPLUS_INCLUDE_PATH})
+  target_include_directories(Common INTERFACE SYSTEM $ENV{CPLUS_INCLUDE_PATH})
+elseif (DEFINED ENV{CPATH})
+  target_include_directories(Common INTERFACE SYSTEM $ENV{CPATH})
+endif()
+
+if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
+  target_include_directories(Common INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+endif()
+
+# Add host library
+allen_add_host_library(HostCommon STATIC ${common_sources})
+
+target_include_directories(HostCommon PUBLIC
   PRIVATE
-  SYSTEM ${ZMQ_INCLUDE_DIRS})
+  SYSTEM ${ZMQ_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/Dumpers/BinaryDumpers
+  ${CMAKE_SOURCE_DIR}/Dumpers/RootDumpers
+  ${CMAKE_SOURCE_DIR}/backend/include
+  ${CMAKE_SOURCE_DIR}/integration/non_event_data/include
+  ${CMAKE_SOURCE_DIR}/checker/tracking/include)
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
 add_library(allen_fs INTERFACE)
 find_package(Filesystem)
 if(NOT Filesystem_FOUND)
-  find_package(Boost COMPONENTS filesystem REQUIRED)
   target_compile_definitions(allen_fs INTERFACE USE_BOOST_FILESYSTEM)
   target_link_libraries(allen_fs INTERFACE Boost::filesystem)
 else()
   target_link_libraries(allen_fs INTERFACE std::filesystem)
 endif()
+
+target_link_libraries(HostCommon PRIVATE allen_fs nlohmann_json::nlohmann_json
+  EventModel Gear Backend mdf NonEventData Common LHCbEvent)
 
 if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${common_device_sources} PROPERTIES LANGUAGE CXX)
@@ -754,7 +722,10 @@ endif()
 
 target_link_libraries(AllenLib PUBLIC
   Stream
+  StreamUtils
+  HostCommon
   AllenCommon
+  HostEventModel
   TrackChecking
   PVChecking
   CheckClustering
@@ -764,6 +735,11 @@ target_link_libraries(AllenLib PUBLIC
   AllenZMQ
   HostCombiners
   Threads::Threads
+  Backend
+  EventModel
+  Gear
+  mdf
+  LHCbEvent
   ${CMAKE_DL_LIBS})
 
 if (USE_MPI AND MPI_FOUND)
