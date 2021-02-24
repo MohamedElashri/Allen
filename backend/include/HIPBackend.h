@@ -39,6 +39,10 @@
 #include <hip/math_functions.h>
 #endif
 
+#if !defined(DEVICE_COMPILER)
+#include "math.h"
+#endif
+
 #include "Logger.h"
 #include <iomanip>
 #include <hip/hip_fp16.h>
