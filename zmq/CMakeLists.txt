@@ -1,11 +1,6 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-
-include_directories(${CPPGSL_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${CMAKE_SOURCE_DIR}/backend/include)
-
 set(ZMQ_VERSION 4.3.2)
 
 find_package(ZMQ QUIET)
@@ -45,8 +40,6 @@ else()
 
 endif()
 
-find_package(Boost COMPONENTS serialization iostreams program_options filesystem)
-
 if (GaudiProject_FOUND)
   find_package(AIDA REQUIRED)
   find_package(ROOT REQUIRED)
@@ -62,6 +55,9 @@ if (GaudiProject_FOUND)
     Boost::filesystem
     ${ZMQ_LIBRARIES}
     ${ALLEN_ROOT_LIBRARIES})
+    PRIVATE
+    EventModel
+    Common)
   target_compile_definitions(ZMQSvc PUBLIC ${ALLEN_ROOT_DEFINITIONS})
 
   if (TARGET Gaudi::GaudiKernel)
@@ -113,11 +109,10 @@ function(zmq_program)
     ${CMAKE_SOURCE_DIR}/mdf/include)
 
   find_package(Threads REQUIRED)
-  if (STANDALONE)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads LHCbEvent)
-  else()
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads LHCbEvent EventModel Common)
+  if (NOT STANDALONE)
     find_package(fmt REQUIRED)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs Threads::Threads LHCbEvent fmt::fmt)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
   endif()
 
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)

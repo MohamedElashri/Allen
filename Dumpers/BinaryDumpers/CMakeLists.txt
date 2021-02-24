@@ -19,7 +19,6 @@ gaudi_depends_on_subdirs(Det/FTDet
                          Pr/PrKernel
                          Muon/MuonID)
 
-find_package(Boost REQUIRED)
 find_package(Rangev3 REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS})
 

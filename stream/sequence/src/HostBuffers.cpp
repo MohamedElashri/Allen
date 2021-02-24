@@ -1,8 +1,6 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include <cmath>
-
 #include "HostBuffers.cuh"
 #include "BackendCommon.h"
 #include "VeloEventModel.cuh"

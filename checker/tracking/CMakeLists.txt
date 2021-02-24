@@ -11,7 +11,6 @@ target_link_libraries(TrackChecking PRIVATE HostEventModel EventModel Gear Backe
 
 find_package(Filesystem)
 if(NOT Filesystem_FOUND)
-  find_package(Boost COMPONENTS filesystem)
   target_compile_definitions(TrackChecking PRIVATE USE_BOOST_FILESYSTEM)
   target_link_libraries(TrackChecking PRIVATE Boost::filesystem)
 else()

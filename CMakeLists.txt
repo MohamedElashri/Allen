@@ -594,7 +594,8 @@ endif()
 
 set(EXTERNAL_DIR "external")
 
-find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
+find_package(Boost REQUIRED COMPONENTS filesystem iostreams thread regex
+  serialization program_options)
 
 # Determine which sequences to generate or copy configurations for
 file(GLOB available_sequences "configuration/sequences/*.py")
