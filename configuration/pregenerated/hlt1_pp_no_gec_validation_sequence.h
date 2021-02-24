@@ -16,7 +16,7 @@
 #include "../../host/data_provider/include/LayoutProvider.h"
 #include "../../host/data_provider/include/HostDataProvider.h"
 #include "../../host/data_provider/include/HostDataProvider.h"
-#include "../../host/global_event_cut/include/HostGlobalEventCut.h"
+#include "../../host/init_event_list/include/HostInitEventList.h"
 #include "../../host/init_event_list/include/HostInitEventList.h"
 #include "../../host/data_provider/include/DataProvider.h"
 #include "../../device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
@@ -104,6 +104,14 @@
 #include "../../device/selections/lines/include/PassthroughLine.cuh"
 #include "../../device/selections/Hlt1/include/GatherSelections.cuh"
 #include "../../device/selections/Hlt1/include/DecReporter.cuh"
+#include "../../host/data_provider/include/MCDataProvider.h"
+#include "../../host/validators/include/HostVeloValidator.h"
+#include "../../host/validators/include/HostVeloUTValidator.h"
+#include "../../host/validators/include/HostForwardValidator.h"
+#include "../../host/validators/include/HostMuonValidator.h"
+#include "../../host/validators/include/HostPVValidator.h"
+#include "../../host/validators/include/HostRateValidator.h"
+#include "../../host/validators/include/HostKalmanValidator.h"
 
 struct mep_layout__host_mep_layout_t : layout_provider::Parameters::host_mep_layout_t {
   using type = layout_provider::Parameters::host_mep_layout_t::type;
@@ -128,30 +136,23 @@ struct mep_layout__dev_mep_layout_t : layout_provider::Parameters::dev_mep_layou
   using type = layout_provider::Parameters::dev_mep_layout_t::type;
 };
 struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
-                                         host_global_event_cut::Parameters::host_ut_raw_banks_t,
                                          host_init_event_list::Parameters::host_ut_raw_banks_t {
   using type = host_data_provider::Parameters::host_raw_banks_t::type;
 };
 struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
-                                           host_global_event_cut::Parameters::host_ut_raw_offsets_t,
                                            host_init_event_list::Parameters::host_ut_raw_offsets_t {
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
 };
 struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
-                                            host_global_event_cut::Parameters::host_scifi_raw_banks_t,
                                             host_init_event_list::Parameters::host_scifi_raw_banks_t {
   using type = host_data_provider::Parameters::host_raw_banks_t::type;
 };
 struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
-                                              host_global_event_cut::Parameters::host_scifi_raw_offsets_t,
                                               host_init_event_list::Parameters::host_scifi_raw_offsets_t {
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
 };
-struct initialize_lists__host_event_list_t : host_global_event_cut::Parameters::host_event_list_t {
-  using type = host_global_event_cut::Parameters::host_event_list_t::type;
-};
 struct initialize_lists__host_number_of_events_t
-  : host_global_event_cut::Parameters::host_number_of_events_t,
+  : host_init_event_list::Parameters::host_number_of_events_t,
     velo_calculate_number_of_candidates::Parameters::host_number_of_events_t,
     velo_estimate_input_size::Parameters::host_number_of_events_t,
     velo_masked_clustering::Parameters::host_number_of_events_t,
@@ -212,15 +213,20 @@ struct initialize_lists__host_number_of_events_t
     track_muon_mva_line::Parameters::host_number_of_events_t,
     passthrough_line::Parameters::host_number_of_events_t,
     gather_selections::Parameters::host_number_of_events_t,
-    dec_reporter::Parameters::host_number_of_events_t {
-  using type = host_global_event_cut::Parameters::host_number_of_events_t::type;
+    dec_reporter::Parameters::host_number_of_events_t,
+    host_velo_validator::Parameters::host_number_of_events_t,
+    host_velo_ut_validator::Parameters::host_number_of_events_t,
+    host_forward_validator::Parameters::host_number_of_events_t,
+    host_muon_validator::Parameters::host_number_of_events_t,
+    host_rate_validator::Parameters::host_number_of_events_t,
+    host_kalman_validator::Parameters::host_number_of_events_t {
+  using type = host_init_event_list::Parameters::host_number_of_events_t::type;
 };
-struct initialize_lists__host_number_of_selected_events_t
-  : host_global_event_cut::Parameters::host_number_of_selected_events_t {
-  using type = host_global_event_cut::Parameters::host_number_of_selected_events_t::type;
+struct initialize_lists__host_event_list_t : host_init_event_list::Parameters::host_event_list_t {
+  using type = host_init_event_list::Parameters::host_event_list_t::type;
 };
 struct initialize_lists__dev_number_of_events_t
-  : host_global_event_cut::Parameters::dev_number_of_events_t,
+  : host_init_event_list::Parameters::dev_number_of_events_t,
     velo_masked_clustering::Parameters::dev_number_of_events_t,
     velo_calculate_phi_and_sort::Parameters::dev_number_of_events_t,
     velo_search_by_triplet::Parameters::dev_number_of_events_t,
@@ -254,9 +260,9 @@ struct initialize_lists__dev_number_of_events_t
     VertexFit::Parameters::dev_number_of_events_t,
     velo_micro_bias_line::Parameters::dev_number_of_events_t,
     passthrough_line::Parameters::dev_number_of_events_t {
-  using type = host_global_event_cut::Parameters::dev_number_of_events_t::type;
+  using type = host_init_event_list::Parameters::dev_number_of_events_t::type;
 };
-struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::dev_event_list_t,
+struct initialize_lists__dev_event_list_t : host_init_event_list::Parameters::dev_event_list_t,
                                             velo_calculate_number_of_candidates::Parameters::dev_event_list_t,
                                             velo_estimate_input_size::Parameters::dev_event_list_t,
                                             velo_masked_clustering::Parameters::dev_event_list_t,
@@ -309,8 +315,14 @@ struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::d
                                             di_muon_soft_line::Parameters::dev_event_list_t,
                                             low_pt_di_muon_line::Parameters::dev_event_list_t,
                                             track_muon_mva_line::Parameters::dev_event_list_t,
-                                            passthrough_line::Parameters::dev_event_list_t {
-  using type = host_global_event_cut::Parameters::dev_event_list_t::type;
+                                            passthrough_line::Parameters::dev_event_list_t,
+                                            host_velo_validator::Parameters::dev_event_list_t,
+                                            host_velo_ut_validator::Parameters::dev_event_list_t,
+                                            host_forward_validator::Parameters::dev_event_list_t,
+                                            host_muon_validator::Parameters::dev_event_list_t,
+                                            host_pv_validator::Parameters::dev_event_list_t,
+                                            host_kalman_validator::Parameters::dev_event_list_t {
+  using type = host_init_event_list::Parameters::dev_event_list_t::type;
 };
 struct full_event_list__host_number_of_events_t : host_init_event_list::Parameters::host_number_of_events_t {
   using type = host_init_event_list::Parameters::host_number_of_events_t::type;
@@ -528,7 +540,12 @@ struct velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t
     velo_pv_ip::Parameters::dev_offsets_all_velo_tracks_t,
     kalman_velo_only::Parameters::dev_offsets_all_velo_tracks_t,
     velo_micro_bias_line::Parameters::dev_offsets_velo_tracks_t,
-    passthrough_line::Parameters::dev_offsets_velo_tracks_t {
+    passthrough_line::Parameters::dev_offsets_velo_tracks_t,
+    host_velo_validator::Parameters::dev_offsets_all_velo_tracks_t,
+    host_velo_ut_validator::Parameters::dev_offsets_all_velo_tracks_t,
+    host_forward_validator::Parameters::dev_offsets_all_velo_tracks_t,
+    host_muon_validator::Parameters::dev_offsets_all_velo_tracks_t,
+    host_kalman_validator::Parameters::dev_offsets_all_velo_tracks_t {
   using type = velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t::type;
 };
 struct prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t
@@ -558,7 +575,12 @@ struct prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t
     velo_pv_ip::Parameters::dev_offsets_velo_track_hit_number_t,
     kalman_velo_only::Parameters::dev_offsets_velo_track_hit_number_t,
     velo_micro_bias_line::Parameters::dev_offsets_velo_track_hit_number_t,
-    passthrough_line::Parameters::dev_offsets_velo_track_hit_number_t {
+    passthrough_line::Parameters::dev_offsets_velo_track_hit_number_t,
+    host_velo_validator::Parameters::dev_offsets_velo_track_hit_number_t,
+    host_velo_ut_validator::Parameters::dev_offsets_velo_track_hit_number_t,
+    host_forward_validator::Parameters::dev_offsets_velo_track_hit_number_t,
+    host_muon_validator::Parameters::dev_offsets_velo_track_hit_number_t,
+    host_kalman_validator::Parameters::dev_offsets_velo_track_hit_number_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
 };
 struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
@@ -570,7 +592,12 @@ struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
 struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t,
                                                         velo_kalman_filter::Parameters::dev_velo_track_hits_t,
                                                         ut_select_velo_tracks::Parameters::dev_velo_track_hits_t,
-                                                        kalman_velo_only::Parameters::dev_velo_track_hits_t {
+                                                        kalman_velo_only::Parameters::dev_velo_track_hits_t,
+                                                        host_velo_validator::Parameters::dev_velo_track_hits_t,
+                                                        host_velo_ut_validator::Parameters::dev_velo_track_hits_t,
+                                                        host_forward_validator::Parameters::dev_velo_track_hits_t,
+                                                        host_muon_validator::Parameters::dev_velo_track_hits_t,
+                                                        host_kalman_validator::Parameters::dev_velo_track_hits_t {
   using type = velo_consolidate_tracks::Parameters::dev_velo_track_hits_t::type;
 };
 struct velo_kalman_filter__dev_velo_kalman_beamline_states_t
@@ -586,7 +613,11 @@ struct velo_kalman_filter__dev_velo_kalman_endvelo_states_t
     lf_search_initial_windows::Parameters::dev_velo_states_t,
     lf_triplet_seeding::Parameters::dev_velo_states_t,
     lf_create_tracks::Parameters::dev_velo_states_t,
-    scifi_consolidate_tracks::Parameters::dev_velo_states_t {
+    scifi_consolidate_tracks::Parameters::dev_velo_states_t,
+    host_velo_ut_validator::Parameters::dev_velo_kalman_endvelo_states_t,
+    host_forward_validator::Parameters::dev_velo_kalman_endvelo_states_t,
+    host_muon_validator::Parameters::dev_velo_kalman_endvelo_states_t,
+    host_kalman_validator::Parameters::dev_velo_kalman_states_t {
   using type = velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t::type;
 };
 struct velo_kalman_filter__dev_velo_lmsfit_beamline_states_t
@@ -641,7 +672,9 @@ struct pv_beamline_cleanup__dev_multi_final_vertices_t : pv_beamline_cleanup::Pa
                                                          velo_pv_ip::Parameters::dev_multi_final_vertices_t,
                                                          kalman_velo_only::Parameters::dev_multi_final_vertices_t,
                                                          FilterTracks::Parameters::dev_multi_final_vertices_t,
-                                                         VertexFit::Parameters::dev_multi_final_vertices_t {
+                                                         VertexFit::Parameters::dev_multi_final_vertices_t,
+                                                         host_pv_validator::Parameters::dev_multi_final_vertices_t,
+                                                         host_kalman_validator::Parameters::dev_multi_final_vertices_t {
   using type = pv_beamline_cleanup::Parameters::dev_multi_final_vertices_t::type;
 };
 struct pv_beamline_cleanup__dev_number_of_multi_final_vertices_t
@@ -649,7 +682,9 @@ struct pv_beamline_cleanup__dev_number_of_multi_final_vertices_t
     velo_pv_ip::Parameters::dev_number_of_multi_final_vertices_t,
     kalman_velo_only::Parameters::dev_number_of_multi_final_vertices_t,
     FilterTracks::Parameters::dev_number_of_multi_final_vertices_t,
-    VertexFit::Parameters::dev_number_of_multi_final_vertices_t {
+    VertexFit::Parameters::dev_number_of_multi_final_vertices_t,
+    host_pv_validator::Parameters::dev_number_of_multi_final_vertices_t,
+    host_kalman_validator::Parameters::dev_number_of_multi_final_vertices_t {
   using type = pv_beamline_cleanup::Parameters::dev_number_of_multi_final_vertices_t::type;
 };
 struct ut_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
@@ -769,7 +804,11 @@ struct prefix_sum_ut_tracks__dev_output_buffer_t : host_prefix_sum::Parameters::
                                                    lf_quality_filter::Parameters::dev_offsets_ut_tracks_t,
                                                    scifi_copy_track_hit_number::Parameters::dev_offsets_ut_tracks_t,
                                                    scifi_consolidate_tracks::Parameters::dev_offsets_ut_tracks_t,
-                                                   kalman_velo_only::Parameters::dev_offsets_ut_tracks_t {
+                                                   kalman_velo_only::Parameters::dev_offsets_ut_tracks_t,
+                                                   host_velo_ut_validator::Parameters::dev_offsets_ut_tracks_t,
+                                                   host_forward_validator::Parameters::dev_offsets_ut_tracks_t,
+                                                   host_muon_validator::Parameters::dev_offsets_ut_tracks_t,
+                                                   host_kalman_validator::Parameters::dev_offsets_ut_tracks_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
 };
 struct ut_copy_track_hit_number__dev_ut_track_hit_number_t
@@ -794,10 +833,18 @@ struct prefix_sum_ut_track_hit_number__dev_output_buffer_t
     lf_quality_filter_length::Parameters::dev_offsets_ut_track_hit_number_t,
     lf_quality_filter::Parameters::dev_offsets_ut_track_hit_number_t,
     scifi_consolidate_tracks::Parameters::dev_offsets_ut_track_hit_number_t,
-    kalman_velo_only::Parameters::dev_offsets_ut_track_hit_number_t {
+    kalman_velo_only::Parameters::dev_offsets_ut_track_hit_number_t,
+    host_velo_ut_validator::Parameters::dev_offsets_ut_track_hit_number_t,
+    host_forward_validator::Parameters::dev_offsets_ut_track_hit_number_t,
+    host_muon_validator::Parameters::dev_offsets_ut_track_hit_number_t,
+    host_kalman_validator::Parameters::dev_offsets_ut_track_hit_number_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
 };
-struct ut_consolidate_tracks__dev_ut_track_hits_t : ut_consolidate_tracks::Parameters::dev_ut_track_hits_t {
+struct ut_consolidate_tracks__dev_ut_track_hits_t : ut_consolidate_tracks::Parameters::dev_ut_track_hits_t,
+                                                    host_velo_ut_validator::Parameters::dev_ut_track_hits_t,
+                                                    host_forward_validator::Parameters::dev_ut_track_hits_t,
+                                                    host_muon_validator::Parameters::dev_ut_track_hits_t,
+                                                    host_kalman_validator::Parameters::dev_ut_track_hits_t {
   using type = ut_consolidate_tracks::Parameters::dev_ut_track_hits_t::type;
 };
 struct ut_consolidate_tracks__dev_ut_qop_t : ut_consolidate_tracks::Parameters::dev_ut_qop_t,
@@ -805,7 +852,11 @@ struct ut_consolidate_tracks__dev_ut_qop_t : ut_consolidate_tracks::Parameters::
                                              lf_triplet_seeding::Parameters::dev_ut_qop_t,
                                              lf_create_tracks::Parameters::dev_ut_qop_t,
                                              scifi_consolidate_tracks::Parameters::dev_ut_qop_t,
-                                             kalman_velo_only::Parameters::dev_ut_qop_t {
+                                             kalman_velo_only::Parameters::dev_ut_qop_t,
+                                             host_velo_ut_validator::Parameters::dev_ut_qop_t,
+                                             host_forward_validator::Parameters::dev_ut_qop_t,
+                                             host_muon_validator::Parameters::dev_ut_qop_t,
+                                             host_kalman_validator::Parameters::dev_ut_qop_t {
   using type = ut_consolidate_tracks::Parameters::dev_ut_qop_t::type;
 };
 struct ut_consolidate_tracks__dev_ut_x_t : ut_consolidate_tracks::Parameters::dev_ut_x_t,
@@ -826,7 +877,11 @@ struct ut_consolidate_tracks__dev_ut_track_velo_indices_t
     lf_triplet_seeding::Parameters::dev_ut_track_velo_indices_t,
     lf_create_tracks::Parameters::dev_ut_track_velo_indices_t,
     scifi_consolidate_tracks::Parameters::dev_ut_track_velo_indices_t,
-    kalman_velo_only::Parameters::dev_ut_track_velo_indices_t {
+    kalman_velo_only::Parameters::dev_ut_track_velo_indices_t,
+    host_velo_ut_validator::Parameters::dev_ut_track_velo_indices_t,
+    host_forward_validator::Parameters::dev_ut_track_velo_indices_t,
+    host_muon_validator::Parameters::dev_ut_track_velo_indices_t,
+    host_kalman_validator::Parameters::dev_ut_track_velo_indices_t {
   using type = ut_consolidate_tracks::Parameters::dev_ut_track_velo_indices_t::type;
 };
 struct scifi_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
@@ -985,7 +1040,10 @@ struct prefix_sum_forward_tracks__dev_output_buffer_t
     track_mva_line::Parameters::dev_track_offsets_t,
     single_high_pt_muon_line::Parameters::dev_track_offsets_t,
     low_pt_muon_line::Parameters::dev_track_offsets_t,
-    track_muon_mva_line::Parameters::dev_track_offsets_t {
+    track_muon_mva_line::Parameters::dev_track_offsets_t,
+    host_forward_validator::Parameters::dev_offsets_forward_tracks_t,
+    host_muon_validator::Parameters::dev_offsets_forward_tracks_t,
+    host_kalman_validator::Parameters::dev_offsets_forward_tracks_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
 };
 struct scifi_copy_track_hit_number_t__dev_scifi_track_hit_number_t
@@ -1007,25 +1065,37 @@ struct prefix_sum_scifi_track_hit_number__dev_output_buffer_t
     is_muon::Parameters::dev_offsets_scifi_track_hit_number,
     kalman_velo_only::Parameters::dev_offsets_scifi_track_hit_number_t,
     FilterTracks::Parameters::dev_offsets_scifi_track_hit_number_t,
-    VertexFit::Parameters::dev_offsets_scifi_track_hit_number_t {
+    VertexFit::Parameters::dev_offsets_scifi_track_hit_number_t,
+    host_forward_validator::Parameters::dev_offsets_scifi_track_hit_number_t,
+    host_muon_validator::Parameters::dev_offsets_scifi_track_hit_number_t,
+    host_kalman_validator::Parameters::dev_offsets_scifi_track_hit_number_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
 };
 struct scifi_consolidate_tracks_t__dev_scifi_track_hits_t
-  : scifi_consolidate_tracks::Parameters::dev_scifi_track_hits_t {
+  : scifi_consolidate_tracks::Parameters::dev_scifi_track_hits_t,
+    host_forward_validator::Parameters::dev_scifi_track_hits_t,
+    host_muon_validator::Parameters::dev_scifi_track_hits_t,
+    host_kalman_validator::Parameters::dev_scifi_track_hits_t {
   using type = scifi_consolidate_tracks::Parameters::dev_scifi_track_hits_t::type;
 };
 struct scifi_consolidate_tracks_t__dev_scifi_qop_t : scifi_consolidate_tracks::Parameters::dev_scifi_qop_t,
                                                      is_muon::Parameters::dev_scifi_qop_t,
                                                      kalman_velo_only::Parameters::dev_scifi_qop_t,
                                                      FilterTracks::Parameters::dev_scifi_qop_t,
-                                                     VertexFit::Parameters::dev_scifi_qop_t {
+                                                     VertexFit::Parameters::dev_scifi_qop_t,
+                                                     host_forward_validator::Parameters::dev_scifi_qop_t,
+                                                     host_muon_validator::Parameters::dev_scifi_qop_t,
+                                                     host_kalman_validator::Parameters::dev_scifi_qop_t {
   using type = scifi_consolidate_tracks::Parameters::dev_scifi_qop_t::type;
 };
 struct scifi_consolidate_tracks_t__dev_scifi_states_t : scifi_consolidate_tracks::Parameters::dev_scifi_states_t,
                                                         is_muon::Parameters::dev_scifi_states_t,
                                                         kalman_velo_only::Parameters::dev_scifi_states_t,
                                                         FilterTracks::Parameters::dev_scifi_states_t,
-                                                        VertexFit::Parameters::dev_scifi_states_t {
+                                                        VertexFit::Parameters::dev_scifi_states_t,
+                                                        host_forward_validator::Parameters::dev_scifi_states_t,
+                                                        host_muon_validator::Parameters::dev_scifi_states_t,
+                                                        host_kalman_validator::Parameters::dev_scifi_states_t {
   using type = scifi_consolidate_tracks::Parameters::dev_scifi_states_t::type;
 };
 struct scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t
@@ -1033,7 +1103,10 @@ struct scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t
     is_muon::Parameters::dev_scifi_track_ut_indices_t,
     kalman_velo_only::Parameters::dev_scifi_track_ut_indices_t,
     FilterTracks::Parameters::dev_scifi_track_ut_indices_t,
-    VertexFit::Parameters::dev_scifi_track_ut_indices_t {
+    VertexFit::Parameters::dev_scifi_track_ut_indices_t,
+    host_forward_validator::Parameters::dev_scifi_track_ut_indices_t,
+    host_muon_validator::Parameters::dev_scifi_track_ut_indices_t,
+    host_kalman_validator::Parameters::dev_scifi_track_ut_indices_t {
   using type = scifi_consolidate_tracks::Parameters::dev_scifi_track_ut_indices_t::type;
 };
 struct muon_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
@@ -1130,7 +1203,9 @@ struct muon_populate_hits_t__dev_muon_hits_t : muon_populate_hits::Parameters::d
 struct is_muon_t__dev_muon_track_occupancies_t : is_muon::Parameters::dev_muon_track_occupancies_t {
   using type = is_muon::Parameters::dev_muon_track_occupancies_t::type;
 };
-struct is_muon_t__dev_is_muon_t : is_muon::Parameters::dev_is_muon_t, kalman_velo_only::Parameters::dev_is_muon_t {
+struct is_muon_t__dev_is_muon_t : is_muon::Parameters::dev_is_muon_t,
+                                  kalman_velo_only::Parameters::dev_is_muon_t,
+                                  host_muon_validator::Parameters::dev_is_muon_t {
   using type = is_muon::Parameters::dev_is_muon_t::type;
 };
 struct velo_pv_ip_t__dev_velo_pv_ip_t : velo_pv_ip::Parameters::dev_velo_pv_ip_t,
@@ -1143,7 +1218,8 @@ struct kalman_velo_only__dev_kf_tracks_t : kalman_velo_only::Parameters::dev_kf_
                                            track_mva_line::Parameters::dev_tracks_t,
                                            single_high_pt_muon_line::Parameters::dev_tracks_t,
                                            low_pt_muon_line::Parameters::dev_tracks_t,
-                                           track_muon_mva_line::Parameters::dev_tracks_t {
+                                           track_muon_mva_line::Parameters::dev_tracks_t,
+                                           host_kalman_validator::Parameters::dev_kf_tracks_t {
   using type = kalman_velo_only::Parameters::dev_kf_tracks_t::type;
 };
 struct kalman_velo_only__dev_kalman_pv_ipchi2_t : kalman_velo_only::Parameters::dev_kalman_pv_ipchi2_t,
@@ -1243,19 +1319,24 @@ struct gather_selections__host_selections_lines_offsets_t
 struct gather_selections__host_selections_offsets_t : gather_selections::Parameters::host_selections_offsets_t {
   using type = gather_selections::Parameters::host_selections_offsets_t::type;
 };
-struct gather_selections__host_number_of_active_lines_t : gather_selections::Parameters::host_number_of_active_lines_t,
-                                                          dec_reporter::Parameters::host_number_of_active_lines_t {
+struct gather_selections__host_number_of_active_lines_t
+  : gather_selections::Parameters::host_number_of_active_lines_t,
+    dec_reporter::Parameters::host_number_of_active_lines_t,
+    host_rate_validator::Parameters::host_number_of_active_lines_t {
   using type = gather_selections::Parameters::host_number_of_active_lines_t::type;
 };
-struct gather_selections__host_names_of_active_lines_t : gather_selections::Parameters::host_names_of_active_lines_t {
+struct gather_selections__host_names_of_active_lines_t : gather_selections::Parameters::host_names_of_active_lines_t,
+                                                         host_rate_validator::Parameters::host_names_of_lines_t {
   using type = gather_selections::Parameters::host_names_of_active_lines_t::type;
 };
 struct gather_selections__dev_selections_t : gather_selections::Parameters::dev_selections_t,
-                                             dec_reporter::Parameters::dev_selections_t {
+                                             dec_reporter::Parameters::dev_selections_t,
+                                             host_rate_validator::Parameters::dev_selections_t {
   using type = gather_selections::Parameters::dev_selections_t::type;
 };
 struct gather_selections__dev_selections_offsets_t : gather_selections::Parameters::dev_selections_offsets_t,
-                                                     dec_reporter::Parameters::dev_selections_offsets_t {
+                                                     dec_reporter::Parameters::dev_selections_offsets_t,
+                                                     host_rate_validator::Parameters::dev_selections_offsets_t {
   using type = gather_selections::Parameters::dev_selections_offsets_t::type;
 };
 struct gather_selections__dev_number_of_active_lines_t : gather_selections::Parameters::dev_number_of_active_lines_t,
@@ -1277,6 +1358,15 @@ struct gather_selections__dev_post_scale_hashes_t : gather_selections::Parameter
 struct dec_reporter__dev_dec_reports_t : dec_reporter::Parameters::dev_dec_reports_t {
   using type = dec_reporter::Parameters::dev_dec_reports_t::type;
 };
+struct mc_data_provider__host_mc_events_t : mc_data_provider::Parameters::host_mc_events_t,
+                                            host_velo_validator::Parameters::host_mc_events_t,
+                                            host_velo_ut_validator::Parameters::host_mc_events_t,
+                                            host_forward_validator::Parameters::host_mc_events_t,
+                                            host_muon_validator::Parameters::host_mc_events_t,
+                                            host_pv_validator::Parameters::host_mc_events_t,
+                                            host_kalman_validator::Parameters::host_mc_events_t {
+  using type = mc_data_provider::Parameters::host_mc_events_t::type;
+};
 
 using configured_arguments_t = std::tuple<
   mep_layout__host_mep_layout_t,
@@ -1285,9 +1375,8 @@ using configured_arguments_t = std::tuple<
   host_ut_banks__host_raw_offsets_t,
   host_scifi_banks__host_raw_banks_t,
   host_scifi_banks__host_raw_offsets_t,
-  initialize_lists__host_event_list_t,
   initialize_lists__host_number_of_events_t,
-  initialize_lists__host_number_of_selected_events_t,
+  initialize_lists__host_event_list_t,
   initialize_lists__dev_number_of_events_t,
   initialize_lists__dev_event_list_t,
   full_event_list__host_number_of_events_t,
@@ -1543,13 +1632,14 @@ using configured_arguments_t = std::tuple<
   gather_selections__host_post_scale_hashes_t,
   gather_selections__dev_post_scale_factors_t,
   gather_selections__dev_post_scale_hashes_t,
-  dec_reporter__dev_dec_reports_t>;
+  dec_reporter__dev_dec_reports_t,
+  mc_data_provider__host_mc_events_t>;
 
 using configured_sequence_t = std::tuple<
   layout_provider::layout_provider_t,
   host_data_provider::host_data_provider_t,
   host_data_provider::host_data_provider_t,
-  host_global_event_cut::host_global_event_cut_t,
+  host_init_event_list::host_init_event_list_t,
   host_init_event_list::host_init_event_list_t,
   data_provider::data_provider_t,
   velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t,
@@ -1636,7 +1726,15 @@ using configured_sequence_t = std::tuple<
   passthrough_line::passthrough_line_t,
   passthrough_line::passthrough_line_t,
   gather_selections::gather_selections_t,
-  dec_reporter::dec_reporter_t>;
+  dec_reporter::dec_reporter_t,
+  mc_data_provider::mc_data_provider_t,
+  host_velo_validator::host_velo_validator_t,
+  host_velo_ut_validator::host_velo_ut_validator_t,
+  host_forward_validator::host_forward_validator_t,
+  host_muon_validator::host_muon_validator_t,
+  host_pv_validator::host_pv_validator_t,
+  host_rate_validator::host_rate_validator_t,
+  host_kalman_validator::host_kalman_validator_t>;
 
 using configured_sequence_arguments_t = std::tuple<
   std::tuple<mep_layout__host_mep_layout_t, mep_layout__dev_mep_layout_t>,
@@ -1647,9 +1745,8 @@ using configured_sequence_arguments_t = std::tuple<
     host_ut_banks__host_raw_offsets_t,
     host_scifi_banks__host_raw_banks_t,
     host_scifi_banks__host_raw_offsets_t,
-    initialize_lists__host_event_list_t,
     initialize_lists__host_number_of_events_t,
-    initialize_lists__host_number_of_selected_events_t,
+    initialize_lists__host_event_list_t,
     initialize_lists__dev_number_of_events_t,
     initialize_lists__dev_event_list_t>,
   std::tuple<
@@ -2640,7 +2737,100 @@ using configured_sequence_arguments_t = std::tuple<
     gather_selections__dev_number_of_active_lines_t,
     gather_selections__dev_selections_t,
     gather_selections__dev_selections_offsets_t,
-    dec_reporter__dev_dec_reports_t>>;
+    dec_reporter__dev_dec_reports_t>,
+  std::tuple<mc_data_provider__host_mc_events_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
+    initialize_lists__dev_event_list_t,
+    mc_data_provider__host_mc_events_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
+    initialize_lists__dev_event_list_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+    prefix_sum_ut_tracks__dev_output_buffer_t,
+    prefix_sum_ut_track_hit_number__dev_output_buffer_t,
+    ut_consolidate_tracks__dev_ut_track_hits_t,
+    ut_consolidate_tracks__dev_ut_track_velo_indices_t,
+    ut_consolidate_tracks__dev_ut_qop_t,
+    mc_data_provider__host_mc_events_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
+    initialize_lists__dev_event_list_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+    prefix_sum_ut_tracks__dev_output_buffer_t,
+    prefix_sum_ut_track_hit_number__dev_output_buffer_t,
+    ut_consolidate_tracks__dev_ut_track_hits_t,
+    ut_consolidate_tracks__dev_ut_track_velo_indices_t,
+    ut_consolidate_tracks__dev_ut_qop_t,
+    prefix_sum_forward_tracks__dev_output_buffer_t,
+    prefix_sum_scifi_track_hit_number__dev_output_buffer_t,
+    scifi_consolidate_tracks_t__dev_scifi_track_hits_t,
+    scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t,
+    scifi_consolidate_tracks_t__dev_scifi_qop_t,
+    scifi_consolidate_tracks_t__dev_scifi_states_t,
+    mc_data_provider__host_mc_events_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
+    initialize_lists__dev_event_list_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+    prefix_sum_ut_tracks__dev_output_buffer_t,
+    prefix_sum_ut_track_hit_number__dev_output_buffer_t,
+    ut_consolidate_tracks__dev_ut_track_hits_t,
+    ut_consolidate_tracks__dev_ut_track_velo_indices_t,
+    ut_consolidate_tracks__dev_ut_qop_t,
+    prefix_sum_forward_tracks__dev_output_buffer_t,
+    prefix_sum_scifi_track_hit_number__dev_output_buffer_t,
+    scifi_consolidate_tracks_t__dev_scifi_track_hits_t,
+    scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t,
+    scifi_consolidate_tracks_t__dev_scifi_qop_t,
+    scifi_consolidate_tracks_t__dev_scifi_states_t,
+    is_muon_t__dev_is_muon_t,
+    mc_data_provider__host_mc_events_t>,
+  std::tuple<
+    initialize_lists__dev_event_list_t,
+    pv_beamline_cleanup__dev_multi_final_vertices_t,
+    pv_beamline_cleanup__dev_number_of_multi_final_vertices_t,
+    mc_data_provider__host_mc_events_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    gather_selections__host_names_of_active_lines_t,
+    gather_selections__host_number_of_active_lines_t,
+    gather_selections__dev_selections_t,
+    gather_selections__dev_selections_offsets_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    velo_consolidate_tracks__dev_velo_track_hits_t,
+    initialize_lists__dev_event_list_t,
+    velo_kalman_filter__dev_velo_kalman_endvelo_states_t,
+    prefix_sum_ut_tracks__dev_output_buffer_t,
+    prefix_sum_ut_track_hit_number__dev_output_buffer_t,
+    ut_consolidate_tracks__dev_ut_track_hits_t,
+    ut_consolidate_tracks__dev_ut_track_velo_indices_t,
+    ut_consolidate_tracks__dev_ut_qop_t,
+    prefix_sum_forward_tracks__dev_output_buffer_t,
+    prefix_sum_scifi_track_hit_number__dev_output_buffer_t,
+    scifi_consolidate_tracks_t__dev_scifi_track_hits_t,
+    scifi_consolidate_tracks_t__dev_scifi_track_ut_indices_t,
+    scifi_consolidate_tracks_t__dev_scifi_qop_t,
+    scifi_consolidate_tracks_t__dev_scifi_states_t,
+    kalman_velo_only__dev_kf_tracks_t,
+    pv_beamline_cleanup__dev_multi_final_vertices_t,
+    pv_beamline_cleanup__dev_number_of_multi_final_vertices_t,
+    mc_data_provider__host_mc_events_t>>;
 
 constexpr auto sequence_algorithm_names = std::array {"mep_layout",
                                                       "host_ut_banks",
@@ -2732,7 +2922,15 @@ constexpr auto sequence_algorithm_names = std::array {"mep_layout",
                                                       "Hlt1GECPassthrough",
                                                       "Hlt1Passthrough",
                                                       "gather_selections",
-                                                      "dec_reporter"};
+                                                      "dec_reporter",
+                                                      "mc_data_provider",
+                                                      "host_velo_validator",
+                                                      "host_velo_ut_validator",
+                                                      "host_forward_validator",
+                                                      "host_muon_validator",
+                                                      "host_pv_validator",
+                                                      "host_rate_validator",
+                                                      "host_kalman_validator"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)
@@ -2743,11 +2941,9 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_banks_t>("host_scifi_banks__host_raw_banks_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_offsets_t>("host_scifi_banks__host_raw_offsets_t");
-  argument_manager.template set_name<initialize_lists__host_event_list_t>("initialize_lists__host_event_list_t");
   argument_manager.template set_name<initialize_lists__host_number_of_events_t>(
     "initialize_lists__host_number_of_events_t");
-  argument_manager.template set_name<initialize_lists__host_number_of_selected_events_t>(
-    "initialize_lists__host_number_of_selected_events_t");
+  argument_manager.template set_name<initialize_lists__host_event_list_t>("initialize_lists__host_event_list_t");
   argument_manager.template set_name<initialize_lists__dev_number_of_events_t>(
     "initialize_lists__dev_number_of_events_t");
   argument_manager.template set_name<initialize_lists__dev_event_list_t>("initialize_lists__dev_event_list_t");
@@ -3167,4 +3363,5 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<gather_selections__dev_post_scale_hashes_t>(
     "gather_selections__dev_post_scale_hashes_t");
   argument_manager.template set_name<dec_reporter__dev_dec_reports_t>("dec_reporter__dev_dec_reports_t");
+  argument_manager.template set_name<mc_data_provider__host_mc_events_t>("mc_data_provider__host_mc_events_t");
 }
