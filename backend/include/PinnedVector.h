@@ -63,7 +63,7 @@ namespace Allen {
         throw std::bad_array_new_length();
       }
 
-      void* pv;
+      void* pv = nullptr;
 
       Allen::malloc_host(&pv, n * sizeof(T));
 

@@ -199,7 +199,7 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   }
 
   template<typename T>
-  static void copy(const Args& arguments, const Allen::Context& context, const gsl::span<T>& container)
+  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
   {
     const auto size_bytes = gsl::as_bytes(container);
     assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
@@ -252,7 +252,7 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   }
 
   template<typename T>
-  static void copy(const Args& arguments, const Allen::Context& context, const gsl::span<T>& container)
+  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
   {
     const auto size_bytes = gsl::as_bytes(container);
     assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
