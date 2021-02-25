@@ -6,7 +6,7 @@ Note that many use cases of calling Allen from Moore are intended for physics va
 ```
 {
     "cmakeFlags": {
-		"Allen": "-DSTANDALONE=OFF, -DSEQUENCE=hlt1_pp_validation"
+		"Allen": "-DSTANDALONE=OFF -DSEQUENCE=hlt1_pp_validation"
 	}
 }
 ```
