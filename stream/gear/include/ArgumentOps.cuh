@@ -478,7 +478,7 @@ void copy(
  * can be either a span or anything that can be automatically converted to a span.
  */
 template<typename Arg, typename Args, typename T>
-void copy(const Args& arguments, const Allen::Context& context, const gsl::span<T>& data_container)
+void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> data_container)
 {
   return SingleArgumentOverloadResolution<Arg, Args>::copy(arguments, context, data_container);
 }
