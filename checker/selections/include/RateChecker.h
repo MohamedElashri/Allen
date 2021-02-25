@@ -31,12 +31,10 @@ private:
 public:
   RateChecker(CheckerInvoker const*, std::string const&, std::string const&) { m_tot = 0; }
 
-  virtual ~RateChecker() = default;
-
   void accumulate(
     const std::vector<std::string>& names_of_lines,
-    const std::vector<Allen::bool_as_char_t<bool>>& selections,
-    const std::vector<unsigned>& selections_offsets,
+    gsl::span<const Allen::bool_as_char_t<bool>> selections,
+    gsl::span<const unsigned> selections_offsets,
     const unsigned number_of_events);
 
   void report(const size_t requested_events) const override;

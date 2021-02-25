@@ -8,8 +8,8 @@ double binomial_error(int n, int k) { return 1. / n * std::sqrt(1. * k * (1. - 1
 
 void RateChecker::accumulate(
   const std::vector<std::string>& names_of_lines,
-  const std::vector<Allen::bool_as_char_t<bool>>& selections,
-  const std::vector<unsigned>& selections_offsets,
+  gsl::span<const Allen::bool_as_char_t<bool>> selections,
+  gsl::span<const unsigned> selections_offsets,
   const unsigned number_of_events)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
