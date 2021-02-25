@@ -79,32 +79,23 @@ void PVChecker::accumulate(
       PatPV::XYZPoint a3d(sigx, sigy, sigz);
       recinfo.positionSigma = a3d;
       recinfo.nTracks = pv.nTracks;
-      double minRD = 99999.;
-      double maxRD = -99999.;
-      double chi2 = static_cast<double>(pv.chi2);
-      double nDoF = static_cast<double>(pv.ndof);
 
-      int mother = 0;
-      int velo = 0;
-      int lg = 0;
       double d0 = 0;
-      double mind0 = 99999.0;
-      double maxd0 = -99999.0;
       double trackChi2 = 0.0;
       int tr = 0;
 
-      recinfo.minTrackRD = minRD;
-      recinfo.maxTrackRD = maxRD;
-      recinfo.mother = mother;
-      recinfo.chi2 = chi2;
-      recinfo.nDoF = nDoF;
+      recinfo.minTrackRD = 99999.;
+      recinfo.maxTrackRD = -99999.;
+      recinfo.mother = 0;
+      recinfo.chi2 = pv.chi2; 
+      recinfo.nDoF = pv.ndof; 
       recinfo.d0 = d0;
-      recinfo.d0nTr = (double) d0 / (double) tr;
-      recinfo.chi2nTr = (double) trackChi2 / (double) tr;
-      recinfo.mind0 = mind0;
-      recinfo.maxd0 = maxd0;
-      recinfo.nVeloTracks = velo;
-      recinfo.nLongTracks = lg;
+      recinfo.d0nTr = d0 / (double) tr;
+      recinfo.chi2nTr = trackChi2 / (double) tr;
+      recinfo.mind0 = 99999.0;
+      recinfo.maxd0 = -99999.0;
+      recinfo.nVeloTracks = 0;
+      recinfo.nLongTracks = 0;
       recinfo.indexMCPVInfo = -1;
       recpvvec.push_back(recinfo);
     }

@@ -33,8 +33,8 @@ struct RecPVInfo {
   int nLongTracks;
   double minTrackRD; //
   double maxTrackRD; //
-  double chi2;
-  double nDoF;
+  float chi2;
+  float nDoF;
   double d0;
   double d0nTr;
   double chi2nTr;
