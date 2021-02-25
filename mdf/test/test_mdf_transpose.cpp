@@ -36,15 +36,12 @@ namespace {
   Config s_config;
 } // namespace
 
-
-std::tuple<bool,
-           std::array<unsigned, LHCb::RawBank::LastType>,
-           std::vector<LHCb::ODIN>,
-           size_t, size_t, size_t, size_t>
-mdf_read_sizes(std::string filename,
-               std::vector<int> const& bank_ids,
-               std::unordered_set<LHCb::RawBank::BankType> const& bank_types,
-               size_t min_events)
+std::tuple<bool, std::array<unsigned, LHCb::RawBank::LastType>, std::vector<LHCb::ODIN>, size_t, size_t, size_t, size_t>
+mdf_read_sizes(
+  std::string filename,
+  std::vector<int> const& bank_ids,
+  std::unordered_set<LHCb::RawBank::BankType> const& bank_types,
+  size_t min_events)
 {
   // Storage for the sizes
   std::array<std::vector<size_t>, LHCb::RawBank::LastType> sizes;
@@ -137,7 +134,8 @@ mdf_read_sizes(std::string filename,
       }
       max_size = 0;
       split_event = i_event;
-    } else if (i_event > min_events && max_size > alloc_size) {
+    }
+    else if (i_event > min_events && max_size > alloc_size) {
       odins.pop_back();
       break;
     }
@@ -151,7 +149,6 @@ error:
   return {success, banks_count, odins, split_event, alloc_size, i_event, total_size};
 }
 
-
 int main(int argc, char* argv[])
 {
 
@@ -162,11 +159,8 @@ int main(int argc, char* argv[])
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
   // Use Catch's composite command line parser
-  auto cli = session.cli()
-             | Opt(directory, string {"directory"})
-                 ["--directory"]("input directory") |
-             Opt(s_config.n_events, string {"#events"})
-               ["--nevents"]("number of events");
+  auto cli = session.cli() | Opt(directory, string {"directory"})["--directory"]("input directory") |
+             Opt(s_config.n_events, string {"#events"})["--nevents"]("number of events");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
@@ -178,7 +172,6 @@ int main(int argc, char* argv[])
   }
 
   s_config.run = !directory.empty();
-
 
   if (!directory.empty()) {
     for (auto [ext, dir] : {std::tuple {string {"mdf"}, std::ref(s_config.mdf_files)},
@@ -192,7 +185,8 @@ int main(int argc, char* argv[])
   return session.run();
 }
 
-TEST_CASE("MDF slice full", "[MDF slice]") {
+TEST_CASE("MDF slice full", "[MDF slice]")
+{
   if (!s_config.run) return;
 
   REQUIRE(!s_config.mdf_files.empty());
@@ -204,24 +198,23 @@ TEST_CASE("MDF slice full", "[MDF slice]") {
   for (unsigned lhcb_type = 0; lhcb_type < ids.size(); ++lhcb_type) {
     auto allen_type = ids[lhcb_type];
     if (allen_type != -1) {
-      allen_to_lhcb.emplace(BankTypes{allen_type}, lhcb_type);
+      allen_to_lhcb.emplace(BankTypes {allen_type}, lhcb_type);
     }
   }
 
   std::unordered_set<LHCb::RawBank::BankType> bank_types;
-  for (auto bt : {BankTypes::VP, BankTypes::UT, BankTypes::FT,
-                  BankTypes::MUON, BankTypes::ODIN}) {
+  for (auto bt : {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN}) {
     auto it = allen_to_lhcb.find(bt);
     REQUIRE(it != allen_to_lhcb.end());
     bank_types.insert(static_cast<LHCb::RawBank::BankType>(it->second));
   }
 
-  auto [success, banks_count, odins, split_event, alloc_size, max_events, total_size]
-    = mdf_read_sizes(filename, ids, bank_types, s_config.n_events);
+  auto [success, banks_count, odins, split_event, alloc_size, max_events, total_size] =
+    mdf_read_sizes(filename, ids, bank_types, s_config.n_events);
   REQUIRE(success == true);
 
-  ReadBuffer read_buffer = std::tuple{0ul, std::vector<unsigned int>(max_events + 1),
-                                      std::vector<char>(10 * total_size, '\0'), 0ul};
+  ReadBuffer read_buffer =
+    std::tuple {0ul, std::vector<unsigned int>(max_events + 1), std::vector<char>(10 * total_size, '\0'), 0ul};
 
   std::vector<char> decompress_buffer;
 
@@ -246,26 +239,23 @@ TEST_CASE("MDF slice full", "[MDF slice]") {
 
   std::cout << alloc_size << " " << split_event << " " << max_events << "\n";
 
-  auto size_fun = [as = alloc_size, n_events = max_events]
-    (BankTypes) -> std::tuple<size_t, size_t> {
+  auto size_fun = [as = alloc_size, n_events = max_events](BankTypes) -> std::tuple<size_t, size_t> {
     return {as, n_events + 1};
   };
 
-  auto slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT,
-                                BankTypes::MUON, BankTypes::ODIN>(s_config.n_slices, size_fun);
-
+  auto slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
+    s_config.n_slices, size_fun);
 
   bool good = false, transpose_full = false;
   size_t n_transposed = 0;
 
-  for (auto [slice_index, check_full] : {std::tuple{0u, true}, std::tuple{1u, false}}) {
+  for (auto [slice_index, check_full] : {std::tuple {0u, true}, std::tuple {1u, false}}) {
     std::tie(good, transpose_full, n_transposed) = transpose_events(
       read_buffer,
       slices,
       slice_index,
       ids,
-      {BankTypes::VP, BankTypes::UT, BankTypes::FT,
-       BankTypes::MUON, BankTypes::ODIN},
+      {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
       banks_count,
       event_ids[0],
       max_events,
@@ -280,10 +270,11 @@ TEST_CASE("MDF slice full", "[MDF slice]") {
   // Check that all events that were read have been transposed by
   // comparing event and run numbers from ODIN
   size_t i = 0;
-  for(auto const& [banks, _, event_offsets, n_offsets] : slices[to_integral(BankTypes::ODIN)]) {
+  for (auto const& [banks, _, event_offsets, n_offsets] : slices[to_integral(BankTypes::ODIN)]) {
     for (size_t j = 0; j < n_offsets - 1; ++j) {
       auto const& read_odin = odins[i];
-      auto const* odin_data = reinterpret_cast<unsigned const*>(banks[0].data() + event_offsets[j] + 4 * sizeof(uint32_t));
+      auto const* odin_data =
+        reinterpret_cast<unsigned const*>(banks[0].data() + event_offsets[j] + 4 * sizeof(uint32_t));
       auto transposed_odin = MDF::decode_odin(0, odin_data);
       REQUIRE(read_odin.runNumber() == transposed_odin.runNumber());
       REQUIRE(read_odin.eventNumber() == transposed_odin.eventNumber());

@@ -134,18 +134,17 @@ std::tuple<bool, bool, bool> transpose_event(
 
   // Check if any of the per-bank-type slices potentially has too
   // little space to fit this event
-  for(unsigned lhcb_type = 0; lhcb_type < bank_ids.size(); ++lhcb_type) {
+  for (unsigned lhcb_type = 0; lhcb_type < bank_ids.size(); ++lhcb_type) {
     auto allen_type = bank_ids[lhcb_type];
-    if (!bank_types.count(BankTypes{allen_type})) continue;
+    if (!bank_types.count(BankTypes {allen_type})) continue;
 
     const auto& [slice, slice_size, slice_offsets, offsets_size] = slices[allen_type][slice_index];
     // Use the event size of the next event here instead of the
     // per bank size because that's not yet known for the next
     // event
-    if ((slice_offsets[offsets_size - 1]
-         + (1 + banks_count[lhcb_type]) * sizeof(uint32_t)
-         + static_cast<size_t>(bank_data.size()))
-        > slice_size) {
+    if (
+      (slice_offsets[offsets_size - 1] + (1 + banks_count[lhcb_type]) * sizeof(uint32_t) +
+       static_cast<size_t>(bank_data.size())) > slice_size) {
       return {true, true, false};
     }
   }

@@ -176,7 +176,8 @@ public:
             // ODIN bank - 0.1 kB, a fixed amount is also added.
             auto n_bytes = std::lround(
               ((1 + m_banks_count[lhcb_type]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
-              bank_size_fudge_factor + 2 * MB);
+                bank_size_fudge_factor +
+              2 * MB);
             return {n_bytes, events_per_slice};
           };
           m_slices = allocate_slices<Banks...>(n_slices, size_fun);

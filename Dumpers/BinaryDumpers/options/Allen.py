@@ -45,6 +45,8 @@ parser.add_argument("-i", dest="import_fwd", default="")
 parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
 parser.add_argument(
+    "--events-per-slice", dest="events_per_slice", default="1000")
+parser.add_argument(
     "--configuration", dest="configuration", default=default_configuration)
 parser.add_argument("--device", dest="device", default="0")
 
@@ -90,16 +92,16 @@ updater = gbl.cast_updater(svc)
 options = gbl.std.map("std::string", "std::string")()
 for flag, value in (("f", args.folder), ("g", args.det_folder),
                     ("n", args.n_events), ("o", args.event_offset),
-                    ("t",
-                     args.threads), ("r",
-                                     args.repetitions), ("configuration",
-                                                         args.configuration),
-                    ("c", args.check), ("m", args.reserve), ("v",
-                                                             args.verbosity),
-                    ("p", args.print_memory), ("i", args.import_fwd),
-                    ("mdf", args.mdf), ("cpu-offload",
-                                        args.cpu_offload), ("device",
-                                                            args.device)):
+                    ("t", args.threads), ("r", args.repetitions),
+                    ("configuration", args.configuration), ("c", args.check),
+                    ("m", args.reserve), ("v",
+                                          args.verbosity), ("p",
+                                                            args.print_memory),
+                    ("i", args.import_fwd), ("mdf",
+                                             args.mdf), ("cpu-offload",
+                                                         args.cpu_offload),
+                    ("events-per-slice",
+                     args.events_per_slice), ("device", args.device)):
     options[flag] = value
 
 con = gbl.std.string("")
