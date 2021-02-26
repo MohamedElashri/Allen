@@ -15,7 +15,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
     ```
 
-* CUDA target: The latest supported compilers are gcc-9 and clang-10. CUDA is
+* CUDA target: The latest supported compilers are gcc-10 and clang-10. CUDA is
   available in cvmfs as well:
 
     ```console
@@ -23,11 +23,11 @@ we show a proposed development setup with CVMFS and CentOS 7:
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.2/x86_64-centos7/setup.sh
     ```
 
-* HIP target: Either a local installation of HIP 3.9.0 or CVMFS are required:
+* HIP target: Either a local installation of HIP 4.0.0 or CVMFS are required:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
-    source /cvmfs/lhcbdev.cern.ch/tools/rocm-3.9.0/setenv.sh
+    source /cvmfs/lhcbdev.cern.ch/tools/rocm-4.0.0/setenv.sh
     ```
 
 * CUDACLANG target: A version of the clang compiler with ptx support is required,
