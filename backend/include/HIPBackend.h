@@ -202,15 +202,14 @@ namespace Allen {
       hipCheck(hipSetDevice(hip_device));
       hipCheck(hipGetDeviceProperties(&device_properties, hip_device));
 
-      device_name = std::string{device_properties.name} == "Device 738c" ? "MI100" : device_properties.name;
+      device_name = std::string {device_properties.name} == "Device 738c" ? "MI100" : device_properties.name;
 
       if (n_devices == 0) {
         error_cout << "Failed to select device " << hip_device << "\n";
         return {false, "", 0};
       }
       else {
-        debug_cout << "Stream " << stream_id << " selected hip device " << hip_device << ": " << device_name
-                   << "\n\n";
+        debug_cout << "Stream " << stream_id << " selected hip device " << hip_device << ": " << device_name << "\n\n";
       }
     } catch (const std::invalid_argument& e) {
       error_cout << e.what() << std::endl;
