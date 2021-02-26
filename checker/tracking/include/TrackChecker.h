@@ -71,13 +71,8 @@ public:
     m_categories {Categories::make_track_eff_report_vector<T>()}, m_histo_categories {
                                                                     Categories::make_histo_category_vector<T>()}
   {
-    // FIXME: Need to use a forward declaration to keep all ROOT objects
-    // out of headers that are compiled with CUDA until NVCC supports
-    // C++17
-    m_histos = new TrackCheckerHistos {invoker, root_file, name, m_histo_categories};
+    m_histos = std::make_unique<TrackCheckerHistos>(invoker, root_file, name, m_histo_categories);
   }
-
-  ~TrackChecker() { delete m_histos; }
 
   void report(size_t) const override
   {
@@ -511,10 +506,7 @@ public:
     }
   }
 
-  // FIXME: Can't use unique_ptr here because we need a forward
-  // declaration of TrackCheckerHistos to allow C++17 in host-only
-  // code and C++14 in device code. Will fix once nvcc supports C++17
-  TrackCheckerHistos* m_histos = nullptr;
+  std::unique_ptr<TrackCheckerHistos> m_histos;
 };
 
 using TrackCheckerVelo = TrackChecker<Checker::Subdetector::Velo>;
