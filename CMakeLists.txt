@@ -58,7 +58,7 @@ set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 
 
 # HIP architecture
 # https://llvm.org/docs/AMDGPUUsage.html
-set(HIP_ARCH gfx906 CACHE STRING "HIP target architecture")
+set(HIP_ARCH gfx908 CACHE STRING "HIP target architecture")
 set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 gfx909 gfx1010 gfx1011 gfx1012 gfx1030)
 
 # --------------------
