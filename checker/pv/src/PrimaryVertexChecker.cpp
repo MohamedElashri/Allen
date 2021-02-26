@@ -87,8 +87,8 @@ void PVChecker::accumulate(
       recinfo.minTrackRD = 99999.;
       recinfo.maxTrackRD = -99999.;
       recinfo.mother = 0;
-      recinfo.chi2 = pv.chi2; 
-      recinfo.nDoF = pv.ndof; 
+      recinfo.chi2 = pv.chi2;
+      recinfo.nDoF = pv.ndof;
       recinfo.d0 = d0;
       recinfo.d0nTr = d0 / (double) tr;
       recinfo.chi2nTr = trackChi2 / (double) tr;

@@ -60,7 +60,7 @@ void KalmanChecker::accumulate(
   gsl::span<const Checker::Tracks> tracks,
   gsl::span<const unsigned> event_list)
 {
-  auto guard = std::scoped_lock{m_mutex};
+  auto guard = std::scoped_lock {m_mutex};
   for (size_t i = 0; i < event_list.size(); ++i) {
     const auto evnum = event_list[i];
     const auto& event_tracks = tracks[i];

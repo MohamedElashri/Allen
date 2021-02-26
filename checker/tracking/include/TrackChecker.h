@@ -76,7 +76,7 @@ public:
 
   void report(size_t) const override
   {
-    if constexpr(!std::is_same_v<T, Checker::Subdetector::Muon>) {
+    if constexpr (!std::is_same_v<T, Checker::Subdetector::Muon>) {
       std::printf(
         "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
         "TrackChecker output",
@@ -85,7 +85,7 @@ public:
         (100.0 * static_cast<double>(m_nghosts)) / (static_cast<double>(m_ntracks)));
     }
 
-    if constexpr(std::is_same_v<T, Checker::Subdetector::SciFi>) {
+    if constexpr (std::is_same_v<T, Checker::Subdetector::SciFi>) {
       std::printf(
         "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
         "for P>3GeV,Pt>0.5GeV",
@@ -98,7 +98,7 @@ public:
       report.report();
     }
 
-    if constexpr(std::is_same_v<T, Checker::Subdetector::Muon>) {
+    if constexpr (std::is_same_v<T, Checker::Subdetector::Muon>) {
       if (n_matched_muons > 0) {
         // std::printf("Total number of tracks matched to an MCP = %lu, non muon MCPs = %lu, muon MCPs = %lu, total =
         // %lu \n", m_n_tracks_matched_to_MCP, n_matched_not_muons, n_matched_muons,
@@ -157,7 +157,7 @@ public:
     const std::vector<Checker::Tracks>& tracks,
     const std::vector<unsigned>& event_list)
   {
-    auto guard = std::scoped_lock{m_mutex};
+    auto guard = std::scoped_lock {m_mutex};
     for (size_t i = 0; i < event_list.size(); ++i) {
       const auto evnum = event_list[i];
       const auto& event_tracks = tracks[i];
@@ -288,11 +288,11 @@ public:
         // save matched hits per subdetector
         // -> needed for hit efficiency
         int subdetector_counter = 0;
-        if constexpr(std::is_same_v<T, Checker::Subdetector::Velo>)
+        if constexpr (std::is_same_v<T, Checker::Subdetector::Velo>)
           subdetector_counter = id_counter.second.n_velo;
-        else if constexpr(std::is_same_v<T, Checker::Subdetector::UT>)
+        else if constexpr (std::is_same_v<T, Checker::Subdetector::UT>)
           subdetector_counter = id_counter.second.n_ut;
-        else if constexpr(std::is_same_v<T, Checker::Subdetector::SciFi>)
+        else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFi>)
           subdetector_counter = id_counter.second.n_scifi;
         const float weight = ((float) counter_sum) / ((float) n_meas);
         const MCAssociator::TrackWithWeight track_weight = {i_track, weight, subdetector_counter};
@@ -378,7 +378,7 @@ public:
       const auto key = mcp.key;
 
       constexpr auto muonPID = 13;
-      if (std::abs(mcp.pid) == muonPID) 
+      if (std::abs(mcp.pid) == muonPID)
         m_n_MCPs_muon++;
       else // not muon
         m_n_MCPs_not_muon++;
@@ -455,7 +455,7 @@ public:
     const Checker::Tracks& tracks)
   {
 
-    if constexpr(std::is_same_v<T, Checker::Subdetector::Muon>) {
+    if constexpr (std::is_same_v<T, Checker::Subdetector::Muon>) {
       m_histos->fillMuonReconstructible(mcp);
 
       bool match_is_muon = false;
