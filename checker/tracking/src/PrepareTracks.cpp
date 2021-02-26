@@ -18,10 +18,10 @@
 
 std::vector<Checker::Tracks> prepareVeloTracks(
   const unsigned number_of_events,
-  const std::vector<unsigned>& track_atomics,
-  const std::vector<unsigned>& track_hit_number,
-  const std::vector<char>& track_hits,
-  const std::vector<unsigned>& event_list)
+  gsl::span<const unsigned> track_atomics,
+  gsl::span<const unsigned> track_hit_number,
+  gsl::span<const char> track_hits,
+  gsl::span<const unsigned> event_list)
 {
   /* Tracks to be checked, save in format for checker */
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
@@ -52,16 +52,16 @@ std::vector<Checker::Tracks> prepareVeloTracks(
 
 std::vector<Checker::Tracks> prepareUTTracks(
   const unsigned number_of_events,
-  const std::vector<unsigned>& velo_track_atomics,
-  const std::vector<unsigned>& velo_track_hit_number,
-  const std::vector<char>& velo_track_hits,
-  const std::vector<char>& kalman_velo_states,
-  const std::vector<unsigned>& ut_track_atomics,
-  const std::vector<unsigned>& ut_track_hit_number,
-  const std::vector<char>& ut_track_hits,
-  const std::vector<unsigned>& ut_track_velo_indices,
-  const std::vector<float>& ut_qop,
-  const std::vector<unsigned>& event_list)
+  gsl::span<const unsigned> velo_track_atomics,
+  gsl::span<const unsigned> velo_track_hit_number,
+  gsl::span<const char> velo_track_hits,
+  gsl::span<const char> kalman_velo_states,
+  gsl::span<const unsigned> ut_track_atomics,
+  gsl::span<const unsigned> ut_track_hit_number,
+  gsl::span<const char> ut_track_hits,
+  gsl::span<const unsigned> ut_track_velo_indices,
+  gsl::span<const float> ut_qop,
+  gsl::span<const unsigned> event_list)
 {
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
   for (unsigned i = 0; i < event_list.size(); i++) {
@@ -120,24 +120,24 @@ std::vector<Checker::Tracks> prepareUTTracks(
 
 std::vector<Checker::Tracks> prepareForwardTracks(
   const unsigned number_of_events,
-  const std::vector<unsigned>& velo_track_atomics,
-  const std::vector<unsigned>& velo_track_hit_number,
-  const std::vector<char>& velo_track_hits,
-  const std::vector<char>& kalman_velo_states,
-  const std::vector<unsigned>& ut_track_atomics,
-  const std::vector<unsigned>& ut_track_hit_number,
-  const std::vector<char>& ut_track_hits,
-  const std::vector<unsigned>& ut_track_velo_indices,
-  const std::vector<float>& ut_qop,
-  const std::vector<unsigned>& scifi_track_atomics,
-  const std::vector<unsigned>& scifi_track_hit_number,
-  const std::vector<char>& scifi_track_hits,
-  const std::vector<unsigned>& scifi_track_ut_indices,
-  const std::vector<float>& scifi_qop,
-  const std::vector<MiniState>& scifi_states,
+  gsl::span<const unsigned> velo_track_atomics,
+  gsl::span<const unsigned> velo_track_hit_number,
+  gsl::span<const char> velo_track_hits,
+  gsl::span<const char> kalman_velo_states,
+  gsl::span<const unsigned> ut_track_atomics,
+  gsl::span<const unsigned> ut_track_hit_number,
+  gsl::span<const char> ut_track_hits,
+  gsl::span<const unsigned> ut_track_velo_indices,
+  gsl::span<const float> ut_qop,
+  gsl::span<const unsigned> scifi_track_atomics,
+  gsl::span<const unsigned> scifi_track_hit_number,
+  gsl::span<const char> scifi_track_hits,
+  gsl::span<const unsigned> scifi_track_ut_indices,
+  gsl::span<const float> scifi_qop,
+  gsl::span<const MiniState> scifi_states,
   const char* scifi_geometry,
-  const std::vector<unsigned>& event_list,
-  const std::vector<Allen::bool_as_char_t<bool>>& is_muon)
+  gsl::span<const unsigned> event_list,
+  gsl::span<const Allen::bool_as_char_t<bool>> is_muon)
 {
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
