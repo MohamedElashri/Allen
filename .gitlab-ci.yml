@@ -430,7 +430,7 @@ docker_image:build:
         RUN_OPTIONS="${RUN_OPTIONS} -n 100 -m 100 -r 200 -t ${THREADS} -c 0"
 
         ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
-      else
+      elif [ "${TARGET}" = "CUDA" ]; then
         export PATH=$PATH:/usr/local/cuda/bin
         GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
         GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
@@ -438,6 +438,13 @@ docker_image:build:
         RUN_OPTIONS="${RUN_OPTIONS} -n 500 -m 500 -r 1000 -t 16 -c 0"
 
         ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
+      elif [ "${TARGET}" = "HIP" ]; then
+        source /cvmfs/lhcbdev.cern.ch/tools/rocm-4.0.0/setenv.sh
+        GPU_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
+        NUMA_NODE=1
+        RUN_OPTIONS="${RUN_OPTIONS} -n 8000 --events-per-slice 8000 -m 5000 -r 1000 -t 6 -c 0"
+
+        ALLEN="HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
       fi
       echo "Command: ${ALLEN}"
 
@@ -799,6 +806,15 @@ a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_
     - a40
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  <<: *active_branches
+
+
+mi100:HIP:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - mi100
+  needs:
+    - HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   <<: *active_branches
 
 
@@ -1169,6 +1185,7 @@ throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_through
     - geforcertx3080:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - a40:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - mi100:HIP:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
   artifacts:
