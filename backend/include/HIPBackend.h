@@ -181,6 +181,7 @@ namespace Allen {
   {
     int n_devices = 0;
     hipDeviceProp_t device_properties;
+    std::string device_name = "";
 
     try {
       hipCheck(hipGetDeviceCount(&n_devices));
@@ -201,12 +202,14 @@ namespace Allen {
       hipCheck(hipSetDevice(hip_device));
       hipCheck(hipGetDeviceProperties(&device_properties, hip_device));
 
+      device_name = std::string{device_properties.name} == "Device 738c" ? "MI100" : device_properties.name;
+
       if (n_devices == 0) {
         error_cout << "Failed to select device " << hip_device << "\n";
         return {false, "", 0};
       }
       else {
-        debug_cout << "Stream " << stream_id << " selected hip device " << hip_device << ": " << device_properties.name
+        debug_cout << "Stream " << stream_id << " selected hip device " << hip_device << ": " << device_name
                    << "\n\n";
       }
     } catch (const std::invalid_argument& e) {
@@ -215,12 +218,7 @@ namespace Allen {
       return {false, "", 0};
     }
 
-    if (device_properties.major == 7 && device_properties.minor == 5) {
-      // Turing architecture benefits from setting up cache config to L1
-      hipCheck(hipDeviceSetCacheConfig(hipFuncCachePreferL1));
-    }
-
-    return {true, device_properties.name, device_properties.textureAlignment};
+    return {true, device_name, device_properties.textureAlignment};
   }
 
   std::tuple<bool, int> inline get_device_id(const std::string& pci_bus_id)
