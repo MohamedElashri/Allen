@@ -1163,6 +1163,7 @@ throughput:hlt1_pp_default:geforcertx3090:minbias_mag_down_201907:publish_throug
     - geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - mi100:HIP:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
   <<: *active_branches
@@ -1185,7 +1186,6 @@ throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_through
     - geforcertx3080:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - a40:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
-    - mi100:HIP:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
   artifacts:
