@@ -8,6 +8,7 @@
 #include "BankTypes.h"
 #include "BackendCommon.h"
 #include "AllenTypeTraits.cuh"
+#include "PinnedVector.h"
 
 /**
  * @brief Sets the size of a container to the specified size.
@@ -171,12 +172,38 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
   }
 
+  /**
+   * @brief Asynchronous make_vector.
+   */
+  static auto make_vector(const Args& arguments, const Allen::Context& context)
+  {
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy_async(
+      v.data(),
+      data<Arg>(arguments),
+      size<Arg>(arguments) * sizeof(typename Arg::type),
+      Allen::memcpyHostToHost,
+      context);
+    return v;
+  }
+
+  /**
+   * @brief Synchronous make_vector.
+   */
   static auto make_vector(const Args& arguments)
   {
-    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy(
       v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost);
     return v;
+  }
+
+  template<typename T>
+  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
+  {
+    const auto size_bytes = gsl::as_bytes(container);
+    assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
+    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
   }
 
   static void print(const Args& arguments)
@@ -198,17 +225,45 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
   }
 
+  /**
+   * @brief Asynchronous make_vector.
+   */
+  static auto make_vector(const Args& arguments, const Allen::Context& context)
+  {
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy_async(
+      v.data(),
+      data<Arg>(arguments),
+      size<Arg>(arguments) * sizeof(typename Arg::type),
+      Allen::memcpyDeviceToHost,
+      context);
+    return v;
+  }
+
+  /**
+   * @brief Synchronous make_vector.
+   */
   static auto make_vector(const Args& arguments)
   {
-    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy(
       v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
     return v;
   }
 
+  template<typename T>
+  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
+  {
+    const auto size_bytes = gsl::as_bytes(container);
+    assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
+    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
+  }
+
   static void print(const Args& arguments)
   {
-    const auto v = make_vector(arguments);
+    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
+    Allen::memcpy(
+      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
 
     info_cout << name<Arg>(arguments) << ": ";
     for (const auto& i : v) {
@@ -419,6 +474,16 @@ void copy(
 }
 
 /**
+ * @brief Copies the contents of a data container to a datatype. The data container
+ * can be either a span or anything that can be automatically converted to a span.
+ */
+template<typename Arg, typename Args, typename T>
+void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> data_container)
+{
+  return SingleArgumentOverloadResolution<Arg, Args>::copy(arguments, context, data_container);
+}
+
+/**
  * @brief Transfer data to the device, populating raw banks and offsets.
  */
 template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
@@ -436,7 +501,18 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
 
 /**
  * @brief Makes a std::vector out of an Allen container.
- * @details The copy mechanism to create the std::vector is blocking and synchronous.
+ * @details The copy function here is asynchronous. The only small caveat of this
+ *          function is the requirement to dynamically allocate a buffer on the host.
+ */
+template<typename Arg, typename Args>
+auto make_vector(const Args& arguments, const Allen::Context& context)
+{
+  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments, context);
+}
+
+/**
+ * @brief Makes a std::vector out of an Allen container.
+ * @details This copy mechanism to create a std::vector is blocking and synchronous.
  *          This function should only be used where the performance of the application
  *          is irrelevant.
  */
