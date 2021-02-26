@@ -27,8 +27,8 @@ public:
 
   void accumulate(
     MCEvents const& mc_events,
-    std::vector<Checker::Tracks> const& tracks,
-    const std::vector<unsigned>& event_list);
+    gsl::span<const Checker::Tracks> tracks,
+    gsl::span<const unsigned> event_list);
 
   void report(size_t n_events) const override;
 

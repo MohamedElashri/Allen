@@ -57,10 +57,10 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
 
 void KalmanChecker::accumulate(
   MCEvents const& mc_events,
-  std::vector<Checker::Tracks> const& tracks,
-  const std::vector<unsigned>& event_list)
+  gsl::span<const Checker::Tracks> tracks,
+  gsl::span<const unsigned> event_list)
 {
-  std::lock_guard<std::mutex> guard(m_mutex);
+  auto guard = std::scoped_lock{m_mutex};
   for (size_t i = 0; i < event_list.size(); ++i) {
     const auto evnum = event_list[i];
     const auto& event_tracks = tracks[i];
@@ -121,7 +121,7 @@ void KalmanChecker::accumulate(
 void KalmanChecker::report(size_t) const
 {
 #ifdef WITH_ROOT
-  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  auto* dir = m_file->Get<TDirectory>(m_directory.c_str());
   dir->WriteTObject(m_tree);
 #endif
 }
