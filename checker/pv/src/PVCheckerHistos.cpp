@@ -96,36 +96,36 @@ void PVCheckerHistos::accumulate(
 #ifdef WITH_ROOT
   // save information about matched reconstructed PVs for pulls distributions
   for (size_t i = 0; i < vec_diff_x.size(); i++) {
-    m_nmcpv = vec_n_mcpv.at(i);
-    m_ntrinmcpv = vec_n_trinmcpv.at(i);
-    m_diff_x = vec_diff_x.at(i);
-    m_diff_y = vec_diff_y.at(i);
-    m_diff_z = vec_diff_z.at(i);
-    m_rec_x = vec_rec_x.at(i);
-    m_rec_y = vec_rec_y.at(i);
-    m_rec_z = vec_rec_z.at(i);
+    m_nmcpv = vec_n_mcpv[i];
+    m_ntrinmcpv = vec_n_trinmcpv[i];
+    m_diff_x = vec_diff_x[i];
+    m_diff_y = vec_diff_y[i];
+    m_diff_z = vec_diff_z[i];
+    m_rec_x = vec_rec_x[i];
+    m_rec_y = vec_rec_y[i];
+    m_rec_z = vec_rec_z[i];
 
-    m_err_x = vec_err_x.at(i);
-    m_err_y = vec_err_y.at(i);
-    m_err_z = vec_err_z.at(i);
+    m_err_x = vec_err_x[i];
+    m_err_y = vec_err_y[i];
+    m_err_z = vec_err_z[i];
 
     m_tree->Fill();
   }
 
   for (size_t i = 0; i < vec_recpv_mult.size(); i++) {
-    fakes_vs_mult->Fill(vec_recpv_mult.at(i), vec_recpv_fake.at(i));
-    fakes_norm->Fill(vec_recpv_mult.at(i), 1);
+    fakes_vs_mult->Fill(vec_recpv_mult[i], vec_recpv_fake[i]);
+    fakes_norm->Fill(vec_recpv_mult[i], 1);
   }
 
   for (size_t i = 0; i < vec_mcpv_mult.size(); i++) {
-    eff_vs_z->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
-    eff_vs_mult->Fill(vec_mcpv_mult.at(i), vec_mcpv_recd.at(i));
-    if (vec_mcpv_recd.at(i)) {
-      eff_matched_vs_z->Fill(vec_mcpv_zpos.at(i));
-      eff_matched_vs_mult->Fill(vec_mcpv_mult.at(i));
+    eff_vs_z->Fill(vec_mcpv_zpos[i], vec_mcpv_recd[i]);
+    eff_vs_mult->Fill(vec_mcpv_mult[i], vec_mcpv_recd[i]);
+    if (vec_mcpv_recd[i]) {
+      eff_matched_vs_z->Fill(vec_mcpv_zpos[i]);
+      eff_matched_vs_mult->Fill(vec_mcpv_mult[i]);
     }
-    eff_norm_z->Fill(vec_mcpv_zpos.at(i), 1);
-    eff_norm_mult->Fill(vec_mcpv_mult.at(i), 1);
+    eff_norm_z->Fill(vec_mcpv_zpos[i], 1);
+    eff_norm_mult->Fill(vec_mcpv_mult[i], 1);
   }
 
   std::vector<float> binerrors_vs_z;
@@ -153,18 +153,18 @@ void PVCheckerHistos::accumulate(
 
   eff_vs_z->Divide(eff_norm_z.get());
   for (int i = 1; i <= m_bins_norm_z; i++) {
-    eff_vs_z->SetBinError(i, binerrors_vs_z.at(i - 1));
+    eff_vs_z->SetBinError(i, binerrors_vs_z[i - 1]);
   }
   eff_vs_mult->Divide(eff_norm_mult.get());
   for (int i = 1; i <= m_bins_norm_mult; i++) {
-    eff_vs_mult->SetBinError(i, binerrors_vs_mult.at(i - 1));
+    eff_vs_mult->SetBinError(i, binerrors_vs_mult[i - 1]);
   }
   fakes_vs_mult->Divide(fakes_norm.get());
 
   for (size_t j = 0; j < vec_mc_x.size(); j++) {
-    m_mc_x = vec_mc_x.at(j);
-    m_mc_y = vec_mc_y.at(j);
-    m_mc_z = vec_mc_z.at(j);
+    m_mc_x = vec_mc_x[j];
+    m_mc_y = vec_mc_y[j];
+    m_mc_z = vec_mc_z[j];
     m_mctree->Fill();
   }
 

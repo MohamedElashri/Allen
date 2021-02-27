@@ -12,9 +12,9 @@ PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file
 
 void PVChecker::accumulate(
   MCEvents const& mc_events,
-  const std::vector<PV::Vertex>& rec_vertex,
-  const std::vector<unsigned>& number_of_vertex,
-  const std::vector<unsigned>& event_list)
+  gsl::span<const PV::Vertex> rec_vertex,
+  gsl::span<const unsigned> number_of_vertex,
+  gsl::span<const unsigned> event_list)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
   passed += event_list.size();
