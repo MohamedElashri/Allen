@@ -152,10 +152,8 @@ public:
 #endif
   }
 
-  void accumulate(
-    const MCEvents& mc_events,
-    gsl::span<const Checker::Tracks> tracks,
-    gsl::span<const unsigned> event_list)
+  void
+  accumulate(const MCEvents& mc_events, gsl::span<const Checker::Tracks> tracks, gsl::span<const unsigned> event_list)
   {
     auto guard = std::scoped_lock {m_mutex};
     for (size_t i = 0; i < event_list.size(); ++i) {
