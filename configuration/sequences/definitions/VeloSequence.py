@@ -95,7 +95,8 @@ def VeloSequence(doGEC=True):
         dev_module_cluster_num_t(),
         dev_velo_cluster_container_t=velo_masked_clustering.
         dev_velo_cluster_container_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_velo_clusters_t=velo_masked_clustering.dev_velo_clusters_t())
 
     velo_search_by_triplet = velo_search_by_triplet_t(
         name="velo_search_by_triplet",

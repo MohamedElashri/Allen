@@ -27,6 +27,15 @@ namespace {
   template<typename T>
   struct has_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
   };
+
+  // SFINAE-based check of View. Require a type "deps" in it.
+  template<typename T, typename = void>
+  struct is_view : std::false_type {
+  };
+
+  template<typename T>
+  struct is_view<T, std::void_t<typename T::deps*>> : std::true_type {
+  };
 } // namespace
 
 namespace Sch {
@@ -44,12 +53,31 @@ namespace Sch {
     using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
+  template<typename T, typename Tuple, typename = void>
+  struct SchTupleContains;
+
+  template<typename T>
+  struct SchTupleContains<T, std::tuple<>, void> : std::bool_constant<true> {
+  };
+
+  template<typename T, typename OtherT, typename... Ts>
+  struct SchTupleContains<T, std::tuple<OtherT, Ts...>, std::enable_if_t<!is_view<OtherT>::value>>
+    : std::bool_constant<std::is_same_v<T, OtherT> || SchTupleContains<T, std::tuple<Ts...>>::value> {
+  };
+
+  template<typename T, typename OtherT, typename... Ts>
+  struct SchTupleContains<T, std::tuple<OtherT, Ts...>, std::enable_if_t<is_view<OtherT>::value>>
+    : std::bool_constant<
+        std::is_same_v<T, OtherT> || SchTupleContains<T, std::tuple<Ts...>>::value ||
+        SchTupleContains<T, typename OtherT::deps>::value> {
+  };
+
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Arguments>
   struct IsInAnyArgumentTuple;
 
   template<typename T, typename... Arguments>
-  struct IsInAnyArgumentTuple<T, std::tuple<Arguments...>> : std::disjunction<TupleContains<T, Arguments>...> {
+  struct IsInAnyArgumentTuple<T, std::tuple<Arguments...>> : std::disjunction<SchTupleContains<T, Arguments>...> {
   };
 
   // A mechanism to only return the arguments in Algorithm

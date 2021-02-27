@@ -169,3 +169,14 @@ struct ScheduledDependencies {
   using Algorithm = T;
   using Arguments = ArgumentsTuple;
 };
+
+namespace Allen {
+  template<typename T, typename... Dependencies>
+  struct View : public T {
+    View() = default;
+    View(const View&) = default;
+    View(const T& t) : T{t} {}
+    
+    using deps = std::tuple<Dependencies...>;
+  };
+}

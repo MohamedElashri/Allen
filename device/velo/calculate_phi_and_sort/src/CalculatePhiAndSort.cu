@@ -65,8 +65,8 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
   const unsigned* module_pair_hit_num =
     parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
-  const auto velo_cluster_container =
-    Velo::ConstClusters {parameters.dev_velo_cluster_container, total_estimated_number_of_clusters};
+  const auto velo_cluster_container = parameters.dev_velo_clusters[event_number];
+  // Velo::ConstClusters {parameters.dev_velo_cluster_container, total_estimated_number_of_clusters};
   auto velo_sorted_cluster_container =
     Velo::Clusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
 
@@ -101,7 +101,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
   int16_t* shared_hit_phis,
   const unsigned* module_pair_hit_start,
   const unsigned* module_pair_hit_num,
-  Velo::ConstClusters& velo_cluster_container,
+  const Velo::Clusters& velo_cluster_container,
   int16_t* hit_Phis,
   unsigned* hit_permutations)
 {
@@ -154,7 +154,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
   int16_t* shared_hit_phis,
   const unsigned* module_pair_hit_start,
   const unsigned* module_pair_hit_num,
-  Velo::ConstClusters& velo_cluster_container,
+  const Velo::Clusters& velo_cluster_container,
   int16_t* hit_Phis,
   unsigned* hit_permutations)
 {
@@ -224,7 +224,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi_vectorized(
 __device__ void velo_calculate_phi_and_sort::sort_by_phi(
   const unsigned event_hit_start,
   const unsigned event_number_of_hits,
-  Velo::ConstClusters& velo_cluster_container,
+  const Velo::Clusters& velo_cluster_container,
   Velo::Clusters& velo_sorted_cluster_container,
   unsigned* hit_permutations)
 {

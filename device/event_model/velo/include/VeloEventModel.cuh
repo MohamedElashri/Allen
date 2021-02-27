@@ -121,8 +121,8 @@ namespace Velo {
   struct Clusters_t {
   protected:
     typename ForwardType<T, half_t>::t* m_base_pointer;
-    const unsigned m_total_number_of_hits;
-    const unsigned m_offset;
+    unsigned m_total_number_of_hits;
+    unsigned m_offset;
 
   public:
     constexpr static unsigned element_size = sizeof(unsigned) + 3 * sizeof(half_t);

@@ -98,6 +98,10 @@ def check_input_parameter(parameter, assign_class, typename):
         # the parser parsed an unknown type or not, so just accept it
         return assign_class(parameter.name(), parameter.type(),
                             parameter.producer())
+    elif str(parameter.type()).startswith("Allen::View") and typename in str(parameter.type()):
+        # If the type is a view, accept a type contained in the view
+        return assign_class(parameter.name(), parameter.type(),
+                            parameter.producer())
     else:
         assert compatible_parameter_assignment(type(parameter), assign_class)
         assert parameter.type() == Type(typename)

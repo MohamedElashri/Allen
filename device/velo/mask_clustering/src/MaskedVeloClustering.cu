@@ -14,6 +14,7 @@ void velo_masked_clustering::velo_masked_clustering_t::set_arguments_size(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
   set_size<dev_velo_cluster_container_t>(
     arguments, first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
+  set_size<dev_velo_clusters_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void velo_masked_clustering::velo_masked_clustering_t::operator()(
@@ -489,6 +490,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   const unsigned estimated_number_of_clusters =
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
   auto velo_cluster_container = Velo::Clusters {parameters.dev_velo_cluster_container, estimated_number_of_clusters};
+  parameters.dev_velo_clusters[event_number] = velo_cluster_container;
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
