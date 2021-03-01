@@ -294,7 +294,7 @@ docker_image:build:
       LCG_ARCHITECTURE=${JOB_NAME_SPLIT[3]}
       RUN_OPTIONS="-n 1000 -m 700 --disable-run-changes 0"
 
-      JOB="./Allen --mdf ${ALLEN_DATA}/${MDF_INPUT}-f ${ALLEN_DATA}/${INPUT_FILES} ${RUN_OPTIONS}"
+      JOB="./Allen --mdf ${ALLEN_DATA}/${MDF_INPUT} -f ${ALLEN_DATA}/${INPUT_FILES} ${RUN_OPTIONS}"
 
       source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
       mkdir run_changes_output && ln -s run_changes_output output # Needed by Root build
