@@ -1,3 +1,7 @@
+/*****************************************************************************\
+* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+\*****************************************************************************/
+
 #pragma once
 
 #include "CaloRawEvent.cuh"
@@ -23,12 +27,23 @@ namespace calo_decode {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
   };
 
+  struct check_digits : public Allen::contract::Postcondition {
+    void operator()(
+      const ArgumentReferences<Parameters>&,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context&) const;
+  };
+
   // Global function
   __global__ void calo_decode(Parameters parameters, const char* dev_ecal_geometry, const char* dev_hcal_geometry);
   __global__ void calo_decode_mep(Parameters parameters, const char* dev_ecal_geometry, const char* dev_hcal_geometry);
 
   // Algorithm
   struct calo_decode_t : public DeviceAlgorithm, Parameters {
+
+    using contracts = std::tuple<check_digits>;
+
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
