@@ -942,7 +942,7 @@ x862630v4:CPU:hlt1_pp_validation:x86_64-centos7-clang10-opt:bsphiphi_mag_down_20
 
 # Efficiency for Sci
 
-geforcertx2080ti:CUDA:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   <<: *scifi_v6_efficiency_data
   tags:
@@ -951,7 +951,7 @@ geforcertx2080ti:CUDA:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt:Sci
     - CUDA:hlt1_pp_scifi_v6_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 
-x862630v4:CPU:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
+x862630v4:CPU:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   <<: *scifi_v6_efficiency_data
   tags:
@@ -1265,6 +1265,6 @@ throughput:hlt1_pp_scifi_v6:geforcertx3090:SciFiv6_upgrade_DC19_01_MinBiasMD:pub
 scifiv6_test_physics_efficiency:
   <<: *test_phys_eff_job
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency
 
