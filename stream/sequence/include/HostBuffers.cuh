@@ -104,6 +104,10 @@ struct HostBuffers {
   bool* host_match_upstream_muon;
 
   // Calo
+  gsl::span<unsigned> host_ecal_digits_offsets = {};
+  gsl::span<unsigned> host_hcal_digits_offsets = {};
+  gsl::span<char> host_ecal_digits = {};
+  gsl::span<char> host_hcal_digits = {};
   gsl::span<unsigned> host_ecal_cluster_offsets = {};
   gsl::span<unsigned> host_hcal_cluster_offsets = {};
   gsl::span<char> host_ecal_clusters = {};
