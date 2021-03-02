@@ -1097,13 +1097,6 @@ geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_do
   needs:
     - CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
 
-mi100:HIP:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency_debug:
-  <<: *run_physics_efficiency_job_def
-  tags:
-    - mi100
-  needs:
-    - HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests
-
 x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
