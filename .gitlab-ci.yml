@@ -427,7 +427,7 @@ docker_image:build:
         TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
         NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
         THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
-        RUN_OPTIONS="${RUN_OPTIONS} -n 100 -m 100 -r 200 -t ${THREADS} -c 0"
+        RUN_OPTIONS="${RUN_OPTIONS} -n 100 -m 100 -r 200 -t ${THREADS}"
 
         ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
       elif [ "${TARGET}" = "CUDA" ]; then
@@ -435,7 +435,7 @@ docker_image:build:
         GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
         GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
         NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-        RUN_OPTIONS="${RUN_OPTIONS} -n 500 -m 500 -r 1000 -t 16 -c 0"
+        RUN_OPTIONS="${RUN_OPTIONS} -n 500 -m 500 -r 1000 -t 16"
 
         ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
       elif [ "${TARGET}" = "HIP" ]; then
@@ -446,7 +446,7 @@ docker_image:build:
         PCI_BUS=`/opt/rocm-4.0.0/bin/rocm-smi --showbus | grep $GPU_ESCAPED_BRACKETS | awk '{ print $NF; }' | sed 's/[0-9]\+:\(.*\)/\1/'`
         GPU_NUMBER=`echo $GPU_NUMBER_EXTRA | sed 's/GPU\[\(.*\)\]/\1/g'`
         NUMA_NODE=`lspci -vmm | grep -i $PCI_BUS -A 10 | grep NUMANode | head -n1 | awk '{ print $NF; }'`
-        RUN_OPTIONS="${RUN_OPTIONS} -n 8000 --events-per-slice 8000 -m 5000 -r 1000 -t 6 -c 0"
+        RUN_OPTIONS="${RUN_OPTIONS} -n 8000 --events-per-slice 8000 -m 5000 -r 1000 -t 6"
 
         ALLEN="HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
       fi
@@ -499,8 +499,8 @@ docker_image:build:
       GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
       GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
       NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-      RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0 ${RUN_OPTIONS}"
-      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0 ${RUN_OPTIONS}"
+      RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 ${RUN_OPTIONS}"
+      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 ${RUN_OPTIONS}"
       export PATH=$PATH:/usr/local/cuda/bin
 
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
