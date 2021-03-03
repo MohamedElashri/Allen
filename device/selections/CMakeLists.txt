@@ -1,8 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-include_directories(Hlt1/include)
-include_directories(lines/include)
+include_directories(lines/Hlt1/include)
+include_directories(lines/alignment/include)
+include_directories(lines/charm/include)
+include_directories(lines/inclusive_hadron/include)
+include_directories(lines/muon/include)
+include_directories(lines/technical/include)
 include_directories(line_types/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
@@ -33,8 +37,7 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB selections_src "Hlt1/src/*cu")
-file(GLOB lines_src "lines/src/*cu")
-
+file(GLOB lines_src "lines/alignment/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/muon/src/*cu" "lines/technical/src/*cu")
 allen_add_device_library(Selections STATIC
   ${selections_src}
   ${lines_src}
