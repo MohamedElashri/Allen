@@ -13,25 +13,20 @@
 #include <CheckerInvoker.h>
 #include <MCAssociator.h>
 #include <MCEvent.h>
-
 #include <algorithm>
+#include <mutex>
 
 class TTree;
 class TFile;
 
 class KalmanChecker : public Checker::BaseChecker {
 public:
-  struct KalmanTag {
-    static std::string const name;
-  };
-
-  using subdetector_t = KalmanTag;
-
-  KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file);
+  KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name);
 
   virtual ~KalmanChecker() = default;
 
-  void accumulate(MCEvents const& mc_events, std::vector<Checker::Tracks> const& tracks);
+  void
+  accumulate(MCEvents const& mc_events, gsl::span<const Checker::Tracks> tracks, gsl::span<const unsigned> event_list);
 
   void report(size_t n_events) const override;
 
@@ -41,6 +36,7 @@ private:
   TFile* m_file = nullptr;
 #endif
 
+  std::mutex m_mutex;
   float m_trk_z = 0.f;
   float m_trk_x = 0.f;
   float m_trk_y = 0.f;
@@ -68,4 +64,6 @@ private:
   float m_trk_ndofT = 0.f;
   float m_trk_ghost = 0.f;
   float m_mcp_p = 0.f;
+
+  std::string m_directory;
 };

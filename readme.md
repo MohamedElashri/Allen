@@ -205,7 +205,6 @@ A run of the program with the help option `-h` will let you know the basic optio
     --events-per-slice {number of events per slice}=1000
     -t, --threads {number of threads / streams}=1
     -r, --repetitions {number of repetitions per thread / stream}=1
-    -c, --validate {run validation / checkers}=1
     -m, --memory {memory to reserve per thread / stream (megabytes)}=1024
     -v, --verbosity {verbosity [0-5]}=3 (info)
     -p, --print-memory {print memory usage}=0
@@ -221,24 +220,24 @@ A run of the program with the help option `-h` will let you know the basic optio
 
 Here are some example run options:
 
-    # Run all input files shipped with Allen once with the tracking validation
+    # Run all input files shipped with Allen once
     ./Allen
 
-    # Specify input files, run once over all of them with tracking validation
+    # Specify input files, run once over all of them
     ./Allen -f ../input/minbias/
 
     # Run a total of 1000 events once without tracking validation. If less than 1000 events are
     # provided, the existing ones will be reused in round-robin.
-    ./Allen -c 0 -n 1000
+    ./Allen -n 1000
 
-    # Run four streams, each with 4000 events, 20 repetitions, and no validation
-    ./Allen -t 4 -n 4000 -r 20 -c 0
+    # Run four streams, each with 4000 events and 20 repetitions
+    ./Allen -t 4 -n 4000 -r 20
 
     # Run one stream with 5000 events and print all memory allocations
     ./Allen -n 5000 -p 1
 
     # Default throughput test configuration
-    ./Allen -t 16 -n 500 -m 500 -r 1000 -c 0
+    ./Allen -t 16 -n 500 -m 500 -r 1000
 
 Where to develop for GPUs
 -------------------------
@@ -248,7 +247,6 @@ An online account is required to access it. If you need to create one, please se
 Enter the online network from lxplus with `ssh lbgw`. Then `ssh n4050101` to reach the GPU server.
 
 * Upon login, a GPU will be automatically assigned to you.
-* A development environment is set (`gcc 8.2.0`, `cmake 3.14`, ROOT, NVIDIA binary path is added).
 * Allen input data is available locally under `/scratch/allen_data`.
 
 ### How to measure throughput
@@ -259,13 +257,13 @@ The results of the tests are published in this [mattermost channel](https://matt
 For local throughput measurements, we recommend the following settings in Allen standalone mode:
 
 ```console
-./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16 -c 0
+./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16
 ```
 
 Calling Allen with the Nvidia profiler will give information on how much time is spent on which kernel call (note that a slowdown in throughput of around 7% is observed on the master branch when running nvprof, possibly due to the additional data being copied to and from the device):
 
 ```console
-nvprof ./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16 -c 0
+nvprof ./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16
 ```
 
 ### Links to more readmes

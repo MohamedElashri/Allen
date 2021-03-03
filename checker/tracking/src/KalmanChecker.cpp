@@ -2,18 +2,21 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include <cstdio>
-
 #include <KalmanChecker.h>
 #include <ROOTHeaders.h>
 
-std::string const KalmanChecker::KalmanTag::name = "KalmanChecker";
-
-KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file)
+KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name) :
+  m_directory {name}
 {
 #ifdef WITH_ROOT
   // Setup the TTree.
   m_file = invoker->root_file(root_file);
-  m_file->cd();
+  auto* dir = static_cast<TDirectory*>(m_file->Get(name.c_str()));
+  if (!dir) {
+    dir = m_file->mkdir(name.c_str());
+    dir = static_cast<TDirectory*>(m_file->Get(name.c_str()));
+  }
+  dir->cd();
 
   // NOTE: This TTree will be cleaned up by ROOT when the file is
   // closed.
@@ -48,16 +51,21 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
 #else
   _unused(invoker);
   _unused(root_file);
+  _unused(name);
 #endif
 }
 
-void KalmanChecker::accumulate(MCEvents const& mc_events, std::vector<Checker::Tracks> const& tracks)
+void KalmanChecker::accumulate(
+  MCEvents const& mc_events,
+  gsl::span<const Checker::Tracks> tracks,
+  gsl::span<const unsigned> event_list)
 {
-  // Loop over events.
-  for (size_t i_event = 0; i_event < tracks.size(); ++i_event) {
-    const auto& mc_event = mc_events[i_event];
+  auto guard = std::scoped_lock {m_mutex};
+  for (size_t i = 0; i < event_list.size(); ++i) {
+    const auto evnum = event_list[i];
+    const auto& event_tracks = tracks[i];
+    const auto& mc_event = mc_events[evnum];
     const auto& mcps = mc_event.m_mcps;
-    const auto& event_tracks = tracks[i_event];
     MCAssociator mcassoc {mcps};
 
     // Loop over tracks.
@@ -113,7 +121,7 @@ void KalmanChecker::accumulate(MCEvents const& mc_events, std::vector<Checker::T
 void KalmanChecker::report(size_t) const
 {
 #ifdef WITH_ROOT
-  m_file->cd();
-  m_file->WriteTObject(m_tree);
+  auto* dir = m_file->Get<TDirectory>(m_directory.c_str());
+  dir->WriteTObject(m_tree);
 #endif
 }

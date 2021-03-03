@@ -79,3 +79,8 @@ struct StreamWrapper {
  *        Must be compiled by nvcc.
  */
 void print_configured_sequence();
+
+/**
+ * @brief Checks whether the sequence contains any validator algorithms.
+ */
+bool contains_validator_algorithm();

@@ -49,7 +49,6 @@ TFile* CheckerInvoker::root_file(std::string const& root_file) const
 MCEvents CheckerInvoker::load(
   std::string const mc_folder,
   std::vector<std::tuple<unsigned, unsigned long>> const& events,
-  std::vector<bool> const& event_mask,
   std::string const tracks_folder,
   std::string const pvs_folder) const
 {
@@ -57,7 +56,6 @@ MCEvents CheckerInvoker::load(
   auto const mc_pvs_folder = mc_folder + "/" + pvs_folder;
 
   std::unordered_map<std::tuple<unsigned int, unsigned long>, std::string> mc_pvs_files, mc_tracks_files;
-
   std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
   std::smatch result;
   for (auto& [folder, files] :
@@ -70,9 +68,7 @@ MCEvents CheckerInvoker::load(
     }
   }
 
-  std::vector<MCEvent> input;
-  std::vector<MCEvent> non_gec_input;
-
+  MCEvents mc_events;
   verbose_cout << "Requested " << events.size() << " files" << std::endl;
 
   // Check if all files are there
@@ -86,15 +82,11 @@ MCEvents CheckerInvoker::load(
           }
           return missing;
         })) {
-      return input;
+      return mc_events;
     }
   }
 
-  input.reserve(event_mask.size());
-  non_gec_input.reserve(event_mask.size());
-
   std::vector<char> raw_particles, raw_pvs;
-
   int readFiles = 0;
   for (size_t i = 0; i < events.size(); ++i) {
     readFiles++;
@@ -107,26 +99,22 @@ MCEvents CheckerInvoker::load(
     readFileIntoVector(mc_pvs_files[event_id], raw_pvs);
     readFileIntoVector(mc_tracks_files[event_id], raw_particles);
 
-    if (!event_mask[i]) {
-      non_gec_input.emplace_back(raw_particles, raw_pvs, m_check_events);
-    }
-    else {
-      input.emplace_back(raw_particles, raw_pvs, m_check_events);
-    }
+    mc_events.emplace_back(raw_particles, raw_pvs, m_check_events);
   }
-  input.insert(input.end(), non_gec_input.begin(), non_gec_input.end());
-  return input;
+  return mc_events;
 }
 
 void CheckerInvoker::report(size_t n_events) const
 {
   for (auto const& entry : m_report_order) {
     auto it = m_checkers.find(std::get<0>(entry));
-    // Print stored header
-    info_cout << std::get<1>(entry) << std::endl;
+    // Print stored header if it is not empty
+    const auto header = std::get<1>(entry);
+    if (!header.empty()) {
+      info_cout << "\n" << std::get<1>(entry) << "\n";
+    }
     // Print report
     it->second->report(n_events);
-    info_cout << std::endl;
   }
 
 #ifdef WITH_ROOT

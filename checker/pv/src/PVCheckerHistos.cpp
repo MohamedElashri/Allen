@@ -9,11 +9,20 @@ namespace {
 } // namespace
 #endif
 
-PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
+PVCheckerHistos::PVCheckerHistos(
+  CheckerInvoker const* invoker,
+  std::string const& root_file,
+  std::string const& directory) :
+  m_directory {directory}
 {
 #ifdef WITH_ROOT
   m_file = invoker->root_file(root_file);
-  m_file->cd();
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  if (!dir) {
+    dir = m_file->mkdir(m_directory.c_str());
+    dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  }
+  dir->cd();
 
   eff_vs_z = std::make_unique<TH1F>("eff_vs_z", "eff_vs_z", m_bins_norm_z, -300, 300);
   eff_matched_vs_z = std::make_unique<TH1F>("eff_matched_z", "eff_matched_z", m_bins_norm_z, -300, 300);
@@ -24,9 +33,11 @@ PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string cons
   fakes_vs_mult = std::make_unique<TH1F>("fakes_vs_mult", "fakes_vs_mult", m_bins_fake_mult, 0, 20);
   fakes_norm = std::make_unique<TH1F>("fakes_norm_mult", "fakes_norm_mult", m_bins_fake_mult, 0, 20);
 
-  std::string tree_name = "PV_tree";
+  auto make_tree = [dir = m_directory](const std::string& name) {
+    return std::make_unique<TTree>(name.c_str(), name.c_str());
+  };
 
-  m_tree = std::make_unique<TTree>(tree_name.c_str(), tree_name.c_str());
+  m_tree = make_tree("PV_tree");
   m_tree->Branch("nmcpv", &m_nmcpv);
   m_tree->Branch("ntrinmcpv", &m_ntrinmcpv);
 
@@ -41,12 +52,12 @@ PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("err_y", &m_err_y);
   m_tree->Branch("err_z", &m_err_z);
 
-  m_mctree = std::make_unique<TTree>("MC_tree", "MC_tree");
+  m_mctree = make_tree("MC_tree");
   m_mctree->Branch("x", &m_mc_x);
   m_mctree->Branch("y", &m_mc_y);
   m_mctree->Branch("z", &m_mc_z);
 
-  m_allPV = std::make_unique<TTree>("allPV", "allPV");
+  m_allPV = make_tree("allPV");
   m_allPV->Branch("x", &m_x);
   m_allPV->Branch("y", &m_y);
   m_allPV->Branch("z", &m_z);
@@ -61,60 +72,60 @@ PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string cons
 }
 
 void PVCheckerHistos::accumulate(
-  std::vector<RecPVInfo> const& vec_all_rec,
-  std::vector<double> const& vec_rec_x,
-  std::vector<double> const& vec_rec_y,
-  std::vector<double> const& vec_rec_z,
-  std::vector<double> const& vec_diff_x,
-  std::vector<double> const& vec_diff_y,
-  std::vector<double> const& vec_diff_z,
-  std::vector<double> const& vec_err_x,
-  std::vector<double> const& vec_err_y,
-  std::vector<double> const& vec_err_z,
-  std::vector<int> const& vec_n_trinmcpv,
-  std::vector<int> const& vec_n_mcpv,
-  std::vector<int> const& vec_mcpv_recd,
-  std::vector<int> const& vec_recpv_fake,
-  std::vector<int> const& vec_mcpv_mult,
-  std::vector<int> const& vec_recpv_mult,
-  std::vector<double> const& vec_mcpv_zpos,
-  std::vector<double> const& vec_mc_x,
-  std::vector<double> const& vec_mc_y,
-  std::vector<double> const& vec_mc_z)
+  gsl::span<const RecPVInfo> vec_all_rec,
+  gsl::span<const double> vec_rec_x,
+  gsl::span<const double> vec_rec_y,
+  gsl::span<const double> vec_rec_z,
+  gsl::span<const double> vec_diff_x,
+  gsl::span<const double> vec_diff_y,
+  gsl::span<const double> vec_diff_z,
+  gsl::span<const double> vec_err_x,
+  gsl::span<const double> vec_err_y,
+  gsl::span<const double> vec_err_z,
+  gsl::span<const int> vec_n_trinmcpv,
+  gsl::span<const int> vec_n_mcpv,
+  gsl::span<const int> vec_mcpv_recd,
+  gsl::span<const int> vec_recpv_fake,
+  gsl::span<const int> vec_mcpv_mult,
+  gsl::span<const int> vec_recpv_mult,
+  gsl::span<const double> vec_mcpv_zpos,
+  gsl::span<const double> vec_mc_x,
+  gsl::span<const double> vec_mc_y,
+  gsl::span<const double> vec_mc_z)
 {
 #ifdef WITH_ROOT
   // save information about matched reconstructed PVs for pulls distributions
   for (size_t i = 0; i < vec_diff_x.size(); i++) {
-    m_nmcpv = vec_n_mcpv.at(i);
-    m_ntrinmcpv = vec_n_trinmcpv.at(i);
-    m_diff_x = vec_diff_x.at(i);
-    m_diff_y = vec_diff_y.at(i);
-    m_diff_z = vec_diff_z.at(i);
-    m_rec_x = vec_rec_x.at(i);
-    m_rec_y = vec_rec_y.at(i);
-    m_rec_z = vec_rec_z.at(i);
+    m_nmcpv = vec_n_mcpv[i];
+    m_ntrinmcpv = vec_n_trinmcpv[i];
+    m_diff_x = vec_diff_x[i];
+    m_diff_y = vec_diff_y[i];
+    m_diff_z = vec_diff_z[i];
+    m_rec_x = vec_rec_x[i];
+    m_rec_y = vec_rec_y[i];
+    m_rec_z = vec_rec_z[i];
 
-    m_err_x = vec_err_x.at(i);
-    m_err_y = vec_err_y.at(i);
-    m_err_z = vec_err_z.at(i);
+    m_err_x = vec_err_x[i];
+    m_err_y = vec_err_y[i];
+    m_err_z = vec_err_z[i];
 
     m_tree->Fill();
   }
 
   for (size_t i = 0; i < vec_recpv_mult.size(); i++) {
-    fakes_vs_mult->Fill(vec_recpv_mult.at(i), vec_recpv_fake.at(i));
-    fakes_norm->Fill(vec_recpv_mult.at(i), 1);
+    fakes_vs_mult->Fill(vec_recpv_mult[i], vec_recpv_fake[i]);
+    fakes_norm->Fill(vec_recpv_mult[i], 1);
   }
 
   for (size_t i = 0; i < vec_mcpv_mult.size(); i++) {
-    eff_vs_z->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
-    eff_vs_mult->Fill(vec_mcpv_mult.at(i), vec_mcpv_recd.at(i));
-    if (vec_mcpv_recd.at(i)) {
-      eff_matched_vs_z->Fill(vec_mcpv_zpos.at(i));
-      eff_matched_vs_mult->Fill(vec_mcpv_mult.at(i));
+    eff_vs_z->Fill(vec_mcpv_zpos[i], vec_mcpv_recd[i]);
+    eff_vs_mult->Fill(vec_mcpv_mult[i], vec_mcpv_recd[i]);
+    if (vec_mcpv_recd[i]) {
+      eff_matched_vs_z->Fill(vec_mcpv_zpos[i]);
+      eff_matched_vs_mult->Fill(vec_mcpv_mult[i]);
     }
-    eff_norm_z->Fill(vec_mcpv_zpos.at(i), 1);
-    eff_norm_mult->Fill(vec_mcpv_mult.at(i), 1);
+    eff_norm_z->Fill(vec_mcpv_zpos[i], 1);
+    eff_norm_mult->Fill(vec_mcpv_mult[i], 1);
   }
 
   std::vector<float> binerrors_vs_z;
@@ -142,18 +153,18 @@ void PVCheckerHistos::accumulate(
 
   eff_vs_z->Divide(eff_norm_z.get());
   for (int i = 1; i <= m_bins_norm_z; i++) {
-    eff_vs_z->SetBinError(i, binerrors_vs_z.at(i - 1));
+    eff_vs_z->SetBinError(i, binerrors_vs_z[i - 1]);
   }
   eff_vs_mult->Divide(eff_norm_mult.get());
   for (int i = 1; i <= m_bins_norm_mult; i++) {
-    eff_vs_mult->SetBinError(i, binerrors_vs_mult.at(i - 1));
+    eff_vs_mult->SetBinError(i, binerrors_vs_mult[i - 1]);
   }
   fakes_vs_mult->Divide(fakes_norm.get());
 
   for (size_t j = 0; j < vec_mc_x.size(); j++) {
-    m_mc_x = vec_mc_x.at(j);
-    m_mc_y = vec_mc_y.at(j);
-    m_mc_z = vec_mc_z.at(j);
+    m_mc_x = vec_mc_x[j];
+    m_mc_y = vec_mc_y[j];
+    m_mc_z = vec_mc_z[j];
     m_mctree->Fill();
   }
 
@@ -194,7 +205,7 @@ void PVCheckerHistos::accumulate(
 void PVCheckerHistos::write()
 {
 #ifdef WITH_ROOT
-  m_file->cd();
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
   std::tuple to_write {std::ref(m_tree),
                        std::ref(m_mctree),
                        std::ref(m_allPV),
@@ -206,9 +217,9 @@ void PVCheckerHistos::write()
                        std::ref(eff_norm_mult),
                        std::ref(fakes_vs_mult),
                        std::ref(fakes_norm)};
-  for_each(to_write, [this](auto& o) {
+  for_each(to_write, [dir](auto& o) {
     o.get()->SetDirectory(nullptr);
-    m_file->WriteTObject(o.get().get());
+    dir->WriteTObject(o.get().get());
   });
 #endif
 }

@@ -2,13 +2,20 @@ Call Allen from Gaudi, event loop directed by Moore
 =============================
 The software can be compiled either based on the nightlies or by compiling the full stack, as described [here](https://gitlab.cern.ch/lhcb/Allen/-/blob/master/readme.md#call-allen-with-gaudi-steer-event-loop-from-moore).
 
-
-Call Allen from Moore
--------------------------
-
-Call the executable from within the Moore directory as in the following examples:
+Note that many use cases of calling Allen from Moore are intended for physics validation. In this case the validation information has to be generated when running Allen. This does not happen by default (when using the `hlt1_pp_default` sequence). Therefore, select the validation sequence `hlt1_pp_validation` when compiling Allen inside the stack by adding the following lines to `utils/config.json`
 ```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
+{
+    "cmakeFlags": {
+		"Allen": "-DSTANDALONE=OFF -DSEQUENCE=hlt1_pp_validation"
+	}
+}
+```
+Note that `make Allen/purge` is required to pick up the changed CMake variables, if you had already compiled Allen inside the stack before.
+
+
+Call the executable from within the stack directory as in the following examples:
+```
+./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
 ```
 This will call the full Allen sequence, convert reconstructed tracks to Rec objects and run the MC checkers for track reconstruction efficiencies. The input sample is defined in `Hlt/Moore/tests/options/default_input_and_conds_hlt1.py`.
 For a comparison of the Allen standalone track checker and the PrChecker called from Moore, it can be helpful to dump the binary files required for Allen standalone running at the same time
@@ -16,27 +23,27 @@ as calling the track reconstruction checker in Moore. For this, the dumping can 
 
 If you want to run the PV checker, you need to use [this](https://gitlab.cern.ch/lhcb/Rec/tree/dovombru_twojton_pvchecker) branch in Rec and the following executable:
 ```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_pvchecker.py
+./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_pvchecker.py
 ```
 
 To check the IP resolution:
 ```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_IPresolution.py
+./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_IPresolution.py
 ```
 To check the track momentum resolution:
 ```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_trackresolution.py
+./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_trackresolution.py
 ```
 
 To check the muon identification efficiency and misID efficiency:
 ```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_muonid_efficiency.py
+./Moore/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/Moore/hlt1_reco_allen_muonid_efficiency.py
 ```
 
 The scripts in `Moore/Hlt/RecoConf/scripts/` can be used to produce plots of the various efficiencies and resolutions from the ROOT files produced by one of the previous calls to Moore.
 
 
-Call HLT1 selection efficiency script
+Call HLT1 selection efficiency script in MooreAnalysis
 ------------------------------
 The [MooreAnalysis](https://gitlab.cern.ch/lhcb/MooreAnalysis) repository contains the `HltEfficiencyChecker` tool for giving rates and
 efficiencies. To get `MooreAnalysis`, you can use the nightlies or do `make MooreAnalysis` from the top-level directory of the stack.
@@ -44,7 +51,7 @@ efficiencies. To get `MooreAnalysis`, you can use the nightlies or do `make Moor
 To get the efficiencies of all the Allen lines, from the top-level directory (`Allen_Gaudi_integration`) do:
 
 ```
-MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_eff_example.yaml
+./MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_eff_example.yaml
 ```
 
 and to get the rates:

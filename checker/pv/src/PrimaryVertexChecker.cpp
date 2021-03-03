@@ -5,23 +5,19 @@
 #include <PVCheckerHistos.h>
 #include <ROOTHeaders.h>
 
-// Not very pretty, will be better once nvcc supports C++17
-std::string const PVChecker::CPUTag::name = "CPU_PVChecker";
-std::string const PVChecker::GPUTag::name = "GPU_PVChecker";
-
-PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file)
+PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name)
 {
-  m_histos = new PVCheckerHistos {invoker, root_file};
+  m_histos = new PVCheckerHistos {invoker, root_file, name};
 }
 
 void PVChecker::accumulate(
   MCEvents const& mc_events,
-  PV::Vertex* rec_vertex,
-  int* number_of_vertex,
-  const unsigned event_list_size,
-  const unsigned* event_list)
+  gsl::span<const PV::Vertex> rec_vertex,
+  gsl::span<const unsigned> number_of_vertex,
+  gsl::span<const unsigned> event_list)
 {
-  passed += event_list_size;
+  std::lock_guard<std::mutex> guard(m_mutex);
+  passed += event_list.size();
 
   std::vector<RecPVInfo> vec_all_rec;
 
@@ -58,59 +54,48 @@ void PVChecker::accumulate(
   std::vector<double> vec_mc_z;
 
   // loop over selected events
-  for (unsigned event_index = 0; event_index < event_list_size; ++event_index) {
-    std::vector<PV::Vertex*> vecOfVertices;
+  for (unsigned event_index = 0; event_index < event_list.size(); ++event_index) {
     const auto event_number = event_list[event_index];
 
-    // first fill vector with vertices
-    for (int i = 0; i < number_of_vertex[event_number]; i++) {
-      int index = event_number * PatPV::max_number_vertices + i;
-      vecOfVertices.push_back(&(rec_vertex[index]));
-    }
     // Fill reconstucted PV info
+    const auto starting_index = event_number * PatPV::max_number_vertices;
+    const auto number_of_vertices = number_of_vertex[event_number];
     std::vector<RecPVInfo> recpvvec;
-    std::vector<PV::Vertex*>::iterator itRecV;
-    for (itRecV = vecOfVertices.begin(); vecOfVertices.end() != itRecV; itRecV++) {
-      PV::Vertex* pv;
-      pv = *itRecV;
-      RecPVInfo recinfo;
-      recinfo.pRECPV = pv;
-      recinfo.x = static_cast<double>(pv->position.x);
-      recinfo.y = static_cast<double>(pv->position.y);
-      recinfo.z = static_cast<double>(pv->position.z);
+    recpvvec.reserve(number_of_vertices);
 
-      double sigx = std::sqrt(static_cast<double>(pv->cov00));
-      double sigy = std::sqrt(static_cast<double>(pv->cov11));
-      double sigz = std::sqrt(static_cast<double>(pv->cov22));
+    for (unsigned i = 0; i < number_of_vertices; ++i) {
+      const auto index = starting_index + i;
+      const auto& pv = rec_vertex[index];
+
+      RecPVInfo recinfo;
+      recinfo.pRECPV = rec_vertex.data() + index;
+      recinfo.x = static_cast<double>(pv.position.x);
+      recinfo.y = static_cast<double>(pv.position.y);
+      recinfo.z = static_cast<double>(pv.position.z);
+
+      double sigx = std::sqrt(static_cast<double>(pv.cov00));
+      double sigy = std::sqrt(static_cast<double>(pv.cov11));
+      double sigz = std::sqrt(static_cast<double>(pv.cov22));
       PatPV::XYZPoint a3d(sigx, sigy, sigz);
       recinfo.positionSigma = a3d;
-      recinfo.nTracks = pv->nTracks;
-      double minRD = 99999.;
-      double maxRD = -99999.;
-      double chi2 = static_cast<double>(pv->chi2);
-      double nDoF = static_cast<double>(pv->ndof);
+      recinfo.nTracks = pv.nTracks;
 
-      int mother = 0;
-      int velo = 0;
-      int lg = 0;
       double d0 = 0;
-      double mind0 = 99999.0;
-      double maxd0 = -99999.0;
       double trackChi2 = 0.0;
       int tr = 0;
 
-      recinfo.minTrackRD = minRD;
-      recinfo.maxTrackRD = maxRD;
-      recinfo.mother = mother;
-      recinfo.chi2 = chi2;
-      recinfo.nDoF = nDoF;
+      recinfo.minTrackRD = 99999.;
+      recinfo.maxTrackRD = -99999.;
+      recinfo.mother = 0;
+      recinfo.chi2 = pv.chi2;
+      recinfo.nDoF = pv.ndof;
       recinfo.d0 = d0;
-      recinfo.d0nTr = (double) d0 / (double) tr;
-      recinfo.chi2nTr = (double) trackChi2 / (double) tr;
-      recinfo.mind0 = mind0;
-      recinfo.maxd0 = maxd0;
-      recinfo.nVeloTracks = velo;
-      recinfo.nLongTracks = lg;
+      recinfo.d0nTr = d0 / (double) tr;
+      recinfo.chi2nTr = trackChi2 / (double) tr;
+      recinfo.mind0 = 99999.0;
+      recinfo.maxd0 = -99999.0;
+      recinfo.nVeloTracks = 0;
+      recinfo.nLongTracks = 0;
       recinfo.indexMCPVInfo = -1;
       recpvvec.push_back(recinfo);
     }
@@ -122,7 +107,7 @@ void PVChecker::accumulate(
     // vector with MCPVinfo
     std::vector<MCPVInfo> mcpvvec;
 
-    for (auto const& mc_vertex : mc_events[event_index].m_mcvs) {
+    for (auto const& mc_vertex : mc_events[event_number].m_mcvs) {
 
       MCPVInfo mcprimvert;
       mcprimvert.pMCPV = &mc_vertex;

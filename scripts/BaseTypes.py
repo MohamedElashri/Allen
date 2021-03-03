@@ -59,6 +59,11 @@ class SelectionAlgorithm(Algorithm):
         pass
 
 
+class ValidationAlgorithm(Algorithm):
+    def __init__(self):
+        pass
+
+
 class HostParameter():
     def __init__(self):
         pass

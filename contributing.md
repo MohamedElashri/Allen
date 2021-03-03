@@ -139,24 +139,24 @@ namespace saxpy {
 
 In the `saxpy` namespace the parameters and properties are specified. Parameters _scope_ can either be the host or the device, and they can either be inputs or outputs. Parameters should be defined with the following convention:
 
-    (<scope>_<io>(<name>, <type>), <identifier>)
+    <scope>_<io>(<name>, <type>) <identifier>;
 
 Some parameter examples:
 
-* `(DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned), dev_atomics_velo)`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _unsigned_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
-* `(DEVICE_OUTPUT(dev_saxpy_output_t, float), dev_saxpy_output)`: Defines an output parameter on _device memory_, with name `dev_saxpy_output_t` and identifier `dev_saxpy_output`. Its underlying type is `float*`.
-* `(HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events)`: Defines an input parameter on _host memory_, with name `host_number_of_events_t` and identifier `host_number_of_events`. Its underlying type is `const unsigned*`.
-* `(DEVICE_INPUT(dev_number_of_events_t, unsigned), dev_number_of_events)`: Defines an input parameter on _device memory_, with name `dev_number_of_events_t` and identifier `dev_number_of_events`. Its underlying type is `const unsigned*`.
+* `DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;`: Defines an input on the _device memory_. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _unsigned_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The _io_ and the _type_ define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
+* `DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;`: Defines an output parameter on _device memory_, with name `dev_saxpy_output_t` and identifier `dev_saxpy_output`. Its underlying type is `float*`.
+* `HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;`: Defines an input parameter on _host memory_, with name `host_number_of_events_t` and identifier `host_number_of_events`. Its underlying type is `const unsigned*`.
+* `DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;`: Defines an input parameter on _device memory_, with name `dev_number_of_events_t` and identifier `dev_number_of_events`. Its underlying type is `const unsigned*`.
 
 Properties of algorithms define constants can be configured prior to running the application. They are defined in two parts. First, they should be defined in the `DEFINE_PARAMETERS` macro following the convention:
 
-    (PROPERTY(<name>, <key>, <description>, <type>), <identifier>)
+    PROPERTY(<name>, <key>, <description>, <type>) <identifier>;
 
-* `(PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float), saxpy_scale_factor)`: Property with name `saxpy_scale_factor_t` is of type `float`. It will be accessible through key `"saxpy_scale_factor"` in a python configuration file, and it has description `"scale factor a used in a*x + y"`. Its identifier is `saxpy_scale_factor`. Properties _underlying type_ is always the same as their type, so in this case `float`.
+* `PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor`: Property with name `saxpy_scale_factor_t` is of type `float`. It will be accessible through key `"saxpy_scale_factor"` in a python configuration file, and it has description `"scale factor a used in a*x + y"`. Its identifier is `saxpy_scale_factor`. Properties _underlying type_ is always the same as their type, so in this case `float`.
 
 And second, properties should be defined inside the algorithm struct as follows:
 
-    Property<_name_> _internal_name_ {this, _default_value_}
+    Property<_name_> _internal_name_ {this, _default_value_};
 
 In the case of saxpy:
 

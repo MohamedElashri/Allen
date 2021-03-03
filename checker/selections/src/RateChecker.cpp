@@ -4,23 +4,23 @@
 #include "RateChecker.h"
 #include "SelectionsEventModel.cuh"
 
-std::string const RateChecker::RateTag::name = "RateChecker";
-
 double binomial_error(int n, int k) { return 1. / n * std::sqrt(1. * k * (1. - 1. * k / n)); }
 
 void RateChecker::accumulate(
   const std::vector<std::string>& names_of_lines,
-  const gsl::span<bool>& selections,
-  const gsl::span<unsigned>& selections_offsets,
+  gsl::span<const Allen::bool_as_char_t<bool>> selections,
+  gsl::span<const unsigned> selections_offsets,
   const unsigned number_of_events)
 {
+  std::lock_guard<std::mutex> guard(m_mutex);
   const auto number_of_lines = names_of_lines.size();
   if (!m_counters.size()) {
     m_line_names = names_of_lines;
     m_counters = std::vector<unsigned>(number_of_lines, 0);
   }
 
-  Selections::ConstSelections sels {selections.data(), selections_offsets.data(), number_of_events};
+  Selections::ConstSelections sels {
+    reinterpret_cast<const bool*>(selections.data()), selections_offsets.data(), number_of_events};
 
   for (auto i = 0u; i < number_of_events; ++i) {
     bool any_line_fired = false;
@@ -76,4 +76,6 @@ void RateChecker::report(const size_t requested_events) const
     requested_events,
     1. * m_tot / requested_events * in_rate,
     binomial_error(requested_events, m_tot) * in_rate);
+
+  std::printf("\n");
 }

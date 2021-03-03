@@ -7,6 +7,7 @@
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
 #include "BackendCommon.h"
+#include <mutex>
 
 void checkHlt1Rate(
   const bool* decisions,
@@ -25,22 +26,15 @@ private:
   std::vector<unsigned> m_counters;
   std::vector<std::string> m_line_names;
   unsigned m_tot;
+  std::mutex m_mutex;
 
 public:
-  struct RateTag {
-    static std::string const name;
-  };
-
-  using subdetector_t = RateTag;
-
-  RateChecker(CheckerInvoker const*, std::string const&) { m_tot = 0; }
-
-  virtual ~RateChecker() = default;
+  RateChecker(CheckerInvoker const*, std::string const&, std::string const&) { m_tot = 0; }
 
   void accumulate(
     const std::vector<std::string>& names_of_lines,
-    const gsl::span<bool>& selections,
-    const gsl::span<unsigned>& selections_offsets,
+    gsl::span<const Allen::bool_as_char_t<bool>> selections,
+    gsl::span<const unsigned> selections_offsets,
     const unsigned number_of_events);
 
   void report(const size_t requested_events) const override;

@@ -264,18 +264,12 @@ namespace Sch {
     using postconditions = append_to_tuple_t<typename recursive_contracts::postconditions, A>;
   };
 
-  /**
-   * @brief Runs the PrChecker for all configured algorithms in the sequence.
-   */
-  template<typename ConfiguredSequence>
-  struct RunChecker;
+  // Checks whether the sequence contains any validation algorithm
+  template<typename AlgorithmT, typename Dependencies>
+  struct ContainsAlgorithmType;
 
-  template<typename... Algorithm>
-  struct RunChecker<std::tuple<Algorithm...>> {
-    template<typename... Arguments>
-    constexpr static void check(Arguments&&... arguments)
-    {
-      (SequenceVisitor<Algorithm>::check(std::forward<Arguments>(arguments)...), ...);
-    }
+  template<typename T, typename... Ts>
+  struct ContainsAlgorithmType<T, std::tuple<Ts...>>
+    : std::bool_constant<((std::is_base_of_v<std::decay_t<T>, std::decay_t<Ts>> || ...))> {
   };
 } // namespace Sch

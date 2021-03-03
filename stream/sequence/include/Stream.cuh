@@ -21,7 +21,6 @@
 #include "EstimateInputSize.cuh"
 #include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"
-#include "SequenceVisitor.cuh"
 #include "SchedulerMachinery.cuh"
 #include "Scheduler.cuh"
 #include "CheckerInvoker.h"
@@ -69,13 +68,6 @@ struct Stream {
     const Constants& param_constants);
 
   void set_host_buffer_manager(HostBuffersManager* buffers_manager);
-
-  std::vector<bool> reconstructed_events() const;
-
-  void run_monte_carlo_test(
-    CheckerInvoker& invoker,
-    MCEvents const& mc_events,
-    std::vector<Checker::Tracks> const& forward_tracks);
 
   Allen::error run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 

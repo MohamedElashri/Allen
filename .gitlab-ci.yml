@@ -427,7 +427,7 @@ docker_image:build:
         TOTAL_NUMA_NODES=$(lscpu | egrep "^NUMA node\(s\):.*[0-9]+$" --color=none | awk '{ print $3; }')
         NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
         THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
-        RUN_OPTIONS="${RUN_OPTIONS} -n 100 -m 100 -r 200 -t ${THREADS} -c 0"
+        RUN_OPTIONS="${RUN_OPTIONS} -n 100 -m 100 -r 200 -t ${THREADS}"
 
         ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
       elif [ "${TARGET}" = "CUDA" ]; then
@@ -435,7 +435,7 @@ docker_image:build:
         GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
         GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
         NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-        RUN_OPTIONS="${RUN_OPTIONS} -n 500 -m 500 -r 1000 -t 16 -c 0"
+        RUN_OPTIONS="${RUN_OPTIONS} -n 500 -m 500 -r 1000 -t 16"
 
         ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
       elif [ "${TARGET}" = "HIP" ]; then
@@ -446,7 +446,7 @@ docker_image:build:
         PCI_BUS=`/opt/rocm-4.0.0/bin/rocm-smi --showbus | grep $GPU_ESCAPED_BRACKETS | awk '{ print $NF; }' | sed 's/[0-9]\+:\(.*\)/\1/'`
         GPU_NUMBER=`echo $GPU_NUMBER_EXTRA | sed 's/GPU\[\(.*\)\]/\1/g'`
         NUMA_NODE=`lspci -vmm | grep -i $PCI_BUS -A 10 | grep NUMANode | head -n1 | awk '{ print $NF; }'`
-        RUN_OPTIONS="${RUN_OPTIONS} -n 8000 --events-per-slice 8000 -m 5000 -r 1000 -t 6 -c 0"
+        RUN_OPTIONS="${RUN_OPTIONS} -n 8000 --events-per-slice 8000 -m 5000 -r 1000 -t 6"
 
         ALLEN="HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
       fi
@@ -499,8 +499,8 @@ docker_image:build:
       GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
       GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
       NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-      RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 -c 0 ${RUN_OPTIONS}"
-      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 -c 0 ${RUN_OPTIONS}"
+      RUN_PROFILER_OPTIONS="-n 500 -m 500 -r 100 -t 1 ${RUN_OPTIONS}"
+      RUN_OPTIONS="-n 500 -m 500 -r 1000 -t 16 ${RUN_OPTIONS}"
       export PATH=$PATH:/usr/local/cuda/bin
 
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
@@ -542,8 +542,8 @@ docker_image:build:
 test_physics_efficiency:
   <<: *test_phys_eff_job
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
+    - geforcertx2080ti:CUDA:hlt1_pp_validation:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_validation:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency
   <<: *active_branches
 
 test_run_changes:
@@ -562,10 +562,10 @@ test_run_changes:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against output without run change splitting."; exit 1; else echo "No differences found against output without run change splitting."; exit 0; fi
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes
-    - geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes
-    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes
-    - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_with_run_changes
+    - geforcertx2080ti:CUDA:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_no_run_changes
+    - x862630v4:CPU:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_with_run_changes
+    - x862630v4:CPU:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_no_run_changes
   tags:
     - cvmfs
   allow_failure: true
@@ -645,90 +645,66 @@ HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
   <<: *active_branches
 
+CUDA:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+  <<: *active_branches
+
+CPU:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+  <<: *active_branches
+
+HIP:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+  <<: *active_branches
+
 CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
       
 HIP:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON:x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 # Builds with warnings treated as errors
 # gcc:
 
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-gcc10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 # clang:
 
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
-    
+  <<: *active_branches
+
 CUDA:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-      - merge_requests
+  <<: *active_branches
 
 HIP:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DTREAT_WARNINGS_AS_ERRORS=ON:x86_64-centos7-clang10-opt:build_warnings_as_errors:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
   <<: *active_branches
 
 # Build of default sequence without code generation
 
 CPU:hlt1_pp_default:Debug:-DUSE_ROOT=ON -DSEQUENCE_GENERATION=OFF:x86_64-centos7-clang10-opt:build_with_tests:
   <<: *build_job_with_tests_def
-  tags:
-    - cvmfs
 
 # Builds only on master of additional options
 
@@ -741,6 +717,14 @@ CPU:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 HIP:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
 
+CUDA:hlt1_pp_no_gec_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+
+CPU:hlt1_pp_no_gec_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+
+HIP:hlt1_pp_no_gec_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
 
 # Build SciFi v6 sequence
 
@@ -749,11 +733,19 @@ HIP:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
 CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
 
-
 CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
 
 HIP:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+
+CUDA:hlt1_pp_scifi_v6_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+
+CPU:hlt1_pp_scifi_v6_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
+  <<: *build_job_def
+
+HIP:hlt1_pp_scifi_v6_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build:
   <<: *build_job_def
 
 # ===
@@ -931,43 +923,41 @@ epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01
 
 # Physics efficiency runs
 
-geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency:
+geforcertx2080ti:CUDA:hlt1_pp_validation:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   <<: *active_branches
 
 
-x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency:
+x862630v4:CPU:hlt1_pp_validation:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
   <<: *active_branches
 
 # Efficiency for Sci
 
-geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
+geforcertx2080ti:CUDA:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   <<: *scifi_v6_efficiency_data
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_scifi_v6_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 
-x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency:
+x862630v4:CPU:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   <<: *scifi_v6_efficiency_data
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
-
-
+    - CPU:hlt1_pp_scifi_v6_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 
 # Additional throughput runs, only on master
@@ -1116,33 +1106,33 @@ x86:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:bsphiphi_mag_down_201907:run_
 
 # check run changes
 
-geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_with_run_changes:
+x862630v4:CPU:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_with_run_changes:
   <<: *run_with_run_changes_job_def
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-geforcertx2080ti:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
+geforcertx2080ti:CUDA:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - geforcertx2080ti
   needs:
-    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CUDA:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
-x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:run_no_run_changes:
+x862630v4:CPU:hlt1_pp_validation:x86_64-centos7-clang10-opt:run_no_run_changes:
   <<: *run_no_run_changes_job_def
   tags:
     - x862630v4
   needs:
-    - CPU:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+    - CPU:hlt1_pp_validation:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
 # ====
 # Test
@@ -1255,7 +1245,7 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
     - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
     - epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
   tags:
-    - x86
+    - cvmfs
   artifacts:
     paths:
       - devices_throughputs.csv
@@ -1268,7 +1258,6 @@ throughput:hlt1_pp_scifi_v6:geforcertx3090:SciFiv6_upgrade_DC19_01_MinBiasMD:pub
 scifiv6_test_physics_efficiency:
   <<: *test_phys_eff_job
   needs:
-    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
-    - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD:run_physics_efficiency
-
+    - geforcertx2080ti:CUDA:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency
+    - x862630v4:CPU:hlt1_pp_scifi_v6_validation:x86_64-centos7-clang10-opt::run_physics_efficiency
 

@@ -192,6 +192,7 @@ def ForwardSequence(initialize_lists,
         dev_scifi_track_hit_number_t())
 
     scifi_consolidate_tracks = scifi_consolidate_tracks_t(
+        name="scifi_consolidate_tracks_t",
         host_number_of_events_t=initialize_lists.host_number_of_events_t(),
         host_accumulated_number_of_hits_in_scifi_tracks_t=
         prefix_sum_scifi_track_hit_number.host_total_sum_holder_t(),
