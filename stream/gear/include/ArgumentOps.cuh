@@ -87,6 +87,8 @@ void safe_assign_to_host_buffer(T* array, unsigned& array_size, const Args& argu
 template<typename Arg, typename Args, typename T>
 void safe_assign_to_host_buffer(gsl::span<T>& span, const Args& arguments, const Allen::Context& context)
 {
+  static_assert(sizeof(typename Arg::type) == sizeof(T));
+
   // Ensure span is big enough
   if (size<Arg>(arguments) >= span.size()) {
     // Deallocate previously allocated data, if any

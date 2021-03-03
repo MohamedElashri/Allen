@@ -46,8 +46,8 @@ std::tuple<LHCb::Event::Calo::Clusters, LHCb::Event::Calo::Clusters> AllenCaloTo
     host_buffers.host_ecal_cluster_offsets[number_of_events] - host_buffers.host_ecal_cluster_offsets[i_event];
   unsigned number_of_hcal_clusters =
     host_buffers.host_hcal_cluster_offsets[number_of_events] - host_buffers.host_hcal_cluster_offsets[i_event];
-  CaloCluster* ecal_clusters = (CaloCluster*) (host_buffers.host_ecal_clusters.data());
-  CaloCluster* hcal_clusters = (CaloCluster*) (host_buffers.host_hcal_clusters.data());
+  CaloCluster* ecal_clusters = host_buffers.host_ecal_clusters.data();
+  CaloCluster* hcal_clusters = host_buffers.host_hcal_clusters.data();
 
   if (msgLevel(MSG::DEBUG)) {
     debug() << "Number of Ecal clusters to convert = " << number_of_ecal_clusters << endmsg;

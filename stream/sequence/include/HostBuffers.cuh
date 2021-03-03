@@ -8,7 +8,11 @@
 #include <cstdlib>
 #include <string>
 #include <gsl/gsl>
-#include "BackendCommon.h"
+
+#include <CaloCluster.cuh>
+#include <CaloDigit.cuh>
+
+#include <BackendCommon.h>
 
 // Forward declarations
 namespace PV {
@@ -106,12 +110,12 @@ struct HostBuffers {
   // Calo
   gsl::span<unsigned> host_ecal_digits_offsets = {};
   gsl::span<unsigned> host_hcal_digits_offsets = {};
-  gsl::span<char> host_ecal_digits = {};
-  gsl::span<char> host_hcal_digits = {};
+  gsl::span<CaloDigit> host_ecal_digits = {};
+  gsl::span<CaloDigit> host_hcal_digits = {};
   gsl::span<unsigned> host_ecal_cluster_offsets = {};
   gsl::span<unsigned> host_hcal_cluster_offsets = {};
-  gsl::span<char> host_ecal_clusters = {};
-  gsl::span<char> host_hcal_clusters = {};
+  gsl::span<CaloCluster> host_ecal_clusters = {};
+  gsl::span<CaloCluster> host_hcal_clusters = {};
 
   // Secondary vertices
   unsigned* host_number_of_svs;

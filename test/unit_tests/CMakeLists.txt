@@ -5,6 +5,7 @@ file(GLOB generic_tests "generic/src/*cpp")
 file(GLOB cu_generic_tests "generic/src/*cu")
 
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/calo/include)
 include_directories(${CMAKE_SOURCE_DIR}/host/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
@@ -27,7 +28,11 @@ if (NOT STANDALONE)
 endif()
 
 include(CTest)
-include(Catch)
-catch_discover_tests(unit_tests)
+
+if (NOT GaudiProject_FOUND)
+  add_test(NAME allen_unit_tests COMMAND unit_tests)
+else()
+  gaudi_add_test(NAME allen_unit_tests COMMAND unit_tests)
+endif()
 
 install(TARGETS unit_tests RUNTIME DESTINATION bin)
