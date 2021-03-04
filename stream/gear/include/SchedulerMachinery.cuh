@@ -34,7 +34,7 @@ namespace {
   };
 
   template<typename T>
-  struct is_view<T, std::void_t<typename T::deps*>> : std::true_type {
+  struct is_view<T, std::void_t<typename T::deps>> : std::true_type {
   };
 } // namespace
 
@@ -53,31 +53,38 @@ namespace Sch {
     using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
+  template<typename T, typename Tuple>
+  struct TupleContainsDecay;
+
+  template<typename T, typename... Ts>
+  struct TupleContainsDecay<T, std::tuple<Ts...>> : std::bool_constant<((std::is_base_of_v<std::decay_t<Ts>, std::decay_t<T>> || ...))> {
+  };
+
   template<typename T, typename Tuple, typename = void>
-  struct SchTupleContains;
+  struct TupleContainsWithViews;
 
   template<typename T>
-  struct SchTupleContains<T, std::tuple<>, void> : std::bool_constant<true> {
+  struct TupleContainsWithViews<T, std::tuple<>, void> : std::bool_constant<false> {
   };
 
   template<typename T, typename OtherT, typename... Ts>
-  struct SchTupleContains<T, std::tuple<OtherT, Ts...>, std::enable_if_t<!is_view<OtherT>::value>>
-    : std::bool_constant<std::is_same_v<T, OtherT> || SchTupleContains<T, std::tuple<Ts...>>::value> {
+  struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>, std::enable_if_t<!is_view<OtherT>::value>>
+    : std::bool_constant<std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value> {
   };
 
-  template<typename T, typename OtherT, typename... Ts>
-  struct SchTupleContains<T, std::tuple<OtherT, Ts...>, std::enable_if_t<is_view<OtherT>::value>>
-    : std::bool_constant<
-        std::is_same_v<T, OtherT> || SchTupleContains<T, std::tuple<Ts...>>::value ||
-        SchTupleContains<T, typename OtherT::deps>::value> {
-  };
+  // template<typename T, typename OtherT, typename... Ts>
+  // struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>, std::enable_if_t<is_view<OtherT>::value>>
+  //   : std::bool_constant<
+  //       std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value ||
+  //       TupleContainsDecay<T, typename OtherT::deps>::value> {
+  // };
 
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Arguments>
   struct IsInAnyArgumentTuple;
 
   template<typename T, typename... Arguments>
-  struct IsInAnyArgumentTuple<T, std::tuple<Arguments...>> : std::disjunction<SchTupleContains<T, Arguments>...> {
+  struct IsInAnyArgumentTuple<T, std::tuple<Arguments...>> : std::disjunction<TupleContainsWithViews<T, Arguments>...> {
   };
 
   // A mechanism to only return the arguments in Algorithm

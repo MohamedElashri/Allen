@@ -173,9 +173,9 @@ struct ScheduledDependencies {
 namespace Allen {
   template<typename T, typename... Dependencies>
   struct View : public T {
-    View() = default;
-    View(const View&) = default;
-    View(const T& t) : T{t} {}
+    __host__ __device__ View() = default;
+    __host__ __device__ View(const View&) = default;
+    __host__ __device__ View(const T& t) : T{t} {}
     
     using deps = std::tuple<Dependencies...>;
   };
