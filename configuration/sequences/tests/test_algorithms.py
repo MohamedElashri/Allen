@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from minipyconf.dataflow import DataObjectHandleBase
+from PyConf.dataflow import GaudiDataHandle as DataObjectHandleBase
 from definitions.AllenKernel import AllenAlgorithm
 from collections import OrderedDict
 from enum import Enum

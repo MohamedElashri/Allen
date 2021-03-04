@@ -1,7 +1,11 @@
-from minipyconf.components import Algorithm
-from minipyconf.dataflow import configurable_inputs
-from minipyconf.cftree_ops import get_best_order, get_execution_list_for
-from minipyconf.control_flow import Leaf, NodeLogic, CompositeNode
+###############################################################################
+# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+###############################################################################
+import numpy
+from PyConf.components import Algorithm
+from PyConf.dataflow import configurable_inputs
+from PyConf.control_flow import Leaf, NodeLogic, CompositeNode
+from PyConf.cftree_ops import get_best_order, get_execution_list_for, gather_leafs
 from definitions.AllenSequenceGenerator import generate_allen_sequence
 from definitions.allen_benchmarks import benchmark_weights, benchmark_efficiencies
 from definitions.algorithms import (
@@ -16,7 +20,7 @@ from definitions.algorithms import (
 def make_algorithm(alg_type, name, **kwargs):
     """
     Makes an Algorithm with a weight extracted from the benchmark weights.
-    
+
     In order to determine the weight of Allen algorithms, a profiled benchmark of `nsys profile`
     is used for most entries, where the field average time is used.
     Each algorithm has an entry in the file `allen_benchmarks.py`, with the exception of:
@@ -176,16 +180,16 @@ def add_event_list_combiners(order):
             alg.inputs[mask_input[0]] = output_mask[0]
 
     return final_sequence_unique
-    
+
 def generate(root):
     """Generates an Allen sequence out of a root node."""
     best_order = get_execution_list_for(root)
     final_seq = add_event_list_combiners(best_order)
-    
+
     print("Generated sequence represented as algorithms with execution masks:")
     for alg, mask_in, mask_out in final_seq:
         mask_in_str = f" in:{mask_in}" if mask_in else ""
         mask_out_str = f" out:{mask_out}" if mask_out else ""
         print(f"  {alg}{mask_in_str}{mask_out_str}")
-    
+
     return generate_allen_sequence([alg for (alg,_,_) in final_seq])

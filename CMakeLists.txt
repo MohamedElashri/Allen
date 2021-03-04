@@ -612,6 +612,7 @@ add_subdirectory(host)
 add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
+add_subdirectory(configuration)
 
 #Make sure extra search paths get included as system to avoid
 #warnings in external headers

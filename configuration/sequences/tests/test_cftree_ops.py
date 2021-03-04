@@ -15,9 +15,9 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 # import pytest
 from sympy import simplify
 from collections import OrderedDict
-from minipyconf.components import Algorithm
-from minipyconf.control_flow import Leaf, NodeLogic as Logic, CompositeNode
-from minipyconf.cftree_ops import (
+from PyConf.components import Algorithm
+from PyConf.control_flow import Leaf, NodeLogic as Logic, CompositeNode
+from PyConf.cftree_ops import (
     gather_algs,
     get_ordered_trees,
     to_string,
@@ -30,7 +30,7 @@ from minipyconf.cftree_ops import (
     avrg_efficiency,
     make_independent_of_algs,
 )
-from minipyconf.utils import memoizing
+from PyConf.utils import memoizing
 from definitions.algorithms import *
 
 
@@ -46,9 +46,9 @@ def sample_tree_0():
     X = Leaf("X_st0", 3, 1, alg=x)
     Y = Leaf("Y_st0", 4, 1, alg=y)
 
-    line1 = CompositeNode("L1_st0", Logic.AND, [PRE0, X], forceOrder=True)
-    line2 = CompositeNode("L2_st0", Logic.AND, [PRE1, Y], forceOrder=True)
-    top = CompositeNode("root_st0", Logic.OR, [line1, line2], forceOrder=False)
+    line1 = CompositeNode("L1_st0", Logic.LAZY_AND, [PRE0, X], forceOrder=True)
+    line2 = CompositeNode("L2_st0", Logic.LAZY_AND, [PRE1, Y], forceOrder=True)
+    top = CompositeNode("root_st0", Logic.LAZY_OR, [line1, line2], forceOrder=False)
     return top
 
 
@@ -59,10 +59,11 @@ def sample_tree_1():
     X = Leaf("X_st1", 3, 0.5, alg=None)
     Y = Leaf("Y_st1", 5, 0.4, alg=None)
 
-    line1 = CompositeNode("L1_st1", Logic.AND, [PRE0, X], forceOrder=True)
-    line2 = CompositeNode("L2_st1", Logic.AND, [PRE1, Y], forceOrder=True)
+    line1 = CompositeNode("L1_st1", Logic.LAZY_AND, [PRE0, X], forceOrder=True)
+    line2 = CompositeNode("L2_st1", Logic.LAZY_AND, [PRE1, Y], forceOrder=True)
     notline2 = CompositeNode("nL2_st1", Logic.NOT, [line2], forceOrder=True)
-    top = CompositeNode("root_st1", Logic.OR, [line1, notline2], forceOrder=True)
+    top = CompositeNode(
+        "root_st1", Logic.LAZY_OR, [line1, notline2], forceOrder=True)
     return top
 
 
@@ -89,14 +90,11 @@ def sample_tree_2():
     PRE1 = Leaf("PRE1_st2", 1, 0.3, alg=pre1)
     PRE2 = Leaf("PRE2_st2", 2, 0.3, alg=pre2)
     pre12 = CompositeNode(
-        "pre12_st2", Logic.AND, [PRE1, PRE2], forceOrder=True, lazy=True
-    )
+        "pre12_st2", Logic.LAZY_AND, [PRE1, PRE2], forceOrder=True, lazy=True)
     pre02 = CompositeNode(
-        "pre02_st2", Logic.AND, [PRE0, PRE2], forceOrder=True, lazy=True
-    )
+        "pre02_st2", Logic.LAZY_AND, [PRE0, PRE2], forceOrder=True, lazy=True)
     return CompositeNode(
-        "boom_st2", Logic.OR, [pre02, pre12], forceOrder=True, lazy=True
-    )
+        "boom_st2", Logic.LAZY_OR, [pre02, pre12], forceOrder=True, lazy=True)
 
 
 def test_gather_leafs():
