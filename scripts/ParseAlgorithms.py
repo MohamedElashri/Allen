@@ -91,10 +91,24 @@ class AllenConf():
 
     @staticmethod
     def write_preamble(i=0):
-        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
-        s = f.read()
-        f.close()
-        s += "\n"
+        # Fetch base_types.py and include it here to make file self-contained
+        s = "from PyConf.dataflow import GaudiDataHandle\n\
+from definitions.AllenKernel import AllenAlgorithm\n\
+from collections import OrderedDict\n\
+from enum import Enum\n\n\n\
+def algorithm_dict(*algorithms):\n\
+    d = OrderedDict([])\n\
+    for alg in algorithms:\n\
+        d[alg.name] = alg\n\
+    return d\n\n\n\
+class AlgorithmCategory(Enum):\n\
+    HostAlgorithm = 0\n\
+    DeviceAlgorithm = 1\n\
+    SelectionAlgorithm = 2\n\
+    HostDataProvider = 3\n\
+    DataProvider = 4\n\
+    ValidationAlgorithm = 5\n\n\n"
+
         return s
 
     @staticmethod
@@ -135,11 +149,8 @@ class AllenConf():
         s += ")\n" + AllenConf.prefix(i) + "outputs = ("
         i += 1
         for param in algorithm.parameters:
-            if "Output" in param.kind:
-                s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
-        i -= 1
-        s += ")\n" + AllenConf.prefix(i) + "props = ("
-        i += 1
+            s += AllenConf.prefix(i) + param.typename + " = GaudiDataHandle(\"" + param.typename + "\", \"" \
+                + AllenConf.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
         for prop in algorithm.properties:
             s += "\n" + AllenConf.prefix(i) + "\"" + prop.name[1:-1] + "\","
         i -= 1

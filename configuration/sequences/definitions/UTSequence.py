@@ -5,7 +5,7 @@ from definitions.algorithms import *
 from definitions.VeloSequence import make_velo_tracks, run_velo_kalman_filter
 from definitions.InitSequence import initialize_number_of_events
 from definitions.event_list_utils import make_algorithm
-from minipyconf.tonic import configurable
+from PyConf.tonic import configurable
 
 
 @configurable

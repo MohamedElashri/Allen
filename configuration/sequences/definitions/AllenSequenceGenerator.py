@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from minipyconf.dataflow import DataObjectHandleBase
+from PyConf.dataflow import GaudiDataHandle
 from definitions.algorithms import algorithms_with_aggregates, AlgorithmCategory
 
 # Assume we have a final sequence
@@ -114,7 +114,7 @@ class AllenSequenceGenerator:
                 parameter_name,
                 parameter,
             ) in algorithm.type.getDefaultProperties().items():
-                if isinstance(parameter, DataObjectHandleBase):
+                if isinstance(parameter, GaudiDataHandle):
                     # Deal with input aggregates separately
                     if parameter_name in algorithm.inputs and type(algorithm.inputs[parameter_name]) == list:
                         for single_parameter in algorithm.inputs[parameter_name]:

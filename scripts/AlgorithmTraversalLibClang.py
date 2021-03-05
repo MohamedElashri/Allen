@@ -114,8 +114,7 @@ class AlgorithmTraversal():
 
     # Accepted tokens for algorithm definitions
     __algorithm_tokens = [
-        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm",
-        "ValidationAlgorithm"
+        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm", "ValidationAlgorithm"
     ]
 
     # Accepted tokens for parameter parsing
@@ -195,11 +194,11 @@ class AlgorithmTraversal():
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
-                    typedef = [a.type.spelling
-                               for a in child.get_children()][0]
-            if typedef == "":
+                    typedef = child.type.spelling[child.type.spelling.find(
+                        "(") + 1:child.type.spelling.find(")")]
+            if typedef == "" or typedef == "int":
                 # This happens if the type cannot be parsed
-                typedef = "int"
+                typedef = "unknown_t"
             if kind and typedef and io != None:
                 return ("Parameter", typename, kind, io, typedef, aggregate)
         elif is_property:
@@ -208,10 +207,10 @@ class AlgorithmTraversal():
             typedef = None
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_METHOD:
-                    typedef = [a.type.spelling
-                               for a in child.get_children()][0]
-            if typedef == "":
-                typedef = "int"
+                    typedef = child.type.spelling[child.type.spelling.find(
+                        "(") + 1:child.type.spelling.find(")")]
+            if typedef == "" or typedef == "int":
+                typedef = "unknown_t"
             # Unfortunately, for properties we need to rely on tokens found in the
             # namespace to get the literals.
             name = AlgorithmTraversal.__properties[typename]["name"]

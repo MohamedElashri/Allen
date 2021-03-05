@@ -1,9 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-from definitions.VeloSequence import VeloSequence
-from definitions.UTSequence import UTSequence
-from definitions.algorithms import compose_sequences
+from definitions.UTSequence import make_ut_tracks
+from definitions.InitSequence import gec
+from PyConf.control_flow import NodeLogic, CompositeNode
+from definitions.event_list_utils import generate, make_leaf
 
 velo_sequence = VeloSequence()
 
@@ -16,4 +17,16 @@ ut_sequence = UTSequence(
     velo_kalman_filter=velo_sequence["velo_kalman_filter"],
     host_ut_banks=velo_sequence["host_ut_banks"])
 
-compose_sequences(velo_sequence, ut_sequence).generate()
+
+def ut_tracking_leaf(name, **kwargs):
+    alg = make_ut_tracks(**kwargs)["dev_ut_track_hits"].producer
+    return make_leaf(name, alg=alg)
+
+
+ut_tracking_sequence = CompositeNode(
+    "UTTrackingWithGEC",
+    NodeLogic.LAZY_AND,
+    [gec_leaf("gec"), ut_tracking_leaf("ut_tracking")],
+    forceOrder=True)
+
+generate(ut_tracking_sequence)

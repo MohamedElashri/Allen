@@ -1,9 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-from definitions.VeloSequence import VeloSequence
-from definitions.PVSequence import PVSequence
-from definitions.algorithms import compose_sequences
+from definitions.PVSequence import make_pvs
+from definitions.InitSequence import gec
+from PyConf.control_flow import NodeLogic, CompositeNode
+from definitions.event_list_utils import generate, make_leaf
 
 velo_sequence = VeloSequence()
 
@@ -15,4 +16,16 @@ pv_sequence = PVSequence(
         "prefix_sum_offsets_velo_track_hit_number"],
     velo_kalman_filter=velo_sequence["velo_kalman_filter"])
 
-compose_sequences(velo_sequence, pv_sequence).generate()
+
+def pv_finder_leaf(name, **kwargs):
+    alg = make_pvs(**kwargs)["dev_multi_final_vertices"].producer
+    return make_leaf(name, alg=alg)
+
+
+pv_finder_sequence = CompositeNode(
+    "PVWithGEC",
+    NodeLogic.LAZY_AND,
+    [gec_leaf("gec"), pv_finder_leaf("pv_finder")],
+    forceOrder=True)
+
+generate(pv_finder_sequence)

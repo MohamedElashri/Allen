@@ -1,7 +1,6 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-import numpy
 from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
 from PyConf.control_flow import Leaf, NodeLogic, CompositeNode
@@ -76,14 +75,14 @@ def add_event_list_combiners(order):
 
     def _make_combiner(inputs, logic):
 
-        if logic == NodeLogic.AND:
+        if logic in (NodeLogic.LAZY_AND, NodeLogic.NONLAZY_AND):
             return Algorithm(
                 event_list_intersection_t,
                 name="_AND_".join([i.producer.name for i in inputs]),
                 dev_event_list_a_t=inputs[0],
                 dev_event_list_b_t=inputs[1],
             )
-        elif logic == NodeLogic.OR:
+        elif logic in (NodeLogic.LAZY_OR, NodeLogic.NONLAZY_OR):
             return Algorithm(
                 event_list_union_t,
                 name="_OR_".join([i.producer.name for i in inputs]),

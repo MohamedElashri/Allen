@@ -125,12 +125,12 @@ def test_get_ordered_trees():
     def child_names(node):
         return [child.name for child in node.children]
 
-    import numpy as np
 
     assert all(
-        np.array(child_names(ord_trees[0])) == np.flip(child_names(ord_trees[1]))
-    )
-
+        [
+            a == b for a,b in
+            zip(child_names(ord_trees[0]), reversed(child_names(ord_trees[1])))
+        ])
 
 def test_to_string():
     root = sample_tree_1()

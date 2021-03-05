@@ -1,10 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-from definitions.VeloSequence import VeloSequence
-from definitions.UTSequence import UTSequence
-from definitions.ForwardSequence import ForwardSequence
-from definitions.algorithms import compose_sequences
+from definitions.InitSequence import gec
+from definitions.ForwardSequence import make_forward_tracks
+from PyConf.control_flow import NodeLogic, CompositeNode
+from definitions.event_list_utils import generate, make_leaf
 
 velo_sequence = VeloSequence()
 
@@ -29,4 +29,16 @@ forward_sequence = ForwardSequence(
     ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"],
     velo_kalman_filter=velo_sequence["velo_kalman_filter"])
 
-compose_sequences(velo_sequence, ut_sequence, forward_sequence).generate()
+def forward_tracking_leaf(name, **kwargs):
+    alg = make_forward_tracks(**kwargs)["dev_scifi_track_hits"].producer
+    return make_leaf(name, alg=alg)
+
+
+forward_tracking_sequence = CompositeNode(
+    "ForwardTrackingWithGEC",
+    NodeLogic.LAZY_AND,
+    [gec_leaf("gec"),
+     forward_tracking_leaf("forward_tracking")],
+    forceOrder=True)
+
+generate(forward_tracking_sequence)

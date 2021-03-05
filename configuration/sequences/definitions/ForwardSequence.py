@@ -6,7 +6,7 @@ from definitions.InitSequence import initialize_number_of_events
 from definitions.VeloSequence import make_velo_tracks, run_velo_kalman_filter
 from definitions.UTSequence import make_ut_tracks
 from definitions.event_list_utils import make_algorithm
-from minipyconf.tonic import configurable
+from PyConf.tonic import configurable
 
 @configurable
 def make_forward_tracks(forward_decoding="v4", hit_window_size="32", **kwargs):

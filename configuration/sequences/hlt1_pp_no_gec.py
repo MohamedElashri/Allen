@@ -1,13 +1,29 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-from definitions.VeloSequence import VeloSequence
-from definitions.PVSequence import PVSequence
-from definitions.UTSequence import UTSequence
-from definitions.ForwardSequence import ForwardSequence
-from definitions.MuonSequence import MuonSequence
-from definitions.HLT1Sequence import HLT1Sequence
-from definitions.algorithms import compose_sequences
+from definitions.InitSequence import gec
+from definitions.HLT1Sequence import (
+    fit_vertices,
+    make_track_mva_line,
+    make_two_track_mva_line,
+    make_beam_line,
+    make_velo_micro_bias_line,
+    make_odin_event_type_line,
+    make_single_high_pt_muon_line,
+    make_low_pt_muon_line,
+    make_d2kk_line,
+    make_d2kpi_line,
+    make_d2pipi_line,
+    make_di_muon_mass_line,
+    make_di_muon_soft_line,
+    make_low_pt_di_muon_line,
+    make_track_muon_mva_line,
+    make_passthrough_line,
+    make_gather_selections,
+    make_dec_reporter,
+)
+from PyConf.control_flow import NodeLogic, CompositeNode
+from definitions.event_list_utils import generate, make_leaf
 
 velo_sequence = VeloSequence(doGEC=False)
 
@@ -28,17 +44,15 @@ ut_sequence = UTSequence(
     velo_kalman_filter=velo_sequence["velo_kalman_filter"],
     host_ut_banks=velo_sequence["host_ut_banks"])
 
-forward_sequence = ForwardSequence(
-    initialize_lists=velo_sequence["initialize_lists"],
-    velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
-    velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
-    prefix_sum_offsets_velo_track_hit_number=velo_sequence[
-        "prefix_sum_offsets_velo_track_hit_number"],
-    prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],
-    prefix_sum_ut_track_hit_number=ut_sequence[
-        "prefix_sum_ut_track_hit_number"],
-    ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"],
-    velo_kalman_filter=velo_sequence["velo_kalman_filter"])
+gather_selections_node = CompositeNode(
+    "Allen",
+    NodeLogic.NONLAZY_AND, [
+        lines_leaf,
+        make_leaf(
+            name="gather_selections",
+            alg=make_gather_selections(lines=line_algorithms.values()))
+    ],
+    forceOrder=True)
 
 muon_sequence = MuonSequence(
     initialize_lists=velo_sequence["initialize_lists"],

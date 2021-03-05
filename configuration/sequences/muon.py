@@ -1,12 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-from definitions.VeloSequence import VeloSequence
-from definitions.PVSequence import PVSequence
-from definitions.UTSequence import UTSequence
-from definitions.ForwardSequence import ForwardSequence
-from definitions.MuonSequence import MuonSequence
-from definitions.algorithms import compose_sequences
+from definitions.InitSequence import gec
+from definitions.MuonSequence import is_muon
+from definitions.event_list_utils import generate, make_leaf
+from PyConf.control_flow import NodeLogic, CompositeNode
 
 velo_sequence = VeloSequence()
 
@@ -46,5 +44,9 @@ muon_sequence = MuonSequence(
         "prefix_sum_scifi_track_hit_number"],
     scifi_consolidate_tracks_t=forward_sequence["scifi_consolidate_tracks_t"])
 
-compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
-                  muon_sequence).generate()
+muon_id_sequence = CompositeNode(
+    "MuonIDWithGEC",
+    NodeLogic.LAZY_AND, [gec_leaf("gec"), muon_id_leaf("muon_id")],
+    forceOrder=True)
+
+generate(muon_id_sequence)
