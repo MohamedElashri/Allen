@@ -72,12 +72,13 @@ namespace Sch {
     : std::bool_constant<std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value> {
   };
 
-  // template<typename T, typename OtherT, typename... Ts>
-  // struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>, std::enable_if_t<is_view<OtherT>::value>>
-  //   : std::bool_constant<
-  //       std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value ||
-  //       TupleContainsDecay<T, typename OtherT::deps>::value> {
-  // };
+  // TODO: Currently this is not picked up, eg. can be commented out
+  template<typename T, typename OtherT, typename... Ts>
+  struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>, std::enable_if_t<is_view<OtherT>::value>>
+    : std::bool_constant<
+        std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value ||
+        TupleContainsDecay<T, typename OtherT::deps>::value> {
+  };
 
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Arguments>
