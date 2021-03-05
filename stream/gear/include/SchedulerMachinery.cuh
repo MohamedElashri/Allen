@@ -57,7 +57,8 @@ namespace Sch {
   struct TupleContainsDecay;
 
   template<typename T, typename... Ts>
-  struct TupleContainsDecay<T, std::tuple<Ts...>> : std::bool_constant<((std::is_base_of_v<std::decay_t<Ts>, std::decay_t<T>> || ...))> {
+  struct TupleContainsDecay<T, std::tuple<Ts...>>
+    : std::bool_constant<((std::is_base_of_v<std::decay_t<Ts>, std::decay_t<T>> || ...))> {
   };
 
   template<typename T, typename Tuple, typename = void>

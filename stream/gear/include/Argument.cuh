@@ -175,8 +175,8 @@ namespace Allen {
   struct View : public T {
     __host__ __device__ View() = default;
     __host__ __device__ View(const View&) = default;
-    __host__ __device__ View(const T& t) : T{t} {}
-    
+    __host__ __device__ View(const T& t) : T {t} {}
+
     using deps = std::tuple<Dependencies...>;
   };
-}
+} // namespace Allen
