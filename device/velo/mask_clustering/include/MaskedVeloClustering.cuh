@@ -26,7 +26,10 @@ namespace velo_masked_clustering {
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     DEVICE_OUTPUT(
       dev_velo_clusters_t,
-      Allen::View<Velo::Clusters, dev_velo_cluster_container_t, dev_module_cluster_num_t, dev_number_of_events_t>)
+      Velo::Clusters,
+      dev_velo_cluster_container_t,
+      dev_module_cluster_num_t,
+      dev_number_of_events_t)
     dev_velo_clusters;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

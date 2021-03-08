@@ -27,15 +27,6 @@ namespace {
   template<typename T>
   struct has_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
   };
-
-  // SFINAE-based check of View. Require a type "deps" in it.
-  template<typename T, typename = void>
-  struct is_view : std::false_type {
-  };
-
-  template<typename T>
-  struct is_view<T, std::void_t<typename T::type::deps>> : std::true_type {
-  };
 } // namespace
 
 namespace Sch {
@@ -61,23 +52,18 @@ namespace Sch {
     : std::bool_constant<((std::is_base_of_v<std::decay_t<Ts>, std::decay_t<T>> || ...))> {
   };
 
-  template<typename T, typename Tuple, typename = void>
+  template<typename T, typename Tuple>
   struct TupleContainsWithViews;
 
   template<typename T>
-  struct TupleContainsWithViews<T, std::tuple<>, void> : std::bool_constant<false> {
+  struct TupleContainsWithViews<T, std::tuple<>> : std::bool_constant<false> {
   };
 
   template<typename T, typename OtherT, typename... Ts>
-  struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>, std::enable_if_t<!is_view<OtherT>::value>>
-    : std::bool_constant<std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value> {
-  };
-
-  template<typename T, typename OtherT, typename... Ts>
-  struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>, std::enable_if_t<is_view<OtherT>::value>>
+  struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>>
     : std::bool_constant<
         std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value ||
-        TupleContainsDecay<T, typename OtherT::type::deps>::value> {
+        TupleContainsDecay<T, typename OtherT::deps>::value> {
   };
 
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
