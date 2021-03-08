@@ -138,8 +138,8 @@ class Sequence():
                         s += inheriting_class + ", "
                     s = s[:-2]
                     s += " { using type = " + v[0][1] + "::Parameters::" + v[
-                        0][2] + "::type; using deps = " + v[0][
-                            1] + "::Parameters::" + v[0][2] + "::deps; };\n"
+                        0][2] + "::type; using deps = " + v[0][1] + "::Parameters::" + v[
+                        0][2] + "::deps; };\n"
 
             # Generate argument tuple
             s += "\nusing configured_arguments_t = std::tuple<\n"
@@ -216,8 +216,8 @@ class Sequence():
                     s += inheriting_class + ", "
                 s = s[:-2]
                 s += " { using type = " + v[0][1] + "::Parameters::" + v[0][
-                    2] + "::type; using deps = " + v[0][
-                        1] + "::Parameters::" + v[0][2] + "::deps; };\n"
+                    2] + "::type; using deps = " + v[0][1] + "::Parameters::" + v[0][
+                    2] + "::deps; };\n"
 
             s += "\n"
             for algorithm_with_aggregate_class in algorithms_with_aggregates_list:
@@ -318,3 +318,4 @@ def compose_sequences(*args):
         for item in sequence:
             new_sequence.append(item)
     return Sequence(new_sequence)
+quence)

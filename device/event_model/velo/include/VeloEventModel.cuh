@@ -134,8 +134,6 @@ namespace Velo {
       m_total_number_of_hits(total_estimated_number_of_clusters), m_offset(offset)
     {}
 
-    __host__ __device__ Clusters_t(const Clusters_t<T>& clusters) = default;
-
     // Accessors and lvalue references for all types
     __host__ __device__ unsigned id(const unsigned index) const
     {
