@@ -60,46 +60,46 @@ struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t.
 };
 
 // Inputs / outputs have an additional parameter method to be able to parse it with libclang.
-#define DEVICE_INPUT(ARGUMENT_NAME, ...)                                                  \
-  struct ARGUMENT_NAME : public device_datatype, input_datatype<__VA_ARGS__> {            \
-    using input_datatype<__VA_ARGS__>::input_datatype;                                    \
-    void inline parameter(typename parameter_traits<__VA_ARGS__>::internal_type) const {} \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                    \
+#define DEVICE_INPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public device_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                         \
+    void parameter(__VA_ARGS__) const {}                                       \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;         \
   }
 
-#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                           \
-  struct ARGUMENT_NAME : public device_datatype, output_datatype<__VA_ARGS__> {     \
-    using output_datatype<__VA_ARGS__>::output_datatype;                            \
-    void inline parameter(typename parameter_traits<__VA_ARGS__>::internal_type) {} \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;              \
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public device_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                        \
+    void parameter(__VA_ARGS__) {}                                              \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;          \
   }
 
-#define HOST_INPUT(ARGUMENT_NAME, ...)                                                    \
-  struct ARGUMENT_NAME : public host_datatype, input_datatype<__VA_ARGS__> {              \
-    using input_datatype<__VA_ARGS__>::input_datatype;                                    \
-    void inline parameter(typename parameter_traits<__VA_ARGS__>::internal_type) const {} \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                    \
+#define HOST_INPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public host_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                       \
+    void parameter(__VA_ARGS__) const {}                                     \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;       \
   }
 
-#define HOST_OUTPUT(ARGUMENT_NAME, ...)                                             \
-  struct ARGUMENT_NAME : public host_datatype, output_datatype<__VA_ARGS__> {       \
-    using output_datatype<__VA_ARGS__>::output_datatype;                            \
-    void inline parameter(typename parameter_traits<__VA_ARGS__>::internal_type) {} \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;              \
+#define HOST_OUTPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public host_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                      \
+    void parameter(__VA_ARGS__) {}                                            \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;        \
   }
 
 // Support for multiparameters
 #define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
   struct ARGUMENT_NAME : public aggregate_datatype, device_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                                             \
-    void inline parameter(typename parameter_traits<__VA_ARGS__>::internal_type) const {}          \
+    void parameter(__VA_ARGS__) const {}                                                           \
     using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                             \
   }
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
   struct ARGUMENT_NAME : public aggregate_datatype, host_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                                           \
-    void inline parameter(typename parameter_traits<__VA_ARGS__>::internal_type) const {}        \
+    void parameter(__VA_ARGS__) const {}                                                         \
     using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                           \
   }
 
@@ -176,7 +176,7 @@ protected:
     constexpr static auto name {NAME};                       \
     constexpr static auto description {DESCRIPTION};         \
     using property_datatype<__VA_ARGS__>::property_datatype; \
-    void inline property(__VA_ARGS__) {}                     \
+    void property(__VA_ARGS__) {}                            \
   }
 
 /**
