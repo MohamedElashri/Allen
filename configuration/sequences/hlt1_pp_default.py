@@ -151,7 +151,7 @@ lines_leaf = CompositeNode(
 
 gather_selections_node = CompositeNode(
     "Allen",
-    NodeLogic.LAZY_AND, [
+    NodeLogic.NONLAZY_AND, [
         lines_leaf,
         make_leaf(
             name="dec_reporter",

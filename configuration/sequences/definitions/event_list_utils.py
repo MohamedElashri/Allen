@@ -100,7 +100,7 @@ def add_event_list_combiners(order):
         output_masks = []
         for n in nodes:
             m = [a for a in n.outputs.values() if a.type == "mask_t"]
-            assert(len(m) == 1)
+            assert len(m) == 1, f"should have one output mask, got {len(m)}"
             output_masks.append(m[0])
 
         return _make_combiner(
