@@ -43,9 +43,12 @@ def sample_tree_0():
     X = Leaf("X_st0", 3, 1, alg=x)
     Y = Leaf("Y_st0", 4, 1, alg=y)
 
-    line1 = CompositeNode("L1_st0", [PRE0, X], NodeLogic.NONLAZY_AND, forceOrder=True)
-    line2 = CompositeNode("L2_st0", [PRE1, Y], NodeLogic.NONLAZY_AND, forceOrder=True)
-    top = CompositeNode("root_st0", [line1, line2], NodeLogic.NONLAZY_OR, forceOrder=False)
+    line1 = CompositeNode(
+        "L1_st0", [PRE0, X], NodeLogic.NONLAZY_AND, forceOrder=True)
+    line2 = CompositeNode(
+        "L2_st0", [PRE1, Y], NodeLogic.NONLAZY_AND, forceOrder=True)
+    top = CompositeNode(
+        "root_st0", [line1, line2], NodeLogic.NONLAZY_OR, forceOrder=False)
     return top
 
 
@@ -55,9 +58,12 @@ def sample_tree_1():
     X = Leaf("X_st1", 3, 0.5, alg=None)
     Y = Leaf("Y_st1", 5, 0.4, alg=None)
 
-    line1 = CompositeNode("L1_st1", [PRE0, X], NodeLogic.NONLAZY_AND, forceOrder=True)
-    line2 = CompositeNode("L2_st1", [PRE1, Y], NodeLogic.NONLAZY_AND, forceOrder=True)
-    notline2 = CompositeNode("nL2_st1", [line2], NodeLogic.NOT, forceOrder=True)
+    line1 = CompositeNode(
+        "L1_st1", [PRE0, X], NodeLogic.NONLAZY_AND, forceOrder=True)
+    line2 = CompositeNode(
+        "L2_st1", [PRE1, Y], NodeLogic.NONLAZY_AND, forceOrder=True)
+    notline2 = CompositeNode(
+        "nL2_st1", [line2], NodeLogic.NOT, forceOrder=True)
     top = CompositeNode(
         "root_st1", [line1, notline2], NodeLogic.LAZY_OR, forceOrder=True)
     return top

@@ -53,8 +53,7 @@ def make_composite_node_with_gec(alg_name, alg, gec_name="gec"):
 
 def validator_node(reconstructed_objects, line_algorithms):
     return CompositeNode(
-        "Validators",
-        [
+        "Validators", [
             make_composite_node_with_gec(
                 "velo_validation",
                 velo_validation(reconstructed_objects["velo_tracks"])),
