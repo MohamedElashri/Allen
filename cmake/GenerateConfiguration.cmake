@@ -12,7 +12,7 @@ set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 
 # We need a Python 3 interpreter
-find_package(Python3)
+find_package(Python3 REQUIRED)
 find_package(LibClang QUIET)
 
 # Find libClang, required for parsing the Allen codebase
@@ -35,8 +35,7 @@ if(NOT LIBCLANG_FOUND OR "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIB
   endif()
 endif()
 
-if (Python3_FOUND AND (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND) AND SEQUENCE_GENERATION)
-  message(STATUS "Code generation with LLVM - Enabled")
+if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
   if(NOT STANDALONE)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
@@ -51,64 +50,31 @@ if (Python3_FOUND AND (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND) AND SEQUENC
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   else()
-    # TODO: Add dependency on PyConf somehow
-  endif()
-else()
-  if(SEQUENCE_GENERATION)
-    if(NOT Python3_FOUND)
-      message(STATUS "Code generation with LLVM - Failed. No Python3 interpreter was found.")
-    elseif(NOT LIBCLANG_FOUND)
-      message(STATUS "Code generation with LLVM - Failed. No suitable libClang installation found.")
-    else()
-      message(STATUS "Code generation with LLVM - Failed.")
-    endif()
-  else()
-    message(STATUS "Code generation with LLVM - Disabled")
-  endif()
-  message(STATUS "A pregenerated sequence will be used.")
-  
-  add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-    ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_input_aggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
-    ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.json" "${PROJECT_BINARY_DIR}/Sequence.json"
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_sequence.h"
-    COMMENT "Configuring sequence ${SEQUENCE}"
-    VERBATIM
-  )
-endif()
-  
-install(FILES "${PROJECT_BINARY_DIR}/Sequence.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
-nputAggregates.h" &&
+    # Add the PyConf dependency in STANDALONE
+    find_package(Git REQUIRED)
+    add_custom_command(
+      OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
+      COMMAND
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb --no-checkout &&
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} -C LHCb/ checkout origin/dcampora_nnolte_mes_pyconf -- PyConf &&
+        ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf
+      WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
+      COMMAND 
+        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
+        ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" "${ALGORITHMS_OUTPUTFILE}" "${CMAKE_SOURCE_DIR}" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
+        ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
+        ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/PyConf"
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   endif()
 else()
-  if(SEQUENCE_GENERATION)
-    if(NOT Python3_FOUND)
-      message(STATUS "Code generation with LLVM - Failed. No Python3 interpreter was found.")
-    elseif(NOT LIBCLANG_FOUND)
-      message(STATUS "Code generation with LLVM - Failed. No suitable libClang installation found.")
-    else()
-      message(STATUS "Code generation with LLVM - Failed.")
-    endif()
-  else()
-    message(STATUS "Code generation with LLVM - Disabled")
-  endif()
-  message(STATUS "A pregenerated sequence will be used.")
-  
-  add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-    ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_input_aggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
-    ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.json" "${PROJECT_BINARY_DIR}/Sequence.json"
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}_sequence.h"
-    COMMENT "Configuring sequence ${SEQUENCE}"
-    VERBATIM
-  )
+  message(STATUS "No suitable libClang installation found")
+  message(STATUS "You may provide a custom path to llvm-config setting LLVM_CONFIG manually")
 endif()
-  
+
 install(FILES "${PROJECT_BINARY_DIR}/Sequence.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
