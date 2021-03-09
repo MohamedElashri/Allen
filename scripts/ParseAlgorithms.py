@@ -97,7 +97,7 @@ class AllenConf():
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
         s = "from PyConf.dataflow import GaudiDataHandle\n\
-from definitions.AllenKernel import AllenAlgorithm\n\
+from AllenConf.AllenKernel import AllenAlgorithm\n\
 from collections import OrderedDict\n\
 from enum import Enum\n\n\n\
 def algorithm_dict(*algorithms):\n\

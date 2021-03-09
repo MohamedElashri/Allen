@@ -4,7 +4,7 @@
 from definitions.algorithms import *
 from definitions.utils import initialize_number_of_events, mep_layout
 from definitions.odin import decode_odin
-from definitions.event_list_utils import make_algorithm
+from AllenConf.event_list_utils import make_algorithm
 
 
 def make_beam_line(pre_scaler_hash_string="beam_line_pre",

@@ -10,9 +10,8 @@ from definitions.hlt1_alignment_lines import make_d2kpi_line
 from definitions.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from definitions.hlt1_technical_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_passthrough_line
 
-from definitions.event_list_utils import make_algorithm
+from AllenConf.event_list_utils import make_algorithm, make_leaf
 from PyConf.control_flow import NodeLogic, CompositeNode
-from definitions.event_list_utils import make_leaf
 from PyConf.tonic import configurable
 from definitions.odin import decode_odin
 from definitions.persistency import make_gather_selections, make_dec_reporter

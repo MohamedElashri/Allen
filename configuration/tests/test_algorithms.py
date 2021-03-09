@@ -1,8 +1,8 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from PyConf.dataflow import DataObjectHandleBase
-from definitions.AllenKernel import AllenAlgorithm
+from PyConf.dataflow import GaudiDataHandle
+from AllenConf.AllenKernel import AllenAlgorithm
 from collections import OrderedDict
 from enum import Enum
 
@@ -24,9 +24,9 @@ class AlgorithmCategory(Enum):
 
 class host_init_event_list_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        host_event_list_output_t=DataObjectHandleBase(
+        host_event_list_output_t=GaudiDataHandle(
             "host_event_list_output_t", "W", "unsigned int"),
-        dev_event_list_output_t=DataObjectHandleBase("dev_event_list_output_t",
+        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t",
                                                      "W", "mask_t"),
         verbosity="")
     aggregates = ()
@@ -56,17 +56,17 @@ class host_init_event_list_t(AllenAlgorithm):
 
 class event_list_intersection_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_a_t=DataObjectHandleBase("dev_event_list_a_t", "R",
+        dev_event_list_a_t=GaudiDataHandle("dev_event_list_a_t", "R",
                                                 "unsigned int"),
-        dev_event_list_b_t=DataObjectHandleBase("dev_event_list_b_t", "R",
+        dev_event_list_b_t=GaudiDataHandle("dev_event_list_b_t", "R",
                                                 "unsigned int"),
-        host_event_list_a_t=DataObjectHandleBase("host_event_list_a_t", "W",
+        host_event_list_a_t=GaudiDataHandle("host_event_list_a_t", "W",
                                                  "unsigned int"),
-        host_event_list_b_t=DataObjectHandleBase("host_event_list_b_t", "W",
+        host_event_list_b_t=GaudiDataHandle("host_event_list_b_t", "W",
                                                  "unsigned int"),
-        host_event_list_output_t=DataObjectHandleBase(
+        host_event_list_output_t=GaudiDataHandle(
             "host_event_list_output_t", "W", "unsigned int"),
-        dev_event_list_output_t=DataObjectHandleBase("dev_event_list_output_t",
+        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t",
                                                      "W", "mask_t"),
         verbosity="")
     aggregates = ()
@@ -96,17 +96,17 @@ class event_list_intersection_t(AllenAlgorithm):
 
 class event_list_union_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_a_t=DataObjectHandleBase("dev_event_list_a_t", "R",
+        dev_event_list_a_t=GaudiDataHandle("dev_event_list_a_t", "R",
                                                 "unsigned int"),
-        dev_event_list_b_t=DataObjectHandleBase("dev_event_list_b_t", "R",
+        dev_event_list_b_t=GaudiDataHandle("dev_event_list_b_t", "R",
                                                 "unsigned int"),
-        host_event_list_a_t=DataObjectHandleBase("host_event_list_a_t", "W",
+        host_event_list_a_t=GaudiDataHandle("host_event_list_a_t", "W",
                                                  "unsigned int"),
-        host_event_list_b_t=DataObjectHandleBase("host_event_list_b_t", "W",
+        host_event_list_b_t=GaudiDataHandle("host_event_list_b_t", "W",
                                                  "unsigned int"),
-        host_event_list_output_t=DataObjectHandleBase(
+        host_event_list_output_t=GaudiDataHandle(
             "host_event_list_output_t", "W", "unsigned int"),
-        dev_event_list_output_t=DataObjectHandleBase("dev_event_list_output_t",
+        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t",
                                                      "W", "mask_t"),
         verbosity="")
     aggregates = ()
@@ -136,13 +136,13 @@ class event_list_union_t(AllenAlgorithm):
 
 class event_list_inversion_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_input_t=DataObjectHandleBase("dev_event_list_input_t",
+        dev_event_list_input_t=GaudiDataHandle("dev_event_list_input_t",
                                                     "R", "unsigned int"),
-        host_event_list_t=DataObjectHandleBase("host_event_list_t", "W",
+        host_event_list_t=GaudiDataHandle("host_event_list_t", "W",
                                                "unsigned int"),
-        host_event_list_output_t=DataObjectHandleBase(
+        host_event_list_output_t=GaudiDataHandle(
             "host_event_list_output_t", "W", "unsigned int"),
-        dev_event_list_output_t=DataObjectHandleBase("dev_event_list_output_t",
+        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t",
                                                      "W", "mask_t"),
         verbosity="")
     aggregates = ()
@@ -199,7 +199,7 @@ class generic_algorithm_t(AllenAlgorithm):
 
 class producer_1_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=DataObjectHandleBase("a_t", "W", "int"), conf="")
+        a_t=GaudiDataHandle("a_t", "W", "int"), conf="")
 
     @classmethod
     def getType(cls):
@@ -208,8 +208,8 @@ class producer_1_t(generic_algorithm_t):
 
 class producer_2_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=DataObjectHandleBase("a_t", "W", "int"),
-        b_t=DataObjectHandleBase("b_t", "W", "int"),
+        a_t=GaudiDataHandle("a_t", "W", "int"),
+        b_t=GaudiDataHandle("b_t", "W", "int"),
         conf="")
 
     @classmethod
@@ -219,7 +219,7 @@ class producer_2_t(generic_algorithm_t):
 
 class consumer_1_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=DataObjectHandleBase("a_t", "R", "int"), conf="")
+        a_t=GaudiDataHandle("a_t", "R", "int"), conf="")
 
     @classmethod
     def getType(cls):
@@ -228,8 +228,8 @@ class consumer_1_t(generic_algorithm_t):
 
 class consumer_2_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=DataObjectHandleBase("a_t", "R", "int"),
-        b_t=DataObjectHandleBase("b_t", "R", "int"),
+        a_t=GaudiDataHandle("a_t", "R", "int"),
+        b_t=GaudiDataHandle("b_t", "R", "int"),
         conf="")
 
     @classmethod
@@ -239,7 +239,7 @@ class consumer_2_t(generic_algorithm_t):
 
 class decider_1_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=DataObjectHandleBase("a_t", "W", "mask_t"), conf="")
+        a_t=GaudiDataHandle("a_t", "W", "mask_t"), conf="")
 
     @classmethod
     def getType(cls):

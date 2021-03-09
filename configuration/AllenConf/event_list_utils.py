@@ -4,9 +4,9 @@
 from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
 from PyConf.control_flow import Leaf, NodeLogic, CompositeNode
-from definitions.cftree_ops import get_best_order, get_execution_list_for, gather_leafs, BoolNode
-from definitions.AllenSequenceGenerator import generate_allen_sequence
-from definitions.allen_benchmarks import benchmark_weights, benchmark_efficiencies
+from AllenConf.cftree_ops import get_best_order, get_execution_list_for, gather_leafs, BoolNode
+from AllenConf.AllenSequenceGenerator import generate_allen_sequence
+from AllenConf.allen_benchmarks import benchmark_weights, benchmark_efficiencies
 from definitions.algorithms import (
     AlgorithmCategory,
     host_init_event_list_t,

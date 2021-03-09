@@ -6,7 +6,7 @@ from definitions.velo_reconstruction import decode_velo, make_velo_tracks
 from definitions.ut_reconstruction import decode_ut, make_ut_tracks
 from definitions.scifi_reconstruction import decode_scifi, make_forward_tracks
 from PyConf.control_flow import NodeLogic, CompositeNode
-from definitions.event_list_utils import generate, make_leaf
+from AllenConf.event_list_utils import generate, make_leaf
 
 
 def gec_leaf(name, min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):

@@ -12,7 +12,7 @@ from definitions.validators import (
     pv_validation, rate_validation, kalman_validation)
 
 from PyConf.control_flow import NodeLogic, CompositeNode
-from definitions.event_list_utils import generate, make_leaf
+from AllenConf.event_list_utils import generate, make_leaf
 
 # Reconstructed objects
 with make_ut_tracks.bind(restricted=False):

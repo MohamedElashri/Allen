@@ -6,7 +6,7 @@ from definitions.velo_reconstruction import decode_velo, make_velo_tracks
 from definitions.ut_reconstruction import decode_ut, make_ut_tracks
 from definitions.scifi_reconstruction import decode_scifi, make_forward_tracks
 from definitions.muon_reconstruction import decode_muon, is_muon
-from definitions.event_list_utils import generate, make_leaf
+from AllenConf.event_list_utils import generate, make_leaf
 from PyConf.control_flow import NodeLogic, CompositeNode
 
 

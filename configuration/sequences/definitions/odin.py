@@ -2,7 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from definitions.algorithms import *
-from definitions.event_list_utils import make_algorithm
+from AllenConf.event_list_utils import make_algorithm
 
 
 def decode_odin():

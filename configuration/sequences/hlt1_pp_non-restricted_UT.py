@@ -3,7 +3,7 @@
 ###############################################################################
 from definitions.HLT1 import setup_hlt1_node
 from definitions.ut_reconstruction import make_ut_tracks
-from definitions.event_list_utils import generate
+from AllenConf.event_list_utils import generate
 
 with make_ut_tracks.bind(restricted=False):
     hlt1_node = setup_hlt1_node()

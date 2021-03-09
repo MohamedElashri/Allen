@@ -2,7 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from PyConf.control_flow import Leaf
-from definitions.event_list_utils import make_algorithm
+from AllenConf.event_list_utils import make_algorithm
 from definitions.algorithms import *
 
 

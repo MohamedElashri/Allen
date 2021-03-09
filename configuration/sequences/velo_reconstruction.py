@@ -4,7 +4,7 @@
 from definitions.velo_reconstruction import decode_velo, make_velo_tracks
 from definitions.utils import gec
 from PyConf.control_flow import NodeLogic, CompositeNode
-from definitions.event_list_utils import generate, make_leaf
+from AllenConf.event_list_utils import generate, make_leaf
 
 
 def velo_tracking_leaf(name):

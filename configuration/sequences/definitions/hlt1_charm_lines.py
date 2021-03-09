@@ -3,7 +3,7 @@
 ###############################################################################
 from definitions.algorithms import *
 from definitions.utils import initialize_number_of_events, mep_layout
-from definitions.event_list_utils import make_algorithm
+from AllenConf.event_list_utils import make_algorithm
 from definitions.odin import decode_odin
 
 

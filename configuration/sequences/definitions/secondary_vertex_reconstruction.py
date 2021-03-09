@@ -4,7 +4,7 @@
 from definitions.algorithms import *
 from definitions.utils import initialize_number_of_events, mep_layout
 from definitions.velo_reconstruction import run_velo_kalman_filter
-from definitions.event_list_utils import make_algorithm
+from AllenConf.event_list_utils import make_algorithm
 
 
 def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):
