@@ -12,7 +12,7 @@ namespace host_velo_validator {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };

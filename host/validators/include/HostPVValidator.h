@@ -8,7 +8,7 @@
 
 namespace host_pv_validator {
   struct Parameters {
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;

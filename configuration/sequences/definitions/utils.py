@@ -6,24 +6,25 @@ from definitions.event_list_utils import make_algorithm
 from definitions.algorithms import *
 
 
-def initialize_number_of_events(**kwargs):
-    initialize_number_of_events = make_algorithm(host_init_number_of_events_t, name="initialize_number_of_events")
+def initialize_number_of_events():
+    initialize_number_of_events = make_algorithm(
+        host_init_number_of_events_t, name="initialize_number_of_events")
     return {
-        "host_number_of_events": initialize_number_of_events.host_number_of_events_t,
-        "dev_number_of_events": initialize_number_of_events.dev_number_of_events_t,
+        "host_number_of_events":
+        initialize_number_of_events.host_number_of_events_t,
+        "dev_number_of_events":
+        initialize_number_of_events.dev_number_of_events_t,
     }
 
 
-def gec(min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750", **kwargs):
-    number_of_events = initialize_number_of_events(**kwargs)
+def gec(min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
+    number_of_events = initialize_number_of_events()
 
     host_ut_banks = make_algorithm(
-        host_data_provider_t, name="host_ut_banks", bank_type="UT"
-    )
+        host_data_provider_t, name="host_ut_banks", bank_type="UT")
 
     host_scifi_banks = make_algorithm(
-        host_data_provider_t, name="host_scifi_banks", bank_type="FTCluster"
-    )
+        host_data_provider_t, name="host_scifi_banks", bank_type="FTCluster")
 
     gec = make_algorithm(
         host_global_event_cut_t,
@@ -37,3 +38,11 @@ def gec(min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750", **kwargs):
     )
 
     return gec
+
+
+def mep_layout():
+    layout = make_algorithm(layout_provider_t, name="mep_layout")
+    return {
+        "host_mep_layout": layout.host_mep_layout_t,
+        "dev_mep_layout": layout.dev_mep_layout_t
+    }

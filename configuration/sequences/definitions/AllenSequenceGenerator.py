@@ -1,3 +1,6 @@
+###############################################################################
+# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+###############################################################################
 from collections import OrderedDict
 from PyConf.dataflow import GaudiDataHandle
 from definitions.algorithms import algorithms_with_aggregates, AlgorithmCategory
@@ -140,18 +143,17 @@ class AllenSequenceGenerator:
             else:
                 s += ">;\n"
 
-        # Generate a function that populates the names of the algorithms at runtime
-        s += "\nvoid inline populate_sequence_algorithm_names(configured_sequence_t& sequence) {\n"
+        # Generate get_sequence_algorithm_names function
+        s += "constexpr auto sequence_algorithm_names = std::array{\n"
         for i, algorithm in enumerate(algorithms):
-            s += f'  std::get<{i}>(sequence).set_name("{algorithm.name}");\n'
-        s += "}\n\n"
+            s += f"  \"{algorithm.name}\""
+            if i != len(algorithms) - 1: s += ",\n"
+        s += "};\n\n"
 
         # Generate populate_sequence_parameter_names
         s += "template<typename T>\nvoid populate_sequence_argument_names(T& argument_manager) {\n"
-        i = 0
         for parameter_name in iter(parameters.keys()):
-            s += "  argument_manager.template set_name<" + parameter_name + ">(\"" + parameter_name + "\");\n"
-            i += 1
+            s += f"  argument_manager.template set_name<{parameter_name}>(\"{parameter_name}\");\n"
         s += "}\n"
 
         f = open(output_filename, "w")

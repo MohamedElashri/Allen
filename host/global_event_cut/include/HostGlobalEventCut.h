@@ -15,7 +15,7 @@ namespace host_global_event_cut {
     HOST_INPUT(host_ut_raw_bank_version_t, int) ut_raw_bank_version;
     HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
     HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
-    HOST_OUTPUT(host_event_list_t, unsigned) host_event_list;
+    HOST_OUTPUT(host_event_list_output_t, unsigned) host_event_list;
     HOST_OUTPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
     DEVICE_OUTPUT(dev_number_of_events_t, unsigned) dev_number_of_events;

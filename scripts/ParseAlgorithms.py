@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 ###############################################################################
-# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 
 import re
@@ -90,6 +90,10 @@ class AllenConf():
         return "".join([" "] * indentation_level * indent_by)
 
     @staticmethod
+    def create_var_type(kind):
+        return ("R" if "input" in kind.lower() else "W")
+
+    @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
         s = "from PyConf.dataflow import GaudiDataHandle\n\
@@ -112,13 +116,6 @@ class AlgorithmCategory(Enum):\n\
         return s
 
     @staticmethod
-    def write_postamble(i=0):
-        f = open(prefix_project_folder + "/scripts/Sequence.py")
-        s = f.read()
-        f.close()
-        return "\n" + s
-
-    @staticmethod
     def write_aggregate_algorithms(algorithms, i=0):
         s = "def algorithms_with_aggregates():\n"
         i += 1
@@ -133,224 +130,75 @@ class AlgorithmCategory(Enum):\n\
             s = s[:-2]
         s += "]\n\n"
         return s
+    
+    @staticmethod
+    def get_algorithm_category(name, scope):
+        if name == "data_provider_t":
+            return "DataProvider"
+        elif name == "host_data_provider_t":
+            return "HostDataProvider"
+        else:
+            return scope
 
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
         s = AllenConf.prefix(
-            i
-        ) + "class " + algorithm.name + "(" + algorithm.scope + ", metaclass=AlgorithmRepr):\n"
+            i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
         i += 1
-        s += AllenConf.prefix(i) + "inputs = ("
-        i += 1
-        for param in algorithm.parameters:
-            if "Input" in param.kind:
-                s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
-        i -= 1
-        s += ")\n" + AllenConf.prefix(i) + "outputs = ("
+
+        # Slots
+        s += AllenConf.prefix(i) + "__slots__ = OrderedDict(\n"
         i += 1
         for param in algorithm.parameters:
             s += AllenConf.prefix(i) + param.typename + " = GaudiDataHandle(\"" + param.typename + "\", \"" \
                 + AllenConf.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
         for prop in algorithm.properties:
-            s += "\n" + AllenConf.prefix(i) + "\"" + prop.name[1:-1] + "\","
+            s += AllenConf.prefix(i) + prop.name[1:-1] + " = \"\",\n"
+        s = s[:-2]
         i -= 1
-        s += ")\n" + AllenConf.prefix(i) + "aggregates = ("
+        s += "\n" + AllenConf.prefix(i) + ")\n"
+
+        # aggregates
+        s += AllenConf.prefix(i) + "aggregates = ("
         i += 1
         for param in algorithm.parameters:
             if param.aggregate:
                 s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
         i -= 1
-        s += ")\n" + AllenConf.prefix(
-            i) + "namespace = \"" + algorithm.namespace + "\"\n\n"
-        s += AllenConf.prefix(i) + "def __init__(self"
+        s += ")\n\n"
+
+        s += AllenConf.prefix(i) + "@staticmethod\n"
+        s += AllenConf.prefix(i) + "def category():\n"
         i += 1
-        for var in algorithm.parameters:
-            if "Output" not in var.kind:
-                s += ",\n" \
-                  + AllenConf.prefix(i) + var.typename
-        for prop in algorithm.properties:
-            s += ",\n" \
-              + AllenConf.prefix(i) + prop.name[1:-1] + "=Property" \
-              + "(\"" + prop.typedef + "\", " \
-              + "\"\", " + prop.description + ")"
-        s += ",\n" + AllenConf.prefix(i) + "name=\"" + algorithm.name + "\""
-        s += "):\n"
-        s += AllenConf.prefix(i) + "self.__filename = \"" + algorithm.filename[
-            len(prefix_project_folder):] + "\"\n"
-        s += AllenConf.prefix(i) + "self.__name = name\n"
-        s += AllenConf.prefix(
-            i) + "self.__original_name = \"" + algorithm.name + "\"\n"
-        s += AllenConf.prefix(i) + "self.__ordered_parameters = OrderedDict(["
-        i += 1
-        for var in algorithm.parameters:
-            if "Output" in var.kind:
-                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + var.kind \
-                  + "(\"" + var.typename + "\", \"" + var.typedef + "\", self.__name)),"
-            elif var.aggregate:
-                s += "\n" + AllenConf.prefix(
-                    i) + "(\"" + var.typename + "\", " + var.typename + "),"
-            else:
-                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", check_input_parameter(" + var.typename \
-                  + ", " + var.kind + ", \"" + var.typedef + "\")),"
-        s = s[:-1]
-        if len(algorithm.parameters) > 0:
-            s += "]"
-        s += ")\n"
-        i -= 1
-        s += AllenConf.prefix(i) + "self.__ordered_properties = OrderedDict(["
-        i += 1
-        for prop in algorithm.properties:
-            s += "\n" + AllenConf.prefix(i) + "(" + prop.name + ", Property" \
-              + "(\"" + prop.typedef + "\", " \
-              + "\"\", " + prop.description + ", " + prop.name[1:-1] + ")),"
-        s = s[:-1]
-        if len(algorithm.properties) > 0:
-            s += "]"
-        s += ")\n"
-        i -= 1
-        s += "\n"
+        s += AllenConf.prefix(i) + f"return AlgorithmCategory.{AllenConf.get_algorithm_category(algorithm.name, algorithm.scope)}\n\n"
         i -= 1
 
-        s += AllenConf.prefix(i) + "def filename(self):\n"
+        s += AllenConf.prefix(i) + "def __new__(self, name, **kwargs):\n"
         i += 1
-        s += AllenConf.prefix(i) + "return self.__filename\n\n"
+        s += AllenConf.prefix(i) + "instance = AllenAlgorithm.__new__(self, name)\n"
+        s += AllenConf.prefix(i) + "for n,v in kwargs.items():\n"
+        i += 1
+        s += AllenConf.prefix(i) + "setattr(instance, n, v)\n"
+        i -= 1
+        s += AllenConf.prefix(i) + "return instance\n\n"
         i -= 1
 
-        s += AllenConf.prefix(i) + "def original_name(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__original_name\n\n"
-        i -= 1
-
-        s += AllenConf.prefix(i) + "def name(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__name\n\n"
-        i -= 1
-
-        for var in algorithm.parameters:
-            s += AllenConf.prefix(i) + "def " + var.typename + "(self):\n"
-            i += 1
-            s += AllenConf.prefix(
-                i
-            ) + "return self.__ordered_parameters[\"" + var.typename + "\"]\n\n"
-            i -= 1
-
-        for prop in algorithm.properties:
-            s += AllenConf.prefix(i) + "def " + prop.name[1:-1] + "(self):\n"
-            i += 1
-            s += AllenConf.prefix(
-                i) + "return self.__ordered_properties[" + prop.name + "]\n\n"
-            i -= 1
-
-        s += AllenConf.prefix(i) + "def parameters(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__ordered_parameters\n"
-        i -= 1
-        s += "\n"
-
-        s += AllenConf.prefix(i) + "def properties(self):\n"
-        i += 1
-        s += AllenConf.prefix(i) + "return self.__ordered_properties\n"
-        i -= 1
-        s += "\n"
-
-        s += AllenConf.prefix(i) + "def __repr__(self):\n"
+        s += AllenConf.prefix(i) + "@classmethod\n"
+        s += AllenConf.prefix(i) + "def namespace(cls):\n"
         i += 1
         s += AllenConf.prefix(
-            i
-        ) + "s = self.__original_name + \" \\\"\" + self.__name + \"\\\" (\"\n"
-        s += AllenConf.prefix(
-            i) + "for k, v in iter(self.__ordered_parameters.items()):\n"
-        i += 1
-        s += AllenConf.prefix(
-            i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
-        i -= 1
-        s += AllenConf.prefix(
-            i) + "for k, v in iter(self.__ordered_properties.items()):\n"
-        i += 1
-        s += AllenConf.prefix(
-            i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
-        i -= 1
-        s += AllenConf.prefix(i) + "s = s[:-2]\n"
-        s += AllenConf.prefix(i) + "s += \")\"\n"
-        s += AllenConf.prefix(i) + "return s\n"
-        s += "\n\n"
-
-        return s
-
-
-class GaudiAllenConf():
-    """Static class that generates a python representation of
-    Allen algorithms."""
-
-    @staticmethod
-    def prefix(indentation_level, indent_by=2):
-        return "".join([" "] * indentation_level * indent_by)
-
-    @staticmethod
-    def create_var_type(scope):
-        t = ""
-        if scope == "DEVICE_INPUT":
-            t = "R"
-        elif scope == "DEVICE_OUTPUT":
-            t = "W"
-        elif scope == "HOST_INPUT":
-            t = "R"
-        elif scope == "HOST_OUTPUT":
-            t = "W"
-        return t
-
-    @staticmethod
-    def write_preamble(i=0):
-        # Fetch base_types.py and include it here to make file self-contained
-        s = "from GaudiKernel.DataObjectHandleBase import DataObjectHandleBase\n\
-from AllenKernel import AllenAlgorithm\n\
-from collections import OrderedDict\n\n\n\
-def algorithm_dict(*algorithms):\n\
-    d = OrderedDict([])\n\
-    for alg in algorithms:\n\
-        d[alg.name] = alg\n\
-    return d\n\n\n"
-
-        return s
-
-    @staticmethod
-    def write_algorithm_code(algorithm, i=0):
-        s = GaudiAllenConf.prefix(
-            i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "__slots__ = dict(\n"
-        i += 1
-        for param in algorithm.parameters:
-            s += GaudiAllenConf.prefix(i) + param.typename + " = DataObjectHandleBase(\"" + param.typename + "\", \"" \
-                + param.kind + "\", \"" + str(param.typedef) + "\"),\n"
-        for prop in algorithm.properties:
-            s += GaudiAllenConf.prefix(i) + prop.name[1:-1] + " = \"\",\n"
-        s = s[:-2]
-        i -= 1
-        s += "\n" + GaudiAllenConf.prefix(i) + ")\n\n"
-        s += GaudiAllenConf.prefix(i) + "def __init__(self, name, **kwargs):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "super(" + algorithm.name + ", self).__init__(name)\n" \
-            + GaudiAllenConf.prefix(i) + "for n,v in kwargs.items():\n"
-        i += 1
-        s += GaudiAllenConf.prefix(i) + "setattr(self, n, v)\n\n"
-        i -= 2
-        s += GaudiAllenConf.prefix(i) + "@classmethod\n"
-        s += GaudiAllenConf.prefix(i) + "def namespace(cls):\n"
-        i += 1
-        s += GaudiAllenConf.prefix(
             i) + "return \"" + algorithm.namespace + "\"\n\n"
         i -= 1
-        s += GaudiAllenConf.prefix(i) + "@classmethod\n"
-        s += GaudiAllenConf.prefix(i) + "def filename(cls):\n"
+        s += AllenConf.prefix(i) + "@classmethod\n"
+        s += AllenConf.prefix(i) + "def filename(cls):\n"
         i += 1
-        s += GaudiAllenConf.prefix(
+        s += AllenConf.prefix(
             i) + "return \"" + algorithm.filename + "\"\n\n"
         i -= 1
-        s += GaudiAllenConf.prefix(i) + "@classmethod\n"
-        s += GaudiAllenConf.prefix(i) + "def getType(cls):\n"
+        s += AllenConf.prefix(i) + "@classmethod\n"
+        s += AllenConf.prefix(i) + "def getType(cls):\n"
         i += 1
-        s += GaudiAllenConf.prefix(
+        s += AllenConf.prefix(
             i) + "return \"" + algorithm.name + "\"\n\n\n"
 
         return s
@@ -372,14 +220,8 @@ if __name__ == '__main__':
         'prefix_project_folder',
         nargs='?',
         type=str,
-        default="../",
+        default="..",
         help='project location')
-    parser.add_argument(
-        'configured_generator',
-        nargs='?',
-        type=str,
-        default="Allen",
-        help='configured generator')
     args = parser.parse_args()
 
     prefix_project_folder = args.prefix_project_folder + "/"
@@ -387,20 +229,12 @@ if __name__ == '__main__':
     print("Parsing algorithms...")
     parsed_algorithms = Parser().parse_all()
 
-    if args.configured_generator == "Moore":
-        print("Generating " + args.filename + " in Gaudi format...")
-        s = GaudiAllenConf().write_preamble()
-        for algorithm in parsed_algorithms:
-            s += GaudiAllenConf().write_algorithm_code(algorithm)
-    else:
-        print("Generating " + args.filename + " in Allen format...")
-        s = AllenConf().write_preamble()
-        for algorithm in parsed_algorithms:
-            s += AllenConf().write_algorithm_code(algorithm)
-        # Write a function that returns all algorithms that
-        # require input aggregates
-        s += AllenConf().write_aggregate_algorithms(parsed_algorithms)
-        s += AllenConf().write_postamble()
+    print("Generating " + args.filename + "...")
+    allen_conf = AllenConf()
+    s = allen_conf.write_preamble()
+    for algorithm in parsed_algorithms:
+        s += allen_conf.write_algorithm_code(algorithm)
+    s += allen_conf.write_aggregate_algorithms(parsed_algorithms)
 
     f = open(args.filename, "w")
     f.write(s)
