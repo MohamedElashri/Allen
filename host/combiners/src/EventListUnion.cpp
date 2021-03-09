@@ -6,8 +6,10 @@ void event_list_union::event_list_union_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_event_list_output_t>(arguments, size<dev_event_list_a_t>(arguments) + size<dev_event_list_b_t>(arguments));
-  set_size<host_event_list_output_t>(arguments, size<dev_event_list_a_t>(arguments) + size<dev_event_list_b_t>(arguments));
+  set_size<dev_event_list_output_t>(
+    arguments, size<dev_event_list_a_t>(arguments) + size<dev_event_list_b_t>(arguments));
+  set_size<host_event_list_output_t>(
+    arguments, size<dev_event_list_a_t>(arguments) + size<dev_event_list_b_t>(arguments));
   set_size<host_event_list_a_t>(arguments, size<dev_event_list_a_t>(arguments));
   set_size<host_event_list_b_t>(arguments, size<dev_event_list_b_t>(arguments));
 }

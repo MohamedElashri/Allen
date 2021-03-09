@@ -54,18 +54,15 @@ two_track_mva_line_non_restricted = make_line_composite_node_with_gec(
     "Hlt1TwoTrackMVA_Non_Restricted", line_algorithms)
 
 lines_leaf = CompositeNode(
-    "AllLines",
-    [
+    "AllLines", [
         track_mva_line_restricted, two_track_mva_line_restricted,
         track_mva_line_non_restricted, two_track_mva_line_non_restricted
     ],
     NodeLogic.NONLAZY_OR,
-    forceOrder=False
-)
+    forceOrder=False)
 
 hlt1_node = CompositeNode(
-    "Allen",
-    [
+    "Allen", [
         lines_leaf,
         make_leaf(
             name="dec_reporter",
@@ -75,8 +72,7 @@ hlt1_node = CompositeNode(
     forceOrder=True)
 
 validators_node = CompositeNode(
-    "Validators",
-    [
+    "Validators", [
         make_leaf(
             name="velo_validation",
             alg=velo_validation(
@@ -128,8 +124,7 @@ validators_node = CompositeNode(
     forceOrder=False)
 
 node = CompositeNode(
-    "AllenWithValidators",
-    [hlt1_node, validators_node],
+    "AllenWithValidators", [hlt1_node, validators_node],
     NodeLogic.NONLAZY_AND,
     forceOrder=False)
 

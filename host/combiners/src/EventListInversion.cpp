@@ -8,7 +8,7 @@ void event_list_inversion::event_list_inversion_t::set_arguments_size(
 {
   const auto number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
-    
+
   set_size<dev_event_list_output_t>(arguments, number_of_events);
   set_size<host_event_list_output_t>(arguments, number_of_events);
   set_size<host_event_list_t>(arguments, size<dev_event_list_input_t>(arguments));
@@ -23,7 +23,7 @@ void event_list_inversion::event_list_inversion_t::operator()(
 {
   const auto number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
-    
+
   copy<host_event_list_t, dev_event_list_input_t>(arguments, context);
 
   // Make a list that contains all events not in host_event_list_t

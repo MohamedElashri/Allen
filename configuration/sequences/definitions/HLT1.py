@@ -109,8 +109,7 @@ def make_line_composite_node_with_gec(alg_name,
                                       line_algorithms,
                                       gec_name="gec"):
     return CompositeNode(
-        alg_name,
-        [
+        alg_name, [
             make_leaf(name=gec_name, alg=gec()),
             make_leaf(alg_name, alg=line_algorithms[alg_name])
         ],
@@ -162,8 +161,7 @@ def default_lines_leaf_with_GEC(line_algorithms):
         "Hlt1Passthrough", alg=line_algorithms["Hlt1Passthrough"])
 
     return CompositeNode(
-        "AllLines",
-        [
+        "AllLines", [
             track_mva_line, two_track_mva_line, no_beam_line, one_beam_line,
             two_beam_line, both_beam_line, velo_micro_bias_line,
             odin_lumi_line, odin_no_bias_line, single_high_pt_muon_line,
@@ -173,8 +171,7 @@ def default_lines_leaf_with_GEC(line_algorithms):
             passthrough_with_gec_line, passthrough_line
         ],
         NodeLogic.NONLAZY_OR,
-        forceOrder=False
-    )
+        forceOrder=False)
 
 
 def default_lines_leaf_no_GEC(line_algorithms):
@@ -216,8 +213,7 @@ def default_lines_leaf_no_GEC(line_algorithms):
         "Hlt1Passthrough", alg=line_algorithms["Hlt1Passthrough"])
 
     return CompositeNode(
-        "AllLines",
-        [
+        "AllLines", [
             track_mva_line, two_track_mva_line, no_beam_line, one_beam_line,
             two_beam_line, both_beam_line, velo_micro_bias_line,
             odin_lumi_line, odin_no_bias_line, single_high_pt_muon_line,
@@ -226,8 +222,7 @@ def default_lines_leaf_no_GEC(line_algorithms):
             low_pt_di_muon_line, track_muon_mva_line, passthrough_line
         ],
         NodeLogic.NONLAZY_OR,
-        forceOrder=False
-    )
+        forceOrder=False)
 
 
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
@@ -248,8 +243,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         lines_leaf = default_lines_leaf_no_GEC(line_algorithms)
 
     hlt1_node = CompositeNode(
-        "Allen",
-        [
+        "Allen", [
             lines_leaf,
             make_leaf(
                 name="dec_reporter",
@@ -265,8 +259,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
                                          line_algorithms)
 
         node = CompositeNode(
-            "AllenWithValidators",
-            [hlt1_node, validation_node],
+            "AllenWithValidators", [hlt1_node, validation_node],
             NodeLogic.NONLAZY_AND,
             forceOrder=False)
 
