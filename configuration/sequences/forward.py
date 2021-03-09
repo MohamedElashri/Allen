@@ -36,9 +36,9 @@ def forward_tracking_leaf(name, **kwargs):
 
 forward_tracking_sequence = CompositeNode(
     "ForwardTrackingWithGEC",
-    NodeLogic.LAZY_AND,
     [gec_leaf("gec"),
      forward_tracking_leaf("forward_tracking")],
+    NodeLogic.LAZY_AND,
     forceOrder=True)
 
 generate(forward_tracking_sequence)

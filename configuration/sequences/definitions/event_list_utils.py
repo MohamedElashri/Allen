@@ -4,7 +4,7 @@
 from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
 from PyConf.control_flow import Leaf, NodeLogic, CompositeNode
-from PyConf.cftree_ops import get_best_order, get_execution_list_for, gather_leafs
+from definitions.cftree_ops import get_best_order, get_execution_list_for, gather_leafs, BoolNode
 from definitions.AllenSequenceGenerator import generate_allen_sequence
 from definitions.allen_benchmarks import benchmark_weights, benchmark_efficiencies
 from definitions.algorithms import (
@@ -115,9 +115,9 @@ def add_event_list_combiners(order):
     def _make_combiners_from(node, combiners):
         if not node:
             combiners.append(initialize_event_lists())
-        if isinstance(node, Leaf):
-            combiners.append(node.algs[-1])
-        elif isinstance(node, CompositeNode):
+        elif isinstance(node, Leaf):
+            combiners.append(node.top_alg)
+        elif isinstance(node, BoolNode):
             if _has_only_leafs(node):
                 combiners.append(
                     combine(node.combineLogic, *[c.algs[-1] for c in node.children])
@@ -143,6 +143,8 @@ def add_event_list_combiners(order):
                     _make_combiners_from(node.children[1], combiners)
                     c2 = combiners[-1]
                     combiners.append(combine(node.combineLogic, c1, c2))
+        else:
+            raise TypeError(f"expected leaf or compositenode, got {type(node)}")
         return combiners
 
     def make_combiners_from(node):

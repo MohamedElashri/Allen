@@ -25,8 +25,8 @@ def ut_tracking_leaf(name, **kwargs):
 
 ut_tracking_sequence = CompositeNode(
     "UTTrackingWithGEC",
-    NodeLogic.LAZY_AND,
     [gec_leaf("gec"), ut_tracking_leaf("ut_tracking")],
+    NodeLogic.LAZY_AND,
     forceOrder=True)
 
 generate(ut_tracking_sequence)

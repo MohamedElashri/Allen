@@ -51,7 +51,33 @@ if (Python3_FOUND AND (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND) AND SEQUENC
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   else()
-    # TODO: Add dependency on PyConf somehow
+    # Add the PyConf dependency
+    find_package(Git REQUIRED)
+    add_custom_command(
+      OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
+      COMMAND
+        ${CMAKE_COMMAND} -E env git clone https://gitlab.cern.ch/lhcb/LHCb &&
+        ${CMAKE_COMMAND} -E env git -C LHCb/ checkout dcampora_nnolte_mes_pyconf &&
+        ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf
+        # Other option that does not work. If it worked it would allow not having to clone the entire LHCb repository but
+        # just one folder. It would also require git 2.26.0.
+        # ${CMAKE_COMMAND} -E env git clone https://gitlab.cern.ch/lhcb/LHCb --depth 1 --filter=blob:none --sparse &&
+        # ${CMAKE_COMMAND} -E env git -C LHCb/ sparse-checkout init --cone &&
+        # ${CMAKE_COMMAND} -E env git -C LHCb/ sparse-checkout set PyConf/python/PyConf &&
+        # ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf
+      WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
+      COMMAND 
+        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
+        ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" "${ALGORITHMS_OUTPUTFILE}" "${CMAKE_SOURCE_DIR}" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
+        ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
+        ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
+        ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/PyConf"
+      WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   endif()
 else()
   if(SEQUENCE_GENERATION)

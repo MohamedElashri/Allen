@@ -102,10 +102,11 @@ line_algorithms = {
 def make_line_composite_node_with_gec(alg_name, gec_name="gec", **kwargs):
     return CompositeNode(
         alg_name,
-        NodeLogic.LAZY_AND, [
+        [
             make_leaf(name=gec_name, alg=gec(**kwargs)),
             make_leaf(alg_name, alg=line_algorithms[alg_name])
         ],
+        NodeLogic.LAZY_AND,
         forceOrder=True)
 
 
@@ -137,8 +138,7 @@ passthrough_line = make_leaf(
 
 lines_leaf = CompositeNode(
     "AllLines",
-    NodeLogic.NONLAZY_OR,
-    children=[
+    [
         track_mva_line, two_track_mva_line, no_beam_line, one_beam_line,
         two_beam_line, both_beam_line, velo_micro_bias_line, odin_lumi_line,
         odin_no_bias_line, single_high_pt_muon_line, low_pt_muon_line,
@@ -146,17 +146,18 @@ lines_leaf = CompositeNode(
         di_muon_low_mass_line, di_muon_soft_line, low_pt_di_muon_line,
         track_muon_mva_line, passthrough_with_gec_line, passthrough_line
     ],
+    NodeLogic.NONLAZY_OR,
     forceOrder=False
 )
 
 gather_selections_node = CompositeNode(
     "Allen",
-    NodeLogic.NONLAZY_AND, [
+    [
         lines_leaf,
         make_leaf(
             name="dec_reporter",
             alg=make_dec_reporter(lines=line_algorithms.values()))
-    ],
+    ], NodeLogic.NONLAZY_AND,
     forceOrder=True)
 
 compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,

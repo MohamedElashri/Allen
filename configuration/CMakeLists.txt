@@ -9,7 +9,5 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
-find_package(pytools)
-
-gaudi_add_test(pytest
-               COMMAND bash -c "cp ${CMAKE_CURRENT_SOURCE_DIR}/sequences/tests/test_algorithms.py ${CMAKE_CURRENT_SOURCE_DIR}/sequences/definitions/algorithms.py && pytest ${CMAKE_CURRENT_SOURCE_DIR}/sequences/tests")
+#gaudi_add_test(pytest
+#               COMMAND bash -c "cp ${CMAKE_CURRENT_SOURCE_DIR}/sequences/tests/test_algorithms.py ${CMAKE_CURRENT_SOURCE_DIR}/sequences/definitions/algorithms.py && pytest ${CMAKE_CURRENT_SOURCE_DIR}/sequences/tests")

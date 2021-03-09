@@ -24,8 +24,8 @@ def gec_leaf(name,
 
 velo_tracking_sequence = CompositeNode(
     "VeloTrackingWithGEC",
-    NodeLogic.LAZY_AND,
     [gec_leaf("gec"), velo_tracking_leaf("velo_tracking")],
+    NodeLogic.LAZY_AND,
     forceOrder=True)
 
 generate(velo_tracking_sequence)

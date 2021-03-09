@@ -15,9 +15,10 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 # import pytest
 from sympy import simplify
 from collections import OrderedDict
+from functools import lru_cache
 from PyConf.components import Algorithm
 from PyConf.control_flow import Leaf, NodeLogic as Logic, CompositeNode
-from PyConf.cftree_ops import (
+from definitions.cftree_ops import (
     gather_algs,
     get_ordered_trees,
     to_string,
@@ -30,11 +31,10 @@ from PyConf.cftree_ops import (
     avrg_efficiency,
     make_independent_of_algs,
 )
-from PyConf.utils import memoizing
 from definitions.algorithms import *
 
 
-@memoizing
+@lru_cache(100)
 def sample_tree_0():
     pre0 = Algorithm(decider_1_t, name="pre0_st0", conf=2)
     pre1 = Algorithm(decider_1_t, name="pre1_st0", conf=1)
@@ -46,28 +46,28 @@ def sample_tree_0():
     X = Leaf("X_st0", 3, 1, alg=x)
     Y = Leaf("Y_st0", 4, 1, alg=y)
 
-    line1 = CompositeNode("L1_st0", Logic.LAZY_AND, [PRE0, X], forceOrder=True)
-    line2 = CompositeNode("L2_st0", Logic.LAZY_AND, [PRE1, Y], forceOrder=True)
-    top = CompositeNode("root_st0", Logic.LAZY_OR, [line1, line2], forceOrder=False)
+    line1 = CompositeNode("L1_st0", [PRE0, X], Logic.LAZY_AND, forceOrder=True)
+    line2 = CompositeNode("L2_st0", [PRE1, Y], Logic.LAZY_AND, forceOrder=True)
+    top = CompositeNode("root_st0", [line1, line2], Logic.LAZY_OR, forceOrder=False)
     return top
 
 
-@memoizing
+@lru_cache(100)
 def sample_tree_1():
     PRE0 = Leaf("PRE0_st1", 1, 0.7, alg=None)
     PRE1 = Leaf("PRE1_st1", 2, 0.6, alg=None)
     X = Leaf("X_st1", 3, 0.5, alg=None)
     Y = Leaf("Y_st1", 5, 0.4, alg=None)
 
-    line1 = CompositeNode("L1_st1", Logic.LAZY_AND, [PRE0, X], forceOrder=True)
-    line2 = CompositeNode("L2_st1", Logic.LAZY_AND, [PRE1, Y], forceOrder=True)
-    notline2 = CompositeNode("nL2_st1", Logic.NOT, [line2], forceOrder=True)
+    line1 = CompositeNode("L1_st1", [PRE0, X], Logic.LAZY_AND, forceOrder=True)
+    line2 = CompositeNode("L2_st1", [PRE1, Y], Logic.LAZY_AND, forceOrder=True)
+    notline2 = CompositeNode("nL2_st1", [line2], Logic.NOT, forceOrder=True)
     top = CompositeNode(
-        "root_st1", Logic.LAZY_OR, [line1, notline2], forceOrder=True)
+        "root_st1", [line1, notline2], Logic.LAZY_OR, forceOrder=True)
     return top
 
 
-@memoizing
+@lru_cache(100)
 def sample_tree_2():
     """
     In Moore (or rather the HltControlflowMgr), this would be an invalid tree
@@ -90,11 +90,11 @@ def sample_tree_2():
     PRE1 = Leaf("PRE1_st2", 1, 0.3, alg=pre1)
     PRE2 = Leaf("PRE2_st2", 2, 0.3, alg=pre2)
     pre12 = CompositeNode(
-        "pre12_st2", Logic.LAZY_AND, [PRE1, PRE2], forceOrder=True, lazy=True)
+        "pre12_st2", [PRE1, PRE2], Logic.LAZY_AND, forceOrder=True)
     pre02 = CompositeNode(
-        "pre02_st2", Logic.LAZY_AND, [PRE0, PRE2], forceOrder=True, lazy=True)
+        "pre02_st2", [PRE0, PRE2], Logic.LAZY_AND, forceOrder=True)
     return CompositeNode(
-        "boom_st2", Logic.LAZY_OR, [pre02, pre12], forceOrder=True, lazy=True)
+        "boom_st2", [pre02, pre12], Logic.LAZY_OR, forceOrder=True)
 
 
 def test_gather_leafs():
@@ -142,7 +142,7 @@ def test_parse_boolean():
     root = sample_tree_1()
     root = get_ordered_trees(root)[0]
     other_root = parse_boolean("((PRE0_st1 & X_st1) | ~(PRE1_st1 & Y_st1))")
-    assert root == other_root
+    assert to_string(root) == to_string(other_root) and gather_leafs(root) == gather_leafs(other_root)
 
 
 def test_find_execution_masks_for_algorithms():

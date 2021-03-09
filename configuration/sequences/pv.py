@@ -24,8 +24,8 @@ def pv_finder_leaf(name, **kwargs):
 
 pv_finder_sequence = CompositeNode(
     "PVWithGEC",
-    NodeLogic.LAZY_AND,
     [gec_leaf("gec"), pv_finder_leaf("pv_finder")],
+    NodeLogic.LAZY_AND,
     forceOrder=True)
 
 generate(pv_finder_sequence)
