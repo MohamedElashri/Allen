@@ -199,6 +199,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   // Get line decisions from DecReports
   // First two words contain the TCK and taskID, then one word per HLT1 line
   LHCb::HltDecReports reports {};
+  reports.setConfiguredTCK(m_tck);
   reports.reserve(buffer->host_number_of_lines);
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
   for (unsigned int i = 0; i < buffer->host_number_of_lines; i++) {

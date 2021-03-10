@@ -104,6 +104,7 @@
 #include "../../device/selections/lines/include/PassthroughLine.cuh"
 #include "../../device/selections/Hlt1/include/GatherSelections.cuh"
 #include "../../device/selections/Hlt1/include/DecReporter.cuh"
+#include "../../device/selections/Hlt1/include/GlobalDecision.cuh"
 
 struct mep_layout__host_mep_layout_t : layout_provider::Parameters::host_mep_layout_t {
   using type = layout_provider::Parameters::host_mep_layout_t::type;
@@ -212,7 +213,8 @@ struct initialize_lists__host_number_of_events_t
     track_muon_mva_line::Parameters::host_number_of_events_t,
     passthrough_line::Parameters::host_number_of_events_t,
     gather_selections::Parameters::host_number_of_events_t,
-    dec_reporter::Parameters::host_number_of_events_t {
+    dec_reporter::Parameters::host_number_of_events_t,
+    global_decision::Parameters::host_number_of_events_t {
   using type = host_global_event_cut::Parameters::host_number_of_events_t::type;
 };
 struct initialize_lists__host_number_of_selected_events_t
@@ -253,7 +255,8 @@ struct initialize_lists__dev_number_of_events_t
     FilterTracks::Parameters::dev_number_of_events_t,
     VertexFit::Parameters::dev_number_of_events_t,
     velo_micro_bias_line::Parameters::dev_number_of_events_t,
-    passthrough_line::Parameters::dev_number_of_events_t {
+    passthrough_line::Parameters::dev_number_of_events_t,
+    global_decision::Parameters::dev_number_of_events_t {
   using type = host_global_event_cut::Parameters::dev_number_of_events_t::type;
 };
 struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::dev_event_list_t,
@@ -1244,7 +1247,8 @@ struct gather_selections__host_selections_offsets_t : gather_selections::Paramet
   using type = gather_selections::Parameters::host_selections_offsets_t::type;
 };
 struct gather_selections__host_number_of_active_lines_t : gather_selections::Parameters::host_number_of_active_lines_t,
-                                                          dec_reporter::Parameters::host_number_of_active_lines_t {
+                                                          dec_reporter::Parameters::host_number_of_active_lines_t,
+                                                          global_decision::Parameters::host_number_of_active_lines_t {
   using type = gather_selections::Parameters::host_number_of_active_lines_t::type;
 };
 struct gather_selections__host_names_of_active_lines_t : gather_selections::Parameters::host_names_of_active_lines_t {
@@ -1259,7 +1263,8 @@ struct gather_selections__dev_selections_offsets_t : gather_selections::Paramete
   using type = gather_selections::Parameters::dev_selections_offsets_t::type;
 };
 struct gather_selections__dev_number_of_active_lines_t : gather_selections::Parameters::dev_number_of_active_lines_t,
-                                                         dec_reporter::Parameters::dev_number_of_active_lines_t {
+                                                         dec_reporter::Parameters::dev_number_of_active_lines_t,
+                                                         global_decision::Parameters::dev_number_of_active_lines_t {
   using type = gather_selections::Parameters::dev_number_of_active_lines_t::type;
 };
 struct gather_selections__host_post_scale_factors_t : gather_selections::Parameters::host_post_scale_factors_t {
@@ -1274,8 +1279,12 @@ struct gather_selections__dev_post_scale_factors_t : gather_selections::Paramete
 struct gather_selections__dev_post_scale_hashes_t : gather_selections::Parameters::dev_post_scale_hashes_t {
   using type = gather_selections::Parameters::dev_post_scale_hashes_t::type;
 };
-struct dec_reporter__dev_dec_reports_t : dec_reporter::Parameters::dev_dec_reports_t {
+struct dec_reporter__dev_dec_reports_t : dec_reporter::Parameters::dev_dec_reports_t,
+                                         global_decision::Parameters::dev_dec_reports_t {
   using type = dec_reporter::Parameters::dev_dec_reports_t::type;
+};
+struct global_decision__dev_global_decision_t : global_decision::Parameters::dev_global_decision_t {
+  using type = global_decision::Parameters::dev_global_decision_t::type;
 };
 
 using configured_arguments_t = std::tuple<
@@ -1543,7 +1552,8 @@ using configured_arguments_t = std::tuple<
   gather_selections__host_post_scale_hashes_t,
   gather_selections__dev_post_scale_factors_t,
   gather_selections__dev_post_scale_hashes_t,
-  dec_reporter__dev_dec_reports_t>;
+  dec_reporter__dev_dec_reports_t,
+  global_decision__dev_global_decision_t>;
 
 using configured_sequence_t = std::tuple<
   layout_provider::layout_provider_t,
@@ -1636,7 +1646,8 @@ using configured_sequence_t = std::tuple<
   passthrough_line::passthrough_line_t,
   passthrough_line::passthrough_line_t,
   gather_selections::gather_selections_t,
-  dec_reporter::dec_reporter_t>;
+  dec_reporter::dec_reporter_t,
+  global_decision::global_decision_t>;
 
 using configured_sequence_arguments_t = std::tuple<
   std::tuple<mep_layout__host_mep_layout_t, mep_layout__dev_mep_layout_t>,
@@ -2640,7 +2651,14 @@ using configured_sequence_arguments_t = std::tuple<
     gather_selections__dev_number_of_active_lines_t,
     gather_selections__dev_selections_t,
     gather_selections__dev_selections_offsets_t,
-    dec_reporter__dev_dec_reports_t>>;
+    dec_reporter__dev_dec_reports_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    gather_selections__host_number_of_active_lines_t,
+    initialize_lists__dev_number_of_events_t,
+    gather_selections__dev_number_of_active_lines_t,
+    dec_reporter__dev_dec_reports_t,
+    global_decision__dev_global_decision_t>>;
 
 constexpr auto sequence_algorithm_names = std::array {"mep_layout",
                                                       "host_ut_banks",
@@ -2732,7 +2750,8 @@ constexpr auto sequence_algorithm_names = std::array {"mep_layout",
                                                       "Hlt1GECPassthrough",
                                                       "Hlt1Passthrough",
                                                       "gather_selections",
-                                                      "dec_reporter"};
+                                                      "dec_reporter",
+                                                      "global_decision"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)
@@ -3167,4 +3186,5 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<gather_selections__dev_post_scale_hashes_t>(
     "gather_selections__dev_post_scale_hashes_t");
   argument_manager.template set_name<dec_reporter__dev_dec_reports_t>("dec_reporter__dev_dec_reports_t");
+  argument_manager.template set_name<global_decision__dev_global_decision_t>("global_decision__dev_global_decision_t");
 }

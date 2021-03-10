@@ -104,6 +104,7 @@
 #include "../../device/selections/lines/include/PassthroughLine.cuh"
 #include "../../device/selections/Hlt1/include/GatherSelections.cuh"
 #include "../../device/selections/Hlt1/include/DecReporter.cuh"
+#include "../../device/selections/Hlt1/include/GlobalDecision.cuh"
 #include "../../host/data_provider/include/MCDataProvider.h"
 #include "../../host/validators/include/HostVeloValidator.h"
 #include "../../host/validators/include/HostVeloUTValidator.h"
@@ -214,6 +215,7 @@ struct initialize_lists__host_number_of_events_t
     passthrough_line::Parameters::host_number_of_events_t,
     gather_selections::Parameters::host_number_of_events_t,
     dec_reporter::Parameters::host_number_of_events_t,
+    global_decision::Parameters::host_number_of_events_t,
     host_velo_validator::Parameters::host_number_of_events_t,
     host_velo_ut_validator::Parameters::host_number_of_events_t,
     host_forward_validator::Parameters::host_number_of_events_t,
@@ -259,7 +261,8 @@ struct initialize_lists__dev_number_of_events_t
     FilterTracks::Parameters::dev_number_of_events_t,
     VertexFit::Parameters::dev_number_of_events_t,
     velo_micro_bias_line::Parameters::dev_number_of_events_t,
-    passthrough_line::Parameters::dev_number_of_events_t {
+    passthrough_line::Parameters::dev_number_of_events_t,
+    global_decision::Parameters::dev_number_of_events_t {
   using type = host_init_event_list::Parameters::dev_number_of_events_t::type;
 };
 struct initialize_lists__dev_event_list_t : host_init_event_list::Parameters::dev_event_list_t,
@@ -1322,6 +1325,7 @@ struct gather_selections__host_selections_offsets_t : gather_selections::Paramet
 struct gather_selections__host_number_of_active_lines_t
   : gather_selections::Parameters::host_number_of_active_lines_t,
     dec_reporter::Parameters::host_number_of_active_lines_t,
+    global_decision::Parameters::host_number_of_active_lines_t,
     host_rate_validator::Parameters::host_number_of_active_lines_t {
   using type = gather_selections::Parameters::host_number_of_active_lines_t::type;
 };
@@ -1340,7 +1344,8 @@ struct gather_selections__dev_selections_offsets_t : gather_selections::Paramete
   using type = gather_selections::Parameters::dev_selections_offsets_t::type;
 };
 struct gather_selections__dev_number_of_active_lines_t : gather_selections::Parameters::dev_number_of_active_lines_t,
-                                                         dec_reporter::Parameters::dev_number_of_active_lines_t {
+                                                         dec_reporter::Parameters::dev_number_of_active_lines_t,
+                                                         global_decision::Parameters::dev_number_of_active_lines_t {
   using type = gather_selections::Parameters::dev_number_of_active_lines_t::type;
 };
 struct gather_selections__host_post_scale_factors_t : gather_selections::Parameters::host_post_scale_factors_t {
@@ -1355,8 +1360,12 @@ struct gather_selections__dev_post_scale_factors_t : gather_selections::Paramete
 struct gather_selections__dev_post_scale_hashes_t : gather_selections::Parameters::dev_post_scale_hashes_t {
   using type = gather_selections::Parameters::dev_post_scale_hashes_t::type;
 };
-struct dec_reporter__dev_dec_reports_t : dec_reporter::Parameters::dev_dec_reports_t {
+struct dec_reporter__dev_dec_reports_t : dec_reporter::Parameters::dev_dec_reports_t,
+                                         global_decision::Parameters::dev_dec_reports_t {
   using type = dec_reporter::Parameters::dev_dec_reports_t::type;
+};
+struct global_decision__dev_global_decision_t : global_decision::Parameters::dev_global_decision_t {
+  using type = global_decision::Parameters::dev_global_decision_t::type;
 };
 struct mc_data_provider__host_mc_events_t : mc_data_provider::Parameters::host_mc_events_t,
                                             host_velo_validator::Parameters::host_mc_events_t,
@@ -1633,6 +1642,7 @@ using configured_arguments_t = std::tuple<
   gather_selections__dev_post_scale_factors_t,
   gather_selections__dev_post_scale_hashes_t,
   dec_reporter__dev_dec_reports_t,
+  global_decision__dev_global_decision_t,
   mc_data_provider__host_mc_events_t>;
 
 using configured_sequence_t = std::tuple<
@@ -1727,6 +1737,7 @@ using configured_sequence_t = std::tuple<
   passthrough_line::passthrough_line_t,
   gather_selections::gather_selections_t,
   dec_reporter::dec_reporter_t,
+  global_decision::global_decision_t,
   mc_data_provider::mc_data_provider_t,
   host_velo_validator::host_velo_validator_t,
   host_velo_ut_validator::host_velo_ut_validator_t,
@@ -2738,6 +2749,13 @@ using configured_sequence_arguments_t = std::tuple<
     gather_selections__dev_selections_t,
     gather_selections__dev_selections_offsets_t,
     dec_reporter__dev_dec_reports_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    gather_selections__host_number_of_active_lines_t,
+    initialize_lists__dev_number_of_events_t,
+    gather_selections__dev_number_of_active_lines_t,
+    dec_reporter__dev_dec_reports_t,
+    global_decision__dev_global_decision_t>,
   std::tuple<mc_data_provider__host_mc_events_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
@@ -2923,6 +2941,7 @@ constexpr auto sequence_algorithm_names = std::array {"mep_layout",
                                                       "Hlt1Passthrough",
                                                       "gather_selections",
                                                       "dec_reporter",
+                                                      "global_decision",
                                                       "mc_data_provider",
                                                       "host_velo_validator",
                                                       "host_velo_ut_validator",
@@ -3363,5 +3382,6 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<gather_selections__dev_post_scale_hashes_t>(
     "gather_selections__dev_post_scale_hashes_t");
   argument_manager.template set_name<dec_reporter__dev_dec_reports_t>("dec_reporter__dev_dec_reports_t");
+  argument_manager.template set_name<global_decision__dev_global_decision_t>("global_decision__dev_global_decision_t");
   argument_manager.template set_name<mc_data_provider__host_mc_events_t>("mc_data_provider__host_mc_events_t");
 }

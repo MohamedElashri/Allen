@@ -465,7 +465,18 @@ def HLT1Sequence(layout_provider,
             dev_selections_t=gatherer.dev_selections_t(),
             dev_selections_offsets_t=gatherer.dev_selections_offsets_t())
 
+        global_decision = global_decision_t(
+            name="global_decision",
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_active_lines_t=gatherer.
+            host_number_of_active_lines_t(),
+            dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+            dev_number_of_active_lines_t=gatherer.
+            dev_number_of_active_lines_t(),
+            dev_dec_reports_t=dec_reporter.dev_dec_reports_t())
+
         return extend_sequence(
-            extend_sequence(hlt1_sequence, *lines), gatherer, dec_reporter)
+            extend_sequence(hlt1_sequence, *lines), gatherer, dec_reporter,
+            global_decision)
 
     return hlt1_sequence
