@@ -21,13 +21,13 @@ allen_add_executable(unit_tests ${generic_tests} ${cu_generic_tests})
 
 target_link_libraries(unit_tests Catch2::Catch2 HostPrefixSum)
 
-include(CTest)
-
-if (STANDALONE)
-  include(Catch)
-  catch_discover_tests(unit_tests)
-else()
-  gaudi_add_test(allen_unit_tests COMMAND unit_tests)
+if (NOT STANDALONE)
+  # Make test discovery work in stack builds
+  set_property(TARGET unit_tests PROPERTY CROSSCOMPILING_EMULATOR ${env_cmd} --xml ${env_xml})
 endif()
+
+include(CTest)
+include(Catch)
+catch_discover_tests(unit_tests)
 
 install(TARGETS unit_tests RUNTIME DESTINATION bin)
