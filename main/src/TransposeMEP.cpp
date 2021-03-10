@@ -76,6 +76,7 @@ size_t MEP::allen_offsets(
   ::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
+  std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
@@ -93,7 +94,7 @@ size_t MEP::allen_offsets(
     auto allen_type = bank_ids[lhcb_type];
     auto& source_offsets = input_offsets[i_block];
     uint run_number = 0;
-    if (allen_type != -1) {
+    if (allen_type != -1 && bank_types.count(BankTypes {allen_type})) {
       for (size_t i = event_start; i < event_end; ++i) {
         // First check for run changes in ODIN banks
         if (split_by_run && lhcb_type == LHCb::RawBank::ODIN) {
@@ -125,7 +126,7 @@ size_t MEP::allen_offsets(
   size_t n_frag = (event_end - event_start);
   for (size_t lhcb_type = 0; lhcb_type < bank_ids.size(); ++lhcb_type) {
     auto allen_type = bank_ids[lhcb_type];
-    if (allen_type != -1) {
+    if (allen_type != -1 && bank_types.count(BankTypes {allen_type})) {
       auto& [slice, slice_size, event_offsets, offsets_size] = slices[allen_type][slice_index];
       event_offsets[0] = 0;
       auto preamble_words = 2 + banks_count[lhcb_type];
@@ -147,7 +148,7 @@ size_t MEP::allen_offsets(
   // Set offsets_size here to make sure it's consistent with the max
   for (size_t lhcb_type = 0; lhcb_type < bank_ids.size(); ++lhcb_type) {
     auto allen_type = bank_ids[lhcb_type];
-    if (allen_type != -1) {
+    if (allen_type != -1 && bank_types.count(BankTypes {allen_type})) {
       auto& offsets_size = std::get<3>(slices[allen_type][slice_index]);
       offsets_size = n_frag + 1;
     }
@@ -159,6 +160,7 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
   ::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
+  std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
   EB::Header const& mep_header,
@@ -201,7 +203,7 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
       }
     }
 
-    if (allen_type != -1) {
+    if (allen_type != -1 && bank_types.count(BankTypes {allen_type})) {
       auto& [spans, data_size, event_offsets, offsets_size] = slices[allen_type][slice_index];
 
       // Calculate block offset and size
@@ -254,6 +256,7 @@ bool MEP::transpose_event(
   ::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
+  std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
   EB::Header const& mep_header,
@@ -284,7 +287,8 @@ bool MEP::transpose_event(
       }
     }
 
-    if (bank_type >= LHCb::RawBank::LastType || bank_ids[bank_type] == -1) {
+    auto const allen_type = bank_ids[bank_type];
+    if (bank_type >= LHCb::RawBank::LastType || allen_type == -1 || !bank_types.count(BankTypes {allen_type})) {
       prev_type = bank_type;
     }
     else {
@@ -344,6 +348,7 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   ::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
+  std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
   EB::Header const& mep_header,
@@ -357,12 +362,13 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   bool success = true;
 
   auto to_transpose = allen_offsets(
-    slices, slice_index, bank_ids, banks_count, mep_header, blocks, source_offsets, interval, split_by_run);
+    slices, slice_index, bank_ids, bank_types, banks_count, mep_header, blocks, source_offsets, interval, split_by_run);
 
   transpose_event(
     slices,
     slice_index,
     bank_ids,
+    bank_types,
     banks_count,
     event_ids,
     mep_header,
@@ -371,21 +377,4 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
     {event_start, event_start + to_transpose});
 
   return {success, to_transpose != (event_end - event_start), to_transpose};
-}
-
-std::vector<int> bank_ids()
-{
-  // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
-  std::vector<int> ids;
-  ids.resize(LHCb::RawBank::LastType);
-  for (int bt = LHCb::RawBank::L0Calo; bt < LHCb::RawBank::LastType; ++bt) {
-    auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
-    if (it != Allen::bank_types.end()) {
-      ids[bt] = to_integral(it->second);
-    }
-    else {
-      ids[bt] = -1;
-    }
-  }
-  return ids;
 }

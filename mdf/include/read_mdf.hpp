@@ -22,11 +22,14 @@
 #include "mdf_header.hpp"
 
 namespace Allen {
-  const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {{LHCb::RawBank::VP, BankTypes::VP},
-                                                                             {LHCb::RawBank::UT, BankTypes::UT},
-                                                                             {LHCb::RawBank::FTCluster, BankTypes::FT},
-                                                                             {LHCb::RawBank::Muon, BankTypes::MUON},
-                                                                             {LHCb::RawBank::ODIN, BankTypes::ODIN}};
+  const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {
+    {LHCb::RawBank::VP, BankTypes::VP},
+    {LHCb::RawBank::UT, BankTypes::UT},
+    {LHCb::RawBank::FTCluster, BankTypes::FT},
+    {LHCb::RawBank::Muon, BankTypes::MUON},
+    {LHCb::RawBank::ODIN, BankTypes::ODIN},
+    {LHCb::RawBank::HcalPacked, BankTypes::HCal},
+    {LHCb::RawBank::EcalPacked, BankTypes::ECal}};
 
   using buffer_map = std::unordered_map<BankTypes, std::pair<std::vector<char>, std::vector<unsigned int>>>;
 

@@ -112,7 +112,8 @@ int main(int argc, char* argv[])
       ++i_block;
     }
 
-    MEP::mep_offsets(slices, 0, bank_ids, banks_count, events, mep_header, blocks, {0, interval});
+    MEP::mep_offsets(
+      slices, 0, bank_ids, {BankTypes::UT, BankTypes::FT}, banks_count, events, mep_header, blocks, {0, interval});
     auto scifi_allen_type = to_integral(BankTypes::FT);
 
     auto const& [scifi_data, scifi_data_size, scifi_offsets, scifi_offsets_size] = slices[scifi_allen_type][0];
@@ -145,7 +146,6 @@ int main(int argc, char* argv[])
       return bno;
     };
 
-    auto vp_banks = slice_to_banks(0, BankTypes::VP);
     auto ut_banks = slice_to_banks(0, BankTypes::UT);
     auto scifi_banks = slice_to_banks(0, BankTypes::FT);
 

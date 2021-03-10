@@ -88,7 +88,7 @@ int allen(
   unsigned number_of_slices = 0;
   unsigned number_of_buffers = 0;
   long number_of_events_requested = 0;
-  auto events_per_slice = boost::make_optional(false, unsigned {});
+  unsigned events_per_slice = 0;
   unsigned start_event_offset = 0;
   unsigned number_of_threads = 1;
   unsigned number_of_repetitions = 1;
@@ -300,11 +300,8 @@ int allen(
   // print_configured_sequence();
 
   // Set a sane default for the number of events per input slice
-  if (!events_per_slice && number_of_events_requested != 0) {
+  if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
     events_per_slice = number_of_events_requested;
-  }
-  else if (!events_per_slice) {
-    events_per_slice = 1000;
   }
 
   // Raw data input folders
@@ -355,20 +352,20 @@ int allen(
                               receivers};           // Map of receiver to MPI rank to receive from
     input_provider =
       std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
+        number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
-    MDFProviderConfig config {false,                      // verify MDF checksums
-                              10,                         // number of read buffers
-                              4,                          // number of transpose threads
-                              *events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
-                              *events_per_slice,          // number of events per read buffer
-                              n_io_reps,                  // number of loops over the input files
-                              !disable_run_changes};      // Whether to split slices by run number
+    MDFProviderConfig config {false,                     // verify MDF checksums
+                              10,                        // number of read buffers
+                              4,                         // number of transpose threads
+                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
+                              events_per_slice,          // number of events per read buffer
+                              n_io_reps,                 // number of loops over the input files
+                              !disable_run_changes};     // Whether to split slices by run number
     input_provider =
       std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
+        number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
     mep_layout = false;
@@ -377,7 +374,7 @@ int allen(
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
     input_provider =
       std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
+        number_of_slices, events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
   // Load constant parameters from JSON
@@ -422,8 +419,8 @@ int allen(
     configuration_reader->params());
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
-    number_of_buffers, *events_per_slice, do_check, stream_wrapper.errorevent_line);
+  std::unique_ptr<HostBuffersManager> buffer_manager =
+    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, do_check, stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 
@@ -439,11 +436,10 @@ int allen(
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, zmqSvc);
+        output_handler = std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, events_per_slice, zmqSvc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, *events_per_slice);
+        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, events_per_slice);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
@@ -644,6 +640,7 @@ int allen(
 
   // track run changes
   std::optional<uint> next_run_number;
+  bool run_change = false;
   uint current_run_number = 0;
 
   // Lambda to check if any event processors are done processing
@@ -785,16 +782,23 @@ int allen(
     zmqSvc->poll(&items[0], items.size(), -1);
 
     // If we have a pending run change we must do that before receiving further input from the I/O threads
-    if (next_run_number) {
-      // Only process the run change once all GPU streams have finished
-      if (stream_ready.count() == number_of_threads) {
-        debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
-        updater->update(*next_run_number);
-        current_run_number = *next_run_number;
-        next_run_number.reset();
+    if (run_change) {
+      if (next_run_number) {
+        // Only process the run change once all GPU streams have finished
+        if (stream_ready.count() == number_of_threads) {
+          debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
+          updater->update(*next_run_number);
+          current_run_number = *next_run_number;
+          next_run_number.reset();
+          run_change = false;
+        }
+      }
+      else {
+        run_change = false;
       }
     }
-    else {
+
+    if (!run_change) {
       // Check if input slices are ready or events have been written
       for (size_t i = 0; i < n_io; ++i) {
         if (items[number_of_threads + i].revents & zmq::POLLIN) {
@@ -817,6 +821,7 @@ int allen(
             break;
           }
           else if (msg == "RUN") {
+            run_change = true;
             next_run_number = zmqSvc->receive<uint>(socket);
             debug_cout << "Requested run change from " << current_run_number << " to " << *next_run_number << std::endl;
             // guard against double run changes if we have multiple input threads
@@ -999,7 +1004,8 @@ int allen(
     // Separate if statement to allow stop in different ways
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
-    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done));
+    bool io_cond =
+      ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done)) && !run_change;
     if (t && io_cond && number_of_repetitions > 1) {
       if (!throughput_processed) {
         throughput_processed = n_events_processed * number_of_repetitions - throughput_start;

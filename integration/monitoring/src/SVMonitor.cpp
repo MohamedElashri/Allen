@@ -15,12 +15,12 @@ void SVMonitor::fill(unsigned i_buf, bool)
 {
   HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
 
-  unsigned nevt = buf->host_number_of_events;
+  unsigned nevt = buf->host_number_of_selected_events;
 
   for (unsigned ievt = 0; ievt < nevt; ++ievt) {
-    int sv_offset = buf->host_sv_offsets[ievt];
-    unsigned nsv = buf->host_sv_offsets[ievt + 1] - sv_offset;
-
+    unsigned event_number = buf->host_event_list[ievt];
+    int sv_offset = buf->host_sv_offsets[event_number];
+    unsigned nsv = buf->host_sv_offsets[event_number + 1] - sv_offset;
     m_histograms[SecondaryVertexN]->Fill(nsv);
 
     for (unsigned isv = 0; isv < nsv; ++isv) {

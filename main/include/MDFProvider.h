@@ -153,12 +153,32 @@ public:
             if (it == end(BankSizes)) {
               throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
             }
-            auto n_banks = m_banks_count[ib];
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
-            return {std::lround(
-                      ((1 + n_banks) * sizeof(uint32_t) + it->second) * allocate_events * bank_size_fudge_factor * kB),
-                    events_per_slice};
+
+            // Lookup LHCb bank type corresponding to Allen bank type
+            auto type_it =
+              std::find_if(Allen::bank_types.begin(), Allen::bank_types.end(), [bank_type](const auto& entry) {
+                return entry.second == bank_type;
+              });
+            if (type_it == Allen::bank_types.end()) {
+              throw std::out_of_range {std::string {"Failed to lookup LHCb type for bank type "} + std::to_string(ib)};
+            }
+            auto lhcb_type = to_integral<LHCb::RawBank::BankType>(type_it->first);
+
+            // When events are transposed from the read buffer into
+            // the per-rawbank-type slices, a check is made each time
+            // to see if there is enough space available in a slice.
+            // To avoid having to read every event twice to get the
+            // size of all the banks, the size of the entire event is
+            // used for the check - 65 kB on average. To avoid
+            // problems for banks with very low average size like the
+            // ODIN bank - 0.1 kB, a fixed amount is also added.
+            auto n_bytes = std::lround(
+              ((1 + m_banks_count[lhcb_type]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
+                bank_size_fudge_factor +
+              2 * MB);
+            return {n_bytes, events_per_slice};
           };
           m_slices = allocate_slices<Banks...>(n_slices, size_fun);
         }
@@ -445,11 +465,12 @@ private:
       reset_slice<Banks...>(m_slices, *slice_index, event_ids);
 
       // Transpose the events in the read buffer into the slice
-      std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(
+      std::tie(good, transpose_full, n_transposed) = transpose_events(
         m_buffers[i_read],
         m_slices,
         *slice_index,
         m_bank_ids,
+        this->types(),
         m_banks_count,
         m_event_ids[*slice_index],
         this->events_per_slice(),
@@ -479,6 +500,7 @@ private:
       if (n_transposed < std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read])) {
         // Put this prefetched slice back on the prefetched queue so
         // somebody else can finish it
+        std::get<3>(m_buffers[i_read]) += n_transposed;
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
         m_prefetched.push_front(i_read);
       }

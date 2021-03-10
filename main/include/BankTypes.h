@@ -29,7 +29,7 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 12.f},
                                                         {BankTypes::Rich, 21.f},
                                                         {BankTypes::HCal, 2.1},
                                                         {BankTypes::ECal, 8.f},
-                                                        {BankTypes::ODIN, 0.1f},
+                                                        {BankTypes::ODIN, 0.2f},
                                                         {BankTypes::OTRaw, 110.f},
                                                         {BankTypes::OTError, 0.3f}};
 
@@ -38,7 +38,7 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 12.f},
 constexpr float average_event_size = 65.f;
 // Safety margin
 // FIXME: make this configurable
-constexpr float bank_size_fudge_factor = 1.2f;
+constexpr float bank_size_fudge_factor = 1.5f;
 
 /**
  * @brief      Get the name of the type of a given BankType
