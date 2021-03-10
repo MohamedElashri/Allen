@@ -13,8 +13,9 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 # import pytest
 from collections import OrderedDict
+from functools import lru_cache
 from PyConf.components import Algorithm
-from PyConf.control_flow import Leaf, NodeLogic, CompositeNode
+from PyConf.control_flow import Leaf, NodeLogic as Logic, CompositeNode
 from PyConf import configurable
 from AllenConf.cftree_ops import (
     gather_algs,
@@ -34,7 +35,6 @@ from AllenConf.cftree_ops import (
 from definitions.algorithms import *
 
 
-
 @lru_cache(1)
 def sample_tree_0():
     pre0 = Algorithm(decider_1_t, name="pre0_st0", conf=2)
@@ -47,14 +47,10 @@ def sample_tree_0():
     X = Leaf("X_st0", 3, 1, alg=x)
     Y = Leaf("Y_st0", 4, 1, alg=y)
 
-    line1 = CompositeNode(
-        "L1_st0", [PRE0, X], NodeLogic.NONLAZY_AND, forceOrder=True)
-    line2 = CompositeNode(
-        "L2_st0", [PRE1, Y], NodeLogic.NONLAZY_AND, forceOrder=True)
-    top = CompositeNode(
-        "root_st0", [line1, line2], NodeLogic.NONLAZY_OR, forceOrder=False)
+    line1 = CompositeNode("L1_st0", [PRE0, X], Logic.LAZY_AND, forceOrder=True)
+    line2 = CompositeNode("L2_st0", [PRE1, Y], Logic.LAZY_AND, forceOrder=True)
+    top = CompositeNode("root_st0", [line1, line2], Logic.LAZY_OR, forceOrder=False)
     return top
-
 
 
 @lru_cache(1)
@@ -64,16 +60,12 @@ def sample_tree_1():
     X = Leaf("X_st1", 3, 0.5, alg=None)
     Y = Leaf("Y_st1", 5, 0.4, alg=None)
 
-    line1 = CompositeNode(
-        "L1_st1", [PRE0, X], NodeLogic.NONLAZY_AND, forceOrder=True)
-    line2 = CompositeNode(
-        "L2_st1", [PRE1, Y], NodeLogic.NONLAZY_AND, forceOrder=True)
-    notline2 = CompositeNode(
-        "nL2_st1", [line2], NodeLogic.NOT, forceOrder=True)
+    line1 = CompositeNode("L1_st1", [PRE0, X], Logic.LAZY_AND, forceOrder=True)
+    line2 = CompositeNode("L2_st1", [PRE1, Y], Logic.LAZY_AND, forceOrder=True)
+    notline2 = CompositeNode("nL2_st1", [line2], Logic.NOT, forceOrder=True)
     top = CompositeNode(
-        "root_st1", [line1, notline2], NodeLogic.LAZY_OR, forceOrder=True)
+        "root_st1", [line1, notline2], Logic.LAZY_OR, forceOrder=True)
     return top
-
 
 
 @lru_cache(1)
@@ -100,11 +92,11 @@ def sample_tree_2():
     PRE1 = Leaf("PRE1_st2", 1, 0.3, alg=pre1)
     PRE2 = Leaf("PRE2_st2", 2, 0.3, alg=pre2)
     pre12 = CompositeNode(
-        "pre12_st2", [PRE1, PRE2], NodeLogic.LAZY_AND, forceOrder=True)
+        "pre12_st2", [PRE1, PRE2], Logic.LAZY_AND, forceOrder=True)
     pre02 = CompositeNode(
-        "pre02_st2", [PRE0, PRE2], NodeLogic.LAZY_AND, forceOrder=True)
+        "pre02_st2", [PRE0, PRE2], Logic.LAZY_AND, forceOrder=True)
     return CompositeNode(
-        "boom_st2", [pre02, pre12], NodeLogic.LAZY_OR, forceOrder=True)
+        "boom_st2", [pre02, pre12], Logic.LAZY_OR, forceOrder=True)
 
 @lru_cache(1)
 def sample_tree_3():
@@ -114,8 +106,8 @@ def sample_tree_3():
     c0 = Algorithm(consumer_decider_1_t, name="c0_st3", b_t = p0.a_t, conf=0)
     p1 = Algorithm(producer_1_t, name="p1_st3", conf=1, weight=2)
     c1 = Algorithm(consumer_decider_1_t, name="c1_st3", b_t = p1.a_t, conf=1)
-    c2 = Algorithm(decider_1_t, name="c2_st3", conf=2)
-    c3 = Algorithm(consumer_decider_1_t, name="c3_st3", b_t = p1.a_t, conf=2)
+    c2 = Algorithm(decider_1_t, name="c2_st3", conf=8)
+    c3 = Algorithm(consumer_decider_1_t, name="c3_st3", b_t = p1.a_t, conf=4)
 
     C0 = Leaf("C0_st3", 1, 0.7, alg=c0)
     C1 = Leaf("C1_st3", 1, 0.8, alg=c1)
@@ -154,11 +146,12 @@ def test_get_ordered_trees():
     def child_names(node):
         return [child.name for child in node.children]
 
-    import numpy as np
 
     assert all(
-        np.array(child_names(ord_trees[0])) == np.flip(
-            child_names(ord_trees[1])))
+        [
+            a == b for a,b in
+            zip(child_names(ord_trees[0]), reversed(child_names(ord_trees[1])))
+        ])
 
 
 def test_to_string():
@@ -171,7 +164,7 @@ def test_parse_boolean():
     root = sample_tree_1()
     root = get_ordered_trees(root)[0]
     other_root = parse_boolean("((PRE0_st1 & X_st1) | ~(PRE1_st1 & Y_st1))")
-    assert root == other_root
+    assert to_string(root) == to_string(other_root) and gather_leafs(root) == gather_leafs(other_root)
 
 
 def test_find_execution_masks_for_algorithms():
@@ -184,8 +177,8 @@ def test_find_execution_masks_for_algorithms():
     assert exec_masks == [
         (pre0_st0, "True"),
         (dec0_st0, "PRE0_st0"),
-        (pre1_st0, "~PRE0_st0 | ~X_st0"),
-        (dec1_st0, "PRE1_st0 & (~PRE0_st0 | ~X_st0)"),
+        (pre1_st0, "~PRE0_st0"),
+        (dec1_st0, "PRE1_st0 & ~PRE0_st0"),
     ]
 
     root = sample_tree_2()

@@ -51,7 +51,7 @@ def make_leaf(name, alg, **kwargs):
     if t in benchmark_efficiencies:
         efficiency = benchmark_efficiencies[t]
     else:
-        efficiency = 1.0
+        efficiency = .99
     return Leaf(name, alg=alg, average_eff=efficiency, **kwargs)
 
 
