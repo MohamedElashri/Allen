@@ -27,7 +27,7 @@ if (STANDALONE)
   include(Catch)
   catch_discover_tests(unit_tests)
 else()
-  gaudi_add_test(NAME allen_unit_tests COMMAND unit_tests)
+  gaudi_add_test(allen_unit_tests COMMAND unit_tests)
 endif()
 
 install(TARGETS unit_tests RUNTIME DESTINATION bin)
