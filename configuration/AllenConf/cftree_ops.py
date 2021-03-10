@@ -42,6 +42,15 @@ class BoolNode:
     def __repr__(self):
         return to_string(self)
 
+    def __hash__(self):
+        return hash((
+            self.children,
+            self.combineLogic,
+        ))
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
 @lru_cache(1000)
 def simplify(string):
     return str(sympy.simplify(string))
@@ -210,7 +219,15 @@ def find_execution_masks_for_algorithms(root, execution_mask="true"):
         node, execution_mask="true"
     ):  # for sympy.simplify we need lower case true and false
         if isinstance(node, Leaf):
-            return [(algorithm, execution_mask) for algorithm in node.algs], node.name
+            # TODO do we want to keep these if statements?
+            # do we have a RL usecase for average efficiencies of 0 and 1?
+            if node.average_eff == 1:
+                leafmask = "true"
+            elif node.average_eff == 0:
+                leafmask == "false"
+            else:
+                leafmask = node.name
+            return [(algorithm, execution_mask) for algorithm in node.algs], leafmask
         elif isinstance(node, CompositeNode):
             outputs = []
             output_names = []
@@ -392,6 +409,7 @@ def order_algs(alg_dependencies: dict) -> (list, float):
         algorithms_already_sortd = tuple(sortd.keys())
         if insertable_algorithms:
             # Simple heuristic: Execute least expensive one
+            # TODO review this logic
             alg = min(
                 insertable_algorithms,
                 key=lambda x: get_weight(x, algorithms_already_sortd)
@@ -403,18 +421,31 @@ def order_algs(alg_dependencies: dict) -> (list, float):
             )
             sortd[algs.pop(algs.index(alg))] = minitree
         else:
-            # Simple heuristic: Execute least expensive one
+            # there is no algorithm that can be executed next
+            # without removing control flow dependencies
+            # so to check which algorithm is the cheapest one now, lets
+            # look at updated weights:
+            # TODO review this logic
+            def _get_adjusted_weight(alg):
+                weight = get_weight(alg, algorithms_already_sortd)
+                eval_mask = alg_dependencies[alg][2]
+                # now, lets see how the eval mask looks without the unknown outcomes
+                not_in_sortd = alg_dependencies[alg][0].difference(sortd)
+                eval_mask = make_independent_of_algs(eval_mask, frozenset(not_in_sortd))
+                efficiency = avrg_efficiency(eval_mask)
+                return weight*efficiency
+
             alg = min(
                 [alg for alg in algs if df_insertable(alg)],
-                key=lambda x: get_weight(x, algorithms_already_sortd)
-                * avrg_efficiency(alg_dependencies[x][2]),
+                key=_get_adjusted_weight
             )
-            minitree = alg_dependencies[alg][2]
+            eval_mask = alg_dependencies[alg][2]
             not_in_sortd = alg_dependencies[alg][0].difference(sortd)
-            evaluable_tree = make_independent_of_algs(minitree, not_in_sortd)
-            avrg_eff = avrg_efficiency(evaluable_tree)
+            eval_mask = make_independent_of_algs(eval_mask, frozenset(not_in_sortd))
+            avrg_eff = avrg_efficiency(eval_mask)
             score += avrg_eff * get_weight(alg, algorithms_already_sortd)
-            sortd[algs.pop(algs.index(alg))] = evaluable_tree
+            sortd[algs.pop(algs.index(alg))] = eval_mask
+
     return sortd, score
 
 
@@ -458,7 +489,6 @@ def get_execution_list_for(tree):
 
     (seq, val) = order_algs(dependencies)
 
-    # add the output masks to seq
     alg_to_leaf = map_alg_to_node(tree)
     return ([(alg, in_, alg_to_leaf.get(alg)) for (alg, in_) in seq.items()], val)
 

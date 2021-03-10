@@ -242,6 +242,16 @@ class decider_1_t(generic_algorithm_t):
     def getType(cls):
         return "decider_1_t"
 
+class consumer_decider_1_t(generic_algorithm_t):
+    __slots__ = OrderedDict(
+        a_t=GaudiDataHandle("a_t", "W", "mask_t"),
+        b_t=GaudiDataHandle("b_t", "R", "int"),
+        conf="")
+
+    @classmethod
+    def getType(cls):
+        return "consumer_decider_1_t"
+
 
 def algorithms_with_aggregates():
     return []

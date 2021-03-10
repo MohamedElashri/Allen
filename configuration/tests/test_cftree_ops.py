@@ -12,10 +12,10 @@ SCRIPT_DIR = os.path.dirname(
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
 
 # import pytest
-from sympy import simplify
 from collections import OrderedDict
 from PyConf.components import Algorithm
 from PyConf.control_flow import Leaf, NodeLogic, CompositeNode
+from PyConf import configurable
 from AllenConf.cftree_ops import (
     gather_algs,
     get_ordered_trees,
@@ -28,15 +28,19 @@ from AllenConf.cftree_ops import (
     find_execution_masks_for_algorithms,
     avrg_efficiency,
     make_independent_of_algs,
+    simplify,
+    order_algs
 )
 from definitions.algorithms import *
 
 
+
+@lru_cache(1)
 def sample_tree_0():
     pre0 = Algorithm(decider_1_t, name="pre0_st0", conf=2)
     pre1 = Algorithm(decider_1_t, name="pre1_st0", conf=1)
     x = Algorithm(decider_1_t, name="decider0_st0", conf=3)
-    y = Algorithm(decider_1_t, name="decider0_st0", conf=4)
+    y = Algorithm(decider_1_t, name="decider1_st0", conf=4)
 
     PRE0 = Leaf("PRE0_st0", 1, 0.7, alg=pre0)
     PRE1 = Leaf("PRE1_st0", 2, 0.3, alg=pre1)
@@ -52,6 +56,8 @@ def sample_tree_0():
     return top
 
 
+
+@lru_cache(1)
 def sample_tree_1():
     PRE0 = Leaf("PRE0_st1", 1, 0.7, alg=None)
     PRE1 = Leaf("PRE1_st1", 2, 0.6, alg=None)
@@ -69,6 +75,8 @@ def sample_tree_1():
     return top
 
 
+
+@lru_cache(1)
 def sample_tree_2():
     """
     In Moore (or rather the HltControlflowMgr), this would be an invalid tree
@@ -84,6 +92,7 @@ def sample_tree_2():
     one executes faster. Therefore, forceOrder here can rather be interpreted
     as "preferredOrder" of the topalgs involved in the ordering.
     """
+
     pre0 = Algorithm(decider_1_t, name="pre0_st2", conf=5, weight=1)
     pre1 = Algorithm(decider_1_t, name="pre1_st2", conf=6, weight=1)
     pre2 = Algorithm(decider_1_t, name="pre2_st2", conf=7, weight=1)
@@ -96,6 +105,27 @@ def sample_tree_2():
         "pre02_st2", [PRE0, PRE2], NodeLogic.LAZY_AND, forceOrder=True)
     return CompositeNode(
         "boom_st2", [pre02, pre12], NodeLogic.LAZY_OR, forceOrder=True)
+
+@lru_cache(1)
+def sample_tree_3():
+    """ A sample tree with data dependencies. """
+
+    p0 = Algorithm(producer_1_t, name="p0_st3", conf=0)
+    c0 = Algorithm(consumer_decider_1_t, name="c0_st3", b_t = p0.a_t, conf=0)
+    p1 = Algorithm(producer_1_t, name="p1_st3", conf=1, weight=2)
+    c1 = Algorithm(consumer_decider_1_t, name="c1_st3", b_t = p1.a_t, conf=1)
+    c2 = Algorithm(decider_1_t, name="c2_st3", conf=2)
+    c3 = Algorithm(consumer_decider_1_t, name="c3_st3", b_t = p1.a_t, conf=2)
+
+    C0 = Leaf("C0_st3", 1, 0.7, alg=c0)
+    C1 = Leaf("C1_st3", 1, 0.8, alg=c1)
+    C2 = Leaf("C2_st3", 1, 1, alg=c2)
+    C3 = Leaf("C3_st3", 1, 0.5, alg=c3)
+
+    line1 = CompositeNode("L1_st3", [C0, C1], Logic.LAZY_AND, forceOrder=True)
+    line2 = CompositeNode("L2_st3", [C2, C3], Logic.LAZY_AND, forceOrder=True)
+    top = CompositeNode("root_st3", [line1, line2], Logic.LAZY_OR, forceOrder=False)
+    return top, (p0, c0, p1, c1, c2, c3)
 
 
 def test_gather_leafs():
@@ -145,7 +175,6 @@ def test_parse_boolean():
 
 
 def test_find_execution_masks_for_algorithms():
-    # test sample tree 0
     root = sample_tree_0()
     exec_masks = find_execution_masks_for_algorithms(root)
     pre0_st0 = root.children[0].children[0].top_alg
@@ -159,7 +188,6 @@ def test_find_execution_masks_for_algorithms():
         (dec1_st0, "PRE1_st0 & (~PRE0_st0 | ~X_st0)"),
     ]
 
-    # test sample tree 2
     root = sample_tree_2()
     pre0_st2 = root.children[0].children[0].top_alg
     pre1_st2 = root.children[1].children[0].top_alg
@@ -215,3 +243,62 @@ def test_make_independent_of_algs():
     should_be_ind = to_string(make_independent_of_algs(root, (pre2_st2, )))
     ind = '(PRE0_st2 | PRE1_st2)'
     assert ind == should_be_ind
+
+def test_order_algs():
+    root = sample_tree_0()
+    pre0 = root.children[0].children[0].top_alg
+    pre1 = root.children[1].children[0].top_alg
+    dec0 = root.children[0].children[1].top_alg
+    dec1 = root.children[1].children[1].top_alg
+    # dependencies : dict{alg: (cf_dependencies, df_dependencies, execution_condition)}
+    dependencies = {
+        pre0 : (set(), set(), None),
+        dec0 : (set([pre0]), set(), parse_boolean("PRE0_st0")),
+        pre1 : (set([pre0, dec0]), set(), parse_boolean("(~PRE0_st0 | ~X_st0)")),
+        dec1 : (set([pre0, dec0, pre1]), set(),
+                        parse_boolean("PRE1_st0 & (~PRE0_st0 | ~X_st0)")),
+    }
+    should_be_order, _ = order_algs(dependencies)
+    order = OrderedDict([(pre0, None),
+             (dec0, parse_boolean("PRE0_st0")),
+             (pre1, parse_boolean("(~PRE0_st0 | ~X_st0)")),
+             (dec1, parse_boolean("PRE1_st0 & (~PRE0_st0 | ~X_st0)"))])
+    assert order == should_be_order
+
+    root = sample_tree_2()
+    pre0 = root.children[0].children[0].top_alg
+    pre1 = root.children[1].children[0].top_alg
+    pre2 = root.children[0].children[1].top_alg
+    # dependencies : dict{alg: (cf_dependencies, df_dependencies, execution_condition)}
+    dependencies = {
+        pre0 : (set(), set(), None),
+        pre1 : (set([pre0, pre2]), set(), parse_boolean("(~PRE0_st2 | ~PRE2_st2)")),
+        pre2 : (set([pre1, pre0, pre2]),
+                        set(),
+                        parse_boolean(simplify("(PRE0_st2) | (PRE1_st2 & (~PRE0_st2 | ~PRE2_st2))"))),
+    }
+    should_be_order, _ = order_algs(dependencies)
+    order = OrderedDict([(pre0, None),
+             (pre1, None),
+             (pre2, parse_boolean("(PRE0_st2 | PRE1_st2)"))])
+    assert order == should_be_order
+
+
+def test_get_execution_list_for():
+    root, (p0, c0, p1, c1, c2, c3) = sample_tree_3()
+
+    C0 = root.children[0].children[0]
+    C1 = root.children[0].children[1]
+    C2 = root.children[1].children[0]
+    C3 = root.children[1].children[1]
+
+    should_be_order, _ = get_execution_list_for(root)
+    order = [(p0, None, None),
+             (c0, None, C0),
+             (p1, None, None),
+             (c1, C0, C1),
+             (c2, parse_boolean("(~C0_st3 | ~C1_st3)"), C2),
+             (c3, parse_boolean("(~C0_st3 | ~C1_st3)"), C3)] # C2 not in execution condition, because C2.average_eff = 1
+
+    assert order == should_be_order
+
