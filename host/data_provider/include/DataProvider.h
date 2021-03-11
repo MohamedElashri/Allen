@@ -12,7 +12,6 @@ namespace data_provider {
   struct Parameters {
     DEVICE_OUTPUT(dev_raw_banks_t, char) dev_raw_banks;
     DEVICE_OUTPUT(dev_raw_offsets_t, unsigned) dev_raw_offsets;
-    HOST_OUTPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes) prop_raw_bank_type;
   };
 

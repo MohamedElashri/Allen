@@ -12,7 +12,6 @@ void data_provider::data_provider_t::set_arguments_size(
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
   set_size<dev_raw_banks_t>(arguments, std::get<1>(bno));
   set_size<dev_raw_offsets_t>(arguments, std::get<2>(bno).size());
-  set_size<host_raw_bank_version_t>(arguments, sizeof(std::get<3>(bno)));
 }
 
 void data_provider::data_provider_t::operator()(
@@ -23,9 +22,7 @@ void data_provider::data_provider_t::operator()(
   const Allen::Context& context) const
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
-  auto ver = std::get<3>(bno);
 
   // Copy data to device
   data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(arguments, bno, context);
-  ::memcpy(data<host_raw_bank_version_t>(arguments), &ver, sizeof(ver));
 }
