@@ -156,9 +156,8 @@ class AllenSequenceGenerator:
             s += f"  argument_manager.template set_name<{parameter_name}>(\"{parameter_name}\");\n"
         s += "}\n"
 
-        f = open(output_filename, "w")
-        f.write(s)
-        f.close()
+        with open(output_filename, "w") as f:
+            f.write(s)
 
         # Generate runtime configuration (JSON)
         s = "{\n"
@@ -190,9 +189,9 @@ class AllenSequenceGenerator:
         # Generate input aggregates file
         s = "#pragma once\n\n#include <tuple>\n"
         algorithms_with_aggregates_list = algorithms_with_aggregates()
-        parameter_producers = set([])
+        parameter_producers = set()
         # Generate includes of filenames
-        filenames = set([])
+        filenames = set()
         for parameter_full_name in parameters_part_of_aggregates:
             for _, _, _, algorithm_filename in parameters[parameter_full_name]:
                 filenames.add(algorithm_filename)

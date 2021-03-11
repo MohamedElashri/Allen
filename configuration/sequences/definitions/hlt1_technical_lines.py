@@ -59,7 +59,7 @@ def make_odin_event_type_line(
         pre_scaler_hash_string="odin_event_type_line_pre",
         post_scaler_hash_string="odin_event_type_line_post",
         odin_event_type="0x8"):
-    name_map = {int("0x8", 0): "Hlt1ODINLumi", int("0x4", 0): "Hlt1ODINNoBias"}
+    name_map = {0x8: "Hlt1ODINLumi", 0x4: "Hlt1ODINNoBias"}
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
