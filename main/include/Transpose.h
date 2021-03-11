@@ -158,7 +158,7 @@ std::tuple<bool, bool, bool> transpose_event(
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-  std::array<int, LHCb::NBankTypes>& banks_version,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   const gsl::span<char const> bank_data,
   bool split_by_run)
@@ -192,9 +192,8 @@ std::tuple<bool, bool, bool> transpose_event(
       // Decode the odin bank
     }
 
-    // get bank type and set bank version
+    // LHCb bank type
     auto bt = b->type();
-    banks_version[to_integral<BankTypes>(bt)] = b->version();
 
     // Check what to do with this bank
     if (bt == LHCb::RawBank::ODIN) {
@@ -216,9 +215,12 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else if (bt != prev_type) {
       // Switch to new type of banks
-      auto bank_type_index = bank_ids[bt];
-      auto& slice = slices[bank_type_index][slice_index];
+      auto allen_type = bank_ids[bt];
+      auto& slice = slices[allen_type][slice_index];
       prev_type = bt;
+
+      // set bank version
+      banks_version[allen_type] = b->version();
 
       bank_counter = 1;
       banks_offsets = std::get<2>(slice).data();
@@ -258,6 +260,7 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else {
       ++bank_counter;
+      assert(banks_version[bt] == b->version());
     }
 
     // Write sourceID
@@ -282,7 +285,7 @@ std::tuple<bool, bool, bool> transpose_event(
   // Check if any of the per-bank-type slices potentially has too
   // little space to fit the next event
   for (auto bank_type : {Banks...}) {
-    auto ib = to_integral<BankTypes>(bank_type);
+    auto ib = to_integral(bank_type);
     const auto& [slice, slice_size, slice_offsets, offsets_size] = slices[ib][slice_index];
     // Use the event size of the next event here instead of the
     // per bank size because that's not yet known for the next
@@ -306,7 +309,7 @@ void reset_slice(Slices& slices, int const slice_index, EventIDs& event_ids, boo
 {
   // "Reset" the slice
   for (auto bank_type : {Banks...}) {
-    auto ib = to_integral<BankTypes>(bank_type);
+    auto ib = to_integral(bank_type);
     auto& [banks, data_size, offsets, offsets_size] = slices[ib][slice_index];
     std::fill(offsets.begin(), offsets.end(), 0);
     offsets_size = 1;
@@ -337,6 +340,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   size_t n_events,
   bool split_by_run = false)
@@ -354,7 +358,7 @@ std::tuple<bool, bool, size_t> transpose_events(
     auto const* bank = buffer.data() + event_offsets[i_event];
     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
     std::tie(success, full, run_change) =
-      transpose_event<Banks...>(slices, slice_index, bank_ids, banks_count, event_ids, {bank, bank_end}, split_by_run);
+      transpose_event<Banks...>(slices, slice_index, bank_ids, banks_count, banks_version, event_ids, {bank, bank_end}, split_by_run);
     // break the loop if we detect a run change to avoid incrementing i_event
     if (run_change) break;
   }
@@ -368,7 +372,7 @@ Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>
   Slices slices;
   for (auto bank_type : {Banks...}) {
     auto [n_bytes, n_offsets] = size_fun(bank_type);
-    auto ib = to_integral<BankTypes>(bank_type);
+    auto ib = to_integral(bank_type);
     auto& bank_slices = slices[ib];
     bank_slices.reserve(n_slices);
     for (size_t i = 0; i < n_slices; ++i) {

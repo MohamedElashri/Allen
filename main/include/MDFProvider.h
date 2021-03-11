@@ -718,7 +718,7 @@ private:
   std::vector<size_t> m_slice_to_buffer;
 
   // Array to store the version of banks per bank type
-  mutable std::array<int, LHCb::NBankTypes> m_banks_version;
+  mutable std::array<int, NBankTypes> m_banks_version;
 
   // Mutex, condition varaible and queue for parallel transposition of slices
   std::mutex m_transpose_mut;

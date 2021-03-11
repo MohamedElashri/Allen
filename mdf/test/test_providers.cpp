@@ -53,6 +53,7 @@ namespace {
                                              BankTypes::MUON,
                                              BankTypes::ODIN};
   std::array<unsigned int, LHCb::RawBank::LastType> banks_count;
+  std::array<int, NBankTypes> banks_version;
 } // namespace
 
 BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_index)
@@ -61,7 +62,7 @@ BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_inde
   auto const& [banks, banks_size, offsets, offsets_size] = slices[ib][slice_index];
   span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
   span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-  return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
+  return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), banks_version[ib]};
 }
 
 size_t transpose_mep(
@@ -89,7 +90,7 @@ size_t transpose_mep(
   MEP::fragment_offsets(blocks, input_offsets);
 
   auto r = MEP::transpose_events(
-    mep_slices, output_index, ids, types, banks_count, events_mep, mep_header, blocks, input_offsets, {0, chunk_size});
+    mep_slices, output_index, ids, banks_count, banks_version, events_mep, mep_header, blocks, input_offsets, {0, chunk_size});
   return std::get<2>(r);
 }
 

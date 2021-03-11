@@ -259,7 +259,7 @@ bool MEP::transpose_event(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-  std::array<int, LHCb::NBankTypes>& banks_version,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
@@ -302,7 +302,7 @@ bool MEP::transpose_event(
       auto allen_type = bank_ids[bank_type];
       auto& slice = std::get<0>(slices[allen_type][slice_index])[0];
       auto const& event_offsets = std::get<2>(slices[allen_type][slice_index]);
-      banks_version[bank_type] = mep_header.versions[i_block];//TODO: makes sense?
+      banks_version[allen_type] = mep_header.versions[i_block];
 
       for (size_t i_event = start_event; i_event < end_event && i_event < block_header.n_frag; ++i_event) {
         // Three things to write for a new set of banks:
@@ -353,7 +353,7 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-  std::array<int, LHCb::NBankTypes>& banks_version,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,

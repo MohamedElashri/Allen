@@ -157,6 +157,7 @@ int main(int argc, char* argv[])
 
     host_global_event_cut::Parameters pars {std::get<0>(ut_banks).data(),
                                             &std::get<2>(ut_banks),
+                                            &std::get<3>(ut_banks),
                                             std::get<0>(scifi_banks).data(),
                                             &std::get<2>(scifi_banks),
                                             host_event_list.data(),

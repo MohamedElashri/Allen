@@ -127,6 +127,7 @@ int main(int argc, char* argv[])
   auto& [n_filled, event_offsets, read_buffer, transpose_start] = read_buffers[0];
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count {};
+  std::array<int, NBankTypes> banks_version {};
   std::tie(count_success, banks_count) = fill_counts({read_buffer.data(), event_offsets[1]});
 
   // Allocate space for event ids
@@ -143,7 +144,7 @@ int main(int argc, char* argv[])
 
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
-    threads.emplace_back(thread {[i, n_reps, n_events, &read_buffers, &slices, &bank_ids, &banks_count, &event_ids] {
+    threads.emplace_back(thread {[i, n_reps, n_events, &read_buffers, &slices, &bank_ids, &banks_count, &banks_version, &event_ids] {
       auto& read_buffer = read_buffers[i];
       for (size_t rep = 0; rep < n_reps; ++rep) {
 
@@ -151,15 +152,9 @@ int main(int argc, char* argv[])
         reset_slice<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(slices, i, event_ids[i]);
 
         // Transpose events
-        auto [success, transpose_full, n_transposed] = transpose_events(
-          read_buffer,
-          slices,
-          i,
-          bank_ids,
-          {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
-          banks_count,
-          event_ids[i],
-          n_events);
+        auto [success, transpose_full, n_transposed] =
+          transpose_events<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(
+            read_buffer, slices, i, bank_ids, banks_count, banks_version, event_ids[i], n_events);
         info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
       }
     }});
