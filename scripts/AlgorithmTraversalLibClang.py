@@ -194,8 +194,7 @@ class AlgorithmTraversal():
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
-                    typedef = child.type.spelling[child.type.spelling.find(
-                        "(") + 1:child.type.spelling.find(")")]
+                    typedef = [a.type.spelling for a in child.get_children()][0]
             if typedef == "" or typedef == "int":
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
@@ -207,8 +206,7 @@ class AlgorithmTraversal():
             typedef = None
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_METHOD:
-                    typedef = child.type.spelling[child.type.spelling.find(
-                        "(") + 1:child.type.spelling.find(")")]
+                    typedef = [a.type.spelling for a in child.get_children()][0]
             if typedef == "" or typedef == "int":
                 typedef = "unknown_t"
             # Unfortunately, for properties we need to rely on tokens found in the
