@@ -6,7 +6,7 @@
 #include <vector>
 #include <numeric>
 
-TEST_CASE("Test host prefix sum", "[HostPrefixSum]")
+TEST_CASE("unit_tests.host_prefix_sum", "[HostPrefixSum]")
 {
   std::vector<unsigned> v(1000);
   std::iota(std::begin(v), std::end(v), 1);
