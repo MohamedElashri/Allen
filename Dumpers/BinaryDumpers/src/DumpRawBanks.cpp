@@ -30,14 +30,14 @@ namespace {
  *  @date   2018-08-27
  */
 class DumpRawBanks : public Gaudi::Functional::Consumer<
-                       void(std::array<std::vector<char>, LHCb::RawBank::LastType> const&, LHCb::ODIN const&)> {
+  void(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const&, LHCb::ODIN const&)> {
 public:
   /// Standard constructor
   DumpRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()(std::array<std::vector<char>, LHCb::RawBank::LastType> const& banks, LHCb::ODIN const& odin)
+  void operator()(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& banks, LHCb::ODIN const& odin)
     const override;
 
 private:
@@ -64,7 +64,7 @@ StatusCode DumpRawBanks::initialize()
 }
 
 void DumpRawBanks::operator()(
-  std::array<std::vector<char>, LHCb::RawBank::LastType> const& banks,
+  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& transposed_banks,
   LHCb::ODIN const& odin) const
 {
   if (!m_createdDirectories) {
@@ -72,7 +72,8 @@ void DumpRawBanks::operator()(
     if (!m_createdDirectories) {
       for (int bt = 0; bt != LHCb::RawBank::LastType; ++bt) {
         auto bankType = static_cast<LHCb::RawBank::BankType>(bt);
-        if (!banks[bankType].empty()) {
+        auto const& banks = std::get<0>(transposed_banks[bankType]);
+        if (!banks.empty()) {
           auto tn = LHCb::RawBank::typeName(bankType);
           if (!DumpUtils::createDirectory(outputDirectory(bankType))) {
             throw GaudiException {
@@ -86,7 +87,7 @@ void DumpRawBanks::operator()(
 
   for (int bt = 0; bt != LHCb::RawBank::LastType; ++bt) {
     auto bankType = static_cast<LHCb::RawBank::BankType>(bt);
-    auto const& rawBanks = banks[bankType];
+    auto const& rawBanks = std::get<0>(transposed_banks[bankType]);
     if (!rawBanks.empty()) {
       DumpUtils::FileWriter outfile =
         outputDirectory(bankType) + "/" + to_string(odin.runNumber()) + "_" + to_string(odin.eventNumber()) + ".bin";

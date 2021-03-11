@@ -99,7 +99,7 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  *  @date   2018-08-27
  */
 class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<
-                            std::array<std::vector<char>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
+                            std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
                             Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
@@ -107,19 +107,14 @@ public:
 
   StatusCode initialize() override;
 
-  std::array<std::vector<char>, LHCb::RawBank::LastType> operator()(
+  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> operator()(
     VOC<LHCb::RawEvent*> const& rawEvents) const override;
 
 private:
-  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes {this,
-                                                                  "BankTypes",
-                                                                  {LHCb::RawBank::VP,
-                                                                   LHCb::RawBank::UT,
-                                                                   LHCb::RawBank::FTCluster,
-                                                                   LHCb::RawBank::Muon,
-                                                                   LHCb::RawBank::ODIN,
-                                                                   LHCb::RawBank::EcalPacked,
-                                                                   LHCb::RawBank::HcalPacked}};
+  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes {
+    this,
+    "BankTypes",
+    {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon, LHCb::RawBank::ODIN}};
 
   std::array<AIDA::IHistogram1D*, LHCb::RawBank::LastType> m_histos;
 };
@@ -148,17 +143,19 @@ StatusCode TransposeRawBanks::initialize()
   return StatusCode::SUCCESS;
 }
 
-std::array<std::vector<char>, LHCb::RawBank::LastType> TransposeRawBanks::operator()(
+std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> TransposeRawBanks::operator()(
   VOC<LHCb::RawEvent*> const& rawEvents) const
 {
 
-  std::array<std::vector<char>, LHCb::RawBank::LastType> output;
-  std::array<LHCb::RawBank::View, LHCb::RawBank::LastType> rawBanks;
+  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> output;
+  std::array<LHCb::span<LHCb::RawBank const*>, LHCb::RawBank::LastType> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
     std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
-      if (!banks.empty()) rawBanks[bt] = banks;
+      if (!banks.empty()) {
+        rawBanks[bt] = std::move(banks);
+      }
     });
   }
 
@@ -210,7 +207,7 @@ std::array<std::vector<char>, LHCb::RawBank::LastType> TransposeRawBanks::operat
     // Dumping number_of_rawbanks + 1 offsets!
     DumpUtils::Writer bank_buffer;
     bank_buffer.write(number_of_rawbanks, bankOffsets, bankData);
-    output[bankType] = bank_buffer.buffer();
+    output[bankType] = std::tuple{bank_buffer.buffer(), banks[0]->version()};
   }
   return output;
 }
