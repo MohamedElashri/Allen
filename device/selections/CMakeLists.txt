@@ -1,7 +1,6 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-include_directories(lines/Hlt1/include)
 include_directories(lines/alignment/include)
 include_directories(lines/charm/include)
 include_directories(lines/inclusive_hadron/include)
