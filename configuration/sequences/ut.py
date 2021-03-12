@@ -1,14 +1,11 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-from definitions.GECSequence import GECSequence
 from definitions.VeloSequence import VeloSequence
 from definitions.UTSequence import UTSequence
 from definitions.algorithms import compose_sequences
 
-gec_sequence = GECSequence()
-
-velo_sequence = VeloSequence(gec_sequence['initialize_lists'])
+velo_sequence = VeloSequence()
 
 ut_sequence = UTSequence(
     initialize_lists=velo_sequence["initialize_lists"],
@@ -18,4 +15,4 @@ ut_sequence = UTSequence(
         "prefix_sum_offsets_velo_track_hit_number"],
     velo_kalman_filter=velo_sequence["velo_kalman_filter"])
 
-compose_sequences(gec_sequence, velo_sequence, ut_sequence).generate()
+compose_sequences(velo_sequence, ut_sequence).generate()

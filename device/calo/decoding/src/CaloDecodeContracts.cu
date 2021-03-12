@@ -8,7 +8,8 @@
 
 #include <unordered_set>
 
-bool check_digits(CaloDigit const* digits, size_t n_digits) {
+bool check_digits(CaloDigit const* digits, size_t n_digits)
+{
   bool valid = true;
   for (size_t i = 0; i < n_digits; ++i) {
     valid &= digits[i].adc < SHRT_MAX;

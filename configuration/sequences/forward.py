@@ -4,15 +4,12 @@
 from definitions.VeloSequence import VeloSequence
 from definitions.UTSequence import UTSequence
 from definitions.ForwardSequence import ForwardSequence
-from definitions.GECSequence import GECSequence
 from definitions.algorithms import compose_sequences
 
-gec_sequence = GECSequence()
-
-velo_sequence = VeloSequence(initialize_lists=gec_sequence["initialize_lists"])
+velo_sequence = VeloSequence()
 
 ut_sequence = UTSequence(
-    initialize_lists=gec_sequence['initialize_lists'],
+    initialize_lists=velo_sequence['initialize_lists'],
     velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
     velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[

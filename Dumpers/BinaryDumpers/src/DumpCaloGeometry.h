@@ -22,12 +22,8 @@
  */
 class DumpCaloGeometry final : public DumpGeometry<DeCalorimeter> {
 public:
-  DumpCaloGeometry(std::string name, ISvcLocator* loc) :
-    DumpGeometry<DeCalorimeter> {std::move(name), loc, ""}
-  {}
+  DumpCaloGeometry(std::string name, ISvcLocator* loc) : DumpGeometry<DeCalorimeter> {std::move(name), loc, ""} {}
 
 protected:
-
   DumpUtils::Dumps dumpGeometry() const override;
-
 };

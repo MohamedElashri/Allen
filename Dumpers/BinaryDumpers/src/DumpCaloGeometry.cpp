@@ -26,7 +26,7 @@ namespace {
                                                   {"HcalDet", Allen::NonEventData::HCalGeometry::id}};
   using namespace std::string_literals;
   constexpr unsigned max_neighbors = 9;
-}
+} // namespace
 
 DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
 {
@@ -46,7 +46,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   // start at this index. Using the num we can further index these 32 channels.
   // Wasted space: 32 * 16 bits per missing card code
 
-  std::vector<int> cards{};
+  std::vector<int> cards {};
   // Get all card indices for every source ID.
   for (int i = 0; i < det.nTell1s(); i++) {
     auto tell1Cards = det.tell1ToCards(i);
@@ -56,12 +56,12 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   // Determine offset and size of the global dense index;
   unsigned indexOffset = 0, indexSize = 0;
   namespace IndexDetails = LHCb::Calo::DenseIndex::details;
-  unsigned int hcalOuterOffset = IndexDetails::Constants
-    <CaloCellCode::CaloIndex::HcalCalo,
-     IndexDetails::Area::Outer>::global_offset;
+  unsigned int hcalOuterOffset =
+    IndexDetails::Constants<CaloCellCode::CaloIndex::HcalCalo, IndexDetails::Area::Outer>::global_offset;
   if (det.caloName()[0] == 'E') {
     indexSize = hcalOuterOffset;
-  } else {
+  }
+  else {
     indexOffset = hcalOuterOffset;
     indexSize = LHCb::CaloIndex::max() - indexOffset;
   }
@@ -85,10 +85,11 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     int index = (code - min) * 32;
     auto channels = det.cardChannels(card);
     for (size_t i = 0; i < channels.size(); i++) {
-      LHCb::CaloIndex const caloIndex{channels.at(i)};
+      LHCb::CaloIndex const caloIndex {channels.at(i)};
       if (caloIndex) {
         allChannels[index + i] = static_cast<uint16_t>(caloIndex - indexOffset);
-      } else {
+      }
+      else {
         allChannels[index + i] = static_cast<uint16_t>(indexSize);
       }
     }
@@ -100,15 +101,15 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   std::vector<float> gain(indexSize, 0.f);
   // Create neighbours per cellID.
   for (auto const& param : det.cellParams()) {
-    auto const caloIndex = LHCb::CaloIndex{param.cellID()};
-    if(!caloIndex) {
+    auto const caloIndex = LHCb::CaloIndex {param.cellID()};
+    if (!caloIndex) {
       continue;
     }
     auto const idx = caloIndex - indexOffset;
     auto const& ns = param.neighbors();
     for (size_t i = 0; i < ns.size(); i++) {
       // Use 4D indexing based on Area, row, column and neighbor index.
-      LHCb::CaloIndex const neighborIndex{ns.at(i)};
+      LHCb::CaloIndex const neighborIndex {ns.at(i)};
       if (neighborIndex) {
         neighbors[idx * max_neighbors + i] = static_cast<uint16_t>(neighborIndex - indexOffset);
       }
@@ -136,7 +137,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
 
   auto id = ids.find(det.caloName());
   if (id == ids.end()) {
-    throw GaudiException{"Cannot find "s + det.caloName(), name(), StatusCode::FAILURE};
+    throw GaudiException {"Cannot find "s + det.caloName(), name(), StatusCode::FAILURE};
   }
   return {{std::tuple {output.buffer(), det.caloName() + "_geometry", id->second}}};
 }

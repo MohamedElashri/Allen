@@ -64,7 +64,7 @@ public:
     boost::optional<size_t> n_events,
     std::vector<std::string> connections,
     size_t repetitions = 1,
-    boost::optional<std::string> file_list = boost::optional<std::string>{},
+    boost::optional<std::string> file_list = boost::optional<std::string> {},
     boost::optional<EventIDs> order = {}) :
     InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
@@ -110,8 +110,10 @@ public:
         }
         if (n_files == 0) {
           n_files = contents.size();
-        } else if (contents.size() != n_files) {
-          throw StrException {"Banks folder for " + bank_name(bank_type) + " contains a different number of files: " + std::to_string(contents.size()) + " instead of " + std::to_string(n_files)};
+        }
+        else if (contents.size() != n_files) {
+          throw StrException {"Banks folder for " + bank_name(bank_type) + " contains a different number of files: " +
+                              std::to_string(contents.size()) + " instead of " + std::to_string(n_files)};
         }
         // Get all file sizes
         m_sizes[ib].reserve(n_files);
@@ -152,9 +154,8 @@ public:
     }
     for (auto bank_type : this->types()) {
       auto ib = to_integral<BankTypes>(bank_type);
-      std::get<1>(files[ib]).read(reinterpret_cast<char*>(&bank_counts[ib]), sizeof(unsigned));
-      auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[0];
-      std::get<1>(files[ib]).close();
+      std::get<0>(files[ib]).read(reinterpret_cast<char*>(&bank_counts[ib]), sizeof(unsigned));
+      std::get<0>(files[ib]).close();
     }
 
     // Lambda that returns the amount of memory to allocate for a slice

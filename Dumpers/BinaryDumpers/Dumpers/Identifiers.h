@@ -87,6 +87,5 @@ namespace Allen {
       inline static std::string const id = "EcalGeometry";
     };
 
-
   } // namespace NonEventData
 } // namespace Allen

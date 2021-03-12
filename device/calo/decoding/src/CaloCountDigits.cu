@@ -4,10 +4,8 @@
 
 // TODO thinks about blocks/threads etc. 1 block per fragment might be best for coalesced memory acces.
 
-__device__ void offsets(unsigned const* event_list,
-                        unsigned const n_events,
-                        unsigned* number_of_digits,
-                        CaloGeometry const& geometry)
+__device__ void
+offsets(unsigned const* event_list, unsigned const n_events, unsigned* number_of_digits, CaloGeometry const& geometry)
 {
   for (unsigned idx = threadIdx.x; idx < n_events; idx += blockDim.x) {
     auto event_number = event_list[idx];
@@ -23,18 +21,11 @@ __global__ void calo_count_digits::calo_count_digits(
 {
   // ECal
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
-  offsets(parameters.dev_event_list,
-          n_events,
-          parameters.dev_ecal_num_digits,
-          ecal_geometry);
+  offsets(parameters.dev_event_list, n_events, parameters.dev_ecal_num_digits, ecal_geometry);
 
   // HCal
   auto hcal_geometry = CaloGeometry(raw_hcal_geometry);
-  offsets(parameters.dev_event_list,
-          n_events,
-          parameters.dev_hcal_num_digits,
-          hcal_geometry);
-
+  offsets(parameters.dev_event_list, n_events, parameters.dev_hcal_num_digits, hcal_geometry);
 }
 
 void calo_count_digits::calo_count_digits_t::set_arguments_size(
@@ -57,7 +48,6 @@ void calo_count_digits::calo_count_digits_t::operator()(
   initialize<dev_ecal_num_digits_t>(arguments, 0, context);
   initialize<dev_hcal_num_digits_t>(arguments, 0, context);
 
-  global_function(calo_count_digits)(
-    dim3(1), dim3(property<block_dim_x_t>().get()), context)(
-      arguments, size<dev_event_list_t>(arguments), constants.dev_ecal_geometry, constants.dev_hcal_geometry);
-  }
+  global_function(calo_count_digits)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
+    arguments, size<dev_event_list_t>(arguments), constants.dev_ecal_geometry, constants.dev_hcal_geometry);
+}

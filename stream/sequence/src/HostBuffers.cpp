@@ -142,7 +142,7 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
       malloc(max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
     host_number_of_vertex =
       reinterpret_cast<decltype(host_number_of_vertex)>(malloc(max_number_of_events * sizeof(int)));
-    host_number_of_seeds = reinterpret_cast<decltype(host_number_of_seeds)>(malloc(max_number_of_events * sizeof(int))); 
+    host_number_of_seeds = reinterpret_cast<decltype(host_number_of_seeds)>(malloc(max_number_of_events * sizeof(int)));
     host_zhisto = reinterpret_cast<decltype(host_zhisto)>(malloc(
       max_number_of_events * sizeof(float) * (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) /
       BeamlinePVConstants::Common::dz));
@@ -162,6 +162,5 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
 
     host_sv_atomics =
       reinterpret_cast<decltype(host_sv_atomics)>(malloc((2 * max_number_of_events + 1) * sizeof(unsigned)));
-
   }
 }

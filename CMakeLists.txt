@@ -307,7 +307,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
         set_source_files_properties(${arg} PROPERTIES LANGUAGE CXX)
       endif()
     endforeach()
-    
+
     add_library(${ARGV})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION lib OPTIONAL)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})

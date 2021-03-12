@@ -29,23 +29,18 @@ struct CaloGeometry {
     p += sizeof(uint16_t) * channels_size;
     const auto neighbors_size = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip neighbours size
-    neighbors = (uint16_t*)p;
+    neighbors = (uint16_t*) p;
     p += sizeof(uint16_t) * neighbors_size;
     const uint32_t xy_size = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip xy size
-    xy = (float*)p;
+    xy = (float*) p;
     p += sizeof(float) * xy_size;
     // const uint32_t gain_size = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip gain size
-    gain = (float*)p;
+    gain = (float*) p;
   }
 
-  __device__ __host__ float getX(uint16_t cellid) const {
-    return xy[2 * cellid];
-  }
+  __device__ __host__ float getX(uint16_t cellid) const { return xy[2 * cellid]; }
 
-  __device__ __host__ float getY(uint16_t cellid) const {
-    return xy[2 * cellid + 1];
-  }
-
+  __device__ __host__ float getY(uint16_t cellid) const { return xy[2 * cellid + 1]; }
 };
