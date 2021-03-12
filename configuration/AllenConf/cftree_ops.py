@@ -151,7 +151,7 @@ def gather_algs(node):
 
 
 @lru_cache(1000)
-def parse_boolean(expr: str):
+def parse_boolean(expr):
     """
     parses a boolean expression of existing control flow nodes.
     Example:
@@ -359,7 +359,7 @@ def get_weight(algorithm, ordered_algorithm_tuple):
     return algorithm._weight
 
 
-def order_algs(alg_dependencies: dict) -> (list, float):
+def order_algs(alg_dependencies):
     """
     This function accepts as a parameter a dictionary of algorithm dependencies:
     alg dependencies : dict(alg : (cf_dependencies, df_dependencies, minitree),

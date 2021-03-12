@@ -15,6 +15,8 @@ from definitions.algorithms import (
     event_list_inversion_t,
 )
 
+def is_combiner(alg):
+    return alg.type in (event_list_intersection_t, event_list_union_t, event_list_inversion_t)
 
 def make_algorithm(alg_type, name, **kwargs):
     """
@@ -56,7 +58,8 @@ def make_leaf(name, alg, **kwargs):
 
 
 def initialize_event_lists(**kwargs):
-    initialize_lists = make_algorithm(host_init_event_list_t, name="initialize_event_lists")
+    initialize_lists = make_algorithm(
+        host_init_event_list_t, name="initialize_event_lists")
     return initialize_lists
 
 
@@ -69,32 +72,33 @@ def add_event_list_combiners(order):
     and difference. These three operations would correspond in a single-event scenario to the
     OR, AND and NOT gate. This equivalence is used to transform NodeLogic into combiners.
     """
-    # gather all combinations that have to be made
-    seq = order[0]
-    trees = tuple(set([s[1] for s in seq]))
 
     def _make_combiner(inputs, logic):
-
-        if logic in (NodeLogic.LAZY_AND, NodeLogic.NONLAZY_AND):
+        # TODO shall we somehow make the name so that parantheses are obvious?
+        # here, a combinerfor (A & B) | C gets the same name as A & (B | C)
+        assert 1 <= len(inputs) <= 2, "only one or two inputs are accepted"
+        if logic == BoolNode.AND:
             return Algorithm(
                 event_list_intersection_t,
                 name="_AND_".join([i.producer.name for i in inputs]),
                 dev_event_list_a_t=inputs[0],
                 dev_event_list_b_t=inputs[1],
             )
-        elif logic in (NodeLogic.LAZY_OR, NodeLogic.NONLAZY_OR):
+        elif logic == BoolNode.OR:
             return Algorithm(
                 event_list_union_t,
                 name="_OR_".join([i.producer.name for i in inputs]),
                 dev_event_list_a_t=inputs[0],
                 dev_event_list_b_t=inputs[1],
             )
-        elif logic == NodeLogic.NOT:
+        elif logic == BoolNode.NOT:
             return Algorithm(
                 event_list_inversion_t,
                 name="NOT_" + inputs[0].producer.name,
                 dev_event_list_input_t=inputs[0],
             )
+        else:
+            raise ValueError(f"unknown logic {logic}")
 
     def combine(logic, *nodes):  # needs to return pyconf algorithm
         output_masks = []
@@ -112,31 +116,40 @@ def add_event_list_combiners(order):
     def _is_leaf(node):
         return isinstance(node, Leaf)
 
+    # def make_combiners_from(node):
+    #     if node == None:
+    #         return [initialize_event_lists()]
+    #     elif isinstance(node, Leaf):
+    #         return [node.top_alg]
+    #     elif isinstance(node, BoolNode):
+    #         if node.combineLogic == BoolNode.NOT:
+    #     else:
+    #         raise ValueError('wtf')
+
     def _make_combiners_from(node, combiners):
-        if not node:
+        if node == None:
             combiners.append(initialize_event_lists())
         elif isinstance(node, Leaf):
             combiners.append(node.top_alg)
         elif isinstance(node, BoolNode):
             if _has_only_leafs(node):
                 combiners.append(
-                    combine(node.combineLogic, *[c.algs[-1] for c in node.children])
-                )
+                    combine(node.combineLogic,
+                            *[c.top_alg for c in node.children]))
+            elif node.combineLogic == BoolNode.NOT:
+                _make_combiners_from(node.children[0], combiners)
+                combiners.append(combine(BoolNode.NOT, combiners[-1]))
             else:
                 if _is_leaf(node.children[0]):
                     _make_combiners_from(node.children[1], combiners)
                     combiners.append(
-                        combine(
-                            node.combineLogic, node.children[0].algs[-1], combiners[-1]
-                        )
-                    )
+                        combine(node.combineLogic, node.children[0].top_alg,
+                                combiners[-1]))
                 elif _is_leaf(node.children[1]):
                     _make_combiners_from(node.children[0], combiners)
                     combiners.append(
-                        combine(
-                            node.combineLogic, combiners[-1], node.children[1].algs[-1]
-                        )
-                    )
+                        combine(node.combineLogic, combiners[-1],
+                                node.children[1].top_alg))
                 else:
                     _make_combiners_from(node.children[0], combiners)
                     c1 = combiners[-1]
@@ -144,23 +157,26 @@ def add_event_list_combiners(order):
                     c2 = combiners[-1]
                     combiners.append(combine(node.combineLogic, c1, c2))
         else:
-            raise TypeError(f"expected leaf or compositenode, got {type(node)}")
+            raise TypeError(f"expected Leaf or BoolNode, got {type(node)}")
         return combiners
 
     def make_combiners_from(node):
         return tuple(_make_combiners_from(node, []))
 
-    combiners = {t: make_combiners_from(t) for t in trees}
+    # gather all combinations that have to be made
+    masks = tuple(set([s[1] for s in order]))
+
+    combiners = {m: make_combiners_from(m) for m in masks}
 
     # Generate the final sequence in a list of tuples (algorithm, execution mask)
-    final_sequence = seq
+    final_sequence = order
 
     # Add combiners in the right place
-    for mask, combiner in combiners.items():
+    for mask, combs in combiners.items():
         for i, (alg, _mask, _) in enumerate(final_sequence):
             if mask == _mask:
-                for comb in combiner[::-1]:
-                    final_sequence.insert(i, (comb, None, mask))
+                for comb in combs[::-1]:
+                    final_sequence.insert(i, (comb, None, None))
                 break
 
     # Remove duplicate combiners
@@ -172,8 +188,10 @@ def add_event_list_combiners(order):
         else:
             final_sequence_unique.append((alg, mask_in, mask_out))
 
-    # Update all algorithm event lists
+    # Update all algorithm masks
     for alg, mask, _ in final_sequence_unique:
+        if is_combiner(alg):
+            continue # combiner algorithms always run on all events, transforming masks
         mask_input = [k for k,v in configurable_inputs(alg.type).items() if v.type() == "mask_t"]
         if len(mask_input):
             output_mask = [v for v in combiners[mask][-1].outputs.values() if v.type == "mask_t"]

@@ -57,9 +57,9 @@ class host_init_event_list_t(AllenAlgorithm):
 class event_list_intersection_t(AllenAlgorithm):
     __slots__ = OrderedDict(
         dev_event_list_a_t=GaudiDataHandle("dev_event_list_a_t", "R",
-                                           "unsigned int"),
+                                           "mask_t"),
         dev_event_list_b_t=GaudiDataHandle("dev_event_list_b_t", "R",
-                                           "unsigned int"),
+                                           "mask_t"),
         host_event_list_a_t=GaudiDataHandle("host_event_list_a_t", "W",
                                             "unsigned int"),
         host_event_list_b_t=GaudiDataHandle("host_event_list_b_t", "W",
@@ -97,9 +97,9 @@ class event_list_intersection_t(AllenAlgorithm):
 class event_list_union_t(AllenAlgorithm):
     __slots__ = OrderedDict(
         dev_event_list_a_t=GaudiDataHandle("dev_event_list_a_t", "R",
-                                           "unsigned int"),
+                                           "mask_t"),
         dev_event_list_b_t=GaudiDataHandle("dev_event_list_b_t", "R",
-                                           "unsigned int"),
+                                           "mask_t"),
         host_event_list_a_t=GaudiDataHandle("host_event_list_a_t", "W",
                                             "unsigned int"),
         host_event_list_b_t=GaudiDataHandle("host_event_list_b_t", "W",
@@ -137,7 +137,7 @@ class event_list_union_t(AllenAlgorithm):
 class event_list_inversion_t(AllenAlgorithm):
     __slots__ = OrderedDict(
         dev_event_list_input_t=GaudiDataHandle("dev_event_list_input_t", "R",
-                                               "unsigned int"),
+                                               "mask_t"),
         host_event_list_t=GaudiDataHandle("host_event_list_t", "W",
                                           "unsigned int"),
         host_event_list_output_t=GaudiDataHandle("host_event_list_output_t",
