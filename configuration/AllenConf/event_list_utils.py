@@ -202,7 +202,7 @@ def add_event_list_combiners(order):
 
 def generate(root):
     """Generates an Allen sequence out of a root node."""
-    best_order = get_execution_list_for(root)
+    best_order, score = get_execution_list_for(root)
     final_seq = add_event_list_combiners(best_order)
 
     print("Generated sequence represented as algorithms with execution masks:")
