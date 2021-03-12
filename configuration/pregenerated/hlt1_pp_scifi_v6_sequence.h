@@ -142,6 +142,13 @@ struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
   using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
 };
+struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t,
+                                                host_global_event_cut::Parameters::host_ut_raw_bank_version_t,
+                                                ut_calculate_number_of_hits::Parameters::host_raw_bank_version_t,
+                                                ut_pre_decode::Parameters::host_raw_bank_version_t,
+                                                ut_decode_raw_banks_in_order::Parameters::host_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+};
 struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                             host_global_event_cut::Parameters::host_scifi_raw_banks_t,
                                             host_init_event_list::Parameters::host_scifi_raw_banks_t {
@@ -153,6 +160,9 @@ struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::ho
                                               host_init_event_list::Parameters::host_scifi_raw_offsets_t {
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
   using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
+};
+struct host_scifi_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
 };
 struct initialize_lists__host_event_list_t : host_global_event_cut::Parameters::host_event_list_t {
   using type = host_global_event_cut::Parameters::host_event_list_t::type;
@@ -1481,8 +1491,10 @@ using configured_arguments_t = std::tuple<
   mep_layout__dev_mep_layout_t,
   host_ut_banks__host_raw_banks_t,
   host_ut_banks__host_raw_offsets_t,
+  host_ut_banks__host_raw_bank_version_t,
   host_scifi_banks__host_raw_banks_t,
   host_scifi_banks__host_raw_offsets_t,
+  host_scifi_banks__host_raw_bank_version_t,
   initialize_lists__host_event_list_t,
   initialize_lists__host_number_of_events_t,
   initialize_lists__host_number_of_selected_events_t,
@@ -1841,11 +1853,16 @@ using configured_sequence_t = std::tuple<
 
 using configured_sequence_arguments_t = std::tuple<
   std::tuple<mep_layout__host_mep_layout_t, mep_layout__dev_mep_layout_t>,
-  std::tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t>,
-  std::tuple<host_scifi_banks__host_raw_banks_t, host_scifi_banks__host_raw_offsets_t>,
+  std::
+    tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t, host_ut_banks__host_raw_bank_version_t>,
+  std::tuple<
+    host_scifi_banks__host_raw_banks_t,
+    host_scifi_banks__host_raw_offsets_t,
+    host_scifi_banks__host_raw_bank_version_t>,
   std::tuple<
     host_ut_banks__host_raw_banks_t,
     host_ut_banks__host_raw_offsets_t,
+    host_ut_banks__host_raw_bank_version_t,
     host_scifi_banks__host_raw_banks_t,
     host_scifi_banks__host_raw_offsets_t,
     initialize_lists__host_event_list_t,
@@ -2056,6 +2073,7 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<ut_banks__dev_raw_banks_t, ut_banks__dev_raw_offsets_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
+    host_ut_banks__host_raw_bank_version_t,
     initialize_lists__dev_event_list_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -2068,6 +2086,7 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<
     initialize_lists__host_number_of_events_t,
     prefix_sum_ut_hits__host_total_sum_holder_t,
+    host_ut_banks__host_raw_bank_version_t,
     initialize_lists__dev_number_of_events_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -2086,6 +2105,7 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<
     initialize_lists__host_number_of_events_t,
     prefix_sum_ut_hits__host_total_sum_holder_t,
+    host_ut_banks__host_raw_bank_version_t,
     initialize_lists__dev_number_of_events_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -2953,8 +2973,11 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<mep_layout__dev_mep_layout_t>("mep_layout__dev_mep_layout_t");
   argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
   argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_bank_version_t>("host_ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_banks_t>("host_scifi_banks__host_raw_banks_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_offsets_t>("host_scifi_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_scifi_banks__host_raw_bank_version_t>(
+    "host_scifi_banks__host_raw_bank_version_t");
   argument_manager.template set_name<initialize_lists__host_event_list_t>("initialize_lists__host_event_list_t");
   argument_manager.template set_name<initialize_lists__host_number_of_events_t>(
     "initialize_lists__host_number_of_events_t");
