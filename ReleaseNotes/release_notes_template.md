@@ -26,7 +26,7 @@ This version uses
 {{project_deps|last}}.
 
 This version is released on `master` branch.
-Built relative to {{project}} [{{project_prev_tag}}](../-/tags/{{project_prev_tag}}), with the following changes:
+Built relative to {{project}} [{{project_prev_tag}}](/../../tags/{{project_prev_tag}}), with the following changes:
 
 ### New features ~"new feature"
 
