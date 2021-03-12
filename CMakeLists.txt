@@ -157,7 +157,7 @@ macro(allen_project)
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
-    gaudi_project(Allen v1r1 USE Rec v31r2)
+    gaudi_project(Allen v1r2 USE Rec v32r0)
 
 #Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
