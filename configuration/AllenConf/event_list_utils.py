@@ -116,52 +116,22 @@ def add_event_list_combiners(order):
     def _is_leaf(node):
         return isinstance(node, Leaf)
 
-    # def make_combiners_from(node):
-    #     if node == None:
-    #         return [initialize_event_lists()]
-    #     elif isinstance(node, Leaf):
-    #         return [node.top_alg]
-    #     elif isinstance(node, BoolNode):
-    #         if node.combineLogic == BoolNode.NOT:
-    #     else:
-    #         raise ValueError('wtf')
-
-    def _make_combiners_from(node, combiners):
-        if node == None:
-            combiners.append(initialize_event_lists())
-        elif isinstance(node, Leaf):
-            combiners.append(node.top_alg)
-        elif isinstance(node, BoolNode):
-            if _has_only_leafs(node):
-                combiners.append(
-                    combine(node.combineLogic,
-                            *[c.top_alg for c in node.children]))
-            elif node.combineLogic == BoolNode.NOT:
-                _make_combiners_from(node.children[0], combiners)
-                combiners.append(combine(BoolNode.NOT, combiners[-1]))
-            else:
-                if _is_leaf(node.children[0]):
-                    _make_combiners_from(node.children[1], combiners)
-                    combiners.append(
-                        combine(node.combineLogic, node.children[0].top_alg,
-                                combiners[-1]))
-                elif _is_leaf(node.children[1]):
-                    _make_combiners_from(node.children[0], combiners)
-                    combiners.append(
-                        combine(node.combineLogic, combiners[-1],
-                                node.children[1].top_alg))
-                else:
-                    _make_combiners_from(node.children[0], combiners)
-                    c1 = combiners[-1]
-                    _make_combiners_from(node.children[1], combiners)
-                    c2 = combiners[-1]
-                    combiners.append(combine(node.combineLogic, c1, c2))
-        else:
-            raise TypeError(f"expected Leaf or BoolNode, got {type(node)}")
-        return combiners
-
     def make_combiners_from(node):
-        return tuple(_make_combiners_from(node, []))
+        if node == None:
+            return [initialize_event_lists()]
+        elif _is_leaf(node):
+            return [node.top_alg]
+        elif isinstance(node, BoolNode):
+            if node.combineLogic == BoolNode.NOT:
+                combs = make_combiners_from(node.children[0])
+                return combs + [combine(BoolNode.NOT, combs[-1])]
+            else: # AND / OR
+                lhs, rhs = node.children
+                combs_lhs = make_combiners_from(lhs)
+                combs_rhs = make_combiners_from(rhs)
+                return combs_lhs + combs_rhs + [combine(node.combineLogic, combs_lhs[-1], combs_rhs[-1])]
+        else:
+            raise ValueError(f"expected input of type NoneType, Leaf or BoolNode, got {type(node)}")
 
     # gather all combinations that have to be made
     masks = tuple(set([s[1] for s in order]))
@@ -189,6 +159,7 @@ def add_event_list_combiners(order):
             final_sequence_unique.append((alg, mask_in, mask_out))
 
     # Update all algorithm masks
+    print(combiners)
     for alg, mask, _ in final_sequence_unique:
         if is_combiner(alg):
             continue # combiner algorithms always run on all events, transforming masks
