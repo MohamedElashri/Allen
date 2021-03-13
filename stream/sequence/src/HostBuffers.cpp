@@ -17,7 +17,7 @@
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
 
-void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_check)
+void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_lines, const bool do_check)
 {
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
@@ -44,6 +44,13 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const bool do_che
 
   // Buffer for performing GEC on CPU
   Allen::malloc_host((void**) &host_event_list, max_number_of_events * sizeof(unsigned));
+
+  // Buffer for saving dec reports to the host.
+  uint32_t* dec_reports = nullptr;
+  size_t const dec_reports_size = max_number_of_events * (n_lines + 2) * sizeof(uint32_t);
+  Allen::malloc_host((void**) &dec_reports, dec_reports_size);
+  ::memset(dec_reports, 0, dec_reports_size);
+  host_dec_reports = {dec_reports, dec_reports_size};
 
   // Buffer for saving events passing Hlt1 selections.
   Allen::malloc_host((void**) &host_passing_event_list, max_number_of_events * sizeof(bool));

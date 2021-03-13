@@ -106,7 +106,8 @@ StatusCode RunAllen::initialize()
     configuration_reader.params());
 
   // Initialize host buffers (where Allen output is stored)
-  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_do_check, m_stream_wrapper->errorevent_line));
+  m_host_buffers_manager.reset(
+    new HostBuffersManager(m_n_buffers, 2, m_line_names.size(), m_do_check, m_stream_wrapper->errorevent_line));
   m_stream_wrapper->initialize_streams_host_buffers_manager(m_host_buffers_manager.get());
 
   // Initialize input provider

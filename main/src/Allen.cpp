@@ -406,6 +406,8 @@ int allen(
   // Run all registered produces and consumers
   updater->update(0);
 
+  auto const& configuration = configuration_reader->params();
+
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
@@ -416,11 +418,22 @@ int allen(
     reserve_host_mb,
     device_memory_alignment,
     constants,
-    configuration_reader->params());
+    configuration);
+
+  // Find the number of lines from gather_selections
+  size_t n_lines = 0;
+  auto conf_it = configuration.find("gather_selections");
+  if (conf_it != configuration.end()) {
+    auto prop_it = conf_it->second.find("names_of_active_lines");
+    if (prop_it != conf_it->second.end()) {
+      auto line_names = split_string(prop_it->second, ",");
+      n_lines = line_names.size();
+    }
+  }
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffer_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, do_check, stream_wrapper.errorevent_line);
+  std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
+    number_of_buffers, events_per_slice, n_lines, do_check, stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 

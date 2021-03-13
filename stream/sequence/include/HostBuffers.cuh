@@ -130,7 +130,7 @@ struct HostBuffers {
   /**
    * @brief Reserves all host buffers.
    */
-  void reserve(const unsigned max_number_of_events, const bool do_check);
+  void reserve(const unsigned max_number_of_events, const size_t n_lines, const bool do_check);
 
   // /**
   //  * @brief Frees all host buffers.

@@ -22,10 +22,11 @@ struct HostBuffersManager {
   HostBuffersManager(
     size_t nBuffers,
     const unsigned max_number_of_events,
+    const size_t lines,
     const bool do_check,
     const unsigned errorevent_line) :
     max_events(max_number_of_events),
-    check(do_check), m_errorevent_line(errorevent_line)
+    n_lines(lines), check(do_check), m_errorevent_line(errorevent_line)
   {
     init(nBuffers);
   }
@@ -57,7 +58,8 @@ private:
   std::queue<size_t> empty_buffers;
   std::queue<size_t> filled_buffers;
 
-  const unsigned max_events;
-  const bool check;
-  const unsigned m_errorevent_line;
+  const unsigned max_events = 0;
+  const size_t n_lines = 0;
+  const bool check = false;
+  const unsigned m_errorevent_line = 0;
 };
