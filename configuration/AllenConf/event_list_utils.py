@@ -159,7 +159,6 @@ def add_event_list_combiners(order):
             final_sequence_unique.append((alg, mask_in, mask_out))
 
     # Update all algorithm masks
-    print(combiners)
     for alg, mask, _ in final_sequence_unique:
         if is_combiner(alg):
             continue # combiner algorithms always run on all events, transforming masks
