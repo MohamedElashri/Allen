@@ -12,7 +12,7 @@ from definitions.validators import (
     pv_validation, rate_validation, kalman_validation)
 
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.event_list_utils import generate, make_leaf
+from AllenConf.event_list_utils import generate
 
 # Reconstructed objects
 with make_ut_tracks.bind(restricted=False):
@@ -64,61 +64,39 @@ lines_leaf = CompositeNode(
 hlt1_node = CompositeNode(
     "Allen", [
         lines_leaf,
-        make_leaf(
-            name="dec_reporter",
-            alg=make_dec_reporter(lines=line_algorithms.values())),
+        make_dec_reporter(lines=line_algorithms.values()),
     ],
     NodeLogic.NONLAZY_AND,
     forceOrder=True)
 
 validators_node = CompositeNode(
     "Validators", [
-        make_leaf(
-            name="velo_validation",
-            alg=velo_validation(
-                restricted_hlt1_reconstruction["velo_tracks"])),
-        make_leaf(
-            name="restricted_veloUT_validation",
-            alg=veloUT_validation(
-                restricted_hlt1_reconstruction["ut_tracks"],
-                name="restricted_veloUT_validator")),
-        make_leaf(
-            name="non-restricted_veloUT_validation",
-            alg=veloUT_validation(
-                non_restricted_hlt1_reconstruction["ut_tracks"],
-                name="non-restricted_veloUT_validator")),
-        make_leaf(
-            name="restricted_forward_validation",
-            alg=forward_validation(
-                restricted_hlt1_reconstruction["forward_tracks"],
-                name="restricted_forward_validator")),
-        make_leaf(
-            name="non-restricted_forward_validation",
-            alg=forward_validation(
-                non_restricted_hlt1_reconstruction["forward_tracks"],
-                name="non-restricted_forward_validator")),
-        make_leaf(
-            name="restricted_muon_validation",
-            alg=muon_validation(
-                restricted_hlt1_reconstruction["muonID"],
-                name="restricted_muon_validation")),
-        make_leaf(
-            name="non-restricted_muon_validation",
-            alg=muon_validation(
+        velo_validation(
+            restricted_hlt1_reconstruction["velo_tracks"]),
+        veloUT_validation(
+            restricted_hlt1_reconstruction["ut_tracks"],
+            name="restricted_veloUT_validator"),
+        veloUT_validation(
+            non_restricted_hlt1_reconstruction["ut_tracks"],
+            name="non-restricted_veloUT_validator"),
+        forward_validation(
+            restricted_hlt1_reconstruction["forward_tracks"],
+            name="restricted_forward_validator"),
+        forward_validation(
+            non_restricted_hlt1_reconstruction["forward_tracks"],
+            name="non-restricted_forward_validator"),
+        muon_validation(
+            restricted_hlt1_reconstruction["muonID"],
+            name="restricted_muon_validation"),
+        muon_validation(
                 non_restricted_hlt1_reconstruction["muonID"],
-                name="non-restricted_muon_validation")),
-        make_leaf(
-            name="pv_validation",
-            alg=pv_validation(restricted_hlt1_reconstruction["pvs"])),
-        make_leaf(
-            name="rate_validation",
-            alg=rate_validation(
-                make_gather_selections(lines=line_algorithms.values()))),
-        make_leaf(
-            name="restricted_kalman_validation",
-            alg=kalman_validation(
-                restricted_hlt1_reconstruction["kalman_velo_only"],
-                name="restricted_kalman_validation"))
+                name="non-restricted_muon_validation"),
+        pv_validation(restricted_hlt1_reconstruction["pvs"]),
+        rate_validation(
+            make_gather_selections(lines=line_algorithms.values())),
+        kalman_validation(
+            restricted_hlt1_reconstruction["kalman_velo_only"],
+            name="restricted_kalman_validation")
     ],
     NodeLogic.NONLAZY_AND,
     forceOrder=False)

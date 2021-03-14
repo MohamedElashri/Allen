@@ -7,9 +7,10 @@ import functools
 import ast
 import sympy
 from collections import defaultdict, OrderedDict
-from PyConf.control_flow import Leaf, CompositeNode, NodeLogic
+from PyConf.control_flow import CompositeNode, NodeLogic
 from functools import lru_cache
-from PyConf.components import _get_unique_name
+from PyConf.components import _get_unique_name, Algorithm
+
 class BoolNode:
     """
     A representation of boolean operations (and, or, not).
@@ -22,7 +23,7 @@ class BoolNode:
     NOT="~"
 
     def __init__(self, combineLogic, children):
-        assert all(isinstance(c, Leaf) or isinstance(c, BoolNode) for c in children)
+        assert all(isinstance(c, Algorithm) or isinstance(c, BoolNode) for c in children)
         assert combineLogic in (self.AND, self.OR, self.NOT)
         self.children = tuple(c for c in children)
         self.combineLogic = combineLogic
@@ -75,7 +76,7 @@ def get_ordered_trees(node):
         (C | (B & A))
        ]
     """
-    if isinstance(node, Leaf):
+    if isinstance(node, Algorithm):
         return (node,)
     elif isinstance(node, CompositeNode):
         if not node.forceOrder and node.is_lazy:
@@ -94,7 +95,7 @@ def get_ordered_trees(node):
                 )
             ]
     else:
-        raise TypeError("please provide CompositeNodes or Leafs.")
+        raise TypeError("please provide CompositeNodes or Algorithms.")
 
 
 @lru_cache(1000)
@@ -110,7 +111,7 @@ def to_string(node):
 
     For binary trees, to_string and parse_boolean should be inverse functions
     """
-    if isinstance(node, Leaf):
+    if isinstance(node, Algorithm):
         return node.name
     elif isinstance(node, CompositeNode) or isinstance(node, BoolNode):
         if node.uses_not:
@@ -128,16 +129,16 @@ def to_string(node):
                 + ")"
             )
     else:
-        raise TypeError("please provide CompositeNodes, BoolNodes or Leafs.")
+        raise TypeError("please provide CompositeNodes, BoolNodes or Algorithms.")
 
 
 def gather_leafs(node):
     """
-    gathers leafs from a tree
+    gathers algs from a tree that do decision making
     """
 
     def impl(node):
-        if isinstance(node, Leaf):
+        if isinstance(node, Algorithm):
             yield node
         if isinstance(node, CompositeNode) or isinstance(node, BoolNode):
             for child in node.children:
@@ -147,7 +148,7 @@ def gather_leafs(node):
 
 
 def gather_algs(node):
-    return frozenset([alg for leaf in gather_leafs(node) for alg in leaf.algs])
+    return frozenset([alg for leaf in gather_leafs(node) for alg in leaf.all_producers(False)])
 
 
 @lru_cache(1000)
@@ -156,7 +157,7 @@ def parse_boolean(expr):
     parses a boolean expression of existing control flow nodes.
     Example:
     (GEC & HASMUON) builds a tree with and AND node with children [GEC, HASMUON].
-    Because leafs (like GEC, HASMUON) are globally cached,
+    Because algorithms (like GEC, HASMUON) are globally cached,
     it will query the cache to get the same instances.
     For binary trees, to_string and parse_boolean should be inverse functions
     """
@@ -189,10 +190,12 @@ def parse_boolean(expr):
             else:
                 raise NotImplementedError("Unexpected unary operation in node")
         elif isinstance(node, ast.Name):
-            if node.id in Leaf.leafs:
-                return Leaf.leafs[node.id]
+            # TODO make this better
+            names = {alg.name : alg for alg in Algorithm._algorithm_store.values()}
+            if node.id in names:
+                return names[node.id]
             else:
-                raise ValueError(f"Unknown leaf: {node.id}, could not parse")
+                raise ValueError(f"Unknown Alg: {node.id}, could not parse")
         else:
             raise NotImplementedError(f"cannot parse {node}")
 
@@ -218,7 +221,7 @@ def find_execution_masks_for_algorithms(root, execution_mask="true"):
     def impl(
         node, execution_mask="true"
     ):  # for sympy.simplify we need lower case true and false
-        if isinstance(node, Leaf):
+        if isinstance(node, Algorithm):
             # TODO do we want to keep these if statements?
             # do we have a RL usecase for average efficiencies of 0 and 1?
             if node.average_eff == 1:
@@ -227,7 +230,7 @@ def find_execution_masks_for_algorithms(root, execution_mask="true"):
                 leafmask == "false"
             else:
                 leafmask = node.name
-            return [(algorithm, execution_mask) for algorithm in node.algs], leafmask
+            return [(algorithm, execution_mask) for algorithm in node.all_producers(False)], leafmask
         elif isinstance(node, CompositeNode):
             outputs = []
             output_names = []
@@ -294,7 +297,7 @@ def avrg_efficiency(node):
     """
     if not node:  # the tree is just "True"
         return 1
-    elif isinstance(node, Leaf):
+    elif isinstance(node, Algorithm):
         return node.average_eff
     elif isinstance(node, CompositeNode) or isinstance(node, BoolNode):
         combine_effs = lambda fun: functools.reduce(
@@ -324,21 +327,21 @@ def make_independent_of_algs(node, algs):
     """
     algs = set(algs)
 
-    def has_unknown_cf(leaf):
-        return leaf.average_eff not in [0, 1] and leaf.top_alg in algs
+    def has_unknown_cf(alg):
+        return alg.average_eff not in [0, 1] and alg in algs
 
-    unknown_outcome_leafs = set(filter(has_unknown_cf, gather_leafs(node)))
+    unknown_outcome_algs = set(filter(has_unknown_cf, gather_leafs(node)))
 
-    if not unknown_outcome_leafs:
+    if not unknown_outcome_algs:
         return node
 
     mini_repr = to_string(node)
     all_reprs = []
     for decisions in itertools.product(
-        *(["true", "false"] for _ in unknown_outcome_leafs)
+        *(["true", "false"] for _ in unknown_outcome_algs)
     ):
         curr_repr = mini_repr
-        for i, leaf in enumerate(unknown_outcome_leafs):
+        for i, leaf in enumerate(unknown_outcome_algs):
             curr_repr = curr_repr.replace(leaf.name, decisions[i])
         all_reprs.append(curr_repr)
     combined = simplify("(" + " | ".join(all_reprs) + ")")
@@ -449,25 +452,6 @@ def order_algs(alg_dependencies):
     return sortd, score
 
 
-def map_alg_to_node(root):
-    """
-    creates a map only with algorithms that produce
-    an output mask from the tree represented by the root node.
-
-    Each key-value pair corresponds to an algorithm with an output mask and
-    its corresponding leaf where it appears as the top algorithm.
-    """
-    algorithm_with_output_mask_to_leaf = {}
-    for leaf in gather_leafs(root):
-        top_algorithm = leaf.top_alg
-        contains_output_mask = [
-            a for a in top_algorithm.outputs.values() if a.type == "mask_t"
-        ]
-        if contains_output_mask:
-            algorithm_with_output_mask_to_leaf[top_algorithm] = leaf
-    return algorithm_with_output_mask_to_leaf
-
-
 def get_execution_list_for(tree):
     """
     produces an execution sequence from a control flow tree,
@@ -489,8 +473,7 @@ def get_execution_list_for(tree):
 
     (seq, val) = order_algs(dependencies)
 
-    alg_to_leaf = map_alg_to_node(tree)
-    return ([(alg, in_, alg_to_leaf.get(alg)) for (alg, in_) in seq.items()], val)
+    return (tuple(seq.items()), val)
 
 
 def get_best_order(tree):

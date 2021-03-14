@@ -12,7 +12,6 @@ from definitions.validators import (
     velo_validation, veloUT_validation, forward_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.event_list_utils import make_leaf
 from definitions.persistency import make_gather_selections
 from definitions.utils import gec
 
@@ -45,8 +44,7 @@ def hlt1_reconstruction():
 def make_composite_node_with_gec(alg_name, alg, gec_name="gec"):
     return CompositeNode(
         alg_name,
-        [make_leaf(name=gec_name, alg=gec()),
-         make_leaf(alg_name, alg=alg)],
+        [gec(), alg],
         NodeLogic.LAZY_AND,
         forceOrder=True)
 
@@ -71,10 +69,8 @@ def validator_node(reconstructed_objects, line_algorithms):
             make_composite_node_with_gec(
                 "kalman_validation",
                 kalman_validation(reconstructed_objects["kalman_velo_only"])),
-            make_leaf(
-                name="rate_validation",
-                alg=rate_validation(
-                    make_gather_selections(lines=line_algorithms.values()))),
+            rate_validation(
+                    make_gather_selections(lines=line_algorithms.values())),
         ],
         NodeLogic.NONLAZY_AND,
         forceOrder=False)

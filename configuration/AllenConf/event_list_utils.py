@@ -3,8 +3,8 @@
 ###############################################################################
 from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
-from PyConf.control_flow import Leaf, NodeLogic, CompositeNode
-from AllenConf.cftree_ops import get_best_order, get_execution_list_for, gather_leafs, BoolNode
+from PyConf.control_flow import NodeLogic, CompositeNode
+from AllenConf.cftree_ops import get_best_order, get_execution_list_for, BoolNode
 from AllenConf.AllenSequenceGenerator import generate_allen_sequence
 from AllenConf.allen_benchmarks import benchmark_weights, benchmark_efficiencies
 from definitions.algorithms import (
@@ -40,21 +40,6 @@ def make_algorithm(alg_type, name, **kwargs):
         weight = 100.0
         print(name, "does not have a weight")
     return Algorithm(alg_type, name=name, weight=weight, **kwargs)
-
-
-def make_leaf(name, alg, **kwargs):
-    """
-    Makes a leaf identified by its name and algorithm. Also, sets the "efficiency" of the leaf.
-    The efficiency of the leaf indicates how likely is it to accept events. Similarly to
-    benchmark weights, benchmark efficiencies are also set in the file `allen_benchmarks.py`.
-    """
-    t = alg.type.getType()
-    # TODO efficiency should not be based on the type, but on the configuration (maybe the name)
-    if t in benchmark_efficiencies:
-        efficiency = benchmark_efficiencies[t]
-    else:
-        efficiency = .99
-    return Leaf(name, alg=alg, average_eff=efficiency, **kwargs)
 
 
 def initialize_event_lists(**kwargs):
@@ -110,17 +95,12 @@ def add_event_list_combiners(order):
         return _make_combiner(
             inputs=output_masks, logic=logic)
 
-    def _has_only_leafs(node):
-        return all(isinstance(c, Leaf) for c in node.children)
-
-    def _is_leaf(node):
-        return isinstance(node, Leaf)
 
     def make_combiners_from(node):
-        if node == None:
+        if node is None:
             return [initialize_event_lists()]
-        elif _is_leaf(node):
-            return [node.top_alg]
+        elif isinstance(node, Algorithm):
+            return [node]
         elif isinstance(node, BoolNode):
             if node.combineLogic == BoolNode.NOT:
                 combs = make_combiners_from(node.children[0])
@@ -131,7 +111,7 @@ def add_event_list_combiners(order):
                 combs_rhs = make_combiners_from(rhs)
                 return combs_lhs + combs_rhs + [combine(node.combineLogic, combs_lhs[-1], combs_rhs[-1])]
         else:
-            raise ValueError(f"expected input of type NoneType, Leaf or BoolNode, got {type(node)}")
+            raise ValueError(f"expected input of type NoneType, Algorithm or BoolNode, got {type(node)}")
 
     # gather all combinations that have to be made
     masks = tuple(set([s[1] for s in order]))
@@ -139,27 +119,27 @@ def add_event_list_combiners(order):
     combiners = {m: make_combiners_from(m) for m in masks}
 
     # Generate the final sequence in a list of tuples (algorithm, execution mask)
-    final_sequence = order
+    final_sequence = list(order)
 
     # Add combiners in the right place
     for mask, combs in combiners.items():
-        for i, (alg, _mask, _) in enumerate(final_sequence):
+        for i, (alg, _mask) in enumerate(final_sequence):
             if mask == _mask:
                 for comb in combs[::-1]:
-                    final_sequence.insert(i, (comb, None, None))
+                    final_sequence.insert(i, (comb, None))
                 break
 
     # Remove duplicate combiners
     final_sequence_unique = list()
-    for (alg, mask_in, mask_out) in final_sequence:
-        for (alg_, _, _) in final_sequence_unique:
+    for (alg, mask_in) in final_sequence:
+        for (alg_, _) in final_sequence_unique:
             if alg == alg_:
                 break
         else:
-            final_sequence_unique.append((alg, mask_in, mask_out))
+            final_sequence_unique.append((alg, mask_in))
 
     # Update all algorithm masks
-    for alg, mask, _ in final_sequence_unique:
+    for alg, mask in final_sequence_unique:
         if is_combiner(alg):
             continue # combiner algorithms always run on all events, transforming masks
         mask_input = [k for k,v in configurable_inputs(alg.type).items() if v.type() == "mask_t"]
@@ -168,7 +148,7 @@ def add_event_list_combiners(order):
             assert(len(mask_input) == 1 and len(output_mask) == 1)
             alg.inputs[mask_input[0]] = output_mask[0]
 
-    return final_sequence_unique
+    return tuple(final_sequence_unique)
 
 def generate(root):
     """Generates an Allen sequence out of a root node."""
@@ -178,7 +158,6 @@ def generate(root):
     print("Generated sequence represented as algorithms with execution masks:")
     for alg, mask_in, mask_out in final_seq:
         mask_in_str = f" in:{mask_in}" if mask_in else ""
-        mask_out_str = f" out:{mask_out}" if mask_out else ""
-        print(f"  {alg}{mask_in_str}{mask_out_str}")
+        print(f"  {alg}{mask_in_str}")
 
-    return generate_allen_sequence([alg for (alg,_,_) in final_seq])
+    return generate_allen_sequence([alg for (alg,_) in final_seq])

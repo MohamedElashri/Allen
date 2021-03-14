@@ -1,7 +1,6 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from PyConf.control_flow import Leaf
 from AllenConf.event_list_utils import make_algorithm
 from definitions.algorithms import *
 
@@ -17,7 +16,7 @@ def initialize_number_of_events():
     }
 
 
-def gec(min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
+def gec(name ="global_event_cut", min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
     number_of_events = initialize_number_of_events()
 
     host_ut_banks = make_algorithm(
@@ -28,7 +27,7 @@ def gec(min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
 
     gec = make_algorithm(
         host_global_event_cut_t,
-        name="global_event_cut",
+        name=name,
         host_ut_raw_banks_t=host_ut_banks.host_raw_banks_t,
         host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t,
         host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t,

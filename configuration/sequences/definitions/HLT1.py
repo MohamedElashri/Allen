@@ -10,7 +10,7 @@ from definitions.hlt1_alignment_lines import make_d2kpi_line
 from definitions.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from definitions.hlt1_technical_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_passthrough_line
 
-from AllenConf.event_list_utils import make_algorithm, make_leaf
+from AllenConf.event_list_utils import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from definitions.odin import decode_odin
@@ -109,14 +109,14 @@ def make_line_composite_node_with_gec(alg_name,
                                       gec_name="gec"):
     return CompositeNode(
         alg_name, [
-            make_leaf(name=gec_name, alg=gec()),
-            make_leaf(alg_name, alg=line_algorithms[alg_name])
+            gec(name=gec_name),
+            line_algorithms[alg_name]
         ],
         NodeLogic.LAZY_AND,
         forceOrder=True)
 
 
-def default_lines_leaf_with_GEC(line_algorithms):
+def default_lines_with_GEC(line_algorithms):
     track_mva_line = make_line_composite_node_with_gec("Hlt1TrackMVA",
                                                        line_algorithms)
     two_track_mva_line = make_line_composite_node_with_gec(
@@ -156,8 +156,7 @@ def default_lines_leaf_with_GEC(line_algorithms):
         "Hlt1TrackMuonMVA", line_algorithms)
     passthrough_with_gec_line = make_line_composite_node_with_gec(
         "Hlt1GECPassthrough", line_algorithms)
-    passthrough_line = make_leaf(
-        "Hlt1Passthrough", alg=line_algorithms["Hlt1Passthrough"])
+    passthrough_line = line_algorithms["Hlt1Passthrough"]
 
     return CompositeNode(
         "AllLines", [
@@ -173,43 +172,27 @@ def default_lines_leaf_with_GEC(line_algorithms):
         forceOrder=False)
 
 
-def default_lines_leaf_no_GEC(line_algorithms):
-    track_mva_line = make_leaf(
-        "Hlt1TrackMVA", alg=line_algorithms["Hlt1TrackMVA"])
-    two_track_mva_line = make_leaf(
-        "Hlt1TwoTrackMVA", alg=line_algorithms["Hlt1TwoTrackMVA"])
-    no_beam_line = make_leaf("Hlt1NoBeam", alg=line_algorithms["Hlt1NoBeam"])
-    one_beam_line = make_leaf(
-        "Hlt1BeamOne", alg=line_algorithms["Hlt1BeamOne"])
-    two_beam_line = make_leaf(
-        "Hlt1BeamTwo", alg=line_algorithms["Hlt1BeamTwo"])
-    both_beam_line = make_leaf(
-        "Hlt1BothBeams", alg=line_algorithms["Hlt1BothBeams"])
-    velo_micro_bias_line = make_leaf(
-        "Hlt1VeloMicroBias", alg=line_algorithms["Hlt1VeloMicroBias"])
-    odin_lumi_line = make_leaf(
-        "Hlt1ODINLumi", alg=line_algorithms["Hlt1ODINLumi"])
-    odin_no_bias_line = make_leaf(
-        "Hlt1ODINNoBias", alg=line_algorithms["Hlt1ODINNoBias"])
-    single_high_pt_muon_line = make_leaf(
-        "Hlt1SingleHighPtMuon", alg=line_algorithms["Hlt1SingleHighPtMuon"])
-    low_pt_muon_line = make_leaf(
-        "Hlt1LowPtMuon", alg=line_algorithms["Hlt1LowPtMuon"])
-    d2kk_line = make_leaf("Hlt1D2KK", alg=line_algorithms["Hlt1D2KK"])
-    d2kpi_line = make_leaf("Hlt1D2KPi", alg=line_algorithms["Hlt1D2KPi"])
-    d2pipi_line = make_leaf("Hlt1D2PiPi", alg=line_algorithms["Hlt1D2PiPi"])
-    di_muon_high_mass_line = make_leaf(
-        "Hlt1DiMuonHighMass", alg=line_algorithms["Hlt1DiMuonHighMass"])
-    di_muon_low_mass_line = make_leaf(
-        "Hlt1DiMuonLowMass", alg=line_algorithms["Hlt1DiMuonLowMass"])
-    di_muon_soft_line = make_leaf(
-        "Hlt1DiMuonSoft", alg=line_algorithms["Hlt1DiMuonSoft"])
-    low_pt_di_muon_line = make_leaf(
-        "Hlt1LowPtDiMuon", alg=line_algorithms["Hlt1LowPtDiMuon"])
-    track_muon_mva_line = make_leaf(
-        "Hlt1TrackMuonMVA", alg=line_algorithms["Hlt1TrackMuonMVA"])
-    passthrough_line = make_leaf(
-        "Hlt1Passthrough", alg=line_algorithms["Hlt1Passthrough"])
+def default_lines_no_GEC(line_algorithms):
+    track_mva_line = line_algorithms["Hlt1TrackMVA"]
+    two_track_mva_line = line_algorithms["Hlt1TwoTrackMVA"]
+    no_beam_line = line_algorithms["Hlt1NoBeam"]
+    one_beam_line = line_algorithms["Hlt1BeamOne"]
+    two_beam_line = line_algorithms["Hlt1BeamTwo"]
+    both_beam_line = line_algorithms["Hlt1BothBeams"]
+    velo_micro_bias_line = line_algorithms["Hlt1VeloMicroBias"]
+    odin_lumi_line = line_algorithms["Hlt1ODINLumi"]
+    odin_no_bias_line = line_algorithms["Hlt1ODINNoBias"]
+    single_high_pt_muon_line = line_algorithms["Hlt1SingleHighPtMuon"]
+    low_pt_muon_line = line_algorithms["Hlt1LowPtMuon"]
+    d2kk_line = line_algorithms["Hlt1D2KK"]
+    d2kpi_line = line_algorithms["Hlt1D2KPi"]
+    d2pipi_line = line_algorithms["Hlt1D2PiPi"]
+    di_muon_high_mass_line = line_algorithms["Hlt1DiMuonHighMass"]
+    di_muon_low_mass_line = line_algorithms["Hlt1DiMuonLowMass"]
+    di_muon_soft_line = line_algorithms["Hlt1DiMuonSoft"]
+    low_pt_di_muon_line = line_algorithms["Hlt1LowPtDiMuon"]
+    track_muon_mva_line = line_algorithms["Hlt1TrackMuonMVA"]
+    passthrough_line = line_algorithms["Hlt1Passthrough"]
 
     return CompositeNode(
         "AllLines", [
@@ -237,16 +220,14 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         reconstructed_objects["secondary_vertices"])
 
     if EnableGEC:
-        lines_leaf = default_lines_leaf_with_GEC(line_algorithms)
+        lines = default_lines_with_GEC(line_algorithms)
     else:
-        lines_leaf = default_lines_leaf_no_GEC(line_algorithms)
+        lines = default_lines_no_GEC(line_algorithms)
 
     hlt1_node = CompositeNode(
         "Allen", [
-            lines_leaf,
-            make_leaf(
-                name="dec_reporter",
-                alg=make_dec_reporter(lines=line_algorithms.values()))
+            lines,
+            make_dec_reporter(lines=line_algorithms.values())
         ],
         NodeLogic.NONLAZY_AND,
         forceOrder=True)
