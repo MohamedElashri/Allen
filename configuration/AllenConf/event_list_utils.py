@@ -47,7 +47,6 @@ def make_algorithm(alg_type, name, **kwargs):
         weight = 10.0
     else:
         weight = 100.0
-        print(name, "does not have a weight")
 
     return Algorithm(alg_type, name=name, weight=weight, average_eff=eff, **kwargs)
 

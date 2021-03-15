@@ -13,7 +13,7 @@ benchmark_weights = dict([
     ("lf_create_tracks", 1827.857),
     ("host_ut_banks", 1000.0),
     ("host_scifi_banks", 1000.0),
-    ("global_event_cut", 10.0),
+    ("gec", 10.0),
     ("gather_selections", 100.0),
     ("initialize_event_lists", 1.0),
     ("mep_layout", 1.0),
@@ -70,4 +70,4 @@ benchmark_weights = dict([
 ])
 
 # Hardcoded on 29/07/2020
-benchmark_efficiencies = dict([("host_global_event_cut_t", 0.9)])
+benchmark_efficiencies = dict([("gec", 0.9)])
