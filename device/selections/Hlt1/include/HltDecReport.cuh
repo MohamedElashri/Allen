@@ -36,7 +36,7 @@ public:
     intDecisionIDMask = 0xffff0000L
   };
 
-  __device__ __host__ HltDecReport() = default;
+  HltDecReport() = default;
 
   __device__ __host__ HltDecReport(unsigned int report) : m_decReport {report} {}
 

@@ -42,6 +42,7 @@ __global__ void global_decision::global_decision(global_decision::Parameters par
       // Iterate all lines to get the decision for the current {event, line}
       HltDecReport dec_report(event_dec_reports[2 + line_index]);
       global_decision |= dec_report.decision();
+      if (global_decision) break;
     }
     parameters.dev_global_decision[event_index] = global_decision;
   }
