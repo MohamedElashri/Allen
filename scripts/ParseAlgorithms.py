@@ -130,7 +130,7 @@ class AlgorithmCategory(Enum):\n\
             s = s[:-2]
         s += "]\n\n"
         return s
-    
+
     @staticmethod
     def get_algorithm_category(name, scope):
         if name == "data_provider_t":
@@ -170,12 +170,15 @@ class AlgorithmCategory(Enum):\n\
         s += AllenConf.prefix(i) + "@staticmethod\n"
         s += AllenConf.prefix(i) + "def category():\n"
         i += 1
-        s += AllenConf.prefix(i) + f"return AlgorithmCategory.{AllenConf.get_algorithm_category(algorithm.name, algorithm.scope)}\n\n"
+        s += AllenConf.prefix(
+            i
+        ) + f"return AlgorithmCategory.{AllenConf.get_algorithm_category(algorithm.name, algorithm.scope)}\n\n"
         i -= 1
 
         s += AllenConf.prefix(i) + "def __new__(self, name, **kwargs):\n"
         i += 1
-        s += AllenConf.prefix(i) + "instance = AllenAlgorithm.__new__(self, name)\n"
+        s += AllenConf.prefix(
+            i) + "instance = AllenAlgorithm.__new__(self, name)\n"
         s += AllenConf.prefix(i) + "for n,v in kwargs.items():\n"
         i += 1
         s += AllenConf.prefix(i) + "setattr(instance, n, v)\n"
@@ -186,20 +189,17 @@ class AlgorithmCategory(Enum):\n\
         s += AllenConf.prefix(i) + "@classmethod\n"
         s += AllenConf.prefix(i) + "def namespace(cls):\n"
         i += 1
-        s += AllenConf.prefix(
-            i) + "return \"" + algorithm.namespace + "\"\n\n"
+        s += AllenConf.prefix(i) + "return \"" + algorithm.namespace + "\"\n\n"
         i -= 1
         s += AllenConf.prefix(i) + "@classmethod\n"
         s += AllenConf.prefix(i) + "def filename(cls):\n"
         i += 1
-        s += AllenConf.prefix(
-            i) + "return \"" + algorithm.filename + "\"\n\n"
+        s += AllenConf.prefix(i) + "return \"" + algorithm.filename + "\"\n\n"
         i -= 1
         s += AllenConf.prefix(i) + "@classmethod\n"
         s += AllenConf.prefix(i) + "def getType(cls):\n"
         i += 1
-        s += AllenConf.prefix(
-            i) + "return \"" + algorithm.name + "\"\n\n\n"
+        s += AllenConf.prefix(i) + "return \"" + algorithm.name + "\"\n\n\n"
 
         return s
 

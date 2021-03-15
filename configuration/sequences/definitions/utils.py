@@ -16,9 +16,7 @@ def initialize_number_of_events():
     }
 
 
-def gec(name="global_event_cut",
-        min_scifi_ut_clusters="0",
-        max_scifi_ut_clusters="9750"):
+def gec(name="gec", min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
     number_of_events = initialize_number_of_events()
 
     host_ut_banks = make_algorithm(

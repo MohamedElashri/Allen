@@ -33,8 +33,10 @@ def sample_tree_0():
     x = Algorithm(decider_1_t, name="X_st0", conf=3, average_eff=0.9)
     y = Algorithm(decider_1_t, name="Y_st0", conf=4, average_eff=0.8)
 
-    line1 = CompositeNode("L1_st0", [pre0, x], Logic.LAZY_AND, force_order=True)
-    line2 = CompositeNode("L2_st0", [pre1, y], Logic.LAZY_AND, force_order=True)
+    line1 = CompositeNode(
+        "L1_st0", [pre0, x], Logic.LAZY_AND, force_order=True)
+    line2 = CompositeNode(
+        "L2_st0", [pre1, y], Logic.LAZY_AND, force_order=True)
     top = CompositeNode(
         "root_st0", [line1, line2], Logic.LAZY_OR, force_order=False)
     return top, (pre0, pre1, x, y)
@@ -47,8 +49,10 @@ def sample_tree_1():
     x = Algorithm(decider_1_t, name="X_st1", conf=7, average_eff=.5)
     y = Algorithm(decider_1_t, name="Y_st1", conf=8, average_eff=.4)
 
-    line1 = CompositeNode("L1_st1", [pre0, x], Logic.LAZY_AND, force_order=True)
-    line2 = CompositeNode("L2_st1", [pre1, y], Logic.LAZY_AND, force_order=True)
+    line1 = CompositeNode(
+        "L1_st1", [pre0, x], Logic.LAZY_AND, force_order=True)
+    line2 = CompositeNode(
+        "L2_st1", [pre1, y], Logic.LAZY_AND, force_order=True)
     notline2 = CompositeNode("nL2_st1", [line2], Logic.NOT, force_order=True)
     top = CompositeNode(
         "root_st1", [line1, notline2], Logic.LAZY_OR, force_order=True)

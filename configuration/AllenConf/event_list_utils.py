@@ -15,8 +15,11 @@ from definitions.algorithms import (
     event_list_inversion_t,
 )
 
+
 def is_combiner(alg):
-    return alg.type in (event_list_intersection_t, event_list_union_t, event_list_inversion_t)
+    return alg.type in (event_list_intersection_t, event_list_union_t,
+                        event_list_inversion_t)
+
 
 def make_algorithm(alg_type, name, **kwargs):
     """
@@ -35,20 +38,21 @@ def make_algorithm(alg_type, name, **kwargs):
     elif name in benchmark_efficiencies:
         eff = benchmark_efficiencies[name]
     else:
-        eff = .99 # TODO we could also just do 1, but then they wont be considered in masks
+        eff = .99  # TODO we could also just do 1, but then they wont be considered in masks
 
     if "weight" in kwargs:
         weight = kwargs["weight"]
     elif name in benchmark_weights:
         weight = benchmark_weights[name]
-    elif "prefix_sum" in name: # hard coded heuristic for now, TODO might want to change
+    elif "prefix_sum" in name:  # hard coded heuristic for now, TODO might want to change
         weight = 1000.0
     elif alg_type.category() == AlgorithmCategory.SelectionAlgorithm:
         weight = 10.0
     else:
         weight = 100.0
 
-    return Algorithm(alg_type, name=name, weight=weight, average_eff=eff, **kwargs)
+    return Algorithm(
+        alg_type, name=name, weight=weight, average_eff=eff, **kwargs)
 
 
 def initialize_event_lists(**kwargs):
@@ -101,9 +105,7 @@ def add_event_list_combiners(order):
             assert len(m) == 1, f"should have one output mask, got {len(m)}"
             output_masks.append(m[0])
 
-        return _make_combiner(
-            inputs=output_masks, logic=logic)
-
+        return _make_combiner(inputs=output_masks, logic=logic)
 
     def make_combiners_from(node):
         if node is None:
@@ -114,13 +116,17 @@ def add_event_list_combiners(order):
             if node.combine_logic == BoolNode.NOT:
                 combs = make_combiners_from(node.children[0])
                 return combs + [combine(BoolNode.NOT, combs[-1])]
-            else: # AND / OR
+            else:  # AND / OR
                 lhs, rhs = node.children
                 combs_lhs = make_combiners_from(lhs)
                 combs_rhs = make_combiners_from(rhs)
-                return combs_lhs + combs_rhs + [combine(node.combine_logic, combs_lhs[-1], combs_rhs[-1])]
+                return combs_lhs + combs_rhs + [
+                    combine(node.combine_logic, combs_lhs[-1], combs_rhs[-1])
+                ]
         else:
-            raise ValueError(f"expected input of type NoneType, Algorithm or BoolNode, got {type(node)}")
+            raise ValueError(
+                f"expected input of type NoneType, Algorithm or BoolNode, got {type(node)}"
+            )
 
     # gather all combinations that have to be made
     masks = tuple(set([s[1] for s in order]))
@@ -150,14 +156,21 @@ def add_event_list_combiners(order):
     # Update all algorithm masks
     for alg, mask in final_sequence_unique:
         if is_combiner(alg):
-            continue # combiner algorithms always run on all events, transforming masks
-        mask_input = [k for k,v in configurable_inputs(alg.type).items() if v.type() == "mask_t"]
+            continue  # combiner algorithms always run on all events, transforming masks
+        mask_input = [
+            k for k, v in configurable_inputs(alg.type).items()
+            if v.type() == "mask_t"
+        ]
         if len(mask_input):
-            output_mask = [v for v in combiners[mask][-1].outputs.values() if v.type == "mask_t"]
-            assert(len(mask_input) == 1 and len(output_mask) == 1)
+            output_mask = [
+                v for v in combiners[mask][-1].outputs.values()
+                if v.type == "mask_t"
+            ]
+            assert (len(mask_input) == 1 and len(output_mask) == 1)
             alg.inputs[mask_input[0]] = output_mask[0]
 
     return tuple(final_sequence_unique)
+
 
 def generate(root):
     """Generates an Allen sequence out of a root node."""
@@ -169,4 +182,4 @@ def generate(root):
         mask_in_str = f" in:{str(mask_in).split('/')[1]}" if mask_in else ""
         print(f"  {alg}{mask_in_str}")
 
-    return generate_allen_sequence([alg for (alg,_) in final_seq])
+    return generate_allen_sequence([alg for (alg, _) in final_seq])

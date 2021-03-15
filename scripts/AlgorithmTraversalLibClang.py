@@ -15,8 +15,14 @@ class ParsedAlgorithm():
         self.properties = properties
 
         # Check parameters contains at most one input mask and one output mask
-        input_masks = [a for a in parameters if "Input" in a.kind and a.typedef == "mask_t"]
-        output_masks = [a for a in parameters if "Output" in a.kind and a.typedef == "mask_t"]
+        input_masks = [
+            a for a in parameters
+            if "Input" in a.kind and a.typedef == "mask_t"
+        ]
+        output_masks = [
+            a for a in parameters
+            if "Output" in a.kind and a.typedef == "mask_t"
+        ]
         assert len(input_masks) <= 1 and len(output_masks) <= 1,\
             f"Algorithm {self.name} does not fulfill condition: At most one input and one output mask are allowed per algorithm."
 
@@ -114,7 +120,8 @@ class AlgorithmTraversal():
 
     # Accepted tokens for algorithm definitions
     __algorithm_tokens = [
-        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm", "ValidationAlgorithm"
+        "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm",
+        "ValidationAlgorithm"
     ]
 
     # Accepted tokens for parameter parsing
@@ -194,7 +201,8 @@ class AlgorithmTraversal():
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
-                    typedef = [a.type.spelling for a in child.get_children()][0]
+                    typedef = [a.type.spelling
+                               for a in child.get_children()][0]
             if typedef == "" or typedef == "int":
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
@@ -206,7 +214,8 @@ class AlgorithmTraversal():
             typedef = None
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_METHOD:
-                    typedef = [a.type.spelling for a in child.get_children()][0]
+                    typedef = [a.type.spelling
+                               for a in child.get_children()][0]
             if typedef == "" or typedef == "int":
                 typedef = "unknown_t"
             # Unfortunately, for properties we need to rely on tokens found in the

@@ -8,6 +8,7 @@ from definitions.algorithms import algorithms_with_aggregates, AlgorithmCategory
 # Assume we have a final sequence
 # final_sequence_unique
 
+
 class AllenSequenceGenerator:
     """Helper class to generate an Allen compatible sequence."""
 
@@ -20,11 +21,11 @@ class AllenSequenceGenerator:
 
     @staticmethod
     def generate(
-        algorithms,
-        output_filename="Sequence.h",
-        json_configuration_filename="Sequence.json",
-        input_aggregates_filename="ConfiguredInputAggregates.h",
-        prefix_includes="",
+            algorithms,
+            output_filename="Sequence.h",
+            json_configuration_filename="Sequence.json",
+            input_aggregates_filename="ConfiguredInputAggregates.h",
+            prefix_includes="",
     ):
 
         print("Generating sequence files...")
@@ -32,7 +33,8 @@ class AllenSequenceGenerator:
         # Generate the includes with all algorithm headers
         s = "#pragma once\n\n#include <tuple>\n"
         s += "#include \"" + input_aggregates_filename + "\"\n"
-        set_of_includes = set([algorithm.type.filename() for algorithm in algorithms])
+        set_of_includes = set(
+            [algorithm.type.filename() for algorithm in algorithms])
         for include in set_of_includes:
             s += '#include "' + prefix_includes + include + '"\n'
         s += "\n"
@@ -43,35 +45,43 @@ class AllenSequenceGenerator:
         input_aggregates_parameter_full_names = OrderedDict([])
         for algorithm in algorithms:
             # All parameters
-            all_parameters = [(a[0], a[1], "input") for a in list(algorithm.inputs.items())] + [(a[0], a[1], "output") for a in list(algorithm.outputs.items())]
+            all_parameters = [
+                (a[0], a[1], "input") for a in list(algorithm.inputs.items())
+            ] + [(a[0], a[1], "output")
+                 for a in list(algorithm.outputs.items())]
 
             for parameter_name, parameter_dh, io in all_parameters:
                 if type(parameter_dh) != list:
                     parameter_full_name = AllenSequenceGenerator.clean_prefix(
-                        parameter_dh.location
-                    )
+                        parameter_dh.location)
                     # Verify that inputs are already populated
-                    assert(io != "input" or parameter_full_name in parameters), "Inputs should be provided by some output"
-                    param_data = (algorithm.name, algorithm.type.namespace(), parameter_name, algorithm.type.filename())
-                    
+                    assert (io != "input" or parameter_full_name in parameters
+                            ), "Inputs should be provided by some output"
+                    param_data = (algorithm.name, algorithm.type.namespace(),
+                                  parameter_name, algorithm.type.filename())
+
                     if io == "output":
                         parameters[parameter_full_name] = [param_data]
                     else:
                         parameters[parameter_full_name].append(param_data)
                 else:
                     # Input aggregates
-                    assert(io == "input"), "Aggregates can only be inputs"
+                    assert (io == "input"), "Aggregates can only be inputs"
                     if algorithm not in input_aggregates_parameter_full_names:
                         input_aggregates_parameter_full_names[algorithm] = {}
-                    if parameter_name not in input_aggregates_parameter_full_names[algorithm]:
-                        input_aggregates_parameter_full_names[algorithm][parameter_name] = []
+                    if parameter_name not in input_aggregates_parameter_full_names[
+                            algorithm]:
+                        input_aggregates_parameter_full_names[algorithm][
+                            parameter_name] = []
                     for single_parameter in parameter_dh:
                         parameter_full_name = AllenSequenceGenerator.clean_prefix(
-                            single_parameter.location
-                        )
-                        assert(parameter_full_name in parameters), "Inputs should be provided by some output"
-                        parameters_part_of_aggregates.append(parameter_full_name)
-                        input_aggregates_parameter_full_names[algorithm][parameter_name].append(parameter_full_name)
+                            single_parameter.location)
+                        assert (parameter_full_name in parameters
+                                ), "Inputs should be provided by some output"
+                        parameters_part_of_aggregates.append(
+                            parameter_full_name)
+                        input_aggregates_parameter_full_names[algorithm][
+                            parameter_name].append(parameter_full_name)
 
         # Generate parameters with inheriting classes that are not in aggregates
         for parameter_full_name, v in iter(parameters.items()):
@@ -114,28 +124,30 @@ class AllenSequenceGenerator:
         for i, algorithm in enumerate(algorithms):
             s += "  std::tuple<"
             for (
-                parameter_name,
-                parameter,
+                    parameter_name,
+                    parameter,
             ) in algorithm.type.getDefaultProperties().items():
                 if isinstance(parameter, GaudiDataHandle):
                     # Deal with input aggregates separately
-                    if parameter_name in algorithm.inputs and type(algorithm.inputs[parameter_name]) == list:
-                        for single_parameter in algorithm.inputs[parameter_name]:
+                    if parameter_name in algorithm.inputs and type(
+                            algorithm.inputs[parameter_name]) == list:
+                        for single_parameter in algorithm.inputs[
+                                parameter_name]:
                             parameter_full_name = AllenSequenceGenerator.clean_prefix(
-                                single_parameter.location
-                            )
+                                single_parameter.location)
                             s += f"{parameter_full_name}, "
                     else:
                         # It can be either an input or an output
                         if parameter_name in algorithm.inputs:
-                            parameter_location = algorithm.inputs[parameter_name].location
+                            parameter_location = algorithm.inputs[
+                                parameter_name].location
                         elif parameter_name in algorithm.outputs:
-                            parameter_location = algorithm.outputs[parameter_name].location
+                            parameter_location = algorithm.outputs[
+                                parameter_name].location
                         else:
                             raise "GIT GUD, i gotta get back to playing dark souls on my nintendo 3ds"
                         parameter_full_name = AllenSequenceGenerator.clean_prefix(
-                            parameter_location
-                        )
+                            parameter_location)
                         s += f"{parameter_full_name}, "
             s = s[:-2] + ">"
             if i != len(algorithms) - 1:
@@ -176,10 +188,11 @@ class AllenSequenceGenerator:
         s += "  \"configured_lines\": ["
         selection_algorithms = []
         for algorithm in algorithms:
-            if algorithm.type.category() == AlgorithmCategory.SelectionAlgorithm:
-                selection_algorithms.append(algorithm)
-                s += "\"" + selection_algorithms.name + "\", "
-        if len(selection_algorithms):
+            if algorithm.type.category(
+            ) == AlgorithmCategory.SelectionAlgorithm:
+                found_selection_algorithms = True
+                s += "\"" + algorithm.name + "\", "
+        if found_selection_algorithms:
             s = s[:-2]
         s += "]\n}\n"
         f = open(json_configuration_filename, "w")
@@ -210,7 +223,8 @@ class AllenSequenceGenerator:
             for inheriting_class in inheriting_classes:
                 s += inheriting_class + ", "
             s = s[:-2]
-            s += " { using type = " + v[0][1] + "::Parameters::" + v[0][2] + "::type; };\n"
+            s += " { using type = " + v[0][1] + "::Parameters::" + v[0][
+                2] + "::type; };\n"
 
         s += "\n"
         for algorithm_with_aggregate_class in algorithms_with_aggregates_list:
@@ -220,8 +234,10 @@ class AllenSequenceGenerator:
             ]
             if len(instance_of_alg_class):
                 for algorithm in instance_of_alg_class:
-                    for parameter_name, parameter_full_names in input_aggregates_parameter_full_names[algorithm].items():
-                        s += "namespace " + algorithm_with_aggregate_class.namespace() + " { namespace " + parameter_name + " { using tuple_t = std::tuple<"
+                    for parameter_name, parameter_full_names in input_aggregates_parameter_full_names[
+                            algorithm].items():
+                        s += "namespace " + algorithm_with_aggregate_class.namespace(
+                        ) + " { namespace " + parameter_name + " { using tuple_t = std::tuple<"
                         for i, p in enumerate(parameter_full_names):
                             s += p
                             if i != len(parameter_full_names) - 1:
@@ -231,12 +247,15 @@ class AllenSequenceGenerator:
                 # Since there are no instances of that algorithm,
                 # at least we need to populate the aggregate inputs as empty
                 for parameter_name in algorithm_with_aggregate_class.aggregates:
-                    s += "namespace " + algorithm_with_aggregate_class.namespace() + " { namespace " + parameter_name + " { using tuple_t = std::tuple<>; }}\n"
+                    s += "namespace " + algorithm_with_aggregate_class.namespace(
+                    ) + " { namespace " + parameter_name + " { using tuple_t = std::tuple<>; }}\n"
         f = open(input_aggregates_filename, "w")
         f.write(s)
         f.close()
 
-        print(f"Generated sequence files {output_filename}, {input_aggregates_filename} and {json_configuration_filename}" )
+        print(
+            f"Generated sequence files {output_filename}, {input_aggregates_filename} and {json_configuration_filename}"
+        )
 
 
 def generate_allen_sequence(algorithms):
