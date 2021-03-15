@@ -808,6 +808,15 @@ a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_
   <<: *active_branches
 
 
+a6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - a6000
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+  <<: *active_branches
+
+
 mi100:HIP:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
@@ -896,6 +905,13 @@ a40:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_Min
   <<: *scifi_v6_throughput_job
   tags:
     - a40
+  needs:
+    - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+
+a6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput:
+  <<: *scifi_v6_throughput_job
+  tags:
+    - a6000
   needs:
     - CUDA:hlt1_pp_scifi_v6:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
@@ -1004,6 +1020,13 @@ a40:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_t
   needs:
     - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
+a6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - a6000
+  needs:
+    - CUDA:hlt1_pp_no_gec:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+
 mi100:HIP:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
@@ -1064,6 +1087,13 @@ a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - a40
+  needs:
+    - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
+
+a6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - a6000
   needs:
     - CUDA:hlt1_pp_default:RelWithDebInfo::x86_64-centos7-clang10-opt:build
 
@@ -1181,6 +1211,7 @@ throughput:hlt1_pp_default:geforcertx3090:minbias_mag_down_201907:publish_throug
     - geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - a6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - mi100:HIP:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
@@ -1204,6 +1235,7 @@ throughput:hlt1_pp_no_gec:geforcertx3090:minbias_mag_down_201907:publish_through
     - geforcertx3080:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - geforcertx3090:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - a40:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
+    - a6000:CUDA:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - mi100:HIP:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - x862630v4:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
     - epyc7502:CPU:hlt1_pp_no_gec:x86_64-centos7-clang10-opt:minbias_mag_down_201907:run_throughput
@@ -1223,6 +1255,7 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
     - geforcertx3080:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - geforcertx3090:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - a40:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
+    - a6000:CUDA:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - mi100:HIP:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - x862630v4:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
     - epyc7502:CPU:hlt1_pp_default:x86_64-centos7-clang10-opt:SMOG2_pppHe:run_throughput
@@ -1241,6 +1274,7 @@ throughput:hlt1_pp_default:geforcertx3090:SMOG2_pppHe:publish_throughput:
     - geforcertx3080:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
     - geforcertx3090:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
     - a40:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
+    - a6000:CUDA:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
     - mi100:HIP:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
     - x862630v4:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
     - epyc7502:CPU:hlt1_pp_scifi_v6:x86_64-centos7-clang10-opt:SciFiv6_upgrade_DC19_01_MinBiasMD:run_throughput
