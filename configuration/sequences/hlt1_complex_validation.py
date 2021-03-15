@@ -59,7 +59,7 @@ lines_leaf = CompositeNode(
         track_mva_line_non_restricted, two_track_mva_line_non_restricted
     ],
     NodeLogic.NONLAZY_OR,
-    forceOrder=False)
+    force_order=False)
 
 hlt1_node = CompositeNode(
     "Allen", [
@@ -67,7 +67,7 @@ hlt1_node = CompositeNode(
         make_dec_reporter(lines=line_algorithms.values()),
     ],
     NodeLogic.NONLAZY_AND,
-    forceOrder=True)
+    force_order=True)
 
 validators_node = CompositeNode(
     "Validators", [
@@ -98,12 +98,12 @@ validators_node = CompositeNode(
             name="restricted_kalman_validation")
     ],
     NodeLogic.NONLAZY_AND,
-    forceOrder=False)
+    force_order=False)
 
 node = CompositeNode(
     "AllenWithValidators", [hlt1_node, validators_node],
     NodeLogic.NONLAZY_AND,
-    forceOrder=False)
+    force_order=False)
 
 generate(node)
 

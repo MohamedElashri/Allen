@@ -33,10 +33,10 @@ def sample_tree_0():
     x = Algorithm(decider_1_t, name="X_st0", conf=3, average_eff=0.9)
     y = Algorithm(decider_1_t, name="Y_st0", conf=4, average_eff=0.8)
 
-    line1 = CompositeNode("L1_st0", [pre0, x], Logic.LAZY_AND, forceOrder=True)
-    line2 = CompositeNode("L2_st0", [pre1, y], Logic.LAZY_AND, forceOrder=True)
+    line1 = CompositeNode("L1_st0", [pre0, x], Logic.LAZY_AND, force_order=True)
+    line2 = CompositeNode("L2_st0", [pre1, y], Logic.LAZY_AND, force_order=True)
     top = CompositeNode(
-        "root_st0", [line1, line2], Logic.LAZY_OR, forceOrder=False)
+        "root_st0", [line1, line2], Logic.LAZY_OR, force_order=False)
     return top, (pre0, pre1, x, y)
 
 
@@ -47,11 +47,11 @@ def sample_tree_1():
     x = Algorithm(decider_1_t, name="X_st1", conf=7, average_eff=.5)
     y = Algorithm(decider_1_t, name="Y_st1", conf=8, average_eff=.4)
 
-    line1 = CompositeNode("L1_st1", [pre0, x], Logic.LAZY_AND, forceOrder=True)
-    line2 = CompositeNode("L2_st1", [pre1, y], Logic.LAZY_AND, forceOrder=True)
-    notline2 = CompositeNode("nL2_st1", [line2], Logic.NOT, forceOrder=True)
+    line1 = CompositeNode("L1_st1", [pre0, x], Logic.LAZY_AND, force_order=True)
+    line2 = CompositeNode("L2_st1", [pre1, y], Logic.LAZY_AND, force_order=True)
+    notline2 = CompositeNode("nL2_st1", [line2], Logic.NOT, force_order=True)
     top = CompositeNode(
-        "root_st1", [line1, notline2], Logic.LAZY_OR, forceOrder=True)
+        "root_st1", [line1, notline2], Logic.LAZY_OR, force_order=True)
     return top
 
 
@@ -59,16 +59,16 @@ def sample_tree_1():
 def sample_tree_2():
     """
     In Moore (or rather the HltControlflowMgr), this would be an invalid tree
-    to operate, because forceOrder there means that the order of evaluation
+    to operate, because force_order there means that the order of evaluation
     of the children is hard. Because PRE2 appears in both pre02 and pre12,
     this would mean that PRE2 ultimately has to evaluate before PRE2, which
     is impossible.
 
-    However, in this scheduler forceOrder is used to build control flow
-    dependencies. A forceOrder = False in boom_st2 causes two trees to be
+    However, in this scheduler force_order is used to build control flow
+    dependencies. A force_order = False in boom_st2 causes two trees to be
     evaluated, one with [pre02, pre12] and one with [pre12, pre02]. A score
     is calculated on both sequences that come out of these trees to see which
-    one executes faster. Therefore, forceOrder here can rather be interpreted
+    one executes faster. Therefore, force_order here can rather be interpreted
     as "preferredOrder" of the topalgs involved in the ordering.
     """
 
@@ -79,12 +79,12 @@ def sample_tree_2():
     PRE2 = Algorithm(
         decider_1_t, name="PRE2_st2", average_eff=0.3, conf=11, weight=1)
     pre12 = CompositeNode(
-        "pre12_st2", [PRE1, PRE2], Logic.LAZY_AND, forceOrder=True)
+        "pre12_st2", [PRE1, PRE2], Logic.LAZY_AND, force_order=True)
     pre02 = CompositeNode(
-        "pre02_st2", [PRE0, PRE2], Logic.LAZY_AND, forceOrder=True)
+        "pre02_st2", [PRE0, PRE2], Logic.LAZY_AND, force_order=True)
     return CompositeNode(
         "boom_st2", [pre02, pre12], Logic.LAZY_OR,
-        forceOrder=True), (PRE0, PRE1, PRE2)
+        force_order=True), (PRE0, PRE1, PRE2)
 
 
 @lru_cache(1)
@@ -114,10 +114,10 @@ def sample_tree_3():
         conf=4,
         average_eff=0.5)
 
-    line1 = CompositeNode("L1_st3", [c0, c1], Logic.LAZY_AND, forceOrder=True)
-    line2 = CompositeNode("L2_st3", [c2, c3], Logic.LAZY_AND, forceOrder=True)
+    line1 = CompositeNode("L1_st3", [c0, c1], Logic.LAZY_AND, force_order=True)
+    line2 = CompositeNode("L2_st3", [c2, c3], Logic.LAZY_AND, force_order=True)
     top = CompositeNode(
-        "root_st3", [line1, line2], Logic.LAZY_OR, forceOrder=False)
+        "root_st3", [line1, line2], Logic.LAZY_OR, force_order=False)
     return top, (p0, c0, p1, c1, c2, c3)
 
 

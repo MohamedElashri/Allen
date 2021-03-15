@@ -34,6 +34,6 @@ def muon_id():
 muon_id_sequence = CompositeNode(
     "MuonIDWithGEC", [gec("gec"), muon_id()],
     NodeLogic.LAZY_AND,
-    forceOrder=True)
+    force_order=True)
 
 generate(muon_id_sequence)

@@ -43,7 +43,7 @@ def hlt1_reconstruction():
 
 def make_composite_node_with_gec(alg_name, alg, gec_name="gec"):
     return CompositeNode(
-        alg_name, [gec(), alg], NodeLogic.LAZY_AND, forceOrder=True)
+        alg_name, [gec(), alg], NodeLogic.LAZY_AND, force_order=True)
 
 
 def validator_node(reconstructed_objects, line_algorithms):
@@ -70,4 +70,4 @@ def validator_node(reconstructed_objects, line_algorithms):
                 make_gather_selections(lines=line_algorithms.values())),
         ],
         NodeLogic.NONLAZY_AND,
-        forceOrder=False)
+        force_order=False)

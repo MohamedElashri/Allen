@@ -22,23 +22,23 @@ class BoolNode:
     OR="|"
     NOT="~"
 
-    def __init__(self, combineLogic, children):
+    def __init__(self, combine_logic, children):
         assert all(isinstance(c, Algorithm) or isinstance(c, BoolNode) for c in children)
-        assert combineLogic in (self.AND, self.OR, self.NOT)
+        assert combine_logic in (self.AND, self.OR, self.NOT)
         self.children = tuple(c for c in children)
-        self.combineLogic = combineLogic
+        self.combine_logic = combine_logic
 
     @property
     def uses_not(self):
-        return self.combineLogic == self.NOT
+        return self.combine_logic == self.NOT
 
     @property
     def uses_or(self):
-        return self.combineLogic == self.OR
+        return self.combine_logic == self.OR
 
     @property
     def uses_and(self):
-        return self.combineLogic == self.AND
+        return self.combine_logic == self.AND
 
     def __repr__(self):
         return to_string(self)
@@ -46,7 +46,7 @@ class BoolNode:
     def __hash__(self):
         return hash((
             self.children,
-            self.combineLogic,
+            self.combine_logic,
         ))
 
     def __eq__(self, other):
@@ -61,11 +61,11 @@ def simplify(string):
 def get_ordered_trees(node):
     """
     Gets all possible orderings from a partially specified tree.
-    A tree may have CompositeNodes with forceOrder = False.
+    A tree may have CompositeNodes with force_order = False.
     For every occurence of these nodes, this function expands the tree
     into a collection of all permutations.
     Example:
-    For a input tree with two binary CompositeNodes with forceOrder=False,
+    For a input tree with two binary CompositeNodes with force_order=False,
     four trees will come of of this function:
 
     both & and | unordered: ((A & B) | C)
@@ -79,9 +79,9 @@ def get_ordered_trees(node):
     if isinstance(node, Algorithm):
         return (node,)
     elif isinstance(node, CompositeNode):
-        if not node.forceOrder and node.is_lazy:
+        if not node.force_order and node.is_lazy:
             return [
-                CompositeNode(node.name, x, node.combineLogic, forceOrder=True)
+                CompositeNode(node.name, x, node.combine_logic, force_order=True)
                 for children in itertools.permutations(
                     tuple(get_ordered_trees(c) for c in node.children)
                 )
@@ -89,7 +89,7 @@ def get_ordered_trees(node):
             ]
         else:
             return [
-                CompositeNode(node.name, x, node.combineLogic, forceOrder=True)
+                CompositeNode(node.name, x, node.combine_logic, force_order=True)
                 for x in itertools.product(
                     *tuple(get_ordered_trees(c) for c in node.children)
                 )

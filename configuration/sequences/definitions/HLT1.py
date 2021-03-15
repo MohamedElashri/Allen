@@ -110,7 +110,7 @@ def make_line_composite_node_with_gec(alg_name,
     return CompositeNode(
         alg_name, [gec(name=gec_name), line_algorithms[alg_name]],
         NodeLogic.LAZY_AND,
-        forceOrder=True)
+        force_order=True)
 
 
 def default_lines_with_GEC(line_algorithms):
@@ -166,7 +166,7 @@ def default_lines_with_GEC(line_algorithms):
             passthrough_with_gec_line, passthrough_line
         ],
         NodeLogic.NONLAZY_OR,
-        forceOrder=False)
+        force_order=False)
 
 
 def default_lines_no_GEC(line_algorithms):
@@ -201,7 +201,7 @@ def default_lines_no_GEC(line_algorithms):
             low_pt_di_muon_line, track_muon_mva_line, passthrough_line
         ],
         NodeLogic.NONLAZY_OR,
-        forceOrder=False)
+        force_order=False)
 
 
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
@@ -225,7 +225,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         "Allen",
         [lines, make_dec_reporter(lines=line_algorithms.values())],
         NodeLogic.NONLAZY_AND,
-        forceOrder=True)
+        force_order=True)
 
     if not withMCChecking:
         return hlt1_node
@@ -236,6 +236,6 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],
             NodeLogic.NONLAZY_AND,
-            forceOrder=False)
+            force_order=False)
 
         return node

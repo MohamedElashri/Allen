@@ -111,14 +111,14 @@ def add_event_list_combiners(order):
         elif isinstance(node, Algorithm):
             return [node]
         elif isinstance(node, BoolNode):
-            if node.combineLogic == BoolNode.NOT:
+            if node.combine_logic == BoolNode.NOT:
                 combs = make_combiners_from(node.children[0])
                 return combs + [combine(BoolNode.NOT, combs[-1])]
             else: # AND / OR
                 lhs, rhs = node.children
                 combs_lhs = make_combiners_from(lhs)
                 combs_rhs = make_combiners_from(rhs)
-                return combs_lhs + combs_rhs + [combine(node.combineLogic, combs_lhs[-1], combs_rhs[-1])]
+                return combs_lhs + combs_rhs + [combine(node.combine_logic, combs_lhs[-1], combs_rhs[-1])]
         else:
             raise ValueError(f"expected input of type NoneType, Algorithm or BoolNode, got {type(node)}")
 

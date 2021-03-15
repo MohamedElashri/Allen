@@ -27,6 +27,6 @@ def pv_finder():
 pv_finder_sequence = CompositeNode(
     "PVWithGEC", [gec_leaf("gec"), pv_finder()],
     NodeLogic.LAZY_AND,
-    forceOrder=True)
+    force_order=True)
 
 generate(pv_finder_sequence)
