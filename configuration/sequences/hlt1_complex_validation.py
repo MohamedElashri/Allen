@@ -71,8 +71,7 @@ hlt1_node = CompositeNode(
 
 validators_node = CompositeNode(
     "Validators", [
-        velo_validation(
-            restricted_hlt1_reconstruction["velo_tracks"]),
+        velo_validation(restricted_hlt1_reconstruction["velo_tracks"]),
         veloUT_validation(
             restricted_hlt1_reconstruction["ut_tracks"],
             name="restricted_veloUT_validator"),
@@ -89,8 +88,8 @@ validators_node = CompositeNode(
             restricted_hlt1_reconstruction["muonID"],
             name="restricted_muon_validation"),
         muon_validation(
-                non_restricted_hlt1_reconstruction["muonID"],
-                name="non-restricted_muon_validation"),
+            non_restricted_hlt1_reconstruction["muonID"],
+            name="non-restricted_muon_validation"),
         pv_validation(restricted_hlt1_reconstruction["pvs"]),
         rate_validation(
             make_gather_selections(lines=line_algorithms.values())),

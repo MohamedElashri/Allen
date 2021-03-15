@@ -23,8 +23,7 @@ def gec(name, min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
 
 
 velo_tracking_sequence = CompositeNode(
-    "VeloTrackingWithGEC",
-    [gec_leaf("gec"), velo_tracking()],
+    "VeloTrackingWithGEC", [gec_leaf("gec"), velo_tracking()],
     NodeLogic.LAZY_AND,
     forceOrder=True)
 

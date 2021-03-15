@@ -26,8 +26,7 @@ def ut_tracking():
 
 
 ut_tracking_sequence = CompositeNode(
-    "UTTrackingWithGEC",
-    [gec_leaf("gec"), ut_tracking()],
+    "UTTrackingWithGEC", [gec_leaf("gec"), ut_tracking()],
     NodeLogic.LAZY_AND,
     forceOrder=True)
 

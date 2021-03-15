@@ -108,10 +108,7 @@ def make_line_composite_node_with_gec(alg_name,
                                       line_algorithms,
                                       gec_name="gec"):
     return CompositeNode(
-        alg_name, [
-            gec(name=gec_name),
-            line_algorithms[alg_name]
-        ],
+        alg_name, [gec(name=gec_name), line_algorithms[alg_name]],
         NodeLogic.LAZY_AND,
         forceOrder=True)
 
@@ -225,10 +222,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         lines = default_lines_no_GEC(line_algorithms)
 
     hlt1_node = CompositeNode(
-        "Allen", [
-            lines,
-            make_dec_reporter(lines=line_algorithms.values())
-        ],
+        "Allen",
+        [lines, make_dec_reporter(lines=line_algorithms.values())],
         NodeLogic.NONLAZY_AND,
         forceOrder=True)
 

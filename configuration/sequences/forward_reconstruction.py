@@ -30,9 +30,7 @@ def forward_tracking(name):
 
 forward_tracking_sequence = CompositeNode(
     "ForwardTrackingWithGEC",
-    NodeLogic.AND,
-    [gec_leaf("gec"),
-     forward_tracking()],
+    NodeLogic.AND, [gec_leaf("gec"), forward_tracking()],
     forceOrder=True,
     lazy=True)
 
