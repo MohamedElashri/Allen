@@ -30,16 +30,26 @@ def make_algorithm(alg_type, name, **kwargs):
     * Algorithms of category SelectionAlgorithm: A weight of 10.0 is set.
     * Else: A weight of 100.0 is set. A message is shown identifying the algorithm with no weight.
     """
-    if name in benchmark_weights:
+    if "average_eff" in kwargs:
+        eff = kwargs['average_eff']
+    elif name in benchmark_efficiencies:
+        eff = benchmark_efficiencies[name]
+    else:
+        eff = .99 # TODO we could also just do 1, but then they wont be considered in masks
+
+    if "weight" in kwargs:
+        weight = kwargs["weight"]
+    elif name in benchmark_weights:
         weight = benchmark_weights[name]
-    elif "prefix_sum" in name:
+    elif "prefix_sum" in name: # hard coded heuristic for now, TODO might want to change
         weight = 1000.0
     elif alg_type.category() == AlgorithmCategory.SelectionAlgorithm:
         weight = 10.0
     else:
         weight = 100.0
         print(name, "does not have a weight")
-    return Algorithm(alg_type, name=name, weight=weight, **kwargs)
+
+    return Algorithm(alg_type, name=name, weight=weight, average_eff=eff, **kwargs)
 
 
 def initialize_event_lists(**kwargs):
@@ -156,8 +166,8 @@ def generate(root):
     final_seq = add_event_list_combiners(best_order)
 
     print("Generated sequence represented as algorithms with execution masks:")
-    for alg, mask_in, mask_out in final_seq:
-        mask_in_str = f" in:{mask_in}" if mask_in else ""
+    for alg, mask_in in final_seq:
+        mask_in_str = f" in:{str(mask_in).split('/')[1]}" if mask_in else ""
         print(f"  {alg}{mask_in_str}")
 
     return generate_allen_sequence([alg for (alg,_) in final_seq])
