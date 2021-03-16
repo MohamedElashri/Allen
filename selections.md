@@ -100,12 +100,12 @@ A custom selection can trigger on any input data, and can either be based on eve
 ## Adding a new selection
 ### Choosing the right directory
 
-HLT1 selection lines live in the directory  `device/selections/lines` and are grouped into directories based on what type of physics they select. Currently, the following subdirectories exist:
-* alignment
+HLT1 selection lines live in the directory  `device/selections/lines` and are grouped into directories based on the selection purpose. Currently, the following subdirectories exist:
+* calibration (includes alignment)
 * charm
 * inclusive_hadron
 * muon
-* technical
+* monitoring
 
 If your new selection fits into any of these categories, please add it in the respective directory. If not, feel free to create a new one and discuss in your merge request why you believe a new directory is required. 
 
