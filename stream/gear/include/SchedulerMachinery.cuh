@@ -44,12 +44,34 @@ namespace Sch {
     using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
   };
 
+  template<typename T, typename Tuple>
+  struct TupleContainsDecay;
+
+  template<typename T, typename... Ts>
+  struct TupleContainsDecay<T, std::tuple<Ts...>>
+    : std::bool_constant<((std::is_base_of_v<std::decay_t<Ts>, std::decay_t<T>> || ...))> {
+  };
+
+  template<typename T, typename Tuple>
+  struct TupleContainsWithViews;
+
+  template<typename T>
+  struct TupleContainsWithViews<T, std::tuple<>> : std::bool_constant<false> {
+  };
+
+  template<typename T, typename OtherT, typename... Ts>
+  struct TupleContainsWithViews<T, std::tuple<OtherT, Ts...>>
+    : std::bool_constant<
+        std::is_same_v<T, OtherT> || TupleContainsWithViews<T, std::tuple<Ts...>>::value ||
+        TupleContainsDecay<T, typename OtherT::deps>::value> {
+  };
+
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Arguments>
   struct IsInAnyArgumentTuple;
 
   template<typename T, typename... Arguments>
-  struct IsInAnyArgumentTuple<T, std::tuple<Arguments...>> : std::disjunction<TupleContains<T, Arguments>...> {
+  struct IsInAnyArgumentTuple<T, std::tuple<Arguments...>> : std::disjunction<TupleContainsWithViews<T, Arguments>...> {
   };
 
   // A mechanism to only return the arguments in Algorithm

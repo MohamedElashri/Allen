@@ -6,6 +6,15 @@
 #include <tuple>
 #include <array>
 
+// Traits to get type and dependencies
+namespace {
+  template<typename T, typename... Dependencies>
+  struct parameter_traits {
+    using internal_type = T;
+    using dependencies = std::tuple<Dependencies...>;
+  };
+} // namespace
+
 // Datatypes can be host, device or aggregates.
 // Note: These structs need to be not templated (libClang).
 struct host_datatype {
@@ -27,21 +36,25 @@ protected:
 };
 
 // Input datatypes have read-only accessors.
-template<typename internal_t>
-struct input_datatype : datatype<internal_t> {
-  using type = typename datatype<internal_t>::type;
+template<typename... internal_and_deps_t>
+struct input_datatype : datatype<typename parameter_traits<internal_and_deps_t...>::internal_type> {
+  using type = typename datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>::type;
   __host__ __device__ input_datatype() {}
-  __host__ __device__ input_datatype(type* value) : datatype<internal_t>(value) {}
+  __host__ __device__ input_datatype(type* value) :
+    datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>(value)
+  {}
   __host__ __device__ operator const type*() const { return const_cast<const type*>(this->m_value); }
   __host__ __device__ const type* get() const { return const_cast<const type*>(this->m_value); }
 };
 
 // Output datatypes return pointers that can be modified.
-template<typename internal_t>
-struct output_datatype : datatype<internal_t> {
-  using type = typename datatype<internal_t>::type;
+template<typename... internal_and_deps_t>
+struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t...>::internal_type> {
+  using type = typename datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>::type;
   __host__ __device__ output_datatype() {}
-  __host__ __device__ output_datatype(type* value) : datatype<internal_t>(value) {}
+  __host__ __device__ output_datatype(type* value) :
+    datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>(value)
+  {}
   __host__ __device__ operator type*() const { return this->m_value; }
   __host__ __device__ type* get() const { return this->m_value; }
 };
@@ -50,38 +63,44 @@ struct output_datatype : datatype<internal_t> {
 #define DEVICE_INPUT(ARGUMENT_NAME, ...)                                       \
   struct ARGUMENT_NAME : public device_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                         \
-    void inline parameter(__VA_ARGS__) const {}                                \
+    void parameter(__VA_ARGS__) const {}                                       \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;         \
   }
 
 #define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                       \
   struct ARGUMENT_NAME : public device_datatype, output_datatype<__VA_ARGS__> { \
     using output_datatype<__VA_ARGS__>::output_datatype;                        \
-    void inline parameter(__VA_ARGS__) {}                                       \
+    void parameter(__VA_ARGS__) {}                                              \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;          \
   }
 
 #define HOST_INPUT(ARGUMENT_NAME, ...)                                       \
   struct ARGUMENT_NAME : public host_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                       \
-    void inline parameter(__VA_ARGS__) const {}                              \
+    void parameter(__VA_ARGS__) const {}                                     \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;       \
   }
 
 #define HOST_OUTPUT(ARGUMENT_NAME, ...)                                       \
   struct ARGUMENT_NAME : public host_datatype, output_datatype<__VA_ARGS__> { \
     using output_datatype<__VA_ARGS__>::output_datatype;                      \
-    void inline parameter(__VA_ARGS__) {}                                     \
+    void parameter(__VA_ARGS__) {}                                            \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;        \
   }
 
 // Support for multiparameters
 #define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
   struct ARGUMENT_NAME : public aggregate_datatype, device_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                                             \
-    void inline parameter(__VA_ARGS__) const {}                                                    \
+    void parameter(__VA_ARGS__) const {}                                                           \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                             \
   }
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                 \
   struct ARGUMENT_NAME : public aggregate_datatype, host_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                                           \
-    void inline parameter(__VA_ARGS__) const {}                                                  \
+    void parameter(__VA_ARGS__) const {}                                                         \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                           \
   }
 
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.
@@ -157,7 +176,7 @@ protected:
     constexpr static auto name {NAME};                       \
     constexpr static auto description {DESCRIPTION};         \
     using property_datatype<__VA_ARGS__>::property_datatype; \
-    void inline property(__VA_ARGS__) {}                     \
+    void property(__VA_ARGS__) {}                            \
   }
 
 /**

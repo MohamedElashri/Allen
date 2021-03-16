@@ -36,32 +36,39 @@
 
 struct mep_layout__host_mep_layout_t : layout_provider::Parameters::host_mep_layout_t {
   using type = layout_provider::Parameters::host_mep_layout_t::type;
+  using deps = layout_provider::Parameters::host_mep_layout_t::deps;
 };
 struct mep_layout__dev_mep_layout_t : layout_provider::Parameters::dev_mep_layout_t {
   using type = layout_provider::Parameters::dev_mep_layout_t::type;
+  using deps = layout_provider::Parameters::dev_mep_layout_t::deps;
 };
 struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                          host_global_event_cut::Parameters::host_ut_raw_banks_t,
                                          host_init_event_list::Parameters::host_ut_raw_banks_t {
   using type = host_data_provider::Parameters::host_raw_banks_t::type;
+  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
 };
 struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
                                            host_global_event_cut::Parameters::host_ut_raw_offsets_t,
                                            host_init_event_list::Parameters::host_ut_raw_offsets_t {
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
+  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
 };
 struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                             host_global_event_cut::Parameters::host_scifi_raw_banks_t,
                                             host_init_event_list::Parameters::host_scifi_raw_banks_t {
   using type = host_data_provider::Parameters::host_raw_banks_t::type;
+  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
 };
 struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
                                               host_global_event_cut::Parameters::host_scifi_raw_offsets_t,
                                               host_init_event_list::Parameters::host_scifi_raw_offsets_t {
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
+  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
 };
 struct initialize_lists__host_event_list_t : host_global_event_cut::Parameters::host_event_list_t {
   using type = host_global_event_cut::Parameters::host_event_list_t::type;
+  using deps = host_global_event_cut::Parameters::host_event_list_t::deps;
 };
 struct initialize_lists__host_number_of_events_t
   : host_global_event_cut::Parameters::host_number_of_events_t,
@@ -75,10 +82,12 @@ struct initialize_lists__host_number_of_events_t
     velo_consolidate_tracks::Parameters::host_number_of_events_t,
     velo_kalman_filter::Parameters::host_number_of_events_t {
   using type = host_global_event_cut::Parameters::host_number_of_events_t::type;
+  using deps = host_global_event_cut::Parameters::host_number_of_events_t::deps;
 };
 struct initialize_lists__host_number_of_selected_events_t
   : host_global_event_cut::Parameters::host_number_of_selected_events_t {
   using type = host_global_event_cut::Parameters::host_number_of_selected_events_t::type;
+  using deps = host_global_event_cut::Parameters::host_number_of_selected_events_t::deps;
 };
 struct initialize_lists__dev_number_of_events_t : host_global_event_cut::Parameters::dev_number_of_events_t,
                                                   velo_masked_clustering::Parameters::dev_number_of_events_t,
@@ -88,6 +97,7 @@ struct initialize_lists__dev_number_of_events_t : host_global_event_cut::Paramet
                                                   velo_consolidate_tracks::Parameters::dev_number_of_events_t,
                                                   velo_kalman_filter::Parameters::dev_number_of_events_t {
   using type = host_global_event_cut::Parameters::dev_number_of_events_t::type;
+  using deps = host_global_event_cut::Parameters::dev_number_of_events_t::deps;
 };
 struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::dev_event_list_t,
                                             velo_calculate_number_of_candidates::Parameters::dev_event_list_t,
@@ -99,64 +109,78 @@ struct initialize_lists__dev_event_list_t : host_global_event_cut::Parameters::d
                                             velo_consolidate_tracks::Parameters::dev_event_list_t,
                                             velo_kalman_filter::Parameters::dev_event_list_t {
   using type = host_global_event_cut::Parameters::dev_event_list_t::type;
+  using deps = host_global_event_cut::Parameters::dev_event_list_t::deps;
 };
 struct full_event_list__host_number_of_events_t : host_init_event_list::Parameters::host_number_of_events_t {
   using type = host_init_event_list::Parameters::host_number_of_events_t::type;
+  using deps = host_init_event_list::Parameters::host_number_of_events_t::deps;
 };
 struct full_event_list__host_event_list_t : host_init_event_list::Parameters::host_event_list_t {
   using type = host_init_event_list::Parameters::host_event_list_t::type;
+  using deps = host_init_event_list::Parameters::host_event_list_t::deps;
 };
 struct full_event_list__dev_number_of_events_t : host_init_event_list::Parameters::dev_number_of_events_t {
   using type = host_init_event_list::Parameters::dev_number_of_events_t::type;
+  using deps = host_init_event_list::Parameters::dev_number_of_events_t::deps;
 };
 struct full_event_list__dev_event_list_t : host_init_event_list::Parameters::dev_event_list_t {
   using type = host_init_event_list::Parameters::dev_event_list_t::type;
+  using deps = host_init_event_list::Parameters::dev_event_list_t::deps;
 };
 struct velo_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
                                      velo_calculate_number_of_candidates::Parameters::dev_velo_raw_input_t,
                                      velo_estimate_input_size::Parameters::dev_velo_raw_input_t,
                                      velo_masked_clustering::Parameters::dev_velo_raw_input_t {
   using type = data_provider::Parameters::dev_raw_banks_t::type;
+  using deps = data_provider::Parameters::dev_raw_banks_t::deps;
 };
 struct velo_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offsets_t,
                                        velo_calculate_number_of_candidates::Parameters::dev_velo_raw_input_offsets_t,
                                        velo_estimate_input_size::Parameters::dev_velo_raw_input_offsets_t,
                                        velo_masked_clustering::Parameters::dev_velo_raw_input_offsets_t {
   using type = data_provider::Parameters::dev_raw_offsets_t::type;
+  using deps = data_provider::Parameters::dev_raw_offsets_t::deps;
 };
 struct velo_calculate_number_of_candidates__dev_number_of_candidates_t
   : velo_calculate_number_of_candidates::Parameters::dev_number_of_candidates_t,
     host_prefix_sum::Parameters::dev_input_buffer_t {
   using type = velo_calculate_number_of_candidates::Parameters::dev_number_of_candidates_t::type;
+  using deps = velo_calculate_number_of_candidates::Parameters::dev_number_of_candidates_t::deps;
 };
 struct prefix_sum_offsets_velo_candidates__host_total_sum_holder_t
   : host_prefix_sum::Parameters::host_total_sum_holder_t,
     velo_estimate_input_size::Parameters::host_number_of_cluster_candidates_t {
   using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
+  using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
 };
 struct prefix_sum_offsets_velo_candidates__host_output_buffer_t : host_prefix_sum::Parameters::host_output_buffer_t {
   using type = host_prefix_sum::Parameters::host_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::host_output_buffer_t::deps;
 };
 struct prefix_sum_offsets_velo_candidates__dev_output_buffer_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
     velo_estimate_input_size::Parameters::dev_candidates_offsets_t,
     velo_masked_clustering::Parameters::dev_candidates_offsets_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
 };
 struct velo_estimate_input_size__dev_estimated_input_size_t
   : velo_estimate_input_size::Parameters::dev_estimated_input_size_t,
     host_prefix_sum::Parameters::dev_input_buffer_t {
   using type = velo_estimate_input_size::Parameters::dev_estimated_input_size_t::type;
+  using deps = velo_estimate_input_size::Parameters::dev_estimated_input_size_t::deps;
 };
 struct velo_estimate_input_size__dev_module_candidate_num_t
   : velo_estimate_input_size::Parameters::dev_module_candidate_num_t,
     velo_masked_clustering::Parameters::dev_module_candidate_num_t {
   using type = velo_estimate_input_size::Parameters::dev_module_candidate_num_t::type;
+  using deps = velo_estimate_input_size::Parameters::dev_module_candidate_num_t::deps;
 };
 struct velo_estimate_input_size__dev_cluster_candidates_t
   : velo_estimate_input_size::Parameters::dev_cluster_candidates_t,
     velo_masked_clustering::Parameters::dev_cluster_candidates_t {
   using type = velo_estimate_input_size::Parameters::dev_cluster_candidates_t::type;
+  using deps = velo_estimate_input_size::Parameters::dev_cluster_candidates_t::deps;
 };
 struct prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t
   : host_prefix_sum::Parameters::host_total_sum_holder_t,
@@ -164,10 +188,12 @@ struct prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t
     velo_calculate_phi_and_sort::Parameters::host_total_number_of_velo_clusters_t,
     velo_search_by_triplet::Parameters::host_total_number_of_velo_clusters_t {
   using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
+  using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
 };
 struct prefix_sum_offsets_estimated_input_size__host_output_buffer_t
   : host_prefix_sum::Parameters::host_output_buffer_t {
   using type = host_prefix_sum::Parameters::host_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::host_output_buffer_t::deps;
 };
 struct prefix_sum_offsets_estimated_input_size__dev_output_buffer_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
@@ -177,17 +203,26 @@ struct prefix_sum_offsets_estimated_input_size__dev_output_buffer_t
     velo_three_hit_tracks_filter::Parameters::dev_offsets_estimated_input_size_t,
     velo_consolidate_tracks::Parameters::dev_offsets_estimated_input_size_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
 };
 struct velo_masked_clustering__dev_module_cluster_num_t
   : velo_masked_clustering::Parameters::dev_module_cluster_num_t,
     velo_calculate_phi_and_sort::Parameters::dev_module_cluster_num_t,
     velo_search_by_triplet::Parameters::dev_module_cluster_num_t {
   using type = velo_masked_clustering::Parameters::dev_module_cluster_num_t::type;
+  using deps = velo_masked_clustering::Parameters::dev_module_cluster_num_t::deps;
 };
 struct velo_masked_clustering__dev_velo_cluster_container_t
   : velo_masked_clustering::Parameters::dev_velo_cluster_container_t,
     velo_calculate_phi_and_sort::Parameters::dev_velo_cluster_container_t {
   using type = velo_masked_clustering::Parameters::dev_velo_cluster_container_t::type;
+  using deps = velo_masked_clustering::Parameters::dev_velo_cluster_container_t::deps;
+};
+struct velo_masked_clustering__dev_velo_clusters_t : velo_masked_clustering::Parameters::dev_velo_clusters_t,
+                                                     velo_calculate_phi_and_sort::Parameters::dev_velo_clusters_t,
+                                                     velo_search_by_triplet::Parameters::dev_velo_clusters_t {
+  using type = velo_masked_clustering::Parameters::dev_velo_clusters_t::type;
+  using deps = velo_masked_clustering::Parameters::dev_velo_clusters_t::deps;
 };
 struct velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t
   : velo_calculate_phi_and_sort::Parameters::dev_sorted_velo_cluster_container_t,
@@ -195,137 +230,167 @@ struct velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t
     velo_three_hit_tracks_filter::Parameters::dev_sorted_velo_cluster_container_t,
     velo_consolidate_tracks::Parameters::dev_sorted_velo_cluster_container_t {
   using type = velo_calculate_phi_and_sort::Parameters::dev_sorted_velo_cluster_container_t::type;
+  using deps = velo_calculate_phi_and_sort::Parameters::dev_sorted_velo_cluster_container_t::deps;
 };
 struct velo_calculate_phi_and_sort__dev_hit_permutation_t
   : velo_calculate_phi_and_sort::Parameters::dev_hit_permutation_t {
   using type = velo_calculate_phi_and_sort::Parameters::dev_hit_permutation_t::type;
+  using deps = velo_calculate_phi_and_sort::Parameters::dev_hit_permutation_t::deps;
 };
 struct velo_calculate_phi_and_sort__dev_hit_phi_t : velo_calculate_phi_and_sort::Parameters::dev_hit_phi_t,
                                                     velo_search_by_triplet::Parameters::dev_hit_phi_t {
   using type = velo_calculate_phi_and_sort::Parameters::dev_hit_phi_t::type;
+  using deps = velo_calculate_phi_and_sort::Parameters::dev_hit_phi_t::deps;
 };
 struct velo_search_by_triplet__dev_tracks_t : velo_search_by_triplet::Parameters::dev_tracks_t,
                                               velo_copy_track_hit_number::Parameters::dev_tracks_t,
                                               velo_consolidate_tracks::Parameters::dev_tracks_t {
   using type = velo_search_by_triplet::Parameters::dev_tracks_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_tracks_t::deps;
 };
 struct velo_search_by_triplet__dev_tracklets_t : velo_search_by_triplet::Parameters::dev_tracklets_t {
   using type = velo_search_by_triplet::Parameters::dev_tracklets_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_tracklets_t::deps;
 };
 struct velo_search_by_triplet__dev_tracks_to_follow_t : velo_search_by_triplet::Parameters::dev_tracks_to_follow_t {
   using type = velo_search_by_triplet::Parameters::dev_tracks_to_follow_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_tracks_to_follow_t::deps;
 };
 struct velo_search_by_triplet__dev_three_hit_tracks_t
   : velo_search_by_triplet::Parameters::dev_three_hit_tracks_t,
     velo_three_hit_tracks_filter::Parameters::dev_three_hit_tracks_input_t {
   using type = velo_search_by_triplet::Parameters::dev_three_hit_tracks_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_three_hit_tracks_t::deps;
 };
 struct velo_search_by_triplet__dev_hit_used_t : velo_search_by_triplet::Parameters::dev_hit_used_t,
                                                 velo_three_hit_tracks_filter::Parameters::dev_hit_used_t {
   using type = velo_search_by_triplet::Parameters::dev_hit_used_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_hit_used_t::deps;
 };
 struct velo_search_by_triplet__dev_atomics_velo_t : velo_search_by_triplet::Parameters::dev_atomics_velo_t,
                                                     velo_three_hit_tracks_filter::Parameters::dev_atomics_velo_t {
   using type = velo_search_by_triplet::Parameters::dev_atomics_velo_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_atomics_velo_t::deps;
 };
 struct velo_search_by_triplet__dev_rel_indices_t : velo_search_by_triplet::Parameters::dev_rel_indices_t {
   using type = velo_search_by_triplet::Parameters::dev_rel_indices_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_rel_indices_t::deps;
 };
 struct velo_search_by_triplet__dev_number_of_velo_tracks_t
   : velo_search_by_triplet::Parameters::dev_number_of_velo_tracks_t,
     host_prefix_sum::Parameters::dev_input_buffer_t {
   using type = velo_search_by_triplet::Parameters::dev_number_of_velo_tracks_t::type;
+  using deps = velo_search_by_triplet::Parameters::dev_number_of_velo_tracks_t::deps;
 };
 struct prefix_sum_offsets_velo_tracks__host_total_sum_holder_t
   : host_prefix_sum::Parameters::host_total_sum_holder_t,
     velo_copy_track_hit_number::Parameters::host_number_of_velo_tracks_at_least_four_hits_t {
   using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
+  using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
 };
 struct prefix_sum_offsets_velo_tracks__host_output_buffer_t : host_prefix_sum::Parameters::host_output_buffer_t {
   using type = host_prefix_sum::Parameters::host_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::host_output_buffer_t::deps;
 };
 struct prefix_sum_offsets_velo_tracks__dev_output_buffer_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
     velo_copy_track_hit_number::Parameters::dev_offsets_velo_tracks_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
 };
 struct velo_three_hit_tracks_filter__dev_three_hit_tracks_output_t
   : velo_three_hit_tracks_filter::Parameters::dev_three_hit_tracks_output_t,
     velo_consolidate_tracks::Parameters::dev_three_hit_tracks_output_t {
   using type = velo_three_hit_tracks_filter::Parameters::dev_three_hit_tracks_output_t::type;
+  using deps = velo_three_hit_tracks_filter::Parameters::dev_three_hit_tracks_output_t::deps;
 };
 struct velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t
   : velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t,
     host_prefix_sum::Parameters::dev_input_buffer_t {
   using type = velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t::type;
+  using deps = velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t::deps;
 };
 struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t
   : host_prefix_sum::Parameters::host_total_sum_holder_t,
     velo_copy_track_hit_number::Parameters::host_number_of_three_hit_tracks_filtered_t,
     velo_consolidate_tracks::Parameters::host_number_of_three_hit_tracks_filtered_t {
   using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
+  using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
 };
 struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_output_buffer_t
   : host_prefix_sum::Parameters::host_output_buffer_t {
   using type = host_prefix_sum::Parameters::host_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::host_output_buffer_t::deps;
 };
 struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
     velo_copy_track_hit_number::Parameters::dev_offsets_number_of_three_hit_tracks_filtered_t,
     velo_consolidate_tracks::Parameters::dev_offsets_number_of_three_hit_tracks_filtered_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
 };
 struct velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t
   : velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t,
     velo_consolidate_tracks::Parameters::host_number_of_reconstructed_velo_tracks_t,
     velo_kalman_filter::Parameters::host_number_of_reconstructed_velo_tracks_t {
   using type = velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t::type;
+  using deps = velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t::deps;
 };
 struct velo_copy_track_hit_number__dev_velo_track_hit_number_t
   : velo_copy_track_hit_number::Parameters::dev_velo_track_hit_number_t,
     host_prefix_sum::Parameters::dev_input_buffer_t {
   using type = velo_copy_track_hit_number::Parameters::dev_velo_track_hit_number_t::type;
+  using deps = velo_copy_track_hit_number::Parameters::dev_velo_track_hit_number_t::deps;
 };
 struct velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t
   : velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t,
     velo_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t,
     velo_kalman_filter::Parameters::dev_offsets_all_velo_tracks_t {
   using type = velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t::type;
+  using deps = velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t::deps;
 };
 struct prefix_sum_offsets_velo_track_hit_number__host_total_sum_holder_t
   : host_prefix_sum::Parameters::host_total_sum_holder_t,
     velo_consolidate_tracks::Parameters::host_accumulated_number_of_hits_in_velo_tracks_t {
   using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
+  using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
 };
 struct prefix_sum_offsets_velo_track_hit_number__host_output_buffer_t
   : host_prefix_sum::Parameters::host_output_buffer_t {
   using type = host_prefix_sum::Parameters::host_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::host_output_buffer_t::deps;
 };
 struct prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
     velo_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
     velo_kalman_filter::Parameters::dev_offsets_velo_track_hit_number_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
 };
 struct velo_consolidate_tracks__dev_accepted_velo_tracks_t
   : velo_consolidate_tracks::Parameters::dev_accepted_velo_tracks_t {
   using type = velo_consolidate_tracks::Parameters::dev_accepted_velo_tracks_t::type;
+  using deps = velo_consolidate_tracks::Parameters::dev_accepted_velo_tracks_t::deps;
 };
 struct velo_consolidate_tracks__dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t,
                                                         velo_kalman_filter::Parameters::dev_velo_track_hits_t {
   using type = velo_consolidate_tracks::Parameters::dev_velo_track_hits_t::type;
+  using deps = velo_consolidate_tracks::Parameters::dev_velo_track_hits_t::deps;
 };
 struct velo_kalman_filter__dev_velo_kalman_beamline_states_t
   : velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t {
   using type = velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t::type;
+  using deps = velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t::deps;
 };
 struct velo_kalman_filter__dev_velo_kalman_endvelo_states_t
   : velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t {
   using type = velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t::type;
+  using deps = velo_kalman_filter::Parameters::dev_velo_kalman_endvelo_states_t::deps;
 };
 struct velo_kalman_filter__dev_velo_lmsfit_beamline_states_t
   : velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t {
   using type = velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t::type;
+  using deps = velo_kalman_filter::Parameters::dev_velo_lmsfit_beamline_states_t::deps;
 };
 
 using configured_arguments_t = std::tuple<
@@ -358,6 +423,7 @@ using configured_arguments_t = std::tuple<
   prefix_sum_offsets_estimated_input_size__dev_output_buffer_t,
   velo_masked_clustering__dev_module_cluster_num_t,
   velo_masked_clustering__dev_velo_cluster_container_t,
+  velo_masked_clustering__dev_velo_clusters_t,
   velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t,
   velo_calculate_phi_and_sort__dev_hit_permutation_t,
   velo_calculate_phi_and_sort__dev_hit_phi_t,
@@ -473,7 +539,8 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_offsets_velo_candidates__dev_output_buffer_t,
     initialize_lists__dev_number_of_events_t,
     velo_masked_clustering__dev_module_cluster_num_t,
-    velo_masked_clustering__dev_velo_cluster_container_t>,
+    velo_masked_clustering__dev_velo_cluster_container_t,
+    velo_masked_clustering__dev_velo_clusters_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
@@ -484,7 +551,8 @@ using configured_sequence_arguments_t = std::tuple<
     initialize_lists__dev_number_of_events_t,
     velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t,
     velo_calculate_phi_and_sort__dev_hit_permutation_t,
-    velo_calculate_phi_and_sort__dev_hit_phi_t>,
+    velo_calculate_phi_and_sort__dev_hit_phi_t,
+    velo_masked_clustering__dev_velo_clusters_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
     prefix_sum_offsets_estimated_input_size__host_total_sum_holder_t,
@@ -501,7 +569,8 @@ using configured_sequence_arguments_t = std::tuple<
     velo_search_by_triplet__dev_hit_used_t,
     velo_search_by_triplet__dev_atomics_velo_t,
     velo_search_by_triplet__dev_rel_indices_t,
-    velo_search_by_triplet__dev_number_of_velo_tracks_t>,
+    velo_search_by_triplet__dev_number_of_velo_tracks_t,
+    velo_masked_clustering__dev_velo_clusters_t>,
   std::tuple<
     prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
     velo_search_by_triplet__dev_number_of_velo_tracks_t,
@@ -636,6 +705,8 @@ void populate_sequence_argument_names(T& argument_manager)
     "velo_masked_clustering__dev_module_cluster_num_t");
   argument_manager.template set_name<velo_masked_clustering__dev_velo_cluster_container_t>(
     "velo_masked_clustering__dev_velo_cluster_container_t");
+  argument_manager.template set_name<velo_masked_clustering__dev_velo_clusters_t>(
+    "velo_masked_clustering__dev_velo_clusters_t");
   argument_manager.template set_name<velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t>(
     "velo_calculate_phi_and_sort__dev_sorted_velo_cluster_container_t");
   argument_manager.template set_name<velo_calculate_phi_and_sort__dev_hit_permutation_t>(

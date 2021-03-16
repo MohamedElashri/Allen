@@ -118,7 +118,7 @@ class AlgorithmTraversal():
 
     # Arguments to pass to compiler, as function of file extension.
     __compile_flags = {
-        "cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"],
+        "cuh": ["-x", "cuda", "-std=c++17", "-nostdinc++"],
         "hpp": ["-std=c++17"],
         "h": ["-std=c++17"]
     }
@@ -185,8 +185,8 @@ class AlgorithmTraversal():
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
-                    typedef = child.type.spelling[child.type.spelling.find(
-                        "(") + 1:child.type.spelling.find(")")]
+                    typedef = [a.type.spelling
+                               for a in child.get_children()][0]
             if typedef == "":
                 # This happens if the type cannot be parsed
                 typedef = "int"
@@ -198,8 +198,8 @@ class AlgorithmTraversal():
             typedef = None
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_METHOD:
-                    typedef = child.type.spelling[child.type.spelling.find(
-                        "(") + 1:child.type.spelling.find(")")]
+                    typedef = [a.type.spelling
+                               for a in child.get_children()][0]
             if typedef == "":
                 typedef = "int"
             # Unfortunately, for properties we need to rely on tokens found in the

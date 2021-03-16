@@ -29,6 +29,7 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_atomics_velo_t, unsigned) dev_atomics_velo;
     DEVICE_OUTPUT(dev_rel_indices_t, unsigned short) dev_rel_indices;
     DEVICE_OUTPUT(dev_number_of_velo_tracks_t, unsigned) dev_number_of_velo_tracks;
+    DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
 
     // Tolerance in phi
     PROPERTY(phi_tolerance_t, "phi_tolerance", "tolerance in phi", float) phi_tolerance;

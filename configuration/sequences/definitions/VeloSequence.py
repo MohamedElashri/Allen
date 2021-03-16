@@ -95,7 +95,8 @@ def VeloSequence(doGEC=True):
         dev_module_cluster_num_t(),
         dev_velo_cluster_container_t=velo_masked_clustering.
         dev_velo_cluster_container_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_velo_clusters_t=velo_masked_clustering.dev_velo_clusters_t())
 
     velo_search_by_triplet = velo_search_by_triplet_t(
         name="velo_search_by_triplet",
@@ -110,7 +111,8 @@ def VeloSequence(doGEC=True):
         dev_module_cluster_num_t=velo_masked_clustering.
         dev_module_cluster_num_t(),
         dev_hit_phi_t=velo_calculate_phi_and_sort.dev_hit_phi_t(),
-        dev_number_of_events_t=initialize_lists.dev_number_of_events_t())
+        dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
+        dev_velo_clusters_t=velo_masked_clustering.dev_velo_clusters_t())
 
     prefix_sum_offsets_velo_tracks = host_prefix_sum_t(
         name="prefix_sum_offsets_velo_tracks",

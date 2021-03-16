@@ -121,8 +121,8 @@ namespace Velo {
   struct Clusters_t {
   protected:
     typename ForwardType<T, half_t>::t* m_base_pointer;
-    const unsigned m_total_number_of_hits;
-    const unsigned m_offset;
+    unsigned m_total_number_of_hits;
+    unsigned m_offset;
 
   public:
     constexpr static unsigned element_size = sizeof(unsigned) + 3 * sizeof(half_t);
@@ -132,11 +132,6 @@ namespace Velo {
     Clusters_t(T* base_pointer, const unsigned total_estimated_number_of_clusters, const unsigned offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T, half_t>::t*>(base_pointer)),
       m_total_number_of_hits(total_estimated_number_of_clusters), m_offset(offset)
-    {}
-
-    __host__ __device__ Clusters_t(const Clusters_t<T>& clusters) :
-      m_base_pointer(clusters.m_base_pointer), m_total_number_of_hits(clusters.m_total_number_of_hits),
-      m_offset(clusters.m_offset)
     {}
 
     // Accessors and lvalue references for all types
