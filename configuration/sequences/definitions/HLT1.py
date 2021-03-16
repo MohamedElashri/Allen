@@ -6,9 +6,9 @@ from definitions.utils import initialize_number_of_events, mep_layout, gec
 from definitions.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from definitions.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line
 from definitions.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
-from definitions.hlt1_alignment_lines import make_d2kpi_line
+from definitions.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line
 from definitions.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
-from definitions.hlt1_technical_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_passthrough_line
+from definitions.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
 
 from AllenConf.event_list_utils import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
