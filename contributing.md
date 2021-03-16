@@ -166,6 +166,40 @@ In the case of saxpy:
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
 ```
 
+#### Views
+
+A view is a parameter that is linked to other parameters. It extends the lifetime of the parameters it is linked to, ensuring that the data it links to will not be freed.
+
+A view can be defined like a parameter with additional types:
+
+    <scope>_<io>(<name>, <type>, <linked_lifetime_type_1>, <linked_lifetime_type_2>, ...) <identifier>;
+
+Here is a working example:
+
+```c++
+    DEVICE_OUTPUT(
+      dev_velo_clusters_t,
+      Velo::Clusters, dev_velo_cluster_container_t, dev_module_cluster_num_t, dev_number_of_events_t)
+    dev_velo_clusters;
+```
+
+The type `dev_velo_clusters_t` is defined to be of type `Velo::Clusters`, with its lifetime linked to types `dev_velo_cluster_container_t, dev_module_cluster_num_t, dev_number_of_events_t`. That is, if `dev_velo_clusters_t` is used in a subsequent algorithm as an input, the parameters `dev_velo_cluster_container_t, dev_module_cluster_num_t, dev_number_of_events_t` are guaranteed to be in memory.
+
+This type can be used just like any other type:
+
+```c++
+  auto velo_cluster_container = Velo::Clusters {parameters.dev_velo_cluster_container, estimated_number_of_clusters};
+  parameters.dev_velo_clusters[event_number] = velo_cluster_container;
+```
+
+And subsequent algorithms can request it with no need to specify it as a view anymore:
+
+```
+  DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
+```
+
+The reason these two types are compatible is because the `Allen underlying type` of both the view and non-view parameter is `Velo::Clusters`.
+
 #### Defining an algorithm
 
 ##### SAXPY_example.cuh
