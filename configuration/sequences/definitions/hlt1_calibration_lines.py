@@ -47,4 +47,3 @@ def make_passthrough_line(pre_scaler_hash_string="passthrough_line_pre",
         dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
- 
