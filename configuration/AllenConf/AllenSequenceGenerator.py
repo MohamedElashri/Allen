@@ -87,7 +87,8 @@ def generate_sequence(algorithms, sequence_filename, input_aggregates_filename, 
                     s += ", "
             _, first_parameter_namespace, first_parameter_name, _ = v[0]
             s += (
-                f" {{ using type = {first_parameter_namespace}::Parameters::{first_parameter_name}::type; }};\n"
+                f" {{ using type = {first_parameter_namespace}::Parameters::{first_parameter_name}::type;"
+                f" using deps = {first_parameter_namespace}::Parameters::{first_parameter_name}::deps; }};\n"
             )
 
     # Generate a list of configured arguments
@@ -142,7 +143,7 @@ def generate_sequence(algorithms, sequence_filename, input_aggregates_filename, 
         if i != len(algorithms) - 1:
             s += ",\n"
         else:
-            s += ">;\n"
+            s += ">;\n\n"
 
     # Generate get_sequence_algorithm_names function
     s += "constexpr auto sequence_algorithm_names = std::array{\n"
@@ -197,7 +198,8 @@ def generate_input_aggregates(
             s += inheriting_class + ", "
         s = s[:-2]
         s += " { using type = " + v[0][1] + "::Parameters::" + v[0][
-            2] + "::type; };\n"
+            2] + "::type; using deps = " + v[0][1] + "::Parameters::" + v[0][
+            2] + "::deps; };\n"
 
     s += "\n"
     for algorithm_with_aggregate_class in algorithms_with_aggregates_list:
@@ -268,8 +270,7 @@ def generate_allen_sequence(
     """
     print("Generating sequence files...")
 
-    parameters, parameters_part_of_aggregates, input_aggregates_parameter_full_names =
-        generate_sequence(algorithms, sequence_filename, input_aggregates_filename, prefix_includes)
+    parameters, parameters_part_of_aggregates, input_aggregates_parameter_full_names = generate_sequence(algorithms, sequence_filename, input_aggregates_filename, prefix_includes)
     generate_input_aggregates(algorithms, input_aggregates_filename, prefix_includes, parameters, parameters_part_of_aggregates, input_aggregates_parameter_full_names)
     generate_json_configuration(algorithms, json_configuration_filename)
     

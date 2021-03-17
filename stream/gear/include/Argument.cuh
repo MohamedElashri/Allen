@@ -112,13 +112,15 @@ struct mask_t {
 #define MASK_INPUT(ARGUMENT_NAME)                                           \
   struct ARGUMENT_NAME : public device_datatype, input_datatype<unsigned> { \
     using input_datatype<unsigned>::input_datatype;                         \
-    void inline parameter(mask_t) const {}                                  \
+    void parameter(mask_t) const {}                                         \
+    using deps = std::tuple<>;                                              \
   }
 
 #define MASK_OUTPUT(ARGUMENT_NAME)                                           \
   struct ARGUMENT_NAME : public device_datatype, output_datatype<unsigned> { \
     using output_datatype<unsigned>::output_datatype;                        \
-    void inline parameter(mask_t) {}                                         \
+    void parameter(mask_t) {}                                                \
+    using deps = std::tuple<>;                                               \
   }
 
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.

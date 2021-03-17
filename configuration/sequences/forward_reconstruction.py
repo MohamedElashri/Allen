@@ -9,14 +9,6 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.event_list_utils import generate
 
 
-def gec(name, min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
-    return gec(
-        name=name,
-        min_scifi_ut_clusters=min_scifi_ut_clusters,
-        max_scifi_ut_clusters=max_scifi_ut_clusters)
-    return alg
-
-
 def forward_tracking(name):
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
@@ -30,7 +22,7 @@ def forward_tracking(name):
 
 forward_tracking_sequence = CompositeNode(
     "ForwardTrackingWithGEC",
-    NodeLogic.AND, [gec_leaf("gec"), forward_tracking()],
+    NodeLogic.AND, [gec("gec"), forward_tracking()],
     force_order=True,
     lazy=True)
 

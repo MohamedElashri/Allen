@@ -8,10 +8,3 @@ from AllenConf.event_list_utils import generate
 with decode_scifi.bind(raw_bank_version="v6"):
     hlt1_node = setup_hlt1_node()
 generate(hlt1_node)
-
-# # Generate a pydot graph out of the configuration
-# from pydot import Graph
-# y = Graph()
-# hlt1_node._graph(y)
-# with open('blub.dot', 'w') as f:
-#     f.write(y.to_string())

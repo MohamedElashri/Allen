@@ -14,16 +14,8 @@ def velo_tracking():
     return alg
 
 
-def gec(name, min_scifi_ut_clusters="0", max_scifi_ut_clusters="9750"):
-    return gec(
-        name=name,
-        min_scifi_ut_clusters=min_scifi_ut_clusters,
-        max_scifi_ut_clusters=max_scifi_ut_clusters)
-    return alg
-
-
 velo_tracking_sequence = CompositeNode(
-    "VeloTrackingWithGEC", [gec_leaf("gec"), velo_tracking()],
+    "VeloTrackingWithGEC", [gec("gec"), velo_tracking()],
     NodeLogic.LAZY_AND,
     force_order=True)
 
