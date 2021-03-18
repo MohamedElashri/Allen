@@ -47,14 +47,21 @@ algorithms.velo_copy_track_hit_number_t(           algorithms.velo_search_by_tri
 algorithms.velo_estimate_input_size_t(             algorithms.velo_three_hit_tracks_filter_t(
 ```
 
-One can see the input and output parameters and properties of an algorithm by just printing the class representation of an algorithm (ie. _without parentheses_). For instance:
+One can see the input and output parameters and properties of an algorithm by using the static getDefaultProperties method of algorithms. For instance:
 
 ```sh
->>> algorithms.velo_calculate_number_of_candidates_t
-class AlgorithmRepr : DeviceAlgorithm
- inputs: ('host_number_of_events_t', 'dev_event_list_t', 'dev_velo_raw_input_t', 'dev_velo_raw_input_offsets_t')
- outputs: ('dev_number_of_candidates_t',)
- properties: ('block_dim_x',)
+>>> algorithms.velo_calculate_number_of_candidates_t.getDefaultProperties()
+OrderedDict([('host_number_of_events_t',
+              DataHandle('host_number_of_events_t','R','unsigned int')),
+             ('dev_event_list_t', DataHandle('dev_event_list_t','R','mask_t')),
+             ('dev_velo_raw_input_t',
+              DataHandle('dev_velo_raw_input_t','R','char')),
+             ('dev_velo_raw_input_offsets_t',
+              DataHandle('dev_velo_raw_input_offsets_t','R','unsigned int')),
+             ('dev_number_of_candidates_t',
+              DataHandle('dev_number_of_candidates_t','W','unsigned int')),
+             ('verbosity', ''),
+             ('block_dim_x', '')])
 ```
 
 Creating a new sequence
@@ -64,65 +71,87 @@ In order to create a new sequence, head to `configuration/sequences` and create 
 
 You may reuse what exists already in `definitions` and extend that instead. In order to create a new sequence, you should:
 
-* Instantiate (ie. _with parentheses_) algorithms. Algorithm inputs must be assigned other algorithm outputs.
-* Create a `Sequence` object with the desired algorithm instances in order of execution.
-* `Sequences` can also be composed or extended.
-* Generate the configuration with the `generate()` method of the `Sequence` instance.
+* Instantiate algorithms. Algorithm inputs must be assigned other algorithm outputs.
+* Generate at least one CompositeNode with the algorithms we want to run.
+* Generate the configuration with the `generate()` method.
 
 As an example, let us add the SAXPY algorithm to a custom sequence. Start by including algorithms and the VELO sequence:
 
-```sh
-from definitions.algorithms import *
-from definitions.VeloSequence import VeloSequence
+```python
+from definitions.velo_reconstruction import decode_velo, make_velo_tracks
+from definitions.utils import initialize_number_of_events
+from PyConf.control_flow import CompositeNode
+from AllenConf.event_list_utils import generate
 
-velo_sequence = VeloSequence()
+number_of_events = initialize_number_of_events()
+decoded_velo = decode_velo()
+velo_tracks = make_velo_tracks(decoded_velo)
 ```
 
-`velo_sequence` contains a `Sequence` object with all algorithms defined therein. The individual algorithms are still accessible with `__get_item__` and the algorithm name (like a dictionary).
+`initialize_number_of_events`, `decode_velo` and `make_velo_tracks` are already defined functions that instantiate the relevant algorithms that
+we will need for our example.
 
 We should now add the SAXPY algorithm. We can use the interactive session to explore what it requires:
 
 ```sh
->>> saxpy_t
-class AlgorithmRepr : DeviceAlgorithm
- inputs: ('host_number_of_events_t', 'dev_number_of_events_t', 'dev_offsets_all_velo_tracks_t', 'dev_offsets_velo_track_hit_number_t')
- outputs: ('dev_saxpy_output_t',)
- properties: ('saxpy_scale_factor', 'block_dim')
+>>> algorithms.saxpy_t.getDefaultProperties()
+OrderedDict([('host_number_of_events_t',
+              DataHandle('host_number_of_events_t','R','unsigned int')),
+             ('dev_number_of_events_t',
+              DataHandle('dev_number_of_events_t','R','unsigned int')),
+             ('dev_offsets_all_velo_tracks_t',
+              DataHandle('dev_offsets_all_velo_tracks_t','R','unsigned int')),
+             ('dev_offsets_velo_track_hit_number_t',
+              DataHandle('dev_offsets_velo_track_hit_number_t','R','unsigned int')),
+             ('dev_saxpy_output_t',
+              DataHandle('dev_saxpy_output_t','W','float')),
+             ('verbosity', ''),
+             ('saxpy_scale_factor', ''),
+             ('block_dim', '')])
 ```
 
 The inputs should be passed into our sequence to be able to instantiate `saxpy_t`. Knowing which inputs to pass is up to the developer. For this one, let's just pass:
 
 ```sh
-saxpy = saxpy_t(
+saxpy = make_algorithm(
+  saxpy_t,
   name = "saxpy",
-  host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
-  dev_number_of_events_t = velo_sequence["initialize_lists"].dev_number_of_events_t(),
-  dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
-  dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
+  host_number_of_events_t = number_of_events["host_number_of_events"],
+  dev_number_of_events_t = number_of_events["dev_number_of_events"],
+  dev_offsets_all_velo_tracks_t = velo_tracks["dev_offsets_all_velo_tracks"],
+  dev_offsets_velo_track_hit_number_t = velo_tracks["dev_offsets_velo_track_hit_number"])
 ```
 
-Finally, let's extend the `velo_sequence` with our newly created algorithm, and generate the sequence:
+Finally, let's create a CompositeNode just with our algorithm inside, and generate the sequence:
 
 ```sh
-extend_sequence(velo_sequence, saxpy).generate()
+saxpy_sequence = CompositeNode("Saxpy", [saxpy])
+generate(saxpy_sequence)
 ```
 
 The final configuration file is therefore:
 
-```sh
-from definitions.algorithms import *
-from definitions.VeloSequence import VeloSequence
+```python
+from definitions.algorithms import saxpy_t
+from definitions.velo_reconstruction import decode_velo, make_velo_tracks
+from definitions.utils import initialize_number_of_events
+from PyConf.control_flow import CompositeNode
+from AllenConf.event_list_utils import generate, make_algorithm
 
-velo_sequence = VeloSequence()
+number_of_events = initialize_number_of_events()
+decoded_velo = decode_velo()
+velo_tracks = make_velo_tracks(decoded_velo)
 
-saxpy = saxpy_t(
+saxpy = make_algorithm(
+  saxpy_t,
   name = "saxpy",
-  host_number_of_events_t = velo_sequence["initialize_lists"].host_number_of_events_t(),
-  dev_number_of_events_t = velo_sequence["initialize_lists"].dev_number_of_events_t(),
-  dev_offsets_all_velo_tracks_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
-  dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t())
+  host_number_of_events_t = number_of_events["host_number_of_events"],
+  dev_number_of_events_t = number_of_events["dev_number_of_events"],
+  dev_offsets_all_velo_tracks_t = velo_tracks["dev_offsets_all_velo_tracks"],
+  dev_offsets_velo_track_hit_number_t = velo_tracks["dev_offsets_velo_track_hit_number"])
 
-extend_sequence(velo_sequence, saxpy).generate()
+saxpy_sequence = CompositeNode("Saxpy", [saxpy])
+generate(saxpy_sequence)
 ```
 
 Now, we can save this configuration as `configuration/sequences/saxpy.py`, and build it and run it:
@@ -133,6 +162,31 @@ cd build
 cmake -DSEQUENCE=saxpy ..
 make
 ./Allen
+```
+
+After the command `make` you should be able to see the sequence generation as part of the build:
+
+```sh
+[3/36] Generating ../Sequence.json
+Generated sequence represented as algorithms with execution masks:
+  host_init_event_list_t/initialize_event_lists
+  host_init_number_of_events_t/initialize_number_of_events
+  data_provider_t/velo_banks
+  velo_calculate_number_of_candidates_t/velo_calculate_number_of_candidates
+  host_prefix_sum_t/prefix_sum_offsets_velo_candidates
+  velo_estimate_input_size_t/velo_estimate_input_size
+  host_prefix_sum_t/prefix_sum_offsets_estimated_input_size
+  velo_masked_clustering_t/velo_masked_clustering
+  velo_calculate_phi_and_sort_t/velo_calculate_phi_and_sort
+  velo_search_by_triplet_t/velo_search_by_triplet
+  velo_three_hit_tracks_filter_t/velo_three_hit_tracks_filter
+  host_prefix_sum_t/prefix_sum_offsets_number_of_three_hit_tracks_filtered
+  host_prefix_sum_t/prefix_sum_offsets_velo_tracks
+  velo_copy_track_hit_number_t/velo_copy_track_hit_number
+  host_prefix_sum_t/prefix_sum_offsets_velo_track_hit_number
+  saxpy_t/saxpy
+Generating sequence files...
+Generated sequence files Sequence.h, ConfiguredInputAggregates.h and Sequence.json
 ```
 
 To find out how to write a trigger line in Allen and how to add it to the sequence, follow the instructions [here](../selections.md).
