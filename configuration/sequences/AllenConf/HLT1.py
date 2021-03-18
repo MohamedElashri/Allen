@@ -19,11 +19,12 @@ from AllenConf.persistency import make_gather_selections, make_dec_reporter
 @configurable
 def default_hlt1_lines(velo_tracks,
                        forward_tracks,
+                       kalman_velo_only,
                        secondary_vertices,
                        withGECPassthrough=True):
     line_algorithms = {
         "Hlt1TrackMVA":
-        make_track_mva_line(forward_tracks, secondary_vertices),
+        make_track_mva_line(forward_tracks, kalman_velo_only),
         "Hlt1TwoTrackMVA":
         make_two_track_mva_line(forward_tracks, secondary_vertices),
         "Hlt1NoBeam":
@@ -59,9 +60,9 @@ def default_hlt1_lines(velo_tracks,
             pre_scaler_hash_string="odin_no_bias_pre",
             post_scaler_hash_string="odin_no_bias_post"),
         "Hlt1SingleHighPtMuon":
-        make_single_high_pt_muon_line(forward_tracks, secondary_vertices),
+        make_single_high_pt_muon_line(forward_tracks, kalman_velo_only),
         "Hlt1LowPtMuon":
-        make_low_pt_muon_line(forward_tracks, secondary_vertices),
+        make_low_pt_muon_line(forward_tracks, kalman_velo_only),
         "Hlt1D2KK":
         make_d2kk_line(forward_tracks, secondary_vertices),
         "Hlt1D2KPi":
@@ -88,7 +89,7 @@ def default_hlt1_lines(velo_tracks,
         "Hlt1LowPtDiMuon":
         make_low_pt_di_muon_line(forward_tracks, secondary_vertices),
         "Hlt1TrackMuonMVA":
-        make_track_muon_mva_line(forward_tracks, secondary_vertices),
+        make_track_muon_mva_line(forward_tracks, kalman_velo_only),
         "Hlt1Passthrough":
         make_passthrough_line(),
     }
@@ -213,6 +214,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     line_algorithms = default_hlt1_lines(
         reconstructed_objects["velo_tracks"],
         reconstructed_objects["forward_tracks"],
+        reconstructed_objects["kalman_velo_only"],
         reconstructed_objects["secondary_vertices"])
 
     if EnableGEC:
