@@ -91,6 +91,16 @@ def generate_sequence(algorithms, sequence_filename, input_aggregates_filename, 
                 f" using deps = {first_parameter_namespace}::Parameters::{first_parameter_name}::deps; }};\n"
             )
 
+    # Generate static_asserts for all generated parameters, checking they all inherit
+    # from either host_datatype or device_datatype
+    s += "\n"
+    for parameter_full_name, v in iter(parameters.items()):
+        if parameter_full_name not in parameters_part_of_aggregates:
+            s += f"static_assert(all_host_or_all_device_v<{parameter_full_name}"
+            for algorithm_name, algorithm_namespace, parameter_name, _ in v:
+                s += f", {algorithm_namespace}::Parameters::{parameter_name}"
+            s += ">);\n"
+
     # Generate a list of configured arguments
     s += "\nusing configured_arguments_t = std::tuple<\n"
     for i, (parameter_full_name, _) in enumerate(parameters.items()):
@@ -185,13 +195,14 @@ def generate_input_aggregates(
     for filename in filenames:
         s += "#include \"" + prefix_includes + filename + "\"\n"
     s += "\n"
+
     # Generate typenames that participate in aggregates
     for parameter_full_name in parameters_part_of_aggregates:
         v = parameters[parameter_full_name]
         s += "struct " + parameter_full_name + " : "
         inheriting_classes = []
-        for _, algorithm_namespace, parameter_full_name, _ in v:
-            parameter = f"{algorithm_namespace}::Parameters::{parameter_full_name}"
+        for _, algorithm_namespace, inheriting_parameter_full_name, _ in v:
+            parameter = f"{algorithm_namespace}::Parameters::{inheriting_parameter_full_name}"
             if parameter not in inheriting_classes:
                 inheriting_classes.append(parameter)
         for inheriting_class in inheriting_classes:
@@ -200,8 +211,18 @@ def generate_input_aggregates(
         s += " { using type = " + v[0][1] + "::Parameters::" + v[0][
             2] + "::type; using deps = " + v[0][1] + "::Parameters::" + v[0][
             2] + "::deps; };\n"
-
     s += "\n"
+
+    # Generate static_asserts for all generated parameters, checking they all inherit
+    # from either host_datatype or device_datatype
+    for parameter_full_name in parameters_part_of_aggregates:
+        v = parameters[parameter_full_name]
+        s += f"static_assert(all_host_or_all_device_v<{parameter_full_name}"
+        for _, algorithm_namespace, inheriting_parameter_full_name, _ in v:
+            s += f", {algorithm_namespace}::Parameters::{inheriting_parameter_full_name}"
+        s += ">);\n"
+    s += "\n\n"
+
     for algorithm_with_aggregate_class in algorithms_with_aggregates_list:
         instance_of_alg_class = [
             alg for alg in algorithms
