@@ -24,13 +24,13 @@ struct aggregate_datatype {
 };
 
 // Checks all Ts inherit from host_datatype
-template<typename ... Ts>
+template<typename... Ts>
 constexpr bool all_host_v = (std::is_base_of_v<host_datatype, Ts> && ...);
 // Checks all Ts inherit from device_datatype
-template<typename ... Ts>
+template<typename... Ts>
 constexpr bool all_device_v = (std::is_base_of_v<device_datatype, Ts> && ...);
 // Checks all Ts either inherit from host_datatype or all inherit from device_datatype
-template<typename ... Ts>
+template<typename... Ts>
 constexpr bool all_host_or_all_device_v = all_host_v<Ts...> || all_device_v<Ts...>;
 
 // A generic datatype* data holder.
