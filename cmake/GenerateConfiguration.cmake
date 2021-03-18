@@ -1,24 +1,26 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+
 # Deal with configuration generation machinery
-# Test by actually trying to generate "algorithms.py"
 # * If clang is available, we can and will generate the configuration files
-# * Otherwise, warn that it is not possible to generate configurations
+# * Otherwise, fail and message that it is not possible to generate configurations
 set(PROJECT_SEQUENCE_DIR ${CMAKE_BINARY_DIR}/sequences)
 set(SEQUENCE_DEFINITION_DIR ${PROJECT_SEQUENCE_DIR}/definitions)
 set(ALLEN_CONF_DIR ${PROJECT_SEQUENCE_DIR}/AllenConf)
+set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
-set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
+set(ALGORITHMS_GENERATION_SCRIPT ${ALLEN_PARSER_DIR}/ParseAlgorithms.py)
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
+file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
 
 # We need a Python 3 interpreter
 find_package(Python3 REQUIRED)
-find_package(LibClang QUIET)
 
 # Find libClang, required for parsing the Allen codebase
-set(MINIMUM_REQUIRED_LIBCLANG_VERSION 9)
+find_package(LibClang QUIET)
 
+set(MINIMUM_REQUIRED_LIBCLANG_VERSION 9)
 if(LIBCLANG_FOUND AND "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
   message(STATUS "libClang version found (${LIBCLANG_VERSION}) does not meet minimum version requirement (${MINIMUM_REQUIRED_LIBCLANG_VERSION})")
 endif()
@@ -37,6 +39,15 @@ if(NOT LIBCLANG_FOUND OR "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIB
 endif()
 
 if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
+  # Produce algorithms.py
+  add_custom_command(
+    OUTPUT "${ALGORITHMS_OUTPUTFILE}"
+    COMMAND
+      ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/parser" "${ALLEN_PARSER_DIR}" &&
+      ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/scripts/clang" "${ALLEN_PARSER_DIR}/clang" &&
+      ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" "${ALGORITHMS_OUTPUTFILE}" "${CMAKE_SOURCE_DIR}"
+    WORKING_DIRECTORY ${ALLEN_PARSER_DIR})
+
   if(NOT STANDALONE)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
@@ -44,12 +55,11 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenConf" "${ALLEN_CONF_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" "${ALGORITHMS_OUTPUTFILE}" "${CMAKE_SOURCE_DIR}" &&
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${ALGORITHMS_OUTPUTFILE}"
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   else()
     # Add the PyConf dependency in STANDALONE
@@ -63,16 +73,15 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
-      COMMAND 
+      COMMAND
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenConf" "${ALLEN_CONF_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" "${ALGORITHMS_OUTPUTFILE}" "${CMAKE_SOURCE_DIR}" &&
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/PyConf"
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/PyConf" "${ALGORITHMS_OUTPUTFILE}"
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   endif()
 else()
