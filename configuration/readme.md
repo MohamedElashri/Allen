@@ -78,10 +78,11 @@ You may reuse what exists already in `definitions` and extend that instead. In o
 As an example, let us add the SAXPY algorithm to a custom sequence. Start by including algorithms and the VELO sequence:
 
 ```python
+from definitions.algorithms import saxpy_t
 from definitions.velo_reconstruction import decode_velo, make_velo_tracks
 from definitions.utils import initialize_number_of_events
 from PyConf.control_flow import CompositeNode
-from AllenConf.event_list_utils import generate
+from AllenConf.event_list_utils import generate, make_algorithm
 
 number_of_events = initialize_number_of_events()
 decoded_velo = decode_velo()
@@ -112,7 +113,7 @@ OrderedDict([('host_number_of_events_t',
 
 The inputs should be passed into our sequence to be able to instantiate `saxpy_t`. Knowing which inputs to pass is up to the developer. For this one, let's just pass:
 
-```sh
+```python
 saxpy = make_algorithm(
   saxpy_t,
   name = "saxpy",
@@ -124,7 +125,7 @@ saxpy = make_algorithm(
 
 Finally, let's create a CompositeNode just with our algorithm inside, and generate the sequence:
 
-```sh
+```python
 saxpy_sequence = CompositeNode("Saxpy", [saxpy])
 generate(saxpy_sequence)
 ```
