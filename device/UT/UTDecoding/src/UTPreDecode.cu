@@ -79,7 +79,7 @@ __device__ void pre_decode_raw_bank(
 * @brief Implementation for v4 UTRawBanks (version number 3 in the RawBank enum in LHCb)
 */
 template<>
-__device__ void pre_decode_raw_bank(
+__device__ void pre_decode_raw_bank<3>(
   unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,
@@ -169,7 +169,7 @@ __device__ void pre_decode_raw_bank(
 * @brief Implementation for v5 UTRawBanks (version number 4 in the RawBank enum in LHCb)
 */
 template<>
-__device__ void pre_decode_raw_bank(
+__device__ void pre_decode_raw_bank<4>(
   unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,

@@ -29,7 +29,8 @@ struct UTRawBank {
       number_of_hits[1] = (*p & 0xFF00U) >> 8U;
       number_of_hits[2] = (*p & 0xFF0000U) >> 16U;
       number_of_hits[3] = (*p & 0xFF000000U) >> 24U;
-      if(size < 40) number_of_hits = {0,0,0,0,0,0};// the header contains garbage if there are actually no words to decode
+      // the header contains garbage if there are actually no words to decode (and there are always 6 words -- the word is 0 if there are no hits in the lane)
+      if(size < sizeof(uint32_t)*6) number_of_hits = {0,0,0,0,0,0};
     }
     p += 1;
     data = (uint16_t*) p;
@@ -50,7 +51,7 @@ struct UTRawBank {
       number_of_hits[1] = (*p & 0xFF00U) >> 8U;
       number_of_hits[2] = (*p & 0xFF0000U) >> 16U;
       number_of_hits[3] = (*p & 0xFF000000U) >> 24U;
-      if(size < 40) number_of_hits = {0,0,0,0,0,0};
+      if(size < sizeof(uint32_t)*6) number_of_hits = {0,0,0,0,0,0};
     }
     p += 1;
     data = (uint16_t*) p;

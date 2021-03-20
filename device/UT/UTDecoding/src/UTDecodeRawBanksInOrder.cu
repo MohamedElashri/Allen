@@ -69,7 +69,7 @@ __device__ void decode_raw_bank(
 }
 
 template<>
-__device__ void decode_raw_bank(
+__device__ void decode_raw_bank<3>(
   unsigned const* dev_ut_region_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
@@ -126,7 +126,7 @@ __device__ void decode_raw_bank(
 }
 
 template<>
-__device__ void decode_raw_bank(
+__device__ void decode_raw_bank<4>(
   unsigned const* dev_ut_region_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,

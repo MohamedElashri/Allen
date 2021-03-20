@@ -78,7 +78,8 @@ __device__ void calculate_number_of_hits<3>(
   UTBoards const& boards,
   UTRawBank<3> const& raw_bank)
 {
-  const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID]; \
+  const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
+
   for (unsigned i = threadIdx.y; i < raw_bank.get_n_hits(); i += blockDim.y) {
     const uint32_t channelID = (raw_bank.data[i] & UT::Decoding::v4::chan_mask) >> UT::Decoding::v4::chan_offset;
     const uint32_t index = channelID / m_nStripsPerHybrid;

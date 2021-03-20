@@ -172,13 +172,8 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> Transpos
     bankOffsets.push_back(0);
 
     for (auto& bank : banks) {
-      if(bank->typeName() == "UT"){ // we use the UT RawBank version to switch between decoders
-        bankData.push_back(static_cast<uint32_t>(bank->version()));
-        offset++;
-      }
       const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());
       bankData.push_back(sourceID);
-
       offset++;
 
       auto bStart = bank->begin<uint32_t>();
