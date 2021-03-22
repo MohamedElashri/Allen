@@ -18,7 +18,6 @@ void host_data_provider::host_data_provider_t::set_arguments_size(
 
   // A single number for the version
   set_size<host_raw_bank_version_t>(arguments, sizeof(std::get<3>(bno)));
-
 }
 
 void host_data_provider::host_data_provider_t::operator()(
@@ -44,5 +43,4 @@ void host_data_provider::host_data_provider_t::operator()(
   // Copy the bank version
   auto version = std::get<3>(bno);
   ::memcpy(data<host_raw_bank_version_t>(arguments), &version, sizeof(version));
-
 }

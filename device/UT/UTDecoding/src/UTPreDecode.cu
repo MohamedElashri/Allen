@@ -29,9 +29,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
   if (runtime_options.mep_layout) {
-    auto fun = bank_version == 3 ?
-      global_function(ut_pre_decode_mep<3>) :
-      global_function(ut_pre_decode_mep<4>);
+    auto fun = bank_version == 4 ? global_function(ut_pre_decode_mep<4>) : global_function(ut_pre_decode_mep<3>);
     fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
@@ -41,9 +39,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
       constants.dev_unique_x_sector_offsets.data());
   }
   else {
-    auto fun = bank_version == 3 ?
-      global_function(ut_pre_decode<3>) :
-      global_function(ut_pre_decode<4>);
+    auto fun = bank_version == 4 ? global_function(ut_pre_decode<4>) : global_function(ut_pre_decode<3>);
     fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
@@ -55,11 +51,11 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
 }
 
 /**
-* @details Given a RawBank, this function partly decodes the hits to sort them by yBegin.
-*          In case hits have the same yBegin, they are sorted by x (xAtYEq0_local).
-*          Hit indices in the RawBank are persisted along with the variable for sorting
-*          to enable a loop over hits later on.
-*/
+ * @details Given a RawBank, this function partly decodes the hits to sort them by yBegin.
+ *          In case hits have the same yBegin, they are sorted by x (xAtYEq0_local).
+ *          Hit indices in the RawBank are persisted along with the variable for sorting
+ *          to enable a loop over hits later on.
+ */
 template<int decoding_version>
 __device__ void pre_decode_raw_bank(
   unsigned const* dev_ut_region_offsets,
@@ -72,12 +68,12 @@ __device__ void pre_decode_raw_bank(
   UT::PreDecodedHits& ut_pre_decoded_hits,
   uint32_t* hit_count)
 {
-  throw std::runtime_error("UTDecoding: Unknown version "+std::to_string(decoding_version));
+  throw std::runtime_error("UTDecoding: Unknown version " + std::to_string(decoding_version));
 }
 
 /**
-* @brief Implementation for v4 UTRawBanks (version number 3 in the RawBank enum in LHCb)
-*/
+ * @brief Implementation for v4 UTRawBanks (version number 3 in the RawBank enum in LHCb)
+ */
 template<>
 __device__ void pre_decode_raw_bank<3>(
   unsigned const* dev_ut_region_offsets,
@@ -166,8 +162,8 @@ __device__ void pre_decode_raw_bank<3>(
 }
 
 /**
-* @brief Implementation for v5 UTRawBanks (version number 4 in the RawBank enum in LHCb)
-*/
+ * @brief Implementation for v5 UTRawBanks (version number 4 in the RawBank enum in LHCb)
+ */
 template<>
 __device__ void pre_decode_raw_bank<4>(
   unsigned const* dev_ut_region_offsets,
@@ -183,7 +179,7 @@ __device__ void pre_decode_raw_bank<4>(
   const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
   for (unsigned lane = threadIdx.y; lane < UT::Decoding::ut_number_of_sectors_per_board; lane += blockDim.y) {
     // skip if there's nothing
-    if(raw_bank.number_of_hits[lane]==0) continue;
+    if (raw_bank.number_of_hits[lane] == 0) continue;
     // we can do some things that only depend on lane and sourceID before decoding individual hits
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
     const uint32_t station = boards.stations[fullChanIndex] - 1;
@@ -198,13 +194,14 @@ __device__ void pre_decode_raw_bank<4>(
     const float p0Y = geometry.p0Y[idx_offset];
     const float p0Z = geometry.p0Z[idx_offset];
 
-    // Now we can start decoding hits from the v5 RawBank. The RawBank header (64 bits) tells you how many hits there are.
-    // The RawBank data itself contains lane-wise zero-padded "words". When casting to 32 bits, this looks like 1280  0  0  0  0  669913862 for example.
-    // So there is something in lane 5 (1280) and 0 (669913862), all other lanes don't have hits.
-    // These words have been encoded as 32 bit integers with the corresponding bitshifts that allow reading them as 16 bit integers, which is what we will do.
-    // This means we can loop individual hits but have to do slighty more complicated indexing gymnastics.
-    for(unsigned ihit = 0; ihit < raw_bank.number_of_hits[lane]; ihit++){// loop hits
-      const auto hit_index_inside_raw_bank = 16*(ihit/2) + 2*(5-lane) + ihit%2;
+    // Now we can start decoding hits from the v5 RawBank. The RawBank header (64 bits) tells you how many hits there
+    // are. The RawBank data itself contains lane-wise zero-padded "words". When casting to 32 bits, this looks like
+    // 1280  0  0  0  0  669913862 for example. So there is something in lane 5 (1280) and 0 (669913862), all other
+    // lanes don't have hits. These words have been encoded as 32 bit integers with the corresponding bitshifts that
+    // allow reading them as 16 bit integers, which is what we will do. This means we can loop individual hits but have
+    // to do slighty more complicated indexing gymnastics.
+    for (unsigned ihit = 0; ihit < raw_bank.number_of_hits[lane]; ihit++) { // loop hits
+      const auto hit_index_inside_raw_bank = 16 * (ihit / 2) + 2 * (5 - lane) + ihit % 2;
       const uint16_t word = raw_bank.data[hit_index_inside_raw_bank];
       // this is the magic step that tells us which strip was hit
       const auto stripID = (word & UT::Decoding::v5::strip_mask) >> UT::Decoding::v5::strip_offset;
@@ -242,19 +239,18 @@ __device__ void pre_decode_raw_bank<4>(
       assert(hit_index_inside_raw_bank < (0x1 << 24));
       const uint32_t raw_bank_hit_index = raw_bank_index << 24 | hit_index_inside_raw_bank;
       ut_pre_decoded_hits.index(hit_index) = raw_bank_hit_index;
-    }// end loop hits
-  }// end loop lanes
+    } // end loop hits
+  }   // end loop lanes
 }
 
-
 /**
-* Iterate over raw banks / hits and store only the Y coordinate,
-* and an uint32_t encoding the following:
-* raw_bank number and hit id inside the raw bank.
-* Let's refer to this array as raw_bank_hits.
-*
-* Kernel suitable for decoding from Allen layout
-*/
+ * Iterate over raw banks / hits and store only the Y coordinate,
+ * and an uint32_t encoding the following:
+ * raw_bank number and hit id inside the raw bank.
+ * Let's refer to this array as raw_bank_hits.
+ *
+ * Kernel suitable for decoding from Allen layout
+ */
 template<int decoding_version>
 __global__ void ut_pre_decode::ut_pre_decode(
   ut_pre_decode::Parameters parameters,
@@ -279,9 +275,18 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
-  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks; raw_bank_index += blockDim.x)
-      pre_decode_raw_bank(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, geometry,
-        boards, raw_event.getUTRawBank<decoding_version>(raw_bank_index), raw_bank_index, ut_pre_decoded_hits, hit_count);
+  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
+       raw_bank_index += blockDim.x)
+    pre_decode_raw_bank(
+      dev_ut_region_offsets,
+      dev_unique_x_sector_offsets,
+      hit_offsets,
+      geometry,
+      boards,
+      raw_event.getUTRawBank<decoding_version>(raw_bank_index),
+      raw_bank_index,
+      ut_pre_decoded_hits,
+      hit_count);
 }
 
 /**
@@ -292,7 +297,7 @@ __global__ void ut_pre_decode::ut_pre_decode(
  *
  * Kernel suitable for decoding from MEP layout
  */
- template<int decoding_version>
+template<int decoding_version>
 __global__ void ut_pre_decode::ut_pre_decode_mep(
   ut_pre_decode::Parameters parameters,
   const char* ut_boards,
@@ -309,14 +314,16 @@ __global__ void ut_pre_decode::ut_pre_decode_mep(
   // uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
   // UT::PreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
-  //                                         parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  //                                         parameters.dev_ut_hit_offsets[number_of_events *
+  //                                         number_of_unique_x_sectors]};
 
   // const UTBoards boards(ut_boards);
   // const UTGeometry geometry(ut_geometry);
 
   // auto const number_of_ut_raw_banks = parameters.dev_ut_raw_input_offsets[0];
 
-  // for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
+  // for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x)
+  // {
 
   //   // Create UT raw bank from MEP layout
   //   const auto raw_bank = MEP::raw_bank<UTRawBank>(

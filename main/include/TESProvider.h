@@ -67,7 +67,8 @@ public:
       auto data_size = static_cast<span_size_t<char const>>(banks.size());
       gsl::span<char const> b {banks.data(), data_size};
 
-      m_banks_and_offsets[allen_bank_index] = {{std::move(b)}, static_cast<std::size_t>(data_size), {offsets.data(), 2u}, version};
+      m_banks_and_offsets[allen_bank_index] = {
+        {std::move(b)}, static_cast<std::size_t>(data_size), {offsets.data(), 2u}, version};
     }
 
     return 0;

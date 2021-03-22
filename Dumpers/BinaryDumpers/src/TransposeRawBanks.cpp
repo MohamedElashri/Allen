@@ -98,9 +98,10 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<
-                            std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
-                            Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+class TransposeRawBanks
+  : public Gaudi::Functional::MergingTransformer<
+      std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
+      Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
   TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
@@ -148,14 +149,12 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> Transpos
 {
 
   std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> output;
-  std::array<LHCb::span<LHCb::RawBank const*>, LHCb::RawBank::LastType> rawBanks;
+  std::array<LHCb::RawBank::View, LHCb::RawBank::LastType> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
     std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
-      if (!banks.empty()) {
-        rawBanks[bt] = std::move(banks);
-      }
+      if (!banks.empty()) rawBanks[bt] = banks;
     });
   }
 
@@ -202,7 +201,7 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> Transpos
     // Dumping number_of_rawbanks + 1 offsets!
     DumpUtils::Writer bank_buffer;
     bank_buffer.write(number_of_rawbanks, bankOffsets, bankData);
-    output[bankType] = std::tuple{bank_buffer.buffer(), banks[0]->version()};
+    output[bankType] = std::tuple {bank_buffer.buffer(), banks[0]->version()};
   }
   return output;
 }

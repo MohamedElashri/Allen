@@ -22,12 +22,11 @@ namespace UT {
       static constexpr int frac_offset = 0;  // frac
       static constexpr int chan_offset = 2;  // channel
       static constexpr int thre_offset = 15; // threshold
-    } // namespace v4
+    }                                        // namespace v4
     namespace v5 {
-      static constexpr int strip_mask   = 0xFFE0;
+      static constexpr int strip_mask = 0xFFE0;
       static constexpr int strip_offset = 5;
     } // namespace v5
-
 
     static constexpr unsigned ut_number_of_sectors_per_board = 6;
     static constexpr unsigned ut_number_of_geometry_sectors = 1048;

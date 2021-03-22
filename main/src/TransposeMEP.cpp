@@ -18,7 +18,6 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
   auto header_size = +header.header_size(header.n_blocks);
   gsl::span<char const> block_span {mep_span.data() + header_size, mep_span.size() - header_size};
   std::array<unsigned int, LHCb::NBankTypes> count {0};
-
   for (size_t i = 0; i < header.n_blocks; ++i) {
     auto offset = header.offsets[i];
     EB::BlockHeader bh {block_span.data() + offset};

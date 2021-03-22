@@ -23,9 +23,8 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
   if (runtime_options.mep_layout) {
-    auto fun = bank_version == 3 ?
-      global_function(ut_decode_raw_banks_in_order_mep<3>) :
-      global_function(ut_decode_raw_banks_in_order_mep<4>);
+    auto fun = bank_version == 4 ? global_function(ut_decode_raw_banks_in_order_mep<4>) :
+                                   global_function(ut_decode_raw_banks_in_order_mep<3>);
     fun(dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
@@ -34,9 +33,8 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
       constants.dev_unique_x_sector_layer_offsets.data());
   }
   else {
-    auto fun = bank_version == 3 ?
-      global_function(ut_decode_raw_banks_in_order<3>) :
-      global_function(ut_decode_raw_banks_in_order<4>);
+    auto fun = bank_version == 4 ? global_function(ut_decode_raw_banks_in_order<4>) :
+                                   global_function(ut_decode_raw_banks_in_order<3>);
     fun(dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
@@ -53,8 +51,8 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
 }
 
 /**
-* @brief Given a RawBank and indices from sorted hits, this function fully decodes UTHits for use in the tracking.
-*/
+ * @brief Given a RawBank and indices from sorted hits, this function fully decodes UTHits for use in the tracking.
+ */
 template<int decoding_version>
 __device__ void decode_raw_bank(
   unsigned const* dev_ut_region_offsets,
@@ -65,7 +63,7 @@ __device__ void decode_raw_bank(
   unsigned const raw_bank_hit_index,
   UT::Hits& ut_hits)
 {
-  throw std::runtime_error("UTDecoding: Unknown version "+std::to_string(decoding_version));
+  throw std::runtime_error("UTDecoding: Unknown version " + std::to_string(decoding_version));
 }
 
 template<>
@@ -115,7 +113,7 @@ __device__ void decode_raw_bank<3>(
   const float zAtYEq0 = fabs(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
-  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID+stripID);
+  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID);
 
   ut_hits.yBegin(hit_index) = yBegin;
   ut_hits.yEnd(hit_index) = yEnd;
@@ -142,7 +140,7 @@ __device__ void decode_raw_bank<4>(
   const uint16_t word = raw_bank.data[hit_index_inside_raw_bank];
   const uint32_t stripID = (word & UT::Decoding::v5::strip_mask) >> UT::Decoding::v5::strip_offset;
   // decode lane number from hit_index_inside_raw_bank, which is 16*(ihit/2) + 2*(5-lane) + ihit%2
-  const uint32_t lane = 5-(hit_index_inside_raw_bank%16)/2;
+  const uint32_t lane = 5 - (hit_index_inside_raw_bank % 16) / 2;
   assert(lane <= 6);
   const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
 
@@ -170,7 +168,7 @@ __device__ void decode_raw_bank<4>(
   const float zAtYEq0 = fabs(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
-  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID+stripID);
+  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID);
 
   ut_hits.yBegin(hit_index) = yBegin;
   ut_hits.yEnd(hit_index) = yEnd;
@@ -239,7 +237,8 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
   //                   parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   // UT::ConstPreDecodedHits ut_pre_decoded_hits {
-  //   parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  //   parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events *
+  //   number_of_unique_x_sectors]};
 
   // const UTBoards boards(ut_boards);
   // const UTGeometry geometry(ut_geometry);

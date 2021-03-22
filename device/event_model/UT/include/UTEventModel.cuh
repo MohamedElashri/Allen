@@ -40,9 +40,10 @@ namespace UT {
     friend std::ostream& operator<<(std::ostream& stream, const Hit& ut_hit)
     {
       constexpr int prec = 6, width = 12;
-      stream << std::setprecision(prec) << std::setw(width) << "UT hit" << std::setw(width) << ut_hit.LHCbID << std::setw(width) << ut_hit.yBegin
-             << std::setw(width) << ut_hit.yEnd << std::setw(width) << ut_hit.zAtYEq0 << std::setw(width) << ut_hit.xAtYEq0
-             << std::setw(width) << ut_hit.weight << std::setw(width) << ut_hit.plane_code;
+      stream << std::setprecision(prec) << std::setw(width) << "UT hit" << std::setw(width) << ut_hit.LHCbID
+             << std::setw(width) << ut_hit.yBegin << std::setw(width) << ut_hit.yEnd << std::setw(width)
+             << ut_hit.zAtYEq0 << std::setw(width) << ut_hit.xAtYEq0 << std::setw(width) << ut_hit.weight
+             << std::setw(width) << ut_hit.plane_code;
       return stream;
     }
   };

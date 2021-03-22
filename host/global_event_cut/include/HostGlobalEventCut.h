@@ -73,15 +73,15 @@ namespace host_global_event_cut {
 
       if constexpr (mep_layout) {
         throw std::runtime_error("This still needs to be implemented!");
-        //TODO: understand and rewrite the code below
+        // TODO: understand and rewrite the code below
 
         // auto const number_of_ut_raw_banks = ut_offsets[0];
         // for (unsigned i = 0; i < number_of_ut_raw_banks; ++i) {
         //   auto sourceID = ut_offsets[2 + i];
         //   // We're on the host, so use the blocks directly
         //   auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
-        //   auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
-        //   const UTRawBank ut_bank {sourceID, parameters.ut_banks[i].data() + fragment_offset};
+        //   auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] -
+        //   block_offset; const UTRawBank ut_bank {sourceID, parameters.ut_banks[i].data() + fragment_offset};
         //   n_UT_clusters += ut_bank.number_of_hits;
         // }
       }
@@ -89,10 +89,13 @@ namespace host_global_event_cut {
         const uint32_t ut_event_offset = ut_offsets[event_number];
         const UTRawEvent ut_event(parameters.ut_banks[0].data() + ut_event_offset);
 
-        for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i){
-          if( ut_raw_bank_version == 4 ) n_UT_clusters += ut_event.getUTRawBank<4>(i).get_n_hits();
-          else if( ut_raw_bank_version == 3 ) n_UT_clusters += ut_event.getUTRawBank<3>(i).get_n_hits();
-          else throw std::runtime_error("Unknown UT raw bank version "+std::to_string(ut_raw_bank_version));
+        for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i) {
+          if (ut_raw_bank_version == 4)
+            n_UT_clusters += ut_event.getUTRawBank<4>(i).get_n_hits();
+          else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
+            n_UT_clusters += ut_event.getUTRawBank<3>(i).get_n_hits();
+          else
+            throw std::runtime_error("Unknown UT raw bank version " + std::to_string(ut_raw_bank_version));
         }
       }
 

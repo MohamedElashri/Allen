@@ -29,16 +29,18 @@ namespace {
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class DumpRawBanks : public Gaudi::Functional::Consumer<
-  void(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const&, LHCb::ODIN const&)> {
+class DumpRawBanks
+  : public Gaudi::Functional::Consumer<
+      void(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const&, LHCb::ODIN const&)> {
 public:
   /// Standard constructor
   DumpRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& banks, LHCb::ODIN const& odin)
-    const override;
+  void operator()(
+    std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& banks,
+    LHCb::ODIN const& odin) const override;
 
 private:
   std::string outputDirectory(LHCb::RawBank::BankType bankType) const;

@@ -1154,7 +1154,17 @@ void transpose(int thread_id)
     if (m_config.transpose_mep) {
       // Transpose the events into the slice
       std::tie(good, transpose_full, n_transposed) = MEP::transpose_events(
-        m_slices, *slice_index, m_bank_ids, m_banks_count, m_banks_version, event_ids, mep_header, blocks, source_offsets, interval);
+        m_slices,
+        *slice_index,
+        m_bank_ids,
+        this->types(),
+        m_banks_count,
+        m_banks_version,
+        event_ids,
+        mep_header,
+        blocks,
+        source_offsets,
+        interval);
       this->debug_output(
         "Transposed slice " + std::to_string(*slice_index) + "; good: " + std::to_string(good) +
           "; full: " + std::to_string(transpose_full) + "; n_transposed:  " + std::to_string(n_transposed),
@@ -1162,8 +1172,8 @@ void transpose(int thread_id)
     }
     else {
       // Calculate fragment offsets in MEP per sub-detector
-      std::tie(good, transpose_full, n_transposed) =
-        MEP::mep_offsets(m_slices, *slice_index, m_bank_ids, m_banks_count, event_ids, mep_header, blocks, interval);
+      std::tie(good, transpose_full, n_transposed) = MEP::mep_offsets(
+        m_slices, *slice_index, m_bank_ids, this->types(), m_banks_count, event_ids, mep_header, blocks, interval);
       this->debug_output("Calculated MEP offsets for slice " + std::to_string(*slice_index), thread_id);
     }
 

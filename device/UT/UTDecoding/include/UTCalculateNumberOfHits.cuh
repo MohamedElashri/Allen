@@ -27,11 +27,11 @@ namespace ut_calculate_number_of_hits {
 
   template<int decoding_version>
   __global__ void ut_calculate_number_of_hits_mep(
-  Parameters,
-  const char* ut_boards,
-  const unsigned* dev_ut_region_offsets,
-  const unsigned* dev_unique_x_sector_layer_offsets,
-  const unsigned* dev_unique_x_sector_offsets);
+    Parameters,
+    const char* ut_boards,
+    const unsigned* dev_ut_region_offsets,
+    const unsigned* dev_unique_x_sector_layer_offsets,
+    const unsigned* dev_unique_x_sector_offsets);
 
   struct ut_calculate_number_of_hits_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(

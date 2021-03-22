@@ -29,28 +29,24 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
 
   if (runtime_options.mep_layout) {
     // TODO: check compatibility of decoding version with geometry and numbering scheme
-    auto fun = bank_version == 3 ?
-      global_function(ut_calculate_number_of_hits_mep<3>) :
-      global_function(ut_calculate_number_of_hits_mep<4>);
-    fun(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    auto fun = bank_version == 4 ? global_function(ut_calculate_number_of_hits_mep<4>) :
+                                   global_function(ut_calculate_number_of_hits_mep<3>);
+    fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
-      constants.dev_unique_x_sector_offsets.data() );
+      constants.dev_unique_x_sector_offsets.data());
   }
   else {
-    auto fun = bank_version == 3 ?
-      global_function(ut_calculate_number_of_hits<3>) :
-      global_function(ut_calculate_number_of_hits<4>);
-    fun(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    auto fun = bank_version == 4 ? global_function(ut_calculate_number_of_hits<4>) :
+                                   global_function(ut_calculate_number_of_hits<3>);
+    fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments,
       constants.dev_ut_boards.data(),
       constants.dev_ut_region_offsets.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
-      constants.dev_unique_x_sector_offsets.data() );
+      constants.dev_unique_x_sector_offsets.data());
   }
 }
 
@@ -66,9 +62,8 @@ __device__ void calculate_number_of_hits(
   UTBoards const& boards,
   UTRawBank<decoding_version> const& raw_bank)
 {
-  throw std::runtime_error("UTDecoding: Unknown version "+std::to_string(decoding_version));
+  throw std::runtime_error("UTDecoding: Unknown version " + std::to_string(decoding_version));
 }
-
 
 template<>
 __device__ void calculate_number_of_hits<3>(
@@ -106,9 +101,9 @@ __device__ void calculate_number_of_hits<4>(
   UTBoards const& boards,
   UTRawBank<4> const& raw_bank)
 {
-  if(raw_bank.get_n_hits() == 0) return;
+  if (raw_bank.get_n_hits() == 0) return;
   for (unsigned lane = threadIdx.y; lane < UT::Decoding::ut_number_of_sectors_per_board; lane += blockDim.y) {
-    if(raw_bank.number_of_hits[lane] == 0) continue;
+    if (raw_bank.number_of_hits[lane] == 0) continue;
     // find the sector group to which these hits are added
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
     const uint32_t station = boards.stations[fullChanIndex] - 1;
@@ -144,8 +139,14 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
 
-  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks; raw_bank_index += blockDim.x)
-    calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_event.getUTRawBank<decoding_version>(raw_bank_index));
+  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
+       raw_bank_index += blockDim.x)
+    calculate_number_of_hits(
+      dev_ut_region_offsets,
+      dev_unique_x_sector_offsets,
+      hit_offsets,
+      boards,
+      raw_event.getUTRawBank<decoding_version>(raw_bank_index));
 }
 
 /**
@@ -167,7 +168,8 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_mep(
   // const UTBoards boards(ut_boards);
   // auto const number_of_ut_raw_banks = parameters.dev_ut_raw_input_offsets[0];
 
-  // for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
+  // for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x)
+  // {
 
   //   // Construct UT raw bank from MEP layout
   //   const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(
