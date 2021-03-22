@@ -148,14 +148,12 @@ std::array<std::vector<char>, LHCb::RawBank::LastType> TransposeRawBanks::operat
 {
 
   std::array<std::vector<char>, LHCb::RawBank::LastType> output;
-  std::array<LHCb::span<LHCb::RawBank const*>, LHCb::RawBank::LastType> rawBanks;
+  std::array<LHCb::RawBank::View, LHCb::RawBank::LastType> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
     std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
-      if (!banks.empty()) {
-        rawBanks[bt] = std::move(banks);
-      }
+      if (!banks.empty()) rawBanks[bt] = banks;
     });
   }
 
