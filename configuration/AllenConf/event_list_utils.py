@@ -179,7 +179,12 @@ def generate(root):
 
     print("Generated sequence represented as algorithms with execution masks:")
     for alg, mask_in in final_seq:
-        mask_in_str = f" in:{str(mask_in).split('/')[1]}" if mask_in else ""
+        if mask_in == None:
+            mask_in_str = ""
+        elif isinstance(mask_in, Algorithm):
+            mask_in_str = f" in:{str(mask_in).split('/')[1]}"
+        elif isinstance(mask_in, BoolNode):
+            mask_in_str = f" in:{mask_in}"
         print(f"  {alg}{mask_in_str}")
 
     return generate_allen_sequence([alg for (alg, _) in final_seq])
