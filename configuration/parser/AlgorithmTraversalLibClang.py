@@ -3,6 +3,9 @@
 ###############################################################################
 import clang.cindex as cindex
 
+event_list_alg_types = ("event_list_union_t", "event_list_inversion_t",
+                        "event_list_intersection_t")
+
 
 class ParsedAlgorithm():
     def __init__(self, name, scope, filename, namespace, parameters,
@@ -23,8 +26,12 @@ class ParsedAlgorithm():
             a for a in parameters
             if "Output" in a.kind and a.typedef == "mask_t"
         ]
-        assert len(input_masks) <= 1 and len(output_masks) <= 1,\
-            f"Algorithm {self.name} does not fulfill condition: At most one input and one output mask are allowed per algorithm."
+        if name not in event_list_alg_types:
+            assert len(input_masks) <= 1,\
+            f"Algorithm {self.name} does not fulfill condition: At most one input mask is allowed per algorithm."
+
+        assert len(output_masks) <= 1,\
+            f"Algorithm {self.name} does not fulfill condition: At most output mask is allowed per algorithm."
 
         # Check maximum number of parameters does not exceed 40
         assert len(parameters) <= 40,\

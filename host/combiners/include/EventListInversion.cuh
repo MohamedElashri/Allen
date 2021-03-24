@@ -14,7 +14,7 @@
 
 namespace event_list_inversion {
   struct Parameters {
-    DEVICE_INPUT(dev_event_list_input_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_input_t) dev_event_list;
     HOST_OUTPUT(host_event_list_t, unsigned) host_event_list;
     HOST_OUTPUT(host_event_list_output_t, unsigned) host_event_list_output;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;

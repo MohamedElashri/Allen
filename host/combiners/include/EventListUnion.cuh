@@ -14,8 +14,8 @@
 
 namespace event_list_union {
   struct Parameters {
-    DEVICE_INPUT(dev_event_list_a_t, unsigned) dev_event_list_a;
-    DEVICE_INPUT(dev_event_list_b_t, unsigned) dev_event_list_b;
+    MASK_INPUT(dev_event_list_a_t) dev_event_list_a;
+    MASK_INPUT(dev_event_list_b_t) dev_event_list_b;
     HOST_OUTPUT(host_event_list_a_t, unsigned) host_event_list_a;
     HOST_OUTPUT(host_event_list_b_t, unsigned) host_event_list_b;
     HOST_OUTPUT(host_event_list_output_t, unsigned) host_event_list_output;
