@@ -46,6 +46,9 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
     [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
   __shared__ unsigned shared_number_of_elements[2];
 
+  const unsigned x1_hits_shift = 2 * parameters.hit_window_size;
+  const unsigned x2_hits_shift = 4 * parameters.hit_window_size;
+
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
@@ -122,11 +125,11 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
           }
 
           for (int i = threadIdx.x; i < l1_size; i += blockDim.x) {
-            shared_xs[LookingForward::x1_hits_shift + side_shift + i] = scifi_hits.x0(event_offset + l1_start + i);
+            shared_xs[x1_hits_shift + side_shift + i] = scifi_hits.x0(event_offset + l1_start + i);
           }
 
           for (int i = threadIdx.x; i < l2_size; i += blockDim.x) {
-            shared_xs[LookingForward::x2_hits_shift + side_shift + i] = scifi_hits.x0(event_offset + l2_start + i);
+            shared_xs[x2_hits_shift + side_shift + i] = scifi_hits.x0(event_offset + l2_start + i);
           }
 
           // Due to shared containers
@@ -157,7 +160,9 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
             parameters.dev_scifi_lf_number_of_found_triplets +
               (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
                 LookingForward::triplet_seeding_block_dim_x,
-            triplet_seed);
+            triplet_seed,
+            x1_hits_shift,
+            x2_hits_shift);
         }
       }
     }
@@ -180,7 +185,9 @@ __device__ void lf_triplet_seeding_impl(
   unsigned* shared_number_of_elements,
   int* scifi_lf_found_triplets,
   int8_t* scifi_lf_number_of_found_triplets,
-  const unsigned triplet_seed)
+  const unsigned triplet_seed,
+  const unsigned x1_hits_shift,
+  const unsigned x2_hits_shift)
 {
   const auto inverse_dz2 = 1.f / (z0 - z2);
   const auto constant_expected_x1 =
@@ -201,7 +208,7 @@ __device__ void lf_triplet_seeding_impl(
       const auto h0_rel = i % l0_size;
       const auto h2_rel = i / l0_size;
       const auto x0 = shared_xs[h0_rel];
-      const auto x2 = shared_xs[LookingForward::x2_hits_shift + h2_rel];
+      const auto x2 = shared_xs[x2_hits_shift + h2_rel];
 
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
@@ -245,7 +252,7 @@ __device__ void lf_triplet_seeding_impl(
       const auto h0_rel = element_index % l0_size;
       const auto h2_rel = element_index / l0_size;
       const auto x0 = shared_xs[h0_rel];
-      const auto x2 = shared_xs[LookingForward::x2_hits_shift + h2_rel];
+      const auto x2 = shared_xs[x2_hits_shift + h2_rel];
 
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
@@ -253,7 +260,7 @@ __device__ void lf_triplet_seeding_impl(
 
       // Linear search of candidate
       const auto candidate_index = linear_search(
-        shared_xs + LookingForward::x1_hits_shift, l1_size, expected_x1, h0_rel < l1_size ? h0_rel : l1_size - 1);
+        shared_xs + x1_hits_shift, l1_size, expected_x1, h0_rel < l1_size ? h0_rel : l1_size - 1);
 
       float best_chi2 = LookingForward::chi2_max_triplet_single;
       int best_h1_rel = -1;
@@ -261,7 +268,7 @@ __device__ void lf_triplet_seeding_impl(
       // It is now either candidate_index - 1 or candidate_index
       for (int h1_rel = candidate_index - 1; h1_rel < candidate_index + 1; ++h1_rel) {
         if (h1_rel >= 0 && h1_rel < l1_size) {
-          const auto x1 = shared_xs[LookingForward::x1_hits_shift + h1_rel];
+          const auto x1 = shared_xs[x1_hits_shift + h1_rel];
           const auto chi2 = (x1 - expected_x1) * (x1 - expected_x1);
 
           if (chi2 < best_chi2) {
