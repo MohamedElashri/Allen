@@ -33,7 +33,7 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
 
   global_function(lf_triplet_seeding)(
     dim3(size<dev_event_list_t>(arguments)), dim3(LookingForward::triplet_seeding_block_dim_x, 2), context,
-    3 * 2 * LookingForward::max_number_of_hits_in_window * sizeof(float))(
+    3 * 2 * property<hit_window_size_t>() * sizeof(float))(
     arguments, constants.dev_looking_forward_constants);
 }
 
@@ -41,7 +41,6 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   lf_triplet_seeding::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  // __shared__ float shared_xs[3 * 2 * LookingForward::max_number_of_hits_in_window];
   DYNAMIC_SHARED_MEMORY_BUFFER(float, shared_xs, parameters.config)
   __shared__ short shared_indices
     [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
@@ -105,7 +104,7 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
           // Due to shared containers
           __syncwarp();
 
-          const int side_shift = triplet_seed * LookingForward::max_number_of_hits_in_window;
+          const int side_shift = triplet_seed * parameters.hit_window_size;
 
           if (threadIdx.x == 0) {
             shared_number_of_elements[triplet_seed] = 0;
@@ -148,7 +147,7 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
             (parameters.dev_ut_states + current_ut_track_index)->tx,
             velo_states.tx(velo_states_index),
             x_at_z_magnet,
-            shared_xs + triplet_seed * LookingForward::max_number_of_hits_in_window,
+            shared_xs + triplet_seed * parameters.hit_window_size,
             shared_indices + triplet_seed * LookingForward::triplet_seeding_block_dim_x *
                                LookingForward::maximum_number_of_triplets_per_thread,
             shared_number_of_elements + triplet_seed,

@@ -12,7 +12,8 @@ def ForwardSequence(initialize_lists,
                     prefix_sum_ut_track_hit_number,
                     ut_consolidate_tracks,
                     velo_kalman_filter,
-                    forward_decoding="v4"):
+                    forward_decoding="v4",
+                    hit_window_size="32"):
 
     scifi_banks = data_provider_t(name="scifi_banks", bank_type="FTCluster")
 
@@ -84,7 +85,8 @@ def ForwardSequence(initialize_lists,
         dev_ut_track_velo_indices_t=ut_consolidate_tracks.
         dev_ut_track_velo_indices_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t())
+        dev_event_list_t=initialize_lists.dev_event_list_t(),
+        hit_window_size=hit_window_size)
 
     lf_triplet_seeding = lf_triplet_seeding_t(
         host_number_of_events_t=initialize_lists.host_number_of_events_t(),
@@ -108,7 +110,8 @@ def ForwardSequence(initialize_lists,
         dev_scifi_lf_process_track_t=lf_search_initial_windows.
         dev_scifi_lf_process_track_t(),
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
-        dev_event_list_t=initialize_lists.dev_event_list_t())
+        dev_event_list_t=initialize_lists.dev_event_list_t(),
+        hit_window_size=hit_window_size)
 
     lf_create_tracks = lf_create_tracks_t(
         host_number_of_events_t=initialize_lists.host_number_of_events_t(),
