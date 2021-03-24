@@ -9,6 +9,9 @@ namespace Allen {
   // and provides a manner for execution to be stopped.
   struct Context;
 
+  // Holds invoke parameters of kernel call
+  struct KernelInvocationConfiguration;
+
   // Memcpy kind used in memory transfers, analogous to cudaMemcpyKind
   enum memcpy_kind { memcpyHostToHost, memcpyHostToDevice, memcpyDeviceToHost, memcpyDeviceToDevice, memcpyDefault };
 

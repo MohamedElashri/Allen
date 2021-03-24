@@ -39,6 +39,11 @@ using std::signbit;
 #define fmaxf_impl fmaxf
 #define fminf_impl fminf
 
+// Support for dynamic shared memory buffers
+#define DYNAMIC_SHARED_MEMORY_BUFFER(__type, __instance, __config)                                                   \
+  auto __dynamic_shared_memory_buffer = std::vector<__type>(__config.dynamic_shared_memory_size() / sizeof(__type)); \
+  auto __instance = __dynamic_shared_memory_buffer.data();
+
 struct float3 {
   float x;
   float y;
@@ -168,6 +173,20 @@ using half_t = float;
 #endif
 
 namespace Allen {
+  struct KernelInvocationConfiguration {
+  private:
+    unsigned m_dynamic_shared_memory_size = 0;
+
+  public:
+    KernelInvocationConfiguration() = default;
+
+    KernelInvocationConfiguration(const dim3&, const dim3&, const unsigned dynamic_shared_memory_size) :
+      m_dynamic_shared_memory_size(dynamic_shared_memory_size)
+    {}
+
+    unsigned dynamic_shared_memory_size() const { return m_dynamic_shared_memory_size; }
+  };
+
   // Big enough alignment to align with 512-bit vectors
   constexpr static unsigned cpu_alignment = 64;
 

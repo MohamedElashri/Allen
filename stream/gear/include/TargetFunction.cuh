@@ -20,6 +20,7 @@ private:
   const dim3& m_grid_dim;
   const dim3& m_block_dim;
   const Allen::Context& m_context;
+  const unsigned m_dynamic_shared_memory_size;
   const Fn& m_fn;
 
 public:
@@ -28,28 +29,32 @@ public:
     const dim3& grid_dim,
     const dim3& block_dim,
     const Allen::Context& context,
+    const unsigned dynamic_shared_memory_size,
     const Fn& fn) :
     m_properties(properties),
-    m_grid_dim(grid_dim), m_block_dim(block_dim), m_context(context), m_fn(fn)
+    m_grid_dim(grid_dim), m_block_dim(block_dim), m_context(context),
+    m_dynamic_shared_memory_size(dynamic_shared_memory_size), m_fn(fn)
   {}
 
   template<typename... S>
   void operator()(S&&... arguments) const
   {
-    const auto invoke_arguments =
-      std::make_tuple(TransformParameters<S>::transform(std::forward<S>(arguments), m_properties)...);
+    const auto invoke_arguments = std::make_tuple(TransformParameters<S>::transform(
+      std::forward<S>(arguments),
+      m_properties,
+      Allen::KernelInvocationConfiguration {m_grid_dim, m_block_dim, m_dynamic_shared_memory_size})...);
 
-    // Delegate function invocation
     invoke_device_function(
-      m_fn, m_grid_dim, m_block_dim, m_context, invoke_arguments, std::make_index_sequence<sizeof...(S)>());
+      m_fn,
+      m_grid_dim,
+      m_block_dim,
+      m_context,
+      m_dynamic_shared_memory_size,
+      invoke_arguments,
+      std::make_index_sequence<sizeof...(S)>());
 
     // Check result of kernel call
     Allen::peek_at_last_error();
-
-    // TODO: There is an issue HERE when the invoke_arguments tuple is attempted to be destroyed
-    // #16 0x00007ffff75eed58 in std::tuple<track_mva_line::track_mva_line_t, track_mva_line::Parameters, unsigned int,
-    // unsigned int>::~tuple() (this=0x7ffd4a389e58) at
-    // /cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib/gcc/x86_64-pc-linux-gnu/9.2.0/../../../../include/c++/9.2.0/tuple:523
   }
 };
 
@@ -70,9 +75,13 @@ public:
 
   // The syntax of operator() resembles the CUDA syntax:
   //  foo(num_blocks, num_threads, cuda_context)(arguments...)
-  auto operator()(const dim3& num_blocks, const dim3& num_threads, const Allen::Context& context) const
+  auto operator()(
+    const dim3& num_blocks,
+    const dim3& num_threads,
+    const Allen::Context& context,
+    const unsigned dynamic_shared_memory_size = 0) const
   {
-    return GlobalFunctionImpl<Fn> {m_properties, num_blocks, num_threads, context, m_fn};
+    return GlobalFunctionImpl<Fn> {m_properties, num_blocks, num_threads, context, dynamic_shared_memory_size, m_fn};
   }
 };
 
@@ -95,6 +104,7 @@ public:
   template<typename... S>
   auto operator()(S&&... arguments) const
   {
-    return m_fn(TransformParameters<S>::transform(std::forward<S>(arguments), m_properties)...);
+    return m_fn(TransformParameters<S>::transform(
+      std::forward<S>(arguments), m_properties, Allen::KernelInvocationConfiguration {})...);
   }
 };

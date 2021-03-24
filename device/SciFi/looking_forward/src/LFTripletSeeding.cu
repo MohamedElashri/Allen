@@ -32,7 +32,8 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
   initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, context);
 
   global_function(lf_triplet_seeding)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(LookingForward::triplet_seeding_block_dim_x, 2), context)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(LookingForward::triplet_seeding_block_dim_x, 2), context,
+    3 * 2 * LookingForward::max_number_of_hits_in_window * sizeof(float))(
     arguments, constants.dev_looking_forward_constants);
 }
 
@@ -40,7 +41,8 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   lf_triplet_seeding::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  __shared__ float shared_xs[3 * 2 * LookingForward::max_number_of_hits_in_window];
+  // __shared__ float shared_xs[3 * 2 * LookingForward::max_number_of_hits_in_window];
+  DYNAMIC_SHARED_MEMORY_BUFFER(float, shared_xs, parameters.config)
   __shared__ short shared_indices
     [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
   __shared__ unsigned shared_number_of_elements[2];

@@ -20,6 +20,9 @@ inline const char* cudaGetErrorString(cudaError_t error) { return ""; }
 #include <cuda_fp16.h>
 #define half_t half
 
+// Support for dynamic shared memory buffers
+#define DYNAMIC_SHARED_MEMORY_BUFFER(__type, __instance, __config) extern __shared__ __type __instance[];
+
 /**
  * @brief Macro to check cuda calls.
  */
@@ -44,6 +47,11 @@ inline const char* cudaGetErrorString(cudaError_t error) { return ""; }
   }
 
 namespace Allen {
+  struct KernelInvocationConfiguration {
+    KernelInvocationConfiguration() = default;
+    KernelInvocationConfiguration(const dim3&, const dim3&, const unsigned) {}
+  };
+
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   struct Context {
     void initialize() {}

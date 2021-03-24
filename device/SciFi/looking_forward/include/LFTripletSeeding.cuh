@@ -13,6 +13,7 @@
 
 namespace lf_triplet_seeding {
   struct Parameters {
+    Allen::KernelInvocationConfiguration config;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, unsigned) host_number_of_reconstructed_ut_tracks;
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
