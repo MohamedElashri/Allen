@@ -32,9 +32,10 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
   initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, context);
 
   global_function(lf_triplet_seeding)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(LookingForward::triplet_seeding_block_dim_x, 2), context,
-    3 * 2 * property<hit_window_size_t>() * sizeof(float))(
-    arguments, constants.dev_looking_forward_constants);
+    dim3(size<dev_event_list_t>(arguments)),
+    dim3(LookingForward::triplet_seeding_block_dim_x, 2),
+    context,
+    3 * 2 * property<hit_window_size_t>() * sizeof(float))(arguments, constants.dev_looking_forward_constants);
 }
 
 __global__ void lf_triplet_seeding::lf_triplet_seeding(
@@ -259,8 +260,8 @@ __device__ void lf_triplet_seeding_impl(
       const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
 
       // Linear search of candidate
-      const auto candidate_index = linear_search(
-        shared_xs + x1_hits_shift, l1_size, expected_x1, h0_rel < l1_size ? h0_rel : l1_size - 1);
+      const auto candidate_index =
+        linear_search(shared_xs + x1_hits_shift, l1_size, expected_x1, h0_rel < l1_size ? h0_rel : l1_size - 1);
 
       float best_chi2 = LookingForward::chi2_max_triplet_single;
       int best_h1_rel = -1;

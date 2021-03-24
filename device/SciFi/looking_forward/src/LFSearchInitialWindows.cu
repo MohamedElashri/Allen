@@ -164,11 +164,9 @@ __device__ void lf_search_initial_windows_impl(
       scifi_hits.x0_p(x_zone_offset_begin + hits_within_bounds_start), x_zone_size - hits_within_bounds_start, xMax);
 
     // Cap the central windows to a certain size
-    const int central_window_begin =
-      max(hits_within_bounds_xInZone - hit_window_size / 2, 0);
+    const int central_window_begin = max(hits_within_bounds_xInZone - hit_window_size / 2, 0);
     const int central_window_size =
-      min(central_window_begin + hit_window_size, hits_within_bounds_size) -
-      central_window_begin;
+      min(central_window_begin + hit_window_size, hits_within_bounds_size) - central_window_begin;
 
     // Initialize windows
     initial_windows[i * LookingForward::number_of_elements_initial_window * number_of_tracks] =

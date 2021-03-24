@@ -78,7 +78,7 @@ namespace Allen {
     KernelInvocationConfiguration() = default;
     KernelInvocationConfiguration(const dim3&, const dim3&, const unsigned) {}
   };
-  
+
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   struct Context {
     void initialize() {}

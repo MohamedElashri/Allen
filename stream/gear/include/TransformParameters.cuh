@@ -31,7 +31,10 @@ struct ProduceSingleParameter<
   ArgMan,
   T,
   typename std::enable_if_t<std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>>> {
-  constexpr static auto produce(const ArgMan& arguments, const std::map<std::string, Allen::BaseProperty*>&, const Allen::KernelInvocationConfiguration&)
+  constexpr static auto produce(
+    const ArgMan& arguments,
+    const std::map<std::string, Allen::BaseProperty*>&,
+    const Allen::KernelInvocationConfiguration&)
   {
     return data<T>(arguments);
   }
@@ -44,8 +47,13 @@ template<typename ArgMan, typename T>
 struct ProduceSingleParameter<
   ArgMan,
   T,
-  typename std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> && !std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
-  constexpr static auto produce(const ArgMan&, const std::map<std::string, Allen::BaseProperty*>& properties, const Allen::KernelInvocationConfiguration&)
+  typename std::enable_if_t<
+    !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> &&
+    !std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
+  constexpr static auto produce(
+    const ArgMan&,
+    const std::map<std::string, Allen::BaseProperty*>& properties,
+    const Allen::KernelInvocationConfiguration&)
   {
     if (properties.find(T::name) == properties.end()) {
       throw std::runtime_error {"property " + std::string(T::name) + " not found"};
@@ -65,7 +73,10 @@ struct ProduceSingleParameter<
   ArgMan,
   T,
   typename std::enable_if_t<std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
-  constexpr static auto produce(const ArgMan&, const std::map<std::string, Allen::BaseProperty*>&, const Allen::KernelInvocationConfiguration& config)
+  constexpr static auto produce(
+    const ArgMan&,
+    const std::map<std::string, Allen::BaseProperty*>&,
+    const Allen::KernelInvocationConfiguration& config)
   {
     return config;
   }
@@ -95,7 +106,8 @@ struct TransformParametersImpl<ArgMan, std::tuple<T...>> {
  */
 template<typename T>
 struct TransformParameters {
-  constexpr static auto transform(T&& t, const std::map<std::string, Allen::BaseProperty*>&, const Allen::KernelInvocationConfiguration&)
+  constexpr static auto
+  transform(T&& t, const std::map<std::string, Allen::BaseProperty*>&, const Allen::KernelInvocationConfiguration&)
   {
     return std::forward<T>(t);
   }
