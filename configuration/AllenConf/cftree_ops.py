@@ -445,8 +445,12 @@ def order_algs(alg_dependencies):
                 efficiency = avrg_efficiency(eval_mask)
                 return weight * efficiency
 
-            alg = min([alg for alg in algs if df_insertable(alg)],
-                      key=_get_adjusted_weight)
+            viable_algs = [alg for alg in algs if df_insertable(alg)]
+            if not viable_algs:
+                raise RuntimeError(
+                    "No valid order of algorithms possible. You likely introduced a circular data dependency."
+                )
+            alg = min(viable_algs, key=_get_adjusted_weight)
             eval_mask = alg_dependencies[alg][2]
             not_in_sortd = alg_dependencies[alg][0].difference(sortd)
             eval_mask = make_independent_of_algs(eval_mask,
