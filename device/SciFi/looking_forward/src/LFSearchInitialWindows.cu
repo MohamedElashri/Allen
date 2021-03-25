@@ -166,8 +166,7 @@ __device__ void lf_search_initial_windows_impl(
     // Cap the central windows to a certain size
     const int central_window_begin = max(hits_within_bounds_xInZone - static_cast<int>(hit_window_size) / 2, 0);
     const int central_window_size =
-      min(central_window_begin + static_cast<int>(hit_window_size), hits_within_bounds_size) -
-      central_window_begin;
+      min(central_window_begin + static_cast<int>(hit_window_size), hits_within_bounds_size) - central_window_begin;
 
     // Initialize windows
     initial_windows[i * LookingForward::number_of_elements_initial_window * number_of_tracks] =
