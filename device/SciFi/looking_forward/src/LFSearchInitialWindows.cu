@@ -164,9 +164,9 @@ __device__ void lf_search_initial_windows_impl(
       scifi_hits.x0_p(x_zone_offset_begin + hits_within_bounds_start), x_zone_size - hits_within_bounds_start, xMax);
 
     // Cap the central windows to a certain size
-    const int central_window_begin = max(hits_within_bounds_xInZone - hit_window_size / 2, 0u);
+    const int central_window_begin = max(hits_within_bounds_xInZone - static_cast<int>(hit_window_size) / 2, 0);
     const int central_window_size =
-      min(central_window_begin + hit_window_size, static_cast<unsigned>(hits_within_bounds_size)) -
+      min(central_window_begin + static_cast<int>(hit_window_size), hits_within_bounds_size) -
       central_window_begin;
 
     // Initialize windows
