@@ -40,7 +40,7 @@ using std::signbit;
 #define fminf_impl fminf
 
 // Support for dynamic shared memory buffers
-#define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config)                                                   \
+#define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config)                                                  \
   auto _dynamic_shared_memory_buffer = std::vector<_type>(_config.dynamic_shared_memory_size() / sizeof(_type)); \
   auto _instance = _dynamic_shared_memory_buffer.data();
 
