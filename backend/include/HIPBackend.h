@@ -45,7 +45,7 @@
 #define half_t half
 
 // Support for dynamic shared memory buffers
-#define DYNAMIC_SHARED_MEMORY_BUFFER(__type, __instance, __config) HIP_DYNAMIC_SHARED(__type, __instance)
+#define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) HIP_DYNAMIC_SHARED(_type, _instance)
 
 // syncwarp is not supported in HIP. Use syncthreads instead
 #define __syncwarp __syncthreads

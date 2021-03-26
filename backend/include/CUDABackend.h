@@ -21,7 +21,7 @@ inline const char* cudaGetErrorString(cudaError_t error) { return ""; }
 #define half_t half
 
 // Support for dynamic shared memory buffers
-#define DYNAMIC_SHARED_MEMORY_BUFFER(__type, __instance, __config) extern __shared__ __type __instance[];
+#define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) extern __shared__ _type _instance[];
 
 /**
  * @brief Macro to check cuda calls.
