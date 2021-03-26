@@ -147,7 +147,7 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
     stripsPerHybrids.push_back(stripsPerHybrid);
 
     for (size_t is = 0; is < b->nSectors(); ++is) {
-      auto r = b->DAQToOfflineFull(0, UTDAQ::v4, is * stripsPerHybrid);
+      auto r = b->DAQToOfflineFull(0, UTDAQ::version::v4, is * stripsPerHybrid);
       auto s = std::get<0>(r);
       stations.push_back(s.station);
       layers.push_back(s.layer);
