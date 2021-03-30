@@ -32,13 +32,15 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   if (runtime_options.mep_layout) {
     global_function(muon_populate_tile_and_tdc_mep)(
       size<dev_event_list_t>(arguments),
-      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
+      // FIXME:
+      10 * Muon::MuonRawEvent::batches_per_bank,
       context)(arguments);
   }
   else {
     global_function(muon_populate_tile_and_tdc)(
       size<dev_event_list_t>(arguments),
-      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
+      // FIXME:
+      10 * Muon::MuonRawEvent::batches_per_bank,
       context)(arguments);
   }
 }
@@ -106,7 +108,7 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
@@ -134,11 +136,11 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
   unsigned* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
                                                            Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
-  // number_of_raw_banks = 10
+  auto const n_muon_banks = parameters.dev_muon_raw_offsets[0];
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < n_muon_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
