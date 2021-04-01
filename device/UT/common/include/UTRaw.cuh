@@ -37,7 +37,7 @@ struct UTRawBank {
     data = (uint16_t*) p;
   }
 
-  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, const uint32_t& size)
+  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, [[maybe_unused]] const char* ut_fragment_end)
   {
     sourceID = sID;
     uint32_t* p = (uint32_t*) ut_fragment;
@@ -52,7 +52,7 @@ struct UTRawBank {
       number_of_hits[1] = (*p & 0xFF00U) >> 8U;
       number_of_hits[2] = (*p & 0xFF0000U) >> 16U;
       number_of_hits[3] = (*p & 0xFF000000U) >> 24U;
-      if (size < sizeof(uint32_t) * 6) number_of_hits = {0, 0, 0, 0, 0, 0};
+      if ((uint32_t*)ut_fragment_end-p < 6) number_of_hits = {0, 0, 0, 0, 0, 0};
     }
     p += 1;
     data = (uint16_t*) p;

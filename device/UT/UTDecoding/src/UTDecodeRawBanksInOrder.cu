@@ -63,7 +63,7 @@ __device__ void decode_raw_bank(
   unsigned const raw_bank_hit_index,
   UT::Hits& ut_hits)
 {
-  throw std::runtime_error("UTDecoding: Unknown version " + std::to_string(decoding_version));
+  throw std::runtime_error("UTDecoding: Unknown version.");
 }
 
 template<>
@@ -165,7 +165,7 @@ __device__ void decode_raw_bank<4>(
 
   const float yBegin = p0Y + numstrips * dp0diY;
   const float yEnd = dy + yBegin;
-  const float zAtYEq0 = fabs(p0Z) + numstrips * dp0diZ;
+  const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
   const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID);
@@ -225,37 +225,36 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
   const unsigned* dev_ut_region_offsets,
   const unsigned* dev_unique_x_sector_layer_offsets)
 {
-  // const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  // const unsigned number_of_events = parameters.dev_number_of_events[0];
-  // const unsigned layer_number = blockIdx.y;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned layer_number = blockIdx.y;
 
-  // const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
-  // const UT::HitOffsets ut_hit_offsets {
-  //   parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  // UT::Hits ut_hits {parameters.dev_ut_hits,
-  //                   parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  const UT::HitOffsets ut_hit_offsets {
+    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  UT::Hits ut_hits {parameters.dev_ut_hits,
+                    parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  // UT::ConstPreDecodedHits ut_pre_decoded_hits {
-  //   parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events *
-  //   number_of_unique_x_sectors]};
+  UT::ConstPreDecodedHits ut_pre_decoded_hits {
+    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  // const UTBoards boards(ut_boards);
-  // const UTGeometry geometry(ut_geometry);
+  const UTBoards boards(ut_boards);
+  const UTGeometry geometry(ut_geometry);
 
-  // const unsigned layer_offset = ut_hit_offsets.layer_offset(layer_number);
-  // const unsigned layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
+  const unsigned layer_offset = ut_hit_offsets.layer_offset(layer_number);
+  const unsigned layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
 
-  // for (unsigned i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
 
-  //   const unsigned hit_index = layer_offset + i;
-  //   const unsigned raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
-  //   const unsigned raw_bank_index = raw_bank_hit_index >> 24;
+    const unsigned hit_index = layer_offset + i;
+    const unsigned raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
+    const unsigned raw_bank_index = raw_bank_hit_index >> 24;
 
-  //   // Create UT raw bank from MEP layout
-  //   const auto raw_bank = MEP::raw_bank<UTRawBank>(
-  //     parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
+    // Create UT raw bank from MEP layout
+    const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(
+      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
 
-  //   decode_raw_bank(dev_ut_region_offsets, geometry, boards, raw_bank, hit_index, raw_bank_hit_index, ut_hits);
-  // }
+    decode_raw_bank(dev_ut_region_offsets, geometry, boards, raw_bank, hit_index, raw_bank_hit_index, ut_hits);
+  }
 }

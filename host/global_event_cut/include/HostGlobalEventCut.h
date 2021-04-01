@@ -72,18 +72,20 @@ namespace host_global_event_cut {
       unsigned n_UT_clusters = 0;
 
       if constexpr (mep_layout) {
-        throw std::runtime_error("This still needs to be implemented!");
-        // TODO: understand and rewrite the code below
-
-        // auto const number_of_ut_raw_banks = ut_offsets[0];
-        // for (unsigned i = 0; i < number_of_ut_raw_banks; ++i) {
-        //   auto sourceID = ut_offsets[2 + i];
-        //   // We're on the host, so use the blocks directly
-        //   auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
-        //   auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] -
-        //   block_offset; const UTRawBank ut_bank {sourceID, parameters.ut_banks[i].data() + fragment_offset};
-        //   n_UT_clusters += ut_bank.number_of_hits;
-        // }
+        auto const number_of_ut_raw_banks = ut_offsets[0];
+        for (unsigned i = 0; i < number_of_ut_raw_banks; ++i) {
+          auto sourceID = ut_offsets[2 + i];
+          // We're on the host, so use the blocks directly
+          auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
+          auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
+          auto const next_fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i+1] - block_offset;
+          if (ut_raw_bank_version == 4)
+            n_UT_clusters += UTRawBank<4> {sourceID, parameters.ut_banks[i].data() + fragment_offset, parameters.ut_banks[i].data() + next_fragment_offset}.get_n_hits();
+          else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
+            n_UT_clusters += UTRawBank<3> {sourceID, parameters.ut_banks[i].data() + fragment_offset, parameters.ut_banks[i].data() + next_fragment_offset}.get_n_hits();
+          else
+            throw std::runtime_error("Unknown UT raw bank version " + std::to_string(ut_raw_bank_version));
+        }
       }
       else {
         const uint32_t ut_event_offset = ut_offsets[event_number];
