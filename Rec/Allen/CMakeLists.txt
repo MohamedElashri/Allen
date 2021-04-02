@@ -95,3 +95,7 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()
 target_compile_definitions(AllenWrapper PRIVATE -D${TARGET_DEFINITION})
+
+gaudi_install_python_modules()
+
+gaudi_add_test(QMTest QMTEST)

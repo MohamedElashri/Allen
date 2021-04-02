@@ -17,7 +17,7 @@ interpreter = gbl.gInterpreter
 
 # FIXME: Once the headers are installed properly, this should not be
 # necessary anymore
-allen_dir = os.path.join(os.environ['ALLEN_INSTALL_DIR'], '..', '..')
+allen_dir = os.environ['ALLEN_PROJECT_ROOT']
 header_path = os.path.join(allen_dir, 'main', 'include', 'Allen.h')
 interpreter.Declare("#include <{}>".format(header_path))
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
@@ -43,7 +43,10 @@ parser.add_argument("-v", dest="verbosity", default="3")
 parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
 parser.add_argument("--mdf", dest="mdf", default="")
+parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
+parser.add_argument(
+    "--disable-run-changes", dest="disable_run_changes", default="0")
 parser.add_argument(
     "--events-per-slice", dest="events_per_slice", default="1000")
 parser.add_argument(
@@ -92,16 +95,20 @@ updater = gbl.cast_updater(svc)
 options = gbl.std.map("std::string", "std::string")()
 for flag, value in (("f", args.folder), ("g", args.det_folder),
                     ("n", args.n_events), ("o", args.event_offset),
-                    ("t", args.threads), ("r", args.repetitions),
-                    ("configuration", args.configuration), ("c", args.check),
-                    ("m", args.reserve), ("v",
-                                          args.verbosity), ("p",
-                                                            args.print_memory),
-                    ("i", args.import_fwd), ("mdf",
-                                             args.mdf), ("cpu-offload",
-                                                         args.cpu_offload),
+                    ("t",
+                     args.threads), ("r",
+                                     args.repetitions), ("configuration",
+                                                         args.configuration),
+                    ("c", args.check), ("m", args.reserve), ("v",
+                                                             args.verbosity),
+                    ("p", args.print_memory), ("i", args.import_fwd),
+                    ("mdf",
+                     args.mdf), ("cpu-offload",
+                                 args.cpu_offload), ("disable-run-changes",
+                                                     args.disable_run_changes),
                     ("events-per-slice",
-                     args.events_per_slice), ("device", args.device)):
+                     args.events_per_slice), ("device",
+                                              args.device), ("mep", args.mep)):
     options[flag] = value
 
 con = gbl.std.string("")

@@ -129,8 +129,7 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calcul
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < n_muon_banks * Muon::MuonRawEvent::batches_per_bank;
-       i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < n_muon_banks * Muon::MuonRawEvent::batches_per_bank; i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
     const auto raw_bank = MEP::raw_bank<Muon::MuonRawBank>(

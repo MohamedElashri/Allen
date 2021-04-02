@@ -27,7 +27,6 @@ namespace Muon {
       data = (uint16_t*) bank_start;
       last = (uint16_t*) bank_end;
     }
-
   };
 
   struct MuonRawEvent {

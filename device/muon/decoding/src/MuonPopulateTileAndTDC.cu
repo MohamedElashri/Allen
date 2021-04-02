@@ -140,8 +140,7 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < n_muon_banks * Muon::MuonRawEvent::batches_per_bank;
-       i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < n_muon_banks * Muon::MuonRawEvent::batches_per_bank; i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
 
