@@ -55,16 +55,14 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
  */
 template<int decoding_version>
 __device__ void decode_raw_bank(
-  unsigned const* dev_ut_region_offsets,
-  UTGeometry const& geometry,
-  UTBoards const& boards,
-  UTRawBank<decoding_version> const& raw_bank,
-  unsigned const hit_index,
-  unsigned const raw_bank_hit_index,
-  UT::Hits& ut_hits)
-{
-  throw std::runtime_error("UTDecoding: Unknown version.");
-}
+  unsigned const*,
+  UTGeometry const&,
+  UTBoards const&,
+  UTRawBank<decoding_version> const&,
+  unsigned const,
+  unsigned const,
+  UT::Hits&)
+{}
 
 template<>
 __device__ void decode_raw_bank<3>(
@@ -110,7 +108,7 @@ __device__ void decode_raw_bank<3>(
 
   const float yBegin = p0Y + numstrips * dp0diY;
   const float yEnd = dy + yBegin;
-  const float zAtYEq0 = fabs(p0Z) + numstrips * dp0diZ;
+  const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
   const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID);

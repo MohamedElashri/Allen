@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <UTCalculateNumberOfHits.cuh>
-#include <iomanip>
 
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -28,7 +27,6 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
   if (runtime_options.mep_layout) {
-    // TODO: check compatibility of decoding version with geometry and numbering scheme
     auto fun = bank_version == 4 ? global_function(ut_calculate_number_of_hits_mep<4>) :
                                    global_function(ut_calculate_number_of_hits_mep<3>);
     fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
@@ -61,9 +59,7 @@ __device__ void calculate_number_of_hits(
   uint32_t*,
   UTBoards const&,
   UTRawBank<decoding_version> const&)
-{
-  throw std::runtime_error("UTDecoding: Unknown version.");
-}
+{}
 
 template<>
 __device__ void calculate_number_of_hits<3>(

@@ -58,22 +58,17 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
  */
 template<int decoding_version>
 __device__ void pre_decode_raw_bank(
-  unsigned const* dev_ut_region_offsets,
-  unsigned const* dev_unique_x_sector_offsets,
-  uint32_t const* hit_offsets,
-  UTGeometry const& geometry,
-  UTBoards const& boards,
-  UTRawBank<decoding_version> const& raw_bank,
-  unsigned const raw_bank_index,
-  UT::PreDecodedHits& ut_pre_decoded_hits,
-  uint32_t* hit_count)
-{
-  throw std::runtime_error("UTDecoding: Unknown version.");
-}
+  unsigned const*,
+  unsigned const*,
+  uint32_t const*,
+  UTGeometry const&,
+  UTBoards const&,
+  UTRawBank<decoding_version> const&,
+  unsigned const,
+  UT::PreDecodedHits&,
+  uint32_t*)
+{}
 
-/**
- * @brief Implementation for v4 UTRawBanks (version number 3 in the RawBank enum in LHCb)
- */
 template<>
 __device__ void pre_decode_raw_bank<3>(
   unsigned const* dev_ut_region_offsets,
@@ -161,9 +156,6 @@ __device__ void pre_decode_raw_bank<3>(
   }
 }
 
-/**
- * @brief Implementation for v5 UTRawBanks (version number 4 in the RawBank enum in LHCb)
- */
 template<>
 __device__ void pre_decode_raw_bank<4>(
   unsigned const* dev_ut_region_offsets,
