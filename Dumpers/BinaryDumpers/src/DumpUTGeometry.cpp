@@ -172,7 +172,6 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
   DumpUtils::Writer ut_boards {};
   ut_boards.write(
     currentBoardID,
-    static_cast<uint32_t>(UT_version),
     stripsPerHybrids,
     stations,
     layers,

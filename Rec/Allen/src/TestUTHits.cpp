@@ -64,7 +64,7 @@ void TestUTHits::operator()(
   LHCb::Pr::UT::HitHandler const& hit_handler) const
 {
   if (host_buffers.host_number_of_selected_events == 0) {
-    debug() << "No events from Allen. Returning" << endmsg;
+    warning() << "No events from Allen. Returning" << endmsg;
     return;
   }
 
@@ -78,9 +78,9 @@ void TestUTHits::operator()(
   UT::ConstHits ut_hit_container_allen {ut_hits.data(), n_hits_total_allen};
   const auto& ut_hit_container_rec = hit_handler.hits(); // const LHCb::Pr::UT::Hits&
 
-  info() << "Number of UT hits (Allen) in this event " << n_hits_total_allen << endmsg;
-  info() << "Number of UT hits (Rec) in this event   " << n_hits_total_rec << endmsg;
-  info() << "Number of MC UT hits in this event      " << mc_hits.size() << endmsg;
+  debug() << "Number of UT hits (Allen) in this event " << n_hits_total_allen << endmsg;
+  debug() << "Number of UT hits (Rec) in this event   " << n_hits_total_rec << endmsg;
+  debug() << "Number of MC UT hits in this event      " << mc_hits.size() << endmsg;
 
   constexpr int width = 12; // for printing results
   // there seem to be 4 different zAtYEq0 per layer. the entry/exit points of a MC hit are close-by (the tolerance of pm
@@ -169,7 +169,7 @@ void TestUTHits::operator()(
   // why not also sort hits by x. it can't hurt
   auto sort_by_x_ut_hit = [](const auto& hit_a, const auto& hit_b) -> bool { return hit_a.xAtYEq0 < hit_b.xAtYEq0; };
 
-  info() << std::string(8 * width, '#') << endmsg;
+  debug() << std::string(8 * width, '#') << endmsg;
   // loop "z-planes"
   for (unsigned i = 0; i < n_z_planes; i++) {
     // sort hits by x to be able to stop the truth-matching loop early
@@ -184,12 +184,12 @@ void TestUTHits::operator()(
     const auto n_rec_hits_in_current_plane = regrouped_rec_hits[i].size();
     std::vector<bool> rec_match_mask(n_rec_hits_in_current_plane, false);
 
-    info() << "UT MC hits in plane " << i << " : " << regrouped_mc_hits[i].size() << endmsg;
-    info() << "Printing those that could not be matched " << endmsg;
-    info() << std::setw(width) << "Type" << std::setw(width) << "x_entry" << std::setw(width) << "y_entry"
-           << std::setw(width) << "z_entry" << std::setw(width) << "z_exit" << std::setw(width) << "time [ns]"
-           << std::setw(width) << "p [MeV]" << std::setw(width) << "dep. E [MeV]" << endmsg;
-    info() << std::string(8 * width, '-') << endmsg;
+    debug() << "UT MC hits in plane " << i << " : " << regrouped_mc_hits[i].size() << endmsg;
+    debug() << "Printing those that could not be matched " << endmsg;
+    debug() << std::setw(width) << "Type" << std::setw(width) << "x_entry" << std::setw(width) << "y_entry"
+            << std::setw(width) << "z_entry" << std::setw(width) << "z_exit" << std::setw(width) << "time [ns]"
+            << std::setw(width) << "p [MeV]" << std::setw(width) << "dep. E [MeV]" << endmsg;
+    debug() << std::string(8 * width, '-') << endmsg;
     for (const auto& ut_mc_hit : regrouped_mc_hits[i]) {
       const auto mch_x = ut_mc_hit.midPoint().x();
       const auto mch_y = ut_mc_hit.midPoint().y();
@@ -219,10 +219,10 @@ void TestUTHits::operator()(
         // int pid = 0;
         // if(ut_mc_hit.mcParticle()!=nullptr) pid = ut_mc_hit.mcParticle()->particleID().pid(); // this never works in
         // the test i'm running. maybe with a different sample...
-        info() << std::setw(width) << "AMCHit" << std::setw(width) << ut_mc_hit.entry().x() << std::setw(width)
-               << ut_mc_hit.entry().y() << std::setw(width) << ut_mc_hit.entry().z() << std::setw(width)
-               << ut_mc_hit.exit().z() << std::setw(width) << ut_mc_hit.time() << std::setw(width) << ut_mc_hit.p()
-               << std::setw(width) << ut_mc_hit.energy() << endmsg;
+        debug() << std::setw(width) << "AMCHit" << std::setw(width) << ut_mc_hit.entry().x() << std::setw(width)
+                << ut_mc_hit.entry().y() << std::setw(width) << ut_mc_hit.entry().z() << std::setw(width)
+                << ut_mc_hit.exit().z() << std::setw(width) << ut_mc_hit.time() << std::setw(width) << ut_mc_hit.p()
+                << std::setw(width) << ut_mc_hit.energy() << endmsg;
       }
 
       // reset and loop rec hits
@@ -234,12 +234,11 @@ void TestUTHits::operator()(
       m_rec_hit_multiplicity += hit_mult;
       if (hit_mult == 0) {
         // int pid = 0;
-        // if(ut_mc_hit.mcParticle()!=nullptr) pid = ut_mc_hit.mcParticle()->particleID().pid(); // this never works in
-        // the test i'm running. maybe with a different sample...
-        info() << std::setw(width) << "RMCHit" << std::setw(width) << ut_mc_hit.entry().x() << std::setw(width)
-               << ut_mc_hit.entry().y() << std::setw(width) << ut_mc_hit.entry().z() << std::setw(width)
-               << ut_mc_hit.exit().z() << std::setw(width) << ut_mc_hit.time() << std::setw(width) << ut_mc_hit.p()
-               << std::setw(width) << ut_mc_hit.energy() << endmsg;
+        // if(ut_mc_hit.mcParticle()!=nullptr) pid = ut_mc_hit.mcParticle()->particleID().pid();
+        debug() << std::setw(width) << "RMCHit" << std::setw(width) << ut_mc_hit.entry().x() << std::setw(width)
+                << ut_mc_hit.entry().y() << std::setw(width) << ut_mc_hit.entry().z() << std::setw(width)
+                << ut_mc_hit.exit().z() << std::setw(width) << ut_mc_hit.time() << std::setw(width) << ut_mc_hit.p()
+                << std::setw(width) << ut_mc_hit.energy() << endmsg;
       }
     }
 

@@ -95,8 +95,6 @@ struct UTBoards {
     number_of_boards = *p;
     number_of_channels = UT::Decoding::ut_number_of_sectors_per_board * number_of_boards;
     p += 1;
-    version = *p;
-    p += 1;
     stripsPerHybrids = p;
     p += number_of_boards;
     stations = p;

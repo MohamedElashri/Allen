@@ -78,11 +78,18 @@ namespace host_global_event_cut {
           // We're on the host, so use the blocks directly
           auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
           auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
-          auto const next_fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i+1] - block_offset;
+          auto const next_fragment_offset =
+            ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i + 1] - block_offset;
           if (ut_raw_bank_version == 4)
-            n_UT_clusters += UTRawBank<4> {sourceID, parameters.ut_banks[i].data() + fragment_offset, parameters.ut_banks[i].data() + next_fragment_offset}.get_n_hits();
+            n_UT_clusters += UTRawBank<4> {sourceID,
+                                           parameters.ut_banks[i].data() + fragment_offset,
+                                           parameters.ut_banks[i].data() + next_fragment_offset}
+                               .get_n_hits();
           else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
-            n_UT_clusters += UTRawBank<3> {sourceID, parameters.ut_banks[i].data() + fragment_offset, parameters.ut_banks[i].data() + next_fragment_offset}.get_n_hits();
+            n_UT_clusters += UTRawBank<3> {sourceID,
+                                           parameters.ut_banks[i].data() + fragment_offset,
+                                           parameters.ut_banks[i].data() + next_fragment_offset}
+                               .get_n_hits();
           else
             throw std::runtime_error("Unknown UT raw bank version " + std::to_string(ut_raw_bank_version));
         }
