@@ -60,6 +60,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"device"}, "select device to use", "0"},
           {{"non-stop"}, "Runs the program indefinitely", "0"},
           {{"with-mpi"}, "Read events with MPI"},
+          {{"b", "bank-types"}, "Bank types to provide", "VP,FTCluster,UT,Muon,ODIN"},
           {{"mpi-window-size"}, "Size of MPI sliding window", "4"},
           {{"mpi-number-of-slices"}, "Number of MPI network slices", "6"},
           {{"inject-mem-fail"}, "Whether to insert random memory failures (0: off 1-15: rate of 1 in 2^N)", "0"},

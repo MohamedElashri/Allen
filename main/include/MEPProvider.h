@@ -100,16 +100,16 @@ struct MEPProviderConfig {
  * @param      Configuration struct
  *
  */
-template<BankTypes... Banks>
-class MEPProvider final : public InputProvider<MEPProvider<Banks...>> {
+class MEPProvider final : public InputProvider {
 public:
   MEPProvider(
     size_t n_slices,
     size_t events_per_slice,
     std::optional<size_t> n_events,
     std::vector<std::string> connections,
+    std::unordered_set<BankTypes> const& bank_types,
     MEPProviderConfig config = MEPProviderConfig {}) :
-    InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice,
+    InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice, bank_types,
       config.transpose_mep ? IInputProvider::Layout::Allen : IInputProvider::Layout::MEP,
       n_events},
     m_buffer_status(config.n_buffers), m_slice_free(n_slices, true), m_banks_count {0}, m_event_ids {n_slices},
@@ -660,7 +660,8 @@ void allocate_storage(size_t i_read)
       return {std::lround(it->second * aps * bank_size_fudge_factor * kB), eps};
     }
   };
-  m_slices = allocate_slices<Banks...>(this->n_slices(), size_fun);
+  m_slices = allocate_slices(this->n_slices(), types(), size_fun);
+
   m_slice_to_buffer = std::vector<std::tuple<int, size_t, size_t>>(this->n_slices(), std::make_tuple(-1, 0ul, 0ul));
 
   if (!count_success) {
@@ -1177,7 +1178,10 @@ void transpose(int thread_id)
 
     // Reset the slice
     auto& event_ids = m_event_ids[*slice_index];
-    reset_slice<Banks...>(m_slices, *slice_index, event_ids, !m_config.transpose_mep);
+    //    reset_slice(m_slices, *slice_index, bank_types, event_ids, !m_config.transpose_mep);
+    reset_slice(m_slices, *slice_index, types(), event_ids, !m_config.transpose_mep);
+
+
 
     // MEP data
     auto& [mep_header, mep_data, blocks, source_offsets, slice_size] = m_net_slices[i_buffer];
@@ -1333,12 +1337,7 @@ mutable std::optional<Allen::IO> m_input;
 // Iterator that points to the filename of the currently open file
 mutable std::vector<std::string>::const_iterator m_current;
 
-// Input data loop counter
-mutable size_t m_loop = 0;
-
 // Configuration struct
 MEPProviderConfig m_config;
-
-using base_class = InputProvider<MEPProvider<Banks...>>;
 }
 ;

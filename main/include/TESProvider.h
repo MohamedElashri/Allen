@@ -23,11 +23,15 @@
  *
  */
 
-template<BankTypes... Banks>
-class TESProvider final : public InputProvider<TESProvider<Banks...>> {
+//template<BankTypes... Banks>
+class TESProvider final : public InputProvider {
 public:
-  TESProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
-    InputProvider<TESProvider<Banks...>> {n_slices, events_per_slice, IInputProvider::Layout::Allen, n_events}
+ TESProvider(size_t n_slices,
+	     size_t events_per_slice,
+	     std::unordered_set<BankTypes> const& bank_types,
+	     std::optional<size_t> n_events) :
+  InputProvider {n_slices, events_per_slice, bank_types,
+   IInputProvider::Layout::Allen, n_events}
   {}
 
   /**
@@ -79,11 +83,22 @@ public:
    *
    * @return     Banks and their offsets
    */
-  BanksAndOffsets banks(BankTypes bank_type, size_t /* slice_index */) const override
+  BanksAndOffsets banks(BankTypes bank_type, size_t) const override
   {
     const auto ib = to_integral<BankTypes>(bank_type);
     return m_banks_and_offsets[ib];
   }
+
+  EventIDs event_ids(size_t, std::optional<size_t> = {}, std::optional<size_t> = {})
+    const override { return EventIDs{}; }
+
+  void slice_free(size_t) override {};
+
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> = {}) override
+  {
+    return {false, false, false, 0, 0, 0};
+  }
+
 
   void event_sizes(size_t const, gsl::span<unsigned int const> const, std::vector<size_t>&) const override {}
 

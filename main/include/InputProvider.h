@@ -15,7 +15,6 @@
 #include <Common.h>
 #include <AllenUnits.h>
 
-
 struct IInputProvider {
 
   enum class Layout {
@@ -88,19 +87,15 @@ struct IInputProvider {
   virtual void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const = 0;
 };
 
-// InputProvider
-template<class Derived>
-class InputProvider;
 
-template<template<BankTypes...> typename Derived, BankTypes... Banks>
-class InputProvider<Derived<Banks...>> : public IInputProvider {
+class InputProvider : public IInputProvider {
 public:
-  explicit InputProvider(size_t n_slices, size_t events_per_slice, Layout layout, std::optional<size_t> n_events) :
-    m_layout{layout }, m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {banks_set<Banks...>()}
+  explicit InputProvider(size_t n_slices, size_t events_per_slice, std::unordered_set<BankTypes> types, Layout layout, std::optional<size_t> n_events) :
+    m_layout{layout }, m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {types}
   {}
 
   /// Descturctor
-  virtual ~InputProvider() {};
+  virtual ~InputProvider() = default;
 
   /**
    * @brief      Are slices provided in MEP layout or not
@@ -131,67 +126,6 @@ public:
   size_t events_per_slice() const override { return m_events_per_slice; }
 
   std::optional<size_t> const& n_events() const { return m_nevents; }
-
-  /**
-   * @brief      Get event ids in a given slice
-   *
-   * @param      slice index
-   *
-   * @return     event ids
-   */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
-    const override
-  {
-    return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index, first, last);
-  }
-
-  /**
-   * @brief      Get a slice with n events
-   *
-   * @param      optional timeout in ms to wait for slice
-   *
-   * @return     tuple of (succes, eof, timed_out, slice_index, n_filled)
-   */
-  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    std::optional<unsigned int> timeout = {}) override
-  {
-    return static_cast<Derived<Banks...>*>(this)->get_slice(timeout);
-  }
-
-  /**
-   * @brief      Indicate a slice is free for filling
-   *
-   * @param      slice index
-   */
-  void slice_free(size_t slice_index) override
-  {
-    return static_cast<Derived<Banks...>*>(this)->slice_free(slice_index);
-  }
-
-  /**
-   * @brief      Get banks and offsets of a given type
-   *
-   * @param      bank type requested
-   *
-   * @return     spans spanning bank and offset memory
-   */
-  BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
-  {
-    return static_cast<const Derived<Banks...>*>(this)->banks(bank_type, slice_index);
-  }
-
-  void event_sizes(
-    size_t const slice_index,
-    gsl::span<unsigned int const> const selected_events,
-    std::vector<size_t>& sizes) const override
-  {
-    return static_cast<const Derived<Banks...>*>(this)->event_sizes(slice_index, selected_events, sizes);
-  }
-
-  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const override
-  {
-    return static_cast<const Derived<Banks...>*>(this)->copy_banks(slice_index, event, buffer);
-  }
 
   int start() override { return true; };
 

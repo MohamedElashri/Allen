@@ -39,6 +39,9 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
   std::string folder_data = "../input/minbias/";
   const std::string folder_rawdata = "banks/";
 
+  // Bank types
+  std::unordered_set<BankTypes> bank_types;
+
   // Set a sane default for the number of events per input slice
   if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
     events_per_slice = number_of_events_requested;
@@ -83,6 +86,18 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
     else if (flag_in({"events-per-slice"})) {
       events_per_slice = atoi(arg.c_str());
     }
+    else if (flag_in({"b", "bank-types"})) {
+      for (auto name : split_string(arg, ",")) {
+        auto const bt = bank_type(name);
+        if (bt == BankTypes::Unknown) {
+          error_cout << "Unknown bank type " << name << "requested.\n";
+          return std::unique_ptr<IInputProvider>{};
+        }
+        else {
+          bank_types.emplace(bt);
+        }
+      }
+    }
     else if (flag_in({"with-mpi"})) {
       with_mpi = true;
       bool parsed = false;
@@ -117,16 +132,7 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
                               !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
 
-   return std::make_unique<MEPProvider<
-      BankTypes::VP,
-      BankTypes::UT,
-      BankTypes::FT,
-      BankTypes::MUON,
-      BankTypes::ODIN,
-      BankTypes::ECal,
-      BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
-    return std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-           number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
+    return std::make_unique<MEPProvider>(number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), bank_types, config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
@@ -144,15 +150,13 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
       BankTypes::MUON,
       BankTypes::ODIN,
       BankTypes::ECal,
-      BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
+      BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
   }
   else {
     std::vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
 
-    return  std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-            number_of_slices, events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
+    return  std::make_unique<BinaryProvider>(
+            number_of_slices, events_per_slice, n_events, std::move(connections), bank_types, n_io_reps, file_list);
   }
-
-
 }

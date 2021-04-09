@@ -99,7 +99,7 @@ std::tuple<bool, bool, bool> transpose_event(
  * @param      bank versions to fill
  * @param      event ids of banks in this slice
  * @param      number of banks per event
- * @param      number of events to transpose
+ * @param      number of events tor transpose
  *
  * @return     (success, slice full for one of the bank types, number of events transposed)
  */

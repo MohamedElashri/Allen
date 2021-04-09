@@ -83,16 +83,18 @@ struct MDFProviderConfig {
  * @param      Configuration struct
  *
  */
-template<BankTypes... Banks>
-class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
+//template<BankTypes... Banks>
+//class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
+class MDFProvider final : public InputProvider {
 public:
   MDFProvider(
     size_t n_slices,
     size_t events_per_slice,
     std::optional<size_t> n_events,
     std::vector<std::string> connections,
+    std::unordered_set<BankTypes> const& bank_types,
     MDFProviderConfig config = MDFProviderConfig {}) :
-    InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, IInputProvider::Layout::Allen, n_events},
+  InputProvider {n_slices, events_per_slice,  bank_types, IInputProvider::Layout::Allen, n_events},
     m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, -1), m_slice_free(n_slices, true), m_banks_count {0},
     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
@@ -182,7 +184,7 @@ public:
               2 * MB);
             return {n_bytes, events_per_slice};
           };
-          m_slices = allocate_slices<Banks...>(n_slices, size_fun);
+          m_slices = allocate_slices(n_slices, types(), size_fun);
         }
       }
     }
@@ -477,7 +479,8 @@ private:
 
       // Reset the slice
       auto& event_ids = m_event_ids[*slice_index];
-      reset_slice<Banks...>(m_slices, *slice_index, event_ids);
+      //reset_slice<Banks...>(m_slices, *slice_index, event_ids);
+      reset_slice(m_slices, *slice_index, types(), event_ids);
 
       // Transpose the events in the read buffer into the slice
       std::tie(good, transpose_full, n_transposed) = transpose_events(
@@ -771,6 +774,4 @@ private:
 
   // Configuration struct
   MDFProviderConfig m_config;
-
-  using base_class = InputProvider<MDFProvider<Banks...>>;
 };
