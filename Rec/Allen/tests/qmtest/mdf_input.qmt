@@ -15,10 +15,9 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/Allen.py</text>
-    <text>--disable-run-changes</text>
-    <text>1</text>
-    <text>--mdf</text>
-    <text>${ALLEN_PROJECT_ROOT}/input/minbias/banks/mdf/upgrade_mc_minbias_scifi_v5.mdf</text>
+    <text>--disable-run-changes</text><text>1</text>
+    <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
+    <text>--mdf</text><text>${ALLEN_PROJECT_ROOT}/input/minbias/banks/mdf/upgrade_mc_minbias_scifi_v5.mdf</text>
   </set></argument>
   <argument name="reference"><text>../refs/allen_10ev.ref</text></argument>
   <argument name="timeout"><integer>600</integer></argument>

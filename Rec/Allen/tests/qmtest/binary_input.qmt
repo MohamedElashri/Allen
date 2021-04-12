@@ -15,6 +15,7 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/Allen.py</text>
+    <text>--monitoring-filename</text><text>binary_input_hists.root</text>
   </set></argument>
   <argument name="reference"><text>../refs/allen_10ev.ref</text></argument>
   <argument name="timeout"><integer>600</integer></argument>

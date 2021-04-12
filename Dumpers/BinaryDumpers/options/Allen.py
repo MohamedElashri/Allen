@@ -46,6 +46,12 @@ parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
 parser.add_argument(
+    "--monitoring-save-period", dest="mon_save_period", default="0")
+parser.add_argument(
+    "--monitoring-filename",
+    dest="mon_filename",
+    default="monitoringHists.root")
+parser.add_argument(
     "--disable-run-changes", dest="disable_run_changes", default="0")
 parser.add_argument(
     "--events-per-slice", dest="events_per_slice", default="1000")
@@ -106,6 +112,9 @@ for flag, value in (("f", args.folder), ("g", args.det_folder),
                      args.mdf), ("cpu-offload",
                                  args.cpu_offload), ("disable-run-changes",
                                                      args.disable_run_changes),
+                    ("monitoring-save-period",
+                     args.mon_save_period), ("monitoring-filename",
+                                             args.mon_filename),
                     ("events-per-slice",
                      args.events_per_slice), ("device",
                                               args.device), ("mep", args.mep)):
