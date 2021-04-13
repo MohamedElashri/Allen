@@ -13,6 +13,7 @@
 #include <MCVertex.h>
 #include <algorithm>
 #include <mutex>
+#include <Argument.cuh>
 
 // configuration for PV checker -> check values
 static constexpr int nTracksToBeRecble = 4;
@@ -31,7 +32,7 @@ public:
     MCEvents const& mc_events,
     gsl::span<const PV::Vertex> rec_vertex,
     gsl::span<const unsigned> number_of_vertex,
-    gsl::span<const unsigned> event_list);
+    gsl::span<const mask_t> event_list);
 
   void report(size_t n_events) const override;
 

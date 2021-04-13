@@ -24,6 +24,7 @@
 #include <TransposeMEP.h>
 #include <BackendCommon.h>
 #include <HostGlobalEventCut.h>
+#include <Argument.cuh>
 
 using namespace std;
 
@@ -152,7 +153,7 @@ int main(int argc, char* argv[])
 
     vector<unsigned> host_total_number_of_events(interval, 0);
     vector<unsigned> host_event_list(interval, 0);
-    vector<unsigned> event_list(interval, 0);
+    vector<mask_t> event_list(interval, mask_t{0});
     unsigned dev_number_of_events = 0;
     unsigned number_of_selected_events = 0;
 

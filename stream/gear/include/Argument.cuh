@@ -117,20 +117,23 @@ struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t.
 // deal with in a special way. A maximum of one input mask and one output mask per algorithm
 // is allowed.
 struct mask_t {
+  unsigned m_data;
+
+  __host__ __device__ operator unsigned() const { return m_data; }
 };
 
-#define MASK_INPUT(ARGUMENT_NAME)                                           \
-  struct ARGUMENT_NAME : public device_datatype, input_datatype<unsigned> { \
-    using input_datatype<unsigned>::input_datatype;                         \
-    void parameter(mask_t) const {}                                         \
-    using deps = std::tuple<>;                                              \
+#define MASK_INPUT(ARGUMENT_NAME)                                         \
+  struct ARGUMENT_NAME : public device_datatype, input_datatype<mask_t> { \
+    using input_datatype<mask_t>::input_datatype;                         \
+    void parameter(mask_t) const {}                                       \
+    using deps = std::tuple<>;                                            \
   }
 
-#define MASK_OUTPUT(ARGUMENT_NAME)                                           \
-  struct ARGUMENT_NAME : public device_datatype, output_datatype<unsigned> { \
-    using output_datatype<unsigned>::output_datatype;                        \
-    void parameter(mask_t) {}                                                \
-    using deps = std::tuple<>;                                               \
+#define MASK_OUTPUT(ARGUMENT_NAME)                                         \
+  struct ARGUMENT_NAME : public device_datatype, output_datatype<mask_t> { \
+    using output_datatype<mask_t>::output_datatype;                        \
+    void parameter(mask_t) {}                                              \
+    using deps = std::tuple<>;                                             \
   }
 
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.

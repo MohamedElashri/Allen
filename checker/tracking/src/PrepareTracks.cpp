@@ -21,7 +21,7 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   gsl::span<const unsigned> track_atomics,
   gsl::span<const unsigned> track_hit_number,
   gsl::span<const char> track_hits,
-  gsl::span<const unsigned> event_list)
+  gsl::span<const mask_t> event_list)
 {
   /* Tracks to be checked, save in format for checker */
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
@@ -61,7 +61,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
   gsl::span<const char> ut_track_hits,
   gsl::span<const unsigned> ut_track_velo_indices,
   gsl::span<const float> ut_qop,
-  gsl::span<const unsigned> event_list)
+  gsl::span<const mask_t> event_list)
 {
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
   for (unsigned i = 0; i < event_list.size(); i++) {
@@ -136,7 +136,7 @@ std::vector<Checker::Tracks> prepareForwardTracks(
   gsl::span<const float> scifi_qop,
   gsl::span<const MiniState> scifi_states,
   const char* scifi_geometry,
-  gsl::span<const unsigned> event_list,
+  gsl::span<const mask_t> event_list,
   gsl::span<const Allen::bool_as_char_t<bool>> is_muon)
 {
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);

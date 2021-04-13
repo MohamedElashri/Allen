@@ -4,6 +4,7 @@
 #pragma once
 #include <CheckerInvoker.h>
 #include <ROOTHeaders.h>
+#include "Argument.cuh"
 
 class PVCheckerHistos {
 public:

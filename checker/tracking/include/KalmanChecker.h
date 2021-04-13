@@ -15,6 +15,7 @@
 #include <MCEvent.h>
 #include <algorithm>
 #include <mutex>
+#include <Argument.cuh>
 
 class TTree;
 class TFile;
@@ -26,7 +27,7 @@ public:
   virtual ~KalmanChecker() = default;
 
   void
-  accumulate(MCEvents const& mc_events, gsl::span<const Checker::Tracks> tracks, gsl::span<const unsigned> event_list);
+  accumulate(MCEvents const& mc_events, gsl::span<const Checker::Tracks> tracks, gsl::span<const mask_t> event_list);
 
   void report(size_t n_events) const override;
 
