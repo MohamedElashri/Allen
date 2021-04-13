@@ -1,7 +1,23 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import *
+from AllenConf.algorithms import (
+    data_provider_t,
+    host_prefix_sum_t,
+    scifi_calculate_cluster_count_v4_t,
+    scifi_pre_decode_v4_t,
+    scifi_raw_bank_decoder_v4_t,
+    scifi_calculate_cluster_count_v6_t,
+    scifi_pre_decode_v6_t,
+    scifi_raw_bank_decoder_v6_t,
+    lf_search_initial_windows_t,
+    lf_triplet_seeding_t,
+    lf_create_tracks_t,
+    lf_quality_filter_length_t,
+    lf_quality_filter_t,
+    scifi_copy_track_hit_number_t,
+    scifi_consolidate_tracks_t
+)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm
 from PyConf.tonic import configurable

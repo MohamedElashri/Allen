@@ -2,7 +2,12 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenCore.event_list_utils import make_algorithm
-from AllenConf.algorithms import *
+from AllenConf.algorithms import (
+    host_init_number_of_events_t,
+    host_data_provider_t,
+    host_global_event_cut_t,
+    layout_provider_t
+)
 
 
 def initialize_number_of_events():

@@ -1,7 +1,6 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import *
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
