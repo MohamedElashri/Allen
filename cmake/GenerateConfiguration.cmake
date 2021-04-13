@@ -50,7 +50,7 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
 
   if(NOT STANDALONE)
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
+      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h"
       COMMAND 
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
@@ -72,7 +72,7 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
         ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
+      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h"
       COMMAND
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
