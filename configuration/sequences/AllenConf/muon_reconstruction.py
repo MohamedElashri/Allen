@@ -1,9 +1,9 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.algorithms import *
-from definitions.utils import initialize_number_of_events
-from AllenConf.event_list_utils import make_algorithm
+from AllenConf.algorithms import *
+from AllenConf.utils import initialize_number_of_events
+from AllenCore.event_list_utils import make_algorithm
 
 
 def decode_muon():

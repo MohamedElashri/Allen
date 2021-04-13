@@ -1,12 +1,12 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.utils import gec
-from definitions.velo_reconstruction import decode_velo, make_velo_tracks
-from definitions.ut_reconstruction import decode_ut, make_ut_tracks
-from definitions.scifi_reconstruction import decode_scifi, make_forward_tracks
+from AllenConf.utils import gec
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
+from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.event_list_utils import generate
+from AllenCore.event_list_utils import generate
 
 
 def forward_tracking(name):

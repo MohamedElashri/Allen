@@ -1,10 +1,10 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.algorithms import *
-from definitions.odin import decode_odin
-from definitions.utils import initialize_number_of_events, mep_layout
-from AllenConf.event_list_utils import make_algorithm
+from AllenConf.algorithms import *
+from AllenConf.odin import decode_odin
+from AllenConf.utils import initialize_number_of_events, mep_layout
+from AllenCore.event_list_utils import make_algorithm
 
 
 def make_gather_selections(lines):

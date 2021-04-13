@@ -1,8 +1,8 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.event_list_utils import make_algorithm
-from definitions.algorithms import *
+from AllenCore.event_list_utils import make_algorithm
+from AllenConf.algorithms import *
 
 
 def initialize_number_of_events():

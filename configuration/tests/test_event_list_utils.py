@@ -9,10 +9,10 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from PyConf.components import Algorithm
-from AllenConf.event_list_utils import add_event_list_combiners, initialize_event_lists
-from AllenConf.cftree_ops import get_execution_list_for, parse_boolean
+from AllenCore.event_list_utils import add_event_list_combiners, initialize_event_lists
+from AllenCore.cftree_ops import get_execution_list_for, parse_boolean
 from test_cftree_ops import sample_tree_3, sample_tree_0
-from definitions.algorithms import event_list_union_t, event_list_inversion_t, event_list_intersection_t
+from AllenConf.algorithms import event_list_union_t, event_list_inversion_t, event_list_intersection_t
 
 
 def test_add_event_list_combiners():

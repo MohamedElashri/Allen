@@ -2,7 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from PyConf.dataflow import GaudiDataHandle
-from AllenConf.AllenKernel import AllenAlgorithm
+from AllenCore.AllenKernel import AllenAlgorithm
 from collections import OrderedDict
 from enum import Enum
 

@@ -1,11 +1,11 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.velo_reconstruction import decode_velo, make_velo_tracks
-from definitions.primary_vertex_reconstruction import make_pvs
-from definitions.utils import gec
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+from AllenConf.primary_vertex_reconstruction import make_pvs
+from AllenConf.utils import gec
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.event_list_utils import generate
+from AllenCore.event_list_utils import generate
 
 
 def pv_finder():

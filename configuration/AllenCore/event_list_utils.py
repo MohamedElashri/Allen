@@ -4,10 +4,10 @@
 from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.cftree_ops import get_best_order, get_execution_list_for, BoolNode
-from AllenConf.AllenSequenceGenerator import generate_allen_sequence
-from AllenConf.allen_benchmarks import benchmark_weights, benchmark_efficiencies
-from definitions.algorithms import (
+from AllenCore.cftree_ops import get_best_order, get_execution_list_for, BoolNode
+from AllenCore.AllenSequenceGenerator import generate_allen_sequence
+from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
+from AllenConf.algorithms import (
     AlgorithmCategory,
     host_init_event_list_t,
     event_list_intersection_t,

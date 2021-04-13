@@ -17,12 +17,12 @@ from functools import lru_cache
 from PyConf.components import Algorithm
 from PyConf.control_flow import NodeLogic as Logic, CompositeNode
 from PyConf import configurable
-from AllenConf.cftree_ops import (
+from AllenCore.cftree_ops import (
     gather_algs, get_ordered_trees, to_string, gather_leafs, parse_boolean,
     get_execution_list_for, get_best_order, merge_execution_masks,
     find_execution_masks_for_algorithms, avrg_efficiency,
     make_independent_of_algs, simplify, order_algs)
-from definitions.algorithms import *
+from AllenConf.algorithms import *
 
 
 @lru_cache(1)

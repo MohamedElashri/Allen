@@ -125,7 +125,7 @@ class AlgorithmTraversal():
 
     In addition, the Parameters class must be defined in the same header file."""
 
-    # Accepted tokens for algorithm definitions
+    # Accepted tokens for algorithm AllenConf
     __algorithm_tokens = [
         "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm",
         "ValidationAlgorithm"

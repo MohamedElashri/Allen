@@ -1,19 +1,19 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.algorithms import *
-from definitions.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
-from definitions.ut_reconstruction import decode_ut, make_ut_tracks
-from definitions.scifi_reconstruction import decode_scifi, make_forward_tracks
-from definitions.muon_reconstruction import decode_muon, is_muon
-from definitions.primary_vertex_reconstruction import make_pvs
-from definitions.secondary_vertex_reconstruction import make_kalman_velo_only, fit_secondary_vertices
-from definitions.validators import (
+from AllenConf.algorithms import *
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
+from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
+from AllenConf.muon_reconstruction import decode_muon, is_muon
+from AllenConf.primary_vertex_reconstruction import make_pvs
+from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, fit_secondary_vertices
+from AllenConf.validators import (
     velo_validation, veloUT_validation, forward_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
-from definitions.persistency import make_gather_selections
-from definitions.utils import gec
+from AllenConf.persistency import make_gather_selections
+from AllenConf.utils import gec
 
 
 def hlt1_reconstruction():

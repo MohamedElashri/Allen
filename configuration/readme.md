@@ -32,7 +32,7 @@ foo@bar:build/sequences$ python3
 Python 3.8.2 (default, Feb 28 2020, 00:00:00)
 [GCC 10.0.1 20200216 (Red Hat 10.0.1-0.8)] on linux
 Type "help", "copyright", "credits" or "license" for more information.
->>> from definitions import algorithms
+>>> from AllenConf import algorithms
 >>>
 ```
 
@@ -69,7 +69,7 @@ Creating a new sequence
 
 In order to create a new sequence, head to `configuration/sequences` and create a new sequence file with extension `.py`.
 
-You may reuse what exists already in `definitions` and extend that instead. In order to create a new sequence, you should:
+You may reuse what exists already in `AllenConf` and extend that instead. In order to create a new sequence, you should:
 
 * Instantiate algorithms. Algorithm inputs must be assigned other algorithm outputs.
 * Generate at least one CompositeNode with the algorithms we want to run.
@@ -78,11 +78,11 @@ You may reuse what exists already in `definitions` and extend that instead. In o
 As an example, let us add the SAXPY algorithm to a custom sequence. Start by including algorithms and the VELO sequence:
 
 ```python
-from definitions.algorithms import saxpy_t
-from definitions.velo_reconstruction import decode_velo, make_velo_tracks
-from definitions.utils import initialize_number_of_events
+from AllenConf.algorithms import saxpy_t
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+from AllenConf.utils import initialize_number_of_events
 from PyConf.control_flow import CompositeNode
-from AllenConf.event_list_utils import generate, make_algorithm
+from AllenCore.event_list_utils import generate, make_algorithm
 
 number_of_events = initialize_number_of_events()
 decoded_velo = decode_velo()
@@ -133,11 +133,11 @@ generate(saxpy_sequence)
 The final configuration file is therefore:
 
 ```python
-from definitions.algorithms import saxpy_t
-from definitions.velo_reconstruction import decode_velo, make_velo_tracks
-from definitions.utils import initialize_number_of_events
+from AllenConf.algorithms import saxpy_t
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+from AllenConf.utils import initialize_number_of_events
 from PyConf.control_flow import CompositeNode
-from AllenConf.event_list_utils import generate, make_algorithm
+from AllenCore.event_list_utils import generate, make_algorithm
 
 number_of_events = initialize_number_of_events()
 decoded_velo = decode_velo()

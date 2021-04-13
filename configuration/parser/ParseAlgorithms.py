@@ -81,7 +81,7 @@ class Parser():
         return algorithms
 
 
-class AllenConf():
+class AllenCore():
     """Static class that generates a python representation of
     Allen algorithms."""
 
@@ -97,7 +97,7 @@ class AllenConf():
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
         s = "from PyConf.dataflow import GaudiDataHandle\n\
-from AllenConf.AllenKernel import AllenAlgorithm\n\
+from AllenCore.AllenKernel import AllenAlgorithm\n\
 from collections import OrderedDict\n\
 from enum import Enum\n\n\n\
 def algorithm_dict(*algorithms):\n\
@@ -119,7 +119,7 @@ class AlgorithmCategory(Enum):\n\
     def write_aggregate_algorithms(algorithms, i=0):
         s = "def algorithms_with_aggregates():\n"
         i += 1
-        s += AllenConf.prefix(i) + "return ["
+        s += AllenCore.prefix(i) + "return ["
         algorithms_with_aggregates = []
         for algorithm in algorithms:
             if len([var for var in algorithm.parameters if var.aggregate]):
@@ -142,64 +142,64 @@ class AlgorithmCategory(Enum):\n\
 
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
-        s = AllenConf.prefix(
+        s = AllenCore.prefix(
             i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
         i += 1
 
         # Slots
-        s += AllenConf.prefix(i) + "__slots__ = OrderedDict(\n"
+        s += AllenCore.prefix(i) + "__slots__ = OrderedDict(\n"
         i += 1
         for param in algorithm.parameters:
-            s += AllenConf.prefix(i) + param.typename + " = GaudiDataHandle(\"" + param.typename + "\", \"" \
-                + AllenConf.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
+            s += AllenCore.prefix(i) + param.typename + " = GaudiDataHandle(\"" + param.typename + "\", \"" \
+                + AllenCore.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
         for prop in algorithm.properties:
-            s += AllenConf.prefix(i) + prop.name[1:-1] + " = \"\",\n"
+            s += AllenCore.prefix(i) + prop.name[1:-1] + " = \"\",\n"
         s = s[:-2]
         i -= 1
-        s += "\n" + AllenConf.prefix(i) + ")\n"
+        s += "\n" + AllenCore.prefix(i) + ")\n"
 
         # aggregates
-        s += AllenConf.prefix(i) + "aggregates = ("
+        s += AllenCore.prefix(i) + "aggregates = ("
         i += 1
         for param in algorithm.parameters:
             if param.aggregate:
-                s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
+                s += "\n" + AllenCore.prefix(i) + "\"" + param.typename + "\","
         i -= 1
         s += ")\n\n"
 
-        s += AllenConf.prefix(i) + "@staticmethod\n"
-        s += AllenConf.prefix(i) + "def category():\n"
+        s += AllenCore.prefix(i) + "@staticmethod\n"
+        s += AllenCore.prefix(i) + "def category():\n"
         i += 1
-        s += AllenConf.prefix(
+        s += AllenCore.prefix(
             i
-        ) + f"return AlgorithmCategory.{AllenConf.get_algorithm_category(algorithm.name, algorithm.scope)}\n\n"
+        ) + f"return AlgorithmCategory.{AllenCore.get_algorithm_category(algorithm.name, algorithm.scope)}\n\n"
         i -= 1
 
-        s += AllenConf.prefix(i) + "def __new__(self, name, **kwargs):\n"
+        s += AllenCore.prefix(i) + "def __new__(self, name, **kwargs):\n"
         i += 1
-        s += AllenConf.prefix(
+        s += AllenCore.prefix(
             i) + "instance = AllenAlgorithm.__new__(self, name)\n"
-        s += AllenConf.prefix(i) + "for n,v in kwargs.items():\n"
+        s += AllenCore.prefix(i) + "for n,v in kwargs.items():\n"
         i += 1
-        s += AllenConf.prefix(i) + "setattr(instance, n, v)\n"
+        s += AllenCore.prefix(i) + "setattr(instance, n, v)\n"
         i -= 1
-        s += AllenConf.prefix(i) + "return instance\n\n"
+        s += AllenCore.prefix(i) + "return instance\n\n"
         i -= 1
 
-        s += AllenConf.prefix(i) + "@classmethod\n"
-        s += AllenConf.prefix(i) + "def namespace(cls):\n"
+        s += AllenCore.prefix(i) + "@classmethod\n"
+        s += AllenCore.prefix(i) + "def namespace(cls):\n"
         i += 1
-        s += AllenConf.prefix(i) + "return \"" + algorithm.namespace + "\"\n\n"
+        s += AllenCore.prefix(i) + "return \"" + algorithm.namespace + "\"\n\n"
         i -= 1
-        s += AllenConf.prefix(i) + "@classmethod\n"
-        s += AllenConf.prefix(i) + "def filename(cls):\n"
+        s += AllenCore.prefix(i) + "@classmethod\n"
+        s += AllenCore.prefix(i) + "def filename(cls):\n"
         i += 1
-        s += AllenConf.prefix(i) + "return \"" + algorithm.filename + "\"\n\n"
+        s += AllenCore.prefix(i) + "return \"" + algorithm.filename + "\"\n\n"
         i -= 1
-        s += AllenConf.prefix(i) + "@classmethod\n"
-        s += AllenConf.prefix(i) + "def getType(cls):\n"
+        s += AllenCore.prefix(i) + "@classmethod\n"
+        s += AllenCore.prefix(i) + "def getType(cls):\n"
         i += 1
-        s += AllenConf.prefix(i) + "return \"" + algorithm.name + "\"\n\n\n"
+        s += AllenCore.prefix(i) + "return \"" + algorithm.name + "\"\n\n\n"
 
         return s
 
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     parsed_algorithms = Parser().parse_all()
 
     print("Generating " + args.filename + "...")
-    allen_conf = AllenConf()
+    allen_conf = AllenCore()
     s = allen_conf.write_preamble()
     for algorithm in parsed_algorithms:
         s += allen_conf.write_algorithm_code(algorithm)

@@ -6,8 +6,8 @@
 # * If clang is available, we can and will generate the configuration files
 # * Otherwise, fail and message that it is not possible to generate configurations
 set(PROJECT_SEQUENCE_DIR ${CMAKE_BINARY_DIR}/sequences)
-set(SEQUENCE_DEFINITION_DIR ${PROJECT_SEQUENCE_DIR}/definitions)
-set(ALLEN_CONF_DIR ${PROJECT_SEQUENCE_DIR}/AllenConf)
+set(SEQUENCE_DEFINITION_DIR ${PROJECT_SEQUENCE_DIR}/AllenConf)
+set(ALLEN_CORE_DIR ${PROJECT_SEQUENCE_DIR}/AllenCore)
 set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
 set(ALGORITHMS_GENERATION_SCRIPT ${ALLEN_PARSER_DIR}/ParseAlgorithms.py)
@@ -52,8 +52,8 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
       COMMAND 
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenConf" "${ALLEN_CONF_DIR}" &&
+        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
+        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
@@ -74,8 +74,8 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
       COMMAND
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenConf" "${ALLEN_CONF_DIR}" &&
+        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
+        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&

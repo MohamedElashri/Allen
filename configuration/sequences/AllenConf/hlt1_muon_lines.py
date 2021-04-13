@@ -1,10 +1,10 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.algorithms import *
-from definitions.utils import initialize_number_of_events, mep_layout
-from AllenConf.event_list_utils import make_algorithm
-from definitions.odin import decode_odin
+from AllenConf.algorithms import *
+from AllenConf.utils import initialize_number_of_events, mep_layout
+from AllenCore.event_list_utils import make_algorithm
+from AllenConf.odin import decode_odin
 
 
 def make_single_high_pt_muon_line(

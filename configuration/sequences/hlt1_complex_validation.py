@@ -1,18 +1,18 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.utils import gec
-from definitions.ut_reconstruction import make_ut_tracks
-from definitions.persistency import make_gather_selections, make_dec_reporter
-from definitions.hlt1_reconstruction import hlt1_reconstruction
-from definitions.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line
-from definitions.HLT1 import make_line_composite_node_with_gec
-from definitions.validators import (
+from AllenConf.utils import gec
+from AllenConf.ut_reconstruction import make_ut_tracks
+from AllenConf.persistency import make_gather_selections, make_dec_reporter
+from AllenConf.hlt1_reconstruction import hlt1_reconstruction
+from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line
+from AllenConf.HLT1 import make_line_composite_node_with_gec
+from AllenConf.validators import (
     velo_validation, veloUT_validation, forward_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation)
 
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.event_list_utils import generate
+from AllenCore.event_list_utils import generate
 
 # Reconstructed objects
 with make_ut_tracks.bind(restricted=False):
@@ -20,7 +20,7 @@ with make_ut_tracks.bind(restricted=False):
 
 restricted_hlt1_reconstruction = hlt1_reconstruction()
 
-# Line definitions
+# Line AllenConf
 line_algorithms = {
     "Hlt1TrackMVA_Restricted":
     make_track_mva_line(
