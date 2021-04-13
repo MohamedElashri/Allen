@@ -2,13 +2,9 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import (
-    pv_beamline_extrapolate_t,
-    pv_beamline_histo_t,
-    pv_beamline_peak_t,
-    pv_beamline_calculate_denom_t,
-    pv_beamline_multi_fitter_t,
-    pv_beamline_cleanup_t
-)
+    pv_beamline_extrapolate_t, pv_beamline_histo_t, pv_beamline_peak_t,
+    pv_beamline_calculate_denom_t, pv_beamline_multi_fitter_t,
+    pv_beamline_cleanup_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm

@@ -2,19 +2,11 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import (
-    data_provider_t,
-    ut_calculate_number_of_hits_t,
-    host_prefix_sum_t,
-    ut_pre_decode_t,
-    ut_find_permutation_t,
-    ut_decode_raw_banks_in_order_t,
-    ut_select_velo_tracks_t,
-    ut_search_windows_t,
-    ut_select_velo_tracks_with_windows_t,
-    compass_ut_t,
-    ut_copy_track_hit_number_t,
-    ut_consolidate_tracks_t
-)
+    data_provider_t, ut_calculate_number_of_hits_t, host_prefix_sum_t,
+    ut_pre_decode_t, ut_find_permutation_t, ut_decode_raw_banks_in_order_t,
+    ut_select_velo_tracks_t, ut_search_windows_t,
+    ut_select_velo_tracks_with_windows_t, compass_ut_t,
+    ut_copy_track_hit_number_t, ut_consolidate_tracks_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm

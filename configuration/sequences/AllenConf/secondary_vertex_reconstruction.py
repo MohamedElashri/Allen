@@ -1,13 +1,9 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (
-    velo_pv_ip_t,
-    kalman_velo_only_t,
-    filter_tracks_t,
-    host_prefix_sum_t,
-    fit_secondary_vertices_t
-)
+from AllenConf.algorithms import (velo_pv_ip_t, kalman_velo_only_t,
+                                  filter_tracks_t, host_prefix_sum_t,
+                                  fit_secondary_vertices_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.event_list_utils import make_algorithm

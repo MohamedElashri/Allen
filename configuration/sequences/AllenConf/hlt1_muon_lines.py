@@ -2,13 +2,8 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import (
-    single_high_pt_muon_line_t,
-    low_pt_muon_line_t,
-    di_muon_mass_line_t,
-    di_muon_soft_line_t,
-    low_pt_di_muon_line_t,
-    track_muon_mva_line_t
-)
+    single_high_pt_muon_line_t, low_pt_muon_line_t, di_muon_mass_line_t,
+    di_muon_soft_line_t, low_pt_di_muon_line_t, track_muon_mva_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.event_list_utils import make_algorithm
 from AllenConf.odin import decode_odin

@@ -1,10 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (
-    d2kpi_line_t,
-    passthrough_line_t
-)
+from AllenConf.algorithms import (d2kpi_line_t, passthrough_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.event_list_utils import make_algorithm
 from PyConf.tonic import configurable
