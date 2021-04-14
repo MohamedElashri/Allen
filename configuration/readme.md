@@ -3,7 +3,7 @@ Configuring the sequence of algorithms
 
 Allen centers around the idea of running a __sequence of algorithms__ on input events. This sequence is predefined and will always be executed in the same order.
 
-The sequence can be configured with python. Existing configurations can be browsed under `configuration/sequences`. The sequence name is the name of each individual file, without the `.py` extension, in that folder. For instance, some sequence names are `velo`, `ut`, or `hlt1_pp_default`.
+The sequence can be configured with python. Existing configurations can be browsed under `configuration/sequences`. The sequence name is the name of each individual file, without the `.py` extension, in that folder. For instance, some sequence names are `velo`, `veloUT`, or `hlt1_pp_default`.
 
 The sequence can be chosen _at compile time_ with the cmake option `SEQUENCE`, and passing a concrete sequence name. For instance:
 
@@ -11,7 +11,7 @@ The sequence can be chosen _at compile time_ with the cmake option `SEQUENCE`, a
     cmake -DSEQUENCE=velo ..
 
     # Configure the ut sequence
-    cmake -DSEQUENCE=ut ..
+    cmake -DSEQUENCE=veloUT ..
 
     # Configure the hlt1_pp_default sequence (by default)
     cmake ..
