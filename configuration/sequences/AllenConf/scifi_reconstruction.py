@@ -11,8 +11,6 @@ from AllenConf.algorithms import (
     scifi_consolidate_tracks_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm
-from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
-from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from PyConf.tonic import configurable
 
 
@@ -273,6 +271,9 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
     }
 
 def forward_tracking(name):
+    from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+    from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
+    
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_ut = decode_ut()
