@@ -46,16 +46,8 @@ namespace ut_calculate_number_of_hits {
     Property<block_dim_t> m_block_dim {this, {{64, 4, 1}}};
   };
 
-  template<int decoding_version>
+  template<int decoding_version, bool mep>
   __global__ void ut_calculate_number_of_hits(
-    Parameters,
-    const char* ut_boards,
-    const unsigned* dev_ut_region_offsets,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const unsigned* dev_unique_x_sector_offsets);
-
-  template<int decoding_version>
-  __global__ void ut_calculate_number_of_hits_mep(
     Parameters,
     const char* ut_boards,
     const unsigned* dev_ut_region_offsets,

@@ -170,14 +170,7 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
   }   // end loop boards
 
   DumpUtils::Writer ut_boards {};
-  ut_boards.write(
-    currentBoardID,
-    stripsPerHybrids,
-    stations,
-    layers,
-    detRegions,
-    sectors,
-    chanIDs);
+  ut_boards.write(currentBoardID, stripsPerHybrids, stations, layers, detRegions, sectors, chanIDs);
 
   return std::tuple {ut_boards.buffer(), "ut_boards", Allen::NonEventData::UTBoards::id};
 }

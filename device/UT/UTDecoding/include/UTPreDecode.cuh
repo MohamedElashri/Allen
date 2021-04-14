@@ -22,17 +22,8 @@ namespace ut_pre_decode {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  template<int decoding_version>
+  template<int decoding_version, bool mep>
   __global__ void ut_pre_decode(
-    Parameters,
-    const char* ut_boards,
-    const char* ut_geometry,
-    const unsigned* dev_ut_region_offsets,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const unsigned* dev_unique_x_sector_offsets);
-
-  template<int decoding_version>
-  __global__ void ut_pre_decode_mep(
     Parameters,
     const char* ut_boards,
     const char* ut_geometry,
