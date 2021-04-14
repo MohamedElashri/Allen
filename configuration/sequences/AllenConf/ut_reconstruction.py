@@ -8,6 +8,8 @@ from AllenConf.algorithms import (
     ut_select_velo_tracks_with_windows_t, compass_ut_t,
     ut_copy_track_hit_number_t, ut_consolidate_tracks_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks 
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks 
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm
 from PyConf.tonic import configurable
@@ -229,3 +231,12 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         "dev_ut_track_velo_indices":
         ut_consolidate_tracks.dev_ut_track_velo_indices_t
     }
+
+def ut_tracking():
+    decoded_velo = decode_velo()
+    velo_tracks = make_velo_tracks(decoded_velo)
+    decoded_ut = decode_ut()
+    ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+    alg = ut_tracks["dev_ut_track_hits"].producer
+    return alg
+ 
