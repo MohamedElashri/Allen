@@ -8,6 +8,7 @@ from AllenConf.algorithms import (
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm
 
+
 def decode_muon():
     number_of_events = initialize_number_of_events()
     host_number_of_events = number_of_events["host_number_of_events"]
@@ -121,11 +122,12 @@ def is_muon(decoded_muon, forward_tracks):
         "dev_is_muon": is_muon.dev_is_muon_t
     }
 
+
 def muon_id():
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
-    from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks 
+    from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
     from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
-    
+
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_ut = decode_ut()
@@ -136,4 +138,3 @@ def muon_id():
     muonID = is_muon(decoded_muon, forward_tracks)
     alg = muonID["dev_is_muon"].producer
     return alg
- 

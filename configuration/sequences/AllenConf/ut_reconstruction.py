@@ -230,6 +230,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         ut_consolidate_tracks.dev_ut_track_velo_indices_t
     }
 
+
 def ut_tracking():
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
 
@@ -239,4 +240,3 @@ def ut_tracking():
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
     alg = ut_tracks["dev_ut_track_hits"].producer
     return alg
- 

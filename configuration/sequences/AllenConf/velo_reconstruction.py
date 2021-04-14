@@ -242,4 +242,3 @@ def velo_tracking():
     velo_tracks = make_velo_tracks(decoded_velo)
     alg = velo_tracks["dev_velo_track_hits"].producer
     return alg
- 

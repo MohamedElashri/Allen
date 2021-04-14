@@ -270,10 +270,11 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
         prefix_sum_scifi_track_hit_number.dev_output_buffer_t
     }
 
+
 def forward_tracking(name):
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
-    
+
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_ut = decode_ut()
@@ -282,4 +283,3 @@ def forward_tracking(name):
     forward_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
     alg = forward_tracks["dev_scifi_track_hits"].producer
     return alg
- 
