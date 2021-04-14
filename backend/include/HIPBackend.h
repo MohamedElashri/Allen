@@ -44,6 +44,9 @@
 #include <hip/hip_fp16.h>
 #define half_t half
 
+// Support for dynamic shared memory buffers
+#define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) HIP_DYNAMIC_SHARED(_type, _instance)
+
 // syncwarp is not supported in HIP. Use syncthreads instead
 #define __syncwarp __syncthreads
 
@@ -71,6 +74,11 @@
   }
 
 namespace Allen {
+  struct KernelInvocationConfiguration {
+    KernelInvocationConfiguration() = default;
+    KernelInvocationConfiguration(const dim3&, const dim3&, const unsigned) {}
+  };
+
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   struct Context {
     void initialize() {}

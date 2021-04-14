@@ -111,7 +111,8 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
       ut_tracks.total_number_of_tracks(),
       event_offset,
       parameters.dev_scifi_lf_process_track,
-      ut_track_index);
+      ut_track_index,
+      parameters.hit_window_size);
   }
 }
 
@@ -127,7 +128,8 @@ __device__ void lf_search_initial_windows_impl(
   const int number_of_tracks,
   const unsigned event_offset,
   bool* dev_process_track,
-  const unsigned ut_track_index)
+  const unsigned ut_track_index,
+  const unsigned hit_window_size)
 {
   int iZoneStartingPoint = side ? LookingForward::number_of_x_layers : 0;
   uint16_t sizes = 0;
@@ -162,11 +164,9 @@ __device__ void lf_search_initial_windows_impl(
       scifi_hits.x0_p(x_zone_offset_begin + hits_within_bounds_start), x_zone_size - hits_within_bounds_start, xMax);
 
     // Cap the central windows to a certain size
-    const int central_window_begin =
-      max(hits_within_bounds_xInZone - LookingForward::max_number_of_hits_in_window / 2, 0);
+    const int central_window_begin = max(hits_within_bounds_xInZone - static_cast<int>(hit_window_size) / 2, 0);
     const int central_window_size =
-      min(central_window_begin + LookingForward::max_number_of_hits_in_window, hits_within_bounds_size) -
-      central_window_begin;
+      min(central_window_begin + static_cast<int>(hit_window_size), hits_within_bounds_size) - central_window_begin;
 
     // Initialize windows
     initial_windows[i * LookingForward::number_of_elements_initial_window * number_of_tracks] =

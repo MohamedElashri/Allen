@@ -13,6 +13,7 @@
 
 namespace lf_triplet_seeding {
   struct Parameters {
+    Allen::KernelInvocationConfiguration config;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, unsigned) host_number_of_reconstructed_ut_tracks;
     DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
@@ -30,6 +31,7 @@ namespace lf_triplet_seeding {
     DEVICE_INPUT(dev_scifi_lf_process_track_t, bool) dev_scifi_lf_process_track;
     DEVICE_OUTPUT(dev_scifi_lf_found_triplets_t, int) dev_scifi_lf_found_triplets;
     DEVICE_OUTPUT(dev_scifi_lf_number_of_found_triplets_t, int8_t) dev_scifi_lf_number_of_found_triplets;
+    PROPERTY(hit_window_size_t, "hit_window_size", "maximum hit window size", unsigned) hit_window_size;
   };
 
   __global__ void lf_triplet_seeding(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
@@ -47,5 +49,8 @@ namespace lf_triplet_seeding {
       const Constants& constants,
       HostBuffers&,
       const Allen::Context& context) const;
+
+  private:
+    Property<hit_window_size_t> m_hit_window_size {this, 32};
   };
 } // namespace lf_triplet_seeding

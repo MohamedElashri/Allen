@@ -26,6 +26,7 @@ void invoke_device_function(
   const dim3& grid_dim,
   const dim3& block_dim,
   const Allen::Context& context,
+  const unsigned dynamic_shared_memory_size,
   const Tuple& invoke_arguments,
   std::index_sequence<I...>)
 {
@@ -38,6 +39,7 @@ void invoke_device_function(
 
 #if defined(TARGET_DEVICE_CPU)
   _unused(context);
+  _unused(dynamic_shared_memory_size);
 
   gridDim = {grid_dim.x, grid_dim.y, grid_dim.z};
   for (unsigned int i = 0; i < grid_dim.x; ++i) {
@@ -51,9 +53,9 @@ void invoke_device_function(
 #elif defined(TARGET_DEVICE_HIP) || defined(TARGET_DEVICE_CUDA)
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   _unused(context);
-  function<<<grid_dim, block_dim>>>(std::get<I>(invoke_arguments)...);
+  function<<<grid_dim, block_dim, dynamic_shared_memory_size>>>(std::get<I>(invoke_arguments)...);
 #else
-  function<<<grid_dim, block_dim, 0, context.stream()>>>(std::get<I>(invoke_arguments)...);
+  function<<<grid_dim, block_dim, dynamic_shared_memory_size, context.stream()>>>(std::get<I>(invoke_arguments)...);
 #endif
 #endif
 }

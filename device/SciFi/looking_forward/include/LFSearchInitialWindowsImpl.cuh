@@ -25,4 +25,5 @@ __device__ void lf_search_initial_windows_impl(
   const int number_of_tracks,
   const unsigned event_offset,
   bool* dev_process_track,
-  const unsigned ut_track_index);
+  const unsigned ut_track_index,
+  const unsigned hit_window_size);

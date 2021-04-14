@@ -32,7 +32,8 @@ namespace lf_search_initial_windows {
     DEVICE_OUTPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
     DEVICE_OUTPUT(dev_ut_states_t, MiniState) dev_ut_states;
     DEVICE_OUTPUT(dev_scifi_lf_process_track_t, bool) dev_scifi_lf_process_track;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(hit_window_size_t, "hit_window_size", "maximum hit window size", unsigned) hit_window_size;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
   };
 
   __global__ void lf_search_initial_windows(
@@ -57,5 +58,6 @@ namespace lf_search_initial_windows {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<hit_window_size_t> m_hit_window_size {this, 32};
   };
 } // namespace lf_search_initial_windows

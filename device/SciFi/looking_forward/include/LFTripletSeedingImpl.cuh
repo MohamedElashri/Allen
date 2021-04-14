@@ -19,4 +19,6 @@ __device__ void lf_triplet_seeding_impl(
   unsigned* shared_number_of_elements,
   int* scifi_lf_found_triplets,
   int8_t* scifi_lf_number_of_found_triplets,
-  const unsigned triplet_seed);
+  const unsigned triplet_seed,
+  const unsigned x1_hits_shift,
+  const unsigned x2_hits_shift);
