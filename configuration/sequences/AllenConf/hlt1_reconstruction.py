@@ -66,7 +66,7 @@ def validator_node(reconstructed_objects, line_algorithms):
                 "kalman_validation",
                 kalman_validation(reconstructed_objects["kalman_velo_only"])),
             rate_validation(
-                make_gather_selections(lines=line_algorithms.values())),
+                make_gather_selections(lines=line_algorithms)),
         ],
         NodeLogic.NONLAZY_AND,
         force_order=False)
