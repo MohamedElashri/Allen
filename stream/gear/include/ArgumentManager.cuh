@@ -168,6 +168,63 @@ public:
 };
 
 /**
+ * @brief Aggregate datatype
+ */
+template<typename T>
+struct InputAggregate {
+private:
+  mutable std::vector<std::reference_wrapper<ArgumentData>> m_argument_data_v;
+
+public:
+  InputAggregate(
+    std::vector<std::reference_wrapper<ArgumentData>> argument_data_v) :
+    m_argument_data_v(argument_data_v)
+  {}
+
+  T* pointer(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    auto pointer = m_argument_data_v[index].get().pointer();
+    return reinterpret_cast<T*>(pointer);
+  }
+
+  T first(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    return m_argument_data_v[index][0];
+  }
+
+  size_t size(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    return m_argument_data_v[index].get().size();
+  }
+
+  void set_size(const int index, const size_t size)
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    m_argument_data_v[index].get().set_size(size);
+  }
+
+  /**
+   * @brief Reduces the size of the container.
+   * @details Reducing the size can be done in the operator(), hence this method is const.
+   */
+  void reduce_size(const int index, const size_t size) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    assert(size <= m_argument_data_v[index].get().size() && "Size parameter is smaller than current size");
+    m_argument_data_v[index].get().set_size(size);
+  }
+
+  std::string name(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    return m_argument_data_v[index].get().name();
+  }
+};
+
+/**
  * @brief Tuple wrapper that extracts tuples out of the
  *        Parameters struct. It extracts a tuple of all parameters and properties
  *        (parameters_and_properties_tuple_t), and a tuple of parameters (parameters_tuple_t).
