@@ -118,19 +118,19 @@ Selections are `SelectionAlgorithm`s, that must in addition inherit from a line 
 Like with any other `Algorithm`, a `SelectionAlgorithm` can have inputs,
 outputs and properties. However, certain inputs and outputs are assumed and must be defined:
 
-* `(HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events)`: (Total) number of events.
-* `(DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list)`: Event list that will be applied the selection.
-* `(DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input)`: ODIN raw inputs. Needed for pre-scalers.
-* `(DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets)`: ODIN raw input offsets. Needed for pre-scalers.
-* `(DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout)`: MEP layout. Needed to properly read ODIN input.
-* `(DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions)`: Will contain the results of the selection.
-* `(DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets)`: Will contain the offsets to each event decisions.
-* `(HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler)`: Will contain the post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling.
-* `(HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash)`: Will contain the hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling.
-* `(PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler)`: Pre-scaling factor.
-* `(PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler)`: Post-scaling factor.
-* `(PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string)`: Pre-scaler hash string. Must not be empty.
-* `(PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string)`: Post-scaler hash string. Must not be empty.
+* `HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events;`: (Total) number of events.
+* `MASK_INPUT(dev_event_list_t);`: Event list that will be applied the selection.
+* `DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input;`: ODIN raw inputs. Needed for pre-scalers.
+* `DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets;`: ODIN raw input offsets. Needed for pre-scalers.
+* `DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout;`: MEP layout. Needed to properly read ODIN input.
+* `DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions;`: Will contain the results of the selection.
+* `DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets;`: Will contain the offsets to each event decisions.
+* `HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler;`: Will contain the post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling.
+* `HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash;`: Will contain the hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling.
+* `PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler;`: Pre-scaling factor.
+* `PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler;`: Post-scaling factor.
+* `PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;`: Pre-scaler hash string. Must not be empty.
+* `PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string;`: Post-scaler hash string. Must not be empty.
 
 In order to define a selection algorithm, one must define a struct as follows:
 
@@ -185,7 +185,7 @@ namespace example_one_track_line {
   struct Parameters {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -261,7 +261,7 @@ namespace example_two_track_line {
   struct Parameters {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -287,7 +287,7 @@ namespace example_two_track_line {
   // SelectionAlgorithm definition
   struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
     // Selection function.
-    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
+    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
 
   private:
     // Commonly required properties
@@ -313,7 +313,7 @@ INSTANTIATE_LINE(example_two_track_line::example_two_track_line_t, example_two_t
 
 __device__ bool example_two_track_line::example_two_track_line_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+  std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
 
@@ -347,7 +347,7 @@ namespace velo_micro_bias_line {
   struct Parameters {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -370,9 +370,9 @@ namespace velo_micro_bias_line {
 
   struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
     __device__ static std::tuple<const unsigned>
-    get_input(const Parameters& parameters, const unsigned event_number) const;
+    get_input(const Parameters& parameters, const unsigned event_number);
 
-    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
 
   private:
     // Commonly required properties
@@ -397,7 +397,7 @@ The source file `technical/src/VeloMicroBiasLine.cu` looks as follows:
 INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_line::Parameters)
 
 __device__ std::tuple<const unsigned>
-velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parameters, const unsigned event_number) const
+velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parameters, const unsigned event_number)
 {
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, parameters.dev_number_of_events[0]};
@@ -407,7 +407,7 @@ velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parame
 
 __device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
   const Parameters& parameters,
-  std::tuple<const unsigned> input) const
+  std::tuple<const unsigned> input)
 {
   const auto number_of_velo_tracks = std::get<0>(input);
   return number_of_velo_tracks >= parameters.min_velo_tracks;
@@ -436,7 +436,7 @@ namespace example_one_velo_track_line {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -460,16 +460,16 @@ namespace example_one_velo_track_line {
   struct example_one_velo_track_line_t : public SelectionAlgorithm, Parameters, Line<example_one_velo_track_line_t, Parameters> {
 
       // Offset function
-      __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number) const;
+      __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
     
       //Get decision size function
-      static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
+      static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
     
       // Get input function
-      __device__ static std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
+      __device__ static std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
     
       // Selection function
-      __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+      __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
 
 
   private:
@@ -496,20 +496,20 @@ INSTANTIATE_LINE(example_one_velo_track_line::example_one_velo_track_line_t, exa
 
 // Offset function
 __device__ unsigned example_one_velo_track_line::example_one_velo_track_line_t::offset(const Parameters& parameters, 
-    const unsigned event_number) const
+    const unsigned event_number)
 {
   return parameters.dev_track_offsets[event_number];
 }
 
 //Get decision size function
-unsigned example_one_velo_track_line::example_one_velo_track_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments) const
+unsigned example_one_velo_track_line::example_one_velo_track_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments)
 {
   return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
 }
 
 // Get input function
 __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_velo_track_line_t::get_input(const Parameters& parameters, 
-    const unsigned event_number, const unsigned i) const
+    const unsigned event_number, const unsigned i)
 {
   // Get the number of events
   const uint number_of_events = parameters.dev_number_of_events[0]; 
@@ -530,7 +530,7 @@ __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_v
 
 // Selection function
 __device__ bool example_one_velo_track_line::example_one_velo_track_line_t::select(const Parameters& parameters, 
-    std::tuple<const unsigned> input) const
+    std::tuple<const unsigned> input)
 {
   // Get number of hits for current velo track
   const auto& velo_track_hit_number = std::get<0>(input);
