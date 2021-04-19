@@ -95,81 +95,6 @@ public:
 };
 
 /**
- * @brief Manager of argument references for every handler.
- */
-template<typename ParametersAndPropertiesTuple, typename ParameterTuple = void, typename ParameterStruct = void, typename InputAggregates = void>
-struct ArgumentRefManager {
-public:
-  using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
-  using parameters_tuple_t = ParameterTuple;
-  using parameters_struct_t = ParameterStruct;
-  using input_aggregates_t = InputAggregates;
-
-private:
-  mutable std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
-    m_tuple_to_argument_data;
-  input_aggregates_t m_array_of_input_aggregates;
-
-public:
-  ArgumentRefManager(
-    std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>> tuple_to_argument_data) :
-    m_tuple_to_argument_data(tuple_to_argument_data)
-  {}
-
-  template<typename T>
-  typename T::type* pointer() const
-  {
-    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
-    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    auto pointer = m_tuple_to_argument_data[index_of_T].get().pointer();
-    return reinterpret_cast<typename T::type*>(pointer);
-  }
-
-  template<typename T>
-  typename T::type first() const
-  {
-    return pointer<T>()[0];
-  }
-
-  template<typename T>
-  size_t size() const
-  {
-    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
-    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].get().size();
-  }
-
-  template<typename T>
-  void set_size(const size_t size)
-  {
-    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
-    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].get().set_size(size);
-  }
-
-  /**
-   * @brief Reduces the size of the container.
-   * @details Reducing the size can be done in the operator(), hence this method is const.
-   */
-  template<typename T>
-  void reduce_size(const size_t size) const
-  {
-    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
-    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    assert(size <= m_tuple_to_argument_data[index_of_T].get().size());
-    m_tuple_to_argument_data[index_of_T].get().set_size(size);
-  }
-
-  template<typename T>
-  std::string name() const
-  {
-    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
-    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].get().name();
-  }
-};
-
-/**
  * @brief Aggregate datatype
  */
 template<typename T>
@@ -178,14 +103,10 @@ private:
   std::vector<ArgumentData> m_argument_data_v;
 
 public:
-  InputAggregate(
-    const std::vector<ArgumentData>& argument_data_v) :
-    m_argument_data_v(argument_data_v)
-  {}
+  InputAggregate(const std::vector<ArgumentData>& argument_data_v) : m_argument_data_v(argument_data_v) {}
 
   template<typename Tuple, std::size_t... Is>
-  InputAggregate(Tuple t, std::index_sequence<Is...>) : 
-    m_argument_data_v{std::get<Is>(t)...}
+  InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
   {}
 
   T* pointer(const int index) const
@@ -198,7 +119,7 @@ public:
   T first(const int index) const
   {
     assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return m_argument_data_v[index][0];
+    return pointer(index)[0];
   }
 
   size_t size(const int index) const
@@ -214,13 +135,101 @@ public:
   }
 };
 
+/**
+ * @brief Manager of argument references for every handler.
+ */
+template<
+  typename ParametersAndPropertiesTuple,
+  typename ParameterTuple = void,
+  typename ParameterStruct = void,
+  typename InputAggregates = void>
+struct ArgumentRefManager {
+public:
+  using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
+  using parameters_tuple_t = ParameterTuple;
+  using parameters_struct_t = ParameterStruct;
+  using input_aggregates_t = InputAggregates;
+
+private:
+  mutable std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
+    m_tuple_to_argument_data;
+  input_aggregates_t m_input_aggregates;
+
+public:
+  ArgumentRefManager(
+    std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>> tuple_to_argument_data,
+    input_aggregates_t input_aggregates) :
+    m_tuple_to_argument_data(tuple_to_argument_data),
+    m_input_aggregates(input_aggregates)
+  {}
+
+  template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+  typename T::type* pointer() const
+  {
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    auto pointer = m_tuple_to_argument_data[index_of_T].get().pointer();
+    return reinterpret_cast<typename T::type*>(pointer);
+  }
+
+  template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+  typename T::type first() const
+  {
+    return pointer<T>()[0];
+  }
+
+  template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+  size_t size() const
+  {
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].get().size();
+  }
+
+  template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+  void set_size(const size_t size)
+  {
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    m_tuple_to_argument_data[index_of_T].get().set_size(size);
+  }
+
+  /**
+   * @brief Reduces the size of the container.
+   * @details Reducing the size can be done in the operator(), hence this method is const.
+   */
+  template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+  void reduce_size(const size_t size) const
+  {
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    assert(size <= m_tuple_to_argument_data[index_of_T].get().size());
+    m_tuple_to_argument_data[index_of_T].get().set_size(size);
+  }
+
+  template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+  std::string name() const
+  {
+    constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
+    static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].get().name();
+  }
+
+  template<typename T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+  auto aggregate() const
+  {
+    return std::get<T>(m_input_aggregates);
+  }
+};
+
 template<typename... Ts>
-static auto makeInputAggregate(std::tuple<Ts...> tuple) {
-    return InputAggregate{tuple, std::make_index_sequence<sizeof...(Ts)>()};
+static auto makeInputAggregate(std::tuple<Ts...> tuple)
+{
+  return InputAggregate {tuple, std::make_index_sequence<sizeof...(Ts)>()};
 }
 
 // Support for multiparameters
-#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)
+#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)               \
   struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {      \
     using type = InputAggregate<__VA_ARGS__>;                          \
     void parameter(__VA_ARGS__) const {}                               \
@@ -233,11 +242,9 @@ static auto makeInputAggregate(std::tuple<Ts...> tuple) {
     type m_value;                                                      \
   }
 
-#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                       \
-  INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
+#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
 
-#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                       \
-  INPUT_AGGREGATE(device_datatype, ARGUMENT_NAME, __VA_ARGS__)
+#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(device_datatype, ARGUMENT_NAME, __VA_ARGS__)
 
 /**
  * @brief Tuple wrapper that extracts tuples out of the
@@ -251,6 +258,7 @@ template<>
 struct WrappedTuple<std::tuple<>, void> {
   using parameters_and_properties_tuple_t = std::tuple<>;
   using parameters_tuple_t = std::tuple<>;
+  using aggregates_tuple_t = std::tuple<>;
 };
 
 template<typename T, typename... R>
@@ -258,34 +266,37 @@ struct WrappedTuple<
   std::tuple<T, R...>,
   std::enable_if_t<(std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>) &&!std::
                      is_base_of_v<aggregate_datatype, T>>> {
-  using prev_parameters_and_properties_tuple_t =
-    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using prev_wrapped_tuple = WrappedTuple<std::tuple<R...>>;
+  using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
   using parameters_and_properties_tuple_t = prepend_to_tuple_t<T, prev_parameters_and_properties_tuple_t>;
-  using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
+  using prev_parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
   using parameters_tuple_t = prepend_to_tuple_t<T, prev_parameters_tuple_t>;
+  using aggregates_tuple_t = typename prev_wrapped_tuple::aggregates_tuple_t;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<std::tuple<T, R...>, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
-  using prev_parameters_and_properties_tuple_t =
-    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  using prev_wrapped_tuple = WrappedTuple<std::tuple<R...>>;
+  using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
   using parameters_and_properties_tuple_t = cat_tuples_t<typename T::type, prev_parameters_and_properties_tuple_t>;
-  using prev_parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
-  using parameters_tuple_t = cat_tuples_t<typename T::type, prev_parameters_tuple_t>;
+  using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
+  using aggregates_tuple_t = prepend_to_tuple_t<T, typename prev_wrapped_tuple::aggregates_tuple_t>;
 };
 
 template<typename T, typename... R>
 struct WrappedTuple<
   std::tuple<T, R...>,
-  std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
-  using prev_parameters_and_properties_tuple_t =
-    typename WrappedTuple<std::tuple<R...>>::parameters_and_properties_tuple_t;
+  std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> && !std::is_base_of_v<aggregate_datatype, T>>> {
+  using prev_wrapped_tuple = WrappedTuple<std::tuple<R...>>;
+  using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
   using parameters_and_properties_tuple_t = prepend_to_tuple_t<T, prev_parameters_and_properties_tuple_t>;
-  using parameters_tuple_t = typename WrappedTuple<std::tuple<R...>>::parameters_tuple_t;
+  using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
+  using aggregates_tuple_t = typename prev_wrapped_tuple::aggregates_tuple_t;
 };
 
 template<typename T>
 using ArgumentReferences = ArgumentRefManager<
   typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_and_properties_tuple_t,
   typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_tuple_t,
-  T>;
+  T,
+  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::aggregates_tuple_t>;
