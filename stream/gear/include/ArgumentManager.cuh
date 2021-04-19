@@ -97,16 +97,18 @@ public:
 /**
  * @brief Manager of argument references for every handler.
  */
-template<typename ParametersAndPropertiesTuple, typename ParameterTuple = void, typename ParameterStruct = void>
+template<typename ParametersAndPropertiesTuple, typename ParameterTuple = void, typename ParameterStruct = void, typename InputAggregates = void>
 struct ArgumentRefManager {
 public:
   using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
   using parameters_tuple_t = ParameterTuple;
   using parameters_struct_t = ParameterStruct;
+  using input_aggregates_t = InputAggregates;
 
 private:
   mutable std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
     m_tuple_to_argument_data;
+  input_aggregates_t m_array_of_input_aggregates;
 
 public:
   ArgumentRefManager(
@@ -216,6 +218,26 @@ template<typename... Ts>
 static auto makeInputAggregate(std::tuple<Ts...> tuple) {
     return InputAggregate{tuple, std::make_index_sequence<sizeof...(Ts)>()};
 }
+
+// Support for multiparameters
+#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)
+  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {      \
+    using type = InputAggregate<__VA_ARGS__>;                          \
+    void parameter(__VA_ARGS__) const {}                               \
+    using deps = std::tuple<>;                                         \
+    template<typename T>                                               \
+    ARGUMENT_NAME(const T& value) : m_value(makeInputAggregate(value)) \
+    {}                                                                 \
+    ARGUMENT_NAME() = default;                                         \
+  private:                                                             \
+    type m_value;                                                      \
+  }
+
+#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                       \
+  INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
+
+#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                       \
+  INPUT_AGGREGATE(device_datatype, ARGUMENT_NAME, __VA_ARGS__)
 
 /**
  * @brief Tuple wrapper that extracts tuples out of the

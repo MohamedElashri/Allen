@@ -97,21 +97,6 @@ struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t.
     using deps = typename parameter_traits<__VA_ARGS__>::dependencies;        \
   }
 
-// Support for multiparameters
-#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                              \
-  struct ARGUMENT_NAME : public aggregate_datatype, device_datatype, input_datatype<std::vector<__VA_ARGS__>> { \
-    using input_datatype<std::vector<__VA_ARGS__>>::input_datatype;                                             \
-    void parameter(__VA_ARGS__) const {}                                                                        \
-    using deps = typename parameter_traits<std::vector<__VA_ARGS__>>::dependencies;                             \
-  }
-
-#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...)                                                              \
-  struct ARGUMENT_NAME : public aggregate_datatype, host_datatype, input_datatype<std::vector<__VA_ARGS__>> { \
-    using input_datatype<std::vector<__VA_ARGS__>>::input_datatype;                                           \
-    void parameter(__VA_ARGS__) const {}                                                                      \
-    using deps = typename parameter_traits<std::vector<__VA_ARGS__>>::dependencies;                           \
-  }
-
 // Support for masks
 // Masks are unsigned inputs / outputs, which the parser and multi ev scheduler
 // deal with in a special way. A maximum of one input mask and one output mask per algorithm
