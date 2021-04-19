@@ -15,14 +15,14 @@
 #include "BackendCommon.h"
 
 struct CaloGeometry {
-  uint32_t code_offset;
-  uint32_t card_channels;
-  uint32_t max_index;
-  float pedestal;
-  uint16_t* channels;
-  uint16_t* neighbors;
-  float* xy;
-  float* gain;
+  uint32_t code_offset = 0;
+  uint32_t card_channels = 0;
+  uint32_t max_index = 0;
+  float pedestal = 0;
+  uint16_t* channels = nullptr;
+  uint16_t* neighbors = nullptr;
+  float* xy = nullptr;
+  float* gain = nullptr;
 
   __device__ __host__ CaloGeometry(const char* raw_geometry)
   {
@@ -52,7 +52,7 @@ struct CaloGeometry {
     gain = (float*) p;
   }
 
-  __device__ __host__ float getX(uint16_t cellid) const { return xy[2 * cellid]; }
+  __device__ __host__ inline float getX(uint16_t cellid) const { return xy[2 * cellid]; }
 
-  __device__ __host__ float getY(uint16_t cellid) const { return xy[2 * cellid + 1]; }
+  __device__ __host__ inline float getY(uint16_t cellid) const { return xy[2 * cellid + 1]; }
 };
