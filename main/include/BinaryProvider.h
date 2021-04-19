@@ -58,6 +58,16 @@ namespace {
 template<BankTypes... Banks>
 class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
+  struct BinaryFile {
+    std::ifstream file;
+    std::size_t size = 0;
+  };
+
+  struct BinaryFiles {
+    std::string folder;
+    std::vector<std::string> files;
+  };
+
   BinaryProvider(
     size_t n_slices,
     size_t events_per_slice,
@@ -126,14 +136,13 @@ public:
             m_sizes[ib].emplace_back(stat_buf.st_size);
           }
         }
-        std::get<0>(m_files[ib]) = *it;
-        std::get<1>(m_files[ib]) = std::move(contents);
+        m_files[ib] = {*it, std::move(contents)};
       }
     }
 
     // Get event IDs from file names; assume they are all the same in
     // different folders
-    auto const& some_files = std::get<1>(m_files[ib]);
+    auto const& some_files = m_files[ib].files;
     m_all_events.reserve(n_files);
     std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
     std::smatch result;
@@ -154,8 +163,8 @@ public:
     }
     for (auto bank_type : this->types()) {
       auto ib = to_integral<BankTypes>(bank_type);
-      std::get<0>(files[ib]).read(reinterpret_cast<char*>(&bank_counts[ib]), sizeof(unsigned));
-      std::get<0>(files[ib]).close();
+      files[ib].file.read(reinterpret_cast<char*>(&bank_counts[ib]), sizeof(unsigned));
+      files[ib].file.close();
     }
 
     // Lambda that returns the amount of memory to allocate for a slice
@@ -304,7 +313,8 @@ private:
     size_t n_reps = 0;
     size_t eps = this->events_per_slice();
 
-    size_t n_files = std::get<1>(m_files[to_integral(*this->types().begin())]).size();
+    auto bank_type = to_integral(*this->types().begin());
+    size_t n_files = m_files[bank_type].files.size();
 
     // Loop until the flag is set to exit, or the number of requested
     // event is reached
@@ -346,7 +356,7 @@ private:
         for (auto bank_type : this->types()) {
           auto ib = to_integral<BankTypes>(bank_type);
           const auto& [slice, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          if ((offsets[offsets_size - 1] + std::get<1>(inputs[ib])) > static_cast<size_t>(slice[0].size())) {
+          if ((offsets[offsets_size - 1] + inputs[ib].size) > static_cast<size_t>(slice[0].size())) {
             this->debug_output(std::string {"Slice "} + std::to_string(slice_index) + " is full.");
             goto done;
           }
@@ -354,9 +364,8 @@ private:
 
         for (auto bank_type : {Banks...}) {
           auto ib = to_integral<BankTypes>(bank_type);
-          auto& [input, data_size] = inputs[ib];
           auto& [slice, slice_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          read_file(input, data_size, slice[0].data(), offsets.data(), offsets_size - 1);
+          read_file(inputs[ib].file, inputs[ib].size, slice[0].data(), offsets.data(), offsets_size - 1);
           ++offsets_size;
         }
         m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
@@ -396,12 +405,12 @@ private:
    *
    * @return     array of (bank type, open ifstrea, file size)
    */
-  std::array<std::tuple<std::ifstream, size_t>, NBankTypes> open_files(size_t n)
+  std::array<BinaryFile, NBankTypes> open_files(size_t n)
   {
-    std::array<std::tuple<std::ifstream, size_t>, NBankTypes> result;
+    std::array<BinaryFile, NBankTypes> result;
     for (auto bank_type : {Banks...}) {
       auto ib = to_integral<BankTypes>(bank_type);
-      auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[n];
+      auto filename = m_files[ib].folder + "/" + m_files[ib].files[n];
       std::ifstream input(filename, std::ifstream::binary);
       if (!input.is_open() || !input.good()) {
         m_read_error = true;
@@ -414,8 +423,7 @@ private:
         m_read_error = true;
         break;
       }
-      std::get<0>(result[ib]) = std::move(input);
-      std::get<1>(result[ib]) = data_size;
+      result[ib] = {std::move(input), data_size};
     }
     return result;
   }
@@ -476,5 +484,5 @@ private:
   std::array<std::vector<size_t>, NBankTypes> m_sizes;
 
   // Folder and file names per bank type
-  std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
+  std::array<BinaryFiles, NBankTypes> m_files;
 };

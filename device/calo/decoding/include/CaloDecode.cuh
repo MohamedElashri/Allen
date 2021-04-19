@@ -74,7 +74,7 @@ namespace {
       }
     }
   }
-}
+} // namespace
 
 namespace calo_decode {
   struct Parameters {
@@ -103,10 +103,8 @@ namespace calo_decode {
 
   // Decode dispatch
   template<bool MEP>
-  __global__ void calo_decode(
-    calo_decode::Parameters parameters,
-    const char* raw_ecal_geometry,
-    const char* raw_hcal_geometry)
+  __global__ void
+  calo_decode(calo_decode::Parameters parameters, const char* raw_ecal_geometry, const char* raw_hcal_geometry)
   {
     using RawEvent = std::conditional_t<MEP, CaloMepEvent, CaloRawEvent>;
 

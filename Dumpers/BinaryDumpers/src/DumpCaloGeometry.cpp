@@ -76,7 +76,6 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     min = std::min(curCode, min);
     max = std::max(curCode, max);
     max_channels = std::max(det.cardChannels(card).size(), max_channels);
-
   }
 
   // Initialize array to size (max - min) * 32.

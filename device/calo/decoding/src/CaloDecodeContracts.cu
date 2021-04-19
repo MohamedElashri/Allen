@@ -32,8 +32,8 @@ void calo_decode::check_digits::operator()(
 
   bool ecal_valid = true, hcal_valid = true;
 
-  CaloGeometry ecal_geom{constants.host_ecal_geometry.data()};
-  CaloGeometry hcal_geom{constants.host_hcal_geometry.data()};
+  CaloGeometry ecal_geom {constants.host_ecal_geometry.data()};
+  CaloGeometry hcal_geom {constants.host_hcal_geometry.data()};
 
   for (auto event : event_list) {
     ecal_valid &= ::check_digits(ecal_digits.data() + ecal_offsets[event], ecal_geom.max_index);
