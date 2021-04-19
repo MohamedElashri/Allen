@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <MEPTools.h>
-#include <CaloConstants.cuh>
 #include <CaloDecode.cuh>
 
 template<typename Event>
@@ -66,7 +65,7 @@ __device__ void decode(
           adc -= 256;
         }
 
-        uint16_t index = geometry.channels[(code - geometry.code_offset) * Calo::Constants::card_channels + bit_num];
+        uint16_t index = geometry.channels[(code - geometry.code_offset) * geometry.card_channels + bit_num];
         // Ignore cells with invalid indices; these include LED diodes.
         if (index < number_of_digits) {
           digits[index].adc = adc;

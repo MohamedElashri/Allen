@@ -2,7 +2,6 @@
 * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #include <BackendCommon.h>
-#include <CaloConstants.cuh>
 #include <CaloDigit.cuh>
 #include <CaloDecode.cuh>
 
@@ -20,7 +19,7 @@ bool check_digits(CaloDigit const* digits, size_t n_digits)
 void calo_decode::check_digits::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants&,
+  const Constants& constants,
   const Allen::Context&) const
 {
   const auto event_list = make_vector<Parameters::dev_event_list_t>(arguments);
@@ -33,9 +32,12 @@ void calo_decode::check_digits::operator()(
 
   bool ecal_valid = true, hcal_valid = true;
 
+  CaloGeometry ecal_geom{constants.host_ecal_geometry.data()};
+  CaloGeometry hcal_geom{constants.host_hcal_geometry.data()};
+
   for (auto event : event_list) {
-    ecal_valid &= ::check_digits(ecal_digits.data() + ecal_offsets[event], Calo::Constants::ecal_max_index);
-    hcal_valid &= ::check_digits(hcal_digits.data() + hcal_offsets[event], Calo::Constants::hcal_max_index);
+    ecal_valid &= ::check_digits(ecal_digits.data() + ecal_offsets[event], ecal_geom.max_index);
+    hcal_valid &= ::check_digits(hcal_digits.data() + hcal_offsets[event], hcal_geom.max_index);
   }
 
   require(ecal_valid, "Require that all ECal digits are present with a reasonable ADC");

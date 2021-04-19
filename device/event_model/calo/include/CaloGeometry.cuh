@@ -12,11 +12,11 @@
 #include <iostream>
 #include <iomanip>
 
-#include "CaloConstants.cuh"
 #include "BackendCommon.h"
 
 struct CaloGeometry {
   uint32_t code_offset;
+  uint32_t card_channels;
   uint32_t max_index;
   float pedestal;
   uint16_t* channels;
@@ -29,6 +29,8 @@ struct CaloGeometry {
     const char* p = raw_geometry;
     code_offset = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip code offset.
+    card_channels = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip card_channels.
     max_index = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip max_index.
     pedestal = *((float*) p);

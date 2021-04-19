@@ -69,20 +69,23 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   // Determine Minimum and maximum card Codes.
   int min = det.cardCode(cards.at(0)); // Initialize to any value within possibilities.
   int max = 0;
+  size_t max_channels = 0;
   int curCode = 0;
   for (int card : cards) {
     curCode = det.cardCode(card);
     min = std::min(curCode, min);
     max = std::max(curCode, max);
+    max_channels = std::max(det.cardChannels(card).size(), max_channels);
+
   }
 
   // Initialize array to size (max - min) * 32.
-  std::vector<uint16_t> allChannels(32 * (max - min + 1), 0);
+  std::vector<uint16_t> allChannels(max_channels * (max - min + 1), 0);
 
   // For every card: index based on code and store all 32 channel CellIDs at that index.
   for (int card : cards) {
     int code = det.cardCode(card);
-    int index = (code - min) * 32;
+    int index = (code - min) * max_channels;
     auto channels = det.cardChannels(card);
     for (size_t i = 0; i < channels.size(); i++) {
       LHCb::CaloIndex const caloIndex {channels.at(i)};
@@ -123,6 +126,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   // the array of neighbors and the array of xy values.
   DumpUtils::Writer output {};
   output.write(static_cast<uint32_t>(min));
+  output.write(static_cast<uint32_t>(max_channels));
   output.write(static_cast<uint32_t>(indexSize));
   float pedestal = det.pedestalShift();
   output.write(pedestal);

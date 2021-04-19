@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <MEPTools.h>
-#include <CaloConstants.cuh>
 #include <CaloCountDigits.cuh>
 
 // TODO thinks about blocks/threads etc. 1 block per fragment might be best for coalesced memory acces.
