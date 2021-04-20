@@ -103,6 +103,8 @@ private:
   std::vector<ArgumentData> m_argument_data_v;
 
 public:
+  InputAggregate() = default;
+
   InputAggregate(const std::vector<ArgumentData>& argument_data_v) : m_argument_data_v(argument_data_v) {}
 
   template<typename Tuple, std::size_t... Is>
@@ -239,7 +241,7 @@ static auto makeInputAggregate(std::tuple<Ts...> tuple)
     {}                                                                 \
     ARGUMENT_NAME() = default;                                         \
   private:                                                             \
-    type m_value;                                                      \
+    type m_value {};                                                   \
   }
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
@@ -277,8 +279,7 @@ struct WrappedTuple<
 template<typename T, typename... R>
 struct WrappedTuple<std::tuple<T, R...>, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
   using prev_wrapped_tuple = WrappedTuple<std::tuple<R...>>;
-  using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
-  using parameters_and_properties_tuple_t = cat_tuples_t<typename T::type, prev_parameters_and_properties_tuple_t>;
+  using parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
   using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
   using aggregates_tuple_t = prepend_to_tuple_t<T, typename prev_wrapped_tuple::aggregates_tuple_t>;
 };

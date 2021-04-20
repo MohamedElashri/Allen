@@ -61,16 +61,16 @@ using append_to_tuple_t = typename details::TupleAppend<Tuple, Element>::type;
 // Appends a Tuple with the Element
 namespace details {
   template<typename, typename>
-  struct TupleAppendFirst;
+  struct TuplePrepend;
 
   template<typename E, typename... T>
-  struct TupleAppendFirst<E, std::tuple<T...>> {
+  struct TuplePrepend<E, std::tuple<T...>> {
     using type = std::tuple<E, T...>;
   };
 } // namespace details
 
 template<typename Element, typename Tuple>
-using prepend_to_tuple_t = typename details::TupleAppendFirst<Element, Tuple>::type;
+using prepend_to_tuple_t = typename details::TuplePrepend<Element, Tuple>::type;
 
 // Reverses a tuple
 namespace details {
