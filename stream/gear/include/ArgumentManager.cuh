@@ -227,7 +227,9 @@ public:
 template<typename... Ts>
 static auto makeInputAggregate(std::tuple<Ts...> tuple)
 {
-  return InputAggregate {tuple, std::make_index_sequence<sizeof...(Ts)>()};
+  using T = std::conditional_t<std::is_same_v<tuple, std::tuple<>>, int, typename std::tuple_element_t<0, std::tuple<Ts...>>::type>;
+  static_assert((std::is_same_v<typename Ts::type, T> && ...));
+  return InputAggregate<T>{tuple, std::make_index_sequence<sizeof...(Ts)>()};
 }
 
 // Support for multiparameters
@@ -236,13 +238,14 @@ static auto makeInputAggregate(std::tuple<Ts...> tuple)
     using type = InputAggregate<__VA_ARGS__>;                          \
     void parameter(__VA_ARGS__) const {}                               \
     using deps = std::tuple<>;                                         \
-    template<typename T>                                               \
-    ARGUMENT_NAME(const T& value) : m_value(makeInputAggregate(value)) \
-    {}                                                                 \
-    ARGUMENT_NAME() = default;                                         \
   private:                                                             \
     type m_value {};                                                   \
   }
+
+  // template<typename T>                                               
+  //   ARGUMENT_NAME(const T& value) : m_value(makeInputAggregate(value)) 
+  //   {}                                                                 
+  //   ARGUMENT_NAME() = default;                                         
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
 

@@ -116,7 +116,7 @@ namespace Sch {
   struct OutDependenciesImpl<std::tuple<Arguments, NextArguments...>> {
     static_assert(sizeof...(NextArguments) != 0);
     using previous_t = typename OutDependenciesImpl<std::tuple<NextArguments...>>::t;
-    using t = append_to_tuple_t<previous_t, typename ArgumentsNotIn<Arguments, std::tuple<NextArguments...>>::t>;
+    using t = append_to_tuple_t<previous_t, typename ArgumentsNotIn<flatten_tuple_t<Arguments>, std::tuple<flatten_tuple_t<NextArguments>...>>::t>;
   };
 
   // Helper to calculate OUT dependencies
@@ -142,7 +142,7 @@ namespace Sch {
   template<typename Arguments, typename... RestOfArguments>
   struct InDependenciesImpl<std::tuple<Arguments, RestOfArguments...>> {
     using previous_t = typename InDependenciesImpl<std::tuple<RestOfArguments...>>::t;
-    using t = append_to_tuple_t<previous_t, typename ArgumentsNotIn<Arguments, std::tuple<RestOfArguments...>>::t>;
+    using t = append_to_tuple_t<previous_t, typename ArgumentsNotIn<flatten_tuple_t<Arguments>, std::tuple<flatten_tuple_t<RestOfArguments>...>>::t>;
   };
 
   template<typename ConfiguredArguments>
@@ -220,9 +220,6 @@ namespace Sch {
     }
   };
 
-  /**
-   * @brief Produces a list of argument references.
-   */
   template<typename ConfiguredArguments>
   struct ConfiguredTraits;
 
@@ -257,6 +254,9 @@ namespace Sch {
     }
   };
 
+  /**
+   * @brief Produces a list of argument references.
+   */
   template<typename ArgumentsTuple, typename ArgumentRefManager, typename ConfiguredParameters, typename ConfiguredInputAggregates>
   struct ProduceArgumentsTupleHelper;
 
@@ -264,8 +264,8 @@ namespace Sch {
   struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<ConfiguredParameters...>, std::tuple<ConfiguredInputAggregates...>> {
     constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array)
     {
-      return ArgumentRefManager {{arguments_array[index_of_v<ConfiguredParameters, ArgumentsTuple>]...},
-        {ProduceInputAggregate<ArgumentsTuple, ConfiguredInputAggregates>::produce(arguments_array)...}};
+      return ArgumentRefManager {std::array<std::reference_wrapper<ArgumentData>, sizeof...(ConfiguredParameters)> {arguments_array[index_of_v<ConfiguredParameters, ArgumentsTuple>]...},
+        typename ArgumentRefManager::input_aggregates_t {ProduceInputAggregate<ArgumentsTuple, ConfiguredInputAggregates>::produce(arguments_array)...}};
     }
   };
 

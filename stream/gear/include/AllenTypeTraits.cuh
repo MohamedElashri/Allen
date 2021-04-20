@@ -103,6 +103,29 @@ namespace details {
 template<typename... Tuples>
 using cat_tuples_t = typename details::ConcatTuple<Tuples...>::type;
 
+namespace details {
+  template<typename T>
+  struct FlattenTuple;
+
+  template<>
+  struct FlattenTuple<std::tuple<>> {
+      using type = std::tuple<>;
+  };
+
+  template<typename ... InTuple, typename ... Ts>
+  struct FlattenTuple<std::tuple<std::tuple<InTuple...>, Ts...>>{
+      using type = cat_tuples_t<std::tuple<InTuple...>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+  };
+
+  template<typename T, typename ... Ts>
+  struct FlattenTuple<std::tuple<T, Ts...>>{
+      using type = cat_tuples_t<std::tuple<T>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+  };
+} // namespace details
+
+template<typename Tuple>
+using flatten_tuple_t = typename details::FlattenTuple<Tuple>::type;
+
 // Access to tuple elements by checking whether they inherit from a Base type
 template<typename Base, typename Tuple, std::size_t I = 0>
 struct tuple_ref_index;

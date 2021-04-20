@@ -131,11 +131,13 @@ def generate_sequence(algorithms, sequence_filename, input_aggregates_filename, 
                 # Deal with input aggregates separately
                 if parameter_name in algorithm.inputs and type(
                         algorithm.inputs[parameter_name]) == list:
+                    s += "std::tuple<"
                     for single_parameter in algorithm.inputs[
                             parameter_name]:
                         parameter_full_name = clean_prefix(
                             single_parameter.location)
                         s += f"{parameter_full_name}, "
+                    s = s[:-2] + ">, "
                 else:
                     # It can be either an input or an output
                     if parameter_name in algorithm.inputs:
