@@ -4,13 +4,13 @@
 #pragma once
 
 #include <tuple>
+#include <gsl/gsl>
 #include <vector>
 #include <cstring>
 #include "BackendCommon.h"
 #include "Logger.h"
 #include "AllenTypeTraits.cuh"
 #include "Argument.cuh"
-#include "ArgumentOps.cuh"
 #include "StructToTuple.cuh"
 
 /**
@@ -128,13 +128,18 @@ public:
     return m_argument_data_v[index].size();
   }
 
+  gsl::span<T> span(const int index) const
+  {
+    return {pointer(index), size(index)};
+  }
+
   std::string name(const int index) const
   {
     assert(index < m_argument_data_v.size() && "Index is in bounds");
     return m_argument_data_v[index].name();
   }
 
-  size_t aggregate_size() const { return m_argument_data_v.size(); }
+  size_t size_of_aggregate() const { return m_argument_data_v.size(); }
 };
 
 /**
@@ -218,7 +223,7 @@ public:
   }
 
   template<typename T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>, bool> = true>
-  auto aggregate() const
+  auto input_aggregate() const
   {
     return std::get<T>(m_input_aggregates).value();
   }

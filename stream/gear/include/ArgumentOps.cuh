@@ -9,6 +9,7 @@
 #include "BackendCommon.h"
 #include "AllenTypeTraits.cuh"
 #include "PinnedVector.h"
+#include "ArgumentManager.cuh"
 
 /**
  * @brief Sets the size of a container to the specified size.
@@ -75,9 +76,9 @@ auto first(const Args& arguments)
  * @brief Fetches an aggregate value.
  */
 template<typename Arg, typename Args>
-auto aggregate(const Args& arguments)
+auto input_aggregate(const Args& arguments)
 {
-  return arguments.template aggregate<Arg>();
+  return arguments.template input_aggregate<Arg>();
 }
 
 template<typename Arg, typename Args, typename T>
@@ -146,6 +147,65 @@ void assign_to_host_buffer(T* array, const Args& arguments, const Allen::Context
     array, data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost, context);
 }
 
+namespace Allen {
+  /**
+   * @brief Copy of two spans with an Allen context and a kind.
+   */
+  template<typename T>
+  void copy(
+    gsl::span<T> container_a,
+    gsl::span<T> container_b,
+    const Allen::Context& context,
+    const Allen::memcpy_kind kind,
+    const size_t count,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
+  {
+    assert((container_a.size() - offset_a) >= count && (container_b.size() - offset_b) >= count);
+    Allen::memcpy_async(
+      container_a.data() + offset_a, container_b.data() + offset_b, count * sizeof(T), kind, context);
+  }
+
+  /**
+   * @brief Copies container_b into container_a.
+   */
+  template<typename T>
+  void copy(
+    gsl::span<T> container_a,
+    gsl::span<T> container_b,
+    const Allen::Context& context,
+    const Allen::memcpy_kind kind)
+  {
+    assert(container_a.size() == container_b.size());
+    copy(container_a, container_b, context, kind, container_a.size());
+  }
+
+  namespace aggregate {
+    /**
+     * @brief Stores contents of aggregate contiguously into container.
+     */
+    template<typename T>
+    void store_contiguous(
+      gsl::span<T> container,
+      const InputAggregate<T>& aggregate,
+      const Allen::Context& context,
+      const Allen::memcpy_kind kind)
+    {
+      unsigned container_offset = 0;
+      for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
+        Allen::copy(
+          container,
+          aggregate.span(i),
+          context,
+          kind,
+          aggregate.size(i),
+          container_offset);
+        container_offset += aggregate.size(i);
+      }
+    }
+  }
+} // namespace Allen
+
 // SFINAE for single argument functions, like initialization and print of host / device parameters
 template<typename Arg, typename Args, typename Enabled = void>
 struct SingleArgumentOverloadResolution;
@@ -210,11 +270,28 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   }
 
   template<typename T>
-  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
+  static void
+  copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container, const Allen::memcpy_kind kind)
   {
     const auto size_bytes = gsl::as_bytes(container);
     assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
-    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
+    assert(kind == Allen::memcpyHostToHost || kind == Allen::memcpyDeviceToHost);
+    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, kind, context);
+  }
+
+  template<typename T>
+  static void copy(
+    const Args& arguments,
+    const Allen::Context& context,
+    gsl::span<T> container,
+    const Allen::memcpy_kind kind,
+    const size_t count,
+    const size_t offset_a,
+    const size_t offset_b)
+  {
+    assert((size<Arg>(arguments) - offset_a) >= count && (gsl::as_bytes(container) - offset_b) >= count);
+    assert(kind == Allen::memcpyHostToHost || kind == Allen::memcpyDeviceToHost);
+    Allen::memcpy_async(data<Arg>(arguments) + offset_a, container.data() + offset_b, count, kind, context);
   }
 
   static void print(const Args& arguments)
@@ -263,11 +340,28 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
   }
 
   template<typename T>
-  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
+  static void
+  copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container, const Allen::memcpy_kind kind)
   {
     const auto size_bytes = gsl::as_bytes(container);
     assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
-    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
+    assert(kind == Allen::memcpyHostToDevice || kind == Allen::memcpyDeviceToDevice);
+    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, kind, context);
+  }
+
+  template<typename T>
+  static void copy(
+    const Args& arguments,
+    const Allen::Context& context,
+    gsl::span<T> container,
+    const Allen::memcpy_kind kind,
+    const size_t count,
+    const size_t offset_a,
+    const size_t offset_b)
+  {
+    assert((size<Arg>(arguments) - offset_a) >= count && (gsl::as_bytes(container) - offset_b) >= count);
+    assert(kind == Allen::memcpyHostToDevice || kind == Allen::memcpyDeviceToDevice);
+    Allen::memcpy_async(data<Arg>(arguments) + offset_a, container.data() + offset_b, count, kind, context);
   }
 
   static void print(const Args& arguments)
@@ -489,9 +583,31 @@ void copy(
  * can be either a span or anything that can be automatically converted to a span.
  */
 template<typename Arg, typename Args, typename T>
-void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> data_container)
+void copy(
+  const Args& arguments,
+  const Allen::Context& context,
+  gsl::span<T> data_container,
+  const Allen::memcpy_kind kind = Allen::memcpyHostToDevice)
 {
-  return SingleArgumentOverloadResolution<Arg, Args>::copy(arguments, context, data_container);
+  return SingleArgumentOverloadResolution<Arg, Args>::copy(arguments, context, data_container, kind);
+}
+
+/**
+ * @brief Copies the contents of a data container to a datatype. The data container
+ * can be either a span or anything that can be automatically converted to a span.
+ */
+template<typename Arg, typename Args, typename T>
+void copy(
+  const Args& arguments,
+  const size_t count,
+  const Allen::Context& context,
+  gsl::span<T> data_container,
+  const Allen::memcpy_kind kind = Allen::memcpyHostToDevice,
+  const size_t offset_a = 0,
+  const size_t offset_b = 0)
+{
+  return SingleArgumentOverloadResolution<Arg, Args>::copy(
+    arguments, context, data_container, kind, count, offset_a, offset_b);
 }
 
 /**
