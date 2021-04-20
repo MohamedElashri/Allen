@@ -8,7 +8,10 @@
 #include <cstdlib>
 #include <string>
 #include <gsl/gsl>
-#include "BackendCommon.h"
+
+#include <CaloDigit.cuh>
+
+#include <BackendCommon.h>
 
 // Forward declarations
 namespace PV {
@@ -102,6 +105,12 @@ struct HostBuffers {
   unsigned* host_selected_events_mf;
   unsigned* host_event_list_mf;
   bool* host_match_upstream_muon;
+
+  // Calo
+  gsl::span<unsigned> host_ecal_digits_offsets = {};
+  gsl::span<unsigned> host_hcal_digits_offsets = {};
+  gsl::span<CaloDigit> host_ecal_digits = {};
+  gsl::span<CaloDigit> host_hcal_digits = {};
 
   // Secondary vertices
   unsigned* host_number_of_svs;

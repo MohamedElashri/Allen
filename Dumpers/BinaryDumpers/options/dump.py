@@ -8,15 +8,12 @@ from Configurables import (PrStoreUTHit, PrStoreFTHit)
 from Configurables import ApplicationMgr
 from Configurables import HistogramPersistencySvc
 from Configurables import (AuditorSvc, SequencerTimerTool)
-from Configurables import (DumpUTGeometry, DumpFTGeometry, DumpMuonTable,
-                           DumpUTLookupTables, DumpMuonGeometry,
-                           DumpVPGeometry)
+from Allen.config import setup_allen_non_event_data_service
 from Configurables import RootHistCnv__PersSvc
 from Configurables import IODataManager
 from Configurables import (VPClus, createODIN, TransposeRawBanks, DumpRawBanks,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
-                           DumpMagneticField, DumpBeamline, MuonRec,
-                           PrepareMuonHits, DumpUTHits)
+                           MuonRec, PrepareMuonHits, DumpUTHits)
 from Configurables import TestMuonTable
 
 app = LHCbApp(
@@ -43,17 +40,7 @@ dec_seq.Members = [
     muon_hits
 ]
 
-# Add the service that will dump the UT and FT geometry
-ApplicationMgr().ExtSvc += [
-    DumpMagneticField(),
-    DumpBeamline(),
-    DumpVPGeometry(),
-    DumpUTGeometry(),
-    DumpFTGeometry(),
-    DumpMuonGeometry(),
-    DumpMuonTable(),
-    DumpUTLookupTables()
-]
+setup_allen_non_event_data_service(dump_binaries=True)
 
 # Dump raw banks and UT, FT and muon hits
 transpose_banks = TransposeRawBanks(

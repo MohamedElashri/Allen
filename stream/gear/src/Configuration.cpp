@@ -31,6 +31,18 @@ int Configuration::from_string<int>(const std::string& s)
 }
 
 template<>
+unsigned short Configuration::from_string<unsigned short>(const std::string& s)
+{
+  return strtol(s.c_str(), 0, 0);
+}
+
+template<>
+short Configuration::from_string<short>(const std::string& s)
+{
+  return strtol(s.c_str(), 0, 0);
+}
+
+template<>
 unsigned Configuration::from_string<unsigned>(const std::string& s)
 {
   return strtoul(s.c_str(), 0, 0);

@@ -14,7 +14,7 @@
 <extension class="GaudiTest.GaudiExeTest" kind="test">
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
-    <text>../../options/Allen.py</text>
+    <text>../../options/allen.py</text>
   </set></argument>
   <arguement name="timeout"><integer>600</integer></arguement>
   <argument name="validator"><text>

@@ -19,6 +19,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/associate/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/calo/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/global_event_cut/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/UT/UTDecoding/include)
@@ -56,6 +57,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/line_types/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/calo/event_model/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
 
@@ -63,6 +65,7 @@ gaudi_subdir(Allen v1r0)
 
 gaudi_depends_on_subdirs(Det/FTDet
                          Det/VPDet
+                         Det/CaloDet
                          UT/UTDAQ
                          UT/UTKernel
                          Event/FTEvent
@@ -89,9 +92,11 @@ gaudi_env(SET ALLEN_INSTALL_DIR ${ALLEN_INSTALL_DIR})
 gaudi_add_module(AllenWrapper
                  src/*.cpp
                  LINK_LIBRARIES AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
-                                PrKernel VPDetLib UTDetLib UTKernelLib
-                                FTDetLib HltEvent)
+                                PrKernel VPDetLib UTDetLib UTKernelLib CaloDetLib
+                                FTDetLib HltDAQLib)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()
 target_compile_definitions(AllenWrapper PRIVATE -D${TARGET_DEFINITION})
+
+gaudi_install_python_modules()

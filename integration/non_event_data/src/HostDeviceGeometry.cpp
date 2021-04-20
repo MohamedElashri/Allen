@@ -12,11 +12,11 @@ namespace {
   using std::to_string;
 } // namespace
 
-Consumers::SciFiGeometry::SciFiGeometry(std::vector<char>& host_geometry, char*& dev_geometry) :
+Consumers::HostDeviceGeometry::HostDeviceGeometry(std::vector<char>& host_geometry, char*& dev_geometry) :
   m_host_geometry {host_geometry}, m_dev_geometry {dev_geometry}
 {}
 
-void Consumers::SciFiGeometry::consume(std::vector<char> const& data)
+void Consumers::HostDeviceGeometry::consume(std::vector<char> const& data)
 {
   auto& dev_geometry = m_dev_geometry.get();
   auto& host_geometry = m_host_geometry.get();

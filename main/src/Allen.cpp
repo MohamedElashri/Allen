@@ -39,8 +39,8 @@
 #include "Tools.h"
 #include "InputTools.h"
 #include "InputReader.h"
-#include "MDFProvider.h"
 #include "BinaryProvider.h"
+#include "MDFProvider.h"
 #include "MEPProvider.h"
 #include "Timer.h"
 #include "StreamWrapper.cuh"
@@ -309,6 +309,8 @@ int allen(
   const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
   const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
+  const auto folder_name_ecal_raw = folder_data + folder_rawdata + "EcalPacked";
+  const auto folder_name_hcal_raw = folder_data + folder_rawdata + "HcalPacked";
   const auto folder_name_ODIN_raw = folder_data + folder_rawdata + "ODIN";
   const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
 
@@ -350,9 +352,14 @@ int allen(
                               !mep_layout,          // MEPs should be transposed to Allen layout
                               !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
-    input_provider =
-      std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
+    input_provider = std::make_unique<MEPProvider<
+      BankTypes::VP,
+      BankTypes::UT,
+      BankTypes::FT,
+      BankTypes::MUON,
+      BankTypes::ODIN,
+      BankTypes::ECal,
+      BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
@@ -363,9 +370,14 @@ int allen(
                               events_per_slice,          // number of events per read buffer
                               n_io_reps,                 // number of loops over the input files
                               !disable_run_changes};     // Whether to split slices by run number
-    input_provider =
-      std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
+    input_provider = std::make_unique<MDFProvider<
+      BankTypes::VP,
+      BankTypes::UT,
+      BankTypes::FT,
+      BankTypes::MUON,
+      BankTypes::ODIN,
+      BankTypes::ECal,
+      BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
     mep_layout = false;

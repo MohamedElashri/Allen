@@ -6,10 +6,12 @@
 #include <sys/stat.h>
 
 #include <regex>
+#include <condition_variable>
 #include <InputProvider.h>
 #include <InputTools.h>
 #include <BankTypes.h>
 #include <TransposeTypes.h>
+#include <Transpose.h>
 
 namespace {
   using namespace Allen::Units;
@@ -56,13 +58,23 @@ namespace {
 template<BankTypes... Banks>
 class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
+  struct BinaryFile {
+    std::ifstream file;
+    std::size_t size = 0;
+  };
+
+  struct BinaryFiles {
+    std::string folder;
+    std::vector<std::string> files;
+  };
+
   BinaryProvider(
     size_t n_slices,
     size_t events_per_slice,
     boost::optional<size_t> n_events,
     std::vector<std::string> connections,
     size_t repetitions = 1,
-    boost::optional<std::string> file_list = {},
+    boost::optional<std::string> file_list = boost::optional<std::string> {},
     boost::optional<EventIDs> order = {}) :
     InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
@@ -71,6 +83,8 @@ public:
     // Check that there is a folder for each bank type, find all the
     // files it contains and store their sizes
     struct stat stat_buf;
+    size_t n_files = 0, ib = 0;
+
     for (auto bank_type : this->types()) {
       auto it = std::find_if(connections.begin(), connections.end(), [bank_type](auto const& folder) {
         auto bn = bank_name(bank_type);
@@ -80,7 +94,7 @@ public:
         throw StrException {"Failed to find a folder for " + bank_name(bank_type) + " banks"};
       }
       else {
-        auto ib = to_integral<BankTypes>(bank_type);
+        ib = to_integral<BankTypes>(bank_type);
         // Find files and order them if requested
         std::vector<std::string> contents;
         if (file_list && !file_list.value().empty()) {
@@ -97,12 +111,22 @@ public:
         }
         else {
           contents = list_folder(*it);
+          if (contents.empty()) {
+            throw StrException {"No banks found for " + bank_name(bank_type) + " in " + *it};
+          }
         }
         if (order) {
           order_files(contents, *order, *it);
         }
+        if (n_files == 0) {
+          n_files = contents.size();
+        }
+        else if (contents.size() != n_files) {
+          throw StrException {"Banks folder for " + bank_name(bank_type) + " contains a different number of files: " +
+                              std::to_string(contents.size()) + " instead of " + std::to_string(n_files)};
+        }
         // Get all file sizes
-        m_sizes[ib].reserve(contents.size());
+        m_sizes[ib].reserve(n_files);
         for (auto const& file : contents) {
           auto path = *it + "/" + file;
           if (::stat(path.c_str(), &stat_buf) != 0) {
@@ -112,14 +136,14 @@ public:
             m_sizes[ib].emplace_back(stat_buf.st_size);
           }
         }
-        m_files[ib] = std::tuple {*it, std::move(contents)};
+        m_files[ib] = {*it, std::move(contents)};
       }
     }
 
     // Get event IDs from file names; assume they are all the same in
     // different folders
-    auto const& some_files = std::get<1>(m_files[to_integral(*this->types().begin())]);
-    m_all_events.reserve(some_files.size());
+    auto const& some_files = m_files[ib].files;
+    m_all_events.reserve(n_files);
     std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
     std::smatch result;
     for (auto const& file : some_files) {
@@ -139,9 +163,8 @@ public:
     }
     for (auto bank_type : this->types()) {
       auto ib = to_integral<BankTypes>(bank_type);
-      std::get<1>(files[ib]).read(reinterpret_cast<char*>(&bank_counts[ib]), sizeof(unsigned));
-      auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[0];
-      std::get<1>(files[ib]).close();
+      files[ib].file.read(reinterpret_cast<char*>(&bank_counts[ib]), sizeof(unsigned));
+      files[ib].file.close();
     }
 
     // Lambda that returns the amount of memory to allocate for a slice
@@ -290,7 +313,8 @@ private:
     size_t n_reps = 0;
     size_t eps = this->events_per_slice();
 
-    size_t n_files = std::get<1>(m_files[to_integral(*this->types().begin())]).size();
+    auto bank_type = to_integral(*this->types().begin());
+    size_t n_files = m_files[bank_type].files.size();
 
     // Loop until the flag is set to exit, or the number of requested
     // event is reached
@@ -332,16 +356,16 @@ private:
         for (auto bank_type : this->types()) {
           auto ib = to_integral<BankTypes>(bank_type);
           const auto& [slice, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > static_cast<size_t>(slice[0].size())) {
+          if ((offsets[offsets_size - 1] + inputs[ib].size) > static_cast<size_t>(slice[0].size())) {
             this->debug_output(std::string {"Slice "} + std::to_string(slice_index) + " is full.");
             goto done;
           }
         }
 
-        for (auto& [bank_type, input, data_size] : inputs) {
+        for (auto bank_type : {Banks...}) {
           auto ib = to_integral<BankTypes>(bank_type);
           auto& [slice, slice_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          read_file(input, data_size, slice[0].data(), offsets.data(), offsets_size - 1);
+          read_file(inputs[ib].file, inputs[ib].size, slice[0].data(), offsets.data(), offsets_size - 1);
           ++offsets_size;
         }
         m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
@@ -381,12 +405,12 @@ private:
    *
    * @return     array of (bank type, open ifstrea, file size)
    */
-  std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> open_files(size_t n)
+  std::array<BinaryFile, NBankTypes> open_files(size_t n)
   {
-    std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> result;
-    for (auto bank_type : this->types()) {
+    std::array<BinaryFile, NBankTypes> result;
+    for (auto bank_type : {Banks...}) {
       auto ib = to_integral<BankTypes>(bank_type);
-      auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[n];
+      auto filename = m_files[ib].folder + "/" + m_files[ib].files[n];
       std::ifstream input(filename, std::ifstream::binary);
       if (!input.is_open() || !input.good()) {
         m_read_error = true;
@@ -399,7 +423,7 @@ private:
         m_read_error = true;
         break;
       }
-      result[ib] = make_tuple(bank_type, std::move(input), data_size);
+      result[ib] = {std::move(input), data_size};
     }
     return result;
   }
@@ -460,5 +484,5 @@ private:
   std::array<std::vector<size_t>, NBankTypes> m_sizes;
 
   // Folder and file names per bank type
-  std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
+  std::array<BinaryFiles, NBankTypes> m_files;
 };
