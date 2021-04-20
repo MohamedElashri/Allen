@@ -95,54 +95,6 @@ public:
 };
 
 /**
- * @brief Aggregate datatype
- */
-template<typename T>
-struct InputAggregate {
-private:
-  std::vector<ArgumentData> m_argument_data_v;
-
-public:
-  InputAggregate() = default;
-
-  template<typename Tuple, std::size_t... Is>
-  InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
-  {}
-
-  T* pointer(const int index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    auto pointer = m_argument_data_v[index].pointer();
-    return reinterpret_cast<T*>(pointer);
-  }
-
-  T first(const int index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return pointer(index)[0];
-  }
-
-  size_t size(const int index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return m_argument_data_v[index].size();
-  }
-
-  gsl::span<T> span(const int index) const
-  {
-    return {pointer(index), size(index)};
-  }
-
-  std::string name(const int index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return m_argument_data_v[index].name();
-  }
-
-  size_t size_of_aggregate() const { return m_argument_data_v.size(); }
-};
-
-/**
  * @brief Manager of argument references for every handler.
  */
 template<
@@ -229,13 +181,61 @@ public:
   }
 };
 
+/**
+ * @brief Aggregate datatype
+ */
+template<typename T>
+struct InputAggregate {
+private:
+  std::vector<ArgumentData> m_argument_data_v;
+
+public:
+  InputAggregate() = default;
+
+  template<typename Tuple, std::size_t... Is>
+  InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
+  {}
+
+  T* pointer(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    auto pointer = m_argument_data_v[index].pointer();
+    return reinterpret_cast<T*>(pointer);
+  }
+
+  T first(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    return pointer(index)[0];
+  }
+
+  size_t size(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    return m_argument_data_v[index].size();
+  }
+
+  gsl::span<T> span(const int index) const
+  {
+    return {pointer(index), size(index)};
+  }
+
+  std::string name(const int index) const
+  {
+    assert(index < m_argument_data_v.size() && "Index is in bounds");
+    return m_argument_data_v[index].name();
+  }
+
+  size_t size_of_aggregate() const { return m_argument_data_v.size(); }
+};
+
 template<typename T, typename... Ts>
 static auto makeInputAggregate(std::tuple<Ts...> tp)
 {
   return InputAggregate<T> {tp, std::make_index_sequence<sizeof...(Ts)>()};
 }
 
-// Support for multiparameters
+// Macro
 #define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                            \
   struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                   \
     using type = InputAggregate<__VA_ARGS__>;                                                       \
