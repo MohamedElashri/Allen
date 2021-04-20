@@ -65,11 +65,14 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
     # Add the PyConf dependency in STANDALONE
     find_package(Git REQUIRED)
     add_custom_command(
-      OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
+      OUTPUT "${PROJECT_SEQUENCE_DIR}/LHCb" "${PROJECT_SEQUENCE_DIR}/PyConf" "${PROJECT_SEQUENCE_DIR}/Gaudi" "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
       COMMAND
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb --no-checkout &&
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} -C LHCb/ checkout origin/dcampora_nnolte_mes_pyconf -- PyConf &&
-        ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi --no-checkout &&
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} -C Gaudi/ checkout HEAD -- GaudiKernel &&
+        ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf &&
+        ${CMAKE_COMMAND} -E create_symlink Gaudi/GaudiKernel/python/GaudiKernel GaudiKernel
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h"
@@ -85,8 +88,8 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   endif()
 else()
-  message(STATUS "No suitable libClang installation found")
-  message(STATUS "You may provide a custom path to llvm-config setting LLVM_CONFIG manually")
+  message(FATAL_ERROR "No suitable libClang installation found. "
+                      "You may provide a custom path to llvm-config setting LLVM_CONFIG manually")
 endif()
 
 install(FILES "${PROJECT_BINARY_DIR}/Sequence.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")

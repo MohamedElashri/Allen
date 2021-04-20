@@ -13,7 +13,7 @@
 #include <x86intrin.h>
 
 #ifdef __APPLE__
-#include <CpuID.h>
+#include <CPUID.h>
 #else
 #include <cpuid.h>
 #endif
