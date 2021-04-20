@@ -6,12 +6,6 @@
 #include "HostAlgorithm.cuh"
 #include <string>
 
-// Note: This include is required when aggregates are used in the parameter list
-//       (ie. DEVICE_INPUT_AGGREGATE, HOST_INPUT_AGGREGATE).
-//       This also requires that the relevant CMakeLists.txt depend on configured_sequence, ie.
-//       add_dependencies(Selections configured_sequence)
-#include "ConfiguredInputAggregates.h"
-
 namespace gather_selections {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;

@@ -116,22 +116,6 @@ class AlgorithmCategory(Enum):\n\
         return s
 
     @staticmethod
-    def write_aggregate_algorithms(algorithms, i=0):
-        s = "def algorithms_with_aggregates():\n"
-        i += 1
-        s += AllenCore.prefix(i) + "return ["
-        algorithms_with_aggregates = []
-        for algorithm in algorithms:
-            if len([var for var in algorithm.parameters if var.aggregate]):
-                algorithms_with_aggregates.append(algorithm)
-        if len(algorithms_with_aggregates):
-            for algorithm in algorithms_with_aggregates:
-                s += algorithm.name + ", "
-            s = s[:-2]
-        s += "]\n\n"
-        return s
-
-    @staticmethod
     def get_algorithm_category(name, scope):
         if name == "data_provider_t":
             return "DataProvider"
@@ -234,7 +218,6 @@ if __name__ == '__main__':
     s = allen_conf.write_preamble()
     for algorithm in parsed_algorithms:
         s += allen_conf.write_algorithm_code(algorithm)
-    s += allen_conf.write_aggregate_algorithms(parsed_algorithms)
 
     f = open(args.filename, "w")
     f.write(s)
