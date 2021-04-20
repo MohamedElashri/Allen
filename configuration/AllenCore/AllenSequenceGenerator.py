@@ -29,8 +29,6 @@ def generate_sequence(algorithms, sequence_filename, prefix_includes):
 
     # Fetch all parameters from all algorithms
     parameters = OrderedDict([])
-    parameters_part_of_aggregates = []
-    input_aggregates_parameter_full_names = OrderedDict([])
     for algorithm in algorithms:
         # All parameters
         all_parameters = [
@@ -60,8 +58,6 @@ def generate_sequence(algorithms, sequence_filename, prefix_includes):
                         single_parameter.location)
                     assert (parameter_full_name in parameters
                             ), "Inputs should be provided by some output"
-                    parameters_part_of_aggregates.append(
-                        parameter_full_name)
 
     # Generate parameters with inheriting classes that are not in aggregates
     for parameter_full_name, v in iter(parameters.items()):
