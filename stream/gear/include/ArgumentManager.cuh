@@ -196,7 +196,7 @@ public:
   InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
   {}
 
-  T* pointer(const int index) const
+  T* data(const int index) const
   {
     assert(index < m_argument_data_v.size() && "Index is in bounds");
     auto pointer = m_argument_data_v[index].pointer();
@@ -206,7 +206,7 @@ public:
   T first(const int index) const
   {
     assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return pointer(index)[0];
+    return data(index)[0];
   }
 
   size_t size(const int index) const
@@ -217,7 +217,7 @@ public:
 
   gsl::span<T> span(const int index) const
   {
-    return {pointer(index), size(index)};
+    return {data(index), size(index)};
   }
 
   std::string name(const int index) const
