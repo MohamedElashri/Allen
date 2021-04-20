@@ -215,10 +215,7 @@ public:
     return m_argument_data_v[index].size();
   }
 
-  gsl::span<T> span(const int index) const
-  {
-    return {data(index), size(index)};
-  }
+  gsl::span<T> span(const int index) const { return {data(index), size(index)}; }
 
   std::string name(const int index) const
   {

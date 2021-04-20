@@ -49,7 +49,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
   const HostBuffers&) const
 {
   // Sum all the sizes from input selections
-  const auto sum_sizes_from_aggregate = [] (const auto& agg) {
+  const auto sum_sizes_from_aggregate = [](const auto& agg) {
     size_t total_size = 0;
     for (size_t i = 0; i < agg.size_of_aggregate(); ++i) {
       total_size += agg.size(i);
@@ -59,8 +59,10 @@ void gather_selections::gather_selections_t::set_arguments_size(
 
   const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
   const auto total_size_dev_input_selections = sum_sizes_from_aggregate(dev_input_selections);
-  const auto total_size_host_input_post_scale_factors = sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
-  const auto host_input_post_scale_hashes = sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_hashes_t>(arguments));
+  const auto total_size_host_input_post_scale_factors =
+    sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
+  const auto host_input_post_scale_hashes =
+    sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_hashes_t>(arguments));
 
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);
@@ -103,33 +105,33 @@ void gather_selections::gather_selections_t::operator()(
   auto* container = data<host_selections_lines_offsets_t>(arguments);
   container[0] = 0;
   for (size_t i = 0; i < dev_input_selections.size_of_aggregate(); ++i) {
-    container[i+1] = container[i] + dev_input_selections.size(i);
+    container[i + 1] = container[i] + dev_input_selections.size(i);
   }
 
   // Populate dev_selections_t
   Allen::aggregate::store_contiguous(
-    gsl::span{data<dev_selections_t>(arguments), size<dev_selections_t>(arguments)},
+    gsl::span {data<dev_selections_t>(arguments), size<dev_selections_t>(arguments)},
     dev_input_selections,
     context,
     Allen::memcpyDeviceToDevice);
 
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
   Allen::aggregate::store_contiguous(
-    gsl::span{data<host_selections_offsets_t>(arguments), size<host_selections_offsets_t>(arguments)},
+    gsl::span {data<host_selections_offsets_t>(arguments), size<host_selections_offsets_t>(arguments)},
     input_aggregate<dev_input_selections_offsets_t>(arguments),
     context,
     Allen::memcpyDeviceToHost);
 
   // Populate host_post_scale_factors_t
   Allen::aggregate::store_contiguous(
-    gsl::span{data<host_post_scale_factors_t>(arguments), size<host_post_scale_factors_t>(arguments)},
+    gsl::span {data<host_post_scale_factors_t>(arguments), size<host_post_scale_factors_t>(arguments)},
     input_aggregate<host_input_post_scale_factors_t>(arguments),
     context,
     Allen::memcpyHostToHost);
 
   // Populate host_post_scale_hashes_t
   Allen::aggregate::store_contiguous(
-    gsl::span{data<host_post_scale_hashes_t>(arguments), size<host_post_scale_hashes_t>(arguments)},
+    gsl::span {data<host_post_scale_hashes_t>(arguments), size<host_post_scale_hashes_t>(arguments)},
     input_aggregate<host_input_post_scale_hashes_t>(arguments),
     context,
     Allen::memcpyHostToHost);

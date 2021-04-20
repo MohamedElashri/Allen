@@ -109,17 +109,17 @@ namespace details {
 
   template<>
   struct FlattenTuple<std::tuple<>> {
-      using type = std::tuple<>;
+    using type = std::tuple<>;
   };
 
-  template<typename ... InTuple, typename ... Ts>
-  struct FlattenTuple<std::tuple<std::tuple<InTuple...>, Ts...>>{
-      using type = cat_tuples_t<std::tuple<InTuple...>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+  template<typename... InTuple, typename... Ts>
+  struct FlattenTuple<std::tuple<std::tuple<InTuple...>, Ts...>> {
+    using type = cat_tuples_t<std::tuple<InTuple...>, typename FlattenTuple<std::tuple<Ts...>>::type>;
   };
 
-  template<typename T, typename ... Ts>
-  struct FlattenTuple<std::tuple<T, Ts...>>{
-      using type = cat_tuples_t<std::tuple<T>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+  template<typename T, typename... Ts>
+  struct FlattenTuple<std::tuple<T, Ts...>> {
+    using type = cat_tuples_t<std::tuple<T>, typename FlattenTuple<std::tuple<Ts...>>::type>;
   };
 } // namespace details
 

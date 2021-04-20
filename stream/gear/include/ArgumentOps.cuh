@@ -163,19 +163,15 @@ namespace Allen {
   {
     static_assert(sizeof(T) == sizeof(S));
     assert((container_a.size() - offset_a) >= count && (container_b.size() - offset_b) >= count);
-    Allen::memcpy_async(
-      container_a.data() + offset_a, container_b.data() + offset_b, count * sizeof(T), kind, context);
+    Allen::memcpy_async(container_a.data() + offset_a, container_b.data() + offset_b, count * sizeof(T), kind, context);
   }
 
   /**
    * @brief Copies container_b into container_a.
    */
   template<typename T, typename S>
-  void copy(
-    gsl::span<T> container_a,
-    gsl::span<S> container_b,
-    const Allen::Context& context,
-    const Allen::memcpy_kind kind)
+  void
+  copy(gsl::span<T> container_a, gsl::span<S> container_b, const Allen::Context& context, const Allen::memcpy_kind kind)
   {
     static_assert(sizeof(T) == sizeof(S));
     assert(container_a.size() == container_b.size());
@@ -196,17 +192,11 @@ namespace Allen {
       static_assert(sizeof(T) == sizeof(S));
       unsigned container_offset = 0;
       for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
-        Allen::copy(
-          container,
-          aggregate.span(i),
-          context,
-          kind,
-          aggregate.size(i),
-          container_offset);
+        Allen::copy(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
         container_offset += aggregate.size(i);
       }
     }
-  }
+  } // namespace aggregate
 } // namespace Allen
 
 /**
@@ -234,8 +224,8 @@ void copy(
     kind = Allen::memcpyDeviceToDevice;
 
   Allen::copy(
-    gsl::span{data<A>(arguments), size<A>(arguments)},
-    gsl::span{data<B>(arguments), size<B>(arguments)},
+    gsl::span {data<A>(arguments), size<A>(arguments)},
+    gsl::span {data<B>(arguments), size<B>(arguments)},
     context,
     kind,
     count,
