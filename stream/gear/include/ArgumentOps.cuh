@@ -48,7 +48,7 @@ size_t size(const Args& arguments)
  * @brief Returns a pointer to the container with the container type.
  */
 template<typename Arg, typename Args>
-typename Arg::type* data(const Args& arguments)
+auto data(const Args& arguments)
 {
   return arguments.template pointer<Arg>();
 }
@@ -66,9 +66,18 @@ std::string name(Args arguments)
  * @brief Returns the first element in the container.
  */
 template<typename Arg, typename Args>
-typename Arg::type first(const Args& arguments)
+auto first(const Args& arguments)
 {
   return arguments.template first<Arg>();
+}
+
+/**
+ * @brief Fetches an aggregate value.
+ */
+template<typename Arg, typename Args>
+auto aggregate(const Args& arguments)
+{
+  return arguments.template aggregate<Arg>();
 }
 
 template<typename Arg, typename Args, typename T>

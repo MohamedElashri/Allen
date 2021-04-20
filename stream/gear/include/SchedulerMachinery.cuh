@@ -250,7 +250,9 @@ namespace Sch {
   template<typename ArgumentsTuple, typename... Parameters>
   struct ProduceInputAggregate<ArgumentsTuple, std::tuple<Parameters...>> {
     constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array) {
-      return makeInputAggregate(std::tuple{arguments_array[index_of_v<Parameters, ArgumentsTuple>]...});
+      using T = std::conditional_t<std::is_same_v<std::tuple<Parameters...>, std::tuple<>>, int, typename std::tuple_element_t<0, std::tuple<Parameters...>>::type>;
+      static_assert((std::is_same_v<typename Parameters::type, T> && ...));
+      return makeInputAggregate<T>(std::tuple{arguments_array[index_of_v<Parameters, ArgumentsTuple>]...});
     }
   };
 

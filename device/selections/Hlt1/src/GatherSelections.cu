@@ -116,6 +116,10 @@ void gather_selections::gather_selections_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
+  // Attempt to access input aggregate
+  const auto dev_input_selections = aggregate<dev_input_selections_t>(arguments);
+  info_cout << "Aggregate size: " << dev_input_selections.aggregate_size() << "\n";
+
   // set_size<host_number_of_active_lines_t>(arguments, 1);
   // set_size<dev_number_of_active_lines_t>(arguments, 1);
   // set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size());

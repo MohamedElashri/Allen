@@ -105,8 +105,6 @@ private:
 public:
   InputAggregate() = default;
 
-  InputAggregate(const std::vector<ArgumentData>& argument_data_v) : m_argument_data_v(argument_data_v) {}
-
   template<typename Tuple, std::size_t... Is>
   InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
   {}
@@ -135,6 +133,8 @@ public:
     assert(index < m_argument_data_v.size() && "Index is in bounds");
     return m_argument_data_v[index].name();
   }
+
+  size_t aggregate_size() const { return m_argument_data_v.size(); }
 };
 
 /**
@@ -220,32 +220,32 @@ public:
   template<typename T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>, bool> = true>
   auto aggregate() const
   {
-    return std::get<T>(m_input_aggregates);
+    return std::get<T>(m_input_aggregates).value();
   }
 };
 
-template<typename... Ts>
-static auto makeInputAggregate(std::tuple<Ts...> tuple)
+template<typename T, typename... Ts>
+static auto makeInputAggregate(std::tuple<Ts...> tp)
 {
-  using T = std::conditional_t<std::is_same_v<tuple, std::tuple<>>, int, typename std::tuple_element_t<0, std::tuple<Ts...>>::type>;
-  static_assert((std::is_same_v<typename Ts::type, T> && ...));
-  return InputAggregate<T>{tuple, std::make_index_sequence<sizeof...(Ts)>()};
+  return InputAggregate<T> {tp, std::make_index_sequence<sizeof...(Ts)>()};
 }
 
 // Support for multiparameters
-#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)               \
-  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {      \
-    using type = InputAggregate<__VA_ARGS__>;                          \
-    void parameter(__VA_ARGS__) const {}                               \
-    using deps = std::tuple<>;                                         \
-  private:                                                             \
-    type m_value {};                                                   \
+#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                            \
+  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                   \
+    using type = InputAggregate<__VA_ARGS__>;                                                       \
+    void parameter(__VA_ARGS__) const {}                                                            \
+    using deps = std::tuple<>;                                                                      \
+    ARGUMENT_NAME() = default;                                                                      \
+    ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                        \
+    template<typename... Ts>                                                                        \
+    ARGUMENT_NAME(std::tuple<Ts...> value) : m_value(makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
+    {}                                                                                              \
+    const type& value() const { return m_value; }                                                   \
+                                                                                                    \
+  private:                                                                                          \
+    type m_value {};                                                                                \
   }
-
-  // template<typename T>                                               
-  //   ARGUMENT_NAME(const T& value) : m_value(makeInputAggregate(value)) 
-  //   {}                                                                 
-  //   ARGUMENT_NAME() = default;                                         
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
 
@@ -290,7 +290,9 @@ struct WrappedTuple<std::tuple<T, R...>, std::enable_if_t<std::is_base_of_v<aggr
 template<typename T, typename... R>
 struct WrappedTuple<
   std::tuple<T, R...>,
-  std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> && !std::is_base_of_v<aggregate_datatype, T>>> {
+  std::enable_if_t<
+    !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> &&
+    !std::is_base_of_v<aggregate_datatype, T>>> {
   using prev_wrapped_tuple = WrappedTuple<std::tuple<R...>>;
   using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
   using parameters_and_properties_tuple_t = prepend_to_tuple_t<T, prev_parameters_and_properties_tuple_t>;
