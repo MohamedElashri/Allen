@@ -9,7 +9,8 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 hlt1_node = setup_hlt1_node()
 
 calo_node = CompositeNode(
-    "CaloReconstruction", [hlt1_node, decode_calo()["dev_ecal_digits"].producer],
+    "CaloReconstruction",
+    [hlt1_node, decode_calo()["dev_ecal_digits"].producer],
     NodeLogic.NONLAZY_AND,
     force_order=False)
 

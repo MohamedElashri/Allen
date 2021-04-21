@@ -8,8 +8,10 @@ from AllenCore.event_list_utils import make_algorithm
 
 def decode_calo():
     number_of_events = initialize_number_of_events()
-    ecal_banks = make_algorithm(data_provider_t, name="ecal_banks", bank_type="EcalPacked")
-    hcal_banks = make_algorithm(data_provider_t, name="hcal_banks", bank_type="HcalPacked")
+    ecal_banks = make_algorithm(
+        data_provider_t, name="ecal_banks", bank_type="EcalPacked")
+    hcal_banks = make_algorithm(
+        data_provider_t, name="hcal_banks", bank_type="HcalPacked")
 
     calo_count_digits = make_algorithm(
         calo_count_digits_t,
