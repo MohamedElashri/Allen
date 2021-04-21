@@ -111,10 +111,15 @@ public:
     VOC<LHCb::RawEvent*> const& rawEvents) const override;
 
 private:
-  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes {
-    this,
-    "BankTypes",
-    {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon, LHCb::RawBank::ODIN}};
+  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes {this,
+                                                                  "BankTypes",
+                                                                  {LHCb::RawBank::VP,
+                                                                   LHCb::RawBank::UT,
+                                                                   LHCb::RawBank::FTCluster,
+                                                                   LHCb::RawBank::Muon,
+                                                                   LHCb::RawBank::ODIN,
+                                                                   LHCb::RawBank::EcalPacked,
+                                                                   LHCb::RawBank::HcalPacked}};
 
   std::array<AIDA::IHistogram1D*, LHCb::RawBank::LastType> m_histos;
 };

@@ -22,11 +22,17 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
     make_tuple(Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)),
     make_tuple(
       Allen::NonEventData::SciFiGeometry {},
-      std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)),
+      std::make_unique<Consumers::HostDeviceGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)),
     make_tuple(
       Allen::NonEventData::MagneticField {}, std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)),
     make_tuple(Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)),
     make_tuple(Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)),
+    make_tuple(
+      Allen::NonEventData::ECalGeometry {},
+      std::make_unique<Consumers::HostDeviceGeometry>(constants.host_ecal_geometry, constants.dev_ecal_geometry)),
+    make_tuple(
+      Allen::NonEventData::HCalGeometry {},
+      std::make_unique<Consumers::HostDeviceGeometry>(constants.host_hcal_geometry, constants.dev_hcal_geometry)),
     make_tuple(
       Allen::NonEventData::MuonGeometry {},
       std::make_unique<Consumers::MuonGeometry>(

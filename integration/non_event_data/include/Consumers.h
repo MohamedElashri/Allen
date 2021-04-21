@@ -64,9 +64,9 @@ namespace Consumers {
     size_t m_size = 0;
   };
 
-  struct SciFiGeometry final : public Allen::NonEventData::Consumer {
+  struct HostDeviceGeometry final : public Allen::NonEventData::Consumer {
   public:
-    SciFiGeometry(std::vector<char>& host_geometry, char*& dev_geometry);
+    HostDeviceGeometry(std::vector<char>& host_geometry, char*& dev_geometry);
 
     void consume(std::vector<char> const& data) override;
 

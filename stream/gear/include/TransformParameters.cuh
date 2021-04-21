@@ -31,7 +31,10 @@ struct ProduceSingleParameter<
   ArgMan,
   T,
   typename std::enable_if_t<std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>>> {
-  constexpr static auto produce(const ArgMan& arguments, const std::map<std::string, Allen::BaseProperty*>&)
+  constexpr static auto produce(
+    const ArgMan& arguments,
+    const std::map<std::string, Allen::BaseProperty*>&,
+    const Allen::KernelInvocationConfiguration&)
   {
     return data<T>(arguments);
   }
@@ -44,8 +47,13 @@ template<typename ArgMan, typename T>
 struct ProduceSingleParameter<
   ArgMan,
   T,
-  typename std::enable_if_t<!std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T>>> {
-  constexpr static auto produce(const ArgMan&, const std::map<std::string, Allen::BaseProperty*>& properties)
+  typename std::enable_if_t<
+    !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> &&
+    !std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
+  constexpr static auto produce(
+    const ArgMan&,
+    const std::map<std::string, Allen::BaseProperty*>& properties,
+    const Allen::KernelInvocationConfiguration&)
   {
     if (properties.find(T::name) == properties.end()) {
       throw std::runtime_error {"property " + std::string(T::name) + " not found"};
@@ -57,6 +65,23 @@ struct ProduceSingleParameter<
   }
 };
 
+/**
+ * @brief Produces KernelInvocationConfiguration.
+ */
+template<typename ArgMan, typename T>
+struct ProduceSingleParameter<
+  ArgMan,
+  T,
+  typename std::enable_if_t<std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
+  constexpr static auto produce(
+    const ArgMan&,
+    const std::map<std::string, Allen::BaseProperty*>&,
+    const Allen::KernelInvocationConfiguration& config)
+  {
+    return config;
+  }
+};
+
 template<typename ArgMan, typename Tuple>
 struct TransformParametersImpl;
 
@@ -64,9 +89,10 @@ template<typename ArgMan, typename... T>
 struct TransformParametersImpl<ArgMan, std::tuple<T...>> {
   constexpr static typename ArgMan::parameters_struct_t transform(
     const ArgMan& arguments,
-    const std::map<std::string, Allen::BaseProperty*>& properties)
+    const std::map<std::string, Allen::BaseProperty*>& properties,
+    const Allen::KernelInvocationConfiguration& config)
   {
-    return {ProduceSingleParameter<ArgMan, T>::produce(arguments, properties)...};
+    return {ProduceSingleParameter<ArgMan, T>::produce(arguments, properties, config)...};
   }
 };
 
@@ -80,7 +106,8 @@ struct TransformParametersImpl<ArgMan, std::tuple<T...>> {
  */
 template<typename T>
 struct TransformParameters {
-  constexpr static auto transform(T&& t, const std::map<std::string, Allen::BaseProperty*>&)
+  constexpr static auto
+  transform(T&& t, const std::map<std::string, Allen::BaseProperty*>&, const Allen::KernelInvocationConfiguration&)
   {
     return std::forward<T>(t);
   }
@@ -93,10 +120,11 @@ template<typename... T>
 struct TransformParameters<const ArgumentRefManager<T...>&> {
   constexpr static auto transform(
     const ArgumentRefManager<T...>& t,
-    const std::map<std::string, Allen::BaseProperty*>& properties)
+    const std::map<std::string, Allen::BaseProperty*>& properties,
+    const Allen::KernelInvocationConfiguration& config)
   {
     return TransformParametersImpl<
       ArgumentRefManager<T...>,
-      typename ArgumentRefManager<T...>::parameters_and_properties_tuple_t>::transform(t, properties);
+      typename ArgumentRefManager<T...>::parameters_and_properties_tuple_t>::transform(t, properties, config);
   }
 };

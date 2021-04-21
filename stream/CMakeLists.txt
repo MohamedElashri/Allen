@@ -17,6 +17,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/muon/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/calo/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/UT/UTDecoding/include)
@@ -35,6 +36,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/looking_forward/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/associate/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/calo/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/muon/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/muon/is_muon/include)
@@ -108,6 +110,7 @@ target_link_libraries(Stream PRIVATE
   Selections
   SciFi
   HostGEC
+  Calo
   Muon
   Utils
   Examples

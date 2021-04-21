@@ -3,11 +3,10 @@
 # (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 import os
+from functools import partial
 from GaudiPython.Bindings import AppMgr, gbl
 from Configurables import LHCbApp, CondDB, ApplicationMgr
-from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
-from Configurables import DumpMuonGeometry, DumpVPGeometry, AllenUpdater
-from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
+from Allen.config import setup_allen_non_event_data_service
 import argparse
 
 # Load Allen entry point and helpers
@@ -70,18 +69,8 @@ app = LHCbApp(
 
 # Upgrade DBs
 CondDB().Upgrade = True
-# include from here
-producers = [
-    p(DumpToFile=False)
-    for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry, DumpMuonGeometry,
-              DumpMuonTable, DumpMagneticField, DumpBeamline,
-              DumpUTLookupTables)
-]
 
-# Add the services that will produce the non-event-data
-ApplicationMgr().ExtSvc += [
-    AllenUpdater(OutputLevel=2),
-] + producers
+setup_allen_non_event_data_service()
 
 # Some extra stuff for timing table
 ApplicationMgr().EvtSel = "NONE"

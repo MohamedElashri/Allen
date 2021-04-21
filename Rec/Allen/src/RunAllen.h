@@ -54,7 +54,9 @@ private:
                                                    LHCb::RawBank::VP,
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
-                                                   LHCb::RawBank::Muon};
+                                                   LHCb::RawBank::Muon,
+                                                   LHCb::RawBank::EcalPacked,
+                                                   LHCb::RawBank::HcalPacked};
   std::vector<std::string> m_line_names;
   const unsigned m_number_of_streams = 1;
   const unsigned m_number_of_repetitions = 1;

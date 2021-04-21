@@ -46,5 +46,18 @@ namespace Allen {
       inline static std::string const id = "MuonLookupTables";
     };
 
+    /** @class HCalGeometry
+     *  Identifier for the HCal geometry in Allen
+     */
+    struct HCalGeometry : Identifier {
+      inline static std::string const id = "HcalGeometry";
+    };
+
+    /** @class ECalGeometry
+     *  Identifier for the ECal geometry in Allen
+     */
+    struct ECalGeometry : Identifier {
+      inline static std::string const id = "EcalGeometry";
+    };
   } // namespace NonEventData
 } // namespace Allen

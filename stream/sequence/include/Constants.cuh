@@ -81,6 +81,12 @@ struct Constants {
   // Looking forward
   LookingForward::Constants* host_looking_forward_constants;
 
+  // Calo
+  std::vector<char> host_ecal_geometry;
+  char* dev_ecal_geometry = nullptr;
+  std::vector<char> host_hcal_geometry;
+  char* dev_hcal_geometry = nullptr;
+
   // Muon
   char* dev_muon_geometry_raw = nullptr;
   char* dev_muon_lookup_tables_raw = nullptr;

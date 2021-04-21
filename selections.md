@@ -6,12 +6,13 @@
     3.  [EventLine](#eventline)
     4.  [Custom selections](#custom-selections)
 2.  [Adding a new selection](#adding-a-new-selection)
-    1.  [Creating a selection](#creating-a-selection)
+    1. [Choosing the right directory](#choosing-the-right-directory)
+    2.  [Creating a selection](#creating-a-selection)
         1.  [OneTrackLine example](#onetrackline-example)
         2.  [TwoTrackLine example](#twotrackline-example)
         3.  [EventLine example](#eventline-example)
         4.  [CustomLine example](#customline-example)
-    2.  [Adding your selection algorithm to the Allen sequence](#adding-your-selection-to-the-allen-sequence)
+    3.  [Adding your selection algorithm to the Allen sequence](#adding-your-selection-to-the-allen-sequence)
 
 
 # Allen: Adding a new selection
@@ -97,6 +98,18 @@ now this includes the ODIN raw bank. This includes minimum bias and lumi lines.
 A custom selection can trigger on any input data, and can either be based on event-level information, or on more specific information.
 
 ## Adding a new selection
+### Choosing the right directory
+
+HLT1 selection lines live in the directory  `device/selections/lines` and are grouped into directories based on the selection purpose. Currently, the following subdirectories exist:
+* calibration (includes alignment)
+* charm
+* inclusive_hadron
+* muon
+* monitoring
+
+If your new selection fits into any of these categories, please add it in the respective directory. If not, feel free to create a new one and discuss in your merge request why you believe a new directory is required. 
+
+Every sub-directory contains a `include` and a `src` directory where the header and source files are placed.
 
 ### Creating a selection
 
@@ -159,8 +172,8 @@ Below are four examples of lines.
 #### OneTrackLine example
 
 As an example, we'll create a line that triggers on highly displaced,
-high-pT single long tracks. It will be of type `OneTrackLine`. We will create the
-header `device/selections/lines/include/ExampleOneTrackLine.cuh`.
+high-pT single long tracks. It will be of type `OneTrackLine`. We will first create the
+header.
         
 ```c++
 #pragma once
@@ -212,7 +225,7 @@ namespace example_one_track_line {
 } // namespace example_one_track_line
 ```
 
-And the source in `device/selections/lines/src/ExampleOneTrackLine.cu`:
+And the then the source:
 
 ```c++
 #include "ExampleOneTrackLine.cuh"
@@ -236,8 +249,7 @@ necessary to define any function other than `select`.
 #### TwoTrackLine example
 
 Here we'll create an example of a 2-long-track line that selects displaced
-secondary vertices with no postscale. This lines inherit from `TwoTrackLine`. We'll create a header in
-`device/selections/lines/include/ExampleTwoTrackLine.cuh` with the following contents:
+secondary vertices with no postscale. This lines inherit from `TwoTrackLine`. We'll create a header with the following contents:
     
 ```c++
 #pragma once
@@ -292,7 +304,7 @@ namespace example_two_track_line {
 } // namespace example_two_track_line
 ```
 
-And a source in `device/selections/lines/src/ExampleTwoTrackLine.cu` with the following:
+And a source with the following:
 
 ```c++
 #include "ExampleTwoTrackLine.cuh"
@@ -322,7 +334,7 @@ __device__ bool example_two_track_line::example_two_track_line_t::select(
 Now we'll define a line that selects events with at least 1 reconstructed VELO track. This line runs once per event, so it inherits from `EventLine`.
 This time, we will need to define not only the `select` function, but also the `get_input` function, as we need custom data to feed into our line (the number of tracks in an event).
 
-The header `VeloMicroBiasLine.cuh` is as follows:
+The header `technical/include/VeloMicroBiasLine.cuh` is as follows:
 
 ```c++
 #pragma once
@@ -376,7 +388,7 @@ namespace velo_micro_bias_line {
 
 Note that we have added three inputs to obtain VELO track information (`dev_offsets_velo_tracks_t`, `dev_offsets_velo_track_hit_number_t` and `dev_number_of_events_t`). Finally, `get_input` is declared as well, which we will have to define in the source file. `get_input` will return a `std::tuple<const unsigned>`, which is the type of the `input` argument in `select`.
 
-The source file looks as follows:
+The source file `technical/src/VeloMicroBiasLine.cu` looks as follows:
 
 ```c++
 #include "VeloMicroBiasLine.cuh"

@@ -17,12 +17,14 @@
     <text>../options/upgrade-minbias-testfiledb.py</text>
     <text>../options/test_geometry.py</text>
   </set></argument>
-  <arguement name="timeout"><integer>600</integer></arguement>
+  <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
+  <argument name="timeout"><integer>600</integer></argument>
   <argument name="validator"><text>
+import os
 test_name = "dumpers.dump"
 
 ref_sizes = {}
-with open('../refs/dump.ref') as ref:
+with open(os.path.expandvars('$BINARYDUMPERSROOT/tests/refs/dump.ref')) as ref:
     for line in ref:
         f, s = line.strip().split()
         ref_sizes[f] = int(s)

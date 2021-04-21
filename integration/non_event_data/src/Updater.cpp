@@ -53,6 +53,8 @@ namespace Allen {
                        tuple {NonEventData::UTGeometry {}, std::string("ut_geometry.bin")},
                        tuple {NonEventData::UTLookupTables {}, std::string("ut_tables.bin")},
                        tuple {NonEventData::SciFiGeometry {}, std::string("scifi_geometry.bin")},
+                       tuple {NonEventData::ECalGeometry {}, std::string("ecal_geometry.bin")},
+                       tuple {NonEventData::HCalGeometry {}, std::string("hcal_geometry.bin")},
                        tuple {NonEventData::MuonGeometry {}, std::string("muon_geometry.bin")},
                        tuple {NonEventData::MuonLookupTables {}, std::string("muon_tables.bin")}};
 

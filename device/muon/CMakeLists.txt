@@ -17,6 +17,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/velo/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/SciFi/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/calo/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -54,4 +55,3 @@ allen_add_device_library(Muon STATIC
 )
 
 target_link_libraries(Muon Utils)
-
