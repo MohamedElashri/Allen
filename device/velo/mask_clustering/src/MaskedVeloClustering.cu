@@ -557,6 +557,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
   const unsigned estimated_number_of_clusters =
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
   auto velo_cluster_container = Velo::Clusters {parameters.dev_velo_cluster_container, estimated_number_of_clusters};
+  parameters.dev_velo_clusters[event_number] = velo_cluster_container;
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
@@ -566,7 +567,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
 
   // process no neighbour sp
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
-    const auto module_pair_number = raw_bank_number >> 2;
+    const auto module_pair_number = raw_bank_number / 8;
     const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
 
     // Read raw bank

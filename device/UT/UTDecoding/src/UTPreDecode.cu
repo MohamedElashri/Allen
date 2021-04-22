@@ -198,7 +198,7 @@ __global__ void ut_pre_decode::ut_pre_decode_mep(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets)
 {
-  const uint32_t number_of_events = gridDim.x;
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;

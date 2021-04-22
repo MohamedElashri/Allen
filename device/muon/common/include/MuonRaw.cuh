@@ -11,7 +11,6 @@ namespace Muon {
     uint32_t sourceID;
     uint16_t* data;
     uint16_t* last;
-    size_t m_size;
 
     __device__ MuonRawBank(const char* raw_bank, const char* end)
     {
@@ -20,7 +19,6 @@ namespace Muon {
       p += sizeof(uint32_t);
       data = (uint16_t*) p;
       last = (uint16_t*) end;
-      m_size = end - p;
     }
 
     __device__ MuonRawBank(const uint32_t sID, const char* bank_start, const char* bank_end)
@@ -28,14 +26,12 @@ namespace Muon {
       sourceID = sID;
       data = (uint16_t*) bank_start;
       last = (uint16_t*) bank_end;
-      m_size = bank_start - bank_end;
     }
-
   };
 
   struct MuonRawEvent {
-    static constexpr size_t number_of_raw_banks = 10;
     static constexpr size_t batches_per_bank = 4;
+    uint32_t number_of_raw_banks;
 
     uint32_t* raw_bank_offset;
     char* payload;
@@ -43,7 +39,7 @@ namespace Muon {
     __device__ MuonRawEvent(const char* event)
     {
       const char* p = event;
-      assert(*((uint32_t*) p) == number_of_raw_banks);
+      number_of_raw_banks = ((uint32_t*) p)[0];
       p += sizeof(uint32_t);
       raw_bank_offset = (uint32_t*) p;
       p += (number_of_raw_banks + 1) * sizeof(uint32_t);

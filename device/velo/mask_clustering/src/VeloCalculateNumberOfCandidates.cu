@@ -64,16 +64,16 @@ __global__ void velo_calculate_number_of_candidates::velo_calculate_number_of_ca
   velo_calculate_number_of_candidates::Parameters parameters,
   const unsigned number_of_events)
 {
-  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
-    const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  for (auto event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_events;
+       event_index += blockDim.x * gridDim.x) {
+    const unsigned event_number = parameters.dev_event_list[event_index];
     auto const number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
 
     unsigned number_of_candidates = 0;
     for (unsigned raw_bank_number = 0; raw_bank_number < number_of_raw_banks; ++raw_bank_number) {
       // Create raw bank from MEP layout
       const auto raw_bank = MEP::raw_bank<VeloRawBank>(
-        parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
+        parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
       number_of_candidates += raw_bank.sp_count;
     }
 

@@ -91,7 +91,7 @@ namespace EB {
     {
       using detail::padded_size;
       return (
-        base_size() + +padded_size<decltype(source_ids)::value_type>(nb) * sizeof(decltype(source_ids)::value_type) +
+        base_size() + padded_size<decltype(source_ids)::value_type>(nb) * sizeof(decltype(source_ids)::value_type) +
         padded_size<decltype(versions)::value_type>(nb) * sizeof(decltype(versions)::value_type) +
         padded_size<decltype(offsets)::value_type>(nb) * sizeof(decltype(offsets)::value_type));
     }

@@ -116,6 +116,7 @@ int allen(
   bool print_status = 0;
   uint inject_mem_fail = 0;
   uint mon_save_period = 0;
+  std::string mon_filename;
   bool disable_run_changes = 0;
 
   std::string flag, arg;
@@ -228,6 +229,9 @@ int allen(
     }
     else if (flag_in({"inject-mem-fail"})) {
       inject_mem_fail = atoi(arg.c_str());
+    }
+    else if (flag_in({"monitoring-filename"})) {
+      mon_filename = arg;
     }
     else if (flag_in({"monitoring-save-period"})) {
       mon_save_period = atoi(arg.c_str());
@@ -995,7 +999,7 @@ int allen(
 
     // periodically save monitoring histograms
     if (mon_save_period > 0 && t_mon.get_elapsed_time() >= mon_save_period) {
-      monitor_manager->saveHistograms("monitoringHists.root");
+      monitor_manager->saveHistograms(mon_filename);
       info_cout << "Saved monitoring histograms" << std::endl;
       t_mon.restart();
     }
@@ -1084,7 +1088,7 @@ loop_error:
   if (print_status) {
     buffer_manager->printStatus();
   }
-  monitor_manager->saveHistograms("monitoringHists.root");
+  monitor_manager->saveHistograms(mon_filename);
 
   // Print checker reports
   if (do_check) {
