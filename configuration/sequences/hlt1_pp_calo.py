@@ -4,6 +4,7 @@
 from AllenConf.HLT1 import setup_hlt1_node
 from AllenCore.event_list_utils import generate
 from AllenConf.calo_reconstruction import decode_calo
+from PyConf.control_flow import NodeLogic, CompositeNode
 
 hlt1_node = setup_hlt1_node()
 
