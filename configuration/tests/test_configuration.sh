@@ -12,15 +12,14 @@
 
 # Prepare tests in a separate dir
 TEST_DIR=$(mktemp -d)
-cp -r ${1}/sequences ${TEST_DIR}
-cp ${1}/tests/test_algorithms.py ${TEST_DIR}/sequences/AllenConf/algorithms.py
-cp -r ${1}/AllenCore ${TEST_DIR}/sequences
-cp -r ${1}/tests ${TEST_DIR}/sequences
-cd ${TEST_DIR}/sequences
-rm ${TEST_DIR}/sequences/tests/test_algorithms.py ${TEST_DIR}/sequences/tests/test_configuration.sh
+cp -r ${1}/tests ${TEST_DIR}/
+cp -r ${1}/sequences/AllenConf ${TEST_DIR}/tests/
+cp ${1}/tests/test_algorithms.py ${TEST_DIR}/tests/AllenConf/algorithms.py
+cp -r ${1}/AllenCore ${TEST_DIR}/tests/
+rm ${TEST_DIR}/tests/test_algorithms.py ${TEST_DIR}/tests/test_configuration.sh
 
 # Run tests
-pytest -s tests
+pytest -s ${TEST_DIR}/tests
 
 # Cleanup and exit
 exit_code=$?
