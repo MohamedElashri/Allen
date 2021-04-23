@@ -404,7 +404,7 @@ private:
   {
 
     size_t i_read = 0;
-    auto slice_index = boost::make_optional(false, size_t {});
+    std::optional<size_t> slice_index {};
 
     bool good = false, transpose_full = false;
     size_t n_transposed = 0;
@@ -475,10 +475,6 @@ private:
         m_event_ids[*slice_index],
         this->events_per_slice(),
         m_config.split_by_run);
-      this->debug_output(
-        "Transposed " + std::to_string(*slice_index) + " " + std::to_string(good) + " " +
-          std::to_string(transpose_full) + " " + std::to_string(n_transposed),
-        thread_id);
 
       if (m_read_error || !good) {
         m_read_error = true;
@@ -488,29 +484,37 @@ private:
         break;
       }
 
+      // Increment the transpose_start with the number of transposed events
+      std::get<3>(m_buffers[i_read]) += n_transposed;
+      auto events_left = std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read]);
+      this->debug_output(
+        "Transposed: slice_index " + std::to_string(*slice_index) + "; full " + std::to_string(transpose_full) +
+          "; n_transposed " + std::to_string(n_transposed) + "; n_left " + std::to_string(events_left),
+        thread_id);
+
       // Notify any threads waiting in get_slice that a slice is available
       {
         std::unique_lock<std::mutex> lock {m_transpose_mut};
         m_transposed.emplace_back(*slice_index, n_transposed);
       }
       m_transpose_cond.notify_one();
+
+      slice_index.reset();
+
       // Check if the read buffer is now empty. If it is, it can be
       // reused, otherwise give it to another transpose thread once a
       // new target slice is available
-      if (n_transposed < std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read])) {
-        // Put this prefetched slice back on the prefetched queue so
-        // somebody else can finish it
-        std::get<3>(m_buffers[i_read]) += n_transposed;
-        std::unique_lock<std::mutex> lock {m_prefetch_mut};
-        m_prefetched.push_front(i_read);
-      }
-
-      slice_index.reset();
       {
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
+        if (events_left > 0) {
+          // Put this prefetched slice back on the prefetched queue so
+          // somebody else can finish it
+          m_prefetched.push_front(i_read);
+        }
+
+        // Decrement the work counter of this buffer
         auto& status = m_buffer_status[i_read];
         --status.work_counter;
-        std::get<3>(m_buffers[i_read]) += n_transposed;
       }
     }
   }
@@ -738,7 +742,7 @@ private:
   std::vector<std::string> m_connections;
 
   // Storage for the currently open file
-  mutable boost::optional<Allen::IO> m_input;
+  mutable std::optional<Allen::IO> m_input;
 
   // Iterator that points to the filename of the currently open file
   mutable std::vector<std::string>::const_iterator m_current;
