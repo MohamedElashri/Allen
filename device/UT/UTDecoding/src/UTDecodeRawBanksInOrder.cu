@@ -151,7 +151,7 @@ __device__ void decode_raw_bank<4>(
   const float p0X = geometry.p0X[idx_offset];
   const float p0Y = geometry.p0Y[idx_offset];
   const float p0Z = geometry.p0Z[idx_offset];
-  const float numstrips = p0Z < 0 ? nStripsPerHybrid - (stripID - firstStrip) - 1 : stripID - firstStrip;
+  const float numstrips = p0Z < 0 ? nStripsPerHybrid - stripID - firstStrip : stripID;
 
   const float yBegin = p0Y + numstrips * dp0diY;
   const float yEnd = dy + yBegin;
