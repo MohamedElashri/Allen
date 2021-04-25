@@ -14,6 +14,7 @@ target_link_libraries(NonEventData PRIVATE
   Backend
   Muon
   TrackChecking
-  UT)
+  UT
+  nlohmann_json::nlohmann_json)
 
 target_include_directories(NonEventData PUBLIC include)
