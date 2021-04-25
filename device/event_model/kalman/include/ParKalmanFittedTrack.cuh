@@ -67,35 +67,35 @@ namespace ParKalmanFilter {
     }
 
     // Functions for accessing momentum information.
-    __device__ __host__ KalmanFloat p() const
+    __device__ __host__ inline KalmanFloat p() const
     {
       KalmanFloat ret = 1.0f / fabsf(best_qop);
       return ret;
     }
 
-    __device__ __host__ KalmanFloat pt() const
+    __device__ __host__ inline KalmanFloat pt() const
     {
       KalmanFloat sint =
         sqrtf((state[2] * state[2] + state[3] * state[3]) / (1.0f + state[2] * state[2] + state[3] * state[3]));
       return sint / fabsf(best_qop);
     }
 
-    __device__ __host__ KalmanFloat px() const
+    __device__ __host__ inline KalmanFloat px() const
     {
       return state[2] / fabsf(best_qop) / sqrtf(1.0f + state[2] * state[2] + state[3] * state[3]);
     }
 
-    __device__ __host__ KalmanFloat py() const
+    __device__ __host__ inline KalmanFloat py() const
     {
       return state[3] / fabsf(best_qop) / sqrtf(1.0f + state[2] * state[2] + state[3] * state[3]);
     }
 
-    __device__ __host__ KalmanFloat pz() const
+    __device__ __host__ inline KalmanFloat pz() const
     {
       KalmanFloat cost = 1.0f / sqrtf(1.0f + state[2] * state[2] + state[3] * state[3]);
       return cost / fabsf(best_qop);
     }
 
-    __device__ __host__ KalmanFloat eta() const { return atanhf(pz() / p()); }
+    __device__ __host__ inline KalmanFloat eta() const { return atanhf(pz() / p()); }
   };
 } // namespace ParKalmanFilter
