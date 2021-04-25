@@ -14,7 +14,7 @@
 <extension class="GaudiTest.GaudiExeTest" kind="test">
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
-    <text>${BINARYDUMPERSROOT}/options/Allen.py</text>
+    <text>${BINARYDUMPERSROOT}/options/allen.py</text>
     <text>--disable-run-changes</text><text>1</text>
     <text>--monitoring-filename</text><text>mep_input_hists.root</text>
     <text>--mep</text><text>${ALLEN_PROJECT_ROOT}/input/minbias/banks/mep/upgrade_mc_minbias_scifi_v5_pf10.mep</text>
