@@ -1,0 +1,50 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+
+# all jobs derive from this rule
+.base_job:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  script:
+    - source scripts/ci/common.sh
+    - source scripts/ci/jobs/${TEST_NAME}.sh
+
+
+.default_rules:
+  rules:
+    - if: '$CI_PROJECT_ROOT_NAMESPACE != "lhcb"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH' # == "master"'
+    - when: never
+      
+.default_rules_always_run:
+  rules:
+    - if: '$CI_PROJECT_ROOT_NAMESPACE != "lhcb"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH' # == "master"'
+      when: always
+    - when: never
+
+
+include:
+  - scripts/ci/config/common-build.yaml
+  - scripts/ci/config/common-run.yaml
+  - scripts/ci/config/common-test.yaml
+  - scripts/ci/config/devices.yaml

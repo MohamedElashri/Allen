@@ -1,0 +1,87 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+.build_job_minimal_matrix:
+  parallel:
+    matrix:
+      - TARGET: [CPU, CUDA, HIP]
+        LCG_ARCHITECTURE: 
+          - x86_64-centos7-clang10-opt
+        BUILD_TYPE: 
+          - RelWithDebInfo
+        SEQUENCE: 
+          - hlt1_pp_default
+          - hlt1_pp_validation
+
+# Builds that are considered "additional", can be run in addition to "minimal" tests in certain scenarios
+.build_job_additional_matrix:
+  parallel:
+    matrix:
+      # build jobs (with tests)
+      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
+        BUILD_TYPE: [RelWithDebInfo, Debug]
+        SEQUENCE: hlt1_pp_default
+        OPTIONS: 
+          - BUILD_TESTS+ENABLE_CONTRACTS
+
+      # debug builds with GCC, Clang with various additional cmake options
+      - LCG_ARCHITECTURE: 
+          - x86_64-centos7-clang10-opt
+          - x86_64-centos7-gcc10-opt
+        BUILD_TYPE: Debug
+        OPTIONS:
+          - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT
+          - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
+        SEQUENCE: hlt1_pp_default
+
+      - LCG_ARCHITECTURE: [x86_64-centos7-clang10-opt]
+        OPTIONS: ["USE_ROOT"]
+        BUILD_TYPE: Debug
+        SEQUENCE: [hlt1_pp_validation]
+
+      # build job with sequence generation disabled
+      - LCG_ARCHITECTURE: 
+          - x86_64-centos7-clang10-opt
+        BUILD_TYPE: Debug
+        OPTIONS: 
+          - "BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+SEQUENCE_GENERATION=OFF"
+        SEQUENCE: hlt1_pp_default
+
+
+      # no_gec builds
+      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
+        BUILD_TYPE: RelWithDebInfo
+        SEQUENCE:
+          - hlt1_pp_no_gec
+          - hlt1_pp_no_gec_validation
+
+      # scifi-v6 builds
+      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
+        BUILD_TYPE: RelWithDebInfo
+        SEQUENCE:
+          - hlt1_pp_scifi_v6
+          - hlt1_pp_scifi_v6_validation
+
+
+.build_job:
+  extends: .base_job
+
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    TEST_NAME: "build"
+
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - input
+      - build*/*Allen*
+      - build*/Sequence.json
+      - build*/CTestTestfile.cmake
+      - build*/test/unit_tests/unit_tests
+      - build*/test/unit_tests/*cmake
+  tags:
+    - cvmfs
+  retry: 2
+  allow_failure:
+    exit_codes: 54
+  
