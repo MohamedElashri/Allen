@@ -2,6 +2,7 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+import os
 from optparse import OptionParser
 from csv_plotter import produce_plot, send_to_mattermost, get_master_throughput
 
@@ -16,6 +17,8 @@ def main():
     parser.add_option(
         '-m',
         '--mattermost_url',
+        default=os.environ['MATTERMOST_KEY']
+        if 'MATTERMOST_KEY' in os.environ else '',
         dest='mattermost_url',
         help='The url where to post outputs generated for mattermost')
     parser.add_option(
@@ -38,6 +41,11 @@ def main():
         '-j', '--job', dest='job', default='', help='Name of CI job')
 
     (options, args) = parser.parse_args()
+
+    if options.mattermost_url == '':
+        raise ValueError(
+            "No mattermost URL was found in MATTERMOST_KEY, or passed as a command line argument."
+        )
 
     master_throughput = get_master_throughput(options.job, scale=1e-3)
     throughput_text = produce_plot(

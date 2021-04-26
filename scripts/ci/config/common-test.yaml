@@ -1,0 +1,48 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+
+
+.test_physics_efficiency:
+  extends: 
+    - .base_job
+    - .default_rules
+  variables:
+    TEST_NAME: "test_physics_efficiency"
+
+  parallel:
+    matrix:
+      - SEQUENCE: "hlt1_pp_validation"
+
+  artifacts:
+    expire_in: 2 hours
+    when: on_failure
+    paths:
+      - ./run_physics_efficiency_output_*/*.diff
+      - ./run_physics_efficiency_output_*/efficiency_*
+
+
+
+.test_run_changes:
+  extends: 
+    - .base_job
+    - .default_rules
+  variables:
+    TEST_NAME: "test_run_changes"
+  parallel:
+    matrix:
+      - SEQUENCE: "hlt1_pp_validation"
+
+
+.publish_throughput:
+  stage: publish
+  extends: 
+    - .base_job
+    - .default_rules
+  variables:
+    TEST_NAME: "publish_throughput"
+    LCG_ARCHITECTURE: "x86_64-centos7-clang10-opt"
+    BREAKDOWN_DEVICE_ID: "geforcertx3090"
+    PUBLISH_ARTIFACT_NAME: "publish_throughput"
+
+  tags: [cvmfs]

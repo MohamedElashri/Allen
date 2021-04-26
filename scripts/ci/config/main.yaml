@@ -1,0 +1,367 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+
+# Entire workflow is defined here
+
+include: "scripts/ci/config/common.yaml"
+
+# builds + runs tests
+
+build:
+  extends: 
+    - .build_job
+    - .default_rules
+    - .build_job_minimal_matrix
+  stage: build
+
+.run_job:
+  extends: .run_jobs_minimal
+  stage: run
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Configuration of jobs for each device                     #
+# All devices to run in the minimal pipeline should be      #
+# included here                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+geforcertx3090:
+  extends:
+    - .geforcertx3090
+    - .run_job
+
+geforcertx3080:
+  extends:
+    - .geforcertx3080
+    - .run_job
+
+geforcertx2080ti:
+  extends:
+    - .geforcertx2080ti
+    - .run_job
+geforcertx2080ti-run-changes:
+  extends:
+    - .geforcertx2080ti
+    - .run_toggle_run_changes
+  stage: run
+
+quadrortx6000:
+  extends:
+    - .quadrortx6000
+    - .run_job
+
+teslav100:
+  extends:
+    - .teslav100
+    - .run_job
+
+a40:
+  extends:
+    - .a40
+    - .run_job
+
+a6000:
+  extends:
+    - .a6000
+    - .run_job
+
+mi100:
+  extends:
+    - .mi100
+    - .run_job
+
+x862630v4:
+  extends:
+    - .x862630v4
+    - .run_job
+x862630v4-run-changes:
+  extends:
+    - .x862630v4
+    - .run_toggle_run_changes
+  stage: run
+
+epyc7502:
+  extends:
+    - .epyc7502
+    - .run_job
+
+.device-jobs:
+  dependencies:
+    - epyc7502
+    - x862630v4
+    - mi100
+    - a6000
+    - a40
+    - teslav100
+    - quadrortx6000
+    - geforcertx2080ti
+    - geforcertx3080
+    - geforcertx3090
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# test and publish stages for the minimal pipeline          #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+physics-efficiency:
+  stage: test
+  extends: 
+    - .test_physics_efficiency
+    - .default_rules_always_run
+    - .device-jobs
+
+run-changes:
+  stage: test
+  extends: 
+    - .test_run_changes
+    - .default_rules_always_run
+  dependencies:
+    - x862630v4-run-changes
+    - geforcertx2080ti-run-changes
+  # FIXME! Remove as soon as indeterminate behaviour can be fixed.
+  allow_failure: 
+    exit_codes: 3
+
+throughput:
+  stage: publish
+  extends: 
+    - .publish_throughput
+    - .default_rules_always_run
+  
+  artifacts:
+    name: "$PUBLISH_ARTIFACT_NAME"
+    paths:
+      - devices_throughputs_*.csv
+    expire_in: 1 month
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# manual trigger job for the full pipeline                  #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+# Blocks the pipeline from being triggered automatically
+# in Merge Requests
+# Does not block for master, web, schedules
+full-pipeline:
+  variables:
+    GIT_STRATEGY: none
+  stage: "manual trigger"
+  script:
+    - exit
+  rules:
+    - if: '$CI_PROJECT_ROOT_NAMESPACE != "lhcb"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH != "master"'
+      when: manual
+    - when: never
+  needs: []
+
+
+# separate build jobs for CPU, CUDA, HIP targets
+
+.full-build:
+  needs: [full-pipeline]
+  stage: "build full"
+  extends: 
+    - .default_rules
+    - .build_job
+    - .build_job_additional_matrix
+  timeout: 1h 30m
+
+CPU:
+  extends: .full-build
+  variables:
+    TARGET: CPU
+CUDA:
+  extends: .full-build
+  variables:
+    TARGET: CUDA
+HIP:
+  extends: .full-build
+  variables:
+    TARGET: HIP
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Configuration of jobs for each device                     #
+# All devices to run in the full pipeline should be         #
+# included here                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# N.B. if needs: refers to more than 50 jobs and throws an error, try using
+# dependencies: instead.
+
+.cpu_run_job:
+  dependencies: [CPU, build]
+  stage: "run full"
+.cuda_run_job:
+  dependencies: [CUDA, build]
+  stage: "run full"
+.hip_run_job:
+  dependencies: [HIP, build]
+  stage: "run full"
+
+
+# CPU
+x862630v4-full:
+  extends:
+    - .x862630v4
+    - .run_jobs_full
+    - .cpu_run_job
+x862630v4-full-run-changes:
+  extends:
+    - .x862630v4
+    - .run_toggle_run_changes
+    - .cpu_run_job
+
+
+epyc7502-full:
+  extends:
+    - .epyc7502
+    - .run_jobs_full
+    - .cpu_run_job
+
+
+# GPU / CUDA
+geforcertx3090-full:
+  extends:
+    - .geforcertx3090
+    - .run_jobs_full
+    - .cuda_run_job
+
+
+geforcertx3080-full:
+  extends:
+    - .geforcertx3080
+    - .run_jobs_full
+    - .cuda_run_job
+
+
+geforcertx2080ti-full-run-changes:
+  extends:
+    - .geforcertx2080ti
+    - .run_toggle_run_changes
+    - .cuda_run_job
+geforcertx2080ti-full:
+  extends:
+    - .geforcertx2080ti
+    - .run_jobs_full
+    - .cuda_run_job
+
+
+quadrortx6000-full:
+  extends:
+    - .quadrortx6000
+    - .run_jobs_full
+    - .cuda_run_job
+
+
+teslav100-full:
+  extends:
+    - .teslav100
+    - .run_jobs_full
+    - .cuda_run_job
+
+
+a40-full:
+  extends:
+    - .a40
+    - .run_jobs_full
+    - .cuda_run_job
+
+
+a6000-full:
+  extends:
+    - .a6000
+    - .run_jobs_full
+    - .cuda_run_job
+
+
+# HIP
+
+
+mi100-full:
+  extends:
+    - .mi100
+    - .run_jobs_full
+    - .hip_run_job
+
+
+# add any jobs listed above to this list
+# (stops build artifacts being downloaded to full test and publish jobs)
+# full-run-changes should be added to the needs: list in run-changes-full
+.depend_full_run_jobs:
+
+  # N.B. dependencies: is used instead of needs:, as the needs: job limit
+  # is 50. See https://docs.gitlab.com/ee/ci/yaml/#changing-the-needs-job-limit
+  dependencies:
+    # CPU
+    - x862630v4-full
+    - epyc7502-full
+
+    # HIP
+    - mi100-full
+
+    # CUDA 
+    - geforcertx3090-full
+    - geforcertx3080-full
+    - geforcertx2080ti-full
+    - quadrortx6000-full
+    - a40-full
+    - a6000-full
+    - teslav100-full
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# test and publish jobs for full pipeline
+
+physics-efficiency-full:
+  stage: test full
+  extends: 
+    - .test_physics_efficiency
+    - .default_rules_always_run
+    - .depend_full_run_jobs
+  # FIXME! This should be removed as soon as the indeterminate behaviour in issue #232 is fixed.
+  # https://gitlab.cern.ch/lhcb/Allen/-/issues/232
+  allow_failure: 
+    exit_codes: 3
+
+
+run-changes-full:
+  stage: test full
+  extends: 
+    - .test_run_changes
+    - .default_rules_always_run
+  dependencies:
+    # add run changes jobs here
+    - x862630v4-full-run-changes
+    - geforcertx2080ti-full-run-changes
+  # FIXME! Remove once the intederminate behaviour is fixed.
+  allow_failure: 
+    exit_codes: 3
+
+
+throughput-full:
+  stage: publish full
+  extends: 
+    - .publish_throughput
+    - .default_rules_always_run
+    - .depend_full_run_jobs
+
+  variables:
+    PUBLISH_ARTIFACT_NAME: "publish_throughput_full"
+  
+  artifacts:
+    name: "$PUBLISH_ARTIFACT_NAME"
+    paths:
+      - devices_throughputs_*.csv
+    expire_in: 1 month
+

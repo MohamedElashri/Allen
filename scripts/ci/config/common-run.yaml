@@ -1,0 +1,111 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+
+# used in definitions for all possible target devices.
+.run_matrix_jobs_minimal:
+  parallel:
+    matrix:
+      # run_throughput tests
+      - TEST_NAME: "run_throughput"
+        SEQUENCE: ["hlt1_pp_default"]
+        INPUT_FILES: ["minbias_mag_down_201907"]
+      
+      # efficiency tests
+      - TEST_NAME: "run_physics_efficiency"
+        SEQUENCE: ["hlt1_pp_validation"]
+        INPUT_FILES: ["bsphiphi_mag_down_201907"]
+
+
+.run_matrix_jobs_full:
+  parallel:
+    matrix:
+      # run throughput, no_gec
+      - TEST_NAME: "run_throughput"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_no_gec"]
+        INPUT_FILES: ["minbias_mag_down_201907"]
+
+      # run throughput, default, SMOG2_pppHe
+      - TEST_NAME: "run_throughput"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_default"]
+        INPUT_FILES: ["SMOG2_pppHe"]
+
+      # run throughput, scifi_v6
+      - TEST_NAME: "run_throughput"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_scifi_v6"]
+        INPUT_FILES: ["SciFiv6_upgrade_DC19_01_MinBiasMD"]
+        GEOMETRY: ["SciFiv6_upgrade_DC19_01_geom"]
+
+      # run physics efficiency, scifi_v6
+      - TEST_NAME: "run_physics_efficiency"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_scifi_v6_validation"]
+        INPUT_FILES: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD"]
+        GEOMETRY: ["SciFiv6_upgrade_DC19_01_geom"]
+      
+      # FIXME
+      # - TEST_NAME: "run_physics_efficiency"
+      #   BUILD_TYPE: ["Debug"]
+      #   OPTIONS: ["USE_ROOT"]
+      #   SEQUENCE: ["hlt1_pp_validation"]
+      #   INPUT_FILES: ["bsphiphi_mag_down_201907"]
+      
+      - TEST_NAME: "run_built_tests"
+        BUILD_TYPE: [RelWithDebInfo, Debug]
+        OPTIONS: [BUILD_TESTS+ENABLE_CONTRACTS]
+        SEQUENCE: ["hlt1_pp_default"]
+
+.run_jobs:
+  extends: 
+    - .base_job
+    - .default_rules
+
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+    LCG_ARCHITECTURE: "x86_64-centos7-clang10-opt"
+    PROFILE_DEVICE: "geforcertx3090"
+    BUILD_TYPE: "RelWithDebInfo"
+  
+  retry: 2
+
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - output_*
+      - run_*_output_*
+      - validation_output*/*
+      - ./*-unit-tests.xml
+    reports:
+      junit:
+        - ./*-unit-tests.xml  
+      metrics: ./**/metrics.txt
+
+.run_jobs_minimal:
+  extends: 
+    - .run_jobs
+    - .run_matrix_jobs_minimal
+
+.run_jobs_full:
+  extends: 
+    - .run_jobs
+    - .run_matrix_jobs_full
+
+
+.run_toggle_run_changes:
+  extends: 
+    - .run_jobs
+  stage: run
+  parallel:
+    matrix:
+      - TEST_NAME: "run_toggle_run_changes"
+        SEQUENCE: ["hlt1_pp_validation"]
+        MDF_INPUT: "mdf/upgrade_mc_minbias_scifi_v5_000.mdf"
+        INPUT_FILES: "minbias_mag_down_201907"
+        RUN_CHANGES: ["ON", "OFF"]
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - run_*_run_changes_output_*/*

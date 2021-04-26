@@ -1,0 +1,73 @@
+###############################################################################
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+
+
+.geforcertx3090:
+  variables:
+    DEVICE_ID: "geforcertx3090"
+    TARGET: "CUDA"
+  tags: [geforcertx3090]
+
+
+.geforcertx3080:
+  variables:
+    DEVICE_ID: "geforcertx3080"
+    TARGET: "CUDA"
+  tags: [geforcertx3080]
+
+
+.geforcertx2080ti:
+  variables:
+    DEVICE_ID: "geforcertx2080ti"
+    TARGET: "CUDA"
+  tags: [geforcertx2080ti]
+
+
+.quadrortx6000:
+  variables:
+    DEVICE_ID: "quadrortx6000"
+    TARGET: "CUDA"
+  tags: [quadrortx6000]
+
+
+.teslav100:
+  variables:
+    DEVICE_ID: "teslav100"
+    TARGET: "CUDA"
+  tags: [teslav100]
+
+
+.a40:
+  variables:
+    DEVICE_ID: "a40"
+    TARGET: "CUDA"
+  tags: [a40]
+
+
+.a6000:
+  variables:
+    DEVICE_ID: "a6000"
+    TARGET: "CUDA"
+  tags: [a6000]
+
+
+.mi100:
+  variables:
+    DEVICE_ID: "mi100"
+    TARGET: "HIP"
+  tags: [mi100]
+
+
+.x862630v4:
+  variables:
+    DEVICE_ID: "x862630v4"
+    TARGET: "CPU"
+  tags: [x862630v4]
+
+.epyc7502:
+  variables:
+    DEVICE_ID: "epyc7502"
+    TARGET: "CPU"
+  tags: [epyc7502]
+
