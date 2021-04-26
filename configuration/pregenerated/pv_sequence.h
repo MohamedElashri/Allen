@@ -63,6 +63,7 @@ struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_
 struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t,
                                                 host_global_event_cut::Parameters::host_ut_raw_bank_version_t {
   using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                             host_global_event_cut::Parameters::host_scifi_raw_banks_t,
@@ -78,6 +79,7 @@ struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::ho
 };
 struct host_scifi_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
   using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct initialize_lists__host_event_list_t : host_global_event_cut::Parameters::host_event_list_t {
   using type = host_global_event_cut::Parameters::host_event_list_t::type;

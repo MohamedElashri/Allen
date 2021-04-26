@@ -257,7 +257,7 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const UTGeometry geometry(ut_geometry);
   const UTBoards boards(ut_boards);
 
-  if (mep) {
+  if constexpr (mep) {
     auto const number_of_ut_raw_banks = parameters.dev_ut_raw_input_offsets[0];
     for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
       const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(

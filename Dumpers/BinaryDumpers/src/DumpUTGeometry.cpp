@@ -101,13 +101,13 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
   constexpr uint32_t n_lanes_max = 6;
   // mstahl: this is the condition for the new UT geometry. we might want a version field in the readout map
   if (rInfo->exists("nTell40InUT"))
-    UT_version = UTDAQ::v5;
+    UT_version = UTDAQ::version::v5;
   else if (rInfo->exists("hybridsPerBoard"))
-    UT_version = UTDAQ::v4;
+    UT_version = UTDAQ::version::v4;
   else
     throw GaudiException {"Cannot parse UT geometry version from ReadoutMap.", name(), StatusCode::FAILURE};
   // things that (might) depend on the decoding version
-  const bool geometry_v5 = UT_version == UTDAQ::v5;
+  const bool geometry_v5 = UT_version == UTDAQ::version::v5;
   const auto stripsPerHybrid =
     geometry_v5 ? UTDAQ::nStripsPerBoard / n_lanes_max : UTDAQ::nStripsPerBoard / rInfo->param<int>("hybridsPerBoard");
   const auto n_boards = geometry_v5 ? rInfo->param<int>("nTell40InUT") * 2 : readout->nBoard();
