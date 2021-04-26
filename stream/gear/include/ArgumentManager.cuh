@@ -187,7 +187,7 @@ public:
 template<typename T>
 struct InputAggregate {
 private:
-  std::vector<ArgumentData> m_argument_data_v;
+  std::vector<std::reference_wrapper<ArgumentData>> m_argument_data_v;
 
 public:
   InputAggregate() = default;
@@ -199,7 +199,7 @@ public:
   T* data(const unsigned index) const
   {
     assert(index < m_argument_data_v.size() && "Index is in bounds");
-    auto pointer = m_argument_data_v[index].pointer();
+    auto pointer = m_argument_data_v[index].get().pointer();
     return reinterpret_cast<T*>(pointer);
   }
 
@@ -212,7 +212,7 @@ public:
   size_t size(const unsigned index) const
   {
     assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return m_argument_data_v[index].size();
+    return m_argument_data_v[index].get().size();
   }
 
   gsl::span<T> span(const unsigned index) const { return {data(index), size(index)}; }
@@ -220,14 +220,14 @@ public:
   std::string name(const unsigned index) const
   {
     assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return m_argument_data_v[index].name();
+    return m_argument_data_v[index].get().name();
   }
 
   size_t size_of_aggregate() const { return m_argument_data_v.size(); }
 };
 
 template<typename T, typename... Ts>
-static auto makeInputAggregate(std::tuple<Ts...> tp)
+static auto makeInputAggregate(std::tuple<Ts&...> tp)
 {
   return InputAggregate<T> {tp, std::make_index_sequence<sizeof...(Ts)>()};
 }
@@ -241,7 +241,7 @@ static auto makeInputAggregate(std::tuple<Ts...> tp)
     ARGUMENT_NAME() = default;                                                                      \
     ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                        \
     template<typename... Ts>                                                                        \
-    ARGUMENT_NAME(std::tuple<Ts...> value) : m_value(makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
+    ARGUMENT_NAME(std::tuple<Ts&...> value) : m_value(makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
     {}                                                                                              \
     const type& value() const { return m_value; }                                                   \
                                                                                                     \

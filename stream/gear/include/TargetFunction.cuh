@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #pragma once
 
-#include "ArgumentManager.cuh"
 #include "Property.cuh"
 #include "TransformParameters.cuh"
 #include "Invoke.cuh"

@@ -273,7 +273,7 @@ namespace Sch {
         int,
         typename std::tuple_element_t<0, std::tuple<Parameters...>>::type>;
       static_assert((std::is_same_v<typename Parameters::type, T> && ...));
-      return makeInputAggregate<T>(std::tuple {arguments_array[index_of_v<Parameters, ArgumentsTuple>]...});
+      return makeInputAggregate<T>(std::tie(arguments_array[index_of_v<Parameters, ArgumentsTuple>]...));
     }
   };
 
