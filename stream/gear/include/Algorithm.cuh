@@ -51,8 +51,8 @@ namespace Allen {
       const auto base_prop = get_prop(T::name);
       const auto prop = dynamic_cast<const Property<T>*>(base_prop);
       if (!prop) {
-        const std::string error_message = "property " + std::string(T::name) + \
-          " not defined, perhaps member definition is missing";
+        const std::string error_message =
+          "property " + std::string(T::name) + " not defined, perhaps member definition is missing";
         throw std::runtime_error {error_message};
       }
       return prop->get_value();
