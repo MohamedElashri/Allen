@@ -42,8 +42,6 @@ namespace velo_search_by_triplet {
 
     // Block dimension x of kernel
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;
-
-    PROPERTY(something_t, "something", "something something", std::array<int, 3>) my_array;
   };
 
   // Define pre and postconditions
@@ -137,6 +135,5 @@ namespace velo_search_by_triplet {
     Property<max_scatter_t> m_max_scatter {this, 0.08f};
     Property<max_skipped_modules_t> m_skip {this, 1};
     Property<block_dim_x_t> m_block_dim_x {this, 64};
-    Property<something_t> m_something {this, {{1, 2, 3}}};
   };
 } // namespace velo_search_by_triplet
