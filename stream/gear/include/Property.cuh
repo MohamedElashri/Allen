@@ -8,6 +8,7 @@
 #include "BaseTypes.cuh"
 #include "BankTypes.h"
 #include "Logger.h"
+#include "Common.h"
 #include <string>
 #include <sstream>
 #include <map>
@@ -17,48 +18,124 @@
 #include <functional>
 #include <iostream>
 
-namespace Configuration {
-  namespace Detail {
-    std::regex const array_expr {"\\{(?:\\s*(\\d+)\\s*,?)+\\}"};
-    std::regex const digit_expr {"(\\d+)"};
-  } // namespace Detail
-
-  // Helper function to deal with a convertor from string
-  template<typename T>
-  T from_string(const std::string& s);
-
-  // General template
-  template<typename T>
-  bool from_string(T& holder, const std::string& value)
-  {
-    try {
-      holder = from_string<typename T::t>(value);
-    } catch (const std::exception&) {
-      warning_cout << "Could not parse JSON string from value \"" << value << "\"\n";
-      return false;
-    }
-
-    return true;
-  }
-
-  // General template
-  template<typename T>
-  std::string to_string(const T& holder)
-  {
-    // very basic implementation based on streaming
-    std::stringstream s;
-    s << holder;
-    return s.str();
-  }
-
-  template<>
-  std::string to_string<DeviceDimensions>(const DeviceDimensions& holder);
-
-  template<>
-  std::string to_string<BankTypes>(const BankTypes& holder);
-} // namespace Configuration
-
 namespace Allen {
+  namespace Configuration {
+    namespace Detail {
+      std::regex const array_expr {"\\{(?:\\s*(\\d+)\\s*,?)+\\}"};
+      std::regex const digit_expr {"(\\d+)"};
+    } // namespace Detail
+
+    template<typename T>
+    struct ConvertorFromString {
+      static auto convert(const std::string& s)
+      {
+        if constexpr (std::is_same_v<T, std::string>) {
+          return s;
+        }
+        else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+          return atof(s.c_str());
+        }
+        else if constexpr (std::is_same_v<T, int8_t> || std::is_same_v<T, int16_t> || std::is_same_v<T, int32_t>) {
+          return strtol(s.c_str(), 0, 0);
+        }
+        else if constexpr (std::is_same_v<T, int64_t>) {
+          return strtoll(s.c_str(), 0, 0);
+        }
+        else if constexpr (std::is_same_v<T, uint8_t> || std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t>) {
+          return strtoul(s.c_str(), 0, 0);
+        }
+        else if constexpr (std::is_same_v<T, uint64_t>) {
+          return strtoull(s.c_str(), 0, 0);
+        }
+        if constexpr (std::is_same_v<T, bool>) {
+          return atoi(s.c_str());
+        }
+        if constexpr (std::is_same_v<T, char>) {
+          return s.at(0);
+        }
+        else if constexpr (std::is_same_v<T, BankTypes>) {
+          auto bt = bank_type(s);
+          if (bt == BankTypes::Unknown) {
+            throw StrException {"Failed to parse " + s + " into a BankType."};
+          }
+          return bt;
+        }
+        else {
+          throw StrException {"ConvertorFromString instantiated with unsupported type."};
+        }
+      }
+    };
+
+    template<typename T, std::size_t N>
+    struct ConvertorFromString<std::array<T, N>> {
+      static std::array<T, N> convert(const std::string& s)
+      {
+        std::array<T, N> output;
+        std::smatch matches;
+        auto r = std::regex_match(s, matches, Detail::array_expr);
+        if (!r) {
+          throw std::exception {};
+        }
+        auto digits_begin = std::sregex_iterator(s.begin(), s.end(), Detail::digit_expr);
+        auto digits_end = std::sregex_iterator();
+        if (std::distance(digits_begin, digits_end) != N) {
+          throw StrException {"Failed to parse from string, array size mismatch."};
+        }
+        int idx = 0;
+        for (auto i = digits_begin; i != digits_end; ++i) {
+          output[idx++] = ConvertorFromString<T>::convert(i->str());
+        }
+        return output;
+      }
+    };
+
+    template<typename T>
+    struct ConvertorToString {
+      static std::string convert(const T& holder)
+      {
+        if constexpr (std::is_same_v<T, BankTypes>) {
+          return bank_name(holder);
+        }
+        else {
+          std::stringstream s;
+          s << holder;
+          return s.str();
+        }
+      }
+    };
+
+    template<typename T, std::size_t N>
+    struct ConvertorToString<std::array<T, N>> {
+      static std::string convert(const std::array<T, N> holder)
+      {
+        std::stringstream s;
+        s << "[";
+        for (size_t i = 0; i < N; ++i) {
+          s << holder[i];
+          if (i != N - 1) {
+            s << ", ";
+          }
+        }
+        s << "]";
+        return s.str();
+      }
+    };
+
+    // General template
+    template<typename T>
+    bool from_string(T& holder, const std::string& value)
+    {
+      try {
+        holder = ConvertorFromString<typename T::t>::convert(value);
+      } catch (const std::exception&) {
+        warning_cout << "Could not parse JSON string from value \"" << value << "\"\n";
+        return false;
+      }
+
+      return true;
+    }
+  } // namespace Configuration
+
   /**
    * @brief      Store and readout the value of a single configurable algorithm property
    *
@@ -86,7 +163,10 @@ namespace Allen {
       return true;
     }
 
-    std::string to_string() const override { return Configuration::to_string(m_cached_value.get()); }
+    std::string to_string() const override
+    {
+      return Configuration::ConvertorToString<typename V::t>::convert(m_cached_value.get());
+    }
 
     std::string print() const override
     {

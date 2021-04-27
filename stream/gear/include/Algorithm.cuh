@@ -35,7 +35,7 @@ namespace Allen {
 
         if (it == m_properties.end()) {
           error_cout << "could not set " << kv.first << "=" << kv.second << "\n";
-          const std::string error_message = "parameter " + kv.first + " does not exist";
+          const std::string error_message = "property " + kv.first + " does not exist";
           throw std::runtime_error {error_message};
         }
         else {
@@ -51,7 +51,8 @@ namespace Allen {
       const auto base_prop = get_prop(T::name);
       const auto prop = dynamic_cast<const Property<T>*>(base_prop);
       if (!prop) {
-        const std::string error_message = "property " + std::string(T::name) + " not found";
+        const std::string error_message = "property " + std::string(T::name) + \
+          " not defined, perhaps member definition is missing";
         throw std::runtime_error {error_message};
       }
       return prop->get_value();

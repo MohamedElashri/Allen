@@ -74,12 +74,11 @@ if (NOT GaudiProject_FOUND)
   include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
 endif()
 
-file(GLOB stream_gear "gear/src/*cpp")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 
 include(GenerateConfiguration)
 
-allen_add_host_library(Stream STATIC ${stream_gear} ${stream_sequence_cpp})
+allen_add_host_library(Stream STATIC ${stream_sequence_cpp})
 
 # Set property of compiling only this one object concurrently (ninja)
 # Rationale: Stream.cpp alone requires GBs to compile and may result otherwise in killing the build job.

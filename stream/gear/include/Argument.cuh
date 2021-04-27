@@ -121,15 +121,7 @@ struct mask_t {
     using deps = std::tuple<>;                                             \
   }
 
-// Struct that mimics std::array<unsigned, 3> and works with CUDA.
-struct DeviceDimensions {
-  unsigned x;
-  unsigned y;
-  unsigned z;
-
-  constexpr DeviceDimensions() : x(1), y(1), z(1) {}
-  constexpr DeviceDimensions(const std::array<unsigned, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
-};
+using DeviceDimensions = std::array<unsigned, 3>;
 
 /**
  * @brief A property datatype data holder.
@@ -177,11 +169,11 @@ template<>
 struct property_datatype<DeviceDimensions> {
   using t = DeviceDimensions;
 
-  constexpr property_datatype(const t& value) : m_value(value) {}
-  constexpr property_datatype() {}
+  property_datatype(const t& value) : m_value(value) {}
+  property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
-  __host__ __device__ operator dim3() const { return {this->m_value.x, this->m_value.y, this->m_value.z}; }
+  __host__ __device__ operator dim3() const { return {this->m_value[0], this->m_value[1], this->m_value[2]}; }
 
 protected:
   t m_value;
