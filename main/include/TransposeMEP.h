@@ -48,12 +48,14 @@ namespace MEP {
    *
    * @param      EB::Header for a MEP
    * @param      span of the block data in the MEP
+   * @param      LHCb::RawBank::BankType to Allen bank type mapping
    *
-   * @return     (success, number of banks per bank type; 0 if the bank is not needed)
+   * @return     (success, number of banks per bank type; 0 if the bank is not needed, bank version per type)
    */
-  std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(
+  std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>, std::array<int, NBankTypes>> fill_counts(
     EB::Header const& header,
-    gsl::span<char const> const& data);
+    gsl::span<char const> const& data,
+    std::vector<int> const& bank_ids);
 
   void find_blocks(EB::Header const& mep_header, gsl::span<char const> const& buffer_span, Blocks& blocks);
 
@@ -101,7 +103,6 @@ namespace MEP {
     std::vector<int> const& bank_ids,
     std::unordered_set<BankTypes> const& bank_types,
     std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-    std::array<int, NBankTypes>& banks_version,
     EventIDs& event_ids,
     EB::Header const& mep_header,
     Blocks const& blocks,
@@ -126,7 +127,6 @@ namespace MEP {
     std::vector<int> const& bank_ids,
     std::unordered_set<BankTypes> const& bank_types,
     std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-    std::array<int, NBankTypes>& banks_version,
     EventIDs& event_ids,
     EB::Header const& mep_header,
     Blocks const& blocks,

@@ -5,9 +5,10 @@
 #include <cstring>
 #include <TransposeMEP.h>
 
-std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
+std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>, std::array<int, NBankTypes>> MEP::fill_counts(
   EB::Header const& header,
-  gsl::span<char const> const& mep_span)
+  gsl::span<char const> const& mep_span,
+  std::vector<int> const& bank_ids)
 {
   // info_cout << "EB header: "
   //   << header.n_blocks << ", "
@@ -18,6 +19,7 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
   auto header_size = +header.header_size(header.n_blocks);
   gsl::span<char const> block_span {mep_span.data() + header_size, mep_span.size() - header_size};
   std::array<unsigned int, LHCb::NBankTypes> count {0};
+  std::array<int, NBankTypes> versions{0};
   for (size_t i = 0; i < header.n_blocks; ++i) {
     auto offset = header.offsets[i];
     EB::BlockHeader bh {block_span.data() + offset};
@@ -30,9 +32,12 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
     if (type < LHCb::RawBank::LastType) {
       ++count[type];
     }
+
+    auto const allen_type = bank_ids[type];
+    versions[allen_type] = header.versions[i];
   }
 
-  return {true, count};
+  return {true, count, versions};
 }
 
 void MEP::find_blocks(EB::Header const& mep_header, gsl::span<char const> const& buffer_span, Blocks& blocks)
@@ -258,7 +263,6 @@ bool MEP::transpose_event(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
@@ -301,7 +305,6 @@ bool MEP::transpose_event(
       auto allen_type = bank_ids[bank_type];
       auto& slice = std::get<0>(slices[allen_type][slice_index])[0];
       auto const& event_offsets = std::get<2>(slices[allen_type][slice_index]);
-      banks_version[allen_type] = mep_header.versions[i_block];
 
       for (size_t i_event = start_event; i_event < end_event && i_event < block_header.n_frag; ++i_event) {
         // Three things to write for a new set of banks:
@@ -352,7 +355,6 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
@@ -373,7 +375,6 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
     bank_ids,
     bank_types,
     banks_count,
-    banks_version,
     event_ids,
     mep_header,
     blocks,

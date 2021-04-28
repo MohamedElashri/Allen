@@ -74,8 +74,8 @@ size_t transpose_mep(
 {
 
   bool success = false;
-  std::tie(success, banks_count) = MEP::fill_counts(mep_header, mep_data);
   ids = bank_ids();
+  std::tie(success, banks_count, banks_version) = MEP::fill_counts(mep_header, mep_data, ids);
 
   // read MEP
   std::vector<std::vector<uint32_t>> input_offsets(mep_header.n_blocks);
@@ -95,7 +95,6 @@ size_t transpose_mep(
     ids,
     types,
     banks_count,
-    banks_version,
     events_mep,
     mep_header,
     blocks,

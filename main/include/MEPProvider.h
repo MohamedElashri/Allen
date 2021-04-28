@@ -575,7 +575,7 @@ void allocate_storage(size_t i_read)
   bool count_success = false;
 
   // Offsets are to the start of the event, which includes the header
-  auto& [mep_header, mpi_slice, blocks, input_offsets, slice_size] = m_net_slices[i_read];
+  auto const& [mep_header, mpi_slice, blocks, input_offsets, slice_size] = m_net_slices[i_read];
   size_t n_blocks = mep_header.n_blocks;
   // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks),
   // mep_header.mep_size};
@@ -604,7 +604,7 @@ void allocate_storage(size_t i_read)
     }
   }
 
-  std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
+  std::tie(count_success, m_banks_count, m_banks_version) = MEP::fill_counts(mep_header, mpi_slice, m_bank_ids);
 
   // Allocate slice memory that will contain transposed banks ready
   // for processing by the Allen kernels
@@ -1159,7 +1159,6 @@ void transpose(int thread_id)
         m_bank_ids,
         this->types(),
         m_banks_count,
-        m_banks_version,
         event_ids,
         mep_header,
         blocks,

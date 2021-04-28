@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
 
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
+  std::array<int, NBankTypes> banks_version;
 
   ::Slices slices;
   EventIDs events;
@@ -75,7 +76,7 @@ int main(int argc, char* argv[])
     //
     if (!count_success) {
       // Count banks per type
-      std::tie(count_success, banks_count) = MEP::fill_counts(mep_header, mep_span);
+      std::tie(count_success, banks_count, banks_version) = MEP::fill_counts(mep_header, mep_span, bank_ids);
 
       // Allocate slices
       auto size_fun = [&banks_count, &bank_ids, interval](BankTypes bank_type) -> std::tuple<size_t, size_t> {
