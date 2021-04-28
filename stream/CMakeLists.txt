@@ -123,6 +123,9 @@ target_link_libraries(Stream PRIVATE
 if (TARGET Gaudi::GaudiKernel)
   target_link_libraries(Stream PRIVATE Gaudi::GaudiKernel)
 endif()
+if (TARGET LHCb::DAQEventLib)
+  target_link_libraries(Stream PRIVATE LHCb::DAQEventLib)
+endif()
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})

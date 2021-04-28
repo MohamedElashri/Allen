@@ -62,6 +62,7 @@ if (GaudiProject_FOUND)
     Boost::filesystem
     ${ZMQ_LIBRARIES}
     ${ALLEN_ROOT_LIBRARIES})
+  target_compile_definitions(ZMQSvc PUBLIC ${ALLEN_ROOT_DEFINITIONS})
 
   if (TARGET Gaudi::GaudiKernel)
     target_link_libraries(ZMQSvc PUBLIC Gaudi::GaudiKernel)
@@ -81,6 +82,8 @@ if (GaudiProject_FOUND)
   target_link_libraries(AllenZMQ INTERFACE ZMQSvc)
   if(TARGET ZMQLib)
     target_link_libraries(AllenZMQ INTERFACE ZMQLib)
+  elseif(TARGET LHCb::ZMQLib)
+    target_link_libraries(AllenZMQ INTERFACE LHCb::ZMQLib)
   else()
     target_link_libraries(AllenZMQ INTERFACE ZMQ)
   endif()

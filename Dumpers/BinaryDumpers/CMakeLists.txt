@@ -39,7 +39,7 @@ gaudi_add_module(BinaryDumpers
                  INCLUDE_DIRS Event/FTEvent Det/VPDet Muon/MuonID
                  LINK_LIBRARIES DAQEventLib DAQKernelLib GaudiAlgLib
                                 PrKernel VPDetLib UTDetLib UTKernelLib
-                                CaloDetLib FTDetLib MuonDAQLib)
+                                CaloDetLib FTDetLib MuonDAQLib MCEvent)
 
 # FIXME: USE_DD4HEP doesn't seem to be inherited from LHCb libraries
 if (TARGET Detector::DetectorLib)
