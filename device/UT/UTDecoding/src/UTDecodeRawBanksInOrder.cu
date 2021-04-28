@@ -158,7 +158,7 @@ __device__ void decode_raw_bank<4>(
   const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
-  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID);
+  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID + 1);
 
   ut_hits.yBegin(hit_index) = yBegin;
   ut_hits.yEnd(hit_index) = yEnd;

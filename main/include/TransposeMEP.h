@@ -52,10 +52,8 @@ namespace MEP {
    *
    * @return     (success, number of banks per bank type; 0 if the bank is not needed, bank version per type)
    */
-  std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>, std::array<int, NBankTypes>> fill_counts(
-    EB::Header const& header,
-    gsl::span<char const> const& data,
-    std::vector<int> const& bank_ids);
+  std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>, std::array<int, NBankTypes>>
+  fill_counts(EB::Header const& header, gsl::span<char const> const& data, std::vector<int> const& bank_ids);
 
   void find_blocks(EB::Header const& mep_header, gsl::span<char const> const& buffer_span, Blocks& blocks);
 

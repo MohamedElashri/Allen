@@ -7,6 +7,7 @@
 
 // LHCb
 #include "Event/MCHit.h"
+#include "Kernel/LHCbID.h"
 #include "LHCbMath/SIMDWrapper.h"
 // Rec
 #include "PrKernel/PrUTHitHandler.h"
@@ -159,7 +160,13 @@ void TestUTHits::operator()(
     for (std::size_t j = 0; j < simd::size; j++) {
       const auto bogus_plane_index = get_z_position_index(zAtYEq0s[j]);
       regrouped_rec_hits[bogus_plane_index].emplace_back(
-        yBegins[j], yEnds[j], zAtYEq0s[j], xAtYEq0s[j], weights[j], channelIDs[j], 0);
+        yBegins[j],
+        yEnds[j],
+        zAtYEq0s[j],
+        xAtYEq0s[j],
+        weights[j],
+        bit_cast<int, unsigned int>(LHCb::LHCbID(channelIDs[j]).lhcbID()),
+        0);
       if (dxdys[j] < 1e+6)
         dxdy_in_plane[bogus_plane_index] =
           dxdys[j]; // FIXME: this is overwritten each and every time, but hopefully with the same values...

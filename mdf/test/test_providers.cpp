@@ -90,16 +90,7 @@ size_t transpose_mep(
   MEP::fragment_offsets(blocks, input_offsets);
 
   auto r = MEP::transpose_events(
-    mep_slices,
-    output_index,
-    ids,
-    types,
-    banks_count,
-    events_mep,
-    mep_header,
-    blocks,
-    input_offsets,
-    {0, chunk_size});
+    mep_slices, output_index, ids, types, banks_count, events_mep, mep_header, blocks, input_offsets, {0, chunk_size});
   return std::get<2>(r);
 }
 
