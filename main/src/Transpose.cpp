@@ -231,7 +231,7 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else {
       ++bank_counter;
-      assert(banks_version[bt] == b->version());
+      assert(banks_version[allen_type] == b->version());
     }
 
     // Write sourceID

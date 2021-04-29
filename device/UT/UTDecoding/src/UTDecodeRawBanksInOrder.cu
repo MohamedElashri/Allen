@@ -203,7 +203,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
     const unsigned hit_index = layer_offset + i;
     const unsigned raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
     const unsigned raw_bank_index = raw_bank_hit_index >> 24;
-    if (mep) {
+    if constexpr (mep) {
       // Create UT raw bank from MEP layout
       const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(
         parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);

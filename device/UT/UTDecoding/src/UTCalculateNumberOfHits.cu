@@ -122,7 +122,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
   const UTBoards boards(ut_boards);
 
-  if (mep) {
+  if constexpr (mep) {
     auto const number_of_ut_raw_banks = parameters.dev_ut_raw_input_offsets[0];
     for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
       // Construct UT raw bank from MEP layout
