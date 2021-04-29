@@ -99,7 +99,7 @@ struct Constants {
   MatchUpstreamMuon::MuonChambers* dev_muonmatch_search_muon_chambers = nullptr;
   MatchUpstreamMuon::SearchWindows* dev_muonmatch_search_windows = nullptr;
 
-  // Muon classification model constatns
+  // Muon classification model constants
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;
   float* dev_muon_momentum_cuts = nullptr;
   int muon_catboost_n_trees;
@@ -109,6 +109,16 @@ struct Constants {
   float* dev_muon_catboost_split_borders = nullptr;
   float* dev_muon_catboost_leaf_values = nullptr;
   int* dev_muon_catboost_leaf_offsets = nullptr;
+
+  // Two-track catboost constants.
+  int two_track_catboost_n_trees;
+  int* dev_two_track_catboost_tree_depths = nullptr;
+  int* dev_two_track_catboost_tree_offsets = nullptr;
+  int* dev_two_track_catboost_split_features = nullptr;
+  float* dev_two_track_catboost_split_borders = nullptr;
+  float* dev_two_track_catboost_leaf_values = nullptr;
+  int* dev_two_track_catboost_leaf_offsets = nullptr;
+
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
 
   // Kalman filter
@@ -143,6 +153,15 @@ struct Constants {
   void initialize_ut_decoding_constants(const std::vector<char>& ut_geometry);
 
   void initialize_muon_catboost_model_constants(
+    const int n_trees,
+    const std::vector<int>& tree_depths,
+    const std::vector<int>& tree_offsets,
+    const std::vector<float>& leaf_values,
+    const std::vector<int>& leaf_offsets,
+    const std::vector<float>& split_borders,
+    const std::vector<int>& split_features);
+
+  void initialize_two_track_catboost_model_constants(
     const int n_trees,
     const std::vector<int>& tree_depths,
     const std::vector<int>& tree_offsets,

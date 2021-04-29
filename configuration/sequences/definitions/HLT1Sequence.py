@@ -137,11 +137,33 @@ def HLT1Sequence(layout_provider,
         dev_number_of_events_t=initialize_lists.dev_number_of_events_t(),
         dev_event_list_t=initialize_lists.dev_event_list_t())
 
+    two_track_preprocess = two_track_preprocess_t(
+        name="two_track_preprocess",
+        host_number_of_selected_events_t=initialize_lists.
+        host_number_of_events_t(),
+        host_number_of_svs_t=prefix_sum_secondary_vertices.
+        host_total_sum_holder_t(),
+        dev_consolidated_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+        dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t(),
+        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
+        dev_offsets_all_velo_tracks_t(),
+        dev_offsets_velo_track_hit_number_t=
+        prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t(),
+        dev_event_list_t=initialize_lists.dev_event_list_t())
+
+    two_track_evaluator = two_track_evaluator_t(
+        name="two_track_evaluator",
+        host_number_of_svs_t=prefix_sum_secondary_vertices.
+        host_total_sum_holder_t(),
+        dev_two_track_catboost_preprocess_output_t=two_track_preprocess.
+        dev_two_track_preprocess_output_t())
+
     odin_banks = data_provider_t(name="odin_banks", bank_type="ODIN")
 
     hlt1_sequence = Sequence(velo_pv_ip, kalman_velo_only, filter_tracks,
                              prefix_sum_secondary_vertices,
-                             fit_secondary_vertices, odin_banks)
+                             fit_secondary_vertices, two_track_preprocess,
+                             two_track_evaluator, odin_banks)
 
     if add_default_lines:
         track_mva_line = track_mva_line_t(
@@ -173,6 +195,23 @@ def HLT1Sequence(layout_provider,
             dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
             pre_scaler_hash_string="two_track_mva_line_pre",
             post_scaler_hash_string="two_track_mva_line_post")
+
+        two_track_catboost_line = two_track_catboost_line_t(
+            name='Hlt1TwoTrackCatBoost',
+            host_number_of_events_t=initialize_lists.host_number_of_events_t(),
+            host_number_of_svs_t=prefix_sum_secondary_vertices.
+            host_total_sum_holder_t(),
+            dev_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),
+            dev_two_track_evaluation_t=two_track_evaluator.
+            dev_two_track_catboost_evaluation_t(),
+            dev_sv_offsets_t=prefix_sum_secondary_vertices.
+            dev_output_buffer_t(),
+            dev_event_list_t=initialize_lists.dev_event_list_t(),
+            dev_odin_raw_input_t=odin_banks.dev_raw_banks_t(),
+            dev_odin_raw_input_offsets_t=odin_banks.dev_raw_offsets_t(),
+            dev_mep_layout_t=layout_provider.dev_mep_layout_t(),
+            pre_scaler_hash_string="two_track_catboost_line_pre",
+            post_scaler_hash_string="two_track_catboost_line_post")
 
         no_beam_line = beam_crossing_line_t(
             name="Hlt1NoBeam",
@@ -441,8 +480,8 @@ def HLT1Sequence(layout_provider,
             pre_scaler_hash_string="passthrough_line_pre",
             post_scaler_hash_string="passthrough_line_post")
 
-        lines = (track_mva_line, two_track_mva_line, no_beam_line,
-                 beam_one_line, beam_two_line, both_beams_line,
+        lines = (track_mva_line, two_track_mva_line, two_track_catboost_line,
+                 no_beam_line, beam_one_line, beam_two_line, both_beams_line,
                  velo_micro_bias_line, odin_lumi_line, odin_no_bias,
                  single_high_pt_muon_line, low_pt_muon_line, d2kk_line,
                  d2kpi_line, d2pipi_line, di_muon_high_mass_line,

@@ -72,6 +72,7 @@ Clones               :  0.000 (     0/  4542)
 host_rate_validator validation:
 Hlt1TrackMVA:            215/  1000, ( 6450.00 +/-   389.74) kHz
 Hlt1TwoTrackMVA:         374/  1000, (11220.00 +/-   459.03) kHz
+Hlt1TwoTrackCatBoost:    384/  1000, (11520.00 +/-   461.40) kHz
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
