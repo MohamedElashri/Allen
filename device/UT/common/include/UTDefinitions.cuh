@@ -31,7 +31,7 @@ namespace UT {
     static constexpr unsigned ut_number_of_sectors_per_board = 6;
     static constexpr unsigned ut_number_of_geometry_sectors = 1048;
     static constexpr unsigned ut_decoding_in_order_threads_x = 64;
-    static constexpr unsigned ut_max_hits_shared_sector_group = 256;
+    static constexpr unsigned ut_max_hits_shared_sector_group = 512;
 
   } // namespace Decoding
 
