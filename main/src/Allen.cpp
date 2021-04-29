@@ -322,6 +322,8 @@ int allen(
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
 
+  std::unique_ptr<CatboostModelReader> two_track_catboost_model_reader;
+
   std::unique_ptr<IInputProvider> input_provider;
 
   // Number of requested events as an optional
@@ -399,6 +401,8 @@ int allen(
   // Read the Muon catboost model
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
+  two_track_catboost_model_reader =
+    std::make_unique<CatboostModelReader>(folder_detector_configuration + "two_track_catboost_model_small.json");
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
@@ -415,6 +419,14 @@ int allen(
     muon_catboost_model_reader->leaf_offsets(),
     muon_catboost_model_reader->split_border(),
     muon_catboost_model_reader->split_feature());
+  constants.initialize_two_track_catboost_model_constants(
+    two_track_catboost_model_reader->n_trees(),
+    two_track_catboost_model_reader->tree_depths(),
+    two_track_catboost_model_reader->tree_offsets(),
+    two_track_catboost_model_reader->leaf_values(),
+    two_track_catboost_model_reader->leaf_offsets(),
+    two_track_catboost_model_reader->split_border(),
+    two_track_catboost_model_reader->split_feature());
 
   // Register all consumers
   register_consumers(updater, constants);
