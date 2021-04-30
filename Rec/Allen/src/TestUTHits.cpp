@@ -31,21 +31,6 @@ public:
 private:
   mutable Gaudi::Accumulators::BinomialCounter<> m_allen_hit_eff {this, "GPU UT Hit efficiency"};
   mutable Gaudi::Accumulators::BinomialCounter<> m_rec_hit_eff {this, "CPU UT Hit efficiency"};
-  // FIXME: histograms don't work yet
-  mutable Gaudi::Accumulators::Histogram<1, Gaudi::Accumulators::atomicity::full, float> m_allen_dx {
-    this,
-    "allen_dx",
-    ";x(y=0)_{Allen UT Hit} - x_{mid,MC UT Hit};Allen UT Hits / 10 #mum",
-    {200, -1.f, 1.f}};
-  mutable Gaudi::Accumulators::Histogram<1, Gaudi::Accumulators::atomicity::full, float> m_rec_dx {
-    this,
-    "rec_dx",
-    ";x(y=0)_{Rec UT Hit} - x_{mid,MC UT Hit};Rec UT Hits / 10 #mum",
-    {200, -1.f, 1.f}};
-  mutable Gaudi::Accumulators::Histogram<1, Gaudi::Accumulators::atomicity::full, unsigned short>
-    m_allen_hit_multiplicity {this, "allen_mult", ";Multiplicity of matched Allen UT Hits", {10, 0, 10}};
-  mutable Gaudi::Accumulators::Histogram<1, Gaudi::Accumulators::atomicity::full, unsigned short>
-    m_rec_hit_multiplicity {this, "rec_mult", ";Multiplicity of matched Rec UT Hits", {10, 0, 10}};
 };
 
 DECLARE_COMPONENT(TestUTHits)
@@ -204,12 +189,11 @@ void TestUTHits::operator()(
       // truth matching by comparing MC hit position to decoded strip position. also handles bookkeeping like counters.
       // returns condition whether or not to keep going in loop over decoded hits
       auto simple_truth_matching = [&mch_x, &mch_y, p_dxdy = dxdy_in_plane[i], &tol_x, &tol_y, &hit_mult](
-                                     const auto& hit, auto hit_matched, auto& dx_hist) -> bool {
+                                     const auto& hit, auto hit_matched) -> bool {
         if (
           abs((hit.xAtYEq0 + p_dxdy * mch_y) - mch_x) < tol_x && hit.yBegin - tol_y < mch_y &&
           mch_y < hit.yEnd + tol_y) {
           hit_mult++;
-          dx_hist += hit.xAtYEq0 - mch_x;
           hit_matched = true;
           return true;
         }
@@ -218,9 +202,8 @@ void TestUTHits::operator()(
         return true;
       };
       for (unsigned j = 0; j < n_allen_hits_in_current_plane; j++)
-        if (!simple_truth_matching(regrouped_allen_hits[i][j], allen_match_mask[j], m_allen_dx)) break;
+        if (!simple_truth_matching(regrouped_allen_hits[i][j], allen_match_mask[j])) break;
       m_allen_hit_eff += hit_mult > 0;
-      m_allen_hit_multiplicity += hit_mult;
 
       if (hit_mult == 0) {
         // int pid = 0;
@@ -235,10 +218,9 @@ void TestUTHits::operator()(
       // reset and loop rec hits
       hit_mult = 0;
       for (unsigned j = 0; j < n_rec_hits_in_current_plane; j++) {
-        if (!simple_truth_matching(regrouped_rec_hits[i][j], rec_match_mask[j], m_rec_dx)) break;
+        if (!simple_truth_matching(regrouped_rec_hits[i][j], rec_match_mask[j])) break;
       }
       m_rec_hit_eff += hit_mult > 0;
-      m_rec_hit_multiplicity += hit_mult;
       if (hit_mult == 0) {
         // int pid = 0;
         // if(ut_mc_hit.mcParticle()!=nullptr) pid = ut_mc_hit.mcParticle()->particleID().pid();

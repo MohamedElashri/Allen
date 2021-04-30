@@ -113,19 +113,28 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
   const auto n_boards = geometry_v5 ? rInfo->param<int>("nTell40InUT") * 2 : readout->nBoard();
 
   uint32_t currentBoardID = 0, cbID = 0;
-  for (; cbID < n_boards;
-       ++cbID) { // In v5 there are no gaps in the numbering, so that the readouttool will always find a board
+  for (; cbID < n_boards; ++cbID) {
     if (geometry_v5) {
       const auto b = readout->findByDAQOrder(cbID); // UTDAQ::Board
       const auto sector_ids = b->sectorIDs();
       stripsPerHybrids.push_back(stripsPerHybrid);
-      for (unsigned lane = 0; lane < n_lanes_max; ++lane) { // old lingo: sectors, new lingo: lanes
-        const auto s = sector_ids[lane];                    // LHCb::UTChannelID
+      const auto n_lanes_in_this_sector = sector_ids.size();
+      for (typename std::decay<decltype(n_lanes_in_this_sector)>::type lane = 0; lane < n_lanes_in_this_sector; ++lane) { // old lingo: sectors, new lingo: lanes
+        const auto s = sector_ids[lane]; // LHCb::UTChannelID
         stations.push_back(s.station());
         layers.push_back(s.layer());
         detRegions.push_back(s.detRegion());
         sectors.push_back(s.sector());
         chanIDs.push_back(s.channelID());
+      }
+      // If the number of lanes is less than 6, fill the remaining ones up to 6 with zeros
+      // this is necessary to be compatible with the Allen UT boards layout
+      for (uint32_t dummy_lane = n_lanes_in_this_sector; dummy_lane < n_lanes_max; ++dummy_lane) {
+        stations.push_back(0);
+        layers.push_back(0);
+        detRegions.push_back(0);
+        sectors.push_back(0);
+        chanIDs.push_back(0);
       }
       ++currentBoardID;
     }
