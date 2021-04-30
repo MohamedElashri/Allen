@@ -98,7 +98,7 @@ target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs Backend LHCbEvent)
 
 test_program(NAME mdf_to_mep)
 
-if (BUILD_TESTS)
+if (BUILD_TESTING)
   test_program(NAME dump_banks)
   test_program(NAME test_read)
   test_program(NAME bench_read)

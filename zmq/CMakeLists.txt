@@ -40,7 +40,7 @@ else()
 
 endif()
 
-if (GaudiProject_FOUND)
+if (NOT STANDALONE)
   find_package(AIDA REQUIRED)
   find_package(ROOT REQUIRED)
   add_library(AllenZMQ INTERFACE)

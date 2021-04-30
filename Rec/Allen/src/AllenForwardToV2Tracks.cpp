@@ -9,9 +9,6 @@
  *
  */
 
-#ifndef ALLENFORWARDTOV2TRACKS_H
-#define ALLENFORWARDTOV2TRACKS_H
-
 // Gaudi
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
@@ -51,8 +48,6 @@ private:
 
   std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
 };
-
-#endif
 
 DECLARE_COMPONENT(AllenForwardToV2Tracks)
 

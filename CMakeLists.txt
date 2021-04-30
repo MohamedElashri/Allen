@@ -4,11 +4,14 @@
 
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
+project(Allen VERSION 1.8
+        LANGUAGES CXX)
+
 # ---------------
 # Boolean options
 # ---------------
 
-option(BUILD_TESTS "Build test programs" OFF)
+option(BUILD_TESTING "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
 option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
@@ -131,16 +134,41 @@ if(CALLGRIND_PROFILE)
   add_compile_definitions(CALLGRIND_PROFILE)
 endif()
 
-# Deal with device target architecture
-if(NOT STANDALONE)
-  message(STATUS "Configured Gaudi build")
-  if(FORCE_CUDA)
-    message(STATUS "Configured Gaudi build - CUDA target")
-  else()
-    message(STATUS "Configured Gaudi build - CPU target")
-    set(TARGET_DEVICE "CPU")
+if (NOT STANDALONE)
+  message(STATUS "LHCb stack build")
+
+  include(AllenDependencies) # public deps
+
+  #Always enable ROOT for Gaudi builds
+  set(USE_ROOT ON)
+
+  find_package(cppgsl REQUIRED)
+
+  include(GaudiDeviceUtils)
+  set_target_device()
+
+  lhcb_add_subdirectories(
+    Rec/Allen
+    Dumpers/BinaryDumpers
+    Dumpers/RootDumpers)
+else()
+  if (BUILD_TESTING)
+    enable_testing()
   endif()
+
+  find_package(cppgsl QUIET)
+  if (cppgsl_FOUND)
+    message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIR})
+  else()
+    set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
+    message(STATUS "Using internal gsl-lite")
+  endif()
+
+  # https://github.com/nlohmann/json
+  find_package(nlohmann_json REQUIRED)
 endif()
+
+# Deal with device target architecture
 message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
 # Add compile definition for target
@@ -159,65 +187,6 @@ foreach(SUBMODULE ${EXPECTED_SUBMODULES})
     message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! Please update submodules and try again. You may need to run `git submodule update --init --recursive`.")
   endif()
 endforeach()
-
-#Setup the project to build as a Gaudi project or else standalone
-macro(allen_project)
-#Gaudi build
-  if (NOT STANDALONE)
-    find_package(GaudiProject REQUIRED)
-
-#Declare project name and version
-    gaudi_project(Allen v1r9
-                  USE Rec v34r0
-                  DATA AppConfig VERSION v3r*
-                       FieldMap VERSION v5r*
-                       PRConfig VERSION v1r*
-                       RawEventFormat)
-
-#Always enable tests for gaudi builds
-    set(BUILD_TESTS ON)
-
-#Always enable ROOT for Gaudi builds
-    set(USE_ROOT ON)
-
-# FIXME: Remove once USE_DD4HEP is properly propagated
-    if (TARGET Detector::DetectorLib)
-      message(STATUS "Using DD4HEP")
-      if (NOT DEFINED USE_DD4HEP)
-        set(USE_DD4HEP ON CACHE BOOL "Controls whether DD4hep is used for the subdetectors supporting it")
-      endif()
-    else()
-      message(STATUS "Using DetDesc")
-    endif()
-
-#Find the CUDA compiler if it's not set
-#FIXME : this assumes a standard device install : re - evaluate if
-#LCG_XXdeviceYY is used
-    if (TARGET_DEVICE STREQUAL "CUDA")
-      if (NOT CMAKE_CUDA_COMPILER)
-        find_program(CMAKE_CUDA_COMPILER nvcc
-                     HINTS /usr/local/cuda/bin)
-        if (CMAKE_CUDA_COMPILER)
-          message(STATUS "Found CUDA compiler ${CMAKE_CUDA_COMPILER}")
-        endif()
-      else()
-        message(STATUS "Using CUDA compiler ${CMAKE_CUDA_COMPILER}")
-      endif()
-#Make sure the lcg compiler wrapper scripts are used to call
-#the host compiler
-      set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-    endif()
-  else()
-    project(Allen C CXX)
-    if (BUILD_TESTS)
-      enable_testing()
-    endif()
-  endif()
-
-  # https://github.com/nlohmann/json
-  find_package(nlohmann_json REQUIRED)
-  find_package(cppgsl REQUIRED)
-endmacro()
 
 # Detect CUDA architecture
 if(TARGET_DEVICE STREQUAL "CUDA")
@@ -358,9 +327,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
    endif()
 
-   allen_project()
 elseif(TARGET_DEVICE STREQUAL "HIP")
-  allen_project()
 
   # Setup HIPCC compiler
   if(NOT DEFINED ROCM_PATH)
@@ -424,7 +391,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
-  allen_project()
   enable_language(CUDA)
 
   # set(CMAKE_CUDA_STANDARD 17) # 17 not supported by current CMake version
@@ -543,7 +509,7 @@ if (USE_KALMAN_DOUBLE_PRECISION)
 endif()
 
 if (USE_ROOT)
-   if (GaudiProject_FOUND)
+   if (NOT STANDALONE)
      find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO Thread)
      find_package(TBB REQUIRED)
      set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
@@ -562,9 +528,9 @@ if (USE_ROOT)
      if (ROOT_FOUND)
        message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
 
-#If ROOT is built with C++ 17 support, everything that includes ROOT
-#headers must be built with C++ 17 support.CUDA doesn't support
-#that, so we have to factor that out.
+       #If ROOT is built with C++ 17 support, everything that includes ROOT
+       #headers must be built with C++ 17 support.CUDA doesn't support
+       #that, so we have to factor that out.
        execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
        string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
        message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
@@ -574,7 +540,7 @@ if (USE_ROOT)
          set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
        endif()
 
-       set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
+       set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lCore -lCling -lHist -lTree -lRIO)
 
        execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
        string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
@@ -612,7 +578,7 @@ if(NOT BUILD_SEQUENCES)
   message(FATAL_ERROR "No sequences selected to be built with pattern ${SEQUENCES}.")
 endif()
 
-if(BUILD_TESTS)
+if(BUILD_TESTING)
 add_subdirectory(external/Catch2)
 add_subdirectory(test/unit_tests)
 endif()
@@ -723,7 +689,6 @@ endif()
 
 target_link_libraries(AllenLib PUBLIC
   Stream
-  StreamUtils
   HostCommon
   AllenCommon
   HostEventModel
