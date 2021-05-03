@@ -119,7 +119,8 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
       const auto sector_ids = b->sectorIDs();
       stripsPerHybrids.push_back(stripsPerHybrid);
       const auto n_lanes_in_this_sector = sector_ids.size();
-      for (typename std::decay<decltype(n_lanes_in_this_sector)>::type lane = 0; lane < n_lanes_in_this_sector; ++lane) { // old lingo: sectors, new lingo: lanes
+      for (typename std::decay<decltype(n_lanes_in_this_sector)>::type lane = 0; lane < n_lanes_in_this_sector;
+           ++lane) {                     // old lingo: sectors, new lingo: lanes
         const auto s = sector_ids[lane]; // LHCb::UTChannelID
         stations.push_back(s.station());
         layers.push_back(s.layer());
@@ -179,7 +180,15 @@ DumpUtils::Dump DumpUTGeometry::dumpBoards() const
   }   // end loop boards
 
   DumpUtils::Writer ut_boards {};
-  ut_boards.write(currentBoardID, stripsPerHybrids, stations, layers, detRegions, sectors, chanIDs);
+  ut_boards.write(
+    currentBoardID,
+    static_cast<uint32_t>(UT_version),
+    stripsPerHybrids,
+    stations,
+    layers,
+    detRegions,
+    sectors,
+    chanIDs);
 
   return std::tuple {ut_boards.buffer(), "ut_boards", Allen::NonEventData::UTBoards::id};
 }

@@ -55,6 +55,7 @@ struct Constants {
   std::vector<unsigned> host_unique_x_sector_layer_offsets;
   std::vector<unsigned> host_unique_x_sector_offsets;
   std::vector<float> host_unique_sector_xs;
+  std::vector<char> host_ut_boards;
 
   gsl::span<char> dev_ut_geometry;
   gsl::span<float> dev_ut_dxDy;
