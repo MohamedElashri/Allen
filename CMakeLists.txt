@@ -137,42 +137,42 @@ endif()
 if (NOT STANDALONE)
   message(STATUS "LHCb stack build")
 
+  set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
   include(AllenDependencies) # public deps
 
-  #Always enable ROOT for Gaudi builds
-  set(USE_ROOT ON)
+  set(target_hip FALSE)
+  set(target_cuda FALSE)
 
-  find_package(cppgsl REQUIRED)
+  string(REPLACE "+" ";" compiler_split "${LCG_COMPILER}")
+  foreach(device_comp IN LISTS compiler_split)
+    if ("${device_comp}" MATCHES "cuda([0-9]+)_([0-9]+)((gcc|clang)([0-9]+))?")
+      set(target_cuda TRUE)
+    elseif ("${device_comp}" STREQUAL "hip")
+      set(target_hip TRUE)
+    endif()
+  endforeach()
 
-  include(GaudiDeviceUtils)
-  set_target_device()
+  if (${target_hip} AND NOT ${target_cuda})
+    set(TARGET_DEVICE "HIP")
+  elseif(${target_cuda} AND NOT ${target_hip})
+    set(TARGET_DEVICE "CUDA")
+  elseif(${target_cuda} AND ${target_hip})
+  	message(FATAL_ERROR "Cannot simultaneously build for HIP and CUDA targets")
+  else()
+	set(TARGET_DEVICE "CPU")
+  endif()
+
+  message(STATUS "Allen device target: " ${TARGET_DEVICE})
+  set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
   lhcb_add_subdirectories(
     Rec/Allen
     Dumpers/BinaryDumpers
     Dumpers/RootDumpers)
 else()
-  if (BUILD_TESTING)
-    enable_testing()
-  endif()
-
-  find_package(cppgsl QUIET)
-  if (cppgsl_FOUND)
-    message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIR})
-  else()
-    set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
-    message(STATUS "Using internal gsl-lite")
-  endif()
-
-  # https://github.com/nlohmann/json
-  find_package(nlohmann_json REQUIRED)
+  message(STATUS "Allen device target: " ${TARGET_DEVICE})
+  set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 endif()
-
-# Deal with device target architecture
-message(STATUS "Allen device target: " ${TARGET_DEVICE})
-
-# Add compile definition for target
-set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
 # Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.
 # Support it in a future Allen release.
@@ -393,12 +393,11 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 elseif(TARGET_DEVICE STREQUAL "CUDA")
   enable_language(CUDA)
 
-  # set(CMAKE_CUDA_STANDARD 17) # 17 not supported by current CMake version
+  set(CMAKE_CUDA_STANDARD 17)
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_DEBUG "-G -g -DALLEN_DEBUG")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-  set(CUDA_STANDARD 17)
 
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
   if (CUDA_VERBOSE_BUILD)
@@ -493,75 +492,9 @@ if(STANDALONE)
   endif()
 endif()
 
-if (USE_MPI)
-  find_package(MPI REQUIRED)
-#hwloc is also needed
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(HWLOC IMPORTED_TARGET hwloc)
-  include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
-  add_compile_definitions(HAVE_MPI)
-else(USE_MPI)
-  set(MPI_FOUND OFF)
-endif()
-
 if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()
-
-if (USE_ROOT)
-   if (NOT STANDALONE)
-     find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO Thread)
-     find_package(TBB REQUIRED)
-     set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-     set(ALLEN_ROOT_LIBRARIES ${ROOT_LIBRARIES} ${TBB_LIBRARIES})
-   else()
-     if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-     elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-     elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
-     else()
-       message(FATAL_ERROR "ROOTSYS must be set to use ROOT with a standalone build of Allen")
-     endif()
-     find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree RIO Thread)
-     if (ROOT_FOUND)
-       message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
-
-       #If ROOT is built with C++ 17 support, everything that includes ROOT
-       #headers must be built with C++ 17 support.CUDA doesn't support
-       #that, so we have to factor that out.
-       execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
-       string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
-       message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
-       if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
-         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-       else()
-         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
-       endif()
-
-       set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lCore -lCling -lHist -lTree -lRIO)
-
-       execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
-       string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
-       message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
-       if (${ROOT_HAS_IMT} STREQUAL "yes")
-         find_package(TBB REQUIRED)
-         get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
-         set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
-       endif()
-     else()
-       message(STATUS "Compiling without ROOT")
-     endif()
-   endif()
-else()
-   message(STATUS "Compiling without ROOT")
-endif()
-
-set(EXTERNAL_DIR "external")
-
-find_package(Boost REQUIRED COMPONENTS filesystem iostreams thread regex
-  serialization program_options)
 
 # Determine which sequences to generate or copy configurations for
 file(GLOB available_sequences "configuration/sequences/*.py")
@@ -578,9 +511,11 @@ if(NOT BUILD_SEQUENCES)
   message(FATAL_ERROR "No sequences selected to be built with pattern ${SEQUENCES}.")
 endif()
 
+set(EXTERNAL_DIR "external")
+
 if(BUILD_TESTING)
-add_subdirectory(external/Catch2)
-add_subdirectory(test/unit_tests)
+  add_subdirectory(external/Catch2)
+  add_subdirectory(test/unit_tests)
 endif()
 
 add_subdirectory(configuration)
@@ -627,14 +562,32 @@ target_include_directories(AllenCommon INTERFACE SYSTEM
 #Make sure extra search paths get included as system to avoid
 #warnings in external headers
 if (DEFINED ENV{CPLUS_INCLUDE_PATH})
-  target_include_directories(Common INTERFACE SYSTEM $ENV{CPLUS_INCLUDE_PATH})
+  target_include_directories(AllenCommon SYSTEM INTERFACE $ENV{CPLUS_INCLUDE_PATH})
 elseif (DEFINED ENV{CPATH})
-  target_include_directories(Common INTERFACE SYSTEM $ENV{CPATH})
+  target_include_directories(AllenCommon SYSTEM INTERFACE $ENV{CPATH})
 endif()
 
-if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  target_include_directories(Common INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+if (TARGET_DEVICE STREQUAL "CUDA")
+  find_package(CUDAToolkit)
+  target_link_libraries(AllenCommon PUBLIC CUDA::cudart)
+  target_include_directories(AllenCommon SYSTEM INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+elseif(TARGET_DEVICE STREQUAL "HIP")
+  # find_package(hip) doesn't work as hip-targets.cmake is not relocatable
+  find_library(hip_runtime_lib amdhip64 HINTS ${HIP_PATH}/lib REQUIRED)
+  target_link_libraries(AllenCommon PUBLIC ${hip_runtime_lib})
 endif()
+
+# Use std::filesystem or Boost filesystem depeding on availability
+add_library(AllenFS INTERFACE)
+find_package(Filesystem)
+if(NOT Filesystem_FOUND)
+  target_compile_definitions(AllenFS INTERFACE USE_BOOST_FILESYSTEM)
+  target_link_libraries(AllenFS INTERFACE Boost::filesystem)
+else()
+  target_link_libraries(AllenFS INTERFACE std::filesystem)
+endif()
+
+find_package(Threads REQUIRED)
 
 # Add host library
 allen_add_host_library(HostCommon STATIC ${common_sources})
@@ -650,42 +603,12 @@ target_include_directories(HostCommon PUBLIC
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
-add_library(allen_fs INTERFACE)
-find_package(Filesystem)
-if(NOT Filesystem_FOUND)
-  target_compile_definitions(allen_fs INTERFACE USE_BOOST_FILESYSTEM)
-  target_link_libraries(allen_fs INTERFACE Boost::filesystem)
-else()
-  target_link_libraries(allen_fs INTERFACE std::filesystem)
-endif()
-
-target_link_libraries(HostCommon PRIVATE allen_fs nlohmann_json::nlohmann_json
+target_link_libraries(HostCommon PRIVATE AllenFS nlohmann_json::nlohmann_json
   EventModel Gear Backend mdf NonEventData Common LHCbEvent)
-
-if(TARGET_DEVICE STREQUAL "CPU")
-  set_source_files_properties(${common_device_sources} PROPERTIES LANGUAGE CXX)
-endif()
-
-if (TARGET_DEVICE STREQUAL "CUDA")
-  find_package(CUDAToolkit)
-  target_link_libraries(AllenCommon PUBLIC CUDA::cudart)
-elseif(TARGET_DEVICE STREQUAL "HIP")
-  # find_package(hip) doesn't work as hip-targets.cmake is not relocatable
-  find_library(hip_runtime_lib amdhip64 HINTS ${HIP_PATH}/lib REQUIRED)
-  target_link_libraries(AllenCommon PUBLIC ${hip_runtime_lib})
-endif()
 
 target_link_libraries(AllenCommon PUBLIC mdf allen_fs nlohmann_json::nlohmann_json)
 
 allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
-
-# Required packages
-find_package(Threads REQUIRED)
-
-if (TARGET_DEVICE STREQUAL "CUDA")
-  find_package(CUDAToolkit)
-  target_link_libraries(AllenLib PUBLIC CUDA::cudart)
-endif()
 
 target_link_libraries(AllenLib PUBLIC
   Stream
@@ -696,7 +619,7 @@ target_link_libraries(AllenLib PUBLIC
   PVChecking
   CheckClustering
   SelChecking
-  AllenMonitoring
+  Monitoring
   NonEventData
   AllenZMQ
   HostCombiners
@@ -710,11 +633,9 @@ target_link_libraries(AllenLib PUBLIC
 
 if (USE_MPI AND MPI_FOUND)
   get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
-  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES})
-  if (HWLOC_FOUND)
-    target_link_libraries(AllenLib PUBLIC -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
-    target_compile_definitions(AllenLib PRIVATE HAVE_HWLOC)
-  endif()
+  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES} -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
+  target_include_directories(AllenLib SYSTEM PUBLIC ${MPI_CXX_INCLUDE_PATH})
+  target_compile_definitions(AllenLib PRIVATE HAVE_MPI HAVE_HWLOC)
 endif()
 
 if (USE_ROOT AND ROOT_FOUND)
@@ -724,16 +645,16 @@ if (USE_ROOT AND ROOT_FOUND)
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
 endif()
 
-if (GaudiProject_FOUND)
-  find_package(AIDA)
+if (NOT STANDALONE)
   target_include_directories(AllenLib PUBLIC ${AIDA_INCLUDE_DIRS})
 endif()
 
-allen_add_executable(Allen ${main_cpp_path})
+add_executable(Allen ${main_cpp_path})
 
-if (STANDALONE)
-  target_link_libraries(Allen PRIVATE AllenLib)
-else()
-  find_package(fmt REQUIRED)
-  target_link_libraries(Allen PRIVATE AllenLib fmt::fmt)
+target_link_libraries(Allen PRIVATE AllenLib)
+
+if (NOT STANDALONE)
+  target_link_libraries(Allen PRIVATE fmt::fmt)
+  # Finalize configuration
+  lhcb_finalize_configuration()
 endif()

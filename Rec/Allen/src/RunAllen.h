@@ -17,8 +17,6 @@
 
 // Allen includes
 #include "Constants.cuh"
-#include "InputTools.h"
-#include "InputReader.h"
 #include "RegisterConsumers.h"
 #include <Dumpers/IUpdater.h>
 #include "HostBuffers.cuh"

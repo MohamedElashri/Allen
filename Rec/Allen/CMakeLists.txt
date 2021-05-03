@@ -9,24 +9,55 @@ sequence as part of an Gaudi/LHCb
 application
 #]========================================]
 
-set(ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
-_make_relocatable(ALLEN_INSTALL_DIR MAPPINGS "${CMAKE_SOURCE_DIR}" "\${ALLEN_PROJECT_ROOT}")
-message(STATUS "Setting Allen install dir env variable to ${ALLEN_INSTALL_DIR}")
-gaudi_env(SET ALLEN_INSTALL_DIR ${ALLEN_INSTALL_DIR})
+# set(ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
+# _make_relocatable(ALLEN_INSTALL_DIR MAPPINGS "${CMAKE_SOURCE_DIR}" "\${ALLEN_PROJECT_ROOT}")
+# message(STATUS "Setting Allen install dir env variable to ${ALLEN_INSTALL_DIR}")
+# gaudi_env(SET ALLEN_INSTALL_DIR ${ALLEN_INSTALL_DIR})
 
 include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
-                 src/*.cpp
-                 LINK AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
-                      PrKernel VPDetLib UTDetLib UTKernelLib CaloDetLib
-                      FTDetLib HltDAQLib MCEvent)
+                 SOURCES
+                   src/AllenDecReportsToTES.cpp
+                   src/AllenForwardToV2Tracks.cpp
+                   src/AllenPVsToRecVertexV2.cpp
+                   src/TestVeloClusters.cpp
+                   src/AllenUTToV2Tracks.cpp
+                   src/AllenVeloToV2Tracks.cpp
+                   src/RunAllen.cpp
+                   src/TestAllenCaloDigits.cpp
+                 LINK
+                   AllenLib
+                   EventModel
+                   Gaudi::GaudiAlgLib
+                   LHCb::DAQEventLib
+                   LHCb::DAQKernelLib
+                   LHCb::VPDetLib
+                   LHCb::UTDetLib
+                   LHCb::UTKernelLib
+                   LHCb::CaloDetLib
+                   LHCb::FTDetLib
+                   LHCb::HltDAQLib
+                   LHCb::MCEvent
+                   Rec::PrKernel)
 
 gaudi_add_module(AllenAlgorithms
-                 ${WRAPPED_ALGORITHM_SOURCES}
-                 LINK AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
-                      PrKernel VPDetLib UTDetLib UTKernelLib CaloDetLib
-                      FTDetLib HltDAQLib MCEvent)
+                 SOURCES
+                   ${WRAPPED_ALGORITHM_SOURCES}
+                 LINK
+                   AllenLib
+                   EventModel
+                   Gaudi::GaudiAlgLib
+                   LHCb::DAQEventLib
+                   LHCb::DAQKernelLib
+                   LHCb::VPDetLib
+                   LHCb::UTDetLib
+                   LHCb::UTKernelLib
+                   LHCb::CaloDetLib
+                   LHCb::FTDetLib
+                   LHCb::HltDAQLib
+                   LHCb::MCEvent
+                   Rec::PrKernel)
 
 target_include_directories(AllenAlgorithms PRIVATE Allen)
 

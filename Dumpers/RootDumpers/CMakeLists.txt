@@ -1,24 +1,24 @@
 ###############################################################################
 # (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-################################################################################
-# Package: RootDumpers
-################################################################################
-gaudi_subdir(RootDumpers v1r0)
-
-gaudi_depends_on_subdirs(Event/TrackEvent
-                         Event/DAQEvent
-                         GaudiAlg
-                         Pr/PrKernel)
-
-find_package(Boost)
-find_package(ROOT COMPONENTS Core)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS})
+#[========================================[.rst:
+Dumpers/RootDumpers
+------------------
+Utility algorithms to dump reconstructed objects
+to ROOT files for development and debugging of
+GPU algorithms
+#]========================================]
 
 gaudi_add_module(RootDumpers
-                 src/*.cpp
-                 INCLUDE_DIRS Event/TrackEvent
-                 LINK_LIBRARIES DAQEventLib DAQKernelLib GaudiAlgLib
-                                PrKernel TrackEvent MCEvent ROOT::Tree LinkerEvent RelationsLib)
+                 SOURCES
+                   src/DumpVeloUTState.cpp
+                 LINK
+                   Gaudi::GaudiAlgLib
+                   LHCb::DAQEventLib
+                   LHCb::DAQKernelLib
+                   LHCb::TrackEvent
+                   LHCb::MCEvent
+                   Rec::PrKernel
+                   Boost::headers)
 
-gaudi_add_test(QMTest QMTEST)
+gaudi_add_tests(QMTest)

@@ -20,9 +20,14 @@ endif()
 allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_link_libraries(mdf PUBLIC LHCbEvent)
 
-if (STANDALONE)
-  # Make sure we have a local copy of ODIN.h if building in standalone mode
+if (NOT STANDALONE)
+  target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+  target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
+  target_link_libraries(LHCbEvent INTERFACE Gaudi::GaudiKernel LHCb::DAQEventLib)
+else()
+  # Make sure we have a local copy of ODIN.{h,cpp} if building in standalone mode
   set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
   foreach(odin_file ${odin_files})
     if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
@@ -94,7 +99,7 @@ foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp Transpose.cpp TransposeMEP
   list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
 endforeach()
 allen_add_host_library(MdfTestCommon STATIC ${common_sources} ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
-target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs Backend LHCbEvent)
+target_link_libraries(MdfTestCommon PUBLIC mdf AllenFS Backend LHCbEvent)
 
 test_program(NAME mdf_to_mep)
 

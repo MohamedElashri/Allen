@@ -12,6 +12,7 @@
 
 #include "RunAllen.h"
 #include "ROOTService.h"
+#include "InputReader.h"
 #include "HltDecReport.cuh"
 
 DECLARE_COMPONENT(RunAllen)
