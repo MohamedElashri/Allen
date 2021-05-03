@@ -13,7 +13,7 @@ fi
 
 # if a geometry folder is specified, pass it to Allen.
 if [ ! -z ${GEOMETRY+x} ]; then
-  RUN_OPTIONS="$RUN_OPTIONS -g ${ALLEN_DATA}/${GEOMETRY}"
+  RUN_OPTIONS="$RUN_OPTIONS -g ../input/detector_configuration/${GEOMETRY}"
 fi
 
 # if INPUT_FILES is set, use that instead of $DATA_TAG
@@ -102,8 +102,8 @@ else
     ALLEN="HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
   fi
   echo "Command: ${ALLEN}"
-  { 
-    eval "${ALLEN}" 
+  {
+    eval "${ALLEN}"
   } 2>&1 | tee "${OUTPUT_FOLDER}/output.txt"
 fi
 

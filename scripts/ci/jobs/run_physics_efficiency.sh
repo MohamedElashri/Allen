@@ -15,7 +15,7 @@ RUN_OPTIONS="-n 1000 -m 1000"
 # Configure the input files (-f) and geometry (-g)
 
 if [ ! -z ${GEOMETRY+x} ]; then
-  RUN_OPTIONS="${RUN_OPTIONS} -g ${ALLEN_DATA}/${GEOMETRY}"
+  RUN_OPTIONS="${RUN_OPTIONS} -g ../input/detector_configuration/${GEOMETRY}"
 fi
 
 set -euxo pipefail
