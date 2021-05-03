@@ -93,12 +93,11 @@ void TestUTHits::operator()(
   std::vector<std::vector<LHCb::MCHit>> regrouped_mc_hits(n_z_planes);
   std::vector<std::vector<UT::Hit>> regrouped_allen_hits(n_z_planes), regrouped_rec_hits(n_z_planes);
 
-  auto get_z_position_index = [&known_zAtYEq0, &tol_z, &n_z_planes, this](const float& z) {
-    auto index = std::find_if(
-                   known_zAtYEq0.begin(),
-                   known_zAtYEq0.end(),
-                   [&z, &tol_z](const float& known_z) { return abs(z - known_z) < tol_z; }) -
-                 known_zAtYEq0.begin();
+  auto get_z_position_index = [&known_zAtYEq0, &n_z_planes, this](const float& z) {
+    auto index =
+      std::find_if(
+        known_zAtYEq0.begin(), known_zAtYEq0.end(), [&z](const float& known_z) { return abs(z - known_z) < tol_z; }) -
+      known_zAtYEq0.begin();
     if (static_cast<std::decay<decltype(n_z_planes)>::type>(index) >= n_z_planes || index < 0) {
       // this happens for padded SIMD hits
       // https://gitlab.cern.ch/lhcb/Rec/-/blob/90012e6d0a0d0122496ede72c6dea0dda06e2d9b/Pr/PrKernel/PrKernel/PrUTHitHandler.h#L120
