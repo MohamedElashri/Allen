@@ -83,10 +83,17 @@ namespace details {
   template<typename T, typename I>
   struct ReverseTuple;
 
-  template<typename T, auto... Is>
+  template<typename T, std::size_t... Is>
   struct ReverseTuple<T, std::index_sequence<Is...>> {
     using type = std::tuple<std::tuple_element_t<sizeof...(Is) - 1 - Is, T>...>;
   };
+
+  template<typename T>
+  struct ReverseTuple<T, std::index_sequence<>>
+  {
+    using type = T;
+  };
+
 } // namespace details
 template<typename Tuple>
 using reverse_tuple_t = typename details::ReverseTuple<Tuple, std::make_index_sequence<std::tuple_size_v<Tuple>>>::type;
