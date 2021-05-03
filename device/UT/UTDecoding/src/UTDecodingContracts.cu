@@ -13,7 +13,7 @@ void ut_calculate_number_of_hits::version_checks::operator()(
   const UTBoards ut_boards(constants.host_ut_boards.data());
   auto const geo_version = ut_boards.version;
 
-  // Condition to check
+  // Conditions to check
   bool bank_version_known = false;
   bool bank_version_matches_geo_version = true;
 

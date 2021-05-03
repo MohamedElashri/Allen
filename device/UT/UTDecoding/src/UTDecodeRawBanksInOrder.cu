@@ -30,7 +30,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
 
   fun(dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), context)(
     arguments,
-    constants.dev_ut_boards.data(),
+    constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
     constants.dev_ut_region_offsets.data(),
     constants.dev_unique_x_sector_layer_offsets.data());

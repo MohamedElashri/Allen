@@ -40,7 +40,17 @@ struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
 
 Contracts can be made generic by templating on the type Parameters. You can find generic contracts that can be reused under `test/contracts`.
 
-In order to enable contracts, just build with the flag -DENABLE_CONTRACTS=ON and run the software. Algorithms that are run in the sequence will run with their contracts enabled.
+Build Allen with contracts
+--------------------------
+
+In order to enable contracts, just build with the flag `-DENABLE_CONTRACTS=ON` and run the software.
+Algorithms that are run in the sequence will run with their contracts enabled.
+
+If you are using [`lb-stack-setup`](https://gitlab.cern.ch/rmatev/lb-stack-setup), you can either set the flag in `utils/config.json` manually or with
+```sh
+utils/config.py -- cmakeFlags.Allen '-DENABLE_CONTRACTS=ON'
+```
+You might need to remove the CMake cache from a previous build with `make Allen/purge`.
 
 An example
 ----------
