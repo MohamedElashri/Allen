@@ -21,6 +21,11 @@
 #include "Event/RawBank.h"
 #include "mdf_header.hpp"
 
+namespace {
+  constexpr auto mdf_header_size = sizeof(LHCb::MDFHeader);
+  constexpr auto bank_header_size = 4 * sizeof(short);
+} // namespace
+
 namespace Allen {
   const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {
     {LHCb::RawBank::VP, BankTypes::VP},

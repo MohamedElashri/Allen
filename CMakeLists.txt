@@ -587,7 +587,12 @@ target_include_directories(AllenCommon INTERFACE SYSTEM
   ${CPPGSL_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS})
 
-set(AllenHeaders main/include/Allen.h)
+
+set(AllenHeaders)
+foreach(header Allen.h Logger.h BankTypes.h Common.h AllenUnits.h MEPTools.h InputProvider.h SliceUtils.h)
+  list(APPEND AllenHeaders main/include/${header})
+endforeach()
+
 set_target_properties(Common PROPERTIES PUBLIC_HEADER "${AllenHeaders}")
 install(TARGETS Common EXPORT Allen
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)

@@ -31,6 +31,7 @@
 #include <write_mdf.hpp>
 #include <BackendCommon.h>
 #include <MEPTools.h>
+#include "SliceUtils.h"
 #include "Transpose.h"
 #include "TransposeMEP.h"
 

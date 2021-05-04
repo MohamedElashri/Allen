@@ -27,7 +27,8 @@
 #include <write_mdf.hpp>
 #include <Event/RawBank.h>
 
-#include "Transpose.h"
+#include <SliceUtils.h>
+#include <Transpose.h>
 #include <BackendCommon.h>
 
 namespace {

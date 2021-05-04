@@ -20,6 +20,7 @@
 #include <eb_header.hpp>
 #include <read_mdf.hpp>
 #include <read_mep.hpp>
+#include <SliceUtils.h>
 #include <Transpose.h>
 #include <TransposeMEP.h>
 #include <BackendCommon.h>
