@@ -295,27 +295,10 @@ std::tuple<bool, bool, bool> transpose_event(
 */
 
 void reset_slice(Slices& slices,
-		 int const slice_index,
-		 std::unordered_set<BankTypes> const& bank_types,
-		 EventIDs& event_ids,
-		 bool mep)
-{
-  //Reset the slice
-  for (auto bank_type : bank_types) {
-    auto ib = to_integral<BankTypes>(bank_type);
-    auto& [banks, data_size, offsets, offsets_size] = slices[ib][slice_index];
-    std::fill(offsets.begin(), offsets.end(), 0);
-    offsets_size = 1;
-    if (mep) {
-      banks.clear();
-      data_size = 0;
-    }
-  }
-  event_ids.clear();
-}
-
-
-
+  int const slice_index,
+  std::unordered_set<BankTypes> const& bank_types,
+  EventIDs& event_ids,
+   bool mep);
 
 
 std::tuple<bool, bool, size_t> transpose_events(
@@ -352,7 +335,7 @@ std::tuple<bool, bool, size_t> transpose_events(
 }
 
 
-Slices allocate_slices(size_t n_slices, 
+Slices allocate_slices(size_t n_slices,
 		       std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun,
 		       std::unordered_set<BankTypes> const& bank_types
 )
@@ -369,7 +352,7 @@ Slices allocate_slices(size_t n_slices,
       unsigned* offsets_mem = nullptr;
 
       if (n_bytes) Allen::malloc_host((void**) &events_mem, n_bytes);
-      if (n_offsets) Allen::malloc_host((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned)); 
+      if (n_offsets) Allen::malloc_host((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned));
 
       for (size_t i = 0; i < n_offsets + 1; ++i) {
 	offsets_mem[i] = 0;

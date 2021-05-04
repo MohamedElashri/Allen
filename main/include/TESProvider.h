@@ -28,9 +28,8 @@ class TESProvider final : public InputProvider {
 public:
  TESProvider(size_t n_slices,
 	     size_t events_per_slice,
-	     std::unordered_set<BankTypes> const& bank_types,
 	     std::optional<size_t> n_events) :
-  InputProvider {n_slices, events_per_slice, bank_types,
+   InputProvider {n_slices, events_per_slice, {},
    IInputProvider::Layout::Allen, n_events}
   {}
 
@@ -50,6 +49,8 @@ public:
         std::cout << "ERROR: LHCb::RawBank index out of scope from conversion between Allen and LHCb raw bank types"
                   << std::endl;
         return 1;
+      } else if (banks[bank].empty()) {
+        continue;
       }
       auto bank = static_cast<LHCb::RawBank::BankType>(i);
       const auto allen_bank_index = m_bank_ids_mapping[bank];
