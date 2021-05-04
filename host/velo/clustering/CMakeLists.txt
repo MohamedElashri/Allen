@@ -7,4 +7,4 @@ allen_add_host_library(HostClustering STATIC ${host_clustering})
 
 target_link_libraries(HostClustering PRIVATE EventModel Gear Common Backend)
 
-target_include_directories(HostClustering PUBLIC include)
+target_include_directories(HostClustering PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)

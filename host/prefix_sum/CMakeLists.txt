@@ -9,4 +9,4 @@ allen_add_host_library(HostPrefixSum STATIC
 
 target_link_libraries(HostPrefixSum PUBLIC HostEventModel EventModel Gear Common Backend)
 
-target_include_directories(HostPrefixSum PUBLIC include)
+target_include_directories(HostPrefixSum PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)

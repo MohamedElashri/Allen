@@ -3,7 +3,9 @@
 ###############################################################################
 if (NOT STANDALONE)
   allen_add_host_library(ZMQSvc SHARED src/svc.cpp)
-  target_include_directories(ZMQSvc PUBLIC compat svc)
+  target_include_directories(ZMQSvc PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compat>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/svc>)
   target_link_libraries(ZMQSvc PUBLIC
     AIDA::aida
     Boost::filesystem
@@ -16,13 +18,14 @@ if (NOT STANDALONE)
   target_compile_definitions(ZMQSvc PUBLIC ${ALLEN_ROOT_DEFINITIONS})
 
   add_library(AllenZMQ INTERFACE)
+  install(TARGETS AllenZMQ EXPORT Allen)
   target_link_libraries(AllenZMQ INTERFACE ZMQSvc LHCb::ZMQLib)
 else()
   allen_add_host_library(AllenZMQ src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC
-    include
-    compat
-    svc
+    $<BUILD_INTERFACE:include>
+    $<BUILD_INTERFACE:compat>
+    $<BUILD_INTERFACE:svc>
     ${CMAKE_SOURCE_DIR}/main/include)
   target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
   target_link_libraries(AllenZMQ PUBLIC PkgConfig::zmq Boost::headers)

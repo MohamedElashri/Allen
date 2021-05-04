@@ -10,7 +10,7 @@ allen_add_device_library(Utils STATIC
 target_link_libraries(Utils PRIVATE Backend EventModel)
 
 target_include_directories(Utils PUBLIC
-  prefix_sum/include
-  binary_search/include
-  sorting/include
-  float_operations/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/prefix_sum/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/binary_search/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sorting/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/float_operations/include>)

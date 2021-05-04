@@ -8,16 +8,23 @@ allen_add_device_library(Selections STATIC
   ${lines_src}
 )
 
-target_link_libraries(Selections PRIVATE Backend HostEventModel EventModel Utils LHCbEvent
-  Configuration Kalman VertexFitter)
+target_link_libraries(Selections PRIVATE
+  Backend
+  HostEventModel
+  EventModel
+  Utils
+  LHCbEvent
+  Kalman
+  VertexFitter)
 
 add_dependencies(Selections configured_sequence)
 
 target_include_directories(Selections PUBLIC
-  Hlt1/include
-  lines/calibration/include
-  lines/monitoring/include
-  lines/charm/include
-  lines/inclusive_hadron/include
-  lines/muon/include
-  line_types/include)
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/configuration/sequences>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Hlt1/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/calibration/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/monitoring/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/charm/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/inclusive_hadron/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/muon/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/line_types/include>)

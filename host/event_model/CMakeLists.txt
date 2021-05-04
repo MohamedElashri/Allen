@@ -10,4 +10,4 @@ allen_add_host_library(HostEventModel STATIC
 target_link_libraries(HostEventModel PRIVATE EventModel Gear Common Backend)
 
 target_include_directories(HostEventModel PUBLIC
-  MC/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/MC/include>)

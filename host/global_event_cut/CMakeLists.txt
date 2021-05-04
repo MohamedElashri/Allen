@@ -10,8 +10,8 @@ allen_add_host_library(HostGEC STATIC
 target_link_libraries(HostGEC PRIVATE HostEventModel EventModel Gear Common Backend)
 
 target_include_directories(HostGEC PUBLIC
-  include
-  ${CMAKE_SOURCE_DIR}/device/UT/common/include
-  ${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/device/UT/common/include>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/device/SciFi/common/include>)
 
 include(mep_test.cmake)

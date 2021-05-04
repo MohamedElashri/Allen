@@ -13,7 +13,7 @@ allen_add_device_library(SciFi STATIC
 target_link_libraries(SciFi PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(SciFi PUBLIC
-  common/include
-  preprocessing/include
-  looking_forward/include
-  consolidate/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/preprocessing/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/looking_forward/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate/include>)

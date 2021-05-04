@@ -18,7 +18,7 @@ target_link_libraries(Validators PRIVATE
   Backend)
 
 target_include_directories(Validators PUBLIC
-  include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 if(ROOT_FOUND)
   target_compile_definitions(Validators PRIVATE ${ALLEN_ROOT_DEFINITIONS})

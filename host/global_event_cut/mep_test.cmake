@@ -4,7 +4,7 @@
 add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp
   ${CMAKE_SOURCE_DIR}/host/global_event_cut/src/HostGlobalEventCut.cpp)
 
-target_include_directories(mep_gec PUBLIC include)
+target_include_directories(mep_gec PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 target_link_libraries(mep_gec PRIVATE
   HostGEC

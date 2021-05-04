@@ -18,10 +18,10 @@ allen_add_device_library(Velo STATIC
 target_link_libraries(Velo PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(Velo PUBLIC
-  common/include
-  prefix_sum/include
-  mask_clustering/include
-  calculate_phi_and_sort/include
-  search_by_triplet/include
-  simplified_kalman_filter/include
-  consolidate_tracks/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/prefix_sum/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mask_clustering/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/calculate_phi_and_sort/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/search_by_triplet/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/simplified_kalman_filter/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate_tracks/include>)

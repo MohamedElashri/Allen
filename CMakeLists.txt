@@ -25,8 +25,16 @@ set(SEQUENCE_BUILD_JOBS 1 CACHE STRING "Number of sequence build jobs"  )
 # Settings
 # --------
 
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
+# for find_package and include
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
+
+if(NOT PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
+  # Fix CMAKE_MODULE_PATH when building the stack as single project
+  list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+  return()
+endif()
 
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
@@ -135,10 +143,12 @@ if(CALLGRIND_PROFILE)
 endif()
 
 if (NOT STANDALONE)
-  message(STATUS "LHCb stack build")
-
   set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
-  include(AllenDependencies) # public deps
+endif()
+include(AllenDependencies) # public deps
+
+if (NOT STANDALONE)
+  message(STATUS "LHCb stack build")
 
   set(target_hip FALSE)
   set(target_cuda FALSE)
@@ -281,9 +291,14 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_library(${ARGV})
+<<<<<<< HEAD
 
     install(TARGETS ${ARGV0} LIBRARY DESTINATION lib OPTIONAL)
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+=======
+    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib)
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+>>>>>>> WIP cmake-modernization
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
   endfunction()
 
@@ -304,9 +319,11 @@ if(TARGET_DEVICE STREQUAL "CPU")
       set(destination lib/sequences)
     endif()
 
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination} OPTIONAL)
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
@@ -318,7 +335,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_executable(${ARGV})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
@@ -363,9 +380,12 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib)
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
   endfunction()
 
   function(allen_add_device_library)
@@ -379,9 +399,13 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
 
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
+
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
@@ -423,7 +447,10 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_device_library)
@@ -439,7 +466,10 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
@@ -552,12 +582,21 @@ endif()
 
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
-target_include_directories(AllenCommon INTERFACE
-  main/include
-  test/contracts/include)
+target_include_directories(AllenCommon
+  INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
 target_include_directories(AllenCommon INTERFACE SYSTEM
   ${CPPGSL_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS})
+
+set(AllenHeaders main/include/Allen.h)
+set_target_properties(Common PROPERTIES PUBLIC_HEADER "${AllenHeaders}")
+install(TARGETS Common EXPORT Allen
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
+
+# install(FILES "${AllenHeaders}" DESTINATION include/Allen)
 
 #Make sure extra search paths get included as system to avoid
 #warnings in external headers
@@ -579,7 +618,7 @@ endif()
 
 # Use std::filesystem or Boost filesystem depeding on availability
 add_library(AllenFS INTERFACE)
-find_package(Filesystem)
+install(TARGETS AllenFS EXPORT Allen)
 if(NOT Filesystem_FOUND)
   target_compile_definitions(AllenFS INTERFACE USE_BOOST_FILESYSTEM)
   target_link_libraries(AllenFS INTERFACE Boost::filesystem)
@@ -655,6 +694,9 @@ target_link_libraries(Allen PRIVATE AllenLib)
 
 if (NOT STANDALONE)
   target_link_libraries(Allen PRIVATE fmt::fmt)
+
+  gaudi_install(CMAKE cmake/modules)
+
   # Finalize configuration
   lhcb_finalize_configuration()
 endif()

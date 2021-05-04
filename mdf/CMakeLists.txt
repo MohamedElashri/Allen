@@ -4,6 +4,7 @@
 
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
+install(TARGETS LHCbEvent EXPORT Allen)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 
@@ -19,7 +20,8 @@ endif()
 
 allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>)
 target_link_libraries(mdf PUBLIC LHCbEvent)
 
 if (NOT STANDALONE)
@@ -91,7 +93,7 @@ function(test_program)
     endif()
   endif()
 
-  install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
+  install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin)
 endfunction()
 
 # Build our own common library to avoid circular dependency in Gaudi build
@@ -99,7 +101,7 @@ foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp Transpose.cpp TransposeMEP
   list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
 endforeach()
 allen_add_host_library(MdfTestCommon STATIC ${common_sources} ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
-target_link_libraries(MdfTestCommon PUBLIC mdf AllenFS Backend LHCbEvent)
+target_link_libraries(MdfTestCommon PRIVATE AllenFS mdf PUBLIC Backend LHCbEvent)
 
 test_program(NAME mdf_to_mep)
 

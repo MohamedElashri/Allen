@@ -7,7 +7,7 @@ allen_add_host_library(SelChecking STATIC
   ${selection_checker_sources}
 )
 set_target_properties(SelChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_include_directories(SelChecking PUBLIC include)
+target_include_directories(SelChecking PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_link_libraries(SelChecking PRIVATE HostEventModel EventModel Gear Backend Common TrackChecking)
 
 if(USE_ROOT AND ROOT_FOUND)

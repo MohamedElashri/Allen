@@ -9,6 +9,11 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 if (NOT STANDALONE)
+  message(STATUS "LHCb stack build")
+
+  # Find modules we need
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/modules)
+
   if(NOT COMMAND lhcb_find_package)
     # Look for LHCb find_package wrapper
     find_file(LHCbFindPackage_FILE LHCbFindPackage.cmake)
@@ -42,7 +47,11 @@ if(STANDALONE OR WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(Boost REQUIRED COMPONENTS filesystem iostreams thread regex
     serialization program_options)
 
+  find_package(PkgConfig)
   pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)  # for ZeroMQ
+
+  # std::filesytem detection
+  find_package(Filesystem)
 endif()
 
 # ROOT

@@ -21,4 +21,4 @@ allen_add_device_library(Calo STATIC
 target_link_libraries(Calo PRIVATE Common Backend HostEventModel EventModel)
 
 target_include_directories(Calo PUBLIC
-  decoding/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/decoding/include>)

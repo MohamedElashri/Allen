@@ -9,7 +9,7 @@ allen_add_device_library(Associate STATIC
 
 target_link_libraries(Associate PRIVATE Backend HostEventModel EventModel Utils)
 
-target_include_directories(Associate PUBLIC include)
+target_include_directories(Associate PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)

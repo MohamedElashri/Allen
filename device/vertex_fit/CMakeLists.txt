@@ -14,9 +14,9 @@ allen_add_device_library(VertexFitter STATIC
 target_link_libraries(VertexFitter PUBLIC Kalman PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(VertexFitter PUBLIC
-  common/include
-  two_track_catboost/include
-  vertex_fitter/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/two_track_catboost/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vertex_fitter/include>)
 
 
 if (USE_KALMAN_DOUBLE_PRECISION)

@@ -9,4 +9,4 @@ allen_add_device_library(Examples STATIC
 
 target_link_libraries(Examples PRIVATE Backend HostEventModel EventModel Utils)
 
-target_include_directories(Examples PUBLIC include)
+target_include_directories(Examples PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)

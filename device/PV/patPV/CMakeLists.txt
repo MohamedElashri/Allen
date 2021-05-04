@@ -10,5 +10,5 @@ allen_add_device_library(AllenPatPV STATIC
 target_link_libraries(AllenPatPV PRIVATE Common Backend HostEventModel EventModel Utils)
 
 target_include_directories(AllenPatPV PUBLIC
-  include
-  ../beamlinePV/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../beamlinePV/include>)

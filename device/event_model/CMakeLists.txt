@@ -9,15 +9,16 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 add_library(EventModel INTERFACE)
+install(TARGETS EventModel EXPORT Allen)
 
 target_include_directories(EventModel INTERFACE
-  associate/include
-  common/include
-  calo/include
-  muon/include
-  SciFi/include
-  selections/include
-  UT/include
-  velo/include
-  kalman/include
-  PV/include)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/associate/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/calo/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/muon/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/SciFi/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/selections/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/UT/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/velo/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/kalman/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/PV/include>)

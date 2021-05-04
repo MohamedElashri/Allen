@@ -6,7 +6,7 @@ file(GLOB tracking_checker_sources "src/*cpp")
 allen_add_host_library(TrackChecking STATIC
   ${tracking_checker_sources}
 )
-target_include_directories(TrackChecking PUBLIC include)
+target_include_directories(TrackChecking PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_link_libraries(TrackChecking PRIVATE HostEventModel EventModel Gear Backend Common Kalman)
 
 find_package(Filesystem)
