@@ -19,7 +19,6 @@
 namespace two_track_preprocess {
 
   struct Parameters {
-    HOST_INPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
