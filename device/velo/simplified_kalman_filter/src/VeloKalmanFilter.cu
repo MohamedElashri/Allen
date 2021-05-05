@@ -13,8 +13,6 @@ void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
     arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments) * Velo::Consolidated::States::size);
   set_size<dev_velo_kalman_endvelo_states_t>(
     arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments) * Velo::Consolidated::States::size);
-  set_size<dev_velo_lmsfit_beamline_states_t>(
-    arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments) * Velo::Consolidated::States::size);
 }
 
 void velo_kalman_filter::velo_kalman_filter_t::operator()(
@@ -135,8 +133,6 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
                                                      velo_tracks.total_number_of_tracks()};
   Velo::Consolidated::States kalman_endvelo_states {parameters.dev_velo_kalman_endvelo_states,
                                                     velo_tracks.total_number_of_tracks()};
-  Velo::Consolidated::States lmsfit_beamline_states {parameters.dev_velo_lmsfit_beamline_states,
-                                                     velo_tracks.total_number_of_tracks()};
 
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -157,11 +153,7 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
     const auto kalman_endvelo_state =
       simplified_fit<false>(consolidated_hits, kalman_beamline_state, n_hits, dev_beamline);
 
-    // Perform a least means square fit for compatibility reasons
-    const auto lmsfit_beamline_state = least_means_square_fit(consolidated_hits, n_hits);
-
     kalman_beamline_states.set(event_tracks_offset + i, kalman_beamline_state);
     kalman_endvelo_states.set(event_tracks_offset + i, kalman_endvelo_state);
-    lmsfit_beamline_states.set(event_tracks_offset + i, lmsfit_beamline_state);
   }
 }
