@@ -32,7 +32,9 @@ MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span
     }
 
     auto const allen_type = bank_ids[type];
-    versions[allen_type] = header.versions[i];
+    if (allen_type != -1) {
+      versions[allen_type] = header.versions[i];
+    }
   }
 
   return {true, count, versions};
