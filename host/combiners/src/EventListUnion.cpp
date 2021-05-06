@@ -33,6 +33,7 @@ void event_list_union::event_list_union_t::operator()(
 {
   copy<host_event_list_a_t, dev_event_list_a_t>(arguments, context);
   copy<host_event_list_b_t, dev_event_list_b_t>(arguments, context);
+  Allen::synchronize(context);
 
   unsigned output_number_of_events = 0;
 

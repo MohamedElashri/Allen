@@ -31,6 +31,7 @@ void event_list_intersection::event_list_intersection_t::operator()(
 {
   copy<host_event_list_a_t, dev_event_list_a_t>(arguments, context);
   copy<host_event_list_b_t, dev_event_list_b_t>(arguments, context);
+  Allen::synchronize(context);
 
   unsigned output_number_of_events = 0;
 
