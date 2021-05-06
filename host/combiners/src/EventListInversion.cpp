@@ -35,6 +35,7 @@ void event_list_inversion::event_list_inversion_t::operator()(
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
   copy<host_event_list_t, dev_event_list_input_t>(arguments, context);
+  Allen::synchronize(context);
 
   // Make a list that contains all events not in host_event_list_t
   // Do not assume any order in the elements of host_event_list_t
