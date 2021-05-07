@@ -157,15 +157,14 @@ namespace Allen {
    *        where T is a templated class.
    */
   template<template<class...> class T, class U>
-  struct isDerivedFrom
-  {
+  struct isDerivedFrom {
   private:
-      template<class... V>
-      static decltype(static_cast<const T<V...>&>(std::declval<U>()), std::true_type{})
-      test(const T<V...>&);
+    template<class... V>
+    static decltype(static_cast<const T<V...>&>(std::declval<U>()), std::true_type {}) test(const T<V...>&);
 
-      static std::false_type test(...);
+    static std::false_type test(...);
+
   public:
-      static constexpr bool value = decltype(isDerivedFrom::test(std::declval<U>()))::value;
+    static constexpr bool value = decltype(isDerivedFrom::test(std::declval<U>()))::value;
   };
 } // namespace Allen

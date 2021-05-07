@@ -170,8 +170,11 @@ namespace Allen {
    * @brief Copies container_b into container_a.
    */
   template<typename T, typename S>
-  void
-  copy_async(gsl::span<T> container_a, gsl::span<S> container_b, const Allen::Context& context, const Allen::memcpy_kind kind)
+  void copy_async(
+    gsl::span<T> container_a,
+    gsl::span<S> container_b,
+    const Allen::Context& context,
+    const Allen::memcpy_kind kind)
   {
     static_assert(sizeof(T) == sizeof(S));
     assert(container_a.size() == container_b.size());
@@ -228,7 +231,8 @@ namespace Allen {
    * @brief Synchronously copy using one of the above async_copy overloads.
    */
   template<typename... Ts, typename... Us>
-  void copy(Ts... ts, const Allen::Context& context, Us... us) {
+  void copy(Ts... ts, const Allen::Context& context, Us... us)
+  {
     copy_async<Ts..., Us...>(ts..., context, us...);
     synchronize(context);
   }
