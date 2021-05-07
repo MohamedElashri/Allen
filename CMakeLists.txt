@@ -589,7 +589,19 @@ target_include_directories(AllenCommon INTERFACE SYSTEM
 
 
 set(AllenHeaders)
-foreach(header Allen.h Logger.h BankTypes.h Common.h AllenUnits.h MEPTools.h InputProvider.h SliceUtils.h)
+foreach(header
+    Allen.h
+    AllenIO.h
+    SystemOfUnits.h
+    Logger.h
+    LoggerCommon.h
+    BankTypes.h
+    Common.h
+    AllenUnits.h
+    MEPTools.h
+    InputProvider.h
+    SliceUtils.h
+    TransposeTypes.h)
   list(APPEND AllenHeaders main/include/${header})
 endforeach()
 
@@ -689,7 +701,7 @@ if (NOT STANDALONE)
   target_include_directories(AllenLib PUBLIC ${AIDA_INCLUDE_DIRS})
 endif()
 
-add_executable(Allen ${main_cpp_path})
+allen_add_executable(Allen ${main_cpp_path})
 
 target_link_libraries(Allen PRIVATE AllenLib)
 

@@ -13,5 +13,3 @@ target_include_directories(HostGEC PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/device/UT/common/include>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/device/SciFi/common/include>)
-
-include(mep_test.cmake)

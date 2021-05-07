@@ -2,6 +2,8 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #pragma once
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <cstdio>
 #include <iostream>
@@ -12,6 +14,7 @@
 #include <functional>
 
 #include <BankTypes.h>
+#include <AllenIO.h>
 
 #include <gsl/gsl>
 
@@ -40,13 +43,6 @@ namespace Allen {
   };
 
   using buffer_map = std::unordered_map<BankTypes, std::pair<std::vector<char>, std::vector<unsigned int>>>;
-
-  struct IO {
-    bool good = false;
-    std::function<ssize_t(char*, size_t)> read;
-    std::function<ssize_t(char const*, size_t)> write;
-    std::function<void(void)> close;
-  };
 } // namespace Allen
 
 namespace MDF {

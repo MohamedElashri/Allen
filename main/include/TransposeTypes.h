@@ -6,12 +6,13 @@
 #include <vector>
 #include <array>
 
-#include <Common.h>
-#include <Logger.h>
-#include <SystemOfUnits.h>
 #include <Event/RawBank.h>
-#include <AllenUnits.h>
-#include <BackendCommon.h>
+
+#include "Common.h"
+#include "Logger.h"
+#include "SystemOfUnits.h"
+#include "AllenUnits.h"
+#include "BankTypes.h"
 
 namespace {
   using namespace Allen::Units;
