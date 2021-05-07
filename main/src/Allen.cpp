@@ -39,8 +39,6 @@
 #include "Tools.h"
 #include "InputTools.h"
 #include "InputReader.h"
-#include "MDFProvider.h"
-#include "MEPProvider.h"
 #include "Timer.h"
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
@@ -88,12 +86,12 @@ int allen(
   // Sequence to run
   std::string sequence;
 
-  unsigned number_of_slices = 0;
+  unsigned n_slices = 0;
   unsigned number_of_buffers = 0;
   long number_of_events_requested = 0;
   unsigned events_per_slice = input_provider->events_per_slice();
   unsigned number_of_threads = 1;
-  unsigned number_of_repetitions = 1;
+  unsigned n_repetitions = 1;
   unsigned verbosity = 3;
   bool print_memory_usage = false;
   bool write_config = false;
@@ -137,7 +135,7 @@ int allen(
      number_of_events_requested = atol(arg.c_str());
     }
     else if (flag_in({"s", "number-of-slices"})) {
-      number_of_slices = atoi(arg.c_str());
+      n_slices = atoi(arg.c_str());
     }
     else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
@@ -147,8 +145,8 @@ int allen(
       }
     }
     else if (flag_in({"r", "repetitions"})) {
-      number_of_repetitions = atoi(arg.c_str());
-      if (number_of_repetitions == 0) {
+      n_repetitions = atoi(arg.c_str());
+      if (n_repetitions == 0) {
         error_cout << "Error: number of repetitions must be at least 1\n";
         return -1;
       }
@@ -211,6 +209,8 @@ int allen(
     }
   }
 
+  auto io_conf = io_configuration(n_slices, n_repetitions, number_of_threads);
+
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);
   logger::setVerbosity(verbosity);
@@ -268,6 +268,8 @@ int allen(
               << "\n";
     number_of_repetitions = 1;
   }
+=======
+>>>>>>> Fix make_provider
 
   number_of_buffers = number_of_threads + n_mon + 1;
 
@@ -447,7 +449,7 @@ int allen(
                         zmqSvc,
                         checker_invoker.get(),
                         root_service.get(),
-                        number_of_repetitions,
+                        io_conf.number_of_repetitions,
                         cpu_offload,
                         input_provider->layout() == IInputProvider::Layout::MEP,
                         inject_mem_fail};
@@ -560,8 +562,8 @@ int allen(
   // allow slices to be sub-divided if necessary
   // key of map corresponds to the first entry in a sub-slice
   std::vector<std::map<size_t, SliceStatus>> input_slice_status(
-    number_of_slices, std::map<size_t, SliceStatus> {{0, SliceStatus::Empty}});
-  std::vector<std::map<size_t, size_t>> events_in_slice(number_of_slices, std::map<size_t, size_t> {{0, 0}});
+    io_conf.number_of_slices, std::map<size_t, SliceStatus> {{0, SliceStatus::Empty}});
+  std::vector<std::map<size_t, size_t>> events_in_slice(io_conf.number_of_slices, std::map<size_t, size_t> {{0, 0}});
 
   auto count_status = [&input_slice_status](SliceStatus const status) {
     return std::accumulate(
@@ -670,8 +672,8 @@ int allen(
                   buf,
                   sizeof(buf),
                   "Processed %7li events at a rate of %8.2f events/s\n",
-                  n_events_measured * number_of_repetitions,
-                  n_events_measured * number_of_repetitions / dt);
+                  n_events_measured * io_conf.number_of_repetitions,
+                  n_events_measured * io_conf.number_of_repetitions / dt);
                 info_cout << buf;
                 std::snprintf(
                   buf,
@@ -681,7 +683,7 @@ int allen(
                   n_output_measured / dt);
                 info_cout << buf;
               }
-              zmqSvc->send(*throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
+              zmqSvc->send(*throughput_socket, std::to_string(n_events_measured * io_conf.number_of_repetitions / dt));
               previous_time_measurement = elapsed_time;
               n_events_measured = 0;
               n_output_measured = 0;
@@ -784,9 +786,9 @@ int allen(
             }
 
             // FIXME: make the warmup time configurable
-            if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
+            if (!t && (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !io_conf.async_io)) {
               info_cout << "Starting timer for throughput measurement\n";
-              throughput_start = n_events_processed * number_of_repetitions;
+              throughput_start = n_events_processed * io_conf.number_of_repetitions;
               t = Timer {};
               previous_time_measurement = t->get_elapsed_time();
             }
@@ -824,7 +826,7 @@ int allen(
                 break;
               }
             }
-            if (enable_async_io && slice_finished) {
+            if (io_conf.async_io && slice_finished) {
               input_slice_status[slc_idx].clear();
               input_slice_status[slc_idx][0] = SliceStatus::Empty;
               input_provider->slice_free(slc_idx);
@@ -854,14 +856,14 @@ int allen(
     // I/O is disabled send the slice(s) to all stream_threads
     if (slice_index) {
       bool first = true;
-      while ((enable_async_io && first) || (!enable_async_io && stream_ready.count())) {
+      while ((io_conf.async_io && first) || (!io_conf.async_io && stream_ready.count())) {
         first = false;
         size_t processor_index = prev_processor++;
         if (prev_processor == number_of_threads) {
           prev_processor = 0;
         }
         // send message to processor to process the slice
-        if (enable_async_io) {
+        if (io_conf.async_io) {
           input_slice_status[*slice_index][0] = SliceStatus::Processing;
         }
         buffer_index = std::optional<size_t> {buffers_manager->assignBufferToFill()};
@@ -981,10 +983,10 @@ int allen(
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
     bool io_cond =
-      ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done)) && !run_change;
-    if (t && io_cond && number_of_repetitions > 1) {
+      ((!io_conf.async_io && stream_ready.count() == number_of_threads) || (io_conf.async_io && io_done)) && !run_change;
+    if (t && io_cond && io_conf.number_of_repetitions > 1) {
       if (!throughput_processed) {
-        throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
+        throughput_processed = n_events_processed * io_conf.number_of_repetitions - throughput_start;
       }
       t->stop();
     }
@@ -992,7 +994,7 @@ int allen(
     // Check if we're done
     if (
       stream_ready.count() == number_of_threads && buffers_manager->buffersEmpty() && io_cond &&
-      (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
+      (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
       info_cout << "Processing complete\n";
       if (allen_control && stop) {
         stop = false;
@@ -1019,7 +1021,7 @@ loop_error:
   // make sure the timer has stopped
   if (t) {
     if (!throughput_processed) {
-      throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
+      throughput_processed = n_events_processed * io_conf.number_of_repetitions - throughput_start;
     }
     t->stop();
   }

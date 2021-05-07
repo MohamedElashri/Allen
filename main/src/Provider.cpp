@@ -3,14 +3,41 @@
 \*****************************************************************************/
 #include <string>
 
-#include <MEPProvider.h>
 #include <MDFProvider.h>
 #include <BinaryProvider.h>
 #include <Provider.h>
 #include <BankTypes.h>
 #include <ProgramOptions.h>
 
-std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options){
+Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads)
+{
+  // Determine wether to run with async I/O.
+  Allen::IOConf io_conf{true, number_of_slices, number_of_repetitions, number_of_repetitions};
+  if ((number_of_slices == 0 || number_of_slices == 1) && number_of_repetitions > 1) {
+    // NOTE: Special case to be able to compare throughput with and
+    // without async I/O; if repetitions are requested and the number
+    // of slices is default (0) or 1, never free the initially filled
+    // slice.
+    io_conf.async_io = false;
+    io_conf.number_of_slices = 1;
+    io_conf.n_io_reps = 1;
+    debug_cout << "Disabling async I/O to measure throughput without it.\n";
+  }
+  else if (number_of_slices <= number_of_threads) {
+    warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
+    io_conf.number_of_slices = number_of_threads + 1;
+    io_conf.number_of_repetitions = 1;
+  }
+  else {
+    info_cout << "Using " << number_of_slices << " input slices."
+              << "\n";
+    io_conf.number_of_repetitions = 1;
+  }
+  return io_conf;
+}
+
+std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options)
+{
 
   unsigned number_of_slices = 0;
   unsigned events_per_slice = 0;
@@ -31,28 +58,10 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
   long number_of_events_requested = 0;
 
   unsigned number_of_repetitions = 1;
-  size_t n_io_reps = number_of_repetitions;
-
-  std::string file_list;
-
-  // Folder containing raw, MC and muon information
-  std::string folder_data = "../input/minbias/";
-  const std::string folder_rawdata = "banks/";
+  unsigned number_of_threads = 1;
 
   // Bank types
   std::unordered_set<BankTypes> bank_types;
-
-  // Set a sane default for the number of events per input slice
-  if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
-    events_per_slice = number_of_events_requested;
-  }
-
-  // Raw data input folders
-  const auto folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
-  const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
-  const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
-  const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
-  const auto folder_name_ODIN_raw = folder_data + folder_rawdata + "ODIN";
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -65,9 +74,6 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag_in({"f", "folder"})) {
-      folder_data = arg + "/";
-    }
     else if (flag_in({"mdf"})) {
       mdf_input = arg;
     }
@@ -82,7 +88,14 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
     }
     else if (flag_in({"s", "number-of-slices"})) {
       number_of_slices = atoi(arg.c_str());
-     }
+    }
+    else if (flag_in({"t", "threads"})) {
+      number_of_threads = atoi(arg.c_str());
+      if (number_of_threads > max_stream_threads) {
+        error_cout << "Error: more than maximum number of threads (" << max_stream_threads << ") requested\n";
+        return {};
+      }
+    }
     else if (flag_in({"events-per-slice"})) {
       events_per_slice = atoi(arg.c_str());
     }
@@ -107,9 +120,6 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
         exit(1);
       }
     }
-    else if (flag_in({"file-list"})) {
-      file_list = arg;
-    }
     else if (flag_in({"mpi-window-size"})) {
       mpi_window_size = atoi(arg.c_str());
     }
@@ -121,21 +131,14 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
     }
   }
 
-  if (!mep_input.empty() || with_mpi) {
-    MEPProviderConfig config {false,                // verify MEP checksums
-                              10,                   // number of read buffers
-                              mep_layout ? 1u : 4u, // number of transpose threads
-                              mpi_window_size,      // MPI sliding window size
-                              with_mpi,             // Receive from MPI or read files
-                              non_stop,             // Run the application non-stop
-                              !mep_layout,          // MEPs should be transposed to Allen layout
-                              !disable_run_changes, // Whether to split slices by run number
-                              receivers};           // Map of receiver to MPI rank to receive from
-
-    return std::make_unique<MEPProvider>(number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), bank_types, config);
+  // Set a sane default for the number of events per input slice
+  if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
+    events_per_slice = number_of_events_requested;
   }
-  else if (!mdf_input.empty()) {
-    mep_layout = false;
+
+  auto io_conf = io_configuration(number_of_slices, number_of_repetitions, number_of_threads);
+
+  if (!mdf_input.empty()) {
     MDFProviderConfig config {false,                     // verify MDF checksums
                               10,                        // number of read buffers
                               4,                         // number of transpose threads
@@ -152,11 +155,5 @@ std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string>
       BankTypes::ECal,
       BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
   }
-  else {
-    std::vector<std::string> connections = {
-      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
-
-    return  std::make_unique<BinaryProvider>(
-            number_of_slices, events_per_slice, n_events, std::move(connections), bank_types, n_io_reps, file_list);
-  }
+  return {};
 }

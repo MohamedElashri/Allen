@@ -146,8 +146,8 @@ int main(int argc, char* argv[])
 
     if (MPI::rank == MPI::receiver) {
       Allen::NonEventData::Updater updater {allen_options};
-      auto input_provider = make_provider(std::move(allen_options));
-      return allen(std::move(allen_options), &updater, input_provider->get(), zmqSvc, "");
+      auto input_provider = make_provider(allen_options);
+      return allen(std::move(allen_options), &updater, input_provider.get(), zmqSvc, "");
     }
     else {
       return send_meps_mpi(allen_options);
@@ -160,6 +160,7 @@ int main(int argc, char* argv[])
   else {
     Allen::NonEventData::Updater updater {allen_options};
     auto input_provider = make_provider(allen_options);
+    if (!input_provider) return -1;
     return allen(std::move(allen_options), &updater, input_provider.get(), zmqSvc, "");
   }
 }
