@@ -11,7 +11,6 @@ include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 set(mdf_sources
     src/raw_helpers.cpp
     src/read_mdf.cpp
-    src/read_mep.cpp
     src/write_mdf.cpp)
 
 if (ROOT_FOUND AND USE_ROOT)
@@ -76,7 +75,10 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon Threads::Threads mdf Common EventModel LHCbEvent)
+  add_library(Transpose STATIC ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp)
+  target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent)
+
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Transpose Threads::Threads EventModel)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
     target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
@@ -96,13 +98,6 @@ function(test_program)
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin)
 endfunction()
 
-# Build our own common library to avoid circular dependency in Gaudi build
-foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp Transpose.cpp TransposeMEP.cpp InputTools.cpp)
-  list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
-endforeach()
-allen_add_host_library(MdfTestCommon STATIC ${common_sources} ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp)
-target_link_libraries(MdfTestCommon PRIVATE AllenFS mdf PUBLIC Backend LHCbEvent)
-
 test_program(NAME mdf_to_mep)
 
 if (BUILD_TESTING)
@@ -111,14 +106,10 @@ if (BUILD_TESTING)
   test_program(NAME bench_read)
   test_program(NAME bench_provider )
   test_program(NAME bench_transpose)
-  test_program(NAME test_providers)
   test_program(NAME test_mdf_transpose)
-  test_program(NAME test_mep_banks)
   if (STANDALONE)
-    add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias/)
-    add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --directory ${CMAKE_SOURCE_DIR}/input/minbias/)
+    add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   else()
-    gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias/)
-    gaudi_add_test(allen_mdf_transpose COMMAND test_mdf_transpose --directory ${CMAKE_SOURCE_DIR}/input/minbias/)
+    gaudi_add_test(allen_mdf_transpose COMMAND test_mdf_transpose --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   endif()
 endif()

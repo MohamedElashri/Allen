@@ -23,9 +23,9 @@ if (NOT STANDALONE)
 else()
   allen_add_host_library(AllenZMQ src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC
-    $<BUILD_INTERFACE:include>
-    $<BUILD_INTERFACE:compat>
-    $<BUILD_INTERFACE:svc>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compat>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/svc>
     ${CMAKE_SOURCE_DIR}/main/include)
   target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
   target_link_libraries(AllenZMQ PUBLIC PkgConfig::zmq Boost::headers)
