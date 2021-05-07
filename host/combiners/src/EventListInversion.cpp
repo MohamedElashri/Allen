@@ -34,8 +34,7 @@ void event_list_inversion::event_list_inversion_t::operator()(
   const auto number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-  copy<host_event_list_t, dev_event_list_input_t>(arguments, context);
-  Allen::synchronize(context);
+  Allen::copy<host_event_list_t, dev_event_list_input_t>(arguments, context);
 
   // Make a list that contains all events not in host_event_list_t
   // Do not assume any order in the elements of host_event_list_t
@@ -60,7 +59,7 @@ void event_list_inversion::event_list_inversion_t::operator()(
   reduce_size<dev_event_list_output_t>(arguments, output_number_of_events);
 
   // Copy the event list to the device
-  copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
+  Allen::copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
   if (property<verbosity_t>() >= logger::debug) {
     printf("List inversion:\n From list: ");

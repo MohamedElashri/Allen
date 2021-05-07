@@ -72,6 +72,7 @@ public:
   template<typename T>
   void set_size(const size_t size)
   {
+    static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "set_size can only be used on output datatypes");
     constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     m_tuple_to_argument_data[index_of_T].set_size(size);
@@ -134,6 +135,7 @@ public:
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
   typename T::type first() const
   {
+    static_assert(std::is_base_of_v<host_datatype, T> && "first can only access host datatypes");
     return pointer<T>()[0];
   }
 
@@ -148,6 +150,7 @@ public:
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
   void set_size(const size_t size)
   {
+    static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "set_size can only be used on output datatypes");
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
     m_tuple_to_argument_data[index_of_T].get().set_size(size);
@@ -160,6 +163,7 @@ public:
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
   void reduce_size(const size_t size) const
   {
+    static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "reduce_size can only be used on output datatypes");
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
     assert(size <= m_tuple_to_argument_data[index_of_T].get().size());
@@ -205,6 +209,7 @@ public:
 
   T first(const unsigned index) const
   {
+    static_assert(std::is_base_of_v<host_datatype, T> && "first can only access host datatypes");
     assert(index < m_argument_data_v.size() && "Index is in bounds");
     return data(index)[0];
   }

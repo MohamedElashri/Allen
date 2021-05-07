@@ -151,4 +151,21 @@ namespace Allen {
 
   template<typename T>
   using bool_as_char_t = std::conditional_t<std::is_same_v<std::decay_t<T>, bool>, char, std::decay_t<T>>;
+
+  /**
+   * @brief Checks whether class U is derived from class T,
+   *        where T is a templated class.
+   */
+  template<template<class...> class T, class U>
+  struct isDerivedFrom
+  {
+  private:
+      template<class... V>
+      static decltype(static_cast<const T<V...>&>(std::declval<U>()), std::true_type{})
+      test(const T<V...>&);
+
+      static std::false_type test(...);
+  public:
+      static constexpr bool value = decltype(isDerivedFrom::test(std::declval<U>()))::value;
+  };
 } // namespace Allen

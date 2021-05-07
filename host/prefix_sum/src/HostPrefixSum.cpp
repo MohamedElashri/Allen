@@ -24,7 +24,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
 {
 #if defined(TARGET_DEVICE_CPU)
   // Copy directly data to the output buffer
-  copy<dev_output_buffer_t, dev_input_buffer_t>(arguments, context);
+  Allen::copy<dev_output_buffer_t, dev_input_buffer_t>(arguments, context);
 
   // Perform the prefix sum on the output buffer
   host_prefix_sum_impl(
@@ -33,10 +33,10 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
     data<host_total_sum_holder_t>(arguments));
 
   // Ensure host_output_buffer and dev_output_buffer contain the same
-  copy<host_output_buffer_t, dev_output_buffer_t>(arguments, context);
+  Allen::copy<host_output_buffer_t, dev_output_buffer_t>(arguments, context);
 #else
   // Copy data over to the host
-  copy<host_output_buffer_t, dev_input_buffer_t>(arguments, context);
+  Allen::copy<host_output_buffer_t, dev_input_buffer_t>(arguments, context);
 
   // Synchronize
   Allen::synchronize(context);
@@ -48,7 +48,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
     data<host_total_sum_holder_t>(arguments));
 
   // Copy prefix summed data to the device
-  copy<dev_output_buffer_t, host_output_buffer_t>(arguments, context);
+  Allen::copy<dev_output_buffer_t, host_output_buffer_t>(arguments, context);
 #endif
 }
 

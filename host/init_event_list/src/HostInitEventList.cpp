@@ -32,5 +32,5 @@ void host_init_event_list::host_init_event_list_t::operator()(
     data<host_event_list_output_t>(arguments)[i] = i;
   }
 
-  copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
+  Allen::copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 }

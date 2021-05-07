@@ -99,7 +99,7 @@ void gather_selections::gather_selections_t::operator()(
   // Pass the number of lines for posterior algorithms
   const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
   data<host_number_of_active_lines_t>(arguments)[0] = dev_input_selections.size_of_aggregate();
-  copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
+  Allen::copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
 
   // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
   auto* container = data<host_selections_lines_offsets_t>(arguments);
@@ -109,28 +109,28 @@ void gather_selections::gather_selections_t::operator()(
   }
 
   // Populate dev_selections_t
-  Allen::aggregate::store_contiguous(
+  Allen::aggregate::store_contiguous_async(
     gsl::span {data<dev_selections_t>(arguments), size<dev_selections_t>(arguments)},
     dev_input_selections,
     context,
     Allen::memcpyDeviceToDevice);
 
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
-  Allen::aggregate::store_contiguous(
+  Allen::aggregate::store_contiguous_async(
     gsl::span {data<host_selections_offsets_t>(arguments), size<host_selections_offsets_t>(arguments)},
     input_aggregate<dev_input_selections_offsets_t>(arguments),
     context,
     Allen::memcpyDeviceToHost);
 
   // Populate host_post_scale_factors_t
-  Allen::aggregate::store_contiguous(
+  Allen::aggregate::store_contiguous_async(
     gsl::span {data<host_post_scale_factors_t>(arguments), size<host_post_scale_factors_t>(arguments)},
     input_aggregate<host_input_post_scale_factors_t>(arguments),
     context,
     Allen::memcpyHostToHost);
 
   // Populate host_post_scale_hashes_t
-  Allen::aggregate::store_contiguous(
+  Allen::aggregate::store_contiguous_async(
     gsl::span {data<host_post_scale_hashes_t>(arguments), size<host_post_scale_hashes_t>(arguments)},
     input_aggregate<host_input_post_scale_hashes_t>(arguments),
     context,
@@ -138,10 +138,10 @@ void gather_selections::gather_selections_t::operator()(
 
   // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
   // and host_post_scale_hashes_t to dev_post_scale_hashes_t
-  copy<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
-  copy<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
+  Allen::copy_async<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
+  Allen::copy_async<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
 
-  // Synchronize
+  // Synchronize after all the copies above
   Allen::synchronize(context);
 
   // Add partial sums from host_selections_lines_offsets_t to host_selections_offsets_t
@@ -159,7 +159,7 @@ void gather_selections::gather_selections_t::operator()(
     data<host_selections_lines_offsets_t>(arguments)[dev_input_selections.size_of_aggregate()];
 
   // Copy host_selections_offsets_t onto dev_selections_offsets_t
-  copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, context);
+  Allen::copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, context);
 
   // Fetch the postscaler function depending on its layout
   // auto postscale_fn = first<dev_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>) :
@@ -178,7 +178,7 @@ void gather_selections::gather_selections_t::operator()(
   if (property<verbosity_t>() >= logger::debug) {
     std::vector<uint8_t> host_selections(size<dev_selections_t>(arguments));
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
-    copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
+    Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
     Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
                                       data<host_selections_offsets_t>(arguments),

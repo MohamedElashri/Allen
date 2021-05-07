@@ -55,21 +55,21 @@ auto data(const Args& arguments)
 }
 
 /**
- * @brief Gets the name of a container.
- */
-template<typename Arg, typename Args>
-std::string name(Args arguments)
-{
-  return arguments.template name<Arg>();
-}
-
-/**
  * @brief Returns the first element in the container.
  */
 template<typename Arg, typename Args>
 auto first(const Args& arguments)
 {
   return arguments.template first<Arg>();
+}
+
+/**
+ * @brief Gets the name of a container.
+ */
+template<typename Arg, typename Args>
+std::string name(Args arguments)
+{
+  return arguments.template name<Arg>();
 }
 
 /**
@@ -152,7 +152,7 @@ namespace Allen {
    * @brief Copy of two spans with an Allen context and a kind.
    */
   template<typename T, typename S>
-  void copy(
+  void copy_async(
     gsl::span<T> container_a,
     gsl::span<S> container_b,
     const Allen::Context& context,
@@ -171,11 +171,76 @@ namespace Allen {
    */
   template<typename T, typename S>
   void
-  copy(gsl::span<T> container_a, gsl::span<S> container_b, const Allen::Context& context, const Allen::memcpy_kind kind)
+  copy_async(gsl::span<T> container_a, gsl::span<S> container_b, const Allen::Context& context, const Allen::memcpy_kind kind)
   {
     static_assert(sizeof(T) == sizeof(S));
     assert(container_a.size() == container_b.size());
-    copy(container_a, container_b, context, kind, container_a.size());
+    copy_async(container_a, container_b, context, kind, container_a.size());
+  }
+
+  /**
+   * @brief Copies count bytes of B into A using asynchronous copy.
+   * @details A and B may be host or device arguments.
+   */
+  template<typename A, typename B, typename Args>
+  void copy_async(
+    const Args& arguments,
+    const size_t count,
+    const Allen::Context& context,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
+  {
+    static_assert(sizeof(typename A::type) == sizeof(typename B::type));
+
+    Allen::memcpy_kind kind;
+    if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
+      kind = Allen::memcpyHostToHost;
+    else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
+      kind = Allen::memcpyHostToDevice;
+    else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
+      kind = Allen::memcpyDeviceToHost;
+    else
+      kind = Allen::memcpyDeviceToDevice;
+
+    Allen::copy_async(
+      gsl::span {data<A>(arguments), size<A>(arguments)},
+      gsl::span {data<B>(arguments), size<B>(arguments)},
+      context,
+      kind,
+      count,
+      offset_a,
+      offset_b);
+  }
+
+  /**
+   * @brief Copies B into A using asynchronous copy.
+   * @details A and B may be host or device arguments.
+   */
+  template<typename A, typename B, typename Args>
+  void copy_async(const Args& arguments, const Allen::Context& context)
+  {
+    static_assert(sizeof(typename A::type) == sizeof(typename B::type));
+    assert(size<A>(arguments) == size<B>(arguments));
+    copy_async<A, B, Args>(arguments, size<A>(arguments), context);
+  }
+
+  /**
+   * @brief Synchronously copy using one of the above async_copy overloads.
+   */
+  template<typename... Ts, typename... Us>
+  void copy(Ts... ts, const Allen::Context& context, Us... us) {
+    copy_async<Ts..., Us...>(ts..., context, us...);
+    synchronize(context);
+  }
+
+  /**
+   * @brief Synchronous copy of B into A.
+   */
+  template<typename A, typename B, typename Args>
+  void copy(const Args& arguments, const Allen::Context& context)
+  {
+    copy_async<A, B, Args>(arguments, context);
+    synchronize(context);
   }
 
   namespace aggregate {
@@ -183,7 +248,7 @@ namespace Allen {
      * @brief Stores contents of aggregate contiguously into container.
      */
     template<typename T, typename S>
-    void store_contiguous(
+    void store_contiguous_async(
       gsl::span<T> container,
       const InputAggregate<S>& aggregate,
       const Allen::Context& context,
@@ -192,58 +257,12 @@ namespace Allen {
       static_assert(sizeof(T) == sizeof(S));
       unsigned container_offset = 0;
       for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
-        Allen::copy(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
+        Allen::copy_async(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
         container_offset += aggregate.size(i);
       }
     }
   } // namespace aggregate
 } // namespace Allen
-
-/**
- * @brief Copies count bytes of B into A.
- * @details A and B may be host or device arguments.
- */
-template<typename A, typename B, typename Args>
-void copy(
-  const Args& arguments,
-  const size_t count,
-  const Allen::Context& context,
-  const size_t offset_a = 0,
-  const size_t offset_b = 0)
-{
-  static_assert(sizeof(typename A::type) == sizeof(typename B::type));
-
-  Allen::memcpy_kind kind;
-  if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
-    kind = Allen::memcpyHostToHost;
-  else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
-    kind = Allen::memcpyHostToDevice;
-  else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
-    kind = Allen::memcpyDeviceToHost;
-  else
-    kind = Allen::memcpyDeviceToDevice;
-
-  Allen::copy(
-    gsl::span {data<A>(arguments), size<A>(arguments)},
-    gsl::span {data<B>(arguments), size<B>(arguments)},
-    context,
-    kind,
-    count,
-    offset_a,
-    offset_b);
-}
-
-/**
- * @brief Copies B into A.
- * @details A and B may be host or device arguments.
- */
-template<typename A, typename B, typename Args>
-void copy(const Args& arguments, const Allen::Context& context)
-{
-  static_assert(sizeof(typename A::type) == sizeof(typename B::type));
-  assert(size<A>(arguments) == size<B>(arguments));
-  copy<A, B, Args>(arguments, size<A>(arguments), context);
-}
 
 // SFINAE for single argument functions, like initialization and print of host / device parameters
 template<typename Arg, typename Args, typename Enabled = void>
