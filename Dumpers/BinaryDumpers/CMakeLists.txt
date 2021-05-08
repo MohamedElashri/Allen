@@ -10,8 +10,10 @@ gaudi_add_library(BinaryDumpers
                   SOURCES
                     src/lib/PyAllenHelper.cpp
                     src/lib/TestUTBoards.cpp
+                    src/lib/RawBankProperty.cpp
                   LINK PUBLIC
-                    Gaudi::GaudiKernel)
+                    Gaudi::GaudiKernel
+                    LHCb::DAQEventLib)
 
 gaudi_add_module(BinaryDumpersModule
                  SOURCES

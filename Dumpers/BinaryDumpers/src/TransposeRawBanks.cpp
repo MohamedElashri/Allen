@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2000-2021 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include <cstring>
 #include <fstream>
