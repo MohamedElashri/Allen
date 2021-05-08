@@ -48,10 +48,6 @@ else()
     ${PROJECT_BINARY_DIR}/imported_include
     ${PROJECT_BINARY_DIR}/sequences/Gaudi/GaudiKernel/include)
   target_compile_definitions(LHCbEvent INTERFACE ODIN_WITHOUT_GAUDI)
-else()
-  find_package(Boost COMPONENTS filesystem thread regex)
-  target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
-  target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex Gaudi::GaudiKernel LHCb::DAQEventLib)
 endif()
 
 if (ROOT_FOUND AND USE_ROOT)
