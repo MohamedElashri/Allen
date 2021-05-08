@@ -9,7 +9,7 @@
 #include <BankTypes.h>
 #include <ProgramOptions.h>
 
-Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads)
+Allen::IOConf Allen::io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads)
 {
   // Determine wether to run with async I/O.
   Allen::IOConf io_conf{true, number_of_slices, number_of_repetitions, number_of_repetitions};
@@ -36,7 +36,7 @@ Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_rep
   return io_conf;
 }
 
-std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options)
+std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::string> const& options)
 {
 
   unsigned number_of_slices = 0;

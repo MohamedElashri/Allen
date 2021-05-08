@@ -209,7 +209,7 @@ int allen(
     }
   }
 
-  auto io_conf = io_configuration(n_slices, n_repetitions, number_of_threads);
+  auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
 
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);

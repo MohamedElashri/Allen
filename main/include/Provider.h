@@ -20,8 +20,8 @@ namespace Allen {
     unsigned number_of_repetitions = 0;
     unsigned n_io_reps = 0;
   };
+
+  std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);
+
+  Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads);
 }
-
-std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);
-
-Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads);
