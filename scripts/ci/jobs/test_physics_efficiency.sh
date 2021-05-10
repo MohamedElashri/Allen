@@ -44,7 +44,7 @@ for OUTPUT_FOLDER in run_physics_efficiency_output_*/ ; do
       echo "***"
       echo "*** A difference was found."
       echo "***"
-      diff -B -Z ${TOPLEVEL}/test/reference/${i} efficiency_${i} > ${i}.diff || true
+      diff -u -B -Z ${TOPLEVEL}/test/reference/${i} efficiency_${i} > ${i}.diff || true
       DIFF_FOUND=1
       DIFFS_THISFOLDER="${DIFFS_THISFOLDER}
       - ${OUTPUT_FOLDER}: ${i}"
