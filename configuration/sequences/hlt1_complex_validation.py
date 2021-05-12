@@ -45,13 +45,13 @@ line_algorithms = {
 }
 
 track_mva_line_restricted = make_line_composite_node_with_gec(
-    "Hlt1TrackMVA_Restricted", line_algorithms)
+    "Hlt1TrackMVA_Restricted", line_algorithms["Hlt1TrackMVA_Restricted"])
 two_track_mva_line_restricted = make_line_composite_node_with_gec(
-    "Hlt1TwoTrackMVA_Restricted", line_algorithms)
+    "Hlt1TwoTrackMVA_Restricted", line_algorithms["Hlt1TwoTrackMVA_Restricted"])
 track_mva_line_non_restricted = make_line_composite_node_with_gec(
-    "Hlt1TrackMVA_Non_Restricted", line_algorithms)
+    "Hlt1TrackMVA_Non_Restricted", line_algorithms["Hlt1TrackMVA_Non_Restricted"])
 two_track_mva_line_non_restricted = make_line_composite_node_with_gec(
-    "Hlt1TwoTrackMVA_Non_Restricted", line_algorithms)
+    "Hlt1TwoTrackMVA_Non_Restricted", line_algorithms["Hlt1TwoTrackMVA_Non_Restricted"])
 
 lines_leaf = CompositeNode(
     "AllLines", [

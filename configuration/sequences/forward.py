@@ -8,8 +8,8 @@ from AllenCore.event_list_utils import generate
 
 forward_tracking_sequence = CompositeNode(
     "ForwardTrackingWithGEC",
-    NodeLogic.AND, [gec("gec"), forward_tracking()],
-    force_order=True,
-    lazy=True)
+    [gec("gec"), forward_tracking()],
+    NodeLogic.LAZY_AND,
+    force_order=True)
 
 generate(forward_tracking_sequence)

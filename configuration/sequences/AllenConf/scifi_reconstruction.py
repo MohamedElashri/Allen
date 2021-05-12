@@ -271,7 +271,7 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
     }
 
 
-def forward_tracking(name):
+def forward_tracking():
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 
