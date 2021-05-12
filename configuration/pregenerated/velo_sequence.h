@@ -795,26 +795,25 @@ using configured_sequence_arguments_t = std::tuple<
     velo_consolidate_tracks__dev_accepted_velo_tracks_t,
     velo_consolidate_tracks__dev_velo_track_hits_t>>;
 
-constexpr auto sequence_algorithm_names = std::array {
-  "initialize_event_lists",
-  "host_ut_banks",
-  "host_scifi_banks",
-  "gec",
-  "initialize_number_of_events",
-  "velo_banks",
-  "velo_calculate_number_of_candidates",
-  "prefix_sum_offsets_velo_candidates",
-  "velo_estimate_input_size",
-  "prefix_sum_offsets_estimated_input_size",
-  "velo_masked_clustering",
-  "velo_calculate_phi_and_sort",
-  "velo_search_by_triplet",
-  "velo_three_hit_tracks_filter",
-  "prefix_sum_offsets_velo_tracks",
-  "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
-  "velo_copy_track_hit_number",
-  "prefix_sum_offsets_velo_track_hit_number",
-  "velo_consolidate_tracks"};
+constexpr auto sequence_algorithm_names = std::array {"initialize_event_lists",
+                                                      "host_ut_banks",
+                                                      "host_scifi_banks",
+                                                      "gec",
+                                                      "initialize_number_of_events",
+                                                      "velo_banks",
+                                                      "velo_calculate_number_of_candidates",
+                                                      "prefix_sum_offsets_velo_candidates",
+                                                      "velo_estimate_input_size",
+                                                      "prefix_sum_offsets_estimated_input_size",
+                                                      "velo_masked_clustering",
+                                                      "velo_calculate_phi_and_sort",
+                                                      "velo_search_by_triplet",
+                                                      "velo_three_hit_tracks_filter",
+                                                      "prefix_sum_offsets_velo_tracks",
+                                                      "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
+                                                      "velo_copy_track_hit_number",
+                                                      "prefix_sum_offsets_velo_track_hit_number",
+                                                      "velo_consolidate_tracks"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)

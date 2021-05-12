@@ -7,8 +7,7 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.event_list_utils import generate
 
 forward_tracking_sequence = CompositeNode(
-    "ForwardTrackingWithGEC",
-    [gec("gec"), forward_tracking()],
+    "ForwardTrackingWithGEC", [gec("gec"), forward_tracking()],
     NodeLogic.LAZY_AND,
     force_order=True)
 
