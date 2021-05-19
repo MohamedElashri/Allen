@@ -11,14 +11,17 @@ import requests
 import urllib
 
 
-def get_master_throughput(job_name, scale=1.0):
+def get_master_throughput(job_name,
+                          csvfile="devices_throughputs.csv",
+                          scale=1.0):
     try:
         master_throughput = {}
         if job_name:
-            base_url = "https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/devices_throughputs.csv"
-            f = {"job": job_name}
-            url = base_url + "?" + urllib.parse.urlencode(f)
-            r = requests.get(url, allow_redirects=True)
+            base_url = (
+                "https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/"
+                + csvfile)
+            r = requests.get(
+                base_url, params={"job": job_name}, allow_redirects=True)
             content = r.content.decode("utf-8")
             content_reader = csv.reader(content.splitlines())
             for row in content_reader:
@@ -70,23 +73,32 @@ def format_text(title, plot_data, unit, x_max, master_throughput={}):
 
 def send_to_mattermost(text, mattermost_url):
     subprocess.call([
-        "curl", "-i", "-X", "POST", "-H", 'Content-Type: application/json',
-        "-d", text, mattermost_url
+        "curl",
+        "-i",
+        "-X",
+        "POST",
+        "-H",
+        "Content-Type: application/json",
+        "-d",
+        text,
+        mattermost_url,
     ])
 
 
-def produce_plot(filename,
-                 unit="",
-                 title="",
-                 x_max=10,
-                 mattermost_url=None,
-                 scale=1.0,
-                 normalize=False,
-                 print_text=True,
-                 master_throughput={}):
+def produce_plot(
+        filename,
+        unit="",
+        title="",
+        x_max=10,
+        mattermost_url=None,
+        scale=1.0,
+        normalize=False,
+        print_text=True,
+        master_throughput={},
+):
     plot_data = {}
     with open(filename) as csvfile:
-        csv_reader = csv.reader(csvfile, delimiter=',')
+        csv_reader = csv.reader(csvfile, delimiter=",")
         for row in csv_reader:
             try:
                 plot_data[row[0]] = float(row[1]) * scale
@@ -111,51 +123,59 @@ def produce_plot(filename,
 
 
 def main():
-    '''
+    """
     Produces a plot of the performance breakdown of the sequence under execution
-    '''
-    usage = '%prog [options] <data_file>\n' + \
-            'Example: %prog data.csv -m "http://{your-mattermost-site}/hooks/xxx-generatedkey-xxx"'
+    """
+    usage = (
+        "%prog [options] <data_file>\n" +
+        'Example: %prog data.csv -m "http://{your-mattermost-site}/hooks/xxx-generatedkey-xxx"'
+    )
     parser = OptionParser(usage=usage)
     parser.add_option(
-        '-m',
-        '--mattermost_url',
-        dest='mattermost_url',
-        help='The url where to post outputs generated for mattermost')
-    parser.add_option(
-        '-u',
-        '--unit',
-        dest='unit',
-        default='',
-        help='A unit suffix to append to evey value. Default is an empty string'
+        "-m",
+        "--mattermost_url",
+        dest="mattermost_url",
+        help="The url where to post outputs generated for mattermost",
     )
     parser.add_option(
-        '-x',
-        '--x_max',
-        dest='x_max',
+        "-u",
+        "--unit",
+        dest="unit",
+        default="",
+        help=
+        "A unit suffix to append to evey value. Default is an empty string",
+    )
+    parser.add_option(
+        "-x",
+        "--x_max",
+        dest="x_max",
         default=10,
         type=float,
-        help='Graph X axis is at least this many units wide. (default=10)')
+        help="Graph X axis is at least this many units wide. (default=10)",
+    )
     parser.add_option(
-        '-t',
-        '--title',
-        dest='title',
-        default='',
-        help='Title for your graph. (default: empty string)')
+        "-t",
+        "--title",
+        dest="title",
+        default="",
+        help="Title for your graph. (default: empty string)",
+    )
     parser.add_option(
-        '-s',
-        '--scale',
-        dest='scale',
+        "-s",
+        "--scale",
+        dest="scale",
         default=1.0,
         type=float,
-        help='Multiply all data values by this number (default=1.0)')
+        help="Multiply all data values by this number (default=1.0)",
+    )
     parser.add_option(
-        '-n',
-        '--normalize',
-        dest='normalize',
-        action='store_true',
+        "-n",
+        "--normalize",
+        dest="normalize",
+        action="store_true",
         default=False,
-        help='Scale numbers according to lowest value (default: False)')
+        help="Scale numbers according to lowest value (default: False)",
+    )
 
     (options, args) = parser.parse_args()
 
@@ -166,7 +186,8 @@ def main():
         x_max=options.x_max,
         mattermost_url=options.mattermost_url,
         scale=options.scale,
-        normalize=options.normalize)
+        normalize=options.normalize,
+    )
 
 
 if __name__ == "__main__":
