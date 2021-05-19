@@ -2,11 +2,8 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import (
-    track_mva_line_t,
-    two_track_mva_line_t,
-    two_track_preprocess_t,
-    two_track_evaluator_t,
-    two_track_catboost_line_t)
+    track_mva_line_t, two_track_mva_line_t, two_track_preprocess_t,
+    two_track_evaluator_t, two_track_catboost_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.event_list_utils import make_algorithm
 from AllenConf.odin import decode_odin
@@ -59,11 +56,12 @@ def make_two_track_mva_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string)
 
 
-def make_two_track_catboost_line(forward_tracks,
-                                 secondary_vertices,
-                                 pre_scaler_hash_string="two_track_catboost_line_pre",
-                                 post_scaler_hash_string="two_track_catboost_line_post",
-                                 name="Hlt1TwoTrackCatBoost"):
+def make_two_track_catboost_line(
+        forward_tracks,
+        secondary_vertices,
+        pre_scaler_hash_string="two_track_catboost_line_pre",
+        post_scaler_hash_string="two_track_catboost_line_post",
+        name="Hlt1TwoTrackCatBoost"):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
@@ -74,12 +72,15 @@ def make_two_track_catboost_line(forward_tracks,
     two_track_preprocess = make_algorithm(
         two_track_preprocess_t,
         name="two_track_preprocess",
-        host_number_of_selected_events_t=number_of_events["host_number_of_events"],
+        host_number_of_selected_events_t=number_of_events[
+            "host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_consolidated_svs_t=secondary_vertices["dev_consolidated_svs"],
         dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
-        dev_offsets_all_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
-        dev_offsets_velo_track_hit_number_t=velo_tracks["dev_offsets_velo_track_hit_number"])
+        dev_offsets_all_velo_tracks_t=velo_tracks[
+            "dev_offsets_all_velo_tracks"],
+        dev_offsets_velo_track_hit_number_t=velo_tracks[
+            "dev_offsets_velo_track_hit_number"])
 
     two_track_evaluator = make_algorithm(
         two_track_evaluator_t,
