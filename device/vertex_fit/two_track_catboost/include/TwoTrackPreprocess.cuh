@@ -24,7 +24,7 @@ namespace two_track_preprocess {
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_two_track_preprocess_output_t, float) dev_two_track_preprocess_output;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
