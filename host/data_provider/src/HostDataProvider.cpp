@@ -17,7 +17,7 @@ void host_data_provider::host_data_provider_t::set_arguments_size(
   set_size<host_raw_offsets_t>(arguments, 1);
 
   // A single number for the version
-  set_size<host_raw_bank_version_t>(arguments, sizeof(std::get<3>(bno)));
+  set_size<host_raw_bank_version_t>(arguments, 1);
 }
 
 void host_data_provider::host_data_provider_t::operator()(

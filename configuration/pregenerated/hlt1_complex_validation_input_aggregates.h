@@ -1,8 +1,8 @@
 #pragma once
 
 #include <tuple>
-#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
 #include "..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
 
 struct Hlt1TrackMVA_Restricted__dev_decisions_t : track_mva_line::Parameters::dev_decisions_t {
   using type = track_mva_line::Parameters::dev_decisions_t::type;

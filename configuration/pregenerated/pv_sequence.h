@@ -2,27 +2,27 @@
 
 #include <tuple>
 #include "ConfiguredInputAggregates.h"
-#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
-#include "..//host/data_provider/include/DataProvider.h"
-#include "..//host/prefix_sum/include/HostPrefixSum.h"
-#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
-#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
-#include "..//device/velo/search_by_triplet/include/SearchByTriplet.cuh"
-#include "..//host/data_provider/include/HostDataProvider.h"
-#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
-#include "..//device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_extrapolate.cuh"
-#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
-#include "..//host/init_event_list/include/HostInitEventList.h"
-#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
-#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_calculate_denom.cuh"
 #include "..//device/velo/search_by_triplet/include/ThreeHitTracksFilter.cuh"
-#include "..//device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
+#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
+#include "..//host/prefix_sum/include/HostPrefixSum.h"
+#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
+#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
+#include "..//device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
+#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
 #include "..//device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
+#include "..//device/velo/search_by_triplet/include/SearchByTriplet.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
+#include "..//host/data_provider/include/DataProvider.h"
+#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
+#include "..//host/data_provider/include/HostDataProvider.h"
+#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_extrapolate.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_calculate_denom.cuh"
+#include "..//host/init_event_list/include/HostInitEventList.h"
 #include "..//host/init_event_list/include/HostInitNumberOfEvents.h"
+#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
+#include "..//device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
 
 struct initialize_event_lists__host_event_list_output_t : host_init_event_list::Parameters::host_event_list_output_t {
   using type = host_init_event_list::Parameters::host_event_list_output_t::type;
@@ -31,6 +31,21 @@ struct initialize_event_lists__host_event_list_output_t : host_init_event_list::
 struct initialize_event_lists__dev_event_list_output_t : host_init_event_list::Parameters::dev_event_list_output_t {
   using type = host_init_event_list::Parameters::dev_event_list_output_t::type;
   using deps = host_init_event_list::Parameters::dev_event_list_output_t::deps;
+};
+struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
+                                            host_global_event_cut::Parameters::host_scifi_raw_banks_t {
+  using type = host_data_provider::Parameters::host_raw_banks_t::type;
+  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
+};
+struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
+                                              host_global_event_cut::Parameters::host_scifi_raw_offsets_t {
+  using type = host_data_provider::Parameters::host_raw_offsets_t::type;
+  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
+};
+struct host_scifi_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t,
+                                                   host_global_event_cut::Parameters::host_ut_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                          host_global_event_cut::Parameters::host_ut_raw_banks_t {
@@ -42,15 +57,9 @@ struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
   using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
 };
-struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
-                                            host_global_event_cut::Parameters::host_scifi_raw_banks_t {
-  using type = host_data_provider::Parameters::host_raw_banks_t::type;
-  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
-};
-struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
-                                              host_global_event_cut::Parameters::host_scifi_raw_offsets_t {
-  using type = host_data_provider::Parameters::host_raw_offsets_t::type;
-  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
+struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct gec__host_event_list_output_t : host_global_event_cut::Parameters::host_event_list_output_t {
   using type = host_global_event_cut::Parameters::host_event_list_output_t::type;
@@ -134,6 +143,10 @@ struct velo_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offset
                                        velo_masked_clustering::Parameters::dev_velo_raw_input_offsets_t {
   using type = data_provider::Parameters::dev_raw_offsets_t::type;
   using deps = data_provider::Parameters::dev_raw_offsets_t::deps;
+};
+struct velo_banks__host_raw_bank_version_t : data_provider::Parameters::host_raw_bank_version_t {
+  using type = data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct velo_calculate_number_of_candidates__dev_number_of_candidates_t
   : velo_calculate_number_of_candidates::Parameters::dev_number_of_candidates_t,
@@ -467,6 +480,18 @@ static_assert(all_host_or_all_device_v<
               initialize_event_lists__dev_event_list_output_t,
               host_init_event_list::Parameters::dev_event_list_output_t>);
 static_assert(all_host_or_all_device_v<
+              host_scifi_banks__host_raw_banks_t,
+              host_data_provider::Parameters::host_raw_banks_t,
+              host_global_event_cut::Parameters::host_scifi_raw_banks_t>);
+static_assert(all_host_or_all_device_v<
+              host_scifi_banks__host_raw_offsets_t,
+              host_data_provider::Parameters::host_raw_offsets_t,
+              host_global_event_cut::Parameters::host_scifi_raw_offsets_t>);
+static_assert(all_host_or_all_device_v<
+              host_scifi_banks__host_raw_bank_version_t,
+              host_data_provider::Parameters::host_raw_bank_version_t,
+              host_global_event_cut::Parameters::host_ut_raw_bank_version_t>);
+static_assert(all_host_or_all_device_v<
               host_ut_banks__host_raw_banks_t,
               host_data_provider::Parameters::host_raw_banks_t,
               host_global_event_cut::Parameters::host_ut_raw_banks_t>);
@@ -475,13 +500,8 @@ static_assert(all_host_or_all_device_v<
               host_data_provider::Parameters::host_raw_offsets_t,
               host_global_event_cut::Parameters::host_ut_raw_offsets_t>);
 static_assert(all_host_or_all_device_v<
-              host_scifi_banks__host_raw_banks_t,
-              host_data_provider::Parameters::host_raw_banks_t,
-              host_global_event_cut::Parameters::host_scifi_raw_banks_t>);
-static_assert(all_host_or_all_device_v<
-              host_scifi_banks__host_raw_offsets_t,
-              host_data_provider::Parameters::host_raw_offsets_t,
-              host_global_event_cut::Parameters::host_scifi_raw_offsets_t>);
+              host_ut_banks__host_raw_bank_version_t,
+              host_data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(
   all_host_or_all_device_v<gec__host_event_list_output_t, host_global_event_cut::Parameters::host_event_list_output_t>);
 static_assert(
@@ -551,6 +571,8 @@ static_assert(all_host_or_all_device_v<
               velo_calculate_number_of_candidates::Parameters::dev_velo_raw_input_offsets_t,
               velo_estimate_input_size::Parameters::dev_velo_raw_input_offsets_t,
               velo_masked_clustering::Parameters::dev_velo_raw_input_offsets_t>);
+static_assert(
+  all_host_or_all_device_v<velo_banks__host_raw_bank_version_t, data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(all_host_or_all_device_v<
               velo_calculate_number_of_candidates__dev_number_of_candidates_t,
               velo_calculate_number_of_candidates::Parameters::dev_number_of_candidates_t,
@@ -788,10 +810,12 @@ static_assert(all_host_or_all_device_v<
 using configured_arguments_t = std::tuple<
   initialize_event_lists__host_event_list_output_t,
   initialize_event_lists__dev_event_list_output_t,
-  host_ut_banks__host_raw_banks_t,
-  host_ut_banks__host_raw_offsets_t,
   host_scifi_banks__host_raw_banks_t,
   host_scifi_banks__host_raw_offsets_t,
+  host_scifi_banks__host_raw_bank_version_t,
+  host_ut_banks__host_raw_banks_t,
+  host_ut_banks__host_raw_offsets_t,
+  host_ut_banks__host_raw_bank_version_t,
   gec__host_event_list_output_t,
   gec__host_number_of_events_t,
   gec__host_number_of_selected_events_t,
@@ -801,6 +825,7 @@ using configured_arguments_t = std::tuple<
   initialize_number_of_events__dev_number_of_events_t,
   velo_banks__dev_raw_banks_t,
   velo_banks__dev_raw_offsets_t,
+  velo_banks__host_raw_bank_version_t,
   velo_calculate_number_of_candidates__dev_number_of_candidates_t,
   prefix_sum_offsets_velo_candidates__host_total_sum_holder_t,
   prefix_sum_offsets_velo_candidates__host_output_buffer_t,
@@ -886,11 +911,16 @@ using configured_sequence_t = std::tuple<
 
 using configured_sequence_arguments_t = std::tuple<
   std::tuple<initialize_event_lists__host_event_list_output_t, initialize_event_lists__dev_event_list_output_t>,
-  std::tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t>,
-  std::tuple<host_scifi_banks__host_raw_banks_t, host_scifi_banks__host_raw_offsets_t>,
+  std::tuple<
+    host_scifi_banks__host_raw_banks_t,
+    host_scifi_banks__host_raw_offsets_t,
+    host_scifi_banks__host_raw_bank_version_t>,
+  std::
+    tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t, host_ut_banks__host_raw_bank_version_t>,
   std::tuple<
     host_ut_banks__host_raw_banks_t,
     host_ut_banks__host_raw_offsets_t,
+    host_scifi_banks__host_raw_bank_version_t,
     host_scifi_banks__host_raw_banks_t,
     host_scifi_banks__host_raw_offsets_t,
     gec__host_event_list_output_t,
@@ -899,7 +929,7 @@ using configured_sequence_arguments_t = std::tuple<
     gec__dev_number_of_events_t,
     gec__dev_event_list_output_t>,
   std::tuple<initialize_number_of_events__host_number_of_events_t, initialize_number_of_events__dev_number_of_events_t>,
-  std::tuple<velo_banks__dev_raw_banks_t, velo_banks__dev_raw_offsets_t>,
+  std::tuple<velo_banks__dev_raw_banks_t, velo_banks__dev_raw_offsets_t, velo_banks__host_raw_bank_version_t>,
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     gec__dev_event_list_output_t,
@@ -1093,8 +1123,8 @@ using configured_sequence_arguments_t = std::tuple<
 
 constexpr auto sequence_algorithm_names = std::array {
   "initialize_event_lists",
-  "host_ut_banks",
   "host_scifi_banks",
+  "host_ut_banks",
   "gec",
   "initialize_number_of_events",
   "velo_banks",
@@ -1126,10 +1156,13 @@ void populate_sequence_argument_names(T& argument_manager)
     "initialize_event_lists__host_event_list_output_t");
   argument_manager.template set_name<initialize_event_lists__dev_event_list_output_t>(
     "initialize_event_lists__dev_event_list_output_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_banks_t>("host_scifi_banks__host_raw_banks_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_offsets_t>("host_scifi_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_scifi_banks__host_raw_bank_version_t>(
+    "host_scifi_banks__host_raw_bank_version_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_bank_version_t>("host_ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<gec__host_event_list_output_t>("gec__host_event_list_output_t");
   argument_manager.template set_name<gec__host_number_of_events_t>("gec__host_number_of_events_t");
   argument_manager.template set_name<gec__host_number_of_selected_events_t>("gec__host_number_of_selected_events_t");
@@ -1141,6 +1174,7 @@ void populate_sequence_argument_names(T& argument_manager)
     "initialize_number_of_events__dev_number_of_events_t");
   argument_manager.template set_name<velo_banks__dev_raw_banks_t>("velo_banks__dev_raw_banks_t");
   argument_manager.template set_name<velo_banks__dev_raw_offsets_t>("velo_banks__dev_raw_offsets_t");
+  argument_manager.template set_name<velo_banks__host_raw_bank_version_t>("velo_banks__host_raw_bank_version_t");
   argument_manager.template set_name<velo_calculate_number_of_candidates__dev_number_of_candidates_t>(
     "velo_calculate_number_of_candidates__dev_number_of_candidates_t");
   argument_manager.template set_name<prefix_sum_offsets_velo_candidates__host_total_sum_holder_t>(

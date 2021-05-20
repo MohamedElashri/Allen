@@ -2,77 +2,77 @@
 
 #include <tuple>
 #include "ConfiguredInputAggregates.h"
-#include "..//device/UT/compassUT/include/UTSelectVeloTracksWithWindows.cuh"
-#include "..//host/data_provider/include/DataProvider.h"
-#include "..//device/SciFi/looking_forward/include/LFSearchInitialWindows.cuh"
-#include "..//device/selections/lines/monitoring/include/ODINEventTypeLine.cuh"
-#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
-#include "..//device/SciFi/preprocessing/include/SciFiPreDecodeV4.cuh"
-#include "..//device/UT/consolidate/include/ConsolidateUT.cuh"
-#include "..//device/muon/is_muon/include/IsMuon.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_extrapolate.cuh"
-#include "..//device/SciFi/looking_forward/include/LFCreateTracks.cuh"
-#include "..//host/prefix_sum/include/HostPrefixSum.h"
-#include "..//device/associate/include/VeloPVIP.cuh"
-#include "..//device/selections/lines/muon/include/TrackMuonMVALine.cuh"
-#include "..//device/selections/Hlt1/include/GatherSelections.cuh"
-#include "..//device/UT/compassUT/include/UTSelectVeloTracks.cuh"
-#include "..//device/muon/decoding/include/MuonPopulateTileAndTDC.cuh"
-#include "..//device/kalman/ParKalman/include/ParKalmanVeloOnly.cuh"
-#include "..//device/vertex_fit/vertex_fitter/include/FilterTracks.cuh"
-#include "..//device/UT/compassUT/include/CompassUT.cuh"
-#include "..//device/selections/lines/muon/include/DiMuonMassLine.cuh"
-#include "..//device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
-#include "..//device/SciFi/looking_forward/include/LFTripletSeeding.cuh"
-#include "..//device/UT/UTDecoding/include/UTPreDecode.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
-#include "..//device/selections/lines/calibration/include/PassthroughLine.cuh"
-#include "..//device/SciFi/consolidate/include/SciFiCopyTrackHitNumber.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
 #include "..//device/vertex_fit/vertex_fitter/include/VertexFitter.cuh"
-#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
-#include "..//device/velo/search_by_triplet/include/SearchByTriplet.cuh"
-#include "..//device/selections/lines/charm/include/D2KKLine.cuh"
-#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
-#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
+#include "..//device/UT/UTDecoding/include/UTFindPermutation.cuh"
+#include "..//host/data_provider/include/HostDataProvider.h"
+#include "..//device/vertex_fit/two_track_catboost/include/TwoTrackEvaluator.cuh"
+#include "..//device/UT/compassUT/include/UTSelectVeloTracks.cuh"
+#include "..//host/init_event_list/include/HostInitNumberOfEvents.h"
+#include "..//device/velo/search_by_triplet/include/ThreeHitTracksFilter.cuh"
+#include "..//device/selections/lines/monitoring/include/ODINEventTypeLine.cuh"
+#include "..//device/UT/UTDecoding/include/UTPreDecode.cuh"
+#include "..//device/SciFi/looking_forward/include/LFSearchInitialWindows.cuh"
+#include "..//device/kalman/ParKalman/include/ParKalmanVeloOnly.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackCatBoostLine.cuh"
+#include "..//device/muon/decoding/include/MuonPopulateTileAndTDC.cuh"
+#include "..//device/UT/consolidate/include/UTCopyTrackHitNumber.cuh"
+#include "..//device/SciFi/looking_forward/include/LFCreateTracks.cuh"
+#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
+#include "..//device/muon/decoding/include/MuonAddCoordsCrossingMaps.cuh"
+#include "..//device/muon/decoding/include/MuonPopulateHits.cuh"
+#include "..//device/UT/compassUT/include/UTSelectVeloTracksWithWindows.cuh"
 #include "..//device/selections/lines/muon/include/DiMuonSoftLine.cuh"
 #include "..//device/selections/lines/muon/include/LowPtDiMuonLine.cuh"
-#include "..//device/muon/decoding/include/MuonAddCoordsCrossingMaps.cuh"
-#include "..//device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
-#include "..//device/velo/search_by_triplet/include/ThreeHitTracksFilter.cuh"
-#include "..//device/selections/Hlt1/include/DecReporter.cuh"
-#include "..//device/vertex_fit/two_track_catboost/include/TwoTrackPreprocess.cuh"
-#include "..//device/selections/lines/calibration/include/D2KPiLine.cuh"
-#include "..//host/data_provider/include/LayoutProvider.h"
-#include "..//device/SciFi/preprocessing/include/SciFiRawBankDecoderV4.cuh"
-#include "..//device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
-#include "..//device/selections/lines/muon/include/SingleHighPtMuonLine.cuh"
-#include "..//host/data_provider/include/HostDataProvider.h"
-#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackCatBoostLine.cuh"
-#include "..//device/muon/decoding/include/MuonCalculateSRQSize.cuh"
-#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
-#include "..//device/UT/compassUT/include/SearchWindows.cuh"
-#include "..//device/UT/UTDecoding/include/UTDecodeRawBanksInOrder.cuh"
-#include "..//host/init_event_list/include/HostInitNumberOfEvents.h"
-#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
-#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
-#include "..//device/selections/lines/monitoring/include/VeloMicroBiasLine.cuh"
-#include "..//device/muon/decoding/include/MuonPopulateHits.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_extrapolate.cuh"
+#include "..//device/selections/lines/muon/include/TrackMuonMVALine.cuh"
+#include "..//device/SciFi/looking_forward/include/LFTripletSeeding.cuh"
 #include "..//device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
-#include "..//device/UT/consolidate/include/UTCopyTrackHitNumber.cuh"
-#include "..//device/SciFi/looking_forward/include/LFQualityFilter.cuh"
-#include "..//host/init_event_list/include/HostInitEventList.h"
-#include "..//device/UT/UTDecoding/include/UTCalculateNumberOfHits.cuh"
-#include "..//device/vertex_fit/two_track_catboost/include/TwoTrackEvaluator.cuh"
-#include "..//device/selections/lines/muon/include/LowPtMuonLine.cuh"
+#include "..//device/UT/compassUT/include/SearchWindows.cuh"
+#include "..//device/selections/lines/monitoring/include/VeloMicroBiasLine.cuh"
+#include "..//device/selections/lines/muon/include/SingleHighPtMuonLine.cuh"
+#include "..//device/muon/decoding/include/MuonCalculateSRQSize.cuh"
 #include "..//device/SciFi/consolidate/include/ConsolidateSciFi.cuh"
 #include "..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
+#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
+#include "..//device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
+#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
+#include "..//device/velo/search_by_triplet/include/SearchByTriplet.cuh"
+#include "..//device/selections/Hlt1/include/GatherSelections.cuh"
+#include "..//device/UT/UTDecoding/include/UTCalculateNumberOfHits.cuh"
 #include "..//device/selections/lines/charm/include/D2PiPiLine.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
+#include "..//host/init_event_list/include/HostInitEventList.h"
+#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
+#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
+#include "..//device/UT/consolidate/include/ConsolidateUT.cuh"
+#include "..//device/SciFi/preprocessing/include/SciFiPreDecodeV4.cuh"
+#include "..//device/selections/lines/muon/include/LowPtMuonLine.cuh"
+#include "..//device/SciFi/preprocessing/include/SciFiRawBankDecoderV4.cuh"
+#include "..//device/UT/UTDecoding/include/UTDecodeRawBanksInOrder.cuh"
+#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
+#include "..//device/associate/include/VeloPVIP.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
+#include "..//device/SciFi/looking_forward/include/LFQualityFilter.cuh"
+#include "..//device/selections/Hlt1/include/DecReporter.cuh"
+#include "..//device/selections/lines/calibration/include/D2KPiLine.cuh"
+#include "..//device/UT/compassUT/include/CompassUT.cuh"
+#include "..//device/selections/lines/muon/include/DiMuonMassLine.cuh"
+#include "..//device/SciFi/preprocessing/include/SciFiCalculateClusterCountV4.cuh"
+#include "..//device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
+#include "..//device/muon/is_muon/include/IsMuon.cuh"
+#include "..//device/SciFi/consolidate/include/SciFiCopyTrackHitNumber.cuh"
+#include "..//device/vertex_fit/vertex_fitter/include/FilterTracks.cuh"
+#include "..//host/prefix_sum/include/HostPrefixSum.h"
+#include "..//device/selections/lines/calibration/include/PassthroughLine.cuh"
 #include "..//device/PV/beamlinePV/include/pv_beamline_calculate_denom.cuh"
 #include "..//device/SciFi/looking_forward/include/LFQualityFilterLength.cuh"
-#include "..//device/UT/UTDecoding/include/UTFindPermutation.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
-#include "..//device/SciFi/preprocessing/include/SciFiCalculateClusterCountV4.cuh"
+#include "..//device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
+#include "..//device/selections/lines/charm/include/D2KKLine.cuh"
+#include "..//host/data_provider/include/LayoutProvider.h"
+#include "..//host/data_provider/include/DataProvider.h"
+#include "..//device/vertex_fit/two_track_catboost/include/TwoTrackPreprocess.cuh"
 
 struct initialize_event_lists__host_event_list_output_t : host_init_event_list::Parameters::host_event_list_output_t {
   using type = host_init_event_list::Parameters::host_event_list_output_t::type;
@@ -234,6 +234,11 @@ struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::ho
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
   using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
 };
+struct host_scifi_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t,
+                                                   host_global_event_cut::Parameters::host_ut_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
+};
 struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                          host_global_event_cut::Parameters::host_ut_raw_banks_t {
   using type = host_data_provider::Parameters::host_raw_banks_t::type;
@@ -243,6 +248,10 @@ struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_
                                            host_global_event_cut::Parameters::host_ut_raw_offsets_t {
   using type = host_data_provider::Parameters::host_raw_offsets_t::type;
   using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
+};
+struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct gec__host_event_list_output_t : host_global_event_cut::Parameters::host_event_list_output_t {
   using type = host_global_event_cut::Parameters::host_event_list_output_t::type;
@@ -327,6 +336,13 @@ struct ut_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offsets_
   using type = data_provider::Parameters::dev_raw_offsets_t::type;
   using deps = data_provider::Parameters::dev_raw_offsets_t::deps;
 };
+struct ut_banks__host_raw_bank_version_t : data_provider::Parameters::host_raw_bank_version_t,
+                                           ut_calculate_number_of_hits::Parameters::host_raw_bank_version_t,
+                                           ut_pre_decode::Parameters::host_raw_bank_version_t,
+                                           ut_decode_raw_banks_in_order::Parameters::host_raw_bank_version_t {
+  using type = data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = data_provider::Parameters::host_raw_bank_version_t::deps;
+};
 struct ut_calculate_number_of_hits__dev_ut_hit_sizes_t : ut_calculate_number_of_hits::Parameters::dev_ut_hit_sizes_t,
                                                          host_prefix_sum::Parameters::dev_input_buffer_t {
   using type = ut_calculate_number_of_hits::Parameters::dev_ut_hit_sizes_t::type;
@@ -392,6 +408,10 @@ struct scifi_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offse
   using type = data_provider::Parameters::dev_raw_offsets_t::type;
   using deps = data_provider::Parameters::dev_raw_offsets_t::deps;
 };
+struct scifi_banks__host_raw_bank_version_t : data_provider::Parameters::host_raw_bank_version_t {
+  using type = data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = data_provider::Parameters::host_raw_bank_version_t::deps;
+};
 struct scifi_calculate_cluster_count__dev_scifi_hit_count_t
   : scifi_calculate_cluster_count_v4::Parameters::dev_scifi_hit_count_t,
     host_prefix_sum::Parameters::dev_input_buffer_t {
@@ -445,6 +465,10 @@ struct muon_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offset
                                        muon_populate_tile_and_tdc::Parameters::dev_muon_raw_offsets_t {
   using type = data_provider::Parameters::dev_raw_offsets_t::type;
   using deps = data_provider::Parameters::dev_raw_offsets_t::deps;
+};
+struct muon_banks__host_raw_bank_version_t : data_provider::Parameters::host_raw_bank_version_t {
+  using type = data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct muon_calculate_srq_size__dev_muon_raw_to_hits_t
   : muon_calculate_srq_size::Parameters::dev_muon_raw_to_hits_t,
@@ -557,6 +581,10 @@ struct velo_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offset
                                        velo_masked_clustering::Parameters::dev_velo_raw_input_offsets_t {
   using type = data_provider::Parameters::dev_raw_offsets_t::type;
   using deps = data_provider::Parameters::dev_raw_offsets_t::deps;
+};
+struct velo_banks__host_raw_bank_version_t : data_provider::Parameters::host_raw_bank_version_t {
+  using type = data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct velo_calculate_number_of_candidates__dev_number_of_candidates_t
   : velo_calculate_number_of_candidates::Parameters::dev_number_of_candidates_t,
@@ -711,22 +739,6 @@ struct velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t
   using type = velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t::type;
   using deps = velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t::deps;
 };
-struct prefix_sum_offsets_velo_tracks__host_total_sum_holder_t
-  : host_prefix_sum::Parameters::host_total_sum_holder_t,
-    velo_copy_track_hit_number::Parameters::host_number_of_velo_tracks_at_least_four_hits_t {
-  using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
-  using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
-};
-struct prefix_sum_offsets_velo_tracks__host_output_buffer_t : host_prefix_sum::Parameters::host_output_buffer_t {
-  using type = host_prefix_sum::Parameters::host_output_buffer_t::type;
-  using deps = host_prefix_sum::Parameters::host_output_buffer_t::deps;
-};
-struct prefix_sum_offsets_velo_tracks__dev_output_buffer_t
-  : host_prefix_sum::Parameters::dev_output_buffer_t,
-    velo_copy_track_hit_number::Parameters::dev_offsets_velo_tracks_t {
-  using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
-  using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
-};
 struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t
   : host_prefix_sum::Parameters::host_total_sum_holder_t,
     velo_copy_track_hit_number::Parameters::host_number_of_three_hit_tracks_filtered_t,
@@ -743,6 +755,22 @@ struct prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer
   : host_prefix_sum::Parameters::dev_output_buffer_t,
     velo_copy_track_hit_number::Parameters::dev_offsets_number_of_three_hit_tracks_filtered_t,
     velo_consolidate_tracks::Parameters::dev_offsets_number_of_three_hit_tracks_filtered_t {
+  using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
+};
+struct prefix_sum_offsets_velo_tracks__host_total_sum_holder_t
+  : host_prefix_sum::Parameters::host_total_sum_holder_t,
+    velo_copy_track_hit_number::Parameters::host_number_of_velo_tracks_at_least_four_hits_t {
+  using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
+  using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
+};
+struct prefix_sum_offsets_velo_tracks__host_output_buffer_t : host_prefix_sum::Parameters::host_output_buffer_t {
+  using type = host_prefix_sum::Parameters::host_output_buffer_t::type;
+  using deps = host_prefix_sum::Parameters::host_output_buffer_t::deps;
+};
+struct prefix_sum_offsets_velo_tracks__dev_output_buffer_t
+  : host_prefix_sum::Parameters::dev_output_buffer_t,
+    velo_copy_track_hit_number::Parameters::dev_offsets_velo_tracks_t {
   using type = host_prefix_sum::Parameters::dev_output_buffer_t::type;
   using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
 };
@@ -1402,6 +1430,10 @@ struct populate_odin_banks__dev_raw_offsets_t : data_provider::Parameters::dev_r
   using type = data_provider::Parameters::dev_raw_offsets_t::type;
   using deps = data_provider::Parameters::dev_raw_offsets_t::deps;
 };
+struct populate_odin_banks__host_raw_bank_version_t : data_provider::Parameters::host_raw_bank_version_t {
+  using type = data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = data_provider::Parameters::host_raw_bank_version_t::deps;
+};
 struct gather_selections__host_selections_lines_offsets_t
   : gather_selections::Parameters::host_selections_lines_offsets_t {
   using type = gather_selections::Parameters::host_selections_lines_offsets_t::type;
@@ -1621,6 +1653,10 @@ static_assert(all_host_or_all_device_v<
               host_data_provider::Parameters::host_raw_offsets_t,
               host_global_event_cut::Parameters::host_scifi_raw_offsets_t>);
 static_assert(all_host_or_all_device_v<
+              host_scifi_banks__host_raw_bank_version_t,
+              host_data_provider::Parameters::host_raw_bank_version_t,
+              host_global_event_cut::Parameters::host_ut_raw_bank_version_t>);
+static_assert(all_host_or_all_device_v<
               host_ut_banks__host_raw_banks_t,
               host_data_provider::Parameters::host_raw_banks_t,
               host_global_event_cut::Parameters::host_ut_raw_banks_t>);
@@ -1628,6 +1664,9 @@ static_assert(all_host_or_all_device_v<
               host_ut_banks__host_raw_offsets_t,
               host_data_provider::Parameters::host_raw_offsets_t,
               host_global_event_cut::Parameters::host_ut_raw_offsets_t>);
+static_assert(all_host_or_all_device_v<
+              host_ut_banks__host_raw_bank_version_t,
+              host_data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(
   all_host_or_all_device_v<gec__host_event_list_output_t, host_global_event_cut::Parameters::host_event_list_output_t>);
 static_assert(
@@ -1703,6 +1742,12 @@ static_assert(all_host_or_all_device_v<
               ut_pre_decode::Parameters::dev_ut_raw_input_offsets_t,
               ut_decode_raw_banks_in_order::Parameters::dev_ut_raw_input_offsets_t>);
 static_assert(all_host_or_all_device_v<
+              ut_banks__host_raw_bank_version_t,
+              data_provider::Parameters::host_raw_bank_version_t,
+              ut_calculate_number_of_hits::Parameters::host_raw_bank_version_t,
+              ut_pre_decode::Parameters::host_raw_bank_version_t,
+              ut_decode_raw_banks_in_order::Parameters::host_raw_bank_version_t>);
+static_assert(all_host_or_all_device_v<
               ut_calculate_number_of_hits__dev_ut_hit_sizes_t,
               ut_calculate_number_of_hits::Parameters::dev_ut_hit_sizes_t,
               host_prefix_sum::Parameters::dev_input_buffer_t>);
@@ -1754,6 +1799,8 @@ static_assert(all_host_or_all_device_v<
               scifi_calculate_cluster_count_v4::Parameters::dev_scifi_raw_input_offsets_t,
               scifi_pre_decode_v4::Parameters::dev_scifi_raw_input_offsets_t,
               scifi_raw_bank_decoder_v4::Parameters::dev_scifi_raw_input_offsets_t>);
+static_assert(
+  all_host_or_all_device_v<scifi_banks__host_raw_bank_version_t, data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(all_host_or_all_device_v<
               scifi_calculate_cluster_count__dev_scifi_hit_count_t,
               scifi_calculate_cluster_count_v4::Parameters::dev_scifi_hit_count_t,
@@ -1798,6 +1845,8 @@ static_assert(all_host_or_all_device_v<
               data_provider::Parameters::dev_raw_offsets_t,
               muon_calculate_srq_size::Parameters::dev_muon_raw_offsets_t,
               muon_populate_tile_and_tdc::Parameters::dev_muon_raw_offsets_t>);
+static_assert(
+  all_host_or_all_device_v<muon_banks__host_raw_bank_version_t, data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(all_host_or_all_device_v<
               muon_calculate_srq_size__dev_muon_raw_to_hits_t,
               muon_calculate_srq_size::Parameters::dev_muon_raw_to_hits_t,
@@ -1879,6 +1928,8 @@ static_assert(all_host_or_all_device_v<
               velo_calculate_number_of_candidates::Parameters::dev_velo_raw_input_offsets_t,
               velo_estimate_input_size::Parameters::dev_velo_raw_input_offsets_t,
               velo_masked_clustering::Parameters::dev_velo_raw_input_offsets_t>);
+static_assert(
+  all_host_or_all_device_v<velo_banks__host_raw_bank_version_t, data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(all_host_or_all_device_v<
               velo_calculate_number_of_candidates__dev_number_of_candidates_t,
               velo_calculate_number_of_candidates::Parameters::dev_number_of_candidates_t,
@@ -1990,17 +2041,6 @@ static_assert(all_host_or_all_device_v<
               velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t,
               host_prefix_sum::Parameters::dev_input_buffer_t>);
 static_assert(all_host_or_all_device_v<
-              prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
-              host_prefix_sum::Parameters::host_total_sum_holder_t,
-              velo_copy_track_hit_number::Parameters::host_number_of_velo_tracks_at_least_four_hits_t>);
-static_assert(all_host_or_all_device_v<
-              prefix_sum_offsets_velo_tracks__host_output_buffer_t,
-              host_prefix_sum::Parameters::host_output_buffer_t>);
-static_assert(all_host_or_all_device_v<
-              prefix_sum_offsets_velo_tracks__dev_output_buffer_t,
-              host_prefix_sum::Parameters::dev_output_buffer_t,
-              velo_copy_track_hit_number::Parameters::dev_offsets_velo_tracks_t>);
-static_assert(all_host_or_all_device_v<
               prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t,
               host_prefix_sum::Parameters::host_total_sum_holder_t,
               velo_copy_track_hit_number::Parameters::host_number_of_three_hit_tracks_filtered_t,
@@ -2013,6 +2053,17 @@ static_assert(all_host_or_all_device_v<
               host_prefix_sum::Parameters::dev_output_buffer_t,
               velo_copy_track_hit_number::Parameters::dev_offsets_number_of_three_hit_tracks_filtered_t,
               velo_consolidate_tracks::Parameters::dev_offsets_number_of_three_hit_tracks_filtered_t>);
+static_assert(all_host_or_all_device_v<
+              prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
+              host_prefix_sum::Parameters::host_total_sum_holder_t,
+              velo_copy_track_hit_number::Parameters::host_number_of_velo_tracks_at_least_four_hits_t>);
+static_assert(all_host_or_all_device_v<
+              prefix_sum_offsets_velo_tracks__host_output_buffer_t,
+              host_prefix_sum::Parameters::host_output_buffer_t>);
+static_assert(all_host_or_all_device_v<
+              prefix_sum_offsets_velo_tracks__dev_output_buffer_t,
+              host_prefix_sum::Parameters::dev_output_buffer_t,
+              velo_copy_track_hit_number::Parameters::dev_offsets_velo_tracks_t>);
 static_assert(all_host_or_all_device_v<
               velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
               velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t,
@@ -2552,6 +2603,9 @@ static_assert(all_host_or_all_device_v<
               passthrough_line::Parameters::dev_odin_raw_input_offsets_t,
               gather_selections::Parameters::dev_odin_raw_input_offsets_t>);
 static_assert(all_host_or_all_device_v<
+              populate_odin_banks__host_raw_bank_version_t,
+              data_provider::Parameters::host_raw_bank_version_t>);
+static_assert(all_host_or_all_device_v<
               gather_selections__host_selections_lines_offsets_t,
               gather_selections::Parameters::host_selections_lines_offsets_t>);
 static_assert(all_host_or_all_device_v<
@@ -2599,8 +2653,10 @@ using configured_arguments_t = std::tuple<
   initialize_number_of_events__dev_number_of_events_t,
   host_scifi_banks__host_raw_banks_t,
   host_scifi_banks__host_raw_offsets_t,
+  host_scifi_banks__host_raw_bank_version_t,
   host_ut_banks__host_raw_banks_t,
   host_ut_banks__host_raw_offsets_t,
+  host_ut_banks__host_raw_bank_version_t,
   gec__host_event_list_output_t,
   gec__host_number_of_events_t,
   gec__host_number_of_selected_events_t,
@@ -2608,6 +2664,7 @@ using configured_arguments_t = std::tuple<
   gec__dev_event_list_output_t,
   ut_banks__dev_raw_banks_t,
   ut_banks__dev_raw_offsets_t,
+  ut_banks__host_raw_bank_version_t,
   ut_calculate_number_of_hits__dev_ut_hit_sizes_t,
   prefix_sum_ut_hits__host_total_sum_holder_t,
   prefix_sum_ut_hits__host_output_buffer_t,
@@ -2618,6 +2675,7 @@ using configured_arguments_t = std::tuple<
   ut_decode_raw_banks_in_order__dev_ut_hits_t,
   scifi_banks__dev_raw_banks_t,
   scifi_banks__dev_raw_offsets_t,
+  scifi_banks__host_raw_bank_version_t,
   scifi_calculate_cluster_count__dev_scifi_hit_count_t,
   prefix_sum_scifi_hits__host_total_sum_holder_t,
   prefix_sum_scifi_hits__host_output_buffer_t,
@@ -2626,6 +2684,7 @@ using configured_arguments_t = std::tuple<
   scifi_raw_bank_decoder__dev_scifi_hits_t,
   muon_banks__dev_raw_banks_t,
   muon_banks__dev_raw_offsets_t,
+  muon_banks__host_raw_bank_version_t,
   muon_calculate_srq_size__dev_muon_raw_to_hits_t,
   muon_calculate_srq_size__dev_storage_station_region_quarter_sizes_t,
   muon_srq_prefix_sum__host_total_sum_holder_t,
@@ -2645,6 +2704,7 @@ using configured_arguments_t = std::tuple<
   muon_populate_hits__dev_muon_hits_t,
   velo_banks__dev_raw_banks_t,
   velo_banks__dev_raw_offsets_t,
+  velo_banks__host_raw_bank_version_t,
   velo_calculate_number_of_candidates__dev_number_of_candidates_t,
   prefix_sum_offsets_velo_candidates__host_total_sum_holder_t,
   prefix_sum_offsets_velo_candidates__host_output_buffer_t,
@@ -2671,12 +2731,12 @@ using configured_arguments_t = std::tuple<
   velo_search_by_triplet__dev_number_of_velo_tracks_t,
   velo_three_hit_tracks_filter__dev_three_hit_tracks_output_t,
   velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t,
-  prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
-  prefix_sum_offsets_velo_tracks__host_output_buffer_t,
-  prefix_sum_offsets_velo_tracks__dev_output_buffer_t,
   prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t,
   prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_output_buffer_t,
   prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t,
+  prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
+  prefix_sum_offsets_velo_tracks__host_output_buffer_t,
+  prefix_sum_offsets_velo_tracks__dev_output_buffer_t,
   velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t,
   velo_copy_track_hit_number__dev_velo_track_hit_number_t,
   velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
@@ -2763,6 +2823,7 @@ using configured_arguments_t = std::tuple<
   two_track_evaluator__dev_two_track_catboost_evaluation_t,
   populate_odin_banks__dev_raw_banks_t,
   populate_odin_banks__dev_raw_offsets_t,
+  populate_odin_banks__host_raw_bank_version_t,
   Hlt1TrackMVA__dev_decisions_t,
   Hlt1TrackMVA__dev_decisions_offsets_t,
   Hlt1TrackMVA__host_post_scaler_t,
@@ -2965,11 +3026,16 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<initialize_event_lists__host_event_list_output_t, initialize_event_lists__dev_event_list_output_t>,
   std::tuple<mep_layout__host_mep_layout_t, mep_layout__dev_mep_layout_t>,
   std::tuple<initialize_number_of_events__host_number_of_events_t, initialize_number_of_events__dev_number_of_events_t>,
-  std::tuple<host_scifi_banks__host_raw_banks_t, host_scifi_banks__host_raw_offsets_t>,
-  std::tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t>,
+  std::tuple<
+    host_scifi_banks__host_raw_banks_t,
+    host_scifi_banks__host_raw_offsets_t,
+    host_scifi_banks__host_raw_bank_version_t>,
+  std::
+    tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t, host_ut_banks__host_raw_bank_version_t>,
   std::tuple<
     host_ut_banks__host_raw_banks_t,
     host_ut_banks__host_raw_offsets_t,
+    host_scifi_banks__host_raw_bank_version_t,
     host_scifi_banks__host_raw_banks_t,
     host_scifi_banks__host_raw_offsets_t,
     gec__host_event_list_output_t,
@@ -2977,9 +3043,10 @@ using configured_sequence_arguments_t = std::tuple<
     gec__host_number_of_selected_events_t,
     gec__dev_number_of_events_t,
     gec__dev_event_list_output_t>,
-  std::tuple<ut_banks__dev_raw_banks_t, ut_banks__dev_raw_offsets_t>,
+  std::tuple<ut_banks__dev_raw_banks_t, ut_banks__dev_raw_offsets_t, ut_banks__host_raw_bank_version_t>,
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
+    ut_banks__host_raw_bank_version_t,
     gec__dev_event_list_output_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -2992,6 +3059,7 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     prefix_sum_ut_hits__host_total_sum_holder_t,
+    ut_banks__host_raw_bank_version_t,
     initialize_number_of_events__dev_number_of_events_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -3010,6 +3078,7 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     prefix_sum_ut_hits__host_total_sum_holder_t,
+    ut_banks__host_raw_bank_version_t,
     initialize_number_of_events__dev_number_of_events_t,
     ut_banks__dev_raw_banks_t,
     ut_banks__dev_raw_offsets_t,
@@ -3018,7 +3087,7 @@ using configured_sequence_arguments_t = std::tuple<
     ut_pre_decode__dev_ut_pre_decoded_hits_t,
     ut_decode_raw_banks_in_order__dev_ut_hits_t,
     ut_find_permutation__dev_ut_hit_permutations_t>,
-  std::tuple<scifi_banks__dev_raw_banks_t, scifi_banks__dev_raw_offsets_t>,
+  std::tuple<scifi_banks__dev_raw_banks_t, scifi_banks__dev_raw_offsets_t, scifi_banks__host_raw_bank_version_t>,
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     gec__dev_event_list_output_t,
@@ -3048,7 +3117,7 @@ using configured_sequence_arguments_t = std::tuple<
     gec__dev_event_list_output_t,
     initialize_number_of_events__dev_number_of_events_t,
     scifi_raw_bank_decoder__dev_scifi_hits_t>,
-  std::tuple<muon_banks__dev_raw_banks_t, muon_banks__dev_raw_offsets_t>,
+  std::tuple<muon_banks__dev_raw_banks_t, muon_banks__dev_raw_offsets_t, muon_banks__host_raw_bank_version_t>,
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     gec__dev_event_list_output_t,
@@ -3101,7 +3170,7 @@ using configured_sequence_arguments_t = std::tuple<
     muon_srq_prefix_sum__dev_output_buffer_t,
     muon_populate_hits__dev_permutation_station_t,
     muon_populate_hits__dev_muon_hits_t>,
-  std::tuple<velo_banks__dev_raw_banks_t, velo_banks__dev_raw_offsets_t>,
+  std::tuple<velo_banks__dev_raw_banks_t, velo_banks__dev_raw_offsets_t, velo_banks__host_raw_bank_version_t>,
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     initialize_event_lists__dev_event_list_output_t,
@@ -3184,15 +3253,15 @@ using configured_sequence_arguments_t = std::tuple<
     velo_three_hit_tracks_filter__dev_three_hit_tracks_output_t,
     velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t>,
   std::tuple<
-    prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
-    velo_search_by_triplet__dev_number_of_velo_tracks_t,
-    prefix_sum_offsets_velo_tracks__host_output_buffer_t,
-    prefix_sum_offsets_velo_tracks__dev_output_buffer_t>,
-  std::tuple<
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t,
     velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_output_buffer_t,
     prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t>,
+  std::tuple<
+    prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
+    velo_search_by_triplet__dev_number_of_velo_tracks_t,
+    prefix_sum_offsets_velo_tracks__host_output_buffer_t,
+    prefix_sum_offsets_velo_tracks__dev_output_buffer_t>,
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     prefix_sum_offsets_velo_tracks__host_total_sum_holder_t,
@@ -3610,7 +3679,10 @@ using configured_sequence_arguments_t = std::tuple<
     prefix_sum_secondary_vertices__host_total_sum_holder_t,
     two_track_preprocess__dev_two_track_preprocess_output_t,
     two_track_evaluator__dev_two_track_catboost_evaluation_t>,
-  std::tuple<populate_odin_banks__dev_raw_banks_t, populate_odin_banks__dev_raw_offsets_t>,
+  std::tuple<
+    populate_odin_banks__dev_raw_banks_t,
+    populate_odin_banks__dev_raw_offsets_t,
+    populate_odin_banks__host_raw_bank_version_t>,
   std::tuple<
     initialize_number_of_events__host_number_of_events_t,
     prefix_sum_forward_tracks__host_total_sum_holder_t,
@@ -4022,8 +4094,8 @@ constexpr auto sequence_algorithm_names = std::array {
   "velo_calculate_phi_and_sort",
   "velo_search_by_triplet",
   "velo_three_hit_tracks_filter",
-  "prefix_sum_offsets_velo_tracks",
   "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
+  "prefix_sum_offsets_velo_tracks",
   "velo_copy_track_hit_number",
   "prefix_sum_offsets_velo_track_hit_number",
   "velo_consolidate_tracks",
@@ -4100,8 +4172,11 @@ void populate_sequence_argument_names(T& argument_manager)
     "initialize_number_of_events__dev_number_of_events_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_banks_t>("host_scifi_banks__host_raw_banks_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_offsets_t>("host_scifi_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_scifi_banks__host_raw_bank_version_t>(
+    "host_scifi_banks__host_raw_bank_version_t");
   argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
   argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_bank_version_t>("host_ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<gec__host_event_list_output_t>("gec__host_event_list_output_t");
   argument_manager.template set_name<gec__host_number_of_events_t>("gec__host_number_of_events_t");
   argument_manager.template set_name<gec__host_number_of_selected_events_t>("gec__host_number_of_selected_events_t");
@@ -4109,6 +4184,7 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<gec__dev_event_list_output_t>("gec__dev_event_list_output_t");
   argument_manager.template set_name<ut_banks__dev_raw_banks_t>("ut_banks__dev_raw_banks_t");
   argument_manager.template set_name<ut_banks__dev_raw_offsets_t>("ut_banks__dev_raw_offsets_t");
+  argument_manager.template set_name<ut_banks__host_raw_bank_version_t>("ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<ut_calculate_number_of_hits__dev_ut_hit_sizes_t>(
     "ut_calculate_number_of_hits__dev_ut_hit_sizes_t");
   argument_manager.template set_name<prefix_sum_ut_hits__host_total_sum_holder_t>(
@@ -4126,6 +4202,7 @@ void populate_sequence_argument_names(T& argument_manager)
     "ut_decode_raw_banks_in_order__dev_ut_hits_t");
   argument_manager.template set_name<scifi_banks__dev_raw_banks_t>("scifi_banks__dev_raw_banks_t");
   argument_manager.template set_name<scifi_banks__dev_raw_offsets_t>("scifi_banks__dev_raw_offsets_t");
+  argument_manager.template set_name<scifi_banks__host_raw_bank_version_t>("scifi_banks__host_raw_bank_version_t");
   argument_manager.template set_name<scifi_calculate_cluster_count__dev_scifi_hit_count_t>(
     "scifi_calculate_cluster_count__dev_scifi_hit_count_t");
   argument_manager.template set_name<prefix_sum_scifi_hits__host_total_sum_holder_t>(
@@ -4140,6 +4217,7 @@ void populate_sequence_argument_names(T& argument_manager)
     "scifi_raw_bank_decoder__dev_scifi_hits_t");
   argument_manager.template set_name<muon_banks__dev_raw_banks_t>("muon_banks__dev_raw_banks_t");
   argument_manager.template set_name<muon_banks__dev_raw_offsets_t>("muon_banks__dev_raw_offsets_t");
+  argument_manager.template set_name<muon_banks__host_raw_bank_version_t>("muon_banks__host_raw_bank_version_t");
   argument_manager.template set_name<muon_calculate_srq_size__dev_muon_raw_to_hits_t>(
     "muon_calculate_srq_size__dev_muon_raw_to_hits_t");
   argument_manager.template set_name<muon_calculate_srq_size__dev_storage_station_region_quarter_sizes_t>(
@@ -4175,6 +4253,7 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<muon_populate_hits__dev_muon_hits_t>("muon_populate_hits__dev_muon_hits_t");
   argument_manager.template set_name<velo_banks__dev_raw_banks_t>("velo_banks__dev_raw_banks_t");
   argument_manager.template set_name<velo_banks__dev_raw_offsets_t>("velo_banks__dev_raw_offsets_t");
+  argument_manager.template set_name<velo_banks__host_raw_bank_version_t>("velo_banks__host_raw_bank_version_t");
   argument_manager.template set_name<velo_calculate_number_of_candidates__dev_number_of_candidates_t>(
     "velo_calculate_number_of_candidates__dev_number_of_candidates_t");
   argument_manager.template set_name<prefix_sum_offsets_velo_candidates__host_total_sum_holder_t>(
@@ -4225,18 +4304,18 @@ void populate_sequence_argument_names(T& argument_manager)
     "velo_three_hit_tracks_filter__dev_three_hit_tracks_output_t");
   argument_manager.template set_name<velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t>(
     "velo_three_hit_tracks_filter__dev_number_of_three_hit_tracks_output_t");
-  argument_manager.template set_name<prefix_sum_offsets_velo_tracks__host_total_sum_holder_t>(
-    "prefix_sum_offsets_velo_tracks__host_total_sum_holder_t");
-  argument_manager.template set_name<prefix_sum_offsets_velo_tracks__host_output_buffer_t>(
-    "prefix_sum_offsets_velo_tracks__host_output_buffer_t");
-  argument_manager.template set_name<prefix_sum_offsets_velo_tracks__dev_output_buffer_t>(
-    "prefix_sum_offsets_velo_tracks__dev_output_buffer_t");
   argument_manager.template set_name<prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t>(
     "prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_total_sum_holder_t");
   argument_manager.template set_name<prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_output_buffer_t>(
     "prefix_sum_offsets_number_of_three_hit_tracks_filtered__host_output_buffer_t");
   argument_manager.template set_name<prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t>(
     "prefix_sum_offsets_number_of_three_hit_tracks_filtered__dev_output_buffer_t");
+  argument_manager.template set_name<prefix_sum_offsets_velo_tracks__host_total_sum_holder_t>(
+    "prefix_sum_offsets_velo_tracks__host_total_sum_holder_t");
+  argument_manager.template set_name<prefix_sum_offsets_velo_tracks__host_output_buffer_t>(
+    "prefix_sum_offsets_velo_tracks__host_output_buffer_t");
+  argument_manager.template set_name<prefix_sum_offsets_velo_tracks__dev_output_buffer_t>(
+    "prefix_sum_offsets_velo_tracks__dev_output_buffer_t");
   argument_manager.template set_name<velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t>(
     "velo_copy_track_hit_number__host_number_of_reconstructed_velo_tracks_t");
   argument_manager.template set_name<velo_copy_track_hit_number__dev_velo_track_hit_number_t>(
@@ -4391,6 +4470,8 @@ void populate_sequence_argument_names(T& argument_manager)
     "two_track_evaluator__dev_two_track_catboost_evaluation_t");
   argument_manager.template set_name<populate_odin_banks__dev_raw_banks_t>("populate_odin_banks__dev_raw_banks_t");
   argument_manager.template set_name<populate_odin_banks__dev_raw_offsets_t>("populate_odin_banks__dev_raw_offsets_t");
+  argument_manager.template set_name<populate_odin_banks__host_raw_bank_version_t>(
+    "populate_odin_banks__host_raw_bank_version_t");
   argument_manager.template set_name<Hlt1TrackMVA__dev_decisions_t>("Hlt1TrackMVA__dev_decisions_t");
   argument_manager.template set_name<Hlt1TrackMVA__dev_decisions_offsets_t>("Hlt1TrackMVA__dev_decisions_offsets_t");
   argument_manager.template set_name<Hlt1TrackMVA__host_post_scaler_t>("Hlt1TrackMVA__host_post_scaler_t");
