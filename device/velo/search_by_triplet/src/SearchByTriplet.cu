@@ -790,7 +790,7 @@ __device__ void track_seeding_vectorized(
         // Add the tracks to the bag of tracks to_follow
         // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
         // and hence it is stored in tracklets
-        tracks_to_follow[track_number] = bits::seed | trackP;
+        tracks_to_follow[track_number] = bits::seed | track_number;
       }
     }
   }
