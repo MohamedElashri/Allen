@@ -38,6 +38,7 @@ using std::signbit;
 #define copysignf_impl copysignf
 #define fmaxf_impl fmaxf
 #define fminf_impl fminf
+constexpr int warp_size = 1;
 
 // Support for dynamic shared memory buffers
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config)                                                  \
