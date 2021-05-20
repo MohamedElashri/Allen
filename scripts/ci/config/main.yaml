@@ -201,13 +201,10 @@ HIP:
 
 .cpu_run_job:
   dependencies: [CPU, build]
-  stage: "run full"
 .cuda_run_job:
   dependencies: [CUDA, build]
-  stage: "run full"
 .hip_run_job:
   dependencies: [HIP, build]
-  stage: "run full"
 
 
 # CPU

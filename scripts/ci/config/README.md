@@ -52,7 +52,9 @@ Add a key to `.run_matrix_jobs_full:parallel:matrix:` in `common-run.yaml` e.g.
 #        GEOMETRY: [""]                 # don't add this, to use the default geom
 ```
 
-To select the correct build from the `build` stage, make sure that the
+If your test needs a build of Allen that is not yet included in the `build` stage, you will need to create one.
+
+In order to ensure the correct build from the `build` stage is used in your test, make sure that the
 
 - `${LCG_ARCHITECTURE}` (default value is set by `.run_jobs` key)
 - `${BUILD_TYPE}` (default is `RelWithDebInfo` set by `.run_jobs` key)
@@ -60,7 +62,11 @@ To select the correct build from the `build` stage, make sure that the
 - `${OPTIONS}` (optional, can be set in `.run_matrix_jobs_full:parallel:matrix:`)
 - `${GEOMETRY}` (optional, can be left undefined or set if a specific geometry is needed)
 
-variables are correctly set.
+variables are correctly set and match.
+
+## Adding new efficiency reference files
+
+Create the reference file with the format `test/reference/${DATA_TAG}_${DEVICE_ID}.txt`.
 
 
 ## Adding new builds

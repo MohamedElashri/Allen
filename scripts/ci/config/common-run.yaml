@@ -92,6 +92,8 @@
   extends:
     - .run_jobs
     - .run_matrix_jobs_full
+    - .default_rules_always_run
+  stage: "run full"
 
 
 .run_toggle_run_changes:
