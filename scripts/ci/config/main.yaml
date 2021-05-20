@@ -218,7 +218,7 @@ x862630v4-full-run-changes:
     - .x862630v4
     - .run_toggle_run_changes
     - .cpu_run_job
-
+  stage: "run full"
 
 epyc7502-full:
   extends:
@@ -247,6 +247,7 @@ geforcertx2080ti-full-run-changes:
     - .geforcertx2080ti
     - .run_toggle_run_changes
     - .cuda_run_job
+  stage: "run full"
 geforcertx2080ti-full:
   extends:
     - .geforcertx2080ti
