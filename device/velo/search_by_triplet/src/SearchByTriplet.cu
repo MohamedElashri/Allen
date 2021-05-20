@@ -404,7 +404,8 @@ __device__ void track_seeding(
 
     if (best_fit < max_scatter) {
       // Add the track to the container of seeds
-      const auto track_number = atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
+      const auto track_number =
+        atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
       tracklets[track_number] = Velo::TrackletHits {best_h0, h1_index, best_h2};
 
       // Add the tracks to the bag of tracks to_follow
@@ -782,7 +783,8 @@ __device__ void track_seeding_vectorized(
 
       if (best_fit < max_scatter) {
         // Add the track to the container of seeds
-        const auto track_number = atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
+        const auto track_number =
+          atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
         tracklets[track_number] = Velo::TrackletHits {best_h0, h1_index, best_h2};
 
         // Add the tracks to the bag of tracks to_follow
