@@ -9,7 +9,7 @@
 
 namespace Velo {
   // Total number of atomics required
-  static constexpr unsigned num_atomics = 4;
+  static constexpr unsigned num_atomics = 3;
 
   namespace Constants {
 
@@ -43,13 +43,12 @@ namespace Velo {
     static constexpr unsigned seeding_h0_candidates = 4;
     // Atomics
     namespace atomics {
-      enum atomic_types { number_of_three_hit_tracks, number_of_seeds, tracks_to_follow, local_number_of_hits };
+      enum atomic_types { number_of_three_hit_tracks, tracks_to_follow, local_number_of_hits };
     }
     // Bits
     namespace bits {
       static constexpr unsigned seed = 0x80000000;
       static constexpr unsigned track_number = 0x0FFFFFFF;
-      static constexpr unsigned hit_number = 0x7FFF;
       static constexpr unsigned skipped_modules = 0x70000000;
       static constexpr unsigned skipped_module_position = 28;
     } // namespace bits
