@@ -247,6 +247,7 @@ public:
     }
     std::get<1>(bno) = m_config.transpose_mep ? offsets[offsets_size - 1] : data_size;
     std::get<2>(bno) = offsets;
+    std::get<3>(bno) = m_banks_version[ib];
     return bno;
   }
 
@@ -574,7 +575,7 @@ void allocate_storage(size_t i_read)
   bool count_success = false;
 
   // Offsets are to the start of the event, which includes the header
-  auto& [mep_header, mpi_slice, blocks, input_offsets, slice_size] = m_net_slices[i_read];
+  auto const& [mep_header, mpi_slice, blocks, input_offsets, slice_size] = m_net_slices[i_read];
   size_t n_blocks = mep_header.n_blocks;
   // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks),
   // mep_header.mep_size};
@@ -603,7 +604,7 @@ void allocate_storage(size_t i_read)
     }
   }
 
-  std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
+  std::tie(count_success, m_banks_count, m_banks_version) = MEP::fill_counts(mep_header, mpi_slice, m_bank_ids);
 
   // Allocate slice memory that will contain transposed banks ready
   // for processing by the Allen kernels
@@ -1261,6 +1262,9 @@ std::vector<int> m_bank_ids;
 // Memory slices, N for each raw bank type
 Slices m_slices;
 std::vector<std::tuple<int, size_t, size_t>> m_slice_to_buffer;
+
+// Array to store the version of banks per bank type
+mutable std::array<int, NBankTypes> m_banks_version;
 
 // Mutex, condition varaible and queue for parallel transposition of slices
 std::mutex m_transpose_mut;

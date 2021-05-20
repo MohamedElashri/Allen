@@ -10,7 +10,7 @@
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
         INPUT_FILES: ["minbias_mag_down_201907"]
-      
+
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
@@ -37,29 +37,29 @@
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_scifi_v6"]
         INPUT_FILES: ["SciFiv6_upgrade_DC19_01_MinBiasMD"]
-        GEOMETRY: ["SciFiv6_upgrade_DC19_01_geom"]
+        GEOMETRY: ["scifi_v6"]
 
       # run physics efficiency, scifi_v6
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_scifi_v6_validation"]
         INPUT_FILES: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD"]
-        GEOMETRY: ["SciFiv6_upgrade_DC19_01_geom"]
-      
+        GEOMETRY: ["scifi_v6"]
+
       # FIXME
       # - TEST_NAME: "run_physics_efficiency"
       #   BUILD_TYPE: ["Debug"]
       #   OPTIONS: ["USE_ROOT"]
       #   SEQUENCE: ["hlt1_pp_validation"]
       #   INPUT_FILES: ["bsphiphi_mag_down_201907"]
-      
+
       - TEST_NAME: "run_built_tests"
         BUILD_TYPE: [RelWithDebInfo, Debug]
         OPTIONS: [BUILD_TESTS+ENABLE_CONTRACTS]
         SEQUENCE: ["hlt1_pp_default"]
 
 .run_jobs:
-  extends: 
+  extends:
     - .base_job
     - .default_rules
 
@@ -68,7 +68,7 @@
     LCG_ARCHITECTURE: "x86_64-centos7-clang10-opt"
     PROFILE_DEVICE: "geforcertx3090"
     BUILD_TYPE: "RelWithDebInfo"
-  
+
   retry: 2
 
   artifacts:
@@ -80,22 +80,22 @@
       - ./*-unit-tests.xml
     reports:
       junit:
-        - ./*-unit-tests.xml  
+        - ./*-unit-tests.xml
       metrics: ./**/metrics.txt
 
 .run_jobs_minimal:
-  extends: 
+  extends:
     - .run_jobs
     - .run_matrix_jobs_minimal
 
 .run_jobs_full:
-  extends: 
+  extends:
     - .run_jobs
     - .run_matrix_jobs_full
 
 
 .run_toggle_run_changes:
-  extends: 
+  extends:
     - .run_jobs
   stage: run
   parallel:

@@ -26,7 +26,8 @@ ut_sequence = UTSequence(
     prefix_sum_offsets_velo_track_hit_number=velo_sequence[
         "prefix_sum_offsets_velo_track_hit_number"],
     restricted=False,
-    velo_kalman_filter=velo_sequence["velo_kalman_filter"])
+    velo_kalman_filter=velo_sequence["velo_kalman_filter"],
+    host_ut_banks=velo_sequence["host_ut_banks"])
 
 forward_sequence = ForwardSequence(
     initialize_lists=velo_sequence["initialize_lists"],

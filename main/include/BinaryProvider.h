@@ -292,7 +292,7 @@ public:
     auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
+    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), -1};
   }
 
   void event_sizes(size_t const, gsl::span<unsigned int const> const, std::vector<size_t>&) const override {}

@@ -249,6 +249,8 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   bool good = false, transpose_full = false;
   size_t n_transposed = 0;
 
+  std::array<int, NBankTypes> banks_version {};
+
   for (auto [slice_index, check_full] : {std::tuple {0u, true}, std::tuple {1u, false}}) {
     std::tie(good, transpose_full, n_transposed) = transpose_events(
       read_buffer,
@@ -257,6 +259,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
       ids,
       {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
       banks_count,
+      banks_version,
       event_ids[0],
       max_events,
       false);

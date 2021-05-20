@@ -18,6 +18,7 @@ def VeloSequence(doGEC=True):
             name="initialize_lists",
             host_ut_raw_banks_t=host_ut_banks.host_raw_banks_t(),
             host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t(),
+            host_ut_raw_bank_version_t=host_ut_banks.host_raw_bank_version_t(),
             host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t(),
             host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t())
     else:

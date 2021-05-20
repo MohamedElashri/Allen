@@ -11,6 +11,7 @@ namespace ut_pre_decode {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_accumulated_number_of_ut_hits_t, unsigned) host_accumulated_number_of_ut_hits;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned) dev_ut_raw_input_offsets;
@@ -21,15 +22,8 @@ namespace ut_pre_decode {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
+  template<int decoding_version, bool mep>
   __global__ void ut_pre_decode(
-    Parameters,
-    const char* ut_boards,
-    const char* ut_geometry,
-    const unsigned* dev_ut_region_offsets,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const unsigned* dev_unique_x_sector_offsets);
-
-  __global__ void ut_pre_decode_mep(
     Parameters,
     const char* ut_boards,
     const char* ut_geometry,

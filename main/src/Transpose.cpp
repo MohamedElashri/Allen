@@ -112,6 +112,7 @@ std::tuple<bool, bool, bool> transpose_event(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   const gsl::span<char const> bank_data,
   bool split_by_run)
@@ -162,6 +163,7 @@ std::tuple<bool, bool, bool> transpose_event(
       // Decode the odin bank
     }
 
+    // LHCb bank type
     auto bt = b->type();
 
     // Check what to do with this bank
@@ -187,6 +189,9 @@ std::tuple<bool, bool, bool> transpose_event(
       // Switch to new type of banks
       auto& slice = slices[allen_type][slice_index];
       prev_type = bt;
+
+      // set bank version
+      banks_version[allen_type] = b->version();
 
       bank_counter = 1;
       banks_offsets = std::get<2>(slice).data();
@@ -226,6 +231,7 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else {
       ++bank_counter;
+      assert(banks_version[allen_type] == b->version());
     }
 
     // Write sourceID
@@ -257,6 +263,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   size_t n_events,
   bool split_by_run)
@@ -274,7 +281,7 @@ std::tuple<bool, bool, size_t> transpose_events(
     auto const* bank = buffer.data() + event_offsets[i_event];
     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
     std::tie(success, full, run_change) = transpose_event(
-      slices, slice_index, bank_ids, bank_types, banks_count, event_ids, {bank, bank_end}, split_by_run);
+      slices, slice_index, bank_ids, bank_types, banks_count, banks_version, event_ids, {bank, bank_end}, split_by_run);
     // break the loop if we detect a run change or the slice is full to avoid incrementing i_event
     if (run_change || full) break;
   }

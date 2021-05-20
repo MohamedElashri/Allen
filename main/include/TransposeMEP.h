@@ -48,12 +48,12 @@ namespace MEP {
    *
    * @param      EB::Header for a MEP
    * @param      span of the block data in the MEP
+   * @param      LHCb::RawBank::BankType to Allen bank type mapping
    *
-   * @return     (success, number of banks per bank type; 0 if the bank is not needed)
+   * @return     (success, number of banks per bank type; 0 if the bank is not needed, bank version per type)
    */
-  std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(
-    EB::Header const& header,
-    gsl::span<char const> const& data);
+  std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>, std::array<int, NBankTypes>>
+  fill_counts(EB::Header const& header, gsl::span<char const> const& data, std::vector<int> const& bank_ids);
 
   void find_blocks(EB::Header const& mep_header, gsl::span<char const> const& buffer_span, Blocks& blocks);
 
@@ -89,6 +89,7 @@ namespace MEP {
    * @param      slices to fill with transposed banks, slices are addressed by bank type
    * @param      index of bank slices
    * @param      number of banks per event
+   * @param      bank versions to fill
    * @param      event ids of banks in this slice
    * @param      start of bank data for this event
    *
@@ -112,6 +113,7 @@ namespace MEP {
    * @param      slices to fill with transposed banks, slices are addressed by bank type
    * @param      index of bank slices
    * @param      number of banks per event
+   * @param      bank versions to fill
    * @param      event ids of banks in this slice
    * @param      start of bank data for this event
    *

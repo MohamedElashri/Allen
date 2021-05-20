@@ -14,19 +14,24 @@
 
 namespace UT {
   namespace Decoding {
+    namespace v4 {
+      static constexpr int frac_mask = 0x0003U; // frac
+      static constexpr int chan_mask = 0x3FFCU; // channel
+      static constexpr int thre_mask = 0x8000U; // threshold
 
-    static constexpr int frac_mask = 0x0003U; // frac
-    static constexpr int chan_mask = 0x3FFCU; // channel
-    static constexpr int thre_mask = 0x8000U; // threshold
-
-    static constexpr int frac_offset = 0;  // frac
-    static constexpr int chan_offset = 2;  // channel
-    static constexpr int thre_offset = 15; // threshold
+      static constexpr int frac_offset = 0;  // frac
+      static constexpr int chan_offset = 2;  // channel
+      static constexpr int thre_offset = 15; // threshold
+    }                                        // namespace v4
+    namespace v5 {
+      static constexpr int strip_mask = 0xFFE0;
+      static constexpr int strip_offset = 5;
+    } // namespace v5
 
     static constexpr unsigned ut_number_of_sectors_per_board = 6;
     static constexpr unsigned ut_number_of_geometry_sectors = 1048;
     static constexpr unsigned ut_decoding_in_order_threads_x = 64;
-    static constexpr unsigned ut_max_hits_shared_sector_group = 256;
+    static constexpr unsigned ut_max_hits_shared_sector_group = 512;
 
   } // namespace Decoding
 
@@ -76,6 +81,7 @@ namespace UT {
 struct UTBoards {
   uint32_t number_of_boards;
   uint32_t number_of_channels;
+  uint32_t version;
   uint32_t* stripsPerHybrids;
   uint32_t* stations;
   uint32_t* layers;
@@ -87,8 +93,10 @@ struct UTBoards {
   {
     uint32_t* p = (uint32_t*) ut_boards;
     number_of_boards = *p;
-    p += 1;
     number_of_channels = UT::Decoding::ut_number_of_sectors_per_board * number_of_boards;
+    p += 1;
+    version = *p;
+    p += 1;
     stripsPerHybrids = p;
     p += number_of_boards;
     stations = p;

@@ -5,9 +5,8 @@
 #include <cstring>
 #include <TransposeMEP.h>
 
-std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
-  EB::Header const& header,
-  gsl::span<char const> const& mep_span)
+std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>, std::array<int, NBankTypes>>
+MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span, std::vector<int> const& bank_ids)
 {
   // info_cout << "EB header: "
   //   << header.n_blocks << ", "
@@ -18,6 +17,7 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
   auto header_size = +header.header_size(header.n_blocks);
   gsl::span<char const> block_span {mep_span.data() + header_size, mep_span.size() - header_size};
   std::array<unsigned int, LHCb::NBankTypes> count {0};
+  std::array<int, NBankTypes> versions {0};
   for (size_t i = 0; i < header.n_blocks; ++i) {
     auto offset = header.offsets[i];
     EB::BlockHeader bh {block_span.data() + offset};
@@ -30,9 +30,14 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
     if (type < LHCb::RawBank::LastType) {
       ++count[type];
     }
+
+    auto const allen_type = bank_ids[type];
+    if (allen_type != -1) {
+      versions[allen_type] = header.versions[i];
+    }
   }
 
-  return {true, count};
+  return {true, count, versions};
 }
 
 void MEP::find_blocks(EB::Header const& mep_header, gsl::span<char const> const& buffer_span, Blocks& blocks)

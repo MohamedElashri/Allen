@@ -60,7 +60,7 @@ constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
   return static_cast<typename std::underlying_type<ENUM>::type>(e);
 }
 
-using BanksAndOffsets = std::tuple<std::vector<span<const char>>, size_t, span<const unsigned int>>;
+using BanksAndOffsets = std::tuple<std::vector<span<const char>>, size_t, span<const unsigned int>, int>;
 
 template<BankTypes... BANKS>
 std::unordered_set<BankTypes> banks_set()

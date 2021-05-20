@@ -26,6 +26,7 @@
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Event/RawBank.h>
+#include <BankTypes.h>
 
 #include "TransposeTypes.h"
 
@@ -71,6 +72,7 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
  * @param      slices to fill with transposed banks, slices are addressed by bank type
  * @param      index of bank slices
  * @param      number of banks per event
+ * @param      bank versions to fill
  * @param      event ids of banks in this slice
  * @param      start of bank data for this event
  *
@@ -82,6 +84,7 @@ std::tuple<bool, bool, bool> transpose_event(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& to_transpose,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   const gsl::span<char const> bank_data,
   bool split_by_run);
@@ -98,7 +101,7 @@ void reset_slice(Slices& slices, int const slice_index, EventIDs& event_ids, boo
 {
   // "Reset" the slice
   for (auto bank_type : {Banks...}) {
-    auto ib = to_integral<BankTypes>(bank_type);
+    auto ib = to_integral(bank_type);
     auto& [banks, data_size, offsets, offsets_size] = slices[ib][slice_index];
     std::fill(offsets.begin(), offsets.end(), 0);
     offsets_size = 1;
@@ -116,6 +119,8 @@ void reset_slice(Slices& slices, int const slice_index, EventIDs& event_ids, boo
  * @param      ReadBuffer containing events to be transposed
  * @param      slices to fill with transposed banks, slices are addressed by bank type
  * @param      index of bank slices
+ * @param      number of banks per event
+ * @param      bank versions to fill
  * @param      event ids of banks in this slice
  * @param      number of banks per event
  * @param      number of events to transpose
@@ -129,6 +134,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   size_t n_events,
   bool split_by_run = false);
@@ -140,7 +146,7 @@ Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>
   for (auto bank_type : {Banks...}) {
     auto [n_bytes, n_offsets] = size_fun(bank_type);
 
-    auto ib = to_integral<BankTypes>(bank_type);
+    auto ib = to_integral(bank_type);
     auto& bank_slices = slices[ib];
     bank_slices.reserve(n_slices);
     for (size_t i = 0; i < n_slices; ++i) {

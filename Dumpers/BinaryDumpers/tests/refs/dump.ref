@@ -203,7 +203,7 @@ geometry/ft_geometry_dddb-20180815_sim-20180530-vc-md100.bin 81060
 geometry/muon_geometry_dddb-20180815_sim-20180530-vc-md100.bin 80080
 geometry/muon_table_dddb-20180815_sim-20180530-vc-md100.bin 1170864
 geometry/polarity_dddb-20180815_sim-20180530-vc-md100.bin 4
-geometry/ut_boards_dddb-20180815_sim-20180530-vc-md100.bin 29764
+geometry/ut_boards_dddb-20180815_sim-20180530-vc-md100.bin 29768
 geometry/ut_geometry_dddb-20180815_sim-20180530-vc-md100.bin 41924
 geometry/ut_tables_dddb-20180815_sim-20180530-vc-md100.bin 15544
 geometry/velo_geometry_dddb-20180815_sim-20180530-vc-md100.bin 16376

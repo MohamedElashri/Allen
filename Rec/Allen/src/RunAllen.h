@@ -34,7 +34,7 @@
 #include "HltDecReport.cuh"
 
 class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers, LHCb::HltDecReports>(
-                         const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
+                         const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>& allen_banks,
                          const LHCb::ODIN& odin)> {
 public:
   /// Standard constructor
@@ -45,7 +45,7 @@ public:
 
   /// Algorithm execution
   std::tuple<bool, HostBuffers, LHCb::HltDecReports> operator()(
-    const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
+    const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
 private:

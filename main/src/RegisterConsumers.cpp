@@ -15,7 +15,9 @@
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
 {
   std::tuple consumers = make_tuple(
-    make_tuple(Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
+    make_tuple(
+      Allen::NonEventData::UTBoards {},
+      std::make_unique<Consumers::HostDeviceGeometry>(constants.host_ut_boards, constants.dev_ut_boards)),
     make_tuple(
       Allen::NonEventData::UTLookupTables {},
       std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)),

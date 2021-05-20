@@ -15,6 +15,9 @@ void host_data_provider::host_data_provider_t::set_arguments_size(
 
   // A single span for the offsets
   set_size<host_raw_offsets_t>(arguments, 1);
+
+  // A single number for the version
+  set_size<host_raw_bank_version_t>(arguments, sizeof(std::get<3>(bno)));
 }
 
 void host_data_provider::host_data_provider_t::operator()(
@@ -36,4 +39,8 @@ void host_data_provider::host_data_provider_t::operator()(
     data<host_raw_banks_t>(arguments),
     blocks.data(),
     blocks.size() * sizeof(typename std::remove_reference_t<decltype(blocks)>::value_type));
+
+  // Copy the bank version
+  auto version = std::get<3>(bno);
+  ::memcpy(data<host_raw_bank_version_t>(arguments), &version, sizeof(version));
 }

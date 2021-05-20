@@ -79,6 +79,8 @@ struct HostBuffers {
   float* host_ut_tx;
   float* host_ut_z;
   unsigned* host_ut_track_velo_indices;
+  std::vector<unsigned> ut_hits_offsets;
+  std::vector<char> ut_hits;
 
   // SciFi
   unsigned* host_accumulated_number_of_scifi_hits;
