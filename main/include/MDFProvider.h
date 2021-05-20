@@ -95,7 +95,7 @@ public:
     std::unordered_set<BankTypes> const& bank_types,
     MDFProviderConfig config = MDFProviderConfig {}) :
   InputProvider {n_slices, events_per_slice,  bank_types, IInputProvider::Layout::Allen, n_events},
-    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, -1), m_slice_free(n_slices, true), m_banks_count {0},
+    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true), m_banks_count {0},
     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
@@ -334,14 +334,18 @@ public:
         m_slice_free[slice_index] = true;
         freed = true;
 
+        // Reset the slice
+        auto& event_ids = m_event_ids[*slice_index];
+        reset_slice(m_slices, *slice_index, types(), event_ids);
+
         // Clear relation between slice and buffer
-        i_read = m_slice_to_buffer[slice_index];
+        i_read = m_slice_to_buffer[slice_index].buffer_index;
         auto& status = m_buffer_status[i_read];
-        m_slice_to_buffer[slice_index] = -1;
+        m_slice_to_buffer[slice_index].buffer_index = -1;
 
         if (
           status.work_counter == 0 && std::get<0>(m_buffers[i_read]) == std::get<3>(m_buffers[i_read]) &&
-          (std::find(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), i_read) == m_slice_to_buffer.end())) {
+          (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), [i_read] (auto const stb) { return stb.buffer_index == i_read; }) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
           // "Reset" buffer; the 0th offset is always 0. Set transpose
@@ -370,12 +374,13 @@ public:
     // The first bank in the read buffer is the DAQ bank, which
     // contains the MDF header as bank payload
     auto const daq_bank_size = bank_header_size + mdf_header_size;
-    auto i_read = m_slice_to_buffer[slice_index];
+    auto const stb = m_slice_to_buffer[slice_index];
+    auto const i_read = stb.buffer_index;
+    auto const read_event_start = stb.buffer_event_start;
     auto const& event_offsets = std::get<1>(m_buffers[i_read]);
-    size_t transpose_start = std::get<3>(m_buffers[i_read]);
     for (size_t i = 0; i < static_cast<size_t>(selected_events.size()); ++i) {
       auto event = selected_events[i];
-      sizes[i] = event_offsets[transpose_start + event + 1] - event_offsets[transpose_start + event] - daq_bank_size;
+      sizes[i] = event_offsets[read_event_start + event + 1] - event_offsets[read_event_start + event] - daq_bank_size;
     }
   }
 
@@ -386,7 +391,9 @@ public:
     auto const header_size = LHCb::MDFHeader::sizeOf(3);
     auto const daq_bank_size = 4 * sizeof(3) + header_size;
 
-    auto i_read = m_slice_to_buffer[slice_index];
+    auto const stb = m_slice_to_buffer[slice_index];
+    auto const i_read = stb.buffer_index;
+    auto const read_event_start = stb.buffer_event_start;
 
     // FIXME structured binding version below triggers clang 11 bug
     //       revert after clang fix available
@@ -397,8 +404,8 @@ public:
     auto const transpose_start = std::get<3>(tup);
 
     auto const event_size =
-      event_offsets[transpose_start + event + 1] - event_offsets[event + transpose_start] - daq_bank_size;
-    auto const* banks_start = event_buffer.data() + event_offsets[event + transpose_start] + daq_bank_size;
+      event_offsets[read_event_start + event + 1] - event_offsets[event + read_event_start] - daq_bank_size;
+    auto const* banks_start = event_buffer.data() + event_offsets[event + read_event_start] + daq_bank_size;
     std::memcpy(buffer.data(), banks_start, event_size);
   }
 
@@ -472,15 +479,9 @@ private:
         }
         if (it != m_slice_free.end()) {
           slice_index = distance(m_slice_free.begin(), it);
-          m_slice_to_buffer[*slice_index] = i_read;
           this->debug_output("Got slice index " + std::to_string(*slice_index), thread_id);
         }
       }
-
-      // Reset the slice
-      auto& event_ids = m_event_ids[*slice_index];
-      //reset_slice<Banks...>(m_slices, *slice_index, event_ids);
-      reset_slice(m_slices, *slice_index, types(), event_ids);
 
       // Transpose the events in the read buffer into the slice
       std::tie(good, transpose_full, n_transposed) = transpose_events(
@@ -501,6 +502,8 @@ private:
         --status.work_counter;
         m_transpose_cond.notify_one();
         break;
+      } else {
+        m_slice_to_buffer[*slice_index] = {static_cast<int>(i_read), std::get<3>(m_buffers[i_read])};
       }
 
       // Increment the transpose_start with the number of transposed events
@@ -735,7 +738,11 @@ private:
 
   // Memory slices, N for each raw bank type
   Slices m_slices;
-  std::vector<size_t> m_slice_to_buffer;
+  struct SliceToBuffer {
+    int buffer_index;
+    size_t buffer_event_start;
+  };
+  std::vector<SliceToBuffer> m_slice_to_buffer;
 
   // Array to store the version of banks per bank type
   mutable std::array<int, NBankTypes> m_banks_version;
