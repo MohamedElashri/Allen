@@ -26,7 +26,7 @@ void data_provider::data_provider_t::operator()(
 
   // Copy data to device
   data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(arguments, bno, context);
-  
+
   // Copy the bank version
   auto version = std::get<3>(bno);
   ::memcpy(data<host_raw_bank_version_t>(arguments), &version, sizeof(version));
