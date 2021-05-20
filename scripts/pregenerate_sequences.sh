@@ -3,11 +3,18 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 
+SED="sed"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  SED="gsed"
+fi
+
 ALLEN_BASE_DIR="${PWD}/.."
 PREGENERATED_DIR="${ALLEN_BASE_DIR}/configuration/pregenerated"
 
 # Prepare tmp dir
 TEMP_DIR=$(mktemp -d)
+echo "Work dir: ${TEMP_DIR}"
+
 mkdir "${TEMP_DIR}/code_generation"
 CODE_GENERATION_SEQUENCES_DIR="${TEMP_DIR}/code_generation/sequences"
 cp -r ${ALLEN_BASE_DIR}/configuration/sequences ${CODE_GENERATION_SEQUENCES_DIR}
@@ -33,10 +40,14 @@ for sequence in `ls | egrep ".py$" --color=none`; do
   SEQUENCE_NAME=`echo ${sequence} | sed -e "s/\(.*\)\.py/\1/g"`
   echo "Generating ${SEQUENCE_NAME}"
   python3 ${sequence}
+  $SED -i "s:${ALLEN_BASE_DIR}:..:g" Sequence.h
+  $SED -i "s:${ALLEN_BASE_DIR}:..:g" ConfiguredInputAggregates.h
   clang-format --style=file -i Sequence.h
   clang-format --style=file -i ConfiguredInputAggregates.h
   mv Sequence.h ${PREGENERATED_DIR}/${SEQUENCE_NAME}_sequence.h
   mv ConfiguredInputAggregates.h ${PREGENERATED_DIR}/${SEQUENCE_NAME}_input_aggregates.h
   mv Sequence.json ${PREGENERATED_DIR}/${SEQUENCE_NAME}.json
 done
+
+echo "Work dir: ${TEMP_DIR}"
 echo "Generated all sequences"

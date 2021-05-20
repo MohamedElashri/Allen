@@ -1,31 +1,22 @@
-/*****************************************************************************\
-* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
-*                                                                             *
-* This software is distributed under the terms of the Apache License          *
-* version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *
-*                                                                             *
-* In applying this licence, CERN does not waive the privileges and immunities *
-* granted to it by virtue of its status as an Intergovernmental Organization  *
-* or submit itself to any jurisdiction.                                       *
-\*****************************************************************************/
 #pragma once
 
 #include <tuple>
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/charm/include/D2KKLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/muon/include/SingleHighPtMuonLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/charm/include/D2PiPiLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/muon/include/DiMuonMassLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/monitoring/include/VeloMicroBiasLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/muon/include/TrackMuonMVALine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/calibration/include/PassthroughLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/calibration/include/D2KPiLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/muon/include/DiMuonSoftLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/muon/include/LowPtDiMuonLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/monitoring/include/ODINEventTypeLine.cuh"
-#include "/Users/dcampora/projects/allen/scripts/..//device/selections/lines/muon/include/LowPtMuonLine.cuh"
+#include "..//device/selections/lines/muon/include/SingleHighPtMuonLine.cuh"
+#include "..//device/selections/lines/muon/include/TrackMuonMVALine.cuh"
+#include "..//device/selections/lines/calibration/include/D2KPiLine.cuh"
+#include "..//device/selections/lines/muon/include/LowPtMuonLine.cuh"
+#include "..//device/selections/lines/calibration/include/PassthroughLine.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
+#include "..//device/selections/lines/muon/include/DiMuonMassLine.cuh"
+#include "..//device/selections/lines/muon/include/LowPtDiMuonLine.cuh"
+#include "..//device/selections/lines/monitoring/include/ODINEventTypeLine.cuh"
+#include "..//device/selections/lines/muon/include/DiMuonSoftLine.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackCatBoostLine.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
+#include "..//device/selections/lines/charm/include/D2KKLine.cuh"
+#include "..//device/selections/lines/monitoring/include/VeloMicroBiasLine.cuh"
+#include "..//device/selections/lines/charm/include/D2PiPiLine.cuh"
+#include "..//device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
 
 struct Hlt1TrackMVA__dev_decisions_t : track_mva_line::Parameters::dev_decisions_t {
   using type = track_mva_line::Parameters::dev_decisions_t::type;
@@ -34,6 +25,10 @@ struct Hlt1TrackMVA__dev_decisions_t : track_mva_line::Parameters::dev_decisions
 struct Hlt1TwoTrackMVA__dev_decisions_t : two_track_mva_line::Parameters::dev_decisions_t {
   using type = two_track_mva_line::Parameters::dev_decisions_t::type;
   using deps = two_track_mva_line::Parameters::dev_decisions_t::deps;
+};
+struct Hlt1TwoTrackCatBoost__dev_decisions_t : two_track_catboost_line::Parameters::dev_decisions_t {
+  using type = two_track_catboost_line::Parameters::dev_decisions_t::type;
+  using deps = two_track_catboost_line::Parameters::dev_decisions_t::deps;
 };
 struct Hlt1SingleHighPtMuon__dev_decisions_t : single_high_pt_muon_line::Parameters::dev_decisions_t {
   using type = single_high_pt_muon_line::Parameters::dev_decisions_t::type;
@@ -119,6 +114,10 @@ struct Hlt1TwoTrackMVA__dev_decisions_offsets_t : two_track_mva_line::Parameters
   using type = two_track_mva_line::Parameters::dev_decisions_offsets_t::type;
   using deps = two_track_mva_line::Parameters::dev_decisions_offsets_t::deps;
 };
+struct Hlt1TwoTrackCatBoost__dev_decisions_offsets_t : two_track_catboost_line::Parameters::dev_decisions_offsets_t {
+  using type = two_track_catboost_line::Parameters::dev_decisions_offsets_t::type;
+  using deps = two_track_catboost_line::Parameters::dev_decisions_offsets_t::deps;
+};
 struct Hlt1SingleHighPtMuon__dev_decisions_offsets_t : single_high_pt_muon_line::Parameters::dev_decisions_offsets_t {
   using type = single_high_pt_muon_line::Parameters::dev_decisions_offsets_t::type;
   using deps = single_high_pt_muon_line::Parameters::dev_decisions_offsets_t::deps;
@@ -202,6 +201,10 @@ struct Hlt1TrackMVA__host_post_scaler_t : track_mva_line::Parameters::host_post_
 struct Hlt1TwoTrackMVA__host_post_scaler_t : two_track_mva_line::Parameters::host_post_scaler_t {
   using type = two_track_mva_line::Parameters::host_post_scaler_t::type;
   using deps = two_track_mva_line::Parameters::host_post_scaler_t::deps;
+};
+struct Hlt1TwoTrackCatBoost__host_post_scaler_t : two_track_catboost_line::Parameters::host_post_scaler_t {
+  using type = two_track_catboost_line::Parameters::host_post_scaler_t::type;
+  using deps = two_track_catboost_line::Parameters::host_post_scaler_t::deps;
 };
 struct Hlt1SingleHighPtMuon__host_post_scaler_t : single_high_pt_muon_line::Parameters::host_post_scaler_t {
   using type = single_high_pt_muon_line::Parameters::host_post_scaler_t::type;
@@ -287,6 +290,10 @@ struct Hlt1TwoTrackMVA__host_post_scaler_hash_t : two_track_mva_line::Parameters
   using type = two_track_mva_line::Parameters::host_post_scaler_hash_t::type;
   using deps = two_track_mva_line::Parameters::host_post_scaler_hash_t::deps;
 };
+struct Hlt1TwoTrackCatBoost__host_post_scaler_hash_t : two_track_catboost_line::Parameters::host_post_scaler_hash_t {
+  using type = two_track_catboost_line::Parameters::host_post_scaler_hash_t::type;
+  using deps = two_track_catboost_line::Parameters::host_post_scaler_hash_t::deps;
+};
 struct Hlt1SingleHighPtMuon__host_post_scaler_hash_t : single_high_pt_muon_line::Parameters::host_post_scaler_hash_t {
   using type = single_high_pt_muon_line::Parameters::host_post_scaler_hash_t::type;
   using deps = single_high_pt_muon_line::Parameters::host_post_scaler_hash_t::deps;
@@ -368,6 +375,9 @@ static_assert(all_host_or_all_device_v<Hlt1TrackMVA__dev_decisions_t, track_mva_
 static_assert(
   all_host_or_all_device_v<Hlt1TwoTrackMVA__dev_decisions_t, two_track_mva_line::Parameters::dev_decisions_t>);
 static_assert(all_host_or_all_device_v<
+              Hlt1TwoTrackCatBoost__dev_decisions_t,
+              two_track_catboost_line::Parameters::dev_decisions_t>);
+static_assert(all_host_or_all_device_v<
               Hlt1SingleHighPtMuon__dev_decisions_t,
               single_high_pt_muon_line::Parameters::dev_decisions_t>);
 static_assert(all_host_or_all_device_v<Hlt1LowPtMuon__dev_decisions_t, low_pt_muon_line::Parameters::dev_decisions_t>);
@@ -404,6 +414,9 @@ static_assert(
 static_assert(all_host_or_all_device_v<
               Hlt1TwoTrackMVA__dev_decisions_offsets_t,
               two_track_mva_line::Parameters::dev_decisions_offsets_t>);
+static_assert(all_host_or_all_device_v<
+              Hlt1TwoTrackCatBoost__dev_decisions_offsets_t,
+              two_track_catboost_line::Parameters::dev_decisions_offsets_t>);
 static_assert(all_host_or_all_device_v<
               Hlt1SingleHighPtMuon__dev_decisions_offsets_t,
               single_high_pt_muon_line::Parameters::dev_decisions_offsets_t>);
@@ -463,6 +476,9 @@ static_assert(
 static_assert(
   all_host_or_all_device_v<Hlt1TwoTrackMVA__host_post_scaler_t, two_track_mva_line::Parameters::host_post_scaler_t>);
 static_assert(all_host_or_all_device_v<
+              Hlt1TwoTrackCatBoost__host_post_scaler_t,
+              two_track_catboost_line::Parameters::host_post_scaler_t>);
+static_assert(all_host_or_all_device_v<
               Hlt1SingleHighPtMuon__host_post_scaler_t,
               single_high_pt_muon_line::Parameters::host_post_scaler_t>);
 static_assert(
@@ -504,6 +520,9 @@ static_assert(
 static_assert(all_host_or_all_device_v<
               Hlt1TwoTrackMVA__host_post_scaler_hash_t,
               two_track_mva_line::Parameters::host_post_scaler_hash_t>);
+static_assert(all_host_or_all_device_v<
+              Hlt1TwoTrackCatBoost__host_post_scaler_hash_t,
+              two_track_catboost_line::Parameters::host_post_scaler_hash_t>);
 static_assert(all_host_or_all_device_v<
               Hlt1SingleHighPtMuon__host_post_scaler_hash_t,
               single_high_pt_muon_line::Parameters::host_post_scaler_hash_t>);
@@ -564,6 +583,7 @@ namespace gather_selections {
     using tuple_t = std::tuple<
       Hlt1TrackMVA__dev_decisions_t,
       Hlt1TwoTrackMVA__dev_decisions_t,
+      Hlt1TwoTrackCatBoost__dev_decisions_t,
       Hlt1SingleHighPtMuon__dev_decisions_t,
       Hlt1LowPtMuon__dev_decisions_t,
       Hlt1D2KK__dev_decisions_t,
@@ -590,6 +610,7 @@ namespace gather_selections {
     using tuple_t = std::tuple<
       Hlt1TrackMVA__dev_decisions_offsets_t,
       Hlt1TwoTrackMVA__dev_decisions_offsets_t,
+      Hlt1TwoTrackCatBoost__dev_decisions_offsets_t,
       Hlt1SingleHighPtMuon__dev_decisions_offsets_t,
       Hlt1LowPtMuon__dev_decisions_offsets_t,
       Hlt1D2KK__dev_decisions_offsets_t,
@@ -616,6 +637,7 @@ namespace gather_selections {
     using tuple_t = std::tuple<
       Hlt1TrackMVA__host_post_scaler_t,
       Hlt1TwoTrackMVA__host_post_scaler_t,
+      Hlt1TwoTrackCatBoost__host_post_scaler_t,
       Hlt1SingleHighPtMuon__host_post_scaler_t,
       Hlt1LowPtMuon__host_post_scaler_t,
       Hlt1D2KK__host_post_scaler_t,
@@ -642,6 +664,7 @@ namespace gather_selections {
     using tuple_t = std::tuple<
       Hlt1TrackMVA__host_post_scaler_hash_t,
       Hlt1TwoTrackMVA__host_post_scaler_hash_t,
+      Hlt1TwoTrackCatBoost__host_post_scaler_hash_t,
       Hlt1SingleHighPtMuon__host_post_scaler_hash_t,
       Hlt1LowPtMuon__host_post_scaler_hash_t,
       Hlt1D2KK__host_post_scaler_hash_t,
