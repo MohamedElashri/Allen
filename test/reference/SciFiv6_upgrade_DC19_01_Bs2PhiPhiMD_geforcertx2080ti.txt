@@ -1,6 +1,5 @@
-
 host_velo_validator validation:
-TrackChecker output                               :      1728/   222600   0.78% ghosts
+TrackChecker output                               :      1728/   222601   0.78% ghosts
 01_velo                                           :     94316/    95852  98.40% ( 98.47%),      1824 (  1.90%) clones, pur  99.72%, hit eff  96.90%
 02_long                                           :     56498/    56923  99.25% ( 99.29%),       731 (  1.28%) clones, pur  99.83%, hit eff  98.01%
 03_long_P>5GeV                                    :     39422/    39606  99.54% ( 99.56%),       393 (  0.99%) clones, pur  99.83%, hit eff  98.52%
@@ -72,6 +71,7 @@ Clones               :  0.000 (     0/  4715)
 host_rate_validator validation:
 Hlt1TrackMVA:            248/  1000, ( 7440.00 +/-   409.69) kHz
 Hlt1TwoTrackMVA:         421/  1000, (12630.00 +/-   468.38) kHz
+Hlt1TwoTrackCatBoost:    420/  1000, (12600.00 +/-   468.23) kHz
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
