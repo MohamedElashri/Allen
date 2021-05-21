@@ -217,6 +217,7 @@ x862630v4-full-run-changes:
   extends:
     - .x862630v4
     - .run_toggle_run_changes
+    - .default_rules_always_run
     - .cpu_run_job
   stage: "run full"
 
@@ -247,6 +248,7 @@ geforcertx2080ti-full-run-changes:
     - .geforcertx2080ti
     - .run_toggle_run_changes
     - .cuda_run_job
+    - .default_rules_always_run
   stage: "run full"
 geforcertx2080ti-full:
   extends:
