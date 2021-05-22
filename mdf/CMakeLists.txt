@@ -39,6 +39,8 @@ else()
   endif()
   if (TARGET LHCb::DAQEventLib)
     target_link_libraries(mdf PUBLIC LHCb::DAQEventLib)
+  else()
+    target_link_libraries(mdf PUBLIC DAQEventLib)
   endif()
 endif()
 

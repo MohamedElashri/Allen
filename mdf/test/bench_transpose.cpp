@@ -58,16 +58,11 @@ int main(int argc, char* argv[])
 
   // Bank ID translation
   vector<int> bank_ids;
-  bank_ids.resize(LHCb::RawBank::LastType);
+  bank_ids.resize(LHCb::RawBank::types().size());
 
-  for (int bt = LHCb::RawBank::L0Calo; bt < LHCb::RawBank::LastType; ++bt) {
-    auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
-    if (it != Allen::bank_types.end()) {
-      bank_ids[bt] = to_integral(it->second);
-    }
-    else {
-      bank_ids[bt] = -1;
-    }
+  for (auto bt : LHCb::RawBank::types()) {
+    auto it = Allen::bank_types.find(bt);
+    bank_ids[bt] = (it != Allen::bank_types.end() ? to_integral(it->second) : -1);
   }
 
   // Transposed slices

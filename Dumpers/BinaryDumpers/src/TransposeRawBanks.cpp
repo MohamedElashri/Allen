@@ -6,71 +6,13 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <GaudiKernel/ParsersFactory.h>
 #include <GaudiAlg/MergingTransformer.h>
 #include <AIDA/IHistogram1D.h>
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
 #include <GaudiAlg/GaudiHistoAlg.h>
-
 #include "Utils.h"
-
-// Parsers are in namespace LHCb for ADL to work.
-namespace LHCb {
-
-  StatusCode parse(RawBank::BankType& result, const std::string& in)
-  {
-    static std::unordered_map<std::string, RawBank::BankType> types;
-    if (types.empty()) {
-      for (int t = 0; t < RawBank::LastType; ++t) {
-        auto bt = static_cast<RawBank::BankType>(t);
-        types.emplace(RawBank::typeName(bt), bt);
-      }
-    }
-
-    // This takes care of quoting
-    std::string input;
-    using Gaudi::Parsers::parse;
-    auto sc = parse(input, in);
-    if (!sc) return sc;
-
-    auto it = types.find(input);
-    if (it != end(types)) {
-      result = it->second;
-      return StatusCode::SUCCESS;
-    }
-    else {
-      return StatusCode::FAILURE;
-    }
-  }
-
-  StatusCode parse(std::set<RawBank::BankType>& s, const std::string& in)
-  {
-    std::set<std::string> ss;
-    using Gaudi::Parsers::parse;
-    auto sc = parse(ss, in);
-    if (!sc) return sc;
-    s.clear();
-    try {
-      std::transform(begin(ss), end(ss), std::inserter(s, begin(s)), [](const std::string& s) {
-        RawBank::BankType t {};
-        auto sc = parse(t, s);
-        if (!sc) throw GaudiException("Bad Parse", "", sc);
-        return t;
-      });
-    } catch (const GaudiException& ge) {
-      return ge.code();
-    }
-    return StatusCode::SUCCESS;
-  }
-
-  inline std::ostream& toStream(const RawBank::BankType& bt, std::ostream& s)
-  {
-    return s << "'" << RawBank::typeName(bt) << "'";
-  }
-} // namespace LHCb
 
 template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;
@@ -100,7 +42,7 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  */
 class TransposeRawBanks
   : public Gaudi::Functional::MergingTransformer<
-      std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>(VOC<LHCb::RawEvent*> const&),
+      std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>(VOC<LHCb::RawEvent*> const&),
       Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
@@ -108,7 +50,7 @@ public:
 
   StatusCode initialize() override;
 
-  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> operator()(
+  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> operator()(
     VOC<LHCb::RawEvent*> const& rawEvents) const override;
 
 private:
@@ -117,7 +59,7 @@ private:
     "BankTypes",
     {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon, LHCb::RawBank::ODIN}};
 
-  std::array<AIDA::IHistogram1D*, LHCb::RawBank::LastType> m_histos;
+  std::array<AIDA::IHistogram1D*, LHCb::RawBank::types().size()> m_histos;
 };
 
 TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -132,24 +74,18 @@ TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcL
 
 StatusCode TransposeRawBanks::initialize()
 {
-  for (int bt = 0; bt < LHCb::RawBank::LastType; ++bt) {
-    if (m_bankTypes.value().count(static_cast<LHCb::RawBank::BankType>(bt))) {
-      auto tn = LHCb::RawBank::typeName(static_cast<LHCb::RawBank::BankType>(bt));
-      m_histos[bt] = book1D(tn, -0.5, 603.5, 151);
-    }
-    else {
-      m_histos[bt] = nullptr;
-    }
+  for (auto bt : LHCb::RawBank::types()) {
+    m_histos[bt] = (m_bankTypes.value().count(bt) ? book1D(toString(bt), -0.5, 603.5, 151) : nullptr);
   }
   return StatusCode::SUCCESS;
 }
 
-std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> TransposeRawBanks::operator()(
+std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> TransposeRawBanks::operator()(
   VOC<LHCb::RawEvent*> const& rawEvents) const
 {
 
-  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> output;
-  std::array<LHCb::RawBank::View, LHCb::RawBank::LastType> rawBanks;
+  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> output;
+  std::array<LHCb::RawBank::View, LHCb::RawBank::types().size()> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
     std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
@@ -158,8 +94,7 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> Transpos
     });
   }
 
-  for (int bt = 0; bt < LHCb::RawBank::LastType; ++bt) {
-    auto const bankType = static_cast<LHCb::RawBank::BankType>(bt);
+  for (auto bt : LHCb::RawBank::types()) {
     auto const& banks = rawBanks[bt];
     if (banks.empty()) continue;
 
@@ -179,10 +114,9 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> Transpos
       auto bEnd = bank->end<uint32_t>();
 
       // Debug/testing histogram with the sizes of the binary data per bank
-      auto histo = m_histos[bankType];
+      auto histo = m_histos[bt];
       if (UNLIKELY(histo == nullptr)) {
-        auto tn = LHCb::RawBank::typeName(static_cast<LHCb::RawBank::BankType>(bankType));
-        warning() << "No histogram booked for bank type " << tn << endmsg;
+        warning() << "No histogram booked for bank type " << toString(bt) << endmsg;
       }
       else {
         histo->fill((bEnd - bStart) * sizeof(uint32_t));
@@ -201,7 +135,7 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> Transpos
     // Dumping number_of_rawbanks + 1 offsets!
     DumpUtils::Writer bank_buffer;
     bank_buffer.write(number_of_rawbanks, bankOffsets, bankData);
-    output[bankType] = std::tuple {bank_buffer.buffer(), banks[0]->version()};
+    output[bt] = std::tuple {bank_buffer.buffer(), banks[0]->version()};
   }
   return output;
 }

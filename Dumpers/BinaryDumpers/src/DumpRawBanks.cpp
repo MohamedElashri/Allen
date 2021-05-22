@@ -31,7 +31,7 @@ namespace {
  */
 class DumpRawBanks
   : public Gaudi::Functional::Consumer<
-      void(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const&, LHCb::ODIN const&)> {
+      void(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> const&, LHCb::ODIN const&)> {
 public:
   /// Standard constructor
   DumpRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
@@ -39,7 +39,7 @@ public:
   StatusCode initialize() override;
 
   void operator()(
-    std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& banks,
+    std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> const& banks,
     LHCb::ODIN const& odin) const override;
 
 private:
@@ -66,18 +66,16 @@ StatusCode DumpRawBanks::initialize()
 }
 
 void DumpRawBanks::operator()(
-  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& transposed_banks,
+  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> const& transposed_banks,
   LHCb::ODIN const& odin) const
 {
   if (!m_createdDirectories) {
     std::lock_guard {m_dirMutex};
     if (!m_createdDirectories) {
-      for (int bt = 0; bt != LHCb::RawBank::LastType; ++bt) {
-        auto bankType = static_cast<LHCb::RawBank::BankType>(bt);
-        auto const& banks = std::get<0>(transposed_banks[bankType]);
+      for (auto bt : LHCb::RawBank::types()) {
+        auto const& banks = std::get<0>(transposed_banks[bt]);
         if (!banks.empty()) {
-          auto tn = LHCb::RawBank::typeName(bankType);
-          if (!DumpUtils::createDirectory(outputDirectory(bankType))) {
+          if (!DumpUtils::createDirectory(outputDirectory(bt))) {
             throw GaudiException {
               "Failed to create directory " + m_outputDirectory.value(), name(), StatusCode::FAILURE};
           }
@@ -87,12 +85,11 @@ void DumpRawBanks::operator()(
     }
   }
 
-  for (int bt = 0; bt != LHCb::RawBank::LastType; ++bt) {
-    auto bankType = static_cast<LHCb::RawBank::BankType>(bt);
-    auto const& rawBanks = std::get<0>(transposed_banks[bankType]);
+  for (auto bt : LHCb::RawBank::types()) {
+    auto const& rawBanks = std::get<0>(transposed_banks[bt]);
     if (!rawBanks.empty()) {
       DumpUtils::FileWriter outfile =
-        outputDirectory(bankType) + "/" + to_string(odin.runNumber()) + "_" + to_string(odin.eventNumber()) + ".bin";
+        outputDirectory(bt) + "/" + to_string(odin.runNumber()) + "_" + to_string(odin.eventNumber()) + ".bin";
       outfile.write(rawBanks);
     }
   }
@@ -100,8 +97,7 @@ void DumpRawBanks::operator()(
 
 std::string DumpRawBanks::outputDirectory(LHCb::RawBank::BankType bankType) const
 {
-  auto tn = LHCb::RawBank::typeName(bankType);
-  auto dir = fs::path {m_outputDirectory.value()} / tn;
+  auto dir = fs::path {m_outputDirectory.value()} / toString(bankType);
   return dir.string();
 }
 

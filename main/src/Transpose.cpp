@@ -7,15 +7,10 @@ std::vector<int> bank_ids()
 {
   // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
   std::vector<int> ids;
-  ids.resize(LHCb::RawBank::LastType);
-  for (int bt = LHCb::RawBank::L0Calo; bt < LHCb::RawBank::LastType; ++bt) {
-    auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
-    if (it != Allen::bank_types.end()) {
-      ids[bt] = to_integral(it->second);
-    }
-    else {
-      ids[bt] = -1;
-    }
+  ids.resize(std::size(LHCb::RawBank::types()));
+  for (auto bt : LHCb::RawBank::types()) {
+    auto it = Allen::bank_types.find(bt);
+    ids[bt] = (it != Allen::bank_types.end() ? to_integral(it->second) : -1);
   }
   return ids;
 }

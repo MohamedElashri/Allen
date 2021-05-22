@@ -22,7 +22,7 @@ namespace {
 } // namespace
 
 namespace LHCb {
-  constexpr auto NBankTypes = to_integral<LHCb::RawBank::BankType>(LHCb::RawBank::LastType);
+  constexpr auto NBankTypes = LHCb::RawBank::types().size();
 } // namespace LHCb
 
 // Read buffer containing the number of events, offsets to the start

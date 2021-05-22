@@ -36,7 +36,14 @@ namespace {
   Config s_config;
 } // namespace
 
-std::tuple<bool, std::array<unsigned, LHCb::RawBank::LastType>, std::vector<LHCb::ODIN>, size_t, size_t, size_t, size_t>
+std::tuple<
+  bool,
+  std::array<unsigned, LHCb::RawBank::types().size()>,
+  std::vector<LHCb::ODIN>,
+  size_t,
+  size_t,
+  size_t,
+  size_t>
 mdf_read_sizes(
   std::string filename,
   std::vector<int> const& bank_ids,
@@ -44,12 +51,12 @@ mdf_read_sizes(
   size_t min_events)
 {
   // Storage for the sizes
-  std::array<std::vector<size_t>, LHCb::RawBank::LastType> sizes;
+  std::array<std::vector<size_t>, LHCb::RawBank::types().size()> sizes;
   for (auto bt : bank_types) {
     sizes[bt].push_back(0);
   }
 
-  std::array<unsigned, LHCb::RawBank::LastType> banks_count;
+  std::array<unsigned, LHCb::RawBank::types().size()> banks_count;
   banks_count.fill(0);
 
   // Some storage for reading the events into
@@ -78,7 +85,7 @@ mdf_read_sizes(
 
   size_t i_event = 0;
 
-  std::array<unsigned, LHCb::RawBank::LastType> bank_sizes;
+  std::array<unsigned, LHCb::RawBank::types().size()> bank_sizes;
 
   size_t alloc_size = 0, split_event = 0;
 
