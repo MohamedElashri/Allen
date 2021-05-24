@@ -366,34 +366,9 @@ public:
     }
   }
 
-  void event_sizes(
-    size_t const slice_index,
-    gsl::span<unsigned int const> const selected_events,
-    std::vector<size_t>& sizes) const override
-  {
-    // The first bank in the read buffer is the DAQ bank, which
-    // contains the MDF header as bank payload
-    auto const daq_bank_size = bank_header_size + mdf_header_size;
-    auto const stb = m_slice_to_buffer[slice_index];
-    auto const i_read = stb.buffer_index;
-    auto const read_event_start = stb.buffer_event_start;
-    auto const& event_offsets = std::get<1>(m_buffers[i_read]);
-    for (size_t i = 0; i < static_cast<size_t>(selected_events.size()); ++i) {
-      auto event = selected_events[i];
-      sizes[i] = event_offsets[read_event_start + event + 1] - event_offsets[read_event_start + event] - daq_bank_size;
-    }
-  }
+  gsl::span<char const> raw_banks(ReadBuffer const& buffer, size_t const read_event_start, size_t const event) const {
 
-  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const override
-  {
-    // The first bank in the read buffer is the DAQ bank, which
-    // contains the MDF header as bank payload
-    auto const header_size = LHCb::MDFHeader::sizeOf(3);
-    auto const daq_bank_size = 4 * sizeof(3) + header_size;
-
-    auto const stb = m_slice_to_buffer[slice_index];
-    auto const i_read = stb.buffer_index;
-    auto const read_event_start = stb.buffer_event_start;
+    auto const event_index = event + read_event_start;
 
     // FIXME structured binding version below triggers clang 11 bug
     //       revert after clang fix available
@@ -401,12 +376,47 @@ public:
     auto const& tup = m_buffers[i_read];
     auto const& event_offsets = std::get<1>(tup);
     auto const& event_buffer = std::get<2>(tup);
-    auto const transpose_start = std::get<3>(tup);
 
-    auto const event_size =
-      event_offsets[read_event_start + event + 1] - event_offsets[event + read_event_start] - daq_bank_size;
-    auto const* banks_start = event_buffer.data() + event_offsets[event + read_event_start] + daq_bank_size;
-    std::memcpy(buffer.data(), banks_start, event_size);
+    auto event_offset = event_offsets[event_index];
+
+    // The first bank in the read buffer is the DAQ bank, which
+    // contains the MDF header as bank payload; it does not belong to
+    // the original event and should be skipped
+    auto const* daq_bank = reinterpret_cast<LHCb::RawBank const*>(event_buffer.data() + event_offset);
+    auto const daq_bank_size = daq_bank->totalSize();
+
+    auto const* banks_start = event_buffer.data() + event_offset + daq_bank_size;
+    return {banks_start, event_offsets[event_index + 1] - event_offset - daq_bank_size};
+  }
+
+  void event_sizes(
+    size_t const slice_index,
+    gsl::span<unsigned int const> const selected_events,
+    std::vector<size_t>& sizes) const override
+  {
+    auto const stb = m_slice_to_buffer[slice_index];
+    auto const i_read = stb.buffer_index;
+    auto const read_event_start = stb.buffer_event_start;
+    auto const& buffer = m_buffers[i_read];
+
+    for (size_t i = 0; i < static_cast<size_t>(selected_events.size()); ++i) {
+      auto const event = selected_events[i];
+      sizes[i] = raw_banks(buffer, read_event_start, event).size_bytes();
+    }
+  }
+
+  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> output_buffer) const override
+  {
+    // The first bank in the read buffer is the DAQ bank, which
+    // contains the MDF header as bank payload
+    auto const stb = m_slice_to_buffer[slice_index];
+    auto const i_read = stb.buffer_index;
+    auto const read_event_start = stb.buffer_event_start;
+
+    auto const& buffer = m_buffers[i_read];
+    auto const banks = raw_banks(buffer, read_event_start, event);
+    assert(banks.size_bytes() <= output_buffer.size());
+    std::memcpy(output_buffer.data(), banks.data(), banks.size_bytes());
   }
 
 private:
