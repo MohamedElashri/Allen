@@ -62,7 +62,7 @@ void TestUTHits::operator()(
   const auto n_hits_total_rec = hit_handler.nHits();
   // call the UT::Hits_t ctor in UTEventModel.cuh with offset=0
   UT::ConstHits ut_hit_container_allen {ut_hits.data(), n_hits_total_allen};
-  const auto& ut_hit_container_rec = hit_handler.hits(); // const LHCb::Pr::UT::Hits&
+  const auto& ut_hit_container_rec = hit_handler.hits().simd();
 
   debug() << "Number of UT hits (Allen) in this event " << n_hits_total_allen << endmsg;
   debug() << "Number of UT hits (Rec) in this event   " << n_hits_total_rec << endmsg;
@@ -132,15 +132,16 @@ void TestUTHits::operator()(
 
   // loop SIMD UT Hits
   for (int i = 0; i < n_hits_total_rec; i += simd::size) {
+    const auto mH = ut_hit_container_rec[i];
     std::array<int, simd::size> channelIDs;
-    ut_hit_container_rec.channelID<simd::int_v>(i).store(channelIDs.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::channelID>().store(channelIDs.data());
     std::array<float, simd::size> yBegins, yEnds, zAtYEq0s, xAtYEq0s, weights, dxdys;
-    ut_hit_container_rec.yBegin<simd::float_v>(i).store(yBegins.data());
-    ut_hit_container_rec.yEnd<simd::float_v>(i).store(yEnds.data());
-    ut_hit_container_rec.zAtYEq0<simd::float_v>(i).store(zAtYEq0s.data());
-    ut_hit_container_rec.xAtYEq0<simd::float_v>(i).store(xAtYEq0s.data());
-    ut_hit_container_rec.weight<simd::float_v>(i).store(weights.data());
-    ut_hit_container_rec.dxDy<simd::float_v>(i).store(dxdys.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::yBegin>().store(yBegins.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::yEnd>().store(yEnds.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::zAtYEq0>().store(zAtYEq0s.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::xAtYEq0>().store(xAtYEq0s.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::weight>().store(weights.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::dxDy>().store(dxdys.data());
     for (std::size_t j = 0; j < simd::size; j++) {
       const auto bogus_plane_index = get_z_position_index(zAtYEq0s[j]);
       regrouped_rec_hits[bogus_plane_index].emplace_back(
