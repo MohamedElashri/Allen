@@ -596,6 +596,7 @@ foreach(header
     Timer.h
     LoggerCommon.h
     BankTypes.h
+    BankMapping.h
     Common.h
     AllenUnits.h
     MEPTools.h

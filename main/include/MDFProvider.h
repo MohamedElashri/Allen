@@ -25,7 +25,7 @@
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <write_mdf.hpp>
-#include <Event/RawBank.h>
+#include "BankMapping.h"
 
 #include <SliceUtils.h>
 #include <Transpose.h>

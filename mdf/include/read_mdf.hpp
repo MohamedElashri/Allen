@@ -14,6 +14,7 @@
 #include <functional>
 
 #include <BankTypes.h>
+#include <BankMapping.h>
 #include <AllenIO.h>
 
 #include <gsl/gsl>
@@ -30,18 +31,6 @@ namespace {
 } // namespace
 
 namespace Allen {
-  const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {
-    {LHCb::RawBank::VP, BankTypes::VP},
-    {LHCb::RawBank::UT, BankTypes::UT},
-    {LHCb::RawBank::FTCluster, BankTypes::FT},
-    {LHCb::RawBank::Muon, BankTypes::MUON},
-    {LHCb::RawBank::ODIN, BankTypes::ODIN},
-    {LHCb::RawBank::HcalPacked, BankTypes::HCal},
-    {LHCb::RawBank::EcalPacked, BankTypes::ECal},
-    {LHCb::RawBank::OTError, BankTypes::OTError}, // used for PV MC info
-    {LHCb::RawBank::OTRaw, BankTypes::OTRaw},     // used for track MC info
-  };
-
   using buffer_map = std::unordered_map<BankTypes, std::pair<std::vector<char>, std::vector<unsigned int>>>;
 } // namespace Allen
 
