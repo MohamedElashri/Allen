@@ -22,6 +22,7 @@ namespace velo_calculate_phi_and_sort {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutation_t, unsigned) dev_hit_permutation;
+    DEVICE_OUTPUT(dev_hit_phi_temp_t, int16_t) dev_hit_phi_temp;
     DEVICE_OUTPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
     DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

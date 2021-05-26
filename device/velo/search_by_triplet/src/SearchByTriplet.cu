@@ -30,8 +30,7 @@ void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
   set_size<dev_hit_used_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
   set_size<dev_atomics_velo_t>(arguments, first<host_number_of_events_t>(arguments) * Velo::num_atomics);
   set_size<dev_number_of_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_rel_indices_t>(
-    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_numhits_in_module_pair);
+  set_size<dev_rel_indices_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
 }
 
 void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
@@ -131,8 +130,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   Velo::TrackletHits* three_hit_tracks =
     parameters.dev_three_hit_tracks + event_number * Velo::Constants::max_three_hit_tracks;
   Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
-  unsigned short* h1_rel_indices =
-    parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module_pair;
+  unsigned short* h1_rel_indices = parameters.dev_rel_indices + hit_offset;
 
   unsigned* dev_atomics_velo = parameters.dev_atomics_velo + event_number * Velo::num_atomics;
   const int16_t phi_tolerance = hit_phi_float_to_16(parameters.phi_tolerance);
