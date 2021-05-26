@@ -140,7 +140,7 @@ throughput:
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-# Blocks the pipeline from being triggered automatically
+# Blocks the full pipeline from being triggered automatically
 # in Merge Requests
 # Does not block for master, web, schedules
 full-pipeline:
@@ -159,8 +159,8 @@ full-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH != "master"'
-      when: manual
+    # - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH != "master"'
+    #   when: manual
     - when: never
   needs: []
 
