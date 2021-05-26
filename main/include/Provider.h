@@ -23,5 +23,5 @@ namespace Allen {
 
   std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);
 
-  Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads);
+  Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads, bool quiet = false);
 }

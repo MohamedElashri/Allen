@@ -215,6 +215,8 @@ int allen(
   std::cout << std::fixed << std::setprecision(6);
   logger::setVerbosity(verbosity);
 
+  auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
+
 #ifdef TARGET_DEVICE_CUDA
   // For CUDA targets, set the maximum number of connections environment variable
   // equal to the number of thread/streams, with a maximum of 32.

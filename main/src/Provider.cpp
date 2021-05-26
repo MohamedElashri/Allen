@@ -9,7 +9,7 @@
 #include <BankTypes.h>
 #include <ProgramOptions.h>
 
-Allen::IOConf Allen::io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads)
+Allen::IOConf Allen::io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads, bool quiet)
 {
   // Determine wether to run with async I/O.
   Allen::IOConf io_conf{true, number_of_slices, number_of_repetitions, number_of_repetitions};
@@ -21,16 +21,22 @@ Allen::IOConf Allen::io_configuration(unsigned number_of_slices, unsigned number
     io_conf.async_io = false;
     io_conf.number_of_slices = 1;
     io_conf.n_io_reps = 1;
-    debug_cout << "Disabling async I/O to measure throughput without it.\n";
+    if (!quiet) {
+      debug_cout << "Disabling async I/O to measure throughput without it.\n";
+    }
   }
   else if (number_of_slices <= number_of_threads) {
-    warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
+    if (!quiet) {
+      warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
+    }
     io_conf.number_of_slices = number_of_threads + 1;
     io_conf.number_of_repetitions = 1;
   }
   else {
-    info_cout << "Using " << number_of_slices << " input slices."
-              << "\n";
+    if (!quiet) {
+      info_cout << "Using " << number_of_slices << " input slices."
+                << "\n";
+    }
     io_conf.number_of_repetitions = 1;
   }
   return io_conf;
@@ -48,7 +54,6 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   std::string mep_input;
   bool mep_layout = true;
   int mpi_window_size = 4;
-  bool non_stop = false;
   bool disable_run_changes = 0;
 
   // MPI options
@@ -57,7 +62,7 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
 
   long number_of_events_requested = 0;
 
-  unsigned number_of_repetitions = 1;
+  unsigned n_repetitions = 1;
   unsigned number_of_threads = 1;
 
   // Bank types
@@ -96,6 +101,13 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
         return {};
       }
     }
+    else if (flag_in({"r", "repetitions"})) {
+      n_repetitions = atoi(arg.c_str());
+      if (n_repetitions == 0) {
+        error_cout << "Error: number of repetitions must be at least 1\n";
+        return {};
+      }
+    }
     else if (flag_in({"events-per-slice"})) {
       events_per_slice = atoi(arg.c_str());
     }
@@ -123,9 +135,6 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
     else if (flag_in({"mpi-window-size"})) {
       mpi_window_size = atoi(arg.c_str());
     }
-    else if (flag_in({"non-stop"})) {
-      non_stop = atoi(arg.c_str());
-    }
     else if (flag_in({"disable-run-changes"})) {
       disable_run_changes = atoi(arg.c_str());
     }
@@ -136,7 +145,7 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
     events_per_slice = number_of_events_requested;
   }
 
-  auto io_conf = io_configuration(number_of_slices, number_of_repetitions, number_of_threads);
+  auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
   if (!mdf_input.empty()) {
     MDFProviderConfig config {false,                     // verify MDF checksums

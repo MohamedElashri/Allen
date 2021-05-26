@@ -58,7 +58,6 @@ std::vector<ProgramOption> allen_program_options()
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
           {{"output-file"}, "Write selected event to output file", ""},
           {{"device"}, "select device to use", "0"},
-          {{"non-stop"}, "Runs the program indefinitely", "0"},
           {{"with-mpi"}, "Read events with MPI"},
           {{"b", "bank-types"}, "Bank types to provide", "VP,FTCluster,UT,Muon,ODIN"},
           {{"mpi-window-size"}, "Size of MPI sliding window", "4"},
