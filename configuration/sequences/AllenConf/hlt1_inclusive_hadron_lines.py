@@ -72,8 +72,6 @@ def make_two_track_catboost_line(
     two_track_preprocess = make_algorithm(
         two_track_preprocess_t,
         name="two_track_preprocess",
-        host_number_of_selected_events_t=number_of_events[
-            "host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_consolidated_svs_t=secondary_vertices["dev_consolidated_svs"],
         dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
