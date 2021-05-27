@@ -36,7 +36,7 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
     return line_algorithm, node
 
 
-def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
+def default_physics_lines(forward_tracks, kalman_velo_only,
                           secondary_vertices):
     lines = []
     lines.append(
@@ -195,13 +195,12 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
 
     with line_maker.bind(enableGEC=EnableGEC):
         physics_lines = default_physics_lines(
-            reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["kalman_velo_only"],
             reconstructed_objects["secondary_vertices"])
 
-    monitoring_lines = default_monitoring_lines(
-        reconstructed_objects["velo_tracks"])
+        monitoring_lines = default_monitoring_lines(
+            reconstructed_objects["velo_tracks"])
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines

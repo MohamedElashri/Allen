@@ -1,32 +1,22 @@
-/*****************************************************************************\
-* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
-*                                                                             *
-* This software is distributed under the terms of the Apache License          *
-* version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *
-*                                                                             *
-* In applying this licence, CERN does not waive the privileges and immunities *
-* granted to it by virtue of its status as an Intergovernmental Organization  *
-* or submit itself to any jurisdiction.                                       *
-\*****************************************************************************/
 #pragma once
 
 #include <tuple>
-#include "..//device/selections/lines/muon/include/SingleHighPtMuonLine.cuh"
-#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackCatBoostLine.cuh"
-#include "..//device/selections/lines/muon/include/TrackMuonMVALine.cuh"
-#include "..//device/selections/lines/calibration/include/PassthroughLine.cuh"
 #include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
-#include "..//device/selections/lines/muon/include/DiMuonSoftLine.cuh"
-#include "..//device/selections/lines/calibration/include/D2KPiLine.cuh"
-#include "..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
-#include "..//device/selections/lines/charm/include/D2KKLine.cuh"
-#include "..//device/selections/lines/charm/include/D2PiPiLine.cuh"
-#include "..//device/selections/lines/muon/include/DiMuonMassLine.cuh"
-#include "..//device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
 #include "..//device/selections/lines/monitoring/include/ODINEventTypeLine.cuh"
-#include "..//device/selections/lines/monitoring/include/VeloMicroBiasLine.cuh"
 #include "..//device/selections/lines/muon/include/LowPtMuonLine.cuh"
+#include "..//device/selections/lines/muon/include/TrackMuonMVALine.cuh"
+#include "..//device/selections/lines/charm/include/D2PiPiLine.cuh"
+#include "..//device/selections/lines/calibration/include/PassthroughLine.cuh"
+#include "..//device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
+#include "..//device/selections/lines/calibration/include/D2KPiLine.cuh"
+#include "..//device/selections/lines/monitoring/include/VeloMicroBiasLine.cuh"
+#include "..//device/selections/lines/muon/include/DiMuonMassLine.cuh"
+#include "..//device/selections/lines/muon/include/SingleHighPtMuonLine.cuh"
+#include "..//device/selections/lines/muon/include/DiMuonSoftLine.cuh"
 #include "..//device/selections/lines/muon/include/LowPtDiMuonLine.cuh"
+#include "..//device/selections/lines/charm/include/D2KKLine.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackCatBoostLine.cuh"
 
 struct Hlt1TrackMVA__dev_decisions_t : track_mva_line::Parameters::dev_decisions_t {
   using type = track_mva_line::Parameters::dev_decisions_t::type;
