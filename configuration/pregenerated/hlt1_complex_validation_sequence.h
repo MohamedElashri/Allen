@@ -1,80 +1,70 @@
-/*****************************************************************************\
-* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
-*                                                                             *
-* This software is distributed under the terms of the Apache License          *
-* version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *
-*                                                                             *
-* In applying this licence, CERN does not waive the privileges and immunities *
-* granted to it by virtue of its status as an Intergovernmental Organization  *
-* or submit itself to any jurisdiction.                                       *
-\*****************************************************************************/
 #pragma once
 
 #include <tuple>
 #include "ConfiguredInputAggregates.h"
-#include "..//device/SciFi/preprocessing/include/SciFiCalculateClusterCountV4.cuh"
-#include "..//device/UT/consolidate/include/UTCopyTrackHitNumber.cuh"
-#include "..//device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
-#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
-#include "..//device/kalman/ParKalman/include/ParKalmanVeloOnly.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
-#include "..//device/UT/UTDecoding/include/UTPreDecode.cuh"
-#include "..//host/validators/include/HostKalmanValidator.h"
+#include "..//host/validators/include/HostMuonValidator.h"
+#include "..//host/init_event_list/include/HostInitEventList.h"
+#include "..//device/SciFi/preprocessing/include/SciFiRawBankDecoderV4.cuh"
 #include "..//device/velo/search_by_triplet/include/SearchByTriplet.cuh"
+#include "..//host/data_provider/include/DataProvider.h"
+#include "..//device/selections/Hlt1/include/DecReporter.cuh"
+#include "..//device/muon/decoding/include/MuonAddCoordsCrossingMaps.cuh"
+#include "..//device/velo/search_by_triplet/include/ThreeHitTracksFilter.cuh"
+#include "..//device/muon/decoding/include/MuonPopulateHits.cuh"
+#include "..//device/SciFi/looking_forward/include/LFCreateTracks.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
+#include "..//device/SciFi/looking_forward/include/LFQualityFilterLength.cuh"
+#include "..//host/validators/include/HostPVValidator.h"
+#include "..//device/PV/beamlinePV/include/pv_beamline_calculate_denom.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
+#include "..//device/SciFi/preprocessing/include/SciFiPreDecodeV4.cuh"
+#include "..//device/SciFi/looking_forward/include/LFSearchInitialWindows.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_extrapolate.cuh"
+#include "..//device/kalman/ParKalman/include/ParKalmanVeloOnly.cuh"
+#include "..//host/validators/include/HostVeloValidator.h"
+#include "..//device/UT/compassUT/include/UTSelectVeloTracks.cuh"
+#include "..//device/UT/UTDecoding/include/UTPreDecode.cuh"
+#include "..//device/UT/UTDecoding/include/UTDecodeRawBanksInOrder.cuh"
+#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
+#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
+#include "..//device/associate/include/VeloPVIP.cuh"
+#include "..//device/UT/consolidate/include/ConsolidateUT.cuh"
+#include "..//host/init_event_list/include/HostInitNumberOfEvents.h"
+#include "..//host/validators/include/HostVeloUTValidator.h"
+#include "..//device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
+#include "..//device/UT/compassUT/include/CompassUT.cuh"
+#include "..//device/SciFi/preprocessing/include/SciFiCalculateClusterCountV4.cuh"
+#include "..//device/vertex_fit/vertex_fitter/include/FilterTracks.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
+#include "..//device/muon/is_muon/include/IsMuon.cuh"
+#include "..//device/SciFi/looking_forward/include/LFQualityFilter.cuh"
+#include "..//host/validators/include/HostKalmanValidator.h"
 #include "..//device/SciFi/looking_forward/include/LFTripletSeeding.cuh"
 #include "..//host/data_provider/include/LayoutProvider.h"
-#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
-#include "..//host/init_event_list/include/HostInitEventList.h"
-#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
-#include "..//host/validators/include/HostPVValidator.h"
-#include "..//device/SciFi/looking_forward/include/LFQualityFilter.cuh"
-#include "..//device/muon/decoding/include/MuonPopulateTileAndTDC.cuh"
-#include "..//device/UT/compassUT/include/UTSelectVeloTracks.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
-#include "..//host/prefix_sum/include/HostPrefixSum.h"
-#include "..//device/UT/compassUT/include/UTSelectVeloTracksWithWindows.cuh"
-#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_extrapolate.cuh"
-#include "..//host/validators/include/HostVeloUTValidator.h"
-#include "..//host/data_provider/include/MCDataProvider.h"
-#include "..//device/vertex_fit/vertex_fitter/include/FilterTracks.cuh"
-#include "..//device/UT/UTDecoding/include/UTDecodeRawBanksInOrder.cuh"
-#include "..//host/data_provider/include/DataProvider.h"
-#include "..//device/SciFi/consolidate/include/SciFiCopyTrackHitNumber.cuh"
-#include "..//device/muon/decoding/include/MuonAddCoordsCrossingMaps.cuh"
-#include "..//device/UT/compassUT/include/CompassUT.cuh"
 #include "..//host/validators/include/HostRateValidator.h"
-#include "..//device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
-#include "..//device/velo/search_by_triplet/include/ThreeHitTracksFilter.cuh"
-#include "..//device/SciFi/consolidate/include/ConsolidateSciFi.cuh"
-#include "..//host/validators/include/HostForwardValidator.h"
-#include "..//device/PV/beamlinePV/include/pv_beamline_calculate_denom.cuh"
-#include "..//device/vertex_fit/vertex_fitter/include/VertexFitter.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
-#include "..//host/data_provider/include/HostDataProvider.h"
-#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
-#include "..//device/selections/Hlt1/include/DecReporter.cuh"
-#include "..//device/SciFi/looking_forward/include/LFQualityFilterLength.cuh"
-#include "..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
-#include "..//device/muon/is_muon/include/IsMuon.cuh"
-#include "..//host/validators/include/HostMuonValidator.h"
-#include "..//device/muon/decoding/include/MuonCalculateSRQSize.cuh"
-#include "..//device/associate/include/VeloPVIP.cuh"
-#include "..//host/init_event_list/include/HostInitNumberOfEvents.h"
-#include "..//device/muon/decoding/include/MuonPopulateHits.cuh"
-#include "..//host/validators/include/HostVeloValidator.h"
-#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
+#include "..//host/data_provider/include/MCDataProvider.h"
 #include "..//device/UT/compassUT/include/SearchWindows.cuh"
-#include "..//device/selections/Hlt1/include/GatherSelections.cuh"
-#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
+#include "..//device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
+#include "..//device/vertex_fit/vertex_fitter/include/VertexFitter.cuh"
+#include "..//device/SciFi/consolidate/include/SciFiCopyTrackHitNumber.cuh"
+#include "..//host/validators/include/HostForwardValidator.h"
+#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
+#include "..//device/UT/compassUT/include/UTSelectVeloTracksWithWindows.cuh"
+#include "..//device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
 #include "..//device/UT/UTDecoding/include/UTCalculateNumberOfHits.cuh"
+#include "..//device/muon/decoding/include/MuonPopulateTileAndTDC.cuh"
+#include "..//device/UT/consolidate/include/UTCopyTrackHitNumber.cuh"
+#include "..//host/prefix_sum/include/HostPrefixSum.h"
+#include "..//device/SciFi/consolidate/include/ConsolidateSciFi.cuh"
+#include "..//host/data_provider/include/HostDataProvider.h"
 #include "..//device/UT/UTDecoding/include/UTFindPermutation.cuh"
-#include "..//device/SciFi/looking_forward/include/LFCreateTracks.cuh"
-#include "..//device/SciFi/preprocessing/include/SciFiPreDecodeV4.cuh"
-#include "..//device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
-#include "..//device/UT/consolidate/include/ConsolidateUT.cuh"
-#include "..//device/SciFi/looking_forward/include/LFSearchInitialWindows.cuh"
-#include "..//device/SciFi/preprocessing/include/SciFiRawBankDecoderV4.cuh"
+#include "..//device/muon/decoding/include/MuonCalculateSRQSize.cuh"
+#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
+#include "..//device/selections/Hlt1/include/GatherSelections.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
+#include "..//device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
+#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
 
 struct initialize_event_lists__host_event_list_output_t : host_init_event_list::Parameters::host_event_list_output_t {
   using type = host_init_event_list::Parameters::host_event_list_output_t::type;
@@ -246,6 +236,20 @@ struct mc_data_provider__host_mc_events_t : mc_data_provider::Parameters::host_m
   using type = mc_data_provider::Parameters::host_mc_events_t::type;
   using deps = mc_data_provider::Parameters::host_mc_events_t::deps;
 };
+struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
+                                         host_global_event_cut::Parameters::host_ut_raw_banks_t {
+  using type = host_data_provider::Parameters::host_raw_banks_t::type;
+  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
+};
+struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
+                                           host_global_event_cut::Parameters::host_ut_raw_offsets_t {
+  using type = host_data_provider::Parameters::host_raw_offsets_t::type;
+  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
+};
+struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
+};
 struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                             host_global_event_cut::Parameters::host_scifi_raw_banks_t {
   using type = host_data_provider::Parameters::host_raw_banks_t::type;
@@ -258,20 +262,6 @@ struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::ho
 };
 struct host_scifi_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t,
                                                    host_global_event_cut::Parameters::host_ut_raw_bank_version_t {
-  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
-  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
-};
-struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
-                                         host_global_event_cut::Parameters::host_ut_raw_banks_t {
-  using type = host_data_provider::Parameters::host_raw_banks_t::type;
-  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
-};
-struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
-                                           host_global_event_cut::Parameters::host_ut_raw_offsets_t {
-  using type = host_data_provider::Parameters::host_raw_offsets_t::type;
-  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
-};
-struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
   using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
   using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
@@ -2064,6 +2054,17 @@ static_assert(all_host_or_all_device_v<
               host_kalman_validator::Parameters::host_mc_events_t,
               host_muon_validator::Parameters::host_mc_events_t>);
 static_assert(all_host_or_all_device_v<
+              host_ut_banks__host_raw_banks_t,
+              host_data_provider::Parameters::host_raw_banks_t,
+              host_global_event_cut::Parameters::host_ut_raw_banks_t>);
+static_assert(all_host_or_all_device_v<
+              host_ut_banks__host_raw_offsets_t,
+              host_data_provider::Parameters::host_raw_offsets_t,
+              host_global_event_cut::Parameters::host_ut_raw_offsets_t>);
+static_assert(all_host_or_all_device_v<
+              host_ut_banks__host_raw_bank_version_t,
+              host_data_provider::Parameters::host_raw_bank_version_t>);
+static_assert(all_host_or_all_device_v<
               host_scifi_banks__host_raw_banks_t,
               host_data_provider::Parameters::host_raw_banks_t,
               host_global_event_cut::Parameters::host_scifi_raw_banks_t>);
@@ -2075,17 +2076,6 @@ static_assert(all_host_or_all_device_v<
               host_scifi_banks__host_raw_bank_version_t,
               host_data_provider::Parameters::host_raw_bank_version_t,
               host_global_event_cut::Parameters::host_ut_raw_bank_version_t>);
-static_assert(all_host_or_all_device_v<
-              host_ut_banks__host_raw_banks_t,
-              host_data_provider::Parameters::host_raw_banks_t,
-              host_global_event_cut::Parameters::host_ut_raw_banks_t>);
-static_assert(all_host_or_all_device_v<
-              host_ut_banks__host_raw_offsets_t,
-              host_data_provider::Parameters::host_raw_offsets_t,
-              host_global_event_cut::Parameters::host_ut_raw_offsets_t>);
-static_assert(all_host_or_all_device_v<
-              host_ut_banks__host_raw_bank_version_t,
-              host_data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(
   all_host_or_all_device_v<gec__host_event_list_output_t, host_global_event_cut::Parameters::host_event_list_output_t>);
 static_assert(
@@ -3388,12 +3378,12 @@ using configured_arguments_t = std::tuple<
   initialize_number_of_events__host_number_of_events_t,
   initialize_number_of_events__dev_number_of_events_t,
   mc_data_provider__host_mc_events_t,
-  host_scifi_banks__host_raw_banks_t,
-  host_scifi_banks__host_raw_offsets_t,
-  host_scifi_banks__host_raw_bank_version_t,
   host_ut_banks__host_raw_banks_t,
   host_ut_banks__host_raw_offsets_t,
   host_ut_banks__host_raw_bank_version_t,
+  host_scifi_banks__host_raw_banks_t,
+  host_scifi_banks__host_raw_offsets_t,
+  host_scifi_banks__host_raw_bank_version_t,
   gec__host_event_list_output_t,
   gec__host_number_of_events_t,
   gec__host_number_of_selected_events_t,
@@ -3759,12 +3749,12 @@ using configured_sequence_arguments_t = std::tuple<
   std::tuple<mep_layout__host_mep_layout_t, mep_layout__dev_mep_layout_t>,
   std::tuple<initialize_number_of_events__host_number_of_events_t, initialize_number_of_events__dev_number_of_events_t>,
   std::tuple<mc_data_provider__host_mc_events_t>,
+  std::
+    tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t, host_ut_banks__host_raw_bank_version_t>,
   std::tuple<
     host_scifi_banks__host_raw_banks_t,
     host_scifi_banks__host_raw_offsets_t,
     host_scifi_banks__host_raw_bank_version_t>,
-  std::
-    tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t, host_ut_banks__host_raw_bank_version_t>,
   std::tuple<
     host_ut_banks__host_raw_banks_t,
     host_ut_banks__host_raw_offsets_t,
@@ -4921,113 +4911,114 @@ using configured_sequence_arguments_t = std::tuple<
     gather_selections__dev_selections_t,
     gather_selections__dev_selections_offsets_t>>;
 
-constexpr auto sequence_algorithm_names = std::array {"initialize_event_lists",
-                                                      "mep_layout",
-                                                      "initialize_number_of_events",
-                                                      "mc_data_provider",
-                                                      "host_scifi_banks",
-                                                      "host_ut_banks",
-                                                      "gec",
-                                                      "velo_banks",
-                                                      "velo_calculate_number_of_candidates",
-                                                      "prefix_sum_offsets_velo_candidates",
-                                                      "velo_estimate_input_size",
-                                                      "prefix_sum_offsets_estimated_input_size",
-                                                      "velo_masked_clustering",
-                                                      "velo_calculate_phi_and_sort",
-                                                      "velo_search_by_triplet",
-                                                      "velo_three_hit_tracks_filter",
-                                                      "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
-                                                      "prefix_sum_offsets_velo_tracks",
-                                                      "velo_copy_track_hit_number",
-                                                      "prefix_sum_offsets_velo_track_hit_number",
-                                                      "velo_consolidate_tracks",
-                                                      "velo_kalman_filter",
-                                                      "ut_select_velo_tracks",
-                                                      "velo_validator",
-                                                      "pv_beamline_extrapolate",
-                                                      "pv_beamline_histo",
-                                                      "pv_beamline_peak",
-                                                      "pv_beamline_calculate_denom",
-                                                      "pv_beamline_multi_fitter",
-                                                      "pv_beamline_cleanup",
-                                                      "velo_pv_ip",
-                                                      "pv_validator",
-                                                      "ut_banks",
-                                                      "ut_calculate_number_of_hits",
-                                                      "prefix_sum_ut_hits",
-                                                      "ut_pre_decode",
-                                                      "ut_find_permutation",
-                                                      "ut_decode_raw_banks_in_order",
-                                                      "ut_search_windows#1",
-                                                      "ut_select_velo_tracks_with_windows#1",
-                                                      "compass_ut#1",
-                                                      "prefix_sum_ut_tracks#1",
-                                                      "ut_copy_track_hit_number#1",
-                                                      "prefix_sum_ut_track_hit_number#1",
-                                                      "ut_consolidate_tracks#1",
-                                                      "restricted_veloUT_validator",
-                                                      "ut_search_windows",
-                                                      "ut_select_velo_tracks_with_windows",
-                                                      "compass_ut",
-                                                      "prefix_sum_ut_tracks",
-                                                      "ut_copy_track_hit_number",
-                                                      "prefix_sum_ut_track_hit_number",
-                                                      "ut_consolidate_tracks",
-                                                      "non-restricted_veloUT_validator",
-                                                      "scifi_banks",
-                                                      "scifi_calculate_cluster_count",
-                                                      "prefix_sum_scifi_hits",
-                                                      "scifi_pre_decode",
-                                                      "scifi_raw_bank_decoder",
-                                                      "lf_search_initial_windows#1",
-                                                      "lf_search_initial_windows",
-                                                      "lf_triplet_seeding#1",
-                                                      "lf_create_tracks#1",
-                                                      "lf_quality_filter_length#1",
-                                                      "lf_quality_filter#1",
-                                                      "prefix_sum_forward_tracks#1",
-                                                      "scifi_copy_track_hit_number#1",
-                                                      "prefix_sum_scifi_track_hit_number#1",
-                                                      "scifi_consolidate_tracks#1",
-                                                      "restricted_forward_validator",
-                                                      "lf_triplet_seeding",
-                                                      "lf_create_tracks",
-                                                      "lf_quality_filter_length",
-                                                      "lf_quality_filter",
-                                                      "prefix_sum_forward_tracks",
-                                                      "scifi_copy_track_hit_number",
-                                                      "prefix_sum_scifi_track_hit_number",
-                                                      "scifi_consolidate_tracks",
-                                                      "non-restricted_forward_validator",
-                                                      "muon_banks",
-                                                      "muon_calculate_srq_size",
-                                                      "muon_srq_prefix_sum",
-                                                      "muon_populate_tile_and_tdc",
-                                                      "muon_add_coords_crossing_maps",
-                                                      "muon_station_ocurrence_prefix_sum",
-                                                      "muon_populate_hits",
-                                                      "is_muon#1",
-                                                      "kalman_velo_only#1",
-                                                      "filter_tracks#1",
-                                                      "restricted_muon_validation",
-                                                      "restricted_kalman_validation",
-                                                      "is_muon",
-                                                      "kalman_velo_only",
-                                                      "filter_tracks",
-                                                      "non-restricted_muon_validation",
-                                                      "prefix_sum_secondary_vertices#1",
-                                                      "fit_secondary_vertices#1",
-                                                      "prefix_sum_secondary_vertices",
-                                                      "fit_secondary_vertices",
-                                                      "populate_odin_banks",
-                                                      "Hlt1TrackMVA_Restricted",
-                                                      "Hlt1TwoTrackMVA_Restricted",
-                                                      "Hlt1TrackMVA_Non_Restricted",
-                                                      "Hlt1TwoTrackMVA_Non_Restricted",
-                                                      "gather_selections",
-                                                      "dec_reporter",
-                                                      "rate_validator"};
+constexpr auto sequence_algorithm_names = std::array {
+  "initialize_event_lists",
+  "mep_layout",
+  "initialize_number_of_events",
+  "mc_data_provider",
+  "host_ut_banks",
+  "host_scifi_banks",
+  "gec",
+  "velo_banks",
+  "velo_calculate_number_of_candidates",
+  "prefix_sum_offsets_velo_candidates",
+  "velo_estimate_input_size",
+  "prefix_sum_offsets_estimated_input_size",
+  "velo_masked_clustering",
+  "velo_calculate_phi_and_sort",
+  "velo_search_by_triplet",
+  "velo_three_hit_tracks_filter",
+  "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
+  "prefix_sum_offsets_velo_tracks",
+  "velo_copy_track_hit_number",
+  "prefix_sum_offsets_velo_track_hit_number",
+  "velo_consolidate_tracks",
+  "velo_kalman_filter",
+  "ut_select_velo_tracks",
+  "velo_validator",
+  "pv_beamline_extrapolate",
+  "pv_beamline_histo",
+  "pv_beamline_peak",
+  "pv_beamline_calculate_denom",
+  "pv_beamline_multi_fitter",
+  "pv_beamline_cleanup",
+  "velo_pv_ip",
+  "pv_validator",
+  "ut_banks",
+  "ut_calculate_number_of_hits",
+  "prefix_sum_ut_hits",
+  "ut_pre_decode",
+  "ut_find_permutation",
+  "ut_decode_raw_banks_in_order",
+  "ut_search_windows#1",
+  "ut_select_velo_tracks_with_windows#1",
+  "compass_ut#1",
+  "prefix_sum_ut_tracks#1",
+  "ut_copy_track_hit_number#1",
+  "prefix_sum_ut_track_hit_number#1",
+  "ut_consolidate_tracks#1",
+  "restricted_veloUT_validator",
+  "ut_search_windows",
+  "ut_select_velo_tracks_with_windows",
+  "compass_ut",
+  "prefix_sum_ut_tracks",
+  "ut_copy_track_hit_number",
+  "prefix_sum_ut_track_hit_number",
+  "ut_consolidate_tracks",
+  "non-restricted_veloUT_validator",
+  "scifi_banks",
+  "scifi_calculate_cluster_count",
+  "prefix_sum_scifi_hits",
+  "scifi_pre_decode",
+  "scifi_raw_bank_decoder",
+  "lf_search_initial_windows#1",
+  "lf_search_initial_windows",
+  "lf_triplet_seeding#1",
+  "lf_create_tracks#1",
+  "lf_quality_filter_length#1",
+  "lf_quality_filter#1",
+  "prefix_sum_forward_tracks#1",
+  "scifi_copy_track_hit_number#1",
+  "prefix_sum_scifi_track_hit_number#1",
+  "scifi_consolidate_tracks#1",
+  "restricted_forward_validator",
+  "lf_triplet_seeding",
+  "lf_create_tracks",
+  "lf_quality_filter_length",
+  "lf_quality_filter",
+  "prefix_sum_forward_tracks",
+  "scifi_copy_track_hit_number",
+  "prefix_sum_scifi_track_hit_number",
+  "scifi_consolidate_tracks",
+  "non-restricted_forward_validator",
+  "muon_banks",
+  "muon_calculate_srq_size",
+  "muon_srq_prefix_sum",
+  "muon_populate_tile_and_tdc",
+  "muon_add_coords_crossing_maps",
+  "muon_station_ocurrence_prefix_sum",
+  "muon_populate_hits",
+  "is_muon#1",
+  "kalman_velo_only#1",
+  "filter_tracks#1",
+  "restricted_muon_validation",
+  "restricted_kalman_validation",
+  "is_muon",
+  "kalman_velo_only",
+  "filter_tracks",
+  "non-restricted_muon_validation",
+  "prefix_sum_secondary_vertices#1",
+  "fit_secondary_vertices#1",
+  "prefix_sum_secondary_vertices",
+  "fit_secondary_vertices",
+  "populate_odin_banks",
+  "Hlt1TrackMVA_Restricted",
+  "Hlt1TwoTrackMVA_Restricted",
+  "Hlt1TrackMVA_Non_Restricted",
+  "Hlt1TwoTrackMVA_Non_Restricted",
+  "gather_selections",
+  "dec_reporter",
+  "rate_validator"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)
@@ -5043,13 +5034,13 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<initialize_number_of_events__dev_number_of_events_t>(
     "initialize_number_of_events__dev_number_of_events_t");
   argument_manager.template set_name<mc_data_provider__host_mc_events_t>("mc_data_provider__host_mc_events_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_bank_version_t>("host_ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_banks_t>("host_scifi_banks__host_raw_banks_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_offsets_t>("host_scifi_banks__host_raw_offsets_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_bank_version_t>(
     "host_scifi_banks__host_raw_bank_version_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_bank_version_t>("host_ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<gec__host_event_list_output_t>("gec__host_event_list_output_t");
   argument_manager.template set_name<gec__host_number_of_events_t>("gec__host_number_of_events_t");
   argument_manager.template set_name<gec__host_number_of_selected_events_t>("gec__host_number_of_selected_events_t");

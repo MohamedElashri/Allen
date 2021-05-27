@@ -1,38 +1,28 @@
-/*****************************************************************************\
-* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
-*                                                                             *
-* This software is distributed under the terms of the Apache License          *
-* version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *
-*                                                                             *
-* In applying this licence, CERN does not waive the privileges and immunities *
-* granted to it by virtue of its status as an Intergovernmental Organization  *
-* or submit itself to any jurisdiction.                                       *
-\*****************************************************************************/
 #pragma once
 
 #include <tuple>
 #include "ConfiguredInputAggregates.h"
-#include "..//device/velo/search_by_triplet/include/ThreeHitTracksFilter.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
-#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
-#include "..//host/prefix_sum/include/HostPrefixSum.h"
-#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
-#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
 #include "..//device/velo/consolidate_tracks/include/VeloConsolidateTracks.cuh"
-#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
-#include "..//device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
-#include "..//device/velo/search_by_triplet/include/SearchByTriplet.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
-#include "..//host/data_provider/include/DataProvider.h"
-#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
-#include "..//host/data_provider/include/HostDataProvider.h"
-#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
 #include "..//device/PV/beamlinePV/include/pv_beamline_extrapolate.cuh"
-#include "..//device/PV/beamlinePV/include/pv_beamline_calculate_denom.cuh"
-#include "..//host/init_event_list/include/HostInitEventList.h"
-#include "..//host/init_event_list/include/HostInitNumberOfEvents.h"
-#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
 #include "..//device/velo/consolidate_tracks/include/VeloCopyTrackHitNumber.cuh"
+#include "..//host/init_event_list/include/HostInitEventList.h"
+#include "..//device/velo/mask_clustering/include/MaskedVeloClustering.cuh"
+#include "..//host/data_provider/include/DataProvider.h"
+#include "..//host/prefix_sum/include/HostPrefixSum.h"
+#include "..//device/PV/beamlinePV/include/pv_beamline_multi_fitter.cuh"
+#include "..//device/velo/simplified_kalman_filter/include/VeloKalmanFilter.cuh"
+#include "..//device/velo/calculate_phi_and_sort/include/CalculatePhiAndSort.cuh"
+#include "..//host/data_provider/include/HostDataProvider.h"
+#include "..//host/init_event_list/include/HostInitNumberOfEvents.h"
+#include "..//device/velo/mask_clustering/include/VeloCalculateNumberOfCandidates.cuh"
+#include "..//device/velo/search_by_triplet/include/SearchByTriplet.cuh"
+#include "..//host/global_event_cut/include/HostGlobalEventCut.h"
+#include "..//device/velo/search_by_triplet/include/ThreeHitTracksFilter.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_calculate_denom.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_cleanup.cuh"
+#include "..//device/velo/mask_clustering/include/EstimateInputSize.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_histo.cuh"
+#include "..//device/PV/beamlinePV/include/pv_beamline_peak.cuh"
 
 struct initialize_event_lists__host_event_list_output_t : host_init_event_list::Parameters::host_event_list_output_t {
   using type = host_init_event_list::Parameters::host_event_list_output_t::type;
@@ -41,6 +31,20 @@ struct initialize_event_lists__host_event_list_output_t : host_init_event_list::
 struct initialize_event_lists__dev_event_list_output_t : host_init_event_list::Parameters::dev_event_list_output_t {
   using type = host_init_event_list::Parameters::dev_event_list_output_t::type;
   using deps = host_init_event_list::Parameters::dev_event_list_output_t::deps;
+};
+struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
+                                         host_global_event_cut::Parameters::host_ut_raw_banks_t {
+  using type = host_data_provider::Parameters::host_raw_banks_t::type;
+  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
+};
+struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
+                                           host_global_event_cut::Parameters::host_ut_raw_offsets_t {
+  using type = host_data_provider::Parameters::host_raw_offsets_t::type;
+  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
+};
+struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
+  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
+  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
 struct host_scifi_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
                                             host_global_event_cut::Parameters::host_scifi_raw_banks_t {
@@ -54,20 +58,6 @@ struct host_scifi_banks__host_raw_offsets_t : host_data_provider::Parameters::ho
 };
 struct host_scifi_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t,
                                                    host_global_event_cut::Parameters::host_ut_raw_bank_version_t {
-  using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
-  using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
-};
-struct host_ut_banks__host_raw_banks_t : host_data_provider::Parameters::host_raw_banks_t,
-                                         host_global_event_cut::Parameters::host_ut_raw_banks_t {
-  using type = host_data_provider::Parameters::host_raw_banks_t::type;
-  using deps = host_data_provider::Parameters::host_raw_banks_t::deps;
-};
-struct host_ut_banks__host_raw_offsets_t : host_data_provider::Parameters::host_raw_offsets_t,
-                                           host_global_event_cut::Parameters::host_ut_raw_offsets_t {
-  using type = host_data_provider::Parameters::host_raw_offsets_t::type;
-  using deps = host_data_provider::Parameters::host_raw_offsets_t::deps;
-};
-struct host_ut_banks__host_raw_bank_version_t : host_data_provider::Parameters::host_raw_bank_version_t {
   using type = host_data_provider::Parameters::host_raw_bank_version_t::type;
   using deps = host_data_provider::Parameters::host_raw_bank_version_t::deps;
 };
@@ -490,6 +480,17 @@ static_assert(all_host_or_all_device_v<
               initialize_event_lists__dev_event_list_output_t,
               host_init_event_list::Parameters::dev_event_list_output_t>);
 static_assert(all_host_or_all_device_v<
+              host_ut_banks__host_raw_banks_t,
+              host_data_provider::Parameters::host_raw_banks_t,
+              host_global_event_cut::Parameters::host_ut_raw_banks_t>);
+static_assert(all_host_or_all_device_v<
+              host_ut_banks__host_raw_offsets_t,
+              host_data_provider::Parameters::host_raw_offsets_t,
+              host_global_event_cut::Parameters::host_ut_raw_offsets_t>);
+static_assert(all_host_or_all_device_v<
+              host_ut_banks__host_raw_bank_version_t,
+              host_data_provider::Parameters::host_raw_bank_version_t>);
+static_assert(all_host_or_all_device_v<
               host_scifi_banks__host_raw_banks_t,
               host_data_provider::Parameters::host_raw_banks_t,
               host_global_event_cut::Parameters::host_scifi_raw_banks_t>);
@@ -501,17 +502,6 @@ static_assert(all_host_or_all_device_v<
               host_scifi_banks__host_raw_bank_version_t,
               host_data_provider::Parameters::host_raw_bank_version_t,
               host_global_event_cut::Parameters::host_ut_raw_bank_version_t>);
-static_assert(all_host_or_all_device_v<
-              host_ut_banks__host_raw_banks_t,
-              host_data_provider::Parameters::host_raw_banks_t,
-              host_global_event_cut::Parameters::host_ut_raw_banks_t>);
-static_assert(all_host_or_all_device_v<
-              host_ut_banks__host_raw_offsets_t,
-              host_data_provider::Parameters::host_raw_offsets_t,
-              host_global_event_cut::Parameters::host_ut_raw_offsets_t>);
-static_assert(all_host_or_all_device_v<
-              host_ut_banks__host_raw_bank_version_t,
-              host_data_provider::Parameters::host_raw_bank_version_t>);
 static_assert(
   all_host_or_all_device_v<gec__host_event_list_output_t, host_global_event_cut::Parameters::host_event_list_output_t>);
 static_assert(
@@ -820,12 +810,12 @@ static_assert(all_host_or_all_device_v<
 using configured_arguments_t = std::tuple<
   initialize_event_lists__host_event_list_output_t,
   initialize_event_lists__dev_event_list_output_t,
-  host_scifi_banks__host_raw_banks_t,
-  host_scifi_banks__host_raw_offsets_t,
-  host_scifi_banks__host_raw_bank_version_t,
   host_ut_banks__host_raw_banks_t,
   host_ut_banks__host_raw_offsets_t,
   host_ut_banks__host_raw_bank_version_t,
+  host_scifi_banks__host_raw_banks_t,
+  host_scifi_banks__host_raw_offsets_t,
+  host_scifi_banks__host_raw_bank_version_t,
   gec__host_event_list_output_t,
   gec__host_number_of_events_t,
   gec__host_number_of_selected_events_t,
@@ -921,12 +911,12 @@ using configured_sequence_t = std::tuple<
 
 using configured_sequence_arguments_t = std::tuple<
   std::tuple<initialize_event_lists__host_event_list_output_t, initialize_event_lists__dev_event_list_output_t>,
+  std::
+    tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t, host_ut_banks__host_raw_bank_version_t>,
   std::tuple<
     host_scifi_banks__host_raw_banks_t,
     host_scifi_banks__host_raw_offsets_t,
     host_scifi_banks__host_raw_bank_version_t>,
-  std::
-    tuple<host_ut_banks__host_raw_banks_t, host_ut_banks__host_raw_offsets_t, host_ut_banks__host_raw_bank_version_t>,
   std::tuple<
     host_ut_banks__host_raw_banks_t,
     host_ut_banks__host_raw_offsets_t,
@@ -1131,32 +1121,33 @@ using configured_sequence_arguments_t = std::tuple<
     pv_beamline_cleanup__dev_multi_final_vertices_t,
     pv_beamline_cleanup__dev_number_of_multi_final_vertices_t>>;
 
-constexpr auto sequence_algorithm_names = std::array {"initialize_event_lists",
-                                                      "host_scifi_banks",
-                                                      "host_ut_banks",
-                                                      "gec",
-                                                      "initialize_number_of_events",
-                                                      "velo_banks",
-                                                      "velo_calculate_number_of_candidates",
-                                                      "prefix_sum_offsets_velo_candidates",
-                                                      "velo_estimate_input_size",
-                                                      "prefix_sum_offsets_estimated_input_size",
-                                                      "velo_masked_clustering",
-                                                      "velo_calculate_phi_and_sort",
-                                                      "velo_search_by_triplet",
-                                                      "velo_three_hit_tracks_filter",
-                                                      "prefix_sum_offsets_velo_tracks",
-                                                      "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
-                                                      "velo_copy_track_hit_number",
-                                                      "prefix_sum_offsets_velo_track_hit_number",
-                                                      "velo_consolidate_tracks",
-                                                      "velo_kalman_filter",
-                                                      "pv_beamline_extrapolate",
-                                                      "pv_beamline_histo",
-                                                      "pv_beamline_peak",
-                                                      "pv_beamline_calculate_denom",
-                                                      "pv_beamline_multi_fitter",
-                                                      "pv_beamline_cleanup"};
+constexpr auto sequence_algorithm_names = std::array {
+  "initialize_event_lists",
+  "host_ut_banks",
+  "host_scifi_banks",
+  "gec",
+  "initialize_number_of_events",
+  "velo_banks",
+  "velo_calculate_number_of_candidates",
+  "prefix_sum_offsets_velo_candidates",
+  "velo_estimate_input_size",
+  "prefix_sum_offsets_estimated_input_size",
+  "velo_masked_clustering",
+  "velo_calculate_phi_and_sort",
+  "velo_search_by_triplet",
+  "velo_three_hit_tracks_filter",
+  "prefix_sum_offsets_velo_tracks",
+  "prefix_sum_offsets_number_of_three_hit_tracks_filtered",
+  "velo_copy_track_hit_number",
+  "prefix_sum_offsets_velo_track_hit_number",
+  "velo_consolidate_tracks",
+  "velo_kalman_filter",
+  "pv_beamline_extrapolate",
+  "pv_beamline_histo",
+  "pv_beamline_peak",
+  "pv_beamline_calculate_denom",
+  "pv_beamline_multi_fitter",
+  "pv_beamline_cleanup"};
 
 template<typename T>
 void populate_sequence_argument_names(T& argument_manager)
@@ -1165,13 +1156,13 @@ void populate_sequence_argument_names(T& argument_manager)
     "initialize_event_lists__host_event_list_output_t");
   argument_manager.template set_name<initialize_event_lists__dev_event_list_output_t>(
     "initialize_event_lists__dev_event_list_output_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
+  argument_manager.template set_name<host_ut_banks__host_raw_bank_version_t>("host_ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_banks_t>("host_scifi_banks__host_raw_banks_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_offsets_t>("host_scifi_banks__host_raw_offsets_t");
   argument_manager.template set_name<host_scifi_banks__host_raw_bank_version_t>(
     "host_scifi_banks__host_raw_bank_version_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_banks_t>("host_ut_banks__host_raw_banks_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_offsets_t>("host_ut_banks__host_raw_offsets_t");
-  argument_manager.template set_name<host_ut_banks__host_raw_bank_version_t>("host_ut_banks__host_raw_bank_version_t");
   argument_manager.template set_name<gec__host_event_list_output_t>("gec__host_event_list_output_t");
   argument_manager.template set_name<gec__host_number_of_events_t>("gec__host_number_of_events_t");
   argument_manager.template set_name<gec__host_number_of_selected_events_t>("gec__host_number_of_selected_events_t");
