@@ -18,7 +18,7 @@
 #include <string>
 #include <cassert>
 #include <array>
-#include "AllenTypeTraits.cuh"
+#include "AllenTypeTraits.h"
 #include "BackendCommonInterface.h"
 
 // Dispatch to the right backend
