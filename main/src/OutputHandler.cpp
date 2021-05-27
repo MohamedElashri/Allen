@@ -43,12 +43,13 @@ bool OutputHandler::output_selected_events(
   // size of a RawBank header
   const int bank_header_size = 4 * sizeof(short);
   // size of the DecReport RawBank
-  const unsigned dec_report_size = (m_number_of_hlt1_lines + 2) * sizeof(uint32_t);
+  const unsigned dec_report_size = (m_nlines + 2) * sizeof(uint32_t);
 
   for (size_t i = 0; i < static_cast<size_t>(selected_events.size()); ++i) {
 
     // size of the SelReport RawBank
-    const unsigned sel_report_size = (sel_report_offsets[i + 1] - sel_report_offsets[i]) * sizeof(uint32_t);
+    auto const event_number = selected_events[i];
+    const unsigned sel_report_size = (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
 
     // add DecReport and SelReport sizes to the total size (including two RawBank headers)
     auto [buffer_id, buffer_span] =
@@ -76,17 +77,17 @@ bool OutputHandler::output_selected_events(
     header->subHeader().H1->setTriggerMask(m_trigger_mask.data());
     // Set run number
     // FIXME: get orbit and bunch number from ODIN
-    header->subHeader().H1->setRunNumber(static_cast<unsigned int>(std::get<0>(event_ids[selected_events[i]])));
+    header->subHeader().H1->setRunNumber(static_cast<unsigned int>(std::get<0>(event_ids[event_number])));
 
     m_input_provider->copy_banks(
-      slice_index, selected_events[i], {buffer_span.data() + header_size, static_cast<events_size>(m_sizes[i])});
+      slice_index, event_number, {buffer_span.data() + header_size, static_cast<events_size>(m_sizes[i])});
 
     // add the dec report
     add_raw_bank(
       LHCb::RawBank::HltDecReports,
       2u,
       1 << 13,
-      {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * (selected_events[i] - event_offset),
+      {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * (event_number - event_offset),
        static_cast<events_size>(dec_report_size)},
       buffer_span.data() + header_size + m_sizes[i]);
 
@@ -95,7 +96,7 @@ bool OutputHandler::output_selected_events(
       LHCb::RawBank::HltSelReports,
       11u,
       1 << 13,
-      {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[i] * sizeof(uint32_t),
+      {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
        static_cast<events_size>(sel_report_size)},
       buffer_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
 

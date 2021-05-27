@@ -382,10 +382,10 @@ int allen(
     try {
       if (output_file.substr(0, 6) == "tcp://") {
         output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider, output_file, events_per_slice, zmqSvc);
+          std::make_unique<ZMQOutputSender>(input_provider, output_file, events_per_slice, n_lines, zmqSvc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider, output_file, events_per_slice);
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, events_per_slice, n_lines);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
