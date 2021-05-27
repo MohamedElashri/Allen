@@ -139,8 +139,6 @@ def HLT1Sequence(layout_provider,
 
     two_track_preprocess = two_track_preprocess_t(
         name="two_track_preprocess",
-        host_number_of_selected_events_t=initialize_lists.
-        host_number_of_events_t(),
         host_number_of_svs_t=prefix_sum_secondary_vertices.
         host_total_sum_holder_t(),
         dev_consolidated_svs_t=fit_secondary_vertices.dev_consolidated_svs_t(),

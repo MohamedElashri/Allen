@@ -12,6 +12,7 @@
   "odin_banks": {"bank_type": "ODIN"},
   "Hlt1TrackMVA": {"pre_scaler_hash_string": "track_mva_line_pre", "post_scaler_hash_string": "track_mva_line_post"},
   "Hlt1TwoTrackMVA": {"pre_scaler_hash_string": "two_track_mva_line_pre", "post_scaler_hash_string": "two_track_mva_line_post"},
+  "Hlt1TwoTrackCatBoost": {"pre_scaler_hash_string": "two_track_catboost_line_pre", "post_scaler_hash_string": "two_track_catboost_line_post"},
   "Hlt1NoBeam": {"pre_scaler_hash_string": "no_beam_line_pre", "post_scaler_hash_string": "no_beam_line_post", "beam_crossing_type": "0"},
   "Hlt1BeamOne": {"pre_scaler_hash_string": "beam_one_line_pre", "post_scaler_hash_string": "beam_one_line_post", "beam_crossing_type": "1"},
   "Hlt1BeamTwo": {"pre_scaler_hash_string": "beam_two_line_pre", "post_scaler_hash_string": "beam_two_line_post", "beam_crossing_type": "2"},
@@ -31,6 +32,6 @@
   "Hlt1TrackMuonMVA": {"pre_scaler_hash_string": "track_muon_mva_line_pre", "post_scaler_hash_string": "track_muon_mva_line_post"},
   "Hlt1GECPassthrough": {"pre_scaler_hash_string": "gec_passthrough_line_pre", "post_scaler_hash_string": "gec_passthrough_line_post"},
   "Hlt1Passthrough": {"pre_scaler_hash_string": "passthrough_line_pre", "post_scaler_hash_string": "passthrough_line_post"},
-  "gather_selections": {"names_of_active_lines": "Hlt1TrackMVA,Hlt1TwoTrackMVA,Hlt1NoBeam,Hlt1BeamOne,Hlt1BeamTwo,Hlt1BothBeams,Hlt1VeloMicroBias,Hlt1ODINLumi,Hlt1ODINNoBias,Hlt1SingleHighPtMuon,Hlt1LowPtMuon,Hlt1D2KK,Hlt1D2KPi,Hlt1D2PiPi,Hlt1DiMuonHighMass,Hlt1DiMuonLowMass,Hlt1DiMuonSoft,Hlt1LowPtDiMuon,Hlt1TrackMuonMVA,Hlt1GECPassthrough,Hlt1Passthrough"},
+  "gather_selections": {"names_of_active_lines": "Hlt1TrackMVA,Hlt1TwoTrackMVA,Hlt1TwoTrackCatBoost,Hlt1NoBeam,Hlt1BeamOne,Hlt1BeamTwo,Hlt1BothBeams,Hlt1VeloMicroBias,Hlt1ODINLumi,Hlt1ODINNoBias,Hlt1SingleHighPtMuon,Hlt1LowPtMuon,Hlt1D2KK,Hlt1D2KPi,Hlt1D2PiPi,Hlt1DiMuonHighMass,Hlt1DiMuonLowMass,Hlt1DiMuonSoft,Hlt1LowPtDiMuon,Hlt1TrackMuonMVA,Hlt1GECPassthrough,Hlt1Passthrough"},
   "configured_lines": []
 }

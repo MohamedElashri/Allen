@@ -2,7 +2,7 @@
 * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
 *                                                                             *
 * This software is distributed under the terms of the Apache License          *
-* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+* version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *
 *                                                                             *
 * In applying this licence, CERN does not waive the privileges and immunities *
 * granted to it by virtue of its status as an Intergovernmental Organization  *
@@ -80,9 +80,12 @@
 #include "../../device/vertex_fit/vertex_fitter/include/FilterTracks.cuh"
 #include "../../host/prefix_sum/include/HostPrefixSum.h"
 #include "../../device/vertex_fit/vertex_fitter/include/VertexFitter.cuh"
+#include "../../device/vertex_fit/two_track_catboost/include/TwoTrackPreprocess.cuh"
+#include "../../device/vertex_fit/two_track_catboost/include/TwoTrackEvaluator.cuh"
 #include "../../host/data_provider/include/DataProvider.h"
 #include "../../device/selections/lines/inclusive_hadron/include/TrackMVALine.cuh"
 #include "../../device/selections/lines/inclusive_hadron/include/TwoTrackMVALine.cuh"
+#include "../../device/selections/lines/inclusive_hadron/include/TwoTrackCatBoostLine.cuh"
 #include "../../device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
 #include "../../device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
 #include "../../device/selections/lines/monitoring/include/BeamCrossingLine.cuh"
@@ -121,6 +124,7 @@ struct mep_layout__host_mep_layout_t : layout_provider::Parameters::host_mep_lay
 struct mep_layout__dev_mep_layout_t : layout_provider::Parameters::dev_mep_layout_t,
                                       track_mva_line::Parameters::dev_mep_layout_t,
                                       two_track_mva_line::Parameters::dev_mep_layout_t,
+                                      two_track_catboost_line::Parameters::dev_mep_layout_t,
                                       beam_crossing_line::Parameters::dev_mep_layout_t,
                                       velo_micro_bias_line::Parameters::dev_mep_layout_t,
                                       odin_event_type_line::Parameters::dev_mep_layout_t,
@@ -217,6 +221,7 @@ struct initialize_lists__host_number_of_events_t
     VertexFit::Parameters::host_number_of_events_t,
     track_mva_line::Parameters::host_number_of_events_t,
     two_track_mva_line::Parameters::host_number_of_events_t,
+    two_track_catboost_line::Parameters::host_number_of_events_t,
     beam_crossing_line::Parameters::host_number_of_events_t,
     velo_micro_bias_line::Parameters::host_number_of_events_t,
     odin_event_type_line::Parameters::host_number_of_events_t,
@@ -327,8 +332,10 @@ struct initialize_lists__dev_event_list_t : host_init_event_list::Parameters::de
                                             kalman_velo_only::Parameters::dev_event_list_t,
                                             FilterTracks::Parameters::dev_event_list_t,
                                             VertexFit::Parameters::dev_event_list_t,
+                                            two_track_preprocess::Parameters::dev_event_list_t,
                                             track_mva_line::Parameters::dev_event_list_t,
                                             two_track_mva_line::Parameters::dev_event_list_t,
+                                            two_track_catboost_line::Parameters::dev_event_list_t,
                                             single_high_pt_muon_line::Parameters::dev_event_list_t,
                                             low_pt_muon_line::Parameters::dev_event_list_t,
                                             d2kk_line::Parameters::dev_event_list_t,
@@ -608,6 +615,7 @@ struct velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t
     scifi_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t,
     velo_pv_ip::Parameters::dev_offsets_all_velo_tracks_t,
     kalman_velo_only::Parameters::dev_offsets_all_velo_tracks_t,
+    two_track_preprocess::Parameters::dev_offsets_all_velo_tracks_t,
     velo_micro_bias_line::Parameters::dev_offsets_velo_tracks_t,
     passthrough_line::Parameters::dev_offsets_velo_tracks_t,
     host_velo_validator::Parameters::dev_offsets_all_velo_tracks_t,
@@ -646,6 +654,7 @@ struct prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t
     scifi_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
     velo_pv_ip::Parameters::dev_offsets_velo_track_hit_number_t,
     kalman_velo_only::Parameters::dev_offsets_velo_track_hit_number_t,
+    two_track_preprocess::Parameters::dev_offsets_velo_track_hit_number_t,
     velo_micro_bias_line::Parameters::dev_offsets_velo_track_hit_number_t,
     passthrough_line::Parameters::dev_offsets_velo_track_hit_number_t,
     host_velo_validator::Parameters::dev_offsets_velo_track_hit_number_t,
@@ -1422,15 +1431,19 @@ struct filter_tracks_t__dev_svs_trk2_idx_t : FilterTracks::Parameters::dev_svs_t
   using type = FilterTracks::Parameters::dev_svs_trk2_idx_t::type;
   using deps = FilterTracks::Parameters::dev_svs_trk2_idx_t::deps;
 };
-struct prefix_sum_secondary_vertices__host_total_sum_holder_t : host_prefix_sum::Parameters::host_total_sum_holder_t,
-                                                                VertexFit::Parameters::host_number_of_svs_t,
-                                                                two_track_mva_line::Parameters::host_number_of_svs_t,
-                                                                d2kk_line::Parameters::host_number_of_svs_t,
-                                                                d2kpi_line::Parameters::host_number_of_svs_t,
-                                                                d2pipi_line::Parameters::host_number_of_svs_t,
-                                                                di_muon_mass_line::Parameters::host_number_of_svs_t,
-                                                                di_muon_soft_line::Parameters::host_number_of_svs_t,
-                                                                low_pt_di_muon_line::Parameters::host_number_of_svs_t {
+struct prefix_sum_secondary_vertices__host_total_sum_holder_t
+  : host_prefix_sum::Parameters::host_total_sum_holder_t,
+    VertexFit::Parameters::host_number_of_svs_t,
+    two_track_preprocess::Parameters::host_number_of_svs_t,
+    two_track_evaluator::Parameters::host_number_of_svs_t,
+    two_track_mva_line::Parameters::host_number_of_svs_t,
+    two_track_catboost_line::Parameters::host_number_of_svs_t,
+    d2kk_line::Parameters::host_number_of_svs_t,
+    d2kpi_line::Parameters::host_number_of_svs_t,
+    d2pipi_line::Parameters::host_number_of_svs_t,
+    di_muon_mass_line::Parameters::host_number_of_svs_t,
+    di_muon_soft_line::Parameters::host_number_of_svs_t,
+    low_pt_di_muon_line::Parameters::host_number_of_svs_t {
   using type = host_prefix_sum::Parameters::host_total_sum_holder_t::type;
   using deps = host_prefix_sum::Parameters::host_total_sum_holder_t::deps;
 };
@@ -1440,7 +1453,9 @@ struct prefix_sum_secondary_vertices__host_output_buffer_t : host_prefix_sum::Pa
 };
 struct prefix_sum_secondary_vertices__dev_output_buffer_t : host_prefix_sum::Parameters::dev_output_buffer_t,
                                                             VertexFit::Parameters::dev_sv_offsets_t,
+                                                            two_track_preprocess::Parameters::dev_sv_offsets_t,
                                                             two_track_mva_line::Parameters::dev_sv_offsets_t,
+                                                            two_track_catboost_line::Parameters::dev_sv_offsets_t,
                                                             d2kk_line::Parameters::dev_sv_offsets_t,
                                                             d2kpi_line::Parameters::dev_sv_offsets_t,
                                                             d2pipi_line::Parameters::dev_sv_offsets_t,
@@ -1451,7 +1466,9 @@ struct prefix_sum_secondary_vertices__dev_output_buffer_t : host_prefix_sum::Par
   using deps = host_prefix_sum::Parameters::dev_output_buffer_t::deps;
 };
 struct fit_secondary_vertices__dev_consolidated_svs_t : VertexFit::Parameters::dev_consolidated_svs_t,
+                                                        two_track_preprocess::Parameters::dev_consolidated_svs_t,
                                                         two_track_mva_line::Parameters::dev_svs_t,
+                                                        two_track_catboost_line::Parameters::dev_svs_t,
                                                         d2kk_line::Parameters::dev_svs_t,
                                                         d2kpi_line::Parameters::dev_svs_t,
                                                         d2pipi_line::Parameters::dev_svs_t,
@@ -1461,9 +1478,22 @@ struct fit_secondary_vertices__dev_consolidated_svs_t : VertexFit::Parameters::d
   using type = VertexFit::Parameters::dev_consolidated_svs_t::type;
   using deps = VertexFit::Parameters::dev_consolidated_svs_t::deps;
 };
+struct two_track_preprocess__dev_two_track_preprocess_output_t
+  : two_track_preprocess::Parameters::dev_two_track_preprocess_output_t,
+    two_track_evaluator::Parameters::dev_two_track_catboost_preprocess_output_t {
+  using type = two_track_preprocess::Parameters::dev_two_track_preprocess_output_t::type;
+  using deps = two_track_preprocess::Parameters::dev_two_track_preprocess_output_t::deps;
+};
+struct two_track_evaluator__dev_two_track_catboost_evaluation_t
+  : two_track_evaluator::Parameters::dev_two_track_catboost_evaluation_t,
+    two_track_catboost_line::Parameters::dev_two_track_evaluation_t {
+  using type = two_track_evaluator::Parameters::dev_two_track_catboost_evaluation_t::type;
+  using deps = two_track_evaluator::Parameters::dev_two_track_catboost_evaluation_t::deps;
+};
 struct odin_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
                                      track_mva_line::Parameters::dev_odin_raw_input_t,
                                      two_track_mva_line::Parameters::dev_odin_raw_input_t,
+                                     two_track_catboost_line::Parameters::dev_odin_raw_input_t,
                                      beam_crossing_line::Parameters::dev_odin_raw_input_t,
                                      velo_micro_bias_line::Parameters::dev_odin_raw_input_t,
                                      odin_event_type_line::Parameters::dev_odin_raw_input_t,
@@ -1484,6 +1514,7 @@ struct odin_banks__dev_raw_banks_t : data_provider::Parameters::dev_raw_banks_t,
 struct odin_banks__dev_raw_offsets_t : data_provider::Parameters::dev_raw_offsets_t,
                                        track_mva_line::Parameters::dev_odin_raw_input_offsets_t,
                                        two_track_mva_line::Parameters::dev_odin_raw_input_offsets_t,
+                                       two_track_catboost_line::Parameters::dev_odin_raw_input_offsets_t,
                                        beam_crossing_line::Parameters::dev_odin_raw_input_offsets_t,
                                        velo_micro_bias_line::Parameters::dev_odin_raw_input_offsets_t,
                                        odin_event_type_line::Parameters::dev_odin_raw_input_offsets_t,
@@ -1747,6 +1778,8 @@ using configured_arguments_t = std::tuple<
   prefix_sum_secondary_vertices__host_output_buffer_t,
   prefix_sum_secondary_vertices__dev_output_buffer_t,
   fit_secondary_vertices__dev_consolidated_svs_t,
+  two_track_preprocess__dev_two_track_preprocess_output_t,
+  two_track_evaluator__dev_two_track_catboost_evaluation_t,
   odin_banks__dev_raw_banks_t,
   odin_banks__dev_raw_offsets_t,
   Hlt1TrackMVA__dev_decisions_t,
@@ -1757,6 +1790,10 @@ using configured_arguments_t = std::tuple<
   Hlt1TwoTrackMVA__dev_decisions_offsets_t,
   Hlt1TwoTrackMVA__host_post_scaler_t,
   Hlt1TwoTrackMVA__host_post_scaler_hash_t,
+  Hlt1TwoTrackCatBoost__dev_decisions_t,
+  Hlt1TwoTrackCatBoost__dev_decisions_offsets_t,
+  Hlt1TwoTrackCatBoost__host_post_scaler_t,
+  Hlt1TwoTrackCatBoost__host_post_scaler_hash_t,
   Hlt1NoBeam__dev_decisions_t,
   Hlt1NoBeam__dev_decisions_offsets_t,
   Hlt1NoBeam__host_post_scaler_t,
@@ -1916,9 +1953,12 @@ using configured_sequence_t = std::tuple<
   FilterTracks::filter_tracks_t,
   host_prefix_sum::host_prefix_sum_t,
   VertexFit::fit_secondary_vertices_t,
+  two_track_preprocess::two_track_preprocess_t,
+  two_track_evaluator::two_track_evaluator_t,
   data_provider::data_provider_t,
   track_mva_line::track_mva_line_t,
   two_track_mva_line::two_track_mva_line_t,
+  two_track_catboost_line::two_track_catboost_line_t,
   beam_crossing_line::beam_crossing_line_t,
   beam_crossing_line::beam_crossing_line_t,
   beam_crossing_line::beam_crossing_line_t,
@@ -2599,6 +2639,18 @@ using configured_sequence_arguments_t = std::tuple<
     filter_tracks_t__dev_svs_trk2_idx_t,
     prefix_sum_secondary_vertices__dev_output_buffer_t,
     fit_secondary_vertices__dev_consolidated_svs_t>,
+  std::tuple<
+    prefix_sum_secondary_vertices__host_total_sum_holder_t,
+    fit_secondary_vertices__dev_consolidated_svs_t,
+    prefix_sum_secondary_vertices__dev_output_buffer_t,
+    velo_copy_track_hit_number__dev_offsets_all_velo_tracks_t,
+    prefix_sum_offsets_velo_track_hit_number__dev_output_buffer_t,
+    initialize_lists__dev_event_list_t,
+    two_track_preprocess__dev_two_track_preprocess_output_t>,
+  std::tuple<
+    prefix_sum_secondary_vertices__host_total_sum_holder_t,
+    two_track_preprocess__dev_two_track_preprocess_output_t,
+    two_track_evaluator__dev_two_track_catboost_evaluation_t>,
   std::tuple<odin_banks__dev_raw_banks_t, odin_banks__dev_raw_offsets_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
@@ -2626,6 +2678,20 @@ using configured_sequence_arguments_t = std::tuple<
     Hlt1TwoTrackMVA__dev_decisions_offsets_t,
     Hlt1TwoTrackMVA__host_post_scaler_t,
     Hlt1TwoTrackMVA__host_post_scaler_hash_t>,
+  std::tuple<
+    initialize_lists__host_number_of_events_t,
+    prefix_sum_secondary_vertices__host_total_sum_holder_t,
+    fit_secondary_vertices__dev_consolidated_svs_t,
+    two_track_evaluator__dev_two_track_catboost_evaluation_t,
+    prefix_sum_secondary_vertices__dev_output_buffer_t,
+    initialize_lists__dev_event_list_t,
+    odin_banks__dev_raw_banks_t,
+    odin_banks__dev_raw_offsets_t,
+    mep_layout__dev_mep_layout_t,
+    Hlt1TwoTrackCatBoost__dev_decisions_t,
+    Hlt1TwoTrackCatBoost__dev_decisions_offsets_t,
+    Hlt1TwoTrackCatBoost__host_post_scaler_t,
+    Hlt1TwoTrackCatBoost__host_post_scaler_hash_t>,
   std::tuple<
     initialize_lists__host_number_of_events_t,
     mep_layout__dev_mep_layout_t,
@@ -2864,6 +2930,7 @@ using configured_sequence_arguments_t = std::tuple<
     mep_layout__dev_mep_layout_t,
     Hlt1TrackMVA__dev_decisions_t,
     Hlt1TwoTrackMVA__dev_decisions_t,
+    Hlt1TwoTrackCatBoost__dev_decisions_t,
     Hlt1NoBeam__dev_decisions_t,
     Hlt1BeamOne__dev_decisions_t,
     Hlt1BeamTwo__dev_decisions_t,
@@ -2885,6 +2952,7 @@ using configured_sequence_arguments_t = std::tuple<
     Hlt1Passthrough__dev_decisions_t,
     Hlt1TrackMVA__dev_decisions_offsets_t,
     Hlt1TwoTrackMVA__dev_decisions_offsets_t,
+    Hlt1TwoTrackCatBoost__dev_decisions_offsets_t,
     Hlt1NoBeam__dev_decisions_offsets_t,
     Hlt1BeamOne__dev_decisions_offsets_t,
     Hlt1BeamTwo__dev_decisions_offsets_t,
@@ -2906,6 +2974,7 @@ using configured_sequence_arguments_t = std::tuple<
     Hlt1Passthrough__dev_decisions_offsets_t,
     Hlt1TrackMVA__host_post_scaler_t,
     Hlt1TwoTrackMVA__host_post_scaler_t,
+    Hlt1TwoTrackCatBoost__host_post_scaler_t,
     Hlt1NoBeam__host_post_scaler_t,
     Hlt1BeamOne__host_post_scaler_t,
     Hlt1BeamTwo__host_post_scaler_t,
@@ -2927,6 +2996,7 @@ using configured_sequence_arguments_t = std::tuple<
     Hlt1Passthrough__host_post_scaler_t,
     Hlt1TrackMVA__host_post_scaler_hash_t,
     Hlt1TwoTrackMVA__host_post_scaler_hash_t,
+    Hlt1TwoTrackCatBoost__host_post_scaler_hash_t,
     Hlt1NoBeam__host_post_scaler_hash_t,
     Hlt1BeamOne__host_post_scaler_hash_t,
     Hlt1BeamTwo__host_post_scaler_hash_t,
@@ -3130,9 +3200,12 @@ constexpr auto sequence_algorithm_names = std::array {"mep_layout",
                                                       "filter_tracks_t",
                                                       "prefix_sum_secondary_vertices",
                                                       "fit_secondary_vertices",
+                                                      "two_track_preprocess",
+                                                      "two_track_evaluator",
                                                       "odin_banks",
                                                       "Hlt1TrackMVA",
                                                       "Hlt1TwoTrackMVA",
+                                                      "Hlt1TwoTrackCatBoost",
                                                       "Hlt1NoBeam",
                                                       "Hlt1BeamOne",
                                                       "Hlt1BeamTwo",
@@ -3469,6 +3542,10 @@ void populate_sequence_argument_names(T& argument_manager)
     "prefix_sum_secondary_vertices__dev_output_buffer_t");
   argument_manager.template set_name<fit_secondary_vertices__dev_consolidated_svs_t>(
     "fit_secondary_vertices__dev_consolidated_svs_t");
+  argument_manager.template set_name<two_track_preprocess__dev_two_track_preprocess_output_t>(
+    "two_track_preprocess__dev_two_track_preprocess_output_t");
+  argument_manager.template set_name<two_track_evaluator__dev_two_track_catboost_evaluation_t>(
+    "two_track_evaluator__dev_two_track_catboost_evaluation_t");
   argument_manager.template set_name<odin_banks__dev_raw_banks_t>("odin_banks__dev_raw_banks_t");
   argument_manager.template set_name<odin_banks__dev_raw_offsets_t>("odin_banks__dev_raw_offsets_t");
   argument_manager.template set_name<Hlt1TrackMVA__dev_decisions_t>("Hlt1TrackMVA__dev_decisions_t");
@@ -3481,6 +3558,13 @@ void populate_sequence_argument_names(T& argument_manager)
   argument_manager.template set_name<Hlt1TwoTrackMVA__host_post_scaler_t>("Hlt1TwoTrackMVA__host_post_scaler_t");
   argument_manager.template set_name<Hlt1TwoTrackMVA__host_post_scaler_hash_t>(
     "Hlt1TwoTrackMVA__host_post_scaler_hash_t");
+  argument_manager.template set_name<Hlt1TwoTrackCatBoost__dev_decisions_t>("Hlt1TwoTrackCatBoost__dev_decisions_t");
+  argument_manager.template set_name<Hlt1TwoTrackCatBoost__dev_decisions_offsets_t>(
+    "Hlt1TwoTrackCatBoost__dev_decisions_offsets_t");
+  argument_manager.template set_name<Hlt1TwoTrackCatBoost__host_post_scaler_t>(
+    "Hlt1TwoTrackCatBoost__host_post_scaler_t");
+  argument_manager.template set_name<Hlt1TwoTrackCatBoost__host_post_scaler_hash_t>(
+    "Hlt1TwoTrackCatBoost__host_post_scaler_hash_t");
   argument_manager.template set_name<Hlt1NoBeam__dev_decisions_t>("Hlt1NoBeam__dev_decisions_t");
   argument_manager.template set_name<Hlt1NoBeam__dev_decisions_offsets_t>("Hlt1NoBeam__dev_decisions_offsets_t");
   argument_manager.template set_name<Hlt1NoBeam__host_post_scaler_t>("Hlt1NoBeam__host_post_scaler_t");
