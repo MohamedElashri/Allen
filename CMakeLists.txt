@@ -13,7 +13,6 @@ project(Allen VERSION 1.8
 
 option(BUILD_TESTING "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
-option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
@@ -558,7 +557,7 @@ file(GLOB common_sources "main/src/*.cpp")
 set(allen_lib_sources)
 
 #Remove main.cpp from common_sources
-foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend Provider RegisterConsumers Stream)
+foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender Provider RegisterConsumers)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -569,12 +568,7 @@ set(allen_lib_sources
   ${OutputHandler_cpp_path}
   ${ZMQOutputSender_cpp_path}
   ${Provider_cpp_path}
-  ${RegisterConsumers_cpp_path}
-  ${StreamLoader_cpp_path})
-
-if (USE_MPI AND MPI_FOUND)
-  list(APPEND allen_lib_sources "main/src/MPISend.cpp")
-endif()
+  ${RegisterConsumers_cpp_path})
 
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
@@ -609,8 +603,6 @@ endforeach()
 set_target_properties(Common PROPERTIES PUBLIC_HEADER "${AllenHeaders}")
 install(TARGETS Common EXPORT Allen
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
-
-# install(FILES "${AllenHeaders}" DESTINATION include/Allen)
 
 #Make sure extra search paths get included as system to avoid
 #warnings in external headers
@@ -684,12 +676,8 @@ target_link_libraries(AllenLib PUBLIC
   LHCbEvent
   ${CMAKE_DL_LIBS})
 
-if (USE_MPI AND MPI_FOUND)
-  get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
-  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES} -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
-  target_include_directories(AllenLib SYSTEM PUBLIC ${MPI_CXX_INCLUDE_PATH})
-  target_compile_definitions(AllenLib PRIVATE HAVE_MPI HAVE_HWLOC)
-endif()
+target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
+
 
 if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(AllenLib PRIVATE ${ALLEN_ROOT_DEFINITIONS})

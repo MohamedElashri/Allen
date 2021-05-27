@@ -71,32 +71,19 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  add_library(Transpose STATIC ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp)
-  target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent)
-
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Transpose Threads::Threads EventModel)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
     target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
   endif()
 
-  if (USE_MPI AND MPI_FOUND)
-    target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)
-    target_include_directories(${PARSED_ARGS_NAME} PRIVATE SYSTEM ${MPI_CXX_INCLUDE_PATH})
-    get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE ${MPI_CXX_LIBRARIES})
-    if (HWLOC_FOUND)
-      target_link_libraries(AllenLib PUBLIC -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
-      target_compile_definitions(AllenLib PRIVATE HAVE_HWLOC)
-    endif()
-  endif()
-
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin)
 endfunction()
 
-test_program(NAME mdf_to_mep)
-
 if (BUILD_TESTING)
+  add_library(Transpose STATIC ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp)
+  target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent)
+
   test_program(NAME dump_banks)
   test_program(NAME test_read)
   test_program(NAME bench_read)
