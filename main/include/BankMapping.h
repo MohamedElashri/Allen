@@ -4,9 +4,9 @@
 #pragma once
 
 #include <unordered_map>
+#include <Event/RawBank.h>
 
 #include "BankTypes.h"
-#include "Event/RawBank.h"
 
 namespace Allen {
   const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {
