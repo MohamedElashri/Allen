@@ -47,7 +47,7 @@ algorithms.velo_copy_track_hit_number_t(           algorithms.velo_search_by_tri
 algorithms.velo_estimate_input_size_t(             algorithms.velo_three_hit_tracks_filter_t(
 ```
 
-One can see the input and output parameters and properties of an algorithm by using the static getDefaultProperties method of algorithms. For instance:
+One can see the input and output parameters and properties of an algorithm by using the its `getDefaultProperties` class method. For instance:
 
 ```sh
 >>> algorithms.velo_calculate_number_of_candidates_t.getDefaultProperties()
