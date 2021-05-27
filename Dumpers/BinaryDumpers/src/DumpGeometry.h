@@ -42,10 +42,7 @@ public:
 
   StatusCode dump();
 
-  inline void Assert(
-    const bool ok,
-    const std::string& message = "",
-    const StatusCode sc = StatusCode(StatusCode::FAILURE, true)) const
+  inline void Assert(const bool ok, const std::string& message = "", const StatusCode sc = StatusCode::FAILURE) const
   {
     if (!ok) throw GaudiException(this->name() + ":: " + message, "", sc);
   }
