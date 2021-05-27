@@ -102,13 +102,3 @@ elseif(WITH_Allen_PRIVATE_DEPENDENCIES)
 elseif(STANDALONE)
    message(STATUS "Compiling without ROOT")
 endif()
-
-# MPI
-if (USE_MPI)
-  find_package(MPI REQUIRED)
-#hwloc is also needed
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(HWLOC IMPORTED_TARGET hwloc)
-else(USE_MPI)
-  set(MPI_FOUND OFF)
-endif()
