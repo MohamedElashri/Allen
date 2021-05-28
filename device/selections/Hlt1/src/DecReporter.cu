@@ -32,9 +32,10 @@ void dec_reporter::dec_reporter_t::operator()(
     arguments);
 
   Allen::copy<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
-  if (runtime_options.fill_extra_host_buffers) {
-    safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
-  }
+  safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
+
+  // Synchronize
+  Allen::synchronize(context);
 }
 
 __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
