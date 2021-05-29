@@ -42,14 +42,17 @@ public:
   int set_banks(const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& transposed_banks)
   {
     // store banks and offsets as BanksAndOffsets object
+<<<<<<< HEAD
     for (size_t i = 0; i < transposed_banks.size(); ++i) {
-      if (std::get<0>(transposed_banks[i]).empty()) continue;
+      auto const& [banks, version] = transposed_banks[i];
+
+      if (banks.empty()) continue;
 
       if (i >= m_bank_ids_mapping.size()) {
         std::cout << "ERROR: LHCb::RawBank index out of scope from conversion between Allen and LHCb raw bank types"
                   << std::endl;
         return 1;
-      } else if (banks[bank].empty()) {
+      } else if (banks.empty()) {
         continue;
       }
       auto bank = static_cast<LHCb::RawBank::BankType>(i);
@@ -58,8 +61,6 @@ public:
         std::cout << "ERROR: dumped bank type does not exist in Allen" << std::endl;
         return 1;
       }
-
-      auto const& [banks, version] = transposed_banks[bank];
 
       // Offsets to events (we only process one event)
       auto& offsets = m_offsets[allen_bank_index];

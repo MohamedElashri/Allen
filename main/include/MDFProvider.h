@@ -335,8 +335,8 @@ public:
         freed = true;
 
         // Reset the slice
-        auto& event_ids = m_event_ids[*slice_index];
-        reset_slice(m_slices, *slice_index, types(), event_ids);
+        auto& event_ids = m_event_ids[slice_index];
+        reset_slice(m_slices, slice_index, types(), event_ids);
 
         // Clear relation between slice and buffer
         i_read = m_slice_to_buffer[slice_index].buffer_index;
