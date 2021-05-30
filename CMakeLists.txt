@@ -468,7 +468,6 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
@@ -585,6 +584,7 @@ target_include_directories(AllenCommon INTERFACE SYSTEM
 set(AllenHeaders)
 foreach(header
     Allen.h
+    Provider.h
     SystemOfUnits.h
     Logger.h
     Timer.h

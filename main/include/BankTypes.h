@@ -12,10 +12,6 @@
 #include <cassert>
 #include <gsl/span>
 
-namespace {
-  using gsl::span;
-}
-
 constexpr auto NBankTypes = 10;
 enum class BankTypes { VP, UT, FT, MUON, ODIN, OTRaw, OTError, Rich, ECal, HCal, Unknown };
 
@@ -60,7 +56,7 @@ constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
   return static_cast<typename std::underlying_type<ENUM>::type>(e);
 }
 
-using BanksAndOffsets = std::tuple<std::vector<span<const char>>, size_t, span<const unsigned int>, int>;
+using BanksAndOffsets = std::tuple<std::vector<gsl::span<const char>>, size_t, gsl::span<const unsigned int>, int>;
 
 template<BankTypes... BANKS>
 std::unordered_set<BankTypes> banks_set()

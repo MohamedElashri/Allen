@@ -42,7 +42,6 @@ public:
   int set_banks(const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& transposed_banks)
   {
     // store banks and offsets as BanksAndOffsets object
-<<<<<<< HEAD
     for (size_t i = 0; i < transposed_banks.size(); ++i) {
       auto const& [banks, version] = transposed_banks[i];
 

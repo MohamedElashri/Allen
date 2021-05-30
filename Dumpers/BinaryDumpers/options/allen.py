@@ -11,14 +11,14 @@ import argparse
 
 # Load Allen entry point and helpers
 gbl.gSystem.Load("libAllenLib")
-gbl.gSystem.Load("libBinaryDumpersLib")
+gbl.gSystem.Load("libBinaryDumpers")
 interpreter = gbl.gInterpreter
 
 # FIXME: Once the headers are installed properly, this should not be
 # necessary anymore
 allen_dir = os.environ['ALLEN_PROJECT_ROOT']
-header_path = os.path.join(allen_dir, 'main', 'include', 'Allen.h')
-interpreter.Declare("#include <{}>".format(header_path))
+interpreter.Declare("#include <Allen/Allen.h>")
+interpreter.Declare("#include <Allen/Provider.h>")
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
@@ -43,24 +43,26 @@ parser.add_argument("-v", dest="verbosity", default="3")
 parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
+parser.add_argument("-s", dest="slices", default="2")
+parser.add_argument("-b", "--bank-types", dest="bank_types",
+                    default="VP,FTCluster,UT,Muon,ODIN")
 parser.add_argument(
     "--mdf",
     dest="mdf",
     default=os.path.join(allen_dir, "input", "minbias", "mdf",
                          "upgrade_mc_minbias_scifi_v5.mdf"))
-parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
 parser.add_argument(
     "--monitoring-save-period", dest="mon_save_period", default="0")
 parser.add_argument(
     "--monitoring-filename",
     dest="mon_filename",
-    default="monitoringHists.root")
+    default="monitoringHists.root", help="Histogram filename")
 parser.add_argument(
-    "--disable-run-changes", dest="disable_run_changes", default="0")
+    "--disable-run-changes", dest="disable_run_changes", default="1")
 parser.add_argument(
     "--events-per-slice", dest="events_per_slice", default="1000")
-parser.add_argument("--device", dest="device", default="0")
+parser.add_argument("--device", dest="device", default="0", help="Device index")
 
 args = parser.parse_args()
 
@@ -68,8 +70,8 @@ app = LHCbApp(
     DataType="Upgrade",
     EvtMax=1000,
     Simulation=True,
-    DDDBtag="dddb-20171122",
-    CondDBtag="sim-20180530-vc-md100")
+    DDDBtag="dddb-20210218",
+    CondDBtag="sim-20201218-vc-md100")
 
 # Upgrade DBs
 CondDB().Upgrade = True
@@ -92,28 +94,28 @@ updater = gbl.cast_updater(svc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
-for flag, value in (("g", args.det_folder), ("params", args.param_folder),
-                    ("n", args.n_events), ("o",
-                                           args.event_offset), ("t",
-                                                                args.threads),
-                    ("r", args.repetitions), ("m",
-                                              args.reserve), ("v",
-                                                              args.verbosity),
+for flag, value in (("g", args.det_folder),
+                    ("params", args.param_folder),
+                    ("n", args.n_events), ("o", args.event_offset),
+                    ("t", args.threads), ("r", args.repetitions),
+                    ("m", args.reserve),
+                    ("v", args.verbosity),
                     ("p", args.print_memory), ("i", args.import_fwd),
-                    ("sequence",
-                     args.sequence), ("mdf", args.mdf), ("cpu-offload",
-                                                         args.cpu_offload),
-                    ("disable-run-changes",
-                     args.disable_run_changes), ("monitoring-save-period",
-                                                 args.mon_save_period),
-                    ("monitoring-filename",
-                     args.mon_filename), ("events-per-slice",
-                                          args.events_per_slice),
-                    ("device",
-                     args.device), ("mep", args.mep), ("run-from-json", "1")):
+                    ("sequence", args.sequence),
+                    ("s", args.slices), ("mdf", args.mdf),
+                    ("b", args.bank_types),
+                    ("cpu-offload", args.cpu_offload),
+                    ("disable-run-changes", args.disable_run_changes),
+                    ("monitoring-save-period", args.mon_save_period),
+                    ("monitoring-filename", args.mon_filename),
+                    ("events-per-slice", args.events_per_slice),
+                    ("device", args.device), ("run-from-json", "1")):
     options[flag] = value
 
 con = gbl.std.string("")
 
+# Create provider
+provider = gbl.Allen.make_provider(options)
+
 # run Allen
-gbl.allen(options, updater, zmqSvc, con.c_str())
+gbl.allen(options, updater, provider, zmqSvc, con.c_str())

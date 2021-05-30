@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 
+#include "InputProvider.h"
+
 namespace {
   constexpr size_t n_write = 1;
   constexpr size_t n_input = 1;
