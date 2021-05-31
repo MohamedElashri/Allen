@@ -13,7 +13,7 @@ struct UTRawBank {
 
   static_assert(decoding_version == -1 || decoding_version == 3 || decoding_version == 4);
 
-  __device__ __host__ UTRawBank(const char* ut_raw_bank, const uint32_t& size)
+  __device__ __host__ UTRawBank(const char* ut_raw_bank, const uint32_t size)
   {
     uint32_t* p = (uint32_t*) ut_raw_bank;
     sourceID = *p;
@@ -29,9 +29,17 @@ struct UTRawBank {
       number_of_hits[1] = (*p & 0xFF00U) >> 8U;
       number_of_hits[2] = (*p & 0xFF0000U) >> 16U;
       number_of_hits[3] = (*p & 0xFF000000U) >> 24U;
+
+      bool bad = false;
+      for (int i = 0; i < static_cast<int>(number_of_hits.size()); ++i) {
+        bad |= (number_of_hits[i] == 255);
+      }
+
       // the header contains garbage if there are actually no words to decode (and there are always 6 words -- the word
       // is 0 if there are no hits in the lane)
-      if (size < sizeof(uint32_t) * 6) number_of_hits = {0, 0, 0, 0, 0, 0};
+      // also protect against corrupt events
+      if (((size - 1 * sizeof(uint32_t)) < sizeof(uint32_t) * 6) || bad)
+        number_of_hits = {0, 0, 0, 0, 0, 0};
     }
     p += 1;
     data = (uint16_t*) p;
@@ -53,7 +61,14 @@ struct UTRawBank {
       number_of_hits[1] = (*p & 0xFF00U) >> 8U;
       number_of_hits[2] = (*p & 0xFF0000U) >> 16U;
       number_of_hits[3] = (*p & 0xFF000000U) >> 24U;
-      if ((uint32_t*) ut_fragment_end - p < 6) number_of_hits = {0, 0, 0, 0, 0, 0};
+
+      bool bad = false;
+      for (int i = 0; i < static_cast<int>(number_of_hits.size()); ++i) {
+        bad |= (number_of_hits[i] == 255);
+      }
+
+      if (((ut_fragment_end - ut_fragment) < static_cast<long>(6 * sizeof(uint32_t))) || bad)
+        number_of_hits = {0, 0, 0, 0, 0, 0};
     }
     p += 1;
     data = (uint16_t*) p;
