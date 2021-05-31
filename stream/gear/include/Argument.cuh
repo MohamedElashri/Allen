@@ -4,6 +4,9 @@
 #pragma once
 
 #include <array>
+#include <string>
+
+#include <BackendCommon.h>
 
 // Struct to hold the types of the dependencies (libClang)
 namespace {
