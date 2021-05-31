@@ -72,13 +72,6 @@ rate_validator validation:
 Hlt1TrackMVA:            245/  1000, ( 7350.00 +/-   408.02) kHz
 Hlt1TwoTrackMVA:         425/  1000, (12750.00 +/-   468.97) kHz
 Hlt1TwoTrackCatBoost:    423/  1000, (12690.00 +/-   468.68) kHz
-Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:      1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowPtMuon:           140/  1000, ( 4200.00 +/-   329.18) kHz
 Hlt1D2KK:                 25/  1000, (  750.00 +/-   148.11) kHz
@@ -89,7 +82,14 @@ Hlt1DiMuonLowMass:        28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1DiMuonSoft:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:          37/  1000, ( 1110.00 +/-   179.08) kHz
 Hlt1TrackMuonMVA:         10/  1000, (  300.00 +/-    94.39) kHz
-Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1GECPassthrough:      896/  1000, (26880.00 +/-   289.60) kHz
+Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Inclusive:              1000/  1000, (30000.00 +/-     0.00) kHz
 

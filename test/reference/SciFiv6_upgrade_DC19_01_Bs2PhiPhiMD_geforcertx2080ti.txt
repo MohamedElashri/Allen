@@ -1,4 +1,4 @@
-host_velo_validator validation:
+velo_validator validation:
 TrackChecker output                               :      1728/   222601   0.78% ghosts
 01_velo                                           :     94316/    95852  98.40% ( 98.47%),      1824 (  1.90%) clones, pur  99.72%, hit eff  96.90%
 02_long                                           :     56498/    56923  99.25% ( 99.29%),       731 (  1.28%) clones, pur  99.83%, hit eff  98.01%
@@ -72,13 +72,6 @@ rate_validator validation:
 Hlt1TrackMVA:            248/  1000, ( 7440.00 +/-   409.69) kHz
 Hlt1TwoTrackMVA:         421/  1000, (12630.00 +/-   468.38) kHz
 Hlt1TwoTrackCatBoost:    420/  1000, (12600.00 +/-   468.23) kHz
-Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:      1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowPtMuon:           138/  1000, ( 4140.00 +/-   327.20) kHz
 Hlt1D2KK:                 26/  1000, (  780.00 +/-   150.97) kHz
@@ -89,7 +82,14 @@ Hlt1DiMuonLowMass:        27/  1000, (  810.00 +/-   153.77) kHz
 Hlt1DiMuonSoft:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:          38/  1000, ( 1140.00 +/-   181.38) kHz
 Hlt1TrackMuonMVA:          9/  1000, (  270.00 +/-    89.59) kHz
-Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1GECPassthrough:      896/  1000, (26880.00 +/-   289.60) kHz
+Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Inclusive:              1000/  1000, (30000.00 +/-     0.00) kHz
 
