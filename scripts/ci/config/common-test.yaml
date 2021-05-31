@@ -16,10 +16,11 @@
 
   artifacts:
     expire_in: 2 hours
-    when: on_failure
+    when: always
     paths:
       - ./run_physics_efficiency_output_*/*.diff
       - ./run_physics_efficiency_output_*/efficiency_*
+      - ./generated_reference_files/*
 
 
 
