@@ -165,7 +165,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1VeloMicroBias",
             make_velo_micro_bias_line(velo_tracks),
-            enableGEC=False))
+            enableGEC=True))
     lines.append(
         line_maker(
             "Hlt1ODINLumi",
@@ -199,8 +199,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
             reconstructed_objects["kalman_velo_only"],
             reconstructed_objects["secondary_vertices"])
 
-        monitoring_lines = default_monitoring_lines(
-            reconstructed_objects["velo_tracks"])
+    monitoring_lines = default_monitoring_lines(
+        reconstructed_objects["velo_tracks"])
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
