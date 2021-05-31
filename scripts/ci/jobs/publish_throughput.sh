@@ -26,7 +26,7 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
     cat devices_throughputs_${SEQUENCE_DATASET}.csv
 
     python checker/plotting/post_combined_message.py \
-        -j "${PUBLISH_ARTIFACT_NAME}" \
+        -j "${CI_JOB_NAME}" \
         -l "Throughput of [branch **\`${CI_COMMIT_REF_NAME} (${CI_COMMIT_SHORT_SHA})\`**, sequence **\`${SEQUENCE}\`** over dataset **\`${INPUT_FILES}\`**](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" \
         -t devices_throughputs_${SEQUENCE_DATASET}.csv \
         -b run_throughput_output_${SEQUENCE_DATASET}/${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv

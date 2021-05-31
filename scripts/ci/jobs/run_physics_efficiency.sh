@@ -50,4 +50,4 @@ setupViews
 
 {
   eval "${ALLEN}"
-} 2>&1 | tee "${OUTPUT_FOLDER}/${INPUT_FILES}_${DEVICE_ID}.txt"
+} 2>&1 | tee "${OUTPUT_FOLDER}/${INPUT_FILES}_${SEQUENCE}_${DEVICE_ID}.txt"

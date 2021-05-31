@@ -140,7 +140,7 @@ throughput:
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-# Blocks the pipeline from being triggered automatically
+# Blocks the full pipeline from being triggered automatically
 # in Merge Requests
 # Does not block for master, web, schedules
 full-pipeline:
@@ -159,8 +159,8 @@ full-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH != "master"'
-      when: manual
+    # - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH != "master"'
+    #   when: manual
     - when: never
   needs: []
 
@@ -201,13 +201,10 @@ HIP:
 
 .cpu_run_job:
   dependencies: [CPU, build]
-  stage: "run full"
 .cuda_run_job:
   dependencies: [CUDA, build]
-  stage: "run full"
 .hip_run_job:
   dependencies: [HIP, build]
-  stage: "run full"
 
 
 # CPU
@@ -220,8 +217,9 @@ x862630v4-full-run-changes:
   extends:
     - .x862630v4
     - .run_toggle_run_changes
+    - .default_rules_always_run
     - .cpu_run_job
-
+  stage: "run full"
 
 epyc7502-full:
   extends:
@@ -250,6 +248,8 @@ geforcertx2080ti-full-run-changes:
     - .geforcertx2080ti
     - .run_toggle_run_changes
     - .cuda_run_job
+    - .default_rules_always_run
+  stage: "run full"
 geforcertx2080ti-full:
   extends:
     - .geforcertx2080ti

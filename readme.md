@@ -1,6 +1,8 @@
 Allen
 =====
 
+[![pipeline status](https://gitlab.cern.ch/lhcb/Allen/badges/master/pipeline.svg)](https://gitlab.cern.ch/lhcb/Allen/-/commits/master)
+
 Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites

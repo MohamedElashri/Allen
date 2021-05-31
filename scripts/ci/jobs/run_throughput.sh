@@ -27,15 +27,15 @@ fi
 
 
 set -euxo pipefail
-OUTPUT_FOLDER="${TEST_NAME}_output_${SEQUENCE}_${INPUT_FILES}/${DEVICE_ID}"
-mkdir -p ${OUTPUT_FOLDER}
+OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${INPUT_FILES}/${DEVICE_ID}"
+mkdir -p ${OUTPUT_FOLDER_REL}
 
-OUTPUT_FOLDER=$(realpath ${OUTPUT_FOLDER})
+OUTPUT_FOLDER=$(realpath ${OUTPUT_FOLDER_REL})
 BUILD_FOLDER=$(realpath "${BUILD_FOLDER}")
 
 if [ "${PROFILE_DEVICE}" = "${DEVICE_ID}" ]; then
 
-  if [ "${TARGET}" -ne "CUDA" ]; then
+  if [ "${TARGET}" != "CUDA" ]; then
     echo "PROFILE_DEVICE ${PROFILE_DEVICE} is not a CUDA device."
     echo "Profiling is only supported on CUDA devices. Please check the content of the PROFILE_DEVICE and TARGET variables."
     exit 1
@@ -107,16 +107,19 @@ else
   } 2>&1 | tee "${OUTPUT_FOLDER}/output.txt"
 fi
 
+###
+# From here onwards, some bookkeeping for reporting throughput stats.
+
 THROUGHPUT=$(cat ${OUTPUT_FOLDER}/output.txt | grep --color=none "events/s" | awk '{ print $1; }')
 FULL_DEVICE_NAME=$(cat ${OUTPUT_FOLDER}/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //')
-THROUGHPUT_KHZ=$(python -c "import os; print('%.2f' % (float(${THROUGHPUT}) / 1000.0))")
+THROUGHPUT_KHZ=$(python -c "print('%.2f' % (float(${THROUGHPUT}) / 1000.0))")
 echo "Throughput (Hz): ${THROUGHPUT}"
 echo "Throughput (kHz, 2 d.p.): ${THROUGHPUT_KHZ}"
 
 echo "${INPUT_FILES}" > "${OUTPUT_FOLDER}/input_files.txt"
 echo "${SEQUENCE}" > "${OUTPUT_FOLDER}/sequence.txt"
+echo "${THROUGHPUT}" > "${OUTPUT_FOLDER}/throughput.txt"
+echo "${CI_COMMIT_SHORT_SHA}" > "${OUTPUT_FOLDER}/revision.txt"
 
-# write metrics to display on MR
-echo "HELP throughput_${DEVICE_ID} Throughput measurement for ${FULL_DEVICE_NAME} (${DEVICE_ID}) sequence ${SEQUENCE} over dataset ${INPUT_FILES}" > "${OUTPUT_FOLDER}/metrics.txt"
-echo "TYPE throughput_${DEVICE_ID} summary" >> "${OUTPUT_FOLDER}/metrics.txt"
-echo "throughput_${DEVICE_ID}{target=${TARGET}, sequence=${SEQUENCE}, dataset=${INPUT_FILES}, unit=kHz} ${THROUGHPUT_KHZ}" >> "${OUTPUT_FOLDER}/metrics.txt"
+# write metric to display on MR
+echo "throughput_kHz{device=\"${DEVICE_ID}\",sequence=\"${SEQUENCE}\",dataset=\"${INPUT_FILES}\"} ${THROUGHPUT_KHZ}" >> "${OUTPUT_FOLDER}/metrics.txt"
