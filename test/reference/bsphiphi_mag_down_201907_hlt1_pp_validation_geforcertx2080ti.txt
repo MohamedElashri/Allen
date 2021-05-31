@@ -12,6 +12,20 @@ TrackChecker output                               :      2050/   239015   0.86% 
 10_long_fromB_electrons_P>5GeV                    :       127/      130  97.69% ( 98.18%),         8 (  5.93%) clones, pur  98.10%, hit eff  96.81%
 
 
+pv_validator validation:
+REC and MC vertices matched by dz distance
+MC PV is reconstructible if at least 4 tracks are reconstructed
+MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
+REC and MC vertices matched by dz distance
+
+All                  :  0.932 (  4544/  4875)
+Isolated             :  0.968 (  2456/  2538)
+Close                :  0.893 (  2088/  2337)
+False rate           :  0.011 (    51/  4595)
+Real false rate      :  0.011 (    51/  4595)
+Clones               :  0.000 (     0/  4544)
+
+
 veloUT_validator validation:
 TrackChecker output                               :      3117/    49864   6.25% ghosts
 01_velo                                           :     44602/   102077  43.69% ( 44.07%),       326 (  0.73%) clones, pur  99.49%, hit eff  96.70%
@@ -27,20 +41,6 @@ TrackChecker output                               :      3117/    49864   6.25% 
 11_long_electrons                                 :       812/     4548  17.85% ( 18.72%),        17 (  2.05%) clones, pur  98.35%, hit eff  95.61%
 12_long_fromB_electrons                           :        88/      202  43.56% ( 49.51%),         4 (  4.35%) clones, pur  99.06%, hit eff  95.31%
 13_long_fromB_electrons_P>5GeV                    :        76/      130  58.46% ( 63.11%),         4 (  5.00%) clones, pur  99.20%, hit eff  95.17%
-
-
-pv_validator validation:
-REC and MC vertices matched by dz distance
-MC PV is reconstructible if at least 4 tracks are reconstructed
-MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
-REC and MC vertices matched by dz distance
-
-All                  :  0.932 (  4544/  4875)
-Isolated             :  0.968 (  2456/  2538)
-Close                :  0.893 (  2088/  2337)
-False rate           :  0.011 (    51/  4595)
-Real false rate      :  0.011 (    51/  4595)
-Clones               :  0.000 (     0/  4544)
 
 
 forward_validator validation:
@@ -71,6 +71,7 @@ Ghost tracks identified as muon with isMuon:                              175/  
 rate_validator validation:
 Hlt1TrackMVA:            213/  1000, ( 6390.00 +/-   388.42) kHz
 Hlt1TwoTrackMVA:         379/  1000, (11370.00 +/-   460.24) kHz
+Hlt1TwoTrackCatBoost:    392/  1000, (11760.00 +/-   463.14) kHz
 Hlt1SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1LowPtMuon:           122/  1000, ( 3660.00 +/-   310.49) kHz
 Hlt1D2KK:                 17/  1000, (  510.00 +/-   122.64) kHz
