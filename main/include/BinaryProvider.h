@@ -289,7 +289,14 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral<BankTypes>(bank_type);
-    auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    auto const& tup = m_slices[ib][slice_index];
+    auto const& banks = std::get<0>(tup);
+    auto const offsets = std::get<2>(tup);
+    auto const offsets_size = std::get<3>(tup);
+
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), -1};

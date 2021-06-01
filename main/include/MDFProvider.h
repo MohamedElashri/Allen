@@ -254,7 +254,14 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral<BankTypes>(bank_type);
-    auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    auto const& tup = m_slices[ib][slice_index];
+    auto const& banks = std::get<0>(tup);
+    auto const offsets = std::get<2>(tup);
+    auto const offsets_size = std::get<3>(tup);
+
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
@@ -376,7 +383,15 @@ public:
     auto const daq_bank_size = 4 * sizeof(3) + header_size;
 
     auto i_read = m_slice_to_buffer[slice_index];
-    auto const& [n_filled, event_offsets, event_buffer, transpose_start] = m_buffers[i_read];
+
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto const& [n_filled, event_offsets, event_buffer, transpose_start] = m_buffers[i_read];
+    auto const& tup = m_buffers[i_read];
+    auto const& event_offsets = std::get<1>(tup);
+    auto const& event_buffer = std::get<2>(tup);
+    auto const transpose_start = std::get<3>(tup);
+
     auto const event_size =
       event_offsets[transpose_start + event + 1] - event_offsets[event + transpose_start] - daq_bank_size;
     auto const* banks_start = event_buffer.data() + event_offsets[event + transpose_start] + daq_bank_size;
