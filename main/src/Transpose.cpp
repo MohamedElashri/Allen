@@ -54,8 +54,10 @@ std::tuple<bool, bool, bool, size_t> read_events(
     // It is
 
     // Read the banks
-    gsl::span<char> buffer_span {buffer_start + event_offsets[n_filled],
-                                 static_cast<events_size>(buffer.size() - event_offsets[n_filled])};
+    auto const buffer_offset = event_offsets[n_filled];
+    assert(buffer_offset < buffer_span.size());
+    gsl::span<char> buffer_span {buffer_start + buffer_offset,
+                                 static_cast<events_size>(buffer.size() - buffer_offset)};
     std::tie(eof, error, bank_span) =
       MDF::read_banks(input, header, std::move(buffer_span), compress_buffer, check_checksum);
     // Fill the start offset of the next event
