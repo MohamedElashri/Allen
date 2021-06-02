@@ -237,7 +237,14 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral<BankTypes>(bank_type);
-    auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    auto const& tup = m_slices[ib][slice_index];
+    auto const& banks = std::get<0>(tup);
+    auto const data_size = std::get<1>(tup);
+    auto const offsets = std::get<2>(tup);
+    auto const offsets_size = std::get<3>(tup);
 
     BanksAndOffsets bno;
     auto& spans = std::get<0>(bno);
@@ -377,10 +384,22 @@ public:
 
   void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const override
   {
-    auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
+    auto const& tup = m_slice_to_buffer[slice_index];
+    auto const& i_buffer = std::get<0>(tup);
+    auto const& interval_start = std::get<1>(tup);
+
     const auto mep_event = interval_start + event;
 
-    auto const& [mep_header, mpi_slice, blocks, fragment_offsets, slice_size] = m_net_slices[i_buffer];
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto const& [mep_header, mpi_slice, blocks, fragment_offsets, slice_size] = m_net_slices[i_buffer];
+    auto const& tup2 = m_net_slices[i_buffer];
+    auto const mep_header = std::get<0>(tup2);
+    auto const& blocks = std::get<2>(tup2);
+    auto const& fragment_offsets = std::get<3>(tup2);
 
     unsigned char prev_type = 0;
     auto block_index = 0;
@@ -575,7 +594,13 @@ void allocate_storage(size_t i_read)
   bool count_success = false;
 
   // Offsets are to the start of the event, which includes the header
-  auto const& [mep_header, mpi_slice, blocks, input_offsets, slice_size] = m_net_slices[i_read];
+  // FIXME structured binding version below triggers clang 11 bug
+  //       revert after clang fix available
+  // auto const& [mep_header, mpi_slice, blocks, input_offsets, slice_size] = m_net_slices[i_read];
+  auto const& tup = m_net_slices[i_read];
+  auto const mep_header = std::get<0>(tup);
+  auto const mpi_slice = std::get<1>(tup);
+
   size_t n_blocks = mep_header.n_blocks;
   // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks),
   // mep_header.mep_size};
@@ -593,7 +618,12 @@ void allocate_storage(size_t i_read)
     s.intervals.reserve(2 * (n_interval + rest));
   }
 
-  for (auto& [mep_header, mpi_slice, blocks, input_offsets, slice_size] : m_net_slices) {
+  // FIXME structured binding version below triggers clang 11 bug
+  //       revert after clang fix available
+  // for (auto& tup [mep_header, mpi_slice, blocks, input_offsets, slice_size] : m_net_slices) {
+  for (auto& tup : m_net_slices) {
+    auto& blocks = std::get<2>(tup);
+    auto& input_offsets = std::get<3>(tup);
     // The number of blocks in a MEP is known, use it to allocate
     // temporary storage used during transposition
     blocks.resize(n_blocks);
@@ -769,7 +799,12 @@ void mep_read()
     this->debug_output("Writing to MEP slice index " + std::to_string(i_buffer));
 
     auto& read_buffer = m_read_buffers[i_buffer];
-    auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
+    auto& tup = m_net_slices[i_buffer];
+    auto& mep_header = std::get<0>(tup);
+    auto& buffer_span = std::get<1>(tup);
 
     bool success = false, eof = false;
 
