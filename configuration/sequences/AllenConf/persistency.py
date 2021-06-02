@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import gather_selections_t, dec_reporter_t
+from AllenConf.algorithms import gather_selections_t, dec_reporter_t, global_decision_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.event_list_utils import make_algorithm
@@ -46,3 +46,20 @@ def make_dec_reporter(lines):
         dev_number_of_active_lines_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
+
+
+def make_global_decision(lines):
+    gather_selections = make_gather_selections(lines)
+    dec_reporter = make_dec_reporter(lines)
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        global_decision_t,
+        name="global_decision",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_active_lines_t=gather_selections.
+        host_number_of_active_lines_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_number_of_active_lines_t=gather_selections.
+        dev_number_of_active_lines_t,
+        dev_dec_reports_t=dec_reporter.dev_dec_reports_t)
