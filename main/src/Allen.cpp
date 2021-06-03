@@ -88,7 +88,6 @@ int allen(
 
   unsigned n_slices = 0;
   unsigned number_of_buffers = 0;
-  long number_of_events_requested = 0;
   unsigned events_per_slice = input_provider->events_per_slice();
   unsigned number_of_threads = 1;
   unsigned n_repetitions = 1;
@@ -130,9 +129,6 @@ int allen(
     }
     else if (flag_in({"write-configuration"})) {
       write_config = atoi(arg.c_str());
-    }
-       else if (flag_in({"n", "number-of-events"})) {
-     number_of_events_requested = atol(arg.c_str());
     }
     else if (flag_in({"s", "number-of-slices"})) {
       n_slices = atoi(arg.c_str());
@@ -664,11 +660,12 @@ int allen(
           ++slices_processed;
           stream_ready[i] = true;
 
-          if (throughput_socket && t) {
+          if (t) {
             double elapsed_time = t->get_elapsed_time();
             auto dt = elapsed_time - previous_time_measurement;
             if (dt > 5.) {
               if (print_status) {
+                info_cout << "Processed " << n_events_processed << " events\n";
                 char buf[200];
                 std::snprintf(
                   buf,
@@ -685,7 +682,10 @@ int allen(
                   n_output_measured / dt);
                 info_cout << buf;
               }
-              zmqSvc->send(*throughput_socket, std::to_string(n_events_measured * io_conf.number_of_repetitions / dt));
+
+              if (throughput_socket) {
+                zmqSvc->send(*throughput_socket, std::to_string(n_events_measured * io_conf.number_of_repetitions / dt));
+              }
               previous_time_measurement = elapsed_time;
               n_events_measured = 0;
               n_output_measured = 0;
