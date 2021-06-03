@@ -18,7 +18,7 @@
 #include <InputProvider.h>
 #include <OutputHandler.h>
 
-bool OutputHandler::output_selected_events(
+std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const slice_index,
   size_t const event_offset,
   gsl::span<bool const> const selected_events_bool,
@@ -30,6 +30,7 @@ bool OutputHandler::output_selected_events(
 
   // m_sizes will contain the total size of all banks in the event
   std::vector<unsigned> selected_events;
+  selected_events.reserve(selected_events_bool.size());
   for (unsigned i = 0; i < selected_events_bool.size(); ++i) {
     if (selected_events_bool[i]) {
       selected_events.push_back(i);
@@ -101,7 +102,7 @@ bool OutputHandler::output_selected_events(
       buffer_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
 
     auto s = write_buffer(buffer_id);
-    if (!s) return s;
+    if (!s) return {s, i};
   }
-  return true;
+  return {true, selected_events.size()};
 }

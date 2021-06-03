@@ -18,7 +18,7 @@ public:
 
   virtual ~OutputHandler() {}
 
-  bool output_selected_events(
+  std::tuple<bool, size_t> output_selected_events(
     size_t const slice_index,
     size_t const event_offset,
     gsl::span<bool const> const selected_events,
