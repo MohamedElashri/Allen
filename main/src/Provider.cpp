@@ -145,6 +145,10 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
     events_per_slice = number_of_events_requested;
   }
 
+  if (number_of_events_requested != 0) {
+    n_events = number_of_events_requested;
+  }
+
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
   if (!mdf_input.empty()) {
