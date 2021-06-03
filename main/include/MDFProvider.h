@@ -652,7 +652,7 @@ private:
       // needed
       while (true) {
         size_t read = std::get<0>(read_buffer);
-        size_t to_prefetch = to_read ? std::min(eps, *to_read) : eps;
+        size_t to_prefetch = to_read ? std::min(eps, *to_read + read) : eps;
         std::tie(eof, error, buffer_full, bytes_read) =
           read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
         size_t n_read = std::get<0>(read_buffer) - read;
