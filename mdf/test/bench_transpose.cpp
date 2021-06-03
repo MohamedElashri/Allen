@@ -66,8 +66,9 @@ int main(int argc, char* argv[])
   }
 
   // Transposed slices
+  std::unordered_set<BankTypes> bank_types{BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
   auto size_fun = [buffer_size, n_events](BankTypes) -> std::tuple<size_t, size_t> { return {buffer_size, n_events}; };
-  Slices slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_slices, size_fun);
+  Slices slices = allocate_slices(n_slices, bank_types, size_fun);
 
   Timer t;
 
@@ -140,12 +141,12 @@ int main(int argc, char* argv[])
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
     threads.emplace_back(
-      thread {[i, n_reps, n_events, &read_buffers, &slices, &bank_ids, &banks_count, &banks_version, &event_ids] {
+      thread {[i, n_reps, n_events, &read_buffers, &slices, &bank_types, &bank_ids, &banks_count, &banks_version, &event_ids] {
         auto& read_buffer = read_buffers[i];
         for (size_t rep = 0; rep < n_reps; ++rep) {
 
           // Reset the slice
-          reset_slice<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(slices, i, event_ids[i]);
+          reset_slice(slices, i, bank_types, event_ids[i]);
 
           // Transpose events
           auto [success, transpose_full, n_transposed] = transpose_events(

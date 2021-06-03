@@ -12,7 +12,6 @@
 
 #include <Event/RawBank.h>
 #include <read_mdf.hpp>
-#include <read_mep.hpp>
 #include <Timer.h>
 #include <InputTools.h>
 #include <MDFProvider.h>
@@ -26,8 +25,7 @@ using namespace std;
 using namespace std::string_literals;
 
 struct Config {
-  vector<string> mdf_files = {"upgrade_mc_minbias_scifi_v5.mdf"};
-  vector<string> mep_files = {"upgrade_mc_minbias_scifi_v5_pf10.mep"};
+  vector<string> mdf_files;
   size_t n_slices = 2;
   size_t n_events = 5;
   bool run = false;
@@ -186,17 +184,13 @@ int main(int argc, char* argv[])
   }
 
   if (!directory.empty()) {
-    for (auto [ext, dir] : {std::tuple {string {"mdf"}, std::ref(s_config.mdf_files)},
-                            std::tuple {string {"mep"}, std::ref(s_config.mep_files)}}) {
-      for (auto& file : dir.get()) {
-        const auto filename = directory + ext + "/" + file;
-        if (std::filesystem::exists(filename)) {
-          file = filename;
-          std::cout << "modified filename = " << filename << std::endl;
-        }
-        else {
-          return 1;
-        }
+    for (auto& file : s_config.mdf_files) {
+      const auto filename = directory + ext + "/" + file;
+      if (std::filesystem::exists(filename)) {
+        file = filename;
+      }
+      else {
+        return 1;
       }
     }
   }
@@ -262,8 +256,8 @@ TEST_CASE("MDF slice full", "[MDF slice]")
     return {as, n_events + 1};
   };
 
-  auto slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
-    s_config.n_slices, size_fun);
+  std::unordered_set<BankTypes> allen_types{BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+  auto slices = allocate_slices(s_config.n_slices, allen_types, size_fun);
 
   bool good = false, transpose_full = false;
   size_t n_transposed = 0;
@@ -276,7 +270,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
       slices,
       slice_index,
       ids,
-      {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
+      allen_types,
       banks_count,
       banks_version,
       event_ids[0],
