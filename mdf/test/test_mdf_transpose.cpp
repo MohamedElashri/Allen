@@ -206,7 +206,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   auto filename = s_config.mdf_files[0];
 
-  auto ids = bank_ids();
+  auto ids = Allen::bank_ids();
   std::unordered_map<BankTypes, unsigned> allen_to_lhcb;
   for (unsigned lhcb_type = 0; lhcb_type < ids.size(); ++lhcb_type) {
     auto allen_type = ids[lhcb_type];
@@ -226,7 +226,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
     mdf_read_sizes(filename, ids, bank_types, s_config.n_events);
   REQUIRE(success == true);
 
-  ReadBuffer read_buffer =
+  Allen::ReadBuffer read_buffer =
     std::tuple {0ul, std::vector<unsigned int>(max_events + 1), std::vector<char>(10 * total_size, '\0'), 0ul};
 
   std::vector<char> decompress_buffer;

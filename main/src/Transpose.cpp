@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #include <Transpose.h>
 
-std::vector<int> bank_ids()
+std::vector<int> Allen::bank_ids()
 {
   // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
   std::vector<int> ids;
@@ -33,7 +33,7 @@ std::vector<int> bank_ids()
  */
 std::tuple<bool, bool, bool, size_t> read_events(
   Allen::IO& input,
-  ReadBuffer& read_buffer,
+  Allen::ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
   std::vector<char>& compress_buffer,
   size_t n_events,
@@ -55,7 +55,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
 
     // Read the banks
     auto const buffer_offset = event_offsets[n_filled];
-    assert(buffer_offset < buffer_span.size());
+    assert(buffer_offset < buffer.size());
     gsl::span<char> buffer_span {buffer_start + buffer_offset,
                                  static_cast<events_size>(buffer.size() - buffer_offset)};
     std::tie(eof, error, bank_span) =
@@ -129,7 +129,7 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
 }
 
 std::tuple<bool, bool, bool> transpose_event(
-  Slices& slices,
+  Allen::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
@@ -296,7 +296,7 @@ std::tuple<bool, bool, bool> transpose_event(
 * @param      event_ids
 */
 
-void reset_slice(Slices& slices,
+void reset_slice(Allen::Slices& slices,
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
   EventIDs& event_ids,
@@ -304,8 +304,8 @@ void reset_slice(Slices& slices,
 
 
 std::tuple<bool, bool, size_t> transpose_events(
-  const ReadBuffer& read_buffer,
-  Slices& slices,
+  const Allen::ReadBuffer& read_buffer,
+  Allen::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
@@ -337,12 +337,12 @@ std::tuple<bool, bool, size_t> transpose_events(
 }
 
 
-Slices allocate_slices(size_t n_slices,
+Allen::Slices allocate_slices(size_t n_slices,
 		       std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun,
 		       std::unordered_set<BankTypes> const& bank_types
 )
 {
-  Slices slices;
+  Allen::Slices slices;
   for (auto bank_type : bank_types) {
     auto [n_bytes, n_offsets] = size_fun(bank_type);
 

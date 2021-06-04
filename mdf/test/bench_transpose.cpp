@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
   vector<vector<char>> compress_buffers(n_slices, vector<char>(1024 * 1024));
 
   // Allocate read buffer space
-  std::vector<ReadBuffer> read_buffers(n_slices);
+  std::vector<Allen::ReadBuffer> read_buffers(n_slices);
   for (auto& [n_filled, event_offsets, buffer, transpose_start] : read_buffers) {
     // FIXME: Make this configurable
     buffer.resize(n_events * average_event_size * bank_size_fudge_factor * 1024);
@@ -57,18 +57,12 @@ int main(int argc, char* argv[])
   }
 
   // Bank ID translation
-  vector<int> bank_ids;
-  bank_ids.resize(LHCb::RawBank::types().size());
-
-  for (auto bt : LHCb::RawBank::types()) {
-    auto it = Allen::bank_types.find(bt);
-    bank_ids[bt] = (it != Allen::bank_types.end() ? to_integral(it->second) : -1);
-  }
+  auto bank_ids = Allen::bank_ids();
 
   // Transposed slices
   std::unordered_set<BankTypes> bank_types{BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
   auto size_fun = [buffer_size, n_events](BankTypes) -> std::tuple<size_t, size_t> { return {buffer_size, n_events}; };
-  Slices slices = allocate_slices(n_slices, bank_types, size_fun);
+  Allen::Slices slices = allocate_slices(n_slices, bank_types, size_fun);
 
   Timer t;
 
@@ -116,7 +110,7 @@ int main(int argc, char* argv[])
   // Measure and report read throughput
   t.stop();
   auto n_read = std::accumulate(
-    read_buffers.begin(), read_buffers.end(), 0., [](double s, ReadBuffer const& rb) { return s + std::get<0>(rb); });
+    read_buffers.begin(), read_buffers.end(), 0., [](double s, Allen::ReadBuffer const& rb) { return s + std::get<0>(rb); });
   cout << "read " << std::lround(n_read) << " events; " << n_read / t.get() << " events/s\n";
 
   // Count the number of banks of each type

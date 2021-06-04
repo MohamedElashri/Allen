@@ -118,7 +118,7 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
-    m_bank_ids = bank_ids();
+    m_bank_ids = Allen::bank_ids();
 
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
@@ -366,8 +366,7 @@ public:
     }
   }
 
-  gsl::span<char const> raw_banks(ReadBuffer const& buffer, size_t const read_event_start, size_t const event) const {
-
+  gsl::span<char const> raw_banks(Allen::ReadBuffer const& buffer, size_t const read_event_start, size_t const event) const {
     auto const event_index = event + read_event_start;
 
     // FIXME structured binding version below triggers clang 11 bug
@@ -722,7 +721,7 @@ private:
   }
 
   // Memory buffers to read binary data into from the file
-  mutable ReadBuffers m_buffers;
+  mutable Allen::ReadBuffers m_buffers;
 
   // data members for prefetch thread
   std::mutex m_prefetch_mut;
@@ -747,7 +746,7 @@ private:
   std::vector<int> m_bank_ids;
 
   // Memory slices, N for each raw bank type
-  Slices m_slices;
+  Allen::Slices m_slices;
   struct SliceToBuffer {
     int buffer_index;
     size_t buffer_event_start;

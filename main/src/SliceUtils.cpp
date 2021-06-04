@@ -19,7 +19,7 @@
  * @param      slice_index
  * @param      event_ids
  */
-void reset_slice(Slices& slices, int const slice_index,
+void reset_slice(Allen::Slices& slices, int const slice_index,
                  std::unordered_set<BankTypes> const& bank_types,
                  EventIDs& event_ids, bool mep)
 {
@@ -37,11 +37,11 @@ void reset_slice(Slices& slices, int const slice_index,
   event_ids.clear();
 }
 
-Slices allocate_slices(size_t n_slices,
-                       std::unordered_set<BankTypes> const& bank_types,
-                       std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun)
+Allen::Slices allocate_slices(size_t n_slices,
+                              std::unordered_set<BankTypes> const& bank_types,
+                              std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun)
 {
-  Slices slices;
+  Allen::Slices slices;
   for (auto bank_type : bank_types) {
     auto [n_bytes, n_offsets] = size_fun(bank_type);
 

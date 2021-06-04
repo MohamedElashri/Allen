@@ -22,6 +22,8 @@ namespace LHCb {
   constexpr auto NBankTypes = LHCb::RawBank::types().size();
 } // namespace LHCb
 
+namespace Allen {
+
 // Read buffer containing the number of events, offsets to the start
 // of the event and the event data
 using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>, size_t>;
@@ -34,3 +36,5 @@ using BankSlices = std::vector<Slice>;
 using Slices = std::array<BankSlices, NBankTypes>;
 
 std::vector<int> bank_ids();
+
+}

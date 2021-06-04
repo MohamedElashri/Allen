@@ -49,7 +49,7 @@
  */
 std::tuple<bool, bool, bool, size_t> read_events(
   Allen::IO& input,
-  ReadBuffer& read_buffer,
+  Allen::ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
   std::vector<char>& compress_buffer,
   size_t n_events,
@@ -79,7 +79,7 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
  * @return     tuple of: (success, slice is full)
  */
 std::tuple<bool, bool, bool> transpose_event(
-  Slices& slices,
+  Allen::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
@@ -104,8 +104,8 @@ std::tuple<bool, bool, bool> transpose_event(
  * @return     (success, slice full for one of the bank types, number of events transposed)
  */
 std::tuple<bool, bool, size_t> transpose_events(
-  const ReadBuffer& read_buffer,
-  Slices& slices,
+  const Allen::ReadBuffer& read_buffer,
+  Allen::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
