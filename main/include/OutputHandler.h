@@ -4,19 +4,26 @@
 #pragma once
 
 #include <vector>
-#include <Logger.h>
-#include <BankTypes.h>
-#include <Timer.h>
+
 #include <zmq/zmq.hpp>
 #include <gsl/span>
 
-struct IInputProvider;
+#include "InputProvider.h"
+#include "BankTypes.h"
+#include "Timer.h"
+
 
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider, size_t eps, size_t n_lines) : m_input_provider {input_provider}, m_sizes(eps), m_nlines{n_lines} {}
+  OutputHandler(IInputProvider const* input_provider,
+                std::string connection,
+                size_t n_lines)
+  : m_input_provider {input_provider}, m_connection{std::move(connection)},
+    m_sizes(input_provider->events_per_slice()), m_nlines{n_lines} {}
 
   virtual ~OutputHandler() {}
+
+  std::string const& connection() const { return m_connection; }
 
   std::tuple<bool, size_t> output_selected_events(
     size_t const slice_index,
@@ -36,6 +43,7 @@ protected:
   virtual bool write_buffer(size_t id) = 0;
 
   IInputProvider const* m_input_provider = nullptr;
+  std::string m_connection;
   std::vector<size_t> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
   size_t m_nlines;

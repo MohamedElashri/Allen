@@ -12,10 +12,9 @@ public:
   FileWriter(
     IInputProvider const* input_provider,
     std::string filename,
-    size_t const events_per_slice,
     size_t const n_lines,
     bool checksum = true) :
-    OutputHandler {input_provider, events_per_slice, n_lines},
+    OutputHandler {input_provider, filename, n_lines},
     m_filename {std::move(filename)}, m_checksum {checksum}
   {
     m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);

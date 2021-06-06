@@ -14,7 +14,6 @@ public:
   ZMQOutputSender(
     IInputProvider const* input_provider,
     std::string receiver_connection,
-    size_t const events_per_slice,
     size_t const n_lines,
     IZeroMQSvc* zmqSvc,
     bool checksum = true);

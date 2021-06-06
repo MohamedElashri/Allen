@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
 
   Allen::NonEventData::Updater updater {allen_options};
   auto input_provider = Allen::make_provider(allen_options);
+  auto output_handler = Allen::output_handler(input_provider.get(), zmqSvc, allen_options);
   if (!input_provider) return -1;
-  return allen(std::move(allen_options), &updater, input_provider.get(), zmqSvc, "");
+  return allen(std::move(allen_options), &updater, input_provider.get(), output_handler.get(), zmqSvc, "");
 }

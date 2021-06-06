@@ -76,6 +76,7 @@ int allen(
   std::map<std::string, std::string> options,
   Allen::NonEventData::IUpdater* updater,
   IInputProvider* input_provider,
+  OutputHandler* output_handler,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
 {
@@ -98,7 +99,6 @@ int allen(
   size_t reserve_host_mb = 200;
 
   // Input file options
-  std::string output_file;
   int device_id = 0;
   int cpu_offload = 1;
   std::string file_list;
@@ -111,67 +111,58 @@ int allen(
   bool run_from_json = false;
 
   std::string flag, arg;
-  const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
-    if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
-      return true;
-    }
-    return false;
-  };
 
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag_in({"g", "geometry"})) {
+    if (flag_in(flag, {"g", "geometry"})) {
       folder_detector_configuration = arg + "/";
     }
-    else if (flag_in({"params"})) {
+    else if (flag_in(flag, {"params"})) {
       folder_parameters = arg + "/";
     }
-    else if (flag_in({"write-configuration"})) {
+    else if (flag_in(flag, {"write-configuration"})) {
       write_config = atoi(arg.c_str());
     }
-    else if (flag_in({"s", "number-of-slices"})) {
+    else if (flag_in(flag, {"s", "number-of-slices"})) {
       n_slices = atoi(arg.c_str());
     }
-    else if (flag_in({"t", "threads"})) {
+    else if (flag_in(flag, {"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
       if (number_of_threads > max_stream_threads) {
         error_cout << "Error: more than maximum number of threads (" << max_stream_threads << ") requested\n";
         return -1;
       }
     }
-    else if (flag_in({"r", "repetitions"})) {
+    else if (flag_in(flag, {"r", "repetitions"})) {
       n_repetitions = atoi(arg.c_str());
       if (n_repetitions == 0) {
         error_cout << "Error: number of repetitions must be at least 1\n";
         return -1;
       }
     }
-    else if (flag_in({"m", "memory"})) {
+    else if (flag_in(flag, {"m", "memory"})) {
       reserve_mb = atoi(arg.c_str());
     }
-    else if (flag_in({"host-memory"})) {
+    else if (flag_in(flag, {"host-memory"})) {
       reserve_host_mb = atoi(arg.c_str());
     }
-    else if (flag_in({"v", "verbosity"})) {
+    else if (flag_in(flag, {"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
     }
-    else if (flag_in({"p", "print-memory"})) {
+    else if (flag_in(flag, {"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
     }
-    else if (flag_in({"sequence"})) {
+    else if (flag_in(flag, {"sequence"})) {
       sequence = arg;
     }
-    else if (flag_in({"run-from-json"})) {
+    else if (flag_in(flag, {"run-from-json"})) {
       run_from_json = atoi(arg.c_str());
     }
-    else if (flag_in({"cpu-offload"})) {
+    else if (flag_in(flag, {"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
     }
-    else if (flag_in({"output-file"})) {
-      output_file = arg;
-    }
-    else if (flag_in({"device"})) {
+    else if (flag_in(flag, {"device"})) {
       if (arg.find(":") != std::string::npos) {
         // Get by PCI bus ID
         bool s = false;
@@ -182,25 +173,25 @@ int allen(
         device_id = atoi(arg.c_str());
       }
     }
-    else if (flag_in({"file-list"})) {
+    else if (flag_in(flag, {"file-list"})) {
       file_list = arg;
     }
-    else if (flag_in({"print-config"})) {
+    else if (flag_in(flag, {"print-config"})) {
       print_config = atoi(arg.c_str());
     }
-    else if (flag_in({"print-status"})) {
+    else if (flag_in(flag, {"print-status"})) {
       print_status = atoi(arg.c_str());
     }
-    else if (flag_in({"inject-mem-fail"})) {
+    else if (flag_in(flag, {"inject-mem-fail"})) {
       inject_mem_fail = atoi(arg.c_str());
     }
-    else if (flag_in({"monitoring-filename"})) {
+    else if (flag_in(flag, {"monitoring-filename"})) {
       mon_filename = arg;
     }
-    else if (flag_in({"monitoring-save-period"})) {
+    else if (flag_in(flag, {"monitoring-save-period"})) {
       mon_save_period = atoi(arg.c_str());
     }
-    else if (flag_in({"disable-run-changes"})) {
+    else if (flag_in(flag, {"disable-run-changes"})) {
       disable_run_changes = atoi(arg.c_str());
     }
   }
@@ -373,22 +364,6 @@ int allen(
   std::unique_ptr<MonitorManager> monitor_manager =
     std::make_unique<MonitorManager>(n_mon, buffers_manager.get(), root_service.get(), 30, time(0));
 
-  std::unique_ptr<OutputHandler> output_handler;
-  if (!output_file.empty()) {
-    try {
-      if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider, output_file, events_per_slice, n_lines, zmqSvc);
-      }
-      else {
-        output_handler = std::make_unique<FileWriter>(input_provider, output_file, events_per_slice, n_lines);
-      }
-    } catch (std::runtime_error const& e) {
-      error_cout << e.what() << "\n";
-      exit(1);
-    }
-  }
-
   // Notify used memory if requested verbose mode
   if (logger::verbosity() >= logger::verbose) {
     Allen::print_device_memory_consumption();
@@ -462,7 +437,7 @@ int allen(
   // Lambda with the execution of the output thread
   const auto output_thread = [&](unsigned thread_id, unsigned) {
     return std::thread {
-      run_output, thread_id, zmqSvc, output_handler ? output_handler.get() : nullptr, buffers_manager.get()};
+      run_output, thread_id, zmqSvc, output_handler, buffers_manager.get()};
   };
 
   // Lambda with the execution of the monitoring thread
@@ -1059,8 +1034,8 @@ loop_error:
                  << "\n";
   }
 
-  if (!output_file.empty()) {
-    info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_file << "\n";
+  if (output_handler != nullptr) {
+    info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_handler->connection() << "\n";
   }
 
   // Reset device

@@ -595,6 +595,7 @@ foreach(header
     AllenUnits.h
     MEPTools.h
     InputProvider.h
+    OutputHandler.h
     SliceUtils.h
     TransposeTypes.h)
   list(APPEND AllenHeaders main/include/${header})

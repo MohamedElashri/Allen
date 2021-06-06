@@ -131,3 +131,12 @@ std::tuple<bool, std::map<std::string, int>> parse_receivers(const std::string& 
   }
   return {true, result};
 }
+
+bool flag_in(std::string const& flag, std::vector<std::string> const& option_flags) {
+  if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}

@@ -116,6 +116,7 @@ con = gbl.std.string("")
 
 # Create provider
 provider = gbl.Allen.make_provider(options)
+output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
 
 # run Allen
-gbl.allen(options, updater, provider, zmqSvc, con.c_str())
+gbl.allen(options, updater, provider, output_handler, zmqSvc, con.c_str())

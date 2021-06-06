@@ -8,6 +8,9 @@
 #include <Provider.h>
 #include <BankTypes.h>
 #include <ProgramOptions.h>
+#include <InputReader.h>
+#include <FileWriter.h>
+#include <ZMQOutputSender.h>
 
 Allen::IOConf Allen::io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads, bool quiet)
 {
@@ -51,15 +54,9 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
 
   // Input file options
   std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf";
-  std::string mep_input;
-  bool mep_layout = true;
-  int mpi_window_size = 4;
   bool disable_run_changes = 0;
 
   // MPI options
-  bool with_mpi = false;
-  std::map<std::string, int> receivers = {{"mem", 1}};
-
   long number_of_events_requested = 0;
 
   unsigned n_repetitions = 1;
@@ -69,49 +66,37 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   std::unordered_set<BankTypes> bank_types;
 
   std::string flag, arg;
-  const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
-    if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
-      return true;
-    }
-    return false;
-  };
 
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    else if (flag_in({"mdf"})) {
+    if (flag_in({"mdf"})) {
       mdf_input = arg;
     }
-    else if (flag_in({"mep"})) {
-      mep_input = arg;
-    }
-    else if (flag_in({"transpose-mep"})) {
-      mep_layout = !atoi(arg.c_str());
-    }
-    else if (flag_in({"n", "number-of-events"})) {
+    else if (flag_in(flag, {"n", "number-of-events"})) {
       number_of_events_requested = atol(arg.c_str());
     }
-    else if (flag_in({"s", "number-of-slices"})) {
+    else if (flag_in(flag, {"s", "number-of-slices"})) {
       number_of_slices = atoi(arg.c_str());
     }
-    else if (flag_in({"t", "threads"})) {
+    else if (flag_in(flag, {"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
       if (number_of_threads > max_stream_threads) {
         error_cout << "Error: more than maximum number of threads (" << max_stream_threads << ") requested\n";
         return {};
       }
     }
-    else if (flag_in({"r", "repetitions"})) {
+    else if (flag_in(flag, {"r", "repetitions"})) {
       n_repetitions = atoi(arg.c_str());
       if (n_repetitions == 0) {
         error_cout << "Error: number of repetitions must be at least 1\n";
         return {};
       }
     }
-    else if (flag_in({"events-per-slice"})) {
+    else if (flag_in(flag, {"events-per-slice"})) {
       events_per_slice = atoi(arg.c_str());
     }
-    else if (flag_in({"b", "bank-types"})) {
+    else if (flag_in(flag, {"b", "bank-types"})) {
       for (auto name : split_string(arg, ",")) {
         auto const bt = bank_type(name);
         if (bt == BankTypes::Unknown) {
@@ -123,19 +108,7 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
         }
       }
     }
-    else if (flag_in({"with-mpi"})) {
-      with_mpi = true;
-      bool parsed = false;
-      std::tie(parsed, receivers) = parse_receivers(arg);
-      if (!parsed) {
-        error_cout << "Failed to parse argument to with-mpi\n";
-        exit(1);
-      }
-    }
-    else if (flag_in({"mpi-window-size"})) {
-      mpi_window_size = atoi(arg.c_str());
-    }
-    else if (flag_in({"disable-run-changes"})) {
+    else if (flag_in(flag, {"disable-run-changes"})) {
       disable_run_changes = atoi(arg.c_str());
     }
   }
@@ -169,4 +142,54 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
       BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
   }
   return {};
+}
+
+
+std::unique_ptr<OutputHandler> Allen::output_handler(IInputProvider* input_provider,
+                                                     IZeroMQSvc* zmq_svc,
+                                                     std::map<std::string, std::string> const& options)
+{
+  std::string output_file;
+  std::string json_file = "Sequence.json";
+  std::string flag, arg;
+
+  for (auto const& entry : options) {
+    std::tie(flag, arg) = entry;
+    if (flag_in(flag, {"configuration"})) {
+      json_file = arg;
+    }
+    else if (flag_in(flag, {"output-file"})) {
+      output_file = arg;
+    }
+  }
+
+  // Load constant parameters from JSON
+  size_t n_lines = 0;
+  ConfigurationReader configuration_reader{json_file};
+  auto const& configuration = configuration_reader.params();
+  auto conf_it = configuration.find("gather_selections");
+  if (conf_it != configuration.end()) {
+    auto prop_it = conf_it->second.find("names_of_active_lines");
+    if (prop_it != conf_it->second.end()) {
+      auto line_names = split_string(prop_it->second, ",");
+      n_lines = line_names.size();
+    }
+  }
+
+  std::unique_ptr<OutputHandler> output_handler;
+  if (!output_file.empty()) {
+    try {
+      if (output_file.substr(0, 6) == "tcp://") {
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider, output_file, n_lines, zmq_svc);
+      }
+      else {
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, n_lines);
+      }
+    } catch (std::runtime_error const& e) {
+      error_cout << e.what() << "\n";
+      return output_handler;
+    }
+  }
+  return output_handler;
 }
