@@ -940,6 +940,7 @@ int allen(
         // Start the input provider
         io_done = false;
         input_provider->start();
+        if (output_handler != nullptr) output_handler->start();
 
         // Send slice thread start to start asking for slices
         for (size_t i = 0; i < n_io; ++i) {
@@ -975,6 +976,9 @@ int allen(
       info_cout << "Processing complete\n";
       if (allen_control && stop) {
         stop = false;
+        // Stop the output handler
+        if (output_handler) output_handler->stop();
+
         zmqSvc->send(*allen_control, "READY");
       }
       else if (!allen_control || (allen_control && exit_loop)) {

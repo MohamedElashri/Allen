@@ -23,6 +23,10 @@ public:
 
   virtual ~OutputHandler() {}
 
+  virtual bool start() { return true; }
+
+  virtual bool stop() { return true; }
+
   std::string const& connection() const { return m_connection; }
 
   std::tuple<bool, size_t> output_selected_events(
