@@ -22,6 +22,12 @@ struct IInputProvider {
     MEP
   };
 
+  struct BufferStatus {
+    bool writable = true;
+    int work_counter = 0;
+    std::vector<std::tuple<size_t, size_t>> intervals;
+  };
+
   /// Desctructor
   virtual ~IInputProvider() {};
 
@@ -160,10 +166,4 @@ private:
 
   // Mutex for ordered debug output
   mutable std::mutex m_output_mut;
-};
-
-struct BufferStatus {
-  bool writable = true;
-  int work_counter = 0;
-  std::vector<std::tuple<size_t, size_t>> intervals;
 };
