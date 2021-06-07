@@ -52,7 +52,7 @@ namespace {
                                              BankTypes::FT,
                                              BankTypes::MUON,
                                              BankTypes::ODIN};
-  std::array<unsigned int, LHCb::RawBank::LastType> banks_count;
+  std::array<unsigned int, LHCb::RawBank::types().size()> banks_count;
   std::array<int, NBankTypes> banks_version;
 } // namespace
 

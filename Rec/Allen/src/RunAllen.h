@@ -33,9 +33,10 @@
 #include "TESProvider.h"
 #include "HltDecReport.cuh"
 
-class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers, LHCb::HltDecReports>(
-                         const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>& allen_banks,
-                         const LHCb::ODIN& odin)> {
+class RunAllen final
+  : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers, LHCb::HltDecReports>(
+      const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
+      const LHCb::ODIN& odin)> {
 public:
   /// Standard constructor
   RunAllen(const std::string& name, ISvcLocator* pSvcLocator);
@@ -45,7 +46,7 @@ public:
 
   /// Algorithm execution
   std::tuple<bool, HostBuffers, LHCb::HltDecReports> operator()(
-    const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>& allen_banks,
+    const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
 private:

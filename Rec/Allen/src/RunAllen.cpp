@@ -167,7 +167,7 @@ StatusCode RunAllen::initialize()
 /** Calls Allen for one event
  */
 std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
-  const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>& allen_banks,
+  const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
   const LHCb::ODIN&) const
 {
   int rv = m_tes_input_provider->set_banks(allen_banks, m_bankTypes);

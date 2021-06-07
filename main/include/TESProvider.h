@@ -37,7 +37,7 @@ public:
    * @param      Set with bank types to be used as input for Allen
    */
   int set_banks(
-    const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType>& transposed_banks,
+    const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& transposed_banks,
     std::set<LHCb::RawBank::BankType> bankTypes)
   {
     // get mapping of LHCb::RawBank::BankType to Allen::BankType
