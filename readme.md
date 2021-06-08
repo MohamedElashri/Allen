@@ -40,7 +40,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.1/x86_64-centos7/setup.sh
     ```
 
-Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
+Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/plotting/readme.md).
 
 Where to find input
 ---------------------
