@@ -4,6 +4,7 @@
 #ifndef DAQEVENT_RAWBANK_H
 #define DAQEVENT_RAWBANK_H 1
 
+#include <set>
 #include <string>
 #include <vector>
 #include <gsl/gsl>
@@ -49,9 +50,7 @@ namespace LHCb {
     ~RawBank() = default;
 
   public:
-    // typedef for std::vector of RawBank
-    typedef std::vector<RawBank*> Vector;
-    typedef std::vector<const RawBank*> ConstVector;
+    using View = LHCb::span<RawBank const* const>;
 
     /// Define bank types for RawBank
     enum BankType {
@@ -138,6 +137,10 @@ namespace LHCb {
       RichCommissioning, // 80
       RichError,         // 81
       FTSpecial,         // 82
+      CaloSpecial,       // 83
+      Plume,             // 84
+      PlumeSpecial,      // 85
+      PlumeError,        // 86
 
       // Add new types here. Don't forget to update also RawBank.cpp
       LastType, // LOOP Marker; add new bank types ONLY before!
@@ -153,11 +156,36 @@ namespace LHCb {
       // 255 is the highest type allowed by the Run 3 raw-data format (8-bit unsigned)
     };
 
-    /// Get any bank type as a string
-    static std::string typeName(LHCb::RawBank::BankType e);
+    [[nodiscard]] static constexpr auto types()
+    {
+      class Range final {
+        class Iterator final {
+          BankType m_t = BankType(0);
 
-    /// Get this bank type as a string
-    inline std::string typeName() const { return LHCb::RawBank::typeName(type()); }
+        public:
+          using difference_type [[maybe_unused]] = void;
+          using value_type [[maybe_unused]] = BankType;
+          using pointer [[maybe_unused]] = void;
+          using reference [[maybe_unused]] = BankType const&;
+          using iterator_category [[maybe_unused]] = std::forward_iterator_tag;
+          constexpr Iterator(BankType bt = BankType(0)) noexcept : m_t {bt} {}
+          [[nodiscard]] constexpr const BankType& operator*() const noexcept { return m_t; }
+          constexpr Iterator& operator++() noexcept
+          {
+            m_t = BankType(m_t + 1);
+            return *this;
+          }
+          [[nodiscard]] constexpr bool operator!=(Iterator rhs) const noexcept { return m_t != rhs.m_t; }
+          [[nodiscard]] constexpr bool operator==(Iterator rhs) const noexcept { return m_t == rhs.m_t; }
+        };
+
+      public:
+        [[nodiscard]] constexpr Iterator begin() const noexcept { return {}; }
+        [[nodiscard]] constexpr Iterator end() const noexcept { return {BankType::LastType}; }
+        [[nodiscard]] constexpr auto size() const noexcept { return static_cast<unsigned>(BankType::LastType); }
+      };
+      return Range {};
+    }
 
     /// Magic pattern for Raw bank headers
     enum RawPattern { MagicPattern = 0xCBCB };
@@ -166,7 +194,11 @@ namespace LHCb {
     int magic() const { return m_magic; }
 
     /// Set magic word
-    void setMagic() { m_magic = MagicPattern; }
+    RawBank& setMagic()
+    {
+      m_magic = MagicPattern;
+      return *this;
+    }
 
     /// Header size
     int hdrSize() const { return sizeof(RawBank) - sizeof(m_data); }
@@ -175,7 +207,11 @@ namespace LHCb {
     int size() const { return m_length - hdrSize(); }
 
     /// Set data size of the bank in bytes
-    void setSize(size_t val) { m_length = (val & 0xFFFF) + hdrSize(); }
+    RawBank& setSize(size_t val)
+    {
+      m_length = (val & 0xFFFF) + hdrSize();
+      return *this;
+    }
 
     /// Access the full (padded) size of the bank
     int totalSize() const
@@ -187,19 +223,31 @@ namespace LHCb {
     BankType type() const { return BankType(int(m_type)); }
 
     /// Set the bank type
-    void setType(BankType val) { m_type = (unsigned char) (char(val) & 0xFF); }
+    RawBank& setType(BankType val)
+    {
+      m_type = (unsigned char) (char(val) & 0xFF);
+      return *this;
+    }
 
     /// Return version of this bank
     int version() const { return m_version; }
 
     /// Set the version information of this bank
-    void setVersion(int val) { m_version = (unsigned char) (val & 0xFF); }
+    RawBank& setVersion(int val)
+    {
+      m_version = (unsigned char) (val & 0xFF);
+      return *this;
+    }
 
     /// Return SourceID of this bank  (TELL1 board ID)
     int sourceID() const { return m_sourceID; }
 
     /// Set the source ID of this bank (TELL1 board ID)
-    void setSourceID(int val) { m_sourceID = (unsigned short) (val & 0xFFFF); }
+    RawBank& setSourceID(int val)
+    {
+      m_sourceID = (unsigned short) (val & 0xFFFF);
+      return *this;
+    }
 
     /// Return pointer to begining of data body of the bank
     unsigned int* data() { return &m_data[0]; }
@@ -239,7 +287,7 @@ namespace LHCb {
     template<typename T>
     LHCb::span<const T> range() const
     {
-      return {begin<T>(), end<T>()};
+      return {begin<T>(), size() / sizeof(T)};
     }
 
   private:
