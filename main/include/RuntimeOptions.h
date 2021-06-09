@@ -8,7 +8,7 @@
 #include "MCEvent.h"
 
 // Forward declare IInputProvider to avoid including "InputProvider.h" from device code
-struct IInputProvider;
+class IInputProvider;
 struct CheckerInvoker;
 struct ROOTService;
 

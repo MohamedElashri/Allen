@@ -11,9 +11,9 @@ struct StreamWrapper;
 struct CheckerInvoker;
 struct HostBuffersManager;
 struct MonitorManager;
-struct IInputProvider;
 struct ROOTService;
 struct Stream;
+class IInputProvider;
 
 std::string connection(const size_t id, std::string suffix = "");
 

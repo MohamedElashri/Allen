@@ -692,7 +692,6 @@ int allen(
   };
 
   if (!allen_control && !error_count) {
-    input_provider->start();
     for (size_t i = 0; i < n_io; ++i) {
       auto& socket = std::get<1>(io_workers[i]);
       zmqSvc->send(socket, "START");
@@ -704,7 +703,9 @@ int allen(
 
   bool io_done = false;
   // stop triggered, input done, output done
-  auto stop = false, exit_loop = false;
+  bool stop = false, exit_loop = false;
+  std::optional<Timer> t_stop;
+  float stop_timeout = 5.f;
 
   // Main event loop
   // - Check if input slices are available from the input thread
@@ -933,20 +934,21 @@ int allen(
     if (allen_control && items[control_index].revents & zmq::POLLIN) {
       auto msg = zmqSvc->receive<std::string>(*allen_control);
       if (msg == "STOP") {
+        stop_timeout = zmqSvc->receive<float>(*allen_control);
         stop = true;
-        input_provider->stop();
+        t_stop = Timer{};
       }
       else if (msg == "START") {
         // Start the input provider
         io_done = false;
-        input_provider->start();
-        if (output_handler != nullptr) output_handler->start();
 
         // Send slice thread start to start asking for slices
         for (size_t i = 0; i < n_io; ++i) {
           auto& socket = std::get<1>(io_workers[i]);
           zmqSvc->send(socket, "START");
         }
+
+        if (output_handler) output_handler->start();
 
         // Respond to steering
         zmqSvc->send(*allen_control, "RUNNING");
@@ -970,19 +972,22 @@ int allen(
     }
 
     // Check if we're done
-    if (
-      stream_ready.count() == number_of_threads && buffers_manager->buffersEmpty() && io_cond &&
-      (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
-      info_cout << "Processing complete\n";
-      if (allen_control && stop) {
-        stop = false;
-        // Stop the output handler
-        if (output_handler) output_handler->stop();
-
-        zmqSvc->send(*allen_control, "READY");
+    if (stream_ready.count() == number_of_threads && io_cond) {
+      if (buffer_manager->buffersEmpty() &&
+          (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
+        info_cout << "Processing complete\n";
+        if (allen_control && stop) {
+          stop = false;
+          t_stop.reset();
+          if (output_handler) output_handler->stop();
+          zmqSvc->send(*allen_control, "READY");
+        }
+        if (!allen_control || (allen_control && exit_loop)) {
+          break;
+        }
       }
-      else if (!allen_control || (allen_control && exit_loop)) {
-        break;
+      else if (allen_control && stop && t_stop && static_cast<float>(t_stop->get()) > stop_timeout) {
+        if (output_handler) output_handler->cancel();
       }
     }
   }

@@ -23,10 +23,6 @@ public:
 
   virtual ~OutputHandler() {}
 
-  virtual bool start() { return true; }
-
-  virtual bool stop() { return true; }
-
   std::string const& connection() const { return m_connection; }
 
   std::tuple<bool, size_t> output_selected_events(
@@ -40,6 +36,12 @@ public:
   virtual zmq::socket_t* client_socket() { return nullptr; }
 
   virtual void handle() {}
+
+  virtual bool start() { return true; }
+
+  virtual bool stop() { return true; }
+
+  virtual void cancel() {}
 
 protected:
   virtual std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) = 0;

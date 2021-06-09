@@ -56,6 +56,10 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
     auto [buffer_id, buffer_span] =
       buffer(m_sizes[i] + header_size + 2 * bank_header_size + dec_report_size + sel_report_size);
 
+    // In case output was cancelled
+    if (buffer_span.empty())
+      continue;
+
     // Add the header
     auto* header = reinterpret_cast<LHCb::MDFHeader*>(buffer_span.data());
     // Set header version first so the subsequent call to setSize can

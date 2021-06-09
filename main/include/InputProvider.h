@@ -15,8 +15,8 @@
 #include "Common.h"
 #include "AllenUnits.h"
 
-struct IInputProvider {
-
+class IInputProvider {
+public:
   enum class Layout {
     Allen,
     MEP
@@ -81,10 +81,6 @@ struct IInputProvider {
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
-  virtual int start() = 0;
-
-  virtual int stop() = 0;
-
   virtual void event_sizes(
     size_t const slice_index,
     gsl::span<unsigned int const> const selected_events,
@@ -96,9 +92,13 @@ struct IInputProvider {
 
 class InputProvider : public IInputProvider {
 public:
-  explicit InputProvider(size_t n_slices, size_t events_per_slice, std::unordered_set<BankTypes> types, Layout layout, std::optional<size_t> n_events) :
-    m_layout{layout }, m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {types}
-  {}
+
+  InputProvider() = default;
+
+  InputProvider(size_t n_slices, size_t events_per_slice, std::unordered_set<BankTypes> types, Layout layout, std::optional<size_t> n_events)
+  {
+    init_input(n_slices, events_per_slice, types, layout, n_events);
+  }
 
   /// Descturctor
   virtual ~InputProvider() = default;
@@ -133,11 +133,18 @@ public:
 
   std::optional<size_t> const& n_events() const { return m_nevents; }
 
-  int start() override { return true; };
-
-  int stop() override { return true; };
-
 protected:
+
+  void init_input(size_t n_slices, size_t events_per_slice, std::unordered_set<BankTypes> types,
+                  Layout layout, std::optional<size_t> n_events)
+  {
+    m_nslices = n_slices;
+    m_events_per_slice = events_per_slice;
+    m_types = types;
+    m_layout = layout;
+    m_nevents = n_events;
+  }
+
   template<typename MSG>
   void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const
   {
@@ -150,19 +157,19 @@ protected:
 private:
 
   // MEP layout
-  const Layout m_layout = Layout::Allen;
+  Layout m_layout = Layout::Allen;
 
   // Number of slices to be provided
-  const size_t m_nslices = 0;
+  size_t m_nslices = 0;
 
   // Number of events per slice
-  const size_t m_events_per_slice = 0;
+  size_t m_events_per_slice = 0;
 
   // Optional total number of events to be provided
-  const std::optional<size_t> m_nevents;
+  std::optional<size_t> m_nevents;
 
   // BankTypes provided by this provider
-  const std::unordered_set<BankTypes> m_types;
+  std::unordered_set<BankTypes> m_types;
 
   // Mutex for ordered debug output
   mutable std::mutex m_output_mut;
