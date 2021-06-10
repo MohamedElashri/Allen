@@ -19,6 +19,7 @@ option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
 set(SEQUENCE_BUILD_JOBS 1 CACHE STRING "Number of sequence build jobs"  )
+option(USE_BOOST_FILESYSTEM "Use Boost filesystem library instead of std::filesystem" OFF)
 
 # --------
 # Settings
@@ -626,7 +627,7 @@ endif()
 # Use std::filesystem or Boost filesystem depeding on availability
 add_library(AllenFS INTERFACE)
 install(TARGETS AllenFS EXPORT Allen)
-if(NOT Filesystem_FOUND)
+if(NOT Filesystem_FOUND OR USE_BOOST_FILESYSTEM)
   target_compile_definitions(AllenFS INTERFACE USE_BOOST_FILESYSTEM)
   target_link_libraries(AllenFS INTERFACE Boost::filesystem)
 else()
@@ -656,6 +657,8 @@ target_link_libraries(AllenCommon PUBLIC mdf AllenFS nlohmann_json::nlohmann_jso
 
 allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
 
+target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
+
 target_link_libraries(AllenLib PUBLIC
   Stream
   HostCommon
@@ -677,8 +680,8 @@ target_link_libraries(AllenLib PUBLIC
   LHCbEvent
   ${CMAKE_DL_LIBS})
 
-target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
-
+# To propagate filesystem includes/libs
+target_link_libraries(AllenLib PRIVATE AllenFS)
 
 if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(AllenLib PRIVATE ${ALLEN_ROOT_DEFINITIONS})
