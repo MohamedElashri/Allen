@@ -72,6 +72,8 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 if (NOT GaudiProject_FOUND)
   include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
+  include_directories(${PROJECT_BINARY_DIR}/imported_include)
+  add_compile_definitions(ODIN_WITHOUT_GAUDI)
 endif()
 
 allen_add_host_library(StreamUtils STATIC
