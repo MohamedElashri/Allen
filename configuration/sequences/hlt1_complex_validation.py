@@ -53,7 +53,7 @@ lines.append(
             non_restricted_hlt1_reconstruction["secondary_vertices"],
             name="Hlt1TwoTrackMVA_Non_Restricted"),
         enableGEC=True))
-  
+
 # list of line algorithms, required for the gather selection and DecReport algorithms
 line_algorithms = [tup[0] for tup in lines]
 
@@ -76,29 +76,39 @@ validators_leaf = CompositeNode(
             velo_validation(restricted_hlt1_reconstruction["velo_tracks"])),
         make_composite_node_with_gec(
             "restricted_veloUT_validator",
-            veloUT_validation(restricted_hlt1_reconstruction["ut_tracks"], "restricted_veloUT_validator")),
+            veloUT_validation(restricted_hlt1_reconstruction["ut_tracks"],
+                              "restricted_veloUT_validator")),
         make_composite_node_with_gec(
             "non-restricted_veloUT_validator",
-            veloUT_validation(non_restricted_hlt1_reconstruction["ut_tracks"], "non-restricted_veloUT_validator")),
+            veloUT_validation(non_restricted_hlt1_reconstruction["ut_tracks"],
+                              "non-restricted_veloUT_validator")),
         make_composite_node_with_gec(
             "restricted_forward_validator",
-            forward_validation(restricted_hlt1_reconstruction["forward_tracks"], "restricted_forward_validator")),
-        make_composite_node_with_gec( 
+            forward_validation(
+                restricted_hlt1_reconstruction["forward_tracks"],
+                "restricted_forward_validator")),
+        make_composite_node_with_gec(
             "non-restricted_forward_validator",
-            forward_validation(non_restricted_hlt1_reconstruction["forward_tracks"], "non-restricted_forward_validator")),
+            forward_validation(
+                non_restricted_hlt1_reconstruction["forward_tracks"],
+                "non-restricted_forward_validator")),
         make_composite_node_with_gec(
             "restricted_muon_validation",
-            muon_validation(restricted_hlt1_reconstruction["muonID"], "restricted_muon_validation")),
-        make_composite_node_with_gec( 
-            "non-restricted_muon_validation",
-            muon_validation(non_restricted_hlt1_reconstruction["muonID"], "non-restricted_muon_validation")),
+            muon_validation(restricted_hlt1_reconstruction["muonID"],
+                            "restricted_muon_validation")),
         make_composite_node_with_gec(
-            "pv_validation", 
+            "non-restricted_muon_validation",
+            muon_validation(non_restricted_hlt1_reconstruction["muonID"],
+                            "non-restricted_muon_validation")),
+        make_composite_node_with_gec(
+            "pv_validation",
             pv_validation(restricted_hlt1_reconstruction["pvs"])),
-        make_composite_node_with_gec( 
+        make_composite_node_with_gec(
             "restricted_kalman_validation",
-            kalman_validation(restricted_hlt1_reconstruction["kalman_velo_only"], "restricted_kalman_validation")),
-        rate_validation(make_gather_selections(line_algorithms)), 
+            kalman_validation(
+                restricted_hlt1_reconstruction["kalman_velo_only"],
+                "restricted_kalman_validation")),
+        rate_validation(make_gather_selections(line_algorithms)),
     ],
     NodeLogic.NONLAZY_AND,
     force_order=False)
