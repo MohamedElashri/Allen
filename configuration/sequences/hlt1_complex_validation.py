@@ -4,7 +4,7 @@
 from AllenConf.utils import gec
 from AllenConf.ut_reconstruction import make_ut_tracks
 from AllenConf.persistency import make_gather_selections, make_global_decision
-from AllenConf.hlt1_reconstruction import hlt1_reconstruction
+from AllenConf.hlt1_reconstruction import hlt1_reconstruction, make_composite_node_with_gec
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line
 from AllenConf.HLT1 import line_maker
 from AllenConf.validators import (
@@ -53,7 +53,7 @@ lines.append(
             non_restricted_hlt1_reconstruction["secondary_vertices"],
             name="Hlt1TwoTrackMVA_Non_Restricted"),
         enableGEC=True))
-
+  
 # list of line algorithms, required for the gather selection and DecReport algorithms
 line_algorithms = [tup[0] for tup in lines]
 
@@ -71,30 +71,34 @@ hlt1_leaf = CompositeNode(
 
 validators_leaf = CompositeNode(
     "Validators", [
-        velo_validation(restricted_hlt1_reconstruction["velo_tracks"]),
-        veloUT_validation(
-            restricted_hlt1_reconstruction["ut_tracks"],
-            name="restricted_veloUT_validator"),
-        veloUT_validation(
-            non_restricted_hlt1_reconstruction["ut_tracks"],
-            name="non-restricted_veloUT_validator"),
-        forward_validation(
-            restricted_hlt1_reconstruction["forward_tracks"],
-            name="restricted_forward_validator"),
-        forward_validation(
-            non_restricted_hlt1_reconstruction["forward_tracks"],
-            name="non-restricted_forward_validator"),
-        muon_validation(
-            restricted_hlt1_reconstruction["muonID"],
-            name="restricted_muon_validation"),
-        muon_validation(
-            non_restricted_hlt1_reconstruction["muonID"],
-            name="non-restricted_muon_validation"),
-        pv_validation(restricted_hlt1_reconstruction["pvs"]),
-        rate_validation(make_gather_selections(line_algorithms)),
-        kalman_validation(
-            restricted_hlt1_reconstruction["kalman_velo_only"],
-            name="restricted_kalman_validation")
+        make_composite_node_with_gec(
+            "velo_validator",
+            velo_validation(restricted_hlt1_reconstruction["velo_tracks"])),
+        make_composite_node_with_gec(
+            "restricted_veloUT_validator",
+            veloUT_validation(restricted_hlt1_reconstruction["ut_tracks"], "restricted_veloUT_validator")),
+        make_composite_node_with_gec(
+            "non-restricted_veloUT_validator",
+            veloUT_validation(non_restricted_hlt1_reconstruction["ut_tracks"], "non-restricted_veloUT_validator")),
+        make_composite_node_with_gec(
+            "restricted_forward_validator",
+            forward_validation(restricted_hlt1_reconstruction["forward_tracks"], "restricted_forward_validator")),
+        make_composite_node_with_gec( 
+            "non-restricted_forward_validator",
+            forward_validation(non_restricted_hlt1_reconstruction["forward_tracks"], "non-restricted_forward_validator")),
+        make_composite_node_with_gec(
+            "restricted_muon_validation",
+            muon_validation(restricted_hlt1_reconstruction["muonID"], "restricted_muon_validation")),
+        make_composite_node_with_gec( 
+            "non-restricted_muon_validation",
+            muon_validation(non_restricted_hlt1_reconstruction["muonID"], "non-restricted_muon_validation")),
+        make_composite_node_with_gec(
+            "pv_validation", 
+            pv_validation(restricted_hlt1_reconstruction["pvs"])),
+        make_composite_node_with_gec( 
+            "restricted_kalman_validation",
+            kalman_validation(restricted_hlt1_reconstruction["kalman_velo_only"], "restricted_kalman_validation")),
+        rate_validation(make_gather_selections(line_algorithms)), 
     ],
     NodeLogic.NONLAZY_AND,
     force_order=False)
