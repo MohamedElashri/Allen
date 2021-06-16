@@ -298,6 +298,10 @@ namespace VertexFit {
 
     // Minimum IP chi2 of constituent tracks.
     sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;
+
+    // cos DIRA.
+    const float p = sqrtf(sv.px * sv.px + sv.py * sv.py + sv.pz * sv.pz);
+    sv.dira = (sv.px * dx + sv.py * dy + sv.pz * dz) / (p * fd);
   }
 
 } // namespace VertexFit

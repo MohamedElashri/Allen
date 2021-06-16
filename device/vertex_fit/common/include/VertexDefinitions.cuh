@@ -67,6 +67,8 @@ namespace VertexFit {
     float minpt = 0.0f;
     // Number of tracks associated to a PV (min IP chi2 < 16).
     int ntrks16 = 0;
+    // cos DIRA
+    float dira = 0.0f;
 
     // Degrees of freedom.
     int ndof = 0;
