@@ -11,10 +11,8 @@
 #include <MEPTools.h>
 #include <CaloCountDigits.cuh>
 
-// TODO thinks about blocks/threads etc. 1 block per fragment might be best for coalesced memory acces.
-
 __device__ void
-offsets(unsigned const* event_list, unsigned const n_events, unsigned* number_of_digits, CaloGeometry const& geometry)
+offsets(mask_t const* event_list, unsigned const n_events, unsigned* number_of_digits, CaloGeometry const& geometry)
 {
   for (unsigned idx = threadIdx.x; idx < n_events; idx += blockDim.x) {
     auto event_number = event_list[idx];

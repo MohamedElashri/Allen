@@ -14,9 +14,9 @@ void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
 
   set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<host_number_of_events_t>(arguments, 1);
-  set_size<host_event_list_t>(arguments, number_of_events);
+  set_size<host_event_list_output_t>(arguments, number_of_events);
   set_size<dev_number_of_events_t>(arguments, 1);
-  set_size<dev_event_list_t>(arguments, number_of_events);
+  set_size<dev_event_list_output_t>(arguments, number_of_events);
 }
 
 void host_global_event_cut::host_global_event_cut_t::operator()(
@@ -42,16 +42,16 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   }
 
   // Reduce the size of the event lists to the selected events
-  reduce_size<host_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  reduce_size<dev_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 
   // Copy data to the device
   copy<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
-  copy<dev_event_list_t, host_event_list_t>(arguments, context);
+  copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
   // TODO: Remove whenever the checker uses variables
   host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);
-  for (unsigned i = 0; i < size<host_event_list_t>(arguments); ++i) {
-    host_buffers.host_event_list[i] = event_start + data<host_event_list_t>(arguments)[i];
+  for (unsigned i = 0; i < size<host_event_list_output_t>(arguments); ++i) {
+    host_buffers.host_event_list[i] = event_start + data<host_event_list_output_t>(arguments)[i];
   }
 }

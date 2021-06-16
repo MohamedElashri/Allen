@@ -11,6 +11,7 @@
 #include "SciFiEventModel.cuh"
 #include "UTEventModel.cuh"
 #include "States.cuh"
+#include "Argument.cuh"
 
 float eta_from_rho(const float rho);
 
@@ -22,7 +23,7 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   gsl::span<const unsigned> track_atomics,
   gsl::span<const unsigned> track_hit_number,
   gsl::span<const char> track_hits,
-  gsl::span<const unsigned> event_list);
+  gsl::span<const mask_t> event_list);
 
 /**
  * @brief Prepares tracks for Velo, UT consolidated datatypes.
@@ -38,7 +39,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
   gsl::span<const char> ut_track_hits,
   gsl::span<const unsigned> ut_track_velo_indices,
   gsl::span<const float> ut_qop,
-  gsl::span<const unsigned> event_list);
+  gsl::span<const mask_t> event_list);
 
 /**
  * @brief Prepares tracks for Velo, UT, SciFi consolidated datatypes.
@@ -61,5 +62,5 @@ std::vector<Checker::Tracks> prepareForwardTracks(
   gsl::span<const float> scifi_qop,
   gsl::span<const MiniState> scifi_states,
   const char* host_scifi_geometry,
-  gsl::span<const unsigned> event_list,
+  gsl::span<const mask_t> event_list,
   gsl::span<const Allen::bool_as_char_t<bool>> is_muon = {});

@@ -1,18 +1,24 @@
 ###############################################################################
-# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from definitions.VeloSequence import VeloSequence
-from definitions.PVSequence import PVSequence
-from definitions.algorithms import compose_sequences
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+from AllenConf.primary_vertex_reconstruction import make_pvs
+from AllenConf.utils import gec
+from PyConf.control_flow import NodeLogic, CompositeNode
+from AllenCore.event_list_utils import generate
 
-velo_sequence = VeloSequence()
 
-pv_sequence = PVSequence(
-    initialize_lists=velo_sequence["initialize_lists"],
-    velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
-    velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
-    prefix_sum_offsets_velo_track_hit_number=velo_sequence[
-        "prefix_sum_offsets_velo_track_hit_number"],
-    velo_kalman_filter=velo_sequence["velo_kalman_filter"])
+def pv_finder():
+    decoded_velo = decode_velo()
+    velo_tracks = make_velo_tracks(decoded_velo)
+    pvs = make_pvs(velo_tracks)
+    alg = pvs["dev_multi_final_vertices"].producer
+    return alg
 
-compose_sequences(velo_sequence, pv_sequence).generate()
+
+pv_finder_sequence = CompositeNode(
+    "PVWithGEC", [gec("gec"), pv_finder()],
+    NodeLogic.LAZY_AND,
+    force_order=True)
+
+generate(pv_finder_sequence)

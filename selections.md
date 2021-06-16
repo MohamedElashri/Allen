@@ -118,19 +118,19 @@ Selections are `SelectionAlgorithm`s, that must in addition inherit from a line 
 Like with any other `Algorithm`, a `SelectionAlgorithm` can have inputs,
 outputs and properties. However, certain inputs and outputs are assumed and must be defined:
 
-* `(HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events)`: (Total) number of events.
-* `(DEVICE_INPUT(dev_event_list_t, unsigned), dev_event_list)`: Event list that will be applied the selection.
-* `(DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input)`: ODIN raw inputs. Needed for pre-scalers.
-* `(DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets)`: ODIN raw input offsets. Needed for pre-scalers.
-* `(DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout)`: MEP layout. Needed to properly read ODIN input.
-* `(DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions)`: Will contain the results of the selection.
-* `(DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets)`: Will contain the offsets to each event decisions.
-* `(HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler)`: Will contain the post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling.
-* `(HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash)`: Will contain the hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling.
-* `(PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler)`: Pre-scaling factor.
-* `(PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler)`: Post-scaling factor.
-* `(PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string)`: Pre-scaler hash string. Must not be empty.
-* `(PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string)`: Post-scaler hash string. Must not be empty.
+* `HOST_INPUT(host_number_of_events_t, unsigned), host_number_of_events;`: (Total) number of events.
+* `MASK_INPUT(dev_event_list_t);`: Event list that will be applied the selection.
+* `DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input;`: ODIN raw inputs. Needed for pre-scalers.
+* `DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets;`: ODIN raw input offsets. Needed for pre-scalers.
+* `DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout;`: MEP layout. Needed to properly read ODIN input.
+* `DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions;`: Will contain the results of the selection.
+* `DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets;`: Will contain the offsets to each event decisions.
+* `HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler;`: Will contain the post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling.
+* `HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash;`: Will contain the hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling.
+* `PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler;`: Pre-scaling factor.
+* `PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler;`: Post-scaling factor.
+* `PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;`: Pre-scaler hash string. Must not be empty.
+* `PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string;`: Post-scaler hash string. Must not be empty.
 
 In order to define a selection algorithm, one must define a struct as follows:
 
@@ -185,7 +185,7 @@ namespace example_one_track_line {
   struct Parameters {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -261,7 +261,7 @@ namespace example_two_track_line {
   struct Parameters {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -287,7 +287,7 @@ namespace example_two_track_line {
   // SelectionAlgorithm definition
   struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
     // Selection function.
-    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>) const;
+    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
 
   private:
     // Commonly required properties
@@ -313,7 +313,7 @@ INSTANTIATE_LINE(example_two_track_line::example_two_track_line_t, example_two_t
 
 __device__ bool example_two_track_line::example_two_track_line_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input) const
+  std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
 
@@ -347,7 +347,7 @@ namespace velo_micro_bias_line {
   struct Parameters {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -370,9 +370,9 @@ namespace velo_micro_bias_line {
 
   struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
     __device__ static std::tuple<const unsigned>
-    get_input(const Parameters& parameters, const unsigned event_number) const;
+    get_input(const Parameters& parameters, const unsigned event_number);
 
-    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
 
   private:
     // Commonly required properties
@@ -397,7 +397,7 @@ The source file `technical/src/VeloMicroBiasLine.cu` looks as follows:
 INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_line::Parameters)
 
 __device__ std::tuple<const unsigned>
-velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parameters, const unsigned event_number) const
+velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parameters, const unsigned event_number)
 {
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, parameters.dev_number_of_events[0]};
@@ -407,7 +407,7 @@ velo_micro_bias_line::velo_micro_bias_line_t::get_input(const Parameters& parame
 
 __device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
   const Parameters& parameters,
-  std::tuple<const unsigned> input) const
+  std::tuple<const unsigned> input)
 {
   const auto number_of_velo_tracks = std::get<0>(input);
   return number_of_velo_tracks >= parameters.min_velo_tracks;
@@ -436,7 +436,7 @@ namespace example_one_velo_track_line {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t);
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -460,16 +460,16 @@ namespace example_one_velo_track_line {
   struct example_one_velo_track_line_t : public SelectionAlgorithm, Parameters, Line<example_one_velo_track_line_t, Parameters> {
 
       // Offset function
-      __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number) const;
+      __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
     
       //Get decision size function
-      static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
+      static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
     
       // Get input function
-      __device__ static std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
+      __device__ static std::tuple<const unsigned> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
     
       // Selection function
-      __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input) const;
+      __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
 
 
   private:
@@ -496,20 +496,20 @@ INSTANTIATE_LINE(example_one_velo_track_line::example_one_velo_track_line_t, exa
 
 // Offset function
 __device__ unsigned example_one_velo_track_line::example_one_velo_track_line_t::offset(const Parameters& parameters, 
-    const unsigned event_number) const
+    const unsigned event_number)
 {
   return parameters.dev_track_offsets[event_number];
 }
 
 //Get decision size function
-unsigned example_one_velo_track_line::example_one_velo_track_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments) const
+unsigned example_one_velo_track_line::example_one_velo_track_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments)
 {
   return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
 }
 
 // Get input function
 __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_velo_track_line_t::get_input(const Parameters& parameters, 
-    const unsigned event_number, const unsigned i) const
+    const unsigned event_number, const unsigned i)
 {
   // Get the number of events
   const uint number_of_events = parameters.dev_number_of_events[0]; 
@@ -530,7 +530,7 @@ __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_v
 
 // Selection function
 __device__ bool example_one_velo_track_line::example_one_velo_track_line_t::select(const Parameters& parameters, 
-    std::tuple<const unsigned> input) const
+    std::tuple<const unsigned> input)
 {
   // Get number of hits for current velo track
   const auto& velo_track_hit_number = std::get<0>(input);
@@ -546,123 +546,186 @@ It is important that the return type of `get_input` is the same as the input typ
 
 
 ### Adding your selection to the Allen sequence
+After creating the selection source code, the selection can either be added to an existing sequence or a new sequence is generated.
+Selections are added to the Allen sequence similarly as
+algorithms, described [here](configuration/readme.md), using the python functions defined in [AllenConf](configuration/sequences/AllenConf).  
+Let us first look at the default sequence definition in [hlt1_pp_default.py](configuration/sequences/hlt1_pp_default.py).
 
-Selections are added to the Allen sequence similarly to
-algorithms. After creating the selection source code, a new sequence
-must be generated. Head to `configuration/sequences` and add a new
-configuration file.
+```python
+from AllenConf.HLT1 import setup_hlt1_node
+from AllenCore.event_list_utils import generate
+
+hlt1_node = setup_hlt1_node()
+generate(hlt1_node)
+```
+The CompositeNode containing the default HLT1 selections `setup_hlt1_node` is defined in [HLT1.py](configuration/sequences/AllenConf/HLT1.py) and contains the following code:
+```python
+reconstructed_objects = hlt1_reconstruction()
+
+with line_maker.bind(enableGEC=EnableGEC):
+        physics_lines = default_physics_lines(
+            reconstructed_objects["velo_tracks"],
+            reconstructed_objects["forward_tracks"],
+            reconstructed_objects["kalman_velo_only"],
+            reconstructed_objects["secondary_vertices"])
+
+    monitoring_lines = default_monitoring_lines(
+        reconstructed_objects["velo_tracks"])
+
+    # list of line algorithms, required for the gather selection and DecReport algorithms
+    line_algorithms = [tup[0] for tup in physics_lines
+                       ] + [tup[0] for tup in monitoring_lines]
+    # lost of line nodes, required to set up the CompositeNode
+    line_nodes = [tup[1] for tup in physics_lines
+                  ] + [tup[1] for tup in monitoring_lines]
+
+    lines = CompositeNode(
+        "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+
+    hlt1_node = CompositeNode(
+        "Allen", [lines, make_dec_reporter(lines=line_algorithms)],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
+```
+The default HLT1 reconstruction algorithms are called with [hlt1_reconstruction()](configuration/sequences/AllenConf/hlt1_reconstruction.py#L18). Their output is passed to the selection algorithms as required. The functions `default_physics_lines` and `default_monitoring_lines` define the default HLT1 selections. Each returns a list of tuples of `[algorithm, node]`. The list of nodes is passed as input to make the CompositeNode defining the HLT1 selections, while the list of algorithms is required as input for the DecReport algorithm. 
+
+Let us take a closer look at one example, i.e. how the Hlt1DiMuonLowMass line is defined within [default_physics_lines](configuration/sequences/AllenConf/HLT1.py#L82):
+```python
+lines.append(
+        line_maker(
+            "Hlt1DiMuonLowMass",
+            make_di_muon_mass_line(
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonLowMass",
+                pre_scaler_hash_string="di_muon_low_mass_line_pre",
+                post_scaler_hash_string="di_muon_low_mass_line_post",
+                minHighMassTrackPt="500.",
+                minHighMassTrackP="3000.",
+                minMass="0.",
+                maxDoca="0.2",
+                maxVertexChi2="25.",
+                minIPChi2="4."),
+            enableGEC=True))
+```
+The [line_maker](configuration/sequences/AllenConf/HLT1.py#L30) function is called to set the line name, the line algorithm with its required inputs and to specify whether or not the prefilter of the global event cut (GEC) should be applied. The line algorithm can be configured as described below. `line_maker` returns a tuple of `[algorithm, node]` which is appended to the list of lines. 
+
+The line algorithms are defined in the following files:
+
+- [hlt1_calibration_lines.py](configuration/sequences/AllenConf/hlt1_calibration_lines.py)
+- [hlt1_charm_lines.py](configuration/sequences/AllenConf/hlt1_charm_lines.py)
+- [hlt1_inclusive_hadron_lines.py](configuration/sequences/AllenConf/hlt1_inclusive_hadron_lines.py)
+- [hlt1_monitoring_lines.py](configuration/sequences/AllenConf/hlt1_monitoring_lines.py)
+- [hlt1_muon_lines.py](configuration/sequences/AllenConf/hlt1_muon_lines.py)
+
+The HLT1DiMuonLowMass line is defined in `hlt1_muon_lines.py` as follows:
+```python
+def make_di_muon_mass_line(forward_tracks,
+                           secondary_vertices,
+                           pre_scaler_hash_string="di_muon_mass_line_pre",
+                           post_scaler_hash_string="di_muon_mass_line_post",
+                           minHighMassTrackPt="300.",
+                           minHighMassTrackP="6000.",
+                           minMass="2700.",
+                           maxDoca="0.2",
+                           maxVertexChi2="25.",
+                           minIPChi2="0.",
+                           name="Hlt1DiMuonHighMass"):
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+    layout = mep_layout()
+
+    return make_algorithm(
+        di_muon_mass_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
+        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
+        dev_mep_layout_t=layout["dev_mep_layout"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_svs_t=secondary_vertices["dev_consolidated_svs"],
+        dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
+        pre_scaler_hash_string=pre_scaler_hash_string,
+        post_scaler_hash_string=post_scaler_hash_string,
+        minHighMassTrackPt=minHighMassTrackPt,
+        minHighMassTrackP=minHighMassTrackP,
+        minMass=minMass,
+        maxDoca=maxDoca,
+        maxVertexChi2=maxVertexChi2,
+        minIPChi2=minIPChi2)
+```
+It takes as input the objects on which the selection is based (`forward_tracks` and `secondary_vertices`), a possible pre and post scalar hash string (`pre_scaler_hash_string` and `post_scaler_hash_string`), configurable parameters (`minHighMassTrackPt` etc.) and a name (`"Hlt1DiMuonHighMass"`). In the call to `make_algorithm` the arguments of the selection (`HOST_INPUT`, `HOST_OUTPUT` and `PROPERTY`) defined in the source code are configured. 
+In Allen it is common practice, to set the default values of Properties within the source code (.cu file) and only exposte those Properties to python parameters that are actually varied in a selection definition. It is particularly useful to specify the name of a line when calling the `make_..._line` function, if more than one configuration of the same selection is defined.
+
+We now have the tools to create our own CompositeNode defining a custom sequence with one of the example algorithms defined above.
+
+Head to `configuration/sequences` and add a new configuration file.
 
 1.  Example: A minimal HLT1 sequence
 
     This is a minimal HLT1 sequence including only reconstruction
-    algorithms and the example selections we created above. Calling
+    algorithms and the example one track line we created above. Calling
     generate using the returned sequence will produce an Allen sequence
     that automatically runs the example selection.
 
-    First, copy the contents of `hlt1_pp_default.py` into `custom_sequence.py`.
-    Modify the argument list to `HLT1Sequence` by adding the keyword argument
-    `add_default_lines = False` and add the lines.
-    
-    Don't forget to add the hash strings that act as seed phrases in case of prescaling and postscaling.
+    First define the line algorithm, for example within `hlt1_inclusive_hadron_lines.py`:
+  ```python
+  def make_example_one_track_line(forward_tracks,
+                        kalman_velo_only,
+                        pre_scaler_hash_string="track_mva_line_pre",
+                        post_scaler_hash_string="track_mva_line_post",
+                        name="Hlt1OneTrackExample"):
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+    layout = mep_layout()
 
-    ```python
-    hlt1_sequence = HLT1Sequence(
-        layout_provider=velo_sequence["mep_layout"],
-        initialize_lists=velo_sequence["initialize_lists"],
-        full_event_list=velo_sequence["full_event_list"],
-        velo_copy_track_hit_number=velo_sequence["velo_copy_track_hit_number"],
-        velo_kalman_filter=pv_sequence["velo_kalman_filter"],
-        prefix_sum_offsets_velo_track_hit_number=velo_sequence[
-            "prefix_sum_offsets_velo_track_hit_number"],
-        pv_beamline_multi_fitter=pv_sequence["pv_beamline_multi_fitter"],
-        prefix_sum_forward_tracks=forward_sequence["prefix_sum_forward_tracks"],
-        velo_consolidate_tracks=velo_sequence["velo_consolidate_tracks"],
-        prefix_sum_ut_tracks=ut_sequence["prefix_sum_ut_tracks"],
-        prefix_sum_ut_track_hit_number=ut_sequence[
-            "prefix_sum_ut_track_hit_number"],
-        ut_consolidate_tracks=ut_sequence["ut_consolidate_tracks"],
-        prefix_sum_scifi_track_hit_number=forward_sequence[
-            "prefix_sum_scifi_track_hit_number"],
-        scifi_consolidate_tracks=forward_sequence["scifi_consolidate_tracks_t"],
-        is_muon=muon_sequence["is_muon_t"],
-        # Disable default lines
-        add_default_lines=False)
+    return make_algorithm(
+        example_one_track_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+            "host_number_of_reconstructed_scifi_tracks"],
+        dev_tracks_t=kalman_velo_only["dev_kf_tracks"],
+        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
+        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
+        dev_mep_layout_t=layout["dev_mep_layout"],
+        pre_scaler_hash_string=pre_scaler_hash_string,
+        post_scaler_hash_string=post_scaler_hash_string)
+  ```
+  Second, we will create the CompositeNode for the selection (rather than using the predefined `setup_hlt1_node`) and generate the sequence within a new configuration file `custom_hlt1.py`:
+  ```python
+    from AllenConf.hlt1_inclusive_hadron_lines import make_example_one_track_line
+    from AllenConf.HLT1 import line_maker
+    from AllenCore.event_list_utils import generate
 
-    # New lines
-    from definitions.HLT1Sequence import make_selection_gatherer
-    from definitions.algorithms import *
+      # Reconstruct objects needed as input for selection lines
+      reconstructed_objects = hlt1_reconstruction()
 
-    example_one_track_line = example_one_track_line_t(
-        name="example_one_track_line",
-        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
-        host_number_of_reconstructed_scifi_tracks_t=
-        forward_sequence["prefix_sum_forward_tracks"].host_total_sum_holder_t(),
-        dev_tracks_t=hlt1_sequence["kalman_velo_only"].dev_kf_tracks_t(),
-        dev_event_list_t=velo_sequence["initialize_lists"].dev_event_list_t(),
-        dev_track_offsets_t=forward_sequence["prefix_sum_forward_tracks"].
-        dev_output_buffer_t(),
-        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
-        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=velo_sequence["mep_layout"].dev_mep_layout_t(),
-        pre_scaler_hash_string="example_one_track_line_pre",
-        post_scaler_hash_string="example_one_track_line_post")
+      lines = []
+      lines.append(
+        line_maker(
+            "Hlt1OneTracExample",
+            make_one_track_example_line(forward_tracks, kalman_velo_only),
+            enableGEC=True))
 
-    example_two_track_line = example_two_track_line_t(
-        name="example_two_track_line",
-        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
-        host_number_of_svs_t=hlt1_sequence["prefix_sum_secondary_vertices"].
-        host_total_sum_holder_t(),
-        dev_svs_t=hlt1_sequence["fit_secondary_vertices"].dev_consolidated_svs_t(),
-        dev_event_list_t=velo_sequence["initialize_lists"].dev_event_list_t(),
-        dev_sv_offsets_t=hlt1_sequence["prefix_sum_secondary_vertices"].
-        dev_output_buffer_t(),
-        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
-        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=velo_sequence["mep_layout"],
-        pre_scaler_hash_string="example_two_track_line_pre",
-        post_scaler_hash_string="example_two_track_line_post")
+      line_algorithms = [tup[0] for tup in lines]
+      line_nodes = [tup[1] for tup in lines]
 
-    velo_micro_bias_line = velo_micro_bias_line_t(
-        name="velo_micro_bias_line",
-        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
-        dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
-        dev_event_list_t=velo_sequence["full_event_list"].dev_event_list_t(),
-        dev_offsets_velo_tracks_t=velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
-        dev_offsets_velo_track_hit_number_t=velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
-        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
-        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=velo_sequence["mep_layout"],
-        pre_scaler_hash_string="velo_micro_bias_line_pre",
-        post_scaler_hash_string="velo_micro_bias_line_post")
-    
-    example_one_velo_track_line = example_one_velo_track_line_t(
-        name="example_one_velo_track_line",
-        host_number_of_events_t=velo_sequence["initialize_lists"].host_number_of_events_t(),
-        host_number_of_reconstructed_velo_tracks_t=velo_sequence["velo_copy_track_hit_number"].host_number_of_reconstructed_velo_tracks_t(),
-        dev_event_list_t=velo_sequence["full_event_list"].dev_event_list_t(),
-        dev_odin_raw_input_t=hlt1_sequence["odin_banks"].dev_raw_banks_t(),
-        dev_odin_raw_input_offsets_t=hlt1_sequence["odin_banks"].dev_raw_offsets_t(),
-        dev_mep_layout_t=velo_sequence["mep_layout"],
-        dev_track_offsets_t = velo_sequence["velo_copy_track_hit_number"].dev_offsets_all_velo_tracks_t(),
-        dev_number_of_events_t=velo_sequence["initialize_lists"].dev_number_of_events_t(),
-        dev_offsets_velo_track_hit_number_t = velo_sequence["prefix_sum_offsets_velo_track_hit_number"].dev_output_buffer_t(),
-        pre_scaler_hash_string="example_one_velo_track_line_pre",
-        post_scaler_hash_string="example_one_velo_track_line_post",
-        minNHits="3")
-        
-    lines = (example_one_track_line, example_two_track_line, velo_micro_bias_line, example_one_velo_track_line)
+      lines = CompositeNode(
+        "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
-    gatherer = make_selection_gatherer(
-        lines, velo_sequence["initialize_lists"], velo_sequence["mep_layout"], hlt1_sequence["odin_banks"], name="gather_selections")
+      custom_hlt1_node = CompositeNode(
+        "Allen", [lines, make_dec_reporter(lines=line_algorithms)],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
 
-    # Compose final sequence with lines
-    extend_sequence(compose_sequences(velo_sequence, pv_sequence, ut_sequence, forward_sequence,
-                      muon_sequence, hlt1_sequence), *lines, gatherer).generate()
-    ```
+      generate(custom_hlt1_node)
+  ```
+  The `lines` CompositeNode gathers all lines. In our case this is only one, but the addition of more lines is straight-forward by appending more entries to `lines` with more calls to the `line_maker`. 
+  The `custom_hlt1_node` combines the lines with the DecReport algorithm to setup the full HLT1. 
+  
+   Notice that all the values of the properties have to be given in a string even if the type of the property is an int or a float.
+   Now, you should be able to build and run the newly generated `custom_hlt1`.
 
-    Notice that all the values of the properties have to be given in a string even if the type of the property is an int or a float.
-    Now, you should be able to build and run the newly generated `custom_sequence`.
-
-    Notice also that if you're testing only one line, the tuple of lines becomes :
-    `lines = (example_one_track_line,)`
     

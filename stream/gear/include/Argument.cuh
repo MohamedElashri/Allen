@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #pragma once
 
-#include <tuple>
 #include <array>
 
 // Traits to get type and dependencies
@@ -23,6 +22,16 @@ struct device_datatype {
 };
 struct aggregate_datatype {
 };
+
+// Checks all Ts inherit from host_datatype
+template<typename... Ts>
+constexpr bool all_host_v = (std::is_base_of_v<host_datatype, Ts> && ...);
+// Checks all Ts inherit from device_datatype
+template<typename... Ts>
+constexpr bool all_device_v = (std::is_base_of_v<device_datatype, Ts> && ...);
+// Checks all Ts either inherit from host_datatype or all inherit from device_datatype
+template<typename... Ts>
+constexpr bool all_host_or_all_device_v = all_host_v<Ts...> || all_device_v<Ts...>;
 
 // A generic datatype* data holder.
 template<typename internal_t>
@@ -103,6 +112,30 @@ struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t.
     using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                           \
   }
 
+// Support for masks
+// Masks are unsigned inputs / outputs, which the parser and multi ev scheduler
+// deal with in a special way. A maximum of one input mask and one output mask per algorithm
+// is allowed.
+struct mask_t {
+  unsigned m_data;
+
+  __host__ __device__ operator unsigned() const { return m_data; }
+};
+
+#define MASK_INPUT(ARGUMENT_NAME)                                         \
+  struct ARGUMENT_NAME : public device_datatype, input_datatype<mask_t> { \
+    using input_datatype<mask_t>::input_datatype;                         \
+    void parameter(mask_t) const {}                                       \
+    using deps = std::tuple<>;                                            \
+  }
+
+#define MASK_OUTPUT(ARGUMENT_NAME)                                         \
+  struct ARGUMENT_NAME : public device_datatype, output_datatype<mask_t> { \
+    using output_datatype<mask_t>::output_datatype;                        \
+    void parameter(mask_t) {}                                              \
+    using deps = std::tuple<>;                                             \
+  }
+
 // Struct that mimics std::array<unsigned, 3> and works with CUDA.
 struct DeviceDimensions {
   unsigned x;
@@ -178,13 +211,3 @@ protected:
     using property_datatype<__VA_ARGS__>::property_datatype; \
     void property(__VA_ARGS__) {}                            \
   }
-
-/**
- * @brief Dependencies for an algorithm, after
- *        being processed by the scheduler machinery.
- */
-template<typename T, typename ArgumentsTuple>
-struct ScheduledDependencies {
-  using Algorithm = T;
-  using Arguments = ArgumentsTuple;
-};

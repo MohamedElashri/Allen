@@ -19,6 +19,7 @@
 #include "ParKalmanMath.cuh"
 #include "PV_Definitions.cuh"
 #include "patPV_Definitions.cuh"
+#include "Argument.cuh"
 
 // Kalman tracks.
 float ipKalman(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& vertex);
@@ -70,4 +71,4 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
   gsl::span<const ParKalmanFilter::FittedTrack> kf_tracks,
   gsl::span<const PV::Vertex> rec_vertex,
   gsl::span<const unsigned> number_of_vertex,
-  gsl::span<const unsigned> event_list);
+  gsl::span<const mask_t> event_list);

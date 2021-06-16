@@ -17,7 +17,7 @@
 namespace pv_beamline_peak {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_zhisto_t, float) dev_zhisto;
     DEVICE_OUTPUT(dev_zpeaks_t, float) dev_zpeaks;
     DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned) dev_number_of_zpeaks;

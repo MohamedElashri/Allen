@@ -14,7 +14,7 @@ void PVChecker::accumulate(
   MCEvents const& mc_events,
   gsl::span<const PV::Vertex> rec_vertex,
   gsl::span<const unsigned> number_of_vertex,
-  gsl::span<const unsigned> event_list)
+  gsl::span<const mask_t> event_list)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
   passed += event_list.size();

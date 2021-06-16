@@ -12,7 +12,7 @@ variables:
   PROFILE_DEVICE: "geforcertx3090"
   RUN_THROUGHPUT_OPTIONS_CUDAPROF: "-n 500 -m 500 -r 100"
   RUN_THROUGHPUT_OPTIONS_CUDA: "-n 500 -m 500 -r 1000"
-  RUN_THROUGHPUT_OPTIONS_HIP: "-n 8000 -m 5000 -r 1000"
+  RUN_THROUGHPUT_OPTIONS_HIP: "-n 5000 -m 5000 -r 1000"
   RUN_THROUGHPUT_OPTIONS_CPU: "-n 100 -m 100 -r 200"
 
   OVERRIDE_CUDA_ARCH_FLAG: "-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
@@ -100,6 +100,5 @@ docker_image:build:
     GIT_SUBMODULE_STRATEGY: recursive
   allow_failure: true
   needs: []
-
 
 include: "scripts/ci/config/main.yaml"

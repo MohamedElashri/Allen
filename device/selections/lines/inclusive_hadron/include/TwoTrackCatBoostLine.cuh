@@ -14,7 +14,7 @@ namespace two_track_catboost_line {
     DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
     DEVICE_INPUT(dev_two_track_evaluation_t, float) dev_two_track_evaluation;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;

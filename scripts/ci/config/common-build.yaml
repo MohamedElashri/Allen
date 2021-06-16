@@ -48,19 +48,15 @@
         SEQUENCE: hlt1_pp_default
 
 
-      # no_gec builds
+      # no_gec, scifiv6 and other builds
       - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
         BUILD_TYPE: RelWithDebInfo
         SEQUENCE:
           - hlt1_pp_no_gec
           - hlt1_pp_no_gec_validation
-
-      # scifi-v6 builds
-      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
-        BUILD_TYPE: RelWithDebInfo
-        SEQUENCE:
           - hlt1_pp_scifi_v6
           - hlt1_pp_scifi_v6_validation
+          - hlt1_complex_validation
 
 
 .build_job:

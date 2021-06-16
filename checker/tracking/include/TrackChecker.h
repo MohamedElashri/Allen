@@ -31,6 +31,7 @@
 #include "TrackCheckerHistos.h"
 #include "TrackCheckerCategories.h"
 #include <mutex>
+#include "Argument.cuh"
 
 float eta_from_rho(const float rho);
 
@@ -153,7 +154,7 @@ public:
   }
 
   void
-  accumulate(const MCEvents& mc_events, gsl::span<const Checker::Tracks> tracks, gsl::span<const unsigned> event_list)
+  accumulate(const MCEvents& mc_events, gsl::span<const Checker::Tracks> tracks, gsl::span<const mask_t> event_list)
   {
     auto guard = std::scoped_lock {m_mutex};
     for (size_t i = 0; i < event_list.size(); ++i) {

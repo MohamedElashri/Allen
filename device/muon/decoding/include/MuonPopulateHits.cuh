@@ -12,7 +12,7 @@ namespace muon_populate_hits {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_muon_total_number_of_hits_t, unsigned) host_muon_total_number_of_hits;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_storage_tile_id_t, unsigned) dev_storage_tile_id;
     DEVICE_INPUT(dev_storage_tdc_value_t, unsigned) dev_storage_tdc_value;

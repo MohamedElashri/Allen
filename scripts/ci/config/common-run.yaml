@@ -58,6 +58,12 @@
         OPTIONS: [BUILD_TESTS+ENABLE_CONTRACTS]
         SEQUENCE: ["hlt1_pp_default"]
 
+      # run physics efficiency, complex_validation
+      - TEST_NAME: "run_physics_efficiency"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_complex_validation"]
+        INPUT_FILES: ["bsphiphi_mag_down_201907"]
+
 .run_jobs:
   extends:
     - .base_job

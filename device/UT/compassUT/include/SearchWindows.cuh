@@ -20,7 +20,7 @@ namespace ut_search_windows {
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     PROPERTY(min_momentum_t, "min_momentum", "min momentum cut [MeV/c]", float) min_momentum;
     PROPERTY(min_pt_t, "min_pt", "min pT cut [MeV/c]", float) min_pt;

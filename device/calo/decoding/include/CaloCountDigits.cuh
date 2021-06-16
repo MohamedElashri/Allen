@@ -16,7 +16,7 @@
 namespace calo_count_digits {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_ecal_num_digits_t, unsigned) dev_ecal_num_digits;
     DEVICE_OUTPUT(dev_hcal_num_digits_t, unsigned) dev_hcal_num_digits;

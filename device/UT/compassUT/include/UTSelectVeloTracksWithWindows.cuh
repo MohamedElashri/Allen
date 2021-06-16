@@ -19,7 +19,7 @@ namespace ut_select_velo_tracks_with_windows {
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    DEVICE_INPUT(dev_event_list_t, unsigned) dev_event_list;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, unsigned)
     dev_ut_number_of_selected_velo_tracks_with_windows;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_with_windows_t, unsigned) dev_ut_selected_velo_tracks_with_windows;
