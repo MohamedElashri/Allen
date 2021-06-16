@@ -67,9 +67,9 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/LHCb" "${PROJECT_SEQUENCE_DIR}/PyConf" "${PROJECT_SEQUENCE_DIR}/Gaudi" "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
       COMMAND
-        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb --no-checkout &&
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git --no-checkout &&
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} -C LHCb/ checkout HEAD -- PyConf &&
-        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi --no-checkout &&
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git --no-checkout &&
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} -C Gaudi/ checkout HEAD -- GaudiKernel &&
         ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf &&
         ${CMAKE_COMMAND} -E create_symlink Gaudi/GaudiKernel/python/GaudiKernel GaudiKernel
