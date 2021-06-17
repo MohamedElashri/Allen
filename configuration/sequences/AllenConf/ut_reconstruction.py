@@ -159,7 +159,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
         dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks_t,
         dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number_t,
-        dev_velo_states_t=velo_states["dev_velo_lmsfit_beamline_states"],
+        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"],
         dev_ut_windows_layers_t=ut_search_windows.dev_ut_windows_layers_t,
         dev_ut_number_of_selected_velo_tracks_with_windows_t=
         ut_select_velo_tracks_with_windows.

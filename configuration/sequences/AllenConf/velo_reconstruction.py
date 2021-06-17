@@ -231,9 +231,7 @@ def run_velo_kalman_filter(velo_tracks):
         "dev_velo_kalman_beamline_states":
         velo_kalman_filter.dev_velo_kalman_beamline_states_t,
         "dev_velo_kalman_endvelo_states":
-        velo_kalman_filter.dev_velo_kalman_endvelo_states_t,
-        "dev_velo_lmsfit_beamline_states":
-        velo_kalman_filter.dev_velo_lmsfit_beamline_states_t,
+        velo_kalman_filter.dev_velo_kalman_endvelo_states_t
     }
 
 
