@@ -102,18 +102,18 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         dev_accepted_velo_tracks_t=dev_accepted_velo_tracks_t,
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"])
 
-    ut_search_windows_min_momentum = "1500.0"
-    ut_search_windows_min_pt = "300.0"
+    ut_search_windows_min_momentum = "1250.0"
+    ut_search_windows_min_pt = "275.0"
     compass_ut_max_considered_before_found = "6"
-    compass_ut_min_momentum_final = "2500.0"
-    compass_ut_min_pt_final = "425.0"
+    compass_ut_min_momentum_final = "1500.0"
+    compass_ut_min_pt_final = "400.0"
 
     if not restricted:
-        ut_search_windows_min_momentum = "3000.0"
-        ut_search_windows_min_pt = "0.0"
-        compass_ut_max_considered_before_found = "16"
-        compass_ut_min_momentum_final = "0.0"
-        compass_ut_min_pt_final = "0.0"
+        ut_search_windows_min_momentum = "1250.0"
+        ut_search_windows_min_pt = "200.0"
+        compass_ut_max_considered_before_found = "6"
+        compass_ut_min_momentum_final = "1500.0"
+        compass_ut_min_pt_final = "250.0"
 
     ut_search_windows = make_algorithm(
         ut_search_windows_t,
