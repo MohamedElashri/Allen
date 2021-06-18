@@ -99,7 +99,7 @@ void gather_selections::gather_selections_t::operator()(
   // Pass the number of lines for posterior algorithms
   const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
   data<host_number_of_active_lines_t>(arguments)[0] = dev_input_selections.size_of_aggregate();
-  Allen::copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
+  Allen::copy_async<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
 
   // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
   auto* container = data<host_selections_lines_offsets_t>(arguments);
@@ -159,11 +159,8 @@ void gather_selections::gather_selections_t::operator()(
     data<host_selections_lines_offsets_t>(arguments)[dev_input_selections.size_of_aggregate()];
 
   // Copy host_selections_offsets_t onto dev_selections_offsets_t
-  Allen::copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, context);
+  Allen::copy_async<dev_selections_offsets_t, host_selections_offsets_t>(arguments, context);
 
-  // Fetch the postscaler function depending on its layout
-  // auto postscale_fn = first<dev_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>) :
-  //                                                           global_function(postscaler<odin_data_t>);
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     data<dev_selections_t>(arguments),

@@ -48,7 +48,6 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   // Copy data to the device
   Allen::copy_async<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
   Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
-  Allen::synchronize(context);
 
   for (unsigned i = 0; i < size<host_event_list_output_t>(arguments); ++i) {
     host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);

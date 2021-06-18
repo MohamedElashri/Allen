@@ -59,7 +59,7 @@ void event_list_inversion::event_list_inversion_t::operator()(
   reduce_size<dev_event_list_output_t>(arguments, output_number_of_events);
 
   // Copy the event list to the device
-  Allen::copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
+  Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
   if (property<verbosity_t>() >= logger::debug) {
     printf("List inversion:\n From list: ");

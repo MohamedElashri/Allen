@@ -33,5 +33,5 @@ void host_init_number_of_events::host_init_number_of_events_t::operator()(
 
   // Initialize the number of events
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
-  Allen::copy<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
+  Allen::copy_async<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
 }

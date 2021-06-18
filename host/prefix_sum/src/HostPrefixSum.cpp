@@ -38,9 +38,6 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   // Copy data over to the host
   Allen::copy<host_output_buffer_t, dev_input_buffer_t>(arguments, context);
 
-  // Synchronize
-  Allen::synchronize(context);
-
   // Perform the prefix sum in the host
   host_prefix_sum_impl(
     data<host_output_buffer_t>(arguments),
@@ -48,7 +45,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
     data<host_total_sum_holder_t>(arguments));
 
   // Copy prefix summed data to the device
-  Allen::copy<dev_output_buffer_t, host_output_buffer_t>(arguments, context);
+  Allen::copy_async<dev_output_buffer_t, host_output_buffer_t>(arguments, context);
 #endif
 }
 
