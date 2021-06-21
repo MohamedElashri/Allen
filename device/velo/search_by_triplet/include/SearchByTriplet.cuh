@@ -98,7 +98,7 @@ namespace velo_search_by_triplet {
     const float max_scatter,
     const unsigned max_skipped_modules,
     const unsigned event_number);
-  
+
   __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
 
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {

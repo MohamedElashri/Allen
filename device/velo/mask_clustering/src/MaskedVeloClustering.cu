@@ -338,7 +338,7 @@ __device__ void rest_of_clusters(
   const uint32_t col = sp_col * 2 + sp_relative_col;
 
   // Work with a 64-bit number
-  const uint64_t starting_pixel = ((uint64_t) (0x01 << (11 - sp_relative_row)) << (16 * (col & 0x01))) << 32;
+  const uint64_t starting_pixel = ((uint64_t)(0x01 << (11 - sp_relative_row)) << (16 * (col & 0x01))) << 32;
   const uint64_t pixel_map = (((uint64_t) pixel_array[3]) << 32) | pixel_array[2];
 
   // Make cluster with mask clustering method
@@ -457,15 +457,15 @@ __global__ void velo_masked_clustering_kernel(
   int number_of_raw_banks;
   if constexpr (mep_layout) {
     number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
-  } else {
+  }
+  else {
     const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
-    const auto raw_event = VeloRawEvent(raw_input);  
+    const auto raw_event = VeloRawEvent(raw_input);
     number_of_raw_banks = raw_event.number_of_raw_banks;
   }
 
   // process no neighbour sp
-  for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks;
-       raw_bank_number += blockDim.x) {
+  for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
     const auto module_pair_number = raw_bank_number / 8;
     const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
 
@@ -542,7 +542,8 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   initialize<dev_module_cluster_num_t>(arguments, 0, context);
 
   // Selector from layout
-  global_function(runtime_options.mep_layout ? velo_masked_clustering_kernel<true> : velo_masked_clustering_kernel<false>)(
+  global_function(
+    runtime_options.mep_layout ? velo_masked_clustering_kernel<true> : velo_masked_clustering_kernel<false>)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_velo_geometry,

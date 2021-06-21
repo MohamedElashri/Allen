@@ -188,19 +188,22 @@ namespace Velo {
     __host__ __device__ int16_t phi(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, int16_t>::t*>(m_base_pointer)[m_total_number_of_hits * offset_phi + m_offset + index];
+      return reinterpret_cast<typename ForwardType<T, int16_t>::t*>(
+        m_base_pointer)[m_total_number_of_hits * offset_phi + m_offset + index];
     }
 
     __host__ __device__ void set_phi(const unsigned index, const int16_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      reinterpret_cast<typename ForwardType<T, int16_t>::t*>(m_base_pointer)[m_total_number_of_hits * offset_phi + m_offset + index] = value;
+      reinterpret_cast<typename ForwardType<T, int16_t>::t*>(
+        m_base_pointer)[m_total_number_of_hits * offset_phi + m_offset + index] = value;
     }
 
     // Pointer accessor for binary search
     __host__ __device__ typename ForwardType<T, int16_t>::t* phi_begin() const
     {
-      return reinterpret_cast<typename ForwardType<T, int16_t>::t*>(m_base_pointer) + m_total_number_of_hits * offset_phi + m_offset;
+      return reinterpret_cast<typename ForwardType<T, int16_t>::t*>(m_base_pointer) +
+             m_total_number_of_hits * offset_phi + m_offset;
     }
   };
 
