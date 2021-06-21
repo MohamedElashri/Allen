@@ -107,8 +107,11 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
       for (unsigned j = 0; j < hit_num; ++j) {
         const auto other_hit_index = hit_start + j;
         const auto other_phi = velo_cluster_container.phi(other_hit_index);
-        // Stable sorting
-        position += phi > other_phi || (phi == other_phi && hit_index > other_hit_index);
+
+        // Ensure sorting is reproducible
+        position +=
+          phi > other_phi || (hit_index != other_hit_index && phi == other_phi &&
+                              velo_cluster_container.id(hit_index) > velo_cluster_container.id(other_hit_index));
       }
 
       // Store it in hit permutations
@@ -139,7 +142,7 @@ __device__ void velo_calculate_phi_and_sort::sort_by_phi(
     velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
     velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
   }
-  
+
   for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));

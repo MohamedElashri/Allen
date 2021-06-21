@@ -9,9 +9,9 @@
 
 namespace Velo {
   namespace Tools {
-    constexpr float max_input_value = 2.f * Allen::constants::pi_f_float;
-    constexpr float max_output_value_u16 = 1 << 16;
-    constexpr float convert_factor_i16 = max_output_value_u16 / max_input_value;
+    constexpr float max_input_value = Allen::constants::pi_f_float;
+    constexpr float max_output_value_i16 = 1 << 15;
+    constexpr float convert_factor_i16 = max_output_value_i16 / max_input_value;
   } // namespace Tools
 } // namespace Velo
 
@@ -44,31 +44,28 @@ __device__ inline T fast_atan2f(const T& y, const T& x)
  */
 __device__ inline int16_t hit_phi_16(const float x, const float y)
 {
-  // We have to convert the range {-PI, +PI} into {-2^15, (2^15 - 1)}
-  // Convert {0, 2 PI} into {0, 2^16}, then reinterpret cast into int16_t.
-  const auto atan2_value = fast_atan2f(y, x);
-  const float float_value = (Allen::constants::pi_f_float + atan2_value) * Velo::Tools::convert_factor_i16;
-  const uint16_t uint16_value = static_cast<uint16_t>(float_value);
-  const int16_t* int16_pointer = reinterpret_cast<const int16_t*>(&uint16_value);
-  return *int16_pointer;
+  // We have to convert the range {-PI, +PI} into {-2^15, (2^15 - 1)} by multiplying
+  // by a factor and then reinterpret cast into int16_t.
+  const float float_value = fast_atan2f(y, x) * Velo::Tools::convert_factor_i16;
+  const int16_t int16_value = static_cast<int16_t>(float_value);
+  return int16_value;
 }
 
 /**
  * @brief Converts a hit phi from float to int16.
- * @pre   hit_phi is assumed to be in range [0, 2 PI].
+ * @pre   hit_phi is assumed to be in range [0, PI].
  */
 __device__ inline int16_t hit_phi_float_to_16(const float hit_phi)
 {
   const float float_value = hit_phi * Velo::Tools::convert_factor_i16;
-  const uint16_t uint16_value = static_cast<uint16_t>(float_value);
-  const int16_t* int16_pointer = reinterpret_cast<const int16_t*>(&uint16_value);
-  return *int16_pointer;
+  const int16_t int16_value = static_cast<int16_t>(float_value);
+  return int16_value;
 }
 
 /**
  * @brief Converts a hit phi from int32 to float.
  */
-__device__ inline float hit_phi_16_to_float(const int32_t phi)
+__device__ inline float hit_phi_16_to_float(const int16_t phi)
 {
   return static_cast<float>(phi) / Velo::Tools::convert_factor_i16;
 }
