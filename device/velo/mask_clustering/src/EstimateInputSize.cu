@@ -4,38 +4,6 @@
 #include <MEPTools.h>
 #include <EstimateInputSize.cuh>
 
-void velo_estimate_input_size::velo_estimate_input_size_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
-{
-  set_size<dev_estimated_input_size_t>(
-    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
-  set_size<dev_module_candidate_num_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_cluster_candidates_t>(arguments, first<host_number_of_cluster_candidates_t>(arguments));
-}
-
-void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants&,
-  HostBuffers&,
-  const Allen::Context& context) const
-{
-  initialize<dev_estimated_input_size_t>(arguments, 0, context);
-  initialize<dev_module_candidate_num_t>(arguments, 0, context);
-
-  if (runtime_options.mep_layout) {
-    global_function(velo_estimate_input_size_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-  }
-  else {
-    global_function(velo_estimate_input_size)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-  }
-}
-
 __device__ void estimate_raw_bank_size(
   unsigned* estimated_input_size,
   uint32_t* cluster_candidates,
@@ -225,41 +193,63 @@ __device__ void estimate_raw_bank_size(
   }
 }
 
-__global__ void velo_estimate_input_size::velo_estimate_input_size(velo_estimate_input_size::Parameters parameters)
+template<bool mep_layout>
+__global__ void velo_estimate_input_size_kernel(velo_estimate_input_size::Parameters parameters)
 {
   const auto event_number = parameters.dev_event_list[blockIdx.x];
-  const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
   unsigned* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
   unsigned* event_candidate_num = parameters.dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
-  const auto raw_event = VeloRawEvent(raw_input);
+  int number_of_raw_banks;
+  if constexpr (mep_layout) {
+    number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
+  } else {
+    const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
+    const auto raw_event = VeloRawEvent(raw_input);  
+    number_of_raw_banks = raw_event.number_of_raw_banks;
+  }
 
-  for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
+  for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks;
        raw_bank_number += blockDim.y) {
-    // Read raw bank
-    const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
+    
+    VeloRawBank raw_bank;
+    if constexpr (mep_layout) {
+      raw_bank = MEP::raw_bank<VeloRawBank>(
+        parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
+    } else {
+      const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
+      const auto raw_event = VeloRawEvent(raw_input);
+      raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
+    }
+    
     estimate_raw_bank_size(estimated_input_size, cluster_candidates, event_candidate_num, raw_bank_number, raw_bank);
   }
 }
 
-__global__ void velo_estimate_input_size::velo_estimate_input_size_mep(velo_estimate_input_size::Parameters parameters)
+void velo_estimate_input_size::velo_estimate_input_size_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
-  const auto event_number = parameters.dev_event_list[blockIdx.x];
-  unsigned* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  unsigned* event_candidate_num = parameters.dev_module_candidate_num + event_number;
-  uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
+  set_size<dev_estimated_input_size_t>(
+    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
+  set_size<dev_module_candidate_num_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_cluster_candidates_t>(arguments, first<host_number_of_cluster_candidates_t>(arguments));
+}
 
-  // Read raw event
-  auto const number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
+void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers&,
+  const Allen::Context& context) const
+{
+  initialize<dev_estimated_input_size_t>(arguments, 0, context);
+  initialize<dev_module_candidate_num_t>(arguments, 0, context);
 
-  for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.y) {
-
-    // Create raw bank from MEP layout
-    const auto raw_bank = MEP::raw_bank<VeloRawBank>(
-      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
-
-    estimate_raw_bank_size(estimated_input_size, cluster_candidates, event_candidate_num, raw_bank_number, raw_bank);
-  }
+  global_function(runtime_options.mep_layout ? velo_estimate_input_size_kernel<true> : velo_estimate_input_size_kernel<false>)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }

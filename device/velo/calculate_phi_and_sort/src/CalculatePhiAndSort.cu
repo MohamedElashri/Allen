@@ -69,10 +69,10 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
   const unsigned event_hit_start = module_pair_hit_start[0];
   const unsigned event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
 
-  // Calculate phi and populate hit_permutations
+  // Calculate hit_permutations
   calculate_phi(module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
 
-  // Due to phi RAW
+  // Due to hit_permutations RAW
   __syncthreads();
 
   // Sort by phi
@@ -108,12 +108,10 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
         const auto other_hit_index = hit_start + j;
         const auto other_phi = velo_cluster_container.phi(other_hit_index);
         // Stable sorting
-        position += phi > other_phi || (phi == other_phi && hit_rel_id > hit_num);
-
-        // velo_cluster_container.id(hit_index) > velo_cluster_container.id(other_hit_index)
+        position += phi > other_phi || (phi == other_phi && hit_index > other_hit_index);
       }
 
-      // Store it in hit permutations and in hit_phis, already ordered
+      // Store it in hit permutations
       const auto global_position = hit_start + position;
       hit_permutations[global_position] = hit_index;
     }
@@ -137,13 +135,13 @@ __device__ void velo_calculate_phi_and_sort::sort_by_phi(
 
   for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));
-  }
-
-  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
-    const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
     velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
     velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
+  }
+  
+  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));
   }
 }

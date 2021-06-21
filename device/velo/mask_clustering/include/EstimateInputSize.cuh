@@ -20,10 +20,6 @@ namespace velo_estimate_input_size {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void velo_estimate_input_size(Parameters parameters);
-
-  __global__ void velo_estimate_input_size_mep(Parameters parameters);
-
   struct velo_estimate_input_size_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

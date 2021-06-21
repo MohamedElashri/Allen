@@ -73,6 +73,9 @@ struct VeloRawBank {
   uint32_t sp_count;
   uint32_t* sp_word;
 
+  // For flexibility upon defining container
+  __device__ __host__ VeloRawBank() {}
+
   // For MEP format
   __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment)
   {

@@ -61,14 +61,14 @@ namespace velo_search_by_triplet {
       const Allen::Context&) const;
   };
 
-  __device__ inline std::tuple<int, int> find_forward_candidate(
+  __device__ inline std::tuple<int16_t, int16_t> find_forward_candidate(
     const Velo::ModulePair& module_pair,
-    const int* hit_phis,
+    const int16_t* hit_phis,
     const Velo::HitBase& h0,
     const float tx,
     const float ty,
     const float dz,
-    const int phi_tolerance);
+    const int16_t phi_tolerance);
 
   __device__ void track_seeding(
     Velo::ConstClusters& velo_cluster_container,
@@ -76,10 +76,10 @@ namespace velo_search_by_triplet {
     const bool* hit_used,
     Velo::TrackletHits* tracklets,
     unsigned* tracks_to_follow,
-    unsigned short* h1_indices,
+    uint16_t* h1_indices,
     unsigned* dev_atomics_velo,
     const float max_scatter,
-    const int phi_tolerance,
+    const int16_t phi_tolerance,
     const unsigned h0_candidates_to_consider);
 
   __device__ void track_forwarding(
@@ -94,7 +94,7 @@ namespace velo_search_by_triplet {
     Velo::TrackHits* tracks,
     unsigned* dev_atomics_velo,
     unsigned* dev_number_of_velo_tracks,
-    const int phi_tolerance,
+    const int16_t phi_tolerance,
     const float max_scatter,
     const unsigned max_skipped_modules,
     const unsigned event_number);
