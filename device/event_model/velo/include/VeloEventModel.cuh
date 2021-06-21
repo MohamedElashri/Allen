@@ -116,7 +116,6 @@ namespace Velo {
   /**
    * @brief Structure to access VELO clusters.
    */
-  constexpr unsigned velo_cluster_size = 3 * sizeof(half_t) + sizeof(uint32_t);
   template<typename T>
   struct Clusters_t {
   protected:
@@ -125,8 +124,8 @@ namespace Velo {
     unsigned m_offset;
 
   public:
-    constexpr static unsigned element_size = sizeof(unsigned) + 3 * sizeof(half_t);
-    constexpr static unsigned offset_half_t = sizeof(unsigned) / sizeof(half_t);
+    constexpr static unsigned element_size = sizeof(unsigned) + sizeof(int32_t) + 3 * sizeof(half_t);
+    constexpr static unsigned offset_half_t = (sizeof(unsigned) + sizeof(int32_t)) / sizeof(half_t);
 
     __host__ __device__
     Clusters_t(T* base_pointer, const unsigned total_estimated_number_of_clusters, const unsigned offset = 0) :
@@ -145,6 +144,19 @@ namespace Velo {
     {
       assert(m_offset + index < m_total_number_of_hits);
       reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[m_offset + index] = value;
+    }
+
+    // Accessors and lvalue references for all types
+    __host__ __device__ int32_t phi(const unsigned index) const
+    {
+      assert(m_offset + index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, int32_t>::t*>(m_base_pointer)[m_total_number_of_hits + m_offset + index];
+    }
+
+    __host__ __device__ void set_phi(const unsigned index, const int32_t value)
+    {
+      assert(m_offset + index < m_total_number_of_hits);
+      reinterpret_cast<typename ForwardType<T, int32_t>::t*>(m_base_pointer)[m_total_number_of_hits + m_offset + index] = value;
     }
 
     __host__ __device__ float x(const unsigned index) const
@@ -184,6 +196,12 @@ namespace Velo {
     {
       assert(m_offset + index < m_total_number_of_hits);
       m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 2] = value;
+    }
+
+    // Pointer accessor for binary search
+    __host__ __device__ typename ForwardType<T, int32_t>::t* phi_begin() const
+    {
+      return reinterpret_cast<typename ForwardType<T, int32_t>::t*>(m_base_pointer) + m_total_number_of_hits + m_offset;
     }
   };
 

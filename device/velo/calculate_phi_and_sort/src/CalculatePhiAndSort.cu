@@ -18,8 +18,6 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::set_arguments_s
 {
   set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments));
   set_size<dev_hit_permutation_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
-  set_size<dev_hit_phi_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
-  set_size<dev_hit_phi_temp_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
 }
 
 void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
@@ -72,13 +70,7 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
   const unsigned event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
 
   // Calculate phi and populate hit_permutations
-  calculate_phi(
-    parameters.dev_hit_phi_temp,
-    module_pair_hit_start,
-    module_pair_hit_num,
-    velo_cluster_container,
-    parameters.dev_hit_phi,
-    parameters.dev_hit_permutation);
+  calculate_phi(module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
 
   // Due to phi RAW
   __syncthreads();
@@ -96,48 +88,35 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
  * @brief Calculates a phi side
  */
 __device__ void velo_calculate_phi_and_sort::calculate_phi(
-  int16_t* dev_hit_phi_temp,
   const unsigned* module_pair_hit_start,
   const unsigned* module_pair_hit_num,
   const Velo::Clusters& velo_cluster_container,
-  int16_t* hit_phis,
   unsigned* hit_permutations)
 {
   for (unsigned module_pair = 0; module_pair < Velo::Constants::n_module_pairs; ++module_pair) {
     const auto hit_start = module_pair_hit_start[module_pair];
     const auto hit_num = module_pair_hit_num[module_pair];
 
-    // Calculate phis
+    // Find the permutations with phi
     for (unsigned hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
       const auto hit_index = hit_start + hit_rel_id;
-      const auto hit_phi_int = hit_phi_16(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index));
-      dev_hit_phi_temp[hit_index] = hit_phi_int;
-    }
-
-    // dev_hit_phi_temp
-    __syncthreads();
-
-    // Find the permutations given the phis in dev_hit_phi_temp
-    for (unsigned hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
-      const auto hit_index = hit_start + hit_rel_id;
-      const auto phi = dev_hit_phi_temp[hit_index];
+      const auto phi = velo_cluster_container.phi(hit_index);
 
       // Find out local position
       unsigned position = 0;
       for (unsigned j = 0; j < hit_num; ++j) {
-        const auto other_phi = dev_hit_phi_temp[hit_start + j];
+        const auto other_hit_index = hit_start + j;
+        const auto other_phi = velo_cluster_container.phi(other_hit_index);
         // Stable sorting
-        position += phi > other_phi || (phi == other_phi && hit_rel_id > j);
+        position += phi > other_phi || (phi == other_phi && hit_rel_id > hit_num);
+
+        // velo_cluster_container.id(hit_index) > velo_cluster_container.id(other_hit_index)
       }
 
       // Store it in hit permutations and in hit_phis, already ordered
       const auto global_position = hit_start + position;
       hit_permutations[global_position] = hit_index;
-      hit_phis[global_position] = phi;
     }
-
-    // dev_hit_phi_temp
-    __syncthreads();
   }
 }
 
@@ -153,13 +132,18 @@ __device__ void velo_calculate_phi_and_sort::sort_by_phi(
 {
   for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
-    velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
-    velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
+    velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
   }
 
   for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
+    velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));
+  }
+
+  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
+    velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
+    velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
   }
 }

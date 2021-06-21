@@ -20,7 +20,6 @@ namespace velo_search_by_triplet {
     DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_module_cluster_num_t, unsigned) dev_module_cluster_num;
-    DEVICE_INPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
     DEVICE_OUTPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
     DEVICE_OUTPUT(dev_tracklets_t, Velo::TrackletHits) dev_tracklets;
     DEVICE_OUTPUT(dev_tracks_to_follow_t, unsigned) dev_tracks_to_follow;
@@ -62,6 +61,46 @@ namespace velo_search_by_triplet {
       const Allen::Context&) const;
   };
 
+  __device__ inline std::tuple<int, int> find_forward_candidate(
+    const Velo::ModulePair& module_pair,
+    const int* hit_phis,
+    const Velo::HitBase& h0,
+    const float tx,
+    const float ty,
+    const float dz,
+    const int phi_tolerance);
+
+  __device__ void track_seeding(
+    Velo::ConstClusters& velo_cluster_container,
+    const Velo::ModulePair* module_pair_data,
+    const bool* hit_used,
+    Velo::TrackletHits* tracklets,
+    unsigned* tracks_to_follow,
+    unsigned short* h1_indices,
+    unsigned* dev_atomics_velo,
+    const float max_scatter,
+    const int phi_tolerance,
+    const unsigned h0_candidates_to_consider);
+
+  __device__ void track_forwarding(
+    Velo::ConstClusters& velo_cluster_container,
+    bool* hit_used,
+    const Velo::ModulePair* module_pair_data,
+    const unsigned diff_ttf,
+    unsigned* tracks_to_follow,
+    Velo::TrackletHits* three_hit_tracks,
+    const unsigned prev_ttf,
+    Velo::TrackletHits* tracklets,
+    Velo::TrackHits* tracks,
+    unsigned* dev_atomics_velo,
+    unsigned* dev_number_of_velo_tracks,
+    const int phi_tolerance,
+    const float max_scatter,
+    const unsigned max_skipped_modules,
+    const unsigned event_number);
+  
+  __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
+
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
     // Register contracts for this algorithm
     using contracts = std::tuple<
@@ -92,6 +131,4 @@ namespace velo_search_by_triplet {
     Property<max_skipped_modules_t> m_skip {this, 1};
     Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
-
-  __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
 } // namespace velo_search_by_triplet

@@ -113,7 +113,6 @@ def make_velo_tracks(decoded_velo):
         dev_sorted_velo_cluster_container_t,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_module_cluster_num_t=dev_module_cluster_num,
-        dev_hit_phi_t=velo_calculate_phi_and_sort.dev_hit_phi_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_velo_clusters_t=dev_velo_clusters,
     )

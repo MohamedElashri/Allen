@@ -17,7 +17,6 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
   const auto sorted_velo_cluster_container = make_vector<Parameters::dev_sorted_velo_cluster_container_t>(arguments);
   const auto offsets_estimated_input_size = make_vector<Parameters::dev_offsets_estimated_input_size_t>(arguments);
   const auto module_cluster_num = make_vector<Parameters::dev_module_cluster_num_t>(arguments);
-  const auto hit_phi = make_vector<Parameters::dev_hit_phi_t>(arguments);
 
   // Condition to check
   bool hit_phi_is_sorted = true;
@@ -39,11 +38,11 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
         const auto module_hit_num = module_cluster_num[event_number * Velo::Constants::n_module_pairs + i];
 
         if (module_hit_num > 0) {
-          auto previous_hit_phi = hit_phi[module_hit_start];
+          auto previous_hit_phi = velo_container_view.phi(module_hit_start);
           for (unsigned hit_number = 0; hit_number < module_hit_num; ++hit_number) {
             const auto hit_index = module_hit_start + hit_number;
-            hit_phi_is_sorted &= hit_phi[hit_index] >= previous_hit_phi;
-            previous_hit_phi = hit_phi[hit_index];
+            hit_phi_is_sorted &= velo_container_view.phi(hit_index) >= previous_hit_phi;
+            previous_hit_phi = velo_container_view.phi(hit_index);
 
             x_greater_than_min_value &= velo_container_view.x(hit_index) > velo_cluster_min_x;
             x_lower_than_max_value &= velo_container_view.x(hit_index) < velo_cluster_max_x;

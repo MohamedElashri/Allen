@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <MaskedVeloClustering.cuh>
+#include <VeloTools.cuh>
 
 void velo_masked_clustering::velo_masked_clustering_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -233,10 +234,12 @@ __device__ void no_neighbour_sp(
         const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
         const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
-        velo_cluster_container.set_x(cluster_start + cluster_num, gx);
-        velo_cluster_container.set_y(cluster_start + cluster_num, gy);
-        velo_cluster_container.set_z(cluster_start + cluster_num, gz);
-        velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
+        const auto cluster_index = cluster_start + cluster_num;
+        velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
+        velo_cluster_container.set_phi(cluster_index, hit_phi_32(gx, gy));
+        velo_cluster_container.set_x(cluster_index, gx);
+        velo_cluster_container.set_y(cluster_index, gy);
+        velo_cluster_container.set_z(cluster_index, gz);
       }
 
       // if there is a second cluster for this pattern
@@ -266,10 +269,12 @@ __device__ void no_neighbour_sp(
         const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
         const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
-        velo_cluster_container.set_x(cluster_start + cluster_num, gx);
-        velo_cluster_container.set_y(cluster_start + cluster_num, gy);
-        velo_cluster_container.set_z(cluster_start + cluster_num, gz);
-        velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
+        const auto cluster_index = cluster_start + cluster_num;
+        velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
+        velo_cluster_container.set_phi(cluster_index, hit_phi_32(gx, gy));
+        velo_cluster_container.set_x(cluster_index, gx);
+        velo_cluster_container.set_y(cluster_index, gy);
+        velo_cluster_container.set_z(cluster_index, gz);
       }
     }
   }
@@ -459,10 +464,12 @@ __device__ void rest_of_clusters(
 
       const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
 
-      velo_cluster_container.set_x(cluster_start + cluster_num, gx);
-      velo_cluster_container.set_y(cluster_start + cluster_num, gy);
-      velo_cluster_container.set_z(cluster_start + cluster_num, gz);
-      velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
+      const auto cluster_index = cluster_start + cluster_num;
+      velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
+      velo_cluster_container.set_phi(cluster_index, hit_phi_32(gx, gy));
+      velo_cluster_container.set_x(cluster_index, gx);
+      velo_cluster_container.set_y(cluster_index, gy);
+      velo_cluster_container.set_z(cluster_index, gz);
     }
   }
 }
