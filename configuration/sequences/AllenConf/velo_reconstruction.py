@@ -3,10 +3,10 @@
 ###############################################################################
 from AllenConf.algorithms import (
     data_provider_t, velo_calculate_number_of_candidates_t, host_prefix_sum_t,
-    velo_estimate_input_size_t, velo_masked_clustering_t,
-    velo_sort_by_phi_t, velo_search_by_triplet_t,
-    velo_three_hit_tracks_filter_t, velo_copy_track_hit_number_t,
-    velo_consolidate_tracks_t, velo_kalman_filter_t)
+    velo_estimate_input_size_t, velo_masked_clustering_t, velo_sort_by_phi_t,
+    velo_search_by_triplet_t, velo_three_hit_tracks_filter_t,
+    velo_copy_track_hit_number_t, velo_consolidate_tracks_t,
+    velo_kalman_filter_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm
 

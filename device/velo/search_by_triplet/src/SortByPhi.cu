@@ -29,8 +29,8 @@ void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
 {
   initialize<dev_hit_permutation_t>(arguments, 0, context);
 
-  global_function(velo_sort_by_phi)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(velo_sort_by_phi)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments);
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO clusters after velo_sort_by_phi:\n";
@@ -46,8 +46,7 @@ void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
 /**
  * @brief Track forwarding algorithm based on triplet finding
  */
-__global__ void velo_sort_by_phi::velo_sort_by_phi(
-  velo_sort_by_phi::Parameters parameters)
+__global__ void velo_sort_by_phi::velo_sort_by_phi(velo_sort_by_phi::Parameters parameters)
 {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
@@ -70,7 +69,8 @@ __global__ void velo_sort_by_phi::velo_sort_by_phi(
   const unsigned event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
 
   // Calculate hit_permutations
-  calculate_permutation(module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
+  calculate_permutation(
+    module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
 
   // Due to hit_permutations RAW
   __syncthreads();
