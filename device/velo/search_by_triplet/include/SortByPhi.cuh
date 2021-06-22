@@ -11,7 +11,7 @@
 #include "DeviceAlgorithm.cuh"
 #include "VeloTools.cuh"
 
-namespace velo_calculate_phi_and_sort {
+namespace velo_sort_by_phi {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_total_number_of_velo_clusters_t, unsigned) host_total_number_of_velo_clusters;
@@ -26,7 +26,7 @@ namespace velo_calculate_phi_and_sort {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __device__ void calculate_phi(
+  __device__ void calculate_permutation(
     const unsigned* module_hitStarts,
     const unsigned* module_hitNums,
     const Velo::Clusters& velo_cluster_container,
@@ -39,9 +39,9 @@ namespace velo_calculate_phi_and_sort {
     Velo::Clusters& velo_sorted_cluster_container,
     unsigned* hit_permutations);
 
-  __global__ void velo_calculate_phi_and_sort(Parameters);
+  __global__ void velo_sort_by_phi(Parameters);
 
-  struct velo_calculate_phi_and_sort_t : public DeviceAlgorithm, Parameters {
+  struct velo_sort_by_phi_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
@@ -58,4 +58,4 @@ namespace velo_calculate_phi_and_sort {
   private:
     Property<block_dim_t> m_block_dim {this, {{2, 64, 1}}};
   };
-} // namespace velo_calculate_phi_and_sort
+} // namespace velo_sort_by_phi

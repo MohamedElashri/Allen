@@ -2,7 +2,7 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "VeloDefinitions.cuh"
-#include "CalculatePhiAndSort.cuh"
+#include "SortByPhi.cuh"
 #include "VeloTools.cuh"
 #include "Vector.h"
 #include <numeric>
@@ -10,7 +10,7 @@
 
 using namespace Allen::device;
 
-void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::set_arguments_size(
+void velo_sort_by_phi::velo_sort_by_phi_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
   const Constants&,
@@ -20,7 +20,7 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::set_arguments_s
   set_size<dev_hit_permutation_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
 }
 
-void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
+void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
@@ -29,11 +29,11 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
 {
   initialize<dev_hit_permutation_t>(arguments, 0, context);
 
-  global_function(velo_calculate_phi_and_sort)(
+  global_function(velo_sort_by_phi)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
   if (property<verbosity_t>() >= logger::debug) {
-    info_cout << "VELO clusters after velo_calculate_phi_and_sort:\n";
+    info_cout << "VELO clusters after velo_sort_by_phi:\n";
     print_velo_clusters<
       dev_sorted_velo_cluster_container_t,
       dev_offsets_estimated_input_size_t,
@@ -46,8 +46,8 @@ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t::operator()(
 /**
  * @brief Track forwarding algorithm based on triplet finding
  */
-__global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
-  velo_calculate_phi_and_sort::Parameters parameters)
+__global__ void velo_sort_by_phi::velo_sort_by_phi(
+  velo_sort_by_phi::Parameters parameters)
 {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
@@ -70,7 +70,7 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
   const unsigned event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
 
   // Calculate hit_permutations
-  calculate_phi(module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
+  calculate_permutation(module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
 
   // Due to hit_permutations RAW
   __syncthreads();
@@ -87,7 +87,7 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
 /**
  * @brief Calculates a phi side
  */
-__device__ void velo_calculate_phi_and_sort::calculate_phi(
+__device__ void velo_sort_by_phi::calculate_permutation(
   const unsigned* module_pair_hit_start,
   const unsigned* module_pair_hit_num,
   const Velo::Clusters& velo_cluster_container,
@@ -127,7 +127,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
 /**
  * @brief Sorts all VELO decoded data by phi onto another container.
  */
-__device__ void velo_calculate_phi_and_sort::sort_by_phi(
+__device__ void velo_sort_by_phi::sort_by_phi(
   const unsigned event_hit_start,
   const unsigned event_number_of_hits,
   const Velo::Clusters& velo_cluster_container,

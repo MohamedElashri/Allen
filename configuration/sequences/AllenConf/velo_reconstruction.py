@@ -4,7 +4,7 @@
 from AllenConf.algorithms import (
     data_provider_t, velo_calculate_number_of_candidates_t, host_prefix_sum_t,
     velo_estimate_input_size_t, velo_masked_clustering_t,
-    velo_calculate_phi_and_sort_t, velo_search_by_triplet_t,
+    velo_sort_by_phi_t, velo_search_by_triplet_t,
     velo_three_hit_tracks_filter_t, velo_copy_track_hit_number_t,
     velo_consolidate_tracks_t, velo_kalman_filter_t)
 from AllenConf.utils import initialize_number_of_events
@@ -92,9 +92,9 @@ def make_velo_tracks(decoded_velo):
         "host_total_number_of_velo_clusters"]
     dev_velo_clusters = decoded_velo["dev_velo_clusters"]
 
-    velo_calculate_phi_and_sort = make_algorithm(
-        velo_calculate_phi_and_sort_t,
-        name="velo_calculate_phi_and_sort",
+    velo_sort_by_phi = make_algorithm(
+        velo_sort_by_phi_t,
+        name="velo_sort_by_phi",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_total_number_of_velo_clusters_t=host_total_number_of_velo_clusters,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
@@ -109,7 +109,7 @@ def make_velo_tracks(decoded_velo):
         name="velo_search_by_triplet",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_total_number_of_velo_clusters_t=host_total_number_of_velo_clusters,
-        dev_sorted_velo_cluster_container_t=velo_calculate_phi_and_sort.
+        dev_sorted_velo_cluster_container_t=velo_sort_by_phi.
         dev_sorted_velo_cluster_container_t,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_module_cluster_num_t=dev_module_cluster_num,
@@ -127,7 +127,7 @@ def make_velo_tracks(decoded_velo):
         velo_three_hit_tracks_filter_t,
         name="velo_three_hit_tracks_filter",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_sorted_velo_cluster_container_t=velo_calculate_phi_and_sort.
+        dev_sorted_velo_cluster_container_t=velo_sort_by_phi.
         dev_sorted_velo_cluster_container_t,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_atomics_velo_t=velo_search_by_triplet.dev_atomics_velo_t,
@@ -184,7 +184,7 @@ def make_velo_tracks(decoded_velo):
         dev_tracks_t=velo_search_by_triplet.dev_tracks_t,
         dev_offsets_velo_track_hit_number_t=
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t,
-        dev_sorted_velo_cluster_container_t=velo_calculate_phi_and_sort.
+        dev_sorted_velo_cluster_container_t=velo_sort_by_phi.
         dev_sorted_velo_cluster_container_t,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_three_hit_tracks_output_t=velo_three_hit_tracks_filter.
