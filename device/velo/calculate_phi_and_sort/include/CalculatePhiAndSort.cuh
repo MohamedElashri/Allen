@@ -56,6 +56,6 @@ namespace velo_calculate_phi_and_sort {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{2, 64, 1}}};
   };
 } // namespace velo_calculate_phi_and_sort

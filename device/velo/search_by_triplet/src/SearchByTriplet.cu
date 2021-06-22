@@ -149,6 +149,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const auto phi_tolerance_i16 = hit_phi_float_to_16(parameters.phi_tolerance);
 
   // Do first track seeding
+  const auto initial_seeding_candidates = initial_seeding_h0_candidates;
   dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
     velo_cluster_container,
     module_pair_data,
@@ -159,7 +160,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     dev_atomics_velo,
     parameters.max_scatter,
     phi_tolerance_i16,
-    initial_seeding_h0_candidates);
+    initial_seeding_candidates);
 
   // Prepare forwarding - seeding loop
   // For an explanation on ttf, see below
@@ -214,6 +215,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     __syncthreads();
 
     // Seeding
+    const auto seeding_candidates = seeding_h0_candidates;
     dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
       velo_cluster_container,
       module_pair_data,
@@ -224,7 +226,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       dev_atomics_velo,
       parameters.max_scatter,
       phi_tolerance_i16,
-      seeding_h0_candidates);
+      seeding_candidates);
 
     --first_module_pair;
   }
@@ -257,7 +259,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
  *        extrapolation of the track to phi minus the tolerance.
  *        Returns the candidate, and the extrapolated phi value.
  */
-__device__ inline std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_candidate(
+__device__ std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_candidate(
   const Velo::ModulePair& module_pair,
   const int16_t* hit_phis,
   const Velo::HitBase& h0,

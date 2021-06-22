@@ -93,12 +93,15 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
   const Velo::Clusters& velo_cluster_container,
   unsigned* hit_permutations)
 {
-  for (unsigned module_pair = 0; module_pair < Velo::Constants::n_module_pairs; ++module_pair) {
+  for (unsigned module_pair = threadIdx.x; module_pair < Velo::Constants::n_module_pairs; module_pair += blockDim.x) {
     const auto hit_start = module_pair_hit_start[module_pair];
     const auto hit_num = module_pair_hit_num[module_pair];
 
+    // Synchronize to increase chances of coalesced accesses
+    __syncthreads();
+
     // Find the permutations with phi
-    for (unsigned hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
+    for (unsigned hit_rel_id = threadIdx.y; hit_rel_id < hit_num; hit_rel_id += blockDim.y) {
       const auto hit_index = hit_start + hit_rel_id;
       const auto phi = velo_cluster_container.phi(hit_index);
 
@@ -131,20 +134,20 @@ __device__ void velo_calculate_phi_and_sort::sort_by_phi(
   Velo::Clusters& velo_sorted_cluster_container,
   unsigned* hit_permutations)
 {
-  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
   }
 
-  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));
+  }
+
+  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
     velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
     velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
     velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
-  }
-
-  for (unsigned i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
-    const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));
   }
 }
