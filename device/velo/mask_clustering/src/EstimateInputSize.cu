@@ -48,7 +48,6 @@ __device__ void estimate_raw_bank_size(
       // Add the found clusters
       [[maybe_unused]] const unsigned current_estimated_module_pair_size =
         atomicAdd(estimated_module_pair_size, number_of_clusters);
-      assert(current_estimated_module_pair_size < Velo::Constants::max_numhits_in_module_pair);
     }
     else {
       // Find candidates that follow this condition:
@@ -189,7 +188,6 @@ __device__ void estimate_raw_bank_size(
   if (found_cluster_candidates > 0) {
     [[maybe_unused]] const unsigned current_estimated_module_pair_size =
       atomicAdd(estimated_module_pair_size, found_cluster_candidates);
-    assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module_pair);
   }
 }
 
@@ -202,7 +200,7 @@ __global__ void velo_estimate_input_size_kernel(velo_estimate_input_size::Parame
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
-  int number_of_raw_banks;
+  unsigned number_of_raw_banks;
   if constexpr (mep_layout) {
     number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
   }
@@ -213,7 +211,6 @@ __global__ void velo_estimate_input_size_kernel(velo_estimate_input_size::Parame
   }
 
   for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.y) {
-
     VeloRawBank raw_bank;
     if constexpr (mep_layout) {
       raw_bank = MEP::raw_bank<VeloRawBank>(

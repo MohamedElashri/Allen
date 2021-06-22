@@ -454,7 +454,7 @@ __global__ void velo_masked_clustering_kernel(
   const VeloGeometry& g = *dev_velo_geometry;
 
   // Read raw event
-  int number_of_raw_banks;
+  unsigned number_of_raw_banks;
   if constexpr (mep_layout) {
     number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
   }
