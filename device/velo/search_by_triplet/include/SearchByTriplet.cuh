@@ -82,6 +82,18 @@ namespace velo_search_by_triplet {
     const int16_t phi_tolerance,
     const unsigned h0_candidates_to_consider);
 
+  __device__ void track_seeding_vectorized(
+    Velo::ConstClusters& velo_cluster_container,
+    const Velo::ModulePair* module_pair_data,
+    const bool* hit_used,
+    Velo::TrackletHits* tracklets,
+    unsigned* tracks_to_follow,
+    uint16_t* h1_indices,
+    unsigned* dev_atomics_velo,
+    const float max_scatter,
+    const int16_t phi_tolerance,
+    const unsigned h0_candidates_to_consider);
+
   __device__ void track_forwarding(
     Velo::ConstClusters& velo_cluster_container,
     bool* hit_used,
