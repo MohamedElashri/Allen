@@ -55,6 +55,6 @@ namespace ut_search_windows {
     Property<min_pt_t> m_pt {this, 300.f};
     Property<y_tol_t> m_ytol {this, 0.5f * Gaudi::Units::mm};
     Property<y_tol_slope_t> m_yslope {this, 0.08f};
-    Property<block_dim_y_t> m_block_dim_y {this, 64};
+    Property<block_dim_y_t> m_block_dim_y {this, 128};
   };
 } // namespace ut_search_windows
