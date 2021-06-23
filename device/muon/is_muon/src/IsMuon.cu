@@ -32,8 +32,7 @@ void is_muon::is_muon_t::operator()(
   }
 }
 
-__device__ float
-elliptical_foi_window(const float a, const float b, const float c, const float momentum)
+__device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
 {
   return a + b * expf(-c * momentum / Gaudi::Units::GeV);
 }
@@ -45,22 +44,20 @@ __device__ std::pair<float, float> field_of_interest(
   const float momentum)
 {
   if (momentum < 1000 * Gaudi::Units::GeV) {
-    return {
-      elliptical_foi_window(
-        muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::x, station, region),
-        muon_foi_params->param(Muon::Constants::FoiParams::b, Muon::Constants::FoiParams::x, station, region),
-        muon_foi_params->param(Muon::Constants::FoiParams::c, Muon::Constants::FoiParams::x, station, region),
-        momentum),
-      elliptical_foi_window(
-        muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::y, station, region),
-        muon_foi_params->param(Muon::Constants::FoiParams::b, Muon::Constants::FoiParams::y, station, region),
-        muon_foi_params->param(Muon::Constants::FoiParams::c, Muon::Constants::FoiParams::y, station, region),
-        momentum)};
+    return {elliptical_foi_window(
+              muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::x, station, region),
+              muon_foi_params->param(Muon::Constants::FoiParams::b, Muon::Constants::FoiParams::x, station, region),
+              muon_foi_params->param(Muon::Constants::FoiParams::c, Muon::Constants::FoiParams::x, station, region),
+              momentum),
+            elliptical_foi_window(
+              muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::y, station, region),
+              muon_foi_params->param(Muon::Constants::FoiParams::b, Muon::Constants::FoiParams::y, station, region),
+              muon_foi_params->param(Muon::Constants::FoiParams::c, Muon::Constants::FoiParams::y, station, region),
+              momentum)};
   }
   else {
-    return {
-      muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::x, station, region),
-      muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::y, station, region)};
+    return {muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::x, station, region),
+            muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::y, station, region)};
   }
 }
 
@@ -114,14 +111,13 @@ __global__ void is_muon::is_muon(
   const auto station_ocurrences_offset =
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
 
-  SciFi::Consolidated::ConstTracks scifi_tracks {
-    parameters.dev_atomics_scifi,
-    parameters.dev_scifi_track_hit_number,
-    parameters.dev_scifi_qop,
-    parameters.dev_scifi_states,
-    parameters.dev_scifi_track_ut_indices,
-    event_number,
-    number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_number,
+                                                 number_of_events};
 
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
