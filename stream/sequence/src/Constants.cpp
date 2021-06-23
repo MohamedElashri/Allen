@@ -53,21 +53,12 @@ void Constants::initialize_constants(
 
   // Muon constants
   Muon::Constants::FieldOfInterest host_muon_foi;
-  const float* foi_iterator = muon_field_of_interest_params.data();
-  for (unsigned i_station = 0; i_station < Muon::Constants::n_stations; i_station++) {
-    std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_a_x[i_station]);
-    foi_iterator += Muon::Constants::n_regions; // * sizeof(float);
-    std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_a_y[i_station]);
-    foi_iterator += Muon::Constants::n_regions; // * sizeof(float);
-    std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_b_x[i_station]);
-    foi_iterator += Muon::Constants::n_regions; // * sizeof(float);
-    std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_b_y[i_station]);
-    foi_iterator += Muon::Constants::n_regions; // * sizeof(float);
-    std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_c_x[i_station]);
-    foi_iterator += Muon::Constants::n_regions; // * sizeof(float);
-    std::copy_n(foi_iterator, Muon::Constants::n_regions, host_muon_foi.param_c_y[i_station]);
-    foi_iterator += Muon::Constants::n_regions;
-  }
+  std::copy_n(
+    muon_field_of_interest_params.data(),
+    Muon::Constants::n_regions * Muon::Constants::n_stations * Muon::Constants::FoiParams::n_parameters *
+      Muon::Constants::FoiParams::n_coordinates,
+    host_muon_foi.params_begin());
+
   Allen::memcpy(dev_muon_momentum_cuts, &Muon::Constants::momentum_cuts, 3 * sizeof(float), Allen::memcpyHostToDevice);
   Allen::memcpy(dev_muon_foi, &host_muon_foi, sizeof(Muon::Constants::FieldOfInterest), Allen::memcpyHostToDevice);
 

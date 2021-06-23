@@ -38,7 +38,9 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
     3 * 2 * property<hit_window_size_t>() * sizeof(float))(arguments, constants.dev_looking_forward_constants);
 }
 
-__global__ void lf_triplet_seeding::lf_triplet_seeding(
+__global__
+__launch_bounds__(2 * LookingForward::triplet_seeding_block_dim_x)
+void lf_triplet_seeding::lf_triplet_seeding(
   lf_triplet_seeding::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
@@ -205,6 +207,7 @@ __device__ void lf_triplet_seeding_impl(
   for (unsigned tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
     uint16_t number_of_found_triplets = 0;
 
+    #pragma unroll 4
     for (int i = tid_x; i < l0_size * l2_size; i += LookingForward::triplet_seeding_block_dim_x) {
       const auto h0_rel = i % l0_size;
       const auto h2_rel = i / l0_size;
@@ -247,6 +250,7 @@ __device__ void lf_triplet_seeding_impl(
     uint16_t number_of_found_triplets = 0;
 
     // Treat central window iteration
+    #pragma unroll 4
     for (unsigned i = tid_x; i < shared_number_of_elements[0]; i += LookingForward::triplet_seeding_block_dim_x) {
       const auto element_index = shared_indices[i];
 

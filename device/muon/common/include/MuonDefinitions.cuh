@@ -34,18 +34,54 @@ namespace Muon {
     static constexpr unsigned n_layouts = 2;
 
     /* IsMuon constants */
+    namespace FoiParams {
+      static constexpr unsigned n_parameters = 3;
+      static constexpr unsigned a = 0;
+      static constexpr unsigned b = 1;
+      static constexpr unsigned c = 2;
+
+      static constexpr unsigned n_coordinates = 2;
+      static constexpr unsigned x = 0;
+      static constexpr unsigned y = 1;
+    } // namespace FoiParams
+
     static constexpr float momentum_cuts[] = {3 * Gaudi::Units::GeV, 6 * Gaudi::Units::GeV, 10 * Gaudi::Units::GeV};
     struct FieldOfInterest {
+    private:
       /* FOI_x = a_x + b_x * exp(-c_x * p)
        *  FOI_y = a_y + b_y * exp(-c_y * p)
        */
-      const float factor = 1.2;
-      float param_a_x[Constants::n_stations][Constants::n_regions];
-      float param_a_y[Constants::n_stations][Constants::n_regions];
-      float param_b_x[Constants::n_stations][Constants::n_regions];
-      float param_b_y[Constants::n_stations][Constants::n_regions];
-      float param_c_x[Constants::n_stations][Constants::n_regions];
-      float param_c_y[Constants::n_stations][Constants::n_regions];
+      float m_factor = 1.2f;
+      float m_params[Constants::n_stations * FoiParams::n_parameters * FoiParams::n_coordinates * Constants::n_regions];
+
+    public:
+      __host__ __device__ float factor() const { return m_factor; }
+
+      __host__ __device__ void set_factor(const float factor) { m_factor = factor; }
+
+      __host__ __device__ float
+      param(const unsigned param, const unsigned coord, const unsigned station, const unsigned region) const
+      {
+        return m_params
+          [station * FoiParams::n_parameters * FoiParams::n_coordinates * Constants::n_regions +
+           param * FoiParams::n_coordinates * Constants::n_regions + coord * Constants::n_regions + region];
+      }
+
+      __host__ __device__ void set_param(
+        const unsigned param,
+        const unsigned coord,
+        const unsigned station,
+        const unsigned region,
+        const float value)
+      {
+        m_params
+          [station * FoiParams::n_parameters * FoiParams::n_coordinates * Constants::n_regions +
+           param * FoiParams::n_coordinates * Constants::n_regions + coord * Constants::n_regions + region] = value;
+      }
+
+      __host__ __device__ float* params_begin() { return reinterpret_cast<float*>(m_params); }
+
+      __host__ __device__ const float* params_begin_const() const { return reinterpret_cast<const float*>(m_params); }
     };
   } // namespace Constants
 } // namespace Muon
@@ -67,7 +103,7 @@ namespace MatchUpstreamMuon {
 
   struct Hit {
     /// Build a hit from a MuonID hit
-    __device__  Hit(Muon::ConstHits& hits, const unsigned& i_muonhit) :
+    __device__ Hit(Muon::ConstHits& hits, const unsigned& i_muonhit) :
       x(hits.x(i_muonhit)), dx2(hits.dx(i_muonhit) * hits.dx(i_muonhit) / 12), y(hits.y(i_muonhit)),
       dy2(hits.dy(i_muonhit) * hits.dy(i_muonhit) / 12), z(hits.z(i_muonhit))
     {}
@@ -88,7 +124,7 @@ namespace MatchUpstreamMuon {
 
       z = pz;
     };
-    __device__  Hit() : x {0.f}, dx2 {0.f}, y {0.f}, dy2 {0.f}, z {0.f} {};
+    __device__ Hit() : x {0.f}, dx2 {0.f}, y {0.f}, dy2 {0.f}, z {0.f} {};
     float x, dx2, y, dy2, z;
   };
 

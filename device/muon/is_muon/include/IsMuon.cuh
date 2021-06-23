@@ -44,6 +44,6 @@ namespace is_muon {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
+    Property<block_dim_x_t> m_block_dim_x {this, 128};
   };
 } // namespace is_muon

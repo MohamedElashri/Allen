@@ -24,41 +24,43 @@ void is_muon::is_muon_t::operator()(
 {
   initialize<dev_muon_track_occupancies_t>(arguments, 0, context);
 
-  global_function(is_muon)(
-    dim3(size<dev_event_list_t>(arguments)),
-    dim3(property<block_dim_x_t>().get(), Muon::Constants::n_stations),
-    context)(arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+  global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
+    arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, context);
   }
 }
 
-__device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
+__device__ float
+elliptical_foi_window(const float a, const float b, const float c, const float momentum)
 {
   return a + b * expf(-c * momentum / Gaudi::Units::GeV);
 }
 
 __device__ std::pair<float, float> field_of_interest(
-  const Muon::Constants::FieldOfInterest* dev_muon_foi,
+  const Muon::Constants::FieldOfInterest* muon_foi_params,
   const int station,
   const int region,
   const float momentum)
 {
   if (momentum < 1000 * Gaudi::Units::GeV) {
-    return {elliptical_foi_window(
-              dev_muon_foi->param_a_x[station][region],
-              dev_muon_foi->param_b_x[station][region],
-              dev_muon_foi->param_c_x[station][region],
-              momentum),
-            elliptical_foi_window(
-              dev_muon_foi->param_a_y[station][region],
-              dev_muon_foi->param_b_y[station][region],
-              dev_muon_foi->param_c_y[station][region],
-              momentum)};
+    return {
+      elliptical_foi_window(
+        muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::x, station, region),
+        muon_foi_params->param(Muon::Constants::FoiParams::b, Muon::Constants::FoiParams::x, station, region),
+        muon_foi_params->param(Muon::Constants::FoiParams::c, Muon::Constants::FoiParams::x, station, region),
+        momentum),
+      elliptical_foi_window(
+        muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::y, station, region),
+        muon_foi_params->param(Muon::Constants::FoiParams::b, Muon::Constants::FoiParams::y, station, region),
+        muon_foi_params->param(Muon::Constants::FoiParams::c, Muon::Constants::FoiParams::y, station, region),
+        momentum)};
   }
   else {
-    return {dev_muon_foi->param_a_x[station][region], dev_muon_foi->param_a_y[station][region]};
+    return {
+      muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::x, station, region),
+      muon_foi_params->param(Muon::Constants::FoiParams::a, Muon::Constants::FoiParams::y, station, region)};
   }
 }
 
@@ -67,17 +69,17 @@ __device__ bool is_in_window(
   const float hit_y,
   const float hit_dx,
   const float hit_dy,
-  const Muon::Constants::FieldOfInterest* dev_muon_foi,
+  const Muon::Constants::FieldOfInterest* muon_foi_params,
   const int station,
   const int region,
   const float momentum,
   const float extrapolation_x,
   const float extrapolation_y)
 {
-  std::pair<float, float> foi = field_of_interest(dev_muon_foi, station, region, momentum);
+  std::pair<float, float> foi = field_of_interest(muon_foi_params, station, region, momentum);
 
-  return (fabsf(hit_x - extrapolation_x) < hit_dx * foi.first * dev_muon_foi->factor) &&
-         (fabsf(hit_y - extrapolation_y) < hit_dy * foi.second * dev_muon_foi->factor);
+  return (fabsf(hit_x - extrapolation_x) < hit_dx * foi.first * muon_foi_params->factor()) &&
+         (fabsf(hit_y - extrapolation_y) < hit_dy * foi.second * muon_foi_params->factor());
 }
 
 __global__ void is_muon::is_muon(
@@ -85,6 +87,25 @@ __global__ void is_muon::is_muon(
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts)
 {
+  // Put foi parameters in shared memory
+  __shared__ int8_t shared_muon_foi_params_content[sizeof(Muon::Constants::FieldOfInterest)];
+  Muon::Constants::FieldOfInterest* shared_muon_foi_params =
+    reinterpret_cast<Muon::Constants::FieldOfInterest*>(shared_muon_foi_params_content);
+
+  if (threadIdx.x == 0) {
+    shared_muon_foi_params->set_factor(dev_muon_foi->factor());
+  }
+
+  for (unsigned i = threadIdx.x;
+       i < Muon::Constants::FoiParams::n_parameters * Muon::Constants::FoiParams::n_coordinates *
+             Muon::Constants::n_stations * Muon::Constants::n_regions;
+       i += blockDim.x) {
+    shared_muon_foi_params->params_begin()[i] = dev_muon_foi->params_begin_const()[i];
+  }
+
+  // Due to shared_muon_foi_params
+  __syncthreads();
+
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
@@ -93,25 +114,29 @@ __global__ void is_muon::is_muon(
   const auto station_ocurrences_offset =
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
 
-  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
-                                                 parameters.dev_scifi_track_hit_number,
-                                                 parameters.dev_scifi_qop,
-                                                 parameters.dev_scifi_states,
-                                                 parameters.dev_scifi_track_ut_indices,
-                                                 event_number,
-                                                 number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {
+    parameters.dev_atomics_scifi,
+    parameters.dev_scifi_track_hit_number,
+    parameters.dev_scifi_qop,
+    parameters.dev_scifi_states,
+    parameters.dev_scifi_track_ut_indices,
+    event_number,
+    number_of_events};
 
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const unsigned event_offset = scifi_tracks.tracks_offset(event_number);
 
-  for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
-    const float momentum = 1 / fabsf(scifi_tracks.qop(track_id));
-    const unsigned track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
+  for (unsigned station_id = 0; station_id < Muon::Constants::n_stations; ++station_id) {
+    // Increase chances of coalesced accesses
+    __syncthreads();
 
-    for (unsigned station_id = threadIdx.y; station_id < Muon::Constants::n_stations; station_id += blockDim.y) {
-      const int number_of_hits = station_ocurrences_offset[station_id + 1] - station_ocurrences_offset[station_id];
+    const int number_of_hits = station_ocurrences_offset[station_id + 1] - station_ocurrences_offset[station_id];
+
+    for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
+      const float momentum = 1 / fabsf(scifi_tracks.qop(track_id));
+      const unsigned track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
       const auto& state = scifi_tracks.states(track_id);
 
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
@@ -123,7 +148,7 @@ __global__ void is_muon::is_muon(
               muon_hits.y(idx),
               muon_hits.dx(idx),
               muon_hits.dy(idx),
-              dev_muon_foi,
+              shared_muon_foi_params,
               station_id,
               muon_hits.region(idx),
               momentum,
@@ -138,8 +163,7 @@ __global__ void is_muon::is_muon(
   // Due to parameters.dev_muon_track_occupancies
   __syncthreads();
 
-  for (unsigned track_id = threadIdx.x * blockDim.y + threadIdx.y; track_id < number_of_tracks_event;
-       track_id += blockDim.x * blockDim.y) {
+  for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
     const float momentum = 1 / fabsf(scifi_tracks.qop(track_id));
     const unsigned track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
 
