@@ -206,7 +206,6 @@ __device__ void lf_triplet_seeding_impl(
   for (unsigned tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
     uint16_t number_of_found_triplets = 0;
 
-#pragma unroll 4
     for (int i = tid_x; i < l0_size * l2_size; i += LookingForward::triplet_seeding_block_dim_x) {
       const auto h0_rel = i % l0_size;
       const auto h2_rel = i / l0_size;
@@ -248,8 +247,7 @@ __device__ void lf_triplet_seeding_impl(
   for (unsigned tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
     uint16_t number_of_found_triplets = 0;
 
-// Treat central window iteration
-#pragma unroll 4
+    // Treat central window iteration
     for (unsigned i = tid_x; i < shared_number_of_elements[0]; i += LookingForward::triplet_seeding_block_dim_x) {
       const auto element_index = shared_indices[i];
 
