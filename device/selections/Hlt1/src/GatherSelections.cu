@@ -164,10 +164,9 @@ void gather_selections::gather_selections_t::operator()(
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
-    Selections::ConstSelections sels {
-      reinterpret_cast<bool*>(host_selections.data()),
-      data<host_selections_offsets_t>(arguments),
-      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
+                                      data<host_selections_offsets_t>(arguments),
+                                      first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
