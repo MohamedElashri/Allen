@@ -109,32 +109,19 @@ void gather_selections::gather_selections_t::operator()(
   }
 
   // Populate dev_selections_t
-  Allen::aggregate::store_contiguous_async(
-    gsl::span {data<dev_selections_t>(arguments), size<dev_selections_t>(arguments)},
-    dev_input_selections,
-    context,
-    Allen::memcpyDeviceToDevice);
+  Allen::aggregate::store_contiguous_async<dev_selections_t, dev_input_selections_t>(arguments, context);
 
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
-  Allen::aggregate::store_contiguous_async(
-    gsl::span {data<host_selections_offsets_t>(arguments), size<host_selections_offsets_t>(arguments)},
-    input_aggregate<dev_input_selections_offsets_t>(arguments),
-    context,
-    Allen::memcpyDeviceToHost);
+  Allen::aggregate::store_contiguous_async<host_selections_offsets_t, dev_input_selections_offsets_t>(
+    arguments, context);
 
   // Populate host_post_scale_factors_t
-  Allen::aggregate::store_contiguous_async(
-    gsl::span {data<host_post_scale_factors_t>(arguments), size<host_post_scale_factors_t>(arguments)},
-    input_aggregate<host_input_post_scale_factors_t>(arguments),
-    context,
-    Allen::memcpyHostToHost);
+  Allen::aggregate::store_contiguous_async<host_post_scale_factors_t, host_input_post_scale_factors_t>(
+    arguments, context);
 
   // Populate host_post_scale_hashes_t
-  Allen::aggregate::store_contiguous_async(
-    gsl::span {data<host_post_scale_hashes_t>(arguments), size<host_post_scale_hashes_t>(arguments)},
-    input_aggregate<host_input_post_scale_hashes_t>(arguments),
-    context,
-    Allen::memcpyHostToHost);
+  Allen::aggregate::store_contiguous_async<host_post_scale_hashes_t, host_input_post_scale_hashes_t>(
+    arguments, context);
 
   // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
   // and host_post_scale_hashes_t to dev_post_scale_hashes_t
@@ -177,9 +164,10 @@ void gather_selections::gather_selections_t::operator()(
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
-    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
-                                      data<host_selections_offsets_t>(arguments),
-                                      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {
+      reinterpret_cast<bool*>(host_selections.data()),
+      data<host_selections_offsets_t>(arguments),
+      first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {

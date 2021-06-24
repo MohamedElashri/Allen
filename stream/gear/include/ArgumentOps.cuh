@@ -149,7 +149,9 @@ void assign_to_host_buffer(T* array, const Args& arguments, const Allen::Context
 
 namespace Allen {
   /**
-   * @brief Copy of two spans with an Allen context and a kind.
+   * @brief  Base implementation. Copy of two spans with an Allen context and a kind.
+   * @detail Uses implementation of backend. An exception is the copy from host to host,
+   *         which is done using a std::memcpy instead.
    */
   template<typename T, typename S>
   void copy_async(
@@ -157,28 +159,22 @@ namespace Allen {
     gsl::span<S> container_b,
     const Allen::Context& context,
     const Allen::memcpy_kind kind,
-    const size_t count,
+    const size_t count = 0,
     const size_t offset_a = 0,
     const size_t offset_b = 0)
   {
-    static_assert(sizeof(T) == sizeof(S));
-    assert((container_a.size() - offset_a) >= count && (container_b.size() - offset_b) >= count);
-    Allen::memcpy_async(container_a.data() + offset_a, container_b.data() + offset_b, count * sizeof(T), kind, context);
-  }
+    const auto elements_to_copy = count == 0 ? container_b.size() : count;
 
-  /**
-   * @brief Copies container_b into container_a.
-   */
-  template<typename T, typename S>
-  void copy_async(
-    gsl::span<T> container_a,
-    gsl::span<S> container_b,
-    const Allen::Context& context,
-    const Allen::memcpy_kind kind)
-  {
     static_assert(sizeof(T) == sizeof(S));
-    assert(container_a.size() == container_b.size());
-    copy_async(container_a, container_b, context, kind, container_a.size());
+    assert((container_a.size() - offset_a) >= elements_to_copy && (container_b.size() - offset_b) >= elements_to_copy);
+
+    if (kind == memcpyHostToHost) {
+      std::memcpy(container_a.data() + offset_a, container_b.data() + offset_b, elements_to_copy * sizeof(T));
+    }
+    else {
+      Allen::memcpy_async(
+        container_a.data() + offset_a, container_b.data() + offset_b, elements_to_copy * sizeof(T), kind, context);
+    }
   }
 
   /**
@@ -188,77 +184,92 @@ namespace Allen {
   template<typename A, typename B, typename Args>
   void copy_async(
     const Args& arguments,
-    const size_t count,
     const Allen::Context& context,
+    const size_t count = 0,
     const size_t offset_a = 0,
     const size_t offset_b = 0)
   {
     static_assert(sizeof(typename A::type) == sizeof(typename B::type));
 
-    Allen::memcpy_kind kind;
-    if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
-      kind = Allen::memcpyHostToHost;
-    else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
-      kind = Allen::memcpyHostToDevice;
-    else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
-      kind = Allen::memcpyDeviceToHost;
-    else
-      kind = Allen::memcpyDeviceToDevice;
+    const auto elements_to_copy = count == 0 ? size<B>(arguments) : count;
+    const Allen::memcpy_kind kind = []() {
+      if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
+        return Allen::memcpyHostToHost;
+      else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
+        return Allen::memcpyHostToDevice;
+      else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
+        return Allen::memcpyDeviceToHost;
+      else
+        return Allen::memcpyDeviceToDevice;
+    }();
 
     Allen::copy_async(
       gsl::span {data<A>(arguments), size<A>(arguments)},
       gsl::span {data<B>(arguments), size<B>(arguments)},
       context,
       kind,
-      count,
+      elements_to_copy,
       offset_a,
       offset_b);
   }
 
   /**
-   * @brief Copies B into A using asynchronous copy.
-   * @details A and B may be host or device arguments.
+   * @brief Synchronous copy of container_b into container_a.
    */
-  template<typename A, typename B, typename Args>
-  void copy_async(const Args& arguments, const Allen::Context& context)
+  template<typename T, typename S>
+  void copy(
+    gsl::span<T> container_a,
+    gsl::span<S> container_b,
+    const Allen::Context& context,
+    const Allen::memcpy_kind kind,
+    const size_t count = 0,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
   {
-    static_assert(sizeof(typename A::type) == sizeof(typename B::type));
-    assert(size<A>(arguments) == size<B>(arguments));
-    copy_async<A, B, Args>(arguments, size<A>(arguments), context);
-  }
-
-  /**
-   * @brief Synchronously copy using one of the above async_copy overloads.
-   */
-  template<typename... Ts, typename... Us>
-  void copy(Ts... ts, const Allen::Context& context, Us... us)
-  {
-    copy_async<Ts..., Us...>(ts..., context, us...);
-    synchronize(context);
+    copy_async(container_a, container_b, context, kind, count, offset_a, offset_b);
+    if (kind != memcpyHostToHost) {
+      synchronize(context);
+    }
   }
 
   /**
    * @brief Synchronous copy of B into A.
    */
   template<typename A, typename B, typename Args>
-  void copy(const Args& arguments, const Allen::Context& context)
+  void copy(
+    const Args& arguments,
+    const Allen::Context& context,
+    const size_t count = 0,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
   {
-    copy_async<A, B, Args>(arguments, context);
-    synchronize(context);
+    copy_async<A, B, Args>(arguments, context, count, offset_a, offset_b);
+    if constexpr (!std::is_base_of_v<host_datatype, A> || !std::is_base_of_v<host_datatype, B>) {
+      synchronize(context);
+    }
   }
 
   namespace aggregate {
     /**
      * @brief Stores contents of aggregate contiguously into container.
      */
-    template<typename T, typename S>
-    void store_contiguous_async(
-      gsl::span<T> container,
-      const InputAggregate<S>& aggregate,
-      const Allen::Context& context,
-      const Allen::memcpy_kind kind)
+    template<typename A, typename B, typename Args>
+    void store_contiguous_async(const Args& arguments, const Allen::Context& context)
     {
-      static_assert(sizeof(T) == sizeof(S));
+      auto container = gsl::span {data<A>(arguments), size<A>(arguments)};
+      auto aggregate = input_aggregate<B>(arguments);
+
+      const Allen::memcpy_kind kind = []() {
+        if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
+          return Allen::memcpyHostToHost;
+        else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
+          return Allen::memcpyHostToDevice;
+        else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
+          return Allen::memcpyDeviceToHost;
+        else
+          return Allen::memcpyDeviceToDevice;
+      }();
+
       unsigned container_offset = 0;
       for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
         Allen::copy_async(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
