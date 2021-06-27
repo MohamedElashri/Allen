@@ -85,8 +85,6 @@ DumpUtils::Dumps DumpMuonTable::dumpGeometry() const
     }
   }
 
-  StatusCode sc = StatusCode::SUCCESS;
-
   double xp = 0.f, dx = 0.f, yp = 0.f, dy = 0.f, zp = 0.f, dz = 0.f;
 
   string padType {"pad"}, stripXType {"stripX"}, stripYType {"stripY"};
