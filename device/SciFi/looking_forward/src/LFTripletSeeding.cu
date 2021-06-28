@@ -38,9 +38,10 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
     3 * 2 * property<hit_window_size_t>() * sizeof(float))(arguments, constants.dev_looking_forward_constants);
 }
 
-__global__ void lf_triplet_seeding::lf_triplet_seeding(
-  lf_triplet_seeding::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+__global__
+  __launch_bounds__(2 * LookingForward::triplet_seeding_block_dim_x) void lf_triplet_seeding::lf_triplet_seeding(
+    lf_triplet_seeding::Parameters parameters,
+    const LookingForward::Constants* dev_looking_forward_constants)
 {
   DYNAMIC_SHARED_MEMORY_BUFFER(float, shared_xs, parameters.config)
   __shared__ short shared_indices

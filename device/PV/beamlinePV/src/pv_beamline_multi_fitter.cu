@@ -23,12 +23,7 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
 {
   initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, context);
 
-#ifdef TARGET_DEVICE_CUDA
-  const auto block_dimension = dim3(32, property<block_dim_y_t>());
-#else
-  const auto block_dimension = dim3(1, property<block_dim_y_t>());
-#endif
-
+  const auto block_dimension = dim3(warp_size, property<block_dim_y_t>());
   global_function(pv_beamline_multi_fitter)(dim3(size<dev_event_list_t>(arguments)), block_dimension, context)(
     arguments, constants.dev_beamline.data());
 }
@@ -152,11 +147,11 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         }
       }
 
-#ifdef TARGET_DEVICE_CUDA
+#if defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_HIP)
       // Use CUDA warp-level primitives for adding up some numbers onto a single
       // thread without using any shared memory.
       // See https://developer.nvidia.com/blog/using-cuda-warp-level-primitives/
-      for (int i = 16; i > 0; i = i / 2) {
+      for (int i = warp_size / 2; i > 0; i = i / 2) {
         halfD2Chi2DX2_00 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_00, i);
         halfD2Chi2DX2_11 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_11, i);
         halfD2Chi2DX2_20 += __shfl_down_sync(0xFFFFFFFF, halfD2Chi2DX2_20, i);
@@ -217,7 +212,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         }
       }
 
-#ifdef TARGET_DEVICE_CUDA
+#if defined(TARGET_DEVICE_CUDA) || defined(TARGET_DEVICE_HIP)
       // Synchronize the value of thread 0 in the warp across the entire warp
       // See https://developer.nvidia.com/blog/using-cuda-warp-level-primitives/
       vtxpos_xy.x = __shfl_sync(0xFFFFFFFF, vtxpos_xy.x, 0);

@@ -19,6 +19,7 @@ inline const char* cudaGetErrorString(cudaError_t error) { return ""; }
 #include <iomanip>
 #include <cuda_fp16.h>
 #define half_t half
+constexpr int warp_size = 32;
 
 // Support for dynamic shared memory buffers
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) extern __shared__ _type _instance[];

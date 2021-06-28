@@ -44,8 +44,8 @@ if [ "${PROFILE_DEVICE}" = "${DEVICE_ID}" ]; then
   GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
   GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
   NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-  RUN_PROFILER_OPTIONS="${RUN_THROUGHPUT_OPTIONS_CUDAPROF} -t 1 ${RUN_OPTIONS}"
-  RUN_OPTIONS="${RUN_THROUGHPUT_OPTIONS_CUDA} -t 16 ${RUN_OPTIONS}"
+  RUN_PROFILER_OPTIONS="${RUN_THROUGHPUT_OPTIONS_CUDAPROF} ${RUN_OPTIONS}"
+  RUN_OPTIONS="${RUN_THROUGHPUT_OPTIONS_CUDA} ${RUN_OPTIONS}"
   export PATH=$PATH:/usr/local/cuda/bin
 
   setupViews
@@ -83,23 +83,23 @@ else
     GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
     NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
-    RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CUDA} -t 16"
+    RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CUDA}"
 
     ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
 
     nvidia-smi
 
   elif [ "${TARGET}" = "HIP" ]; then
-    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.0.0/setenv.sh
+    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
     GPU_ID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    GPU_NUMBER_EXTRA=`/opt/rocm-4.0.0/bin/rocm-smi --showuniqueid | grep $GPU_ID | awk '{ print $1; }'`
+    GPU_NUMBER_EXTRA=`rocm-smi --showuniqueid | grep $GPU_ID | awk '{ print $1; }'`
     GPU_ESCAPED_BRACKETS=`echo $GPU_NUMBER_EXTRA | sed 's/\[/\\\[/' | sed 's/\]/\\\]/'`
-    PCI_BUS=`/opt/rocm-4.0.0/bin/rocm-smi --showbus | grep $GPU_ESCAPED_BRACKETS | awk '{ print $NF; }' | sed 's/[0-9]\+:\(.*\)/\1/'`
+    PCI_BUS=`rocm-smi --showbus | grep $GPU_ESCAPED_BRACKETS | awk '{ print $NF; }' | sed 's/[0-9]\+:\(.*\)/\1/'`
     GPU_NUMBER=`echo $GPU_NUMBER_EXTRA | sed 's/GPU\[\(.*\)\]/\1/g'`
     NUMA_NODE=`lspci -vmm | grep -i $PCI_BUS -A 10 | grep NUMANode | head -n1 | awk '{ print $NF; }'`
-    RUN_OPTIONS="${RUN_OPTIONS} --events-per-slice 8000 ${RUN_THROUGHPUT_OPTIONS_HIP} -t 6"
+    RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_HIP}"
 
-    ALLEN="HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
+    ALLEN="HSA_NO_SCRATCH_RECLAIM=1 GPU_MAX_HW_QUEUES=8 HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
   fi
   echo "Command: ${ALLEN}"
   {

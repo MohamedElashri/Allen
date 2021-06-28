@@ -33,11 +33,11 @@ if [ "${TARGET}" = "CPU" ]; then
     LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} \
         ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
 elif [ "${TARGET}" = "HIP" ]; then
-    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.0.0/setenv.sh
+    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
     GPU_ID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-    GPU_NUMBER_EXTRA=`/opt/rocm-4.0.0/bin/rocm-smi --showuniqueid | grep $GPU_ID | awk '{ print $1; }'`
+    GPU_NUMBER_EXTRA=`rocm-smi --showuniqueid | grep $GPU_ID | awk '{ print $1; }'`
     GPU_ESCAPED_BRACKETS=`echo $GPU_NUMBER_EXTRA | sed 's/\[/\\\[/' | sed 's/\]/\\\]/'`
-    PCI_BUS=`/opt/rocm-4.0.0/bin/rocm-smi --showbus | grep $GPU_ESCAPED_BRACKETS | awk '{ print $NF; }' | sed 's/[0-9]\+:\(.*\)/\1/'`
+    PCI_BUS=`rocm-smi --showbus | grep $GPU_ESCAPED_BRACKETS | awk '{ print $NF; }' | sed 's/[0-9]\+:\(.*\)/\1/'`
     GPU_NUMBER=`echo $GPU_NUMBER_EXTRA | sed 's/GPU\[\(.*\)\]/\1/g'`
     NUMA_NODE=`lspci -vmm | grep -i $PCI_BUS -A 10 | grep NUMANode | head -n1 | awk '{ print $NF; }'`
 

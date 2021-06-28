@@ -81,6 +81,8 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
     Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
   for (unsigned i = threadIdx.x; i < event_total_number_of_tracks; i += blockDim.x) {
+    __syncthreads();
+
     Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i);
 
     Velo::TrackHits* track;
