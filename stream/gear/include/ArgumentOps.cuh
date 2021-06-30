@@ -49,7 +49,7 @@ size_t size(const Args& arguments)
  * @brief Returns a pointer to the container with the container type.
  */
 template<typename Arg, typename Args>
-auto data(const Args& arguments)
+auto* data(const Args& arguments)
 {
   return arguments.template pointer<Arg>();
 }
