@@ -2,11 +2,11 @@ Call Allen from Gaudi, event loop directed by Moore
 =============================
 The software can be compiled either based on the nightlies or by compiling the full stack, as described [here](https://gitlab.cern.ch/lhcb/Allen/-/blob/master/readme.md#call-allen-with-gaudi-steer-event-loop-from-moore).
 
-Note that many use cases of calling Allen from Moore are intended for physics validation. In this case the validation information has to be generated when running Allen. This does not happen by default (when using the `hlt1_pp_default` sequence). Therefore, select the validation sequence `hlt1_pp_validation` when compiling Allen inside the stack by adding the following lines to `utils/config.json`
+The default HLT1 sequence is `hlt1_pp_default`. If you would like to use a different sequence when compiling Allen, you can pass CMake arguments by adding the following lines to `utils/config.json`
 ```
 {
     "cmakeFlags": {
-		"Allen": "-DSTANDALONE=OFF -DSEQUENCE=hlt1_pp_validation"
+		"Allen": "-DSTANDALONE=OFF -DSEQUENCE=my_other_sequence"
 	}
 }
 ```
