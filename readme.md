@@ -8,7 +8,7 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 Requisites
 ----------------
 
-The following packages are required in order to be able to compile Allen. Package names listed here are CentOS 8 names, package names for other distributions may slightly change:
+The following packages are required in order to be able to compile Allen. Package names listed here are CentOS 7 names, package names for other distributions may slightly change:
 
 * cmake version 3.18 or newer
 * boost-devel version 1.69 or newer
