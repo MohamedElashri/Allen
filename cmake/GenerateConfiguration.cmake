@@ -50,14 +50,13 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
 
   if(NOT STANDALONE)
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h"
-      COMMAND 
+      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+      COMMAND
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-        ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${ALGORITHMS_OUTPUTFILE}"
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
@@ -75,14 +74,13 @@ if (LIBCLANG_FOUND OR LIBCLANG_ALTERNATIVE_FOUND)
         ${CMAKE_COMMAND} -E create_symlink Gaudi/GaudiKernel/python/GaudiKernel GaudiKernel
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h"
+      OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
       COMMAND
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
         ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
         ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${Python3_EXECUTABLE}" "${SEQUENCE}.py" &&
         ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-        ${CMAKE_COMMAND} -E copy_if_different "ConfiguredInputAggregates.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h" &&
         ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/PyConf" "${ALGORITHMS_OUTPUTFILE}"
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})

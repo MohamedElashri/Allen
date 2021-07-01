@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ArgumentManager.cuh"
+#include "ArgumentOps.cuh"
 #include "BackendCommon.h"
 #include "BaseTypes.cuh"
 #include "Property.cuh"
@@ -49,7 +50,7 @@ struct ProduceSingleParameter<
   T,
   typename std::enable_if_t<
     !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> &&
-    !std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
+    !std::is_base_of_v<aggregate_datatype, T> && !std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
   constexpr static auto produce(
     const ArgMan&,
     const std::map<std::string, Allen::BaseProperty*>& properties,

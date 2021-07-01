@@ -42,5 +42,3 @@ allen_add_device_library(Selections STATIC
   ${selections_src}
   ${lines_src}
 )
-
-add_dependencies(Selections configured_sequence)

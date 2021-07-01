@@ -61,16 +61,16 @@ using append_to_tuple_t = typename details::TupleAppend<Tuple, Element>::type;
 // Appends a Tuple with the Element
 namespace details {
   template<typename, typename>
-  struct TupleAppendFirst;
+  struct TuplePrepend;
 
   template<typename E, typename... T>
-  struct TupleAppendFirst<E, std::tuple<T...>> {
+  struct TuplePrepend<E, std::tuple<T...>> {
     using type = std::tuple<E, T...>;
   };
 } // namespace details
 
 template<typename Element, typename Tuple>
-using prepend_to_tuple_t = typename details::TupleAppendFirst<Element, Tuple>::type;
+using prepend_to_tuple_t = typename details::TuplePrepend<Element, Tuple>::type;
 
 // Reverses a tuple
 namespace details {
@@ -103,6 +103,29 @@ namespace details {
 template<typename... Tuples>
 using cat_tuples_t = typename details::ConcatTuple<Tuples...>::type;
 
+namespace details {
+  template<typename T>
+  struct FlattenTuple;
+
+  template<>
+  struct FlattenTuple<std::tuple<>> {
+    using type = std::tuple<>;
+  };
+
+  template<typename... InTuple, typename... Ts>
+  struct FlattenTuple<std::tuple<std::tuple<InTuple...>, Ts...>> {
+    using type = cat_tuples_t<std::tuple<InTuple...>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+  };
+
+  template<typename T, typename... Ts>
+  struct FlattenTuple<std::tuple<T, Ts...>> {
+    using type = cat_tuples_t<std::tuple<T>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+  };
+} // namespace details
+
+template<typename Tuple>
+using flatten_tuple_t = typename details::FlattenTuple<Tuple>::type;
+
 // Access to tuple elements by checking whether they inherit from a Base type
 template<typename Base, typename Tuple, std::size_t I = 0>
 struct tuple_ref_index;
@@ -128,4 +151,20 @@ namespace Allen {
 
   template<typename T>
   using bool_as_char_t = std::conditional_t<std::is_same_v<std::decay_t<T>, bool>, char, std::decay_t<T>>;
+
+  /**
+   * @brief Checks whether class U is derived from class T,
+   *        where T is a templated class.
+   */
+  template<template<class...> class T, class U>
+  struct isDerivedFrom {
+  private:
+    template<class... V>
+    static decltype(static_cast<const T<V...>&>(std::declval<U>()), std::true_type {}) test(const T<V...>&);
+
+    static std::false_type test(...);
+
+  public:
+    static constexpr bool value = decltype(isDerivedFrom::test(std::declval<U>()))::value;
+  };
 } // namespace Allen

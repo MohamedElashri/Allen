@@ -8,74 +8,6 @@
 #include "ODINBank.cuh"
 #include <algorithm>
 
-// Helper traits to traverse dev_input_selections_t
-template<typename Arguments, typename Tuple>
-struct TupleTraits {
-  constexpr static unsigned i = 0;
-
-  constexpr static unsigned get_size(Arguments&) { return 0; }
-
-  template<typename AssignType>
-  static void populate_event_offsets(const Arguments& arguments)
-  {
-    data<AssignType>(arguments)[i] = 0;
-  }
-
-  template<typename OffsetsType, typename AssignType, typename Stream>
-  static void populate_selections(const Arguments&, Stream&)
-  {}
-
-  template<typename AssignType, typename NumberOfEvents, typename Stream>
-  static void populate_selection_offsets(const Arguments&, Stream&)
-  {}
-
-  template<typename AssignType, typename Stream>
-  static void populate_scalars(const Arguments&, Stream&)
-  {}
-};
-
-template<typename Arguments, typename T, typename... R>
-struct TupleTraits<Arguments, std::tuple<T, R...>> {
-  constexpr static unsigned i = TupleTraits<Arguments, std::tuple<R...>>::i + 1;
-
-  constexpr static unsigned get_size(Arguments& arguments)
-  {
-    return TupleTraits<Arguments, std::tuple<R...>>::get_size(arguments) + size<T>(arguments);
-  }
-
-  template<typename AssignType>
-  static void populate_event_offsets(const Arguments& arguments)
-  {
-    TupleTraits<Arguments, std::tuple<R...>>::template populate_event_offsets<AssignType>(arguments);
-    data<AssignType>(arguments)[i] = data<AssignType>(arguments)[i - 1] + size<T>(arguments);
-  }
-
-  template<typename OffsetsType, typename AssignType, typename Stream>
-  static void populate_selections(const Arguments& arguments, Stream& stream)
-  {
-    TupleTraits<Arguments, std::tuple<R...>>::template populate_selections<OffsetsType, AssignType>(arguments, stream);
-    copy<AssignType, T>(arguments, size<T>(arguments), stream, data<OffsetsType>(arguments)[i - 1], 0);
-  }
-
-  template<typename AssignType, typename NumberOfEvents, typename Stream>
-  static void populate_selection_offsets(const Arguments& arguments, Stream& stream)
-  {
-    TupleTraits<Arguments, std::tuple<R...>>::template populate_selection_offsets<AssignType, NumberOfEvents, Stream>(
-      arguments, stream);
-    copy<AssignType, T>(arguments, size<T>(arguments), stream, first<NumberOfEvents>(arguments) * (i - 1), 0);
-
-    // There should be as many elements as number of events
-    assert(first<NumberOfEvents>(arguments) == size<T>(arguments));
-  }
-
-  template<typename AssignType, typename Stream>
-  static void populate_scalars(const Arguments& arguments, Stream& stream)
-  {
-    TupleTraits<Arguments, std::tuple<R...>>::template populate_scalars<AssignType>(arguments, stream);
-    copy<AssignType, T>(arguments, size<T>(arguments), stream, i - 1, 0);
-  }
-};
-
 namespace gather_selections {
   __global__ void postscaler(
     bool* dev_selections,
@@ -116,24 +48,35 @@ void gather_selections::gather_selections_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
+  // Sum all the sizes from input selections
+  const auto sum_sizes_from_aggregate = [](const auto& agg) {
+    size_t total_size = 0;
+    for (size_t i = 0; i < agg.size_of_aggregate(); ++i) {
+      total_size += agg.size(i);
+    }
+    return total_size;
+  };
+
+  const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
+  const auto total_size_dev_input_selections = sum_sizes_from_aggregate(dev_input_selections);
+  const auto total_size_host_input_post_scale_factors =
+    sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
+  const auto host_input_post_scale_hashes =
+    sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_hashes_t>(arguments));
+
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);
   set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size());
-  set_size<host_selections_lines_offsets_t>(arguments, std::tuple_size<dev_input_selections_t::type>::value + 1);
+  set_size<host_selections_lines_offsets_t>(arguments, dev_input_selections.size_of_aggregate() + 1);
   set_size<host_selections_offsets_t>(
-    arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
+    arguments, first<host_number_of_events_t>(arguments) * dev_input_selections.size_of_aggregate() + 1);
   set_size<dev_selections_offsets_t>(
-    arguments, first<host_number_of_events_t>(arguments) * std::tuple_size<dev_input_selections_t::type>::value + 1);
-  set_size<dev_selections_t>(
-    arguments, TupleTraits<ArgumentReferences<Parameters>, dev_input_selections_t::type>::get_size(arguments));
-  set_size<host_post_scale_factors_t>(
-    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_factors_t::type>::get_size(arguments));
-  set_size<host_post_scale_hashes_t>(
-    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_hashes_t::type>::get_size(arguments));
-  set_size<dev_post_scale_factors_t>(
-    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_factors_t::type>::get_size(arguments));
-  set_size<dev_post_scale_hashes_t>(
-    arguments, TupleTraits<ArgumentReferences<Parameters>, host_input_post_scale_hashes_t::type>::get_size(arguments));
+    arguments, first<host_number_of_events_t>(arguments) * dev_input_selections.size_of_aggregate() + 1);
+  set_size<dev_selections_t>(arguments, total_size_dev_input_selections);
+  set_size<host_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
+  set_size<host_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
+  set_size<dev_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
+  set_size<dev_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
@@ -154,35 +97,38 @@ void gather_selections::gather_selections_t::operator()(
   line_names.copy(data<host_names_of_active_lines_t>(arguments), line_names.size());
 
   // Pass the number of lines for posterior algorithms
-  data<host_number_of_active_lines_t>(arguments)[0] = std::tuple_size<dev_input_selections_t::type>::value;
-  copy<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
+  const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
+  data<host_number_of_active_lines_t>(arguments)[0] = dev_input_selections.size_of_aggregate();
+  Allen::copy_async<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
 
   // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
-  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<dev_input_selections_t::type>>::
-    template populate_event_offsets<host_selections_lines_offsets_t>(arguments);
+  auto* container = data<host_selections_lines_offsets_t>(arguments);
+  container[0] = 0;
+  for (size_t i = 0; i < dev_input_selections.size_of_aggregate(); ++i) {
+    container[i + 1] = container[i] + dev_input_selections.size(i);
+  }
 
   // Populate dev_selections_t
-  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<dev_input_selections_t::type>>::
-    template populate_selections<host_selections_lines_offsets_t, dev_selections_t>(arguments, context);
+  Allen::aggregate::store_contiguous_async<dev_selections_t, dev_input_selections_t>(arguments, context);
 
   // Copy dev_input_selections_offsets_t onto host_selections_lines_offsets_t
-  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<dev_input_selections_offsets_t::type>>::
-    template populate_selection_offsets<host_selections_offsets_t, host_number_of_events_t>(arguments, context);
+  Allen::aggregate::store_contiguous_async<host_selections_offsets_t, dev_input_selections_offsets_t>(
+    arguments, context);
 
   // Populate host_post_scale_factors_t
-  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<host_input_post_scale_factors_t::type>>::
-    template populate_scalars<host_post_scale_factors_t>(arguments, context);
+  Allen::aggregate::store_contiguous_async<host_post_scale_factors_t, host_input_post_scale_factors_t>(
+    arguments, context);
 
   // Populate host_post_scale_hashes_t
-  TupleTraits<ArgumentReferences<Parameters>, reverse_tuple_t<host_input_post_scale_hashes_t::type>>::
-    template populate_scalars<host_post_scale_hashes_t>(arguments, context);
+  Allen::aggregate::store_contiguous_async<host_post_scale_hashes_t, host_input_post_scale_hashes_t>(
+    arguments, context);
 
   // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
   // and host_post_scale_hashes_t to dev_post_scale_hashes_t
-  copy<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
-  copy<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
+  Allen::copy_async<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
+  Allen::copy_async<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
 
-  // Synchronize
+  // Synchronize after all the copies above
   Allen::synchronize(context);
 
   // Add partial sums from host_selections_lines_offsets_t to host_selections_offsets_t
@@ -197,14 +143,11 @@ void gather_selections::gather_selections_t::operator()(
   // Add to last element the total sum
   data<host_selections_offsets_t>(
     arguments)[first<host_number_of_active_lines_t>(arguments) * first<host_number_of_events_t>(arguments)] =
-    data<host_selections_lines_offsets_t>(arguments)[std::tuple_size<dev_input_selections_t::type>::value];
+    data<host_selections_lines_offsets_t>(arguments)[dev_input_selections.size_of_aggregate()];
 
   // Copy host_selections_offsets_t onto dev_selections_offsets_t
-  copy<dev_selections_offsets_t, host_selections_offsets_t>(arguments, context);
+  Allen::copy_async<dev_selections_offsets_t, host_selections_offsets_t>(arguments, context);
 
-  // Fetch the postscaler function depending on its layout
-  // auto postscale_fn = first<dev_mep_layout_t>(arguments) ? global_function(postscaler<odin_data_mep_t>) :
-  //                                                           global_function(postscaler<odin_data_t>);
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     data<dev_selections_t>(arguments),
@@ -219,7 +162,7 @@ void gather_selections::gather_selections_t::operator()(
   if (property<verbosity_t>() >= logger::debug) {
     std::vector<uint8_t> host_selections(size<dev_selections_t>(arguments));
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
-    copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
+    Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
     Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
                                       data<host_selections_offsets_t>(arguments),

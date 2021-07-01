@@ -210,7 +210,7 @@ class AlgorithmTraversal():
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
                     typedef = [a.type.spelling
                                for a in child.get_children()][0]
-            if typedef == "" or typedef == "int":
+            if typedef == "" or typedef == "int" or aggregate: # TODO: Change this aggregate ugliness to something else
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
             if kind and typedef and io != None:

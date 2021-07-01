@@ -31,8 +31,8 @@ void event_list_union::event_list_union_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  copy<host_event_list_a_t, dev_event_list_a_t>(arguments, context);
-  copy<host_event_list_b_t, dev_event_list_b_t>(arguments, context);
+  Allen::copy_async<host_event_list_a_t, dev_event_list_a_t>(arguments, context);
+  Allen::copy_async<host_event_list_b_t, dev_event_list_b_t>(arguments, context);
   Allen::synchronize(context);
 
   unsigned output_number_of_events = 0;
@@ -65,7 +65,7 @@ void event_list_union::event_list_union_t::operator()(
   reduce_size<dev_event_list_output_t>(arguments, output_number_of_events);
 
   // Copy the event list to the device
-  copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
+  Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
   if (property<verbosity_t>() >= logger::debug) {
     printf("List union:\n From lists:\n a: ");

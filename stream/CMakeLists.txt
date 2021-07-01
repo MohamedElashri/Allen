@@ -94,7 +94,7 @@ target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration
 # until the ${SEQUENCE}.py changes again.
 # However, since the Sequence.h is only copied *if different*, this will not necessarily trigger a re-compilation.
 # In other words, the timestamp of Sequence.json is used to keep up with that of ${SEQUENCE}.py.
-add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredInputAggregates.h")
+add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
 add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE

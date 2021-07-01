@@ -46,10 +46,9 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 
   // Copy data to the device
-  copy<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
-  copy<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
+  Allen::copy_async<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
+  Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
-  // TODO: Remove whenever the checker uses variables
   host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);
   for (unsigned i = 0; i < size<host_event_list_output_t>(arguments); ++i) {
     host_buffers.host_event_list[i] = event_start + data<host_event_list_output_t>(arguments)[i];

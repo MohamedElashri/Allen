@@ -9,6 +9,7 @@
 #include "BackendCommon.h"
 #include "AllenTypeTraits.cuh"
 #include "PinnedVector.h"
+#include "ArgumentManager.cuh"
 
 /**
  * @brief Sets the size of a container to the specified size.
@@ -48,9 +49,18 @@ size_t size(const Args& arguments)
  * @brief Returns a pointer to the container with the container type.
  */
 template<typename Arg, typename Args>
-typename Arg::type* data(const Args& arguments)
+auto* data(const Args& arguments)
 {
   return arguments.template pointer<Arg>();
+}
+
+/**
+ * @brief Returns the first element in the container.
+ */
+template<typename Arg, typename Args>
+auto first(const Args& arguments)
+{
+  return arguments.template first<Arg>();
 }
 
 /**
@@ -63,12 +73,12 @@ std::string name(Args arguments)
 }
 
 /**
- * @brief Returns the first element in the container.
+ * @brief Fetches an aggregate value.
  */
 template<typename Arg, typename Args>
-typename Arg::type first(const Args& arguments)
+auto input_aggregate(const Args& arguments)
 {
-  return arguments.template first<Arg>();
+  return arguments.template input_aggregate<Arg>();
 }
 
 template<typename Arg, typename Args, typename T>
@@ -137,6 +147,138 @@ void assign_to_host_buffer(T* array, const Args& arguments, const Allen::Context
     array, data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost, context);
 }
 
+namespace Allen {
+  /**
+   * @brief  Base implementation. Copy of two spans with an Allen context and a kind.
+   * @detail Uses implementation of backend. An exception is the copy from host to host,
+   *         which is done using a std::memcpy instead.
+   */
+  template<typename T, typename S>
+  void copy_async(
+    gsl::span<T> container_a,
+    gsl::span<S> container_b,
+    const Allen::Context& context,
+    const Allen::memcpy_kind kind,
+    const size_t count = 0,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
+  {
+    const auto elements_to_copy = count == 0 ? container_b.size() : count;
+
+    static_assert(sizeof(T) == sizeof(S));
+    assert((container_a.size() - offset_a) >= elements_to_copy && (container_b.size() - offset_b) >= elements_to_copy);
+
+    if (kind == memcpyHostToHost) {
+      std::memcpy(container_a.data() + offset_a, container_b.data() + offset_b, elements_to_copy * sizeof(T));
+    }
+    else {
+      Allen::memcpy_async(
+        container_a.data() + offset_a, container_b.data() + offset_b, elements_to_copy * sizeof(T), kind, context);
+    }
+  }
+
+  /**
+   * @brief Copies count bytes of B into A using asynchronous copy.
+   * @details A and B may be host or device arguments.
+   */
+  template<typename A, typename B, typename Args>
+  void copy_async(
+    const Args& arguments,
+    const Allen::Context& context,
+    const size_t count = 0,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
+  {
+    static_assert(sizeof(typename A::type) == sizeof(typename B::type));
+
+    const auto elements_to_copy = count == 0 ? size<B>(arguments) : count;
+    const Allen::memcpy_kind kind = []() {
+      if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
+        return Allen::memcpyHostToHost;
+      else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
+        return Allen::memcpyHostToDevice;
+      else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
+        return Allen::memcpyDeviceToHost;
+      else
+        return Allen::memcpyDeviceToDevice;
+    }();
+
+    Allen::copy_async(
+      gsl::span {data<A>(arguments), size<A>(arguments)},
+      gsl::span {data<B>(arguments), size<B>(arguments)},
+      context,
+      kind,
+      elements_to_copy,
+      offset_a,
+      offset_b);
+  }
+
+  /**
+   * @brief Synchronous copy of container_b into container_a.
+   */
+  template<typename T, typename S>
+  void copy(
+    gsl::span<T> container_a,
+    gsl::span<S> container_b,
+    const Allen::Context& context,
+    const Allen::memcpy_kind kind,
+    const size_t count = 0,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
+  {
+    copy_async(container_a, container_b, context, kind, count, offset_a, offset_b);
+    if (kind != memcpyHostToHost) {
+      synchronize(context);
+    }
+  }
+
+  /**
+   * @brief Synchronous copy of B into A.
+   */
+  template<typename A, typename B, typename Args>
+  void copy(
+    const Args& arguments,
+    const Allen::Context& context,
+    const size_t count = 0,
+    const size_t offset_a = 0,
+    const size_t offset_b = 0)
+  {
+    copy_async<A, B, Args>(arguments, context, count, offset_a, offset_b);
+    if constexpr (!std::is_base_of_v<host_datatype, A> || !std::is_base_of_v<host_datatype, B>) {
+      synchronize(context);
+    }
+  }
+
+  namespace aggregate {
+    /**
+     * @brief Stores contents of aggregate contiguously into container.
+     */
+    template<typename A, typename B, typename Args>
+    void store_contiguous_async(const Args& arguments, const Allen::Context& context)
+    {
+      auto container = gsl::span {data<A>(arguments), size<A>(arguments)};
+      auto aggregate = input_aggregate<B>(arguments);
+
+      const Allen::memcpy_kind kind = []() {
+        if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
+          return Allen::memcpyHostToHost;
+        else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
+          return Allen::memcpyHostToDevice;
+        else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
+          return Allen::memcpyDeviceToHost;
+        else
+          return Allen::memcpyDeviceToDevice;
+      }();
+
+      unsigned container_offset = 0;
+      for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
+        Allen::copy_async(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
+        container_offset += aggregate.size(i);
+      }
+    }
+  } // namespace aggregate
+} // namespace Allen
+
 // SFINAE for single argument functions, like initialization and print of host / device parameters
 template<typename Arg, typename Args, typename Enabled = void>
 struct SingleArgumentOverloadResolution;
@@ -200,14 +342,6 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     return v;
   }
 
-  template<typename T>
-  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
-  {
-    const auto size_bytes = gsl::as_bytes(container);
-    assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
-    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
-  }
-
   static void print(const Args& arguments)
   {
     const auto array = data<Arg>(arguments);
@@ -253,14 +387,6 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
     return v;
   }
 
-  template<typename T>
-  static void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> container)
-  {
-    const auto size_bytes = gsl::as_bytes(container);
-    assert(size<Arg>(arguments) * sizeof(typename Arg::type) >= size_bytes);
-    Allen::memcpy_async(data<Arg>(arguments), container.data(), size_bytes, Allen::memcpyHostToHost, context);
-  }
-
   static void print(const Args& arguments)
   {
     std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
@@ -279,148 +405,6 @@ struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base
       }
     }
     info_cout << "\n";
-  }
-};
-
-// SFINAE for double argument functions, like copying
-template<typename A, typename B, typename Args, typename Enabled = void>
-struct DoubleArgumentOverloadResolution;
-
-// Host to host
-template<typename A, typename B, typename Args>
-struct DoubleArgumentOverloadResolution<
-  A,
-  B,
-  Args,
-  std::conditional_t<
-    std::is_base_of_v<host_datatype, A>,
-    std::enable_if_t<std::is_base_of_v<host_datatype, B>>,
-    std::enable_if<false>>> {
-  constexpr static void copy(const Args& arguments, const Allen::Context&)
-  {
-    assert(size<A>(arguments) >= size<B>(arguments));
-    std::memcpy(data<A>(arguments), data<B>(arguments), size<B>(arguments) * sizeof(typename B::type));
-  }
-
-  constexpr static void
-  copy(const Args& arguments, const size_t count, const Allen::Context&, const size_t offset_a, const size_t offset_b)
-  {
-    assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
-    std::memcpy(data<A>(arguments) + offset_a, data<B>(arguments) + offset_b, count * sizeof(typename B::type));
-  }
-};
-
-// Device to host
-template<typename A, typename B, typename Args>
-struct DoubleArgumentOverloadResolution<
-  A,
-  B,
-  Args,
-  std::conditional_t<
-    std::is_base_of_v<host_datatype, A>,
-    std::enable_if_t<std::is_base_of_v<device_datatype, B>>,
-    std::enable_if<false>>> {
-  constexpr static void copy(const Args& arguments, const Allen::Context& context)
-  {
-    assert(size<A>(arguments) >= size<B>(arguments));
-    Allen::memcpy_async(
-      data<A>(arguments),
-      data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type),
-      Allen::memcpyDeviceToHost,
-      context);
-  }
-
-  constexpr static void copy(
-    const Args& arguments,
-    const size_t count,
-    const Allen::Context& context,
-    const size_t offset_a,
-    const size_t offset_b)
-  {
-    assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
-    Allen::memcpy_async(
-      data<A>(arguments) + offset_a,
-      data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type),
-      Allen::memcpyDeviceToHost,
-      context);
-  }
-};
-
-// Host to device
-template<typename A, typename B, typename Args>
-struct DoubleArgumentOverloadResolution<
-  A,
-  B,
-  Args,
-  std::conditional_t<
-    std::is_base_of_v<device_datatype, A>,
-    std::enable_if_t<std::is_base_of_v<host_datatype, B>>,
-    std::enable_if<false>>> {
-  constexpr static void copy(const Args& arguments, const Allen::Context& context)
-  {
-    assert(size<A>(arguments) >= size<B>(arguments));
-    Allen::memcpy_async(
-      data<A>(arguments),
-      data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type),
-      Allen::memcpyHostToDevice,
-      context);
-  }
-
-  constexpr static void copy(
-    const Args& arguments,
-    const size_t count,
-    const Allen::Context& context,
-    const size_t offset_a,
-    const size_t offset_b)
-  {
-    assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
-    Allen::memcpy_async(
-      data<A>(arguments) + offset_a,
-      data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type),
-      Allen::memcpyHostToDevice,
-      context);
-  }
-};
-
-// Device to device
-template<typename A, typename B, typename Args>
-struct DoubleArgumentOverloadResolution<
-  A,
-  B,
-  Args,
-  std::conditional_t<
-    std::is_base_of_v<device_datatype, A>,
-    std::enable_if_t<std::is_base_of_v<device_datatype, B>>,
-    std::enable_if<false>>> {
-  constexpr static void copy(const Args& arguments, const Allen::Context& context)
-  {
-    assert(size<A>(arguments) >= size<B>(arguments));
-    Allen::memcpy_async(
-      data<A>(arguments),
-      data<B>(arguments),
-      size<B>(arguments) * sizeof(typename B::type),
-      Allen::memcpyDeviceToDevice,
-      context);
-  }
-
-  constexpr static void copy(
-    const Args& arguments,
-    const size_t count,
-    const Allen::Context& context,
-    const size_t offset_a,
-    const size_t offset_b)
-  {
-    assert((size<A>(arguments) - offset_a) >= count && (size<B>(arguments) - offset_b) >= count);
-    Allen::memcpy_async(
-      data<A>(arguments) + offset_a,
-      data<B>(arguments) + offset_b,
-      count * sizeof(typename B::type),
-      Allen::memcpyDeviceToDevice,
-      context);
   }
 };
 
@@ -448,41 +432,6 @@ template<typename Arg, typename Args>
 void print(const Args& arguments)
 {
   SingleArgumentOverloadResolution<Arg, Args>::print(arguments);
-}
-
-/**
- * @brief Copies B into A.
- * @details A and B may be host or device arguments.
- */
-template<typename A, typename B, typename Args>
-void copy(const Args& arguments, const Allen::Context& context)
-{
-  DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, context);
-}
-
-/**
- * @brief Copies count bytes of B into A.
- * @details A and B may be host or device arguments.
- */
-template<typename A, typename B, typename Args>
-void copy(
-  const Args& arguments,
-  const size_t count,
-  const Allen::Context& context,
-  const size_t offset_a = 0,
-  const size_t offset_b = 0)
-{
-  DoubleArgumentOverloadResolution<A, B, Args>::copy(arguments, count, context, offset_a, offset_b);
-}
-
-/**
- * @brief Copies the contents of a data container to a datatype. The data container
- * can be either a span or anything that can be automatically converted to a span.
- */
-template<typename Arg, typename Args, typename T>
-void copy(const Args& arguments, const Allen::Context& context, gsl::span<T> data_container)
-{
-  return SingleArgumentOverloadResolution<Arg, Args>::copy(arguments, context, data_container);
 }
 
 /**

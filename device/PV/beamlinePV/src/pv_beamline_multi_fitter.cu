@@ -11,7 +11,6 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::set_arguments_size(
 {
   set_size<dev_multi_fit_vertices_t>(arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
   set_size<dev_number_of_multi_fit_vertices_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_pvtracks_denom_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
 }
 
 void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(

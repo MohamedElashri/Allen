@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "ArgumentManager.cuh"
+#include "ArgumentOps.cuh"
 #include "VeloEventModel.cuh"
 
 namespace Velo {
