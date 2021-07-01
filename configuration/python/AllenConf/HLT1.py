@@ -21,27 +21,6 @@ from PyConf.tonic import configurable
 from AllenConf.odin import decode_odin
 from AllenConf.persistency import make_global_decision, make_sel_report_writer
 
-
-# Helper function to make composite nodes with the gec  //// TO BE DELETED
-#def make_line_composite_node_with_gec(line_name,
-#                                      line_algorithm,
-#                                      gec_name="gec"):
-#    return CompositeNode(
-#        line_name, [gec(name=gec_name), line_algorithm],
-#        NodeLogic.LAZY_AND,
-#        force_order=True)
-
-
-#@configurable  #TO BE DELETED
-#def line_maker(line_name, line_algorithm, enableGEC=True):
-#    if (enableGEC):
-#        node = make_line_composite_node_with_gec(line_name, line_algorithm)
-#    else:
-#        node = line_algorithm##
-#
-#    return line_algorithm, node
-
-
 # Helper function to make composite nodes
 def make_line_composite_node(name, algos):
     return CompositeNode(
@@ -51,16 +30,14 @@ def make_line_composite_node(name, algos):
 @configurable
 def line_maker(line_algorithm, prefilter=None):
 
-    line_name = line_algorithm.name
-    if prefilter is None:
-        node = line_algorithm
+    if prefilter is None: node = line_algorithm
     else:
         if isinstance(prefilter, list):
             node = make_line_composite_node(
-                line_name, algos=prefilter + [line_algorithm])
+                line_algorithm.name, algos=prefilter + [line_algorithm])
         else:
             node = make_line_composite_node(
-                line_name, algos=[prefilter, line_algorithm])
+                line_algorithm.name, algos=[prefilter, line_algorithm])
 
     return line_algorithm, node
 
@@ -70,8 +47,7 @@ def passthrough_line( name = 'Hlt1Passthrough' ):
             name=name,
             pre_scaler_hash_string = name + "_line_pre",
             post_scaler_hash_string= name + "_line_post") )
-    
-    
+        
 
 
 def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
@@ -259,7 +235,7 @@ def default_smog2_lines( velo_tracks, velo_states, pvs, forward_tracks,
     smog2_lines.append(
         line_maker( 
             make_SMOG2_ditrack_line( 
-                secondary_vertices, m1 = "139.571f", m2 = "493.667f",
+                secondary_vertices, m1 = "139.57f", m2 = "493.67f",
                 mMother = "1864.83f", name = "HLT1_SMOG2_D2Kpi" + name_suffix ),
         ))
 
