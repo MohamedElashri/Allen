@@ -72,6 +72,7 @@ gaudi_depends_on_subdirs(Det/FTDet
                          DAQ/DAQKernel
                          Event/DAQEvent
                          Event/DigiEvent
+                         Event/MCEvent
                          GaudiAlg
                          Pr/PrKernel
                          Muon/MuonID)
@@ -93,7 +94,7 @@ gaudi_add_module(AllenWrapper
                  src/*.cpp
                  LINK_LIBRARIES AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
                                 PrKernel VPDetLib UTDetLib UTKernelLib CaloDetLib
-                                FTDetLib HltDAQLib)
+                                FTDetLib HltDAQLib MCEvent)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()
