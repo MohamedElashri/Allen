@@ -13,6 +13,7 @@ from AllenConf.odin import decode_odin
 def make_single_high_pt_muon_line(
         forward_tracks,
         long_track_particles,
+        name = "Hlt1SingleHighPtMuon",
         pre_scaler_hash_string="single_high_pt_muon_line_pre",
         post_scaler_hash_string="single_high_pt_muon_line_post"):
     number_of_events = initialize_number_of_events()
@@ -21,7 +22,7 @@ def make_single_high_pt_muon_line(
 
     return make_algorithm(
         single_high_pt_muon_line_t,
-        name="Hlt1SingleHighPtMuon",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
@@ -57,6 +58,7 @@ def make_single_high_pt_muon_no_muid_line(
 
 def make_low_pt_muon_line(forward_tracks,
                           long_track_particles,
+                          name = "Hlt1LowPtMuon", 
                           pre_scaler_hash_string="low_pt_muon_line_pre",
                           post_scaler_hash_string="low_pt_muon_line_post"):
     number_of_events = initialize_number_of_events()
@@ -65,7 +67,7 @@ def make_low_pt_muon_line(forward_tracks,
 
     return make_algorithm(
         low_pt_muon_line_t,
-        name="Hlt1LowPtMuon",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
@@ -109,6 +111,7 @@ def make_di_muon_mass_line(forward_tracks,
 
 def make_di_muon_soft_line(forward_tracks,
                            secondary_vertices,
+                           name = "Hlt1DiMuonSoft",
                            pre_scaler_hash_string="di_muon_soft_line_pre",
                            post_scaler_hash_string="di_muon_soft_line_post"):
     number_of_events = initialize_number_of_events()
@@ -117,7 +120,7 @@ def make_di_muon_soft_line(forward_tracks,
 
     return make_algorithm(
         di_muon_soft_line_t,
-        name="Hlt1DiMuonSoft",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
@@ -129,6 +132,7 @@ def make_di_muon_soft_line(forward_tracks,
 def make_low_pt_di_muon_line(
         forward_tracks,
         secondary_vertices,
+        name = "Hlt1LowPtDiMuon", 
         pre_scaler_hash_string="low_pt_di_muon_line_pre",
         post_scaler_hash_string="low_pt_di_muon_line_post"):
     number_of_events = initialize_number_of_events()
@@ -137,7 +141,7 @@ def make_low_pt_di_muon_line(
 
     return make_algorithm(
         low_pt_di_muon_line_t,
-        name="Hlt1LowPtDiMuon",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
@@ -149,6 +153,7 @@ def make_low_pt_di_muon_line(
 def make_track_muon_mva_line(
         forward_tracks,
         long_track_particles,
+        name = "Hlt1TrackMuonMVA", 
         pre_scaler_hash_string="track_muon_mva_line_pre",
         post_scaler_hash_string="track_muon_mva_line_post"):
     number_of_events = initialize_number_of_events()
@@ -157,7 +162,7 @@ def make_track_muon_mva_line(
 
     return make_algorithm(
         track_muon_mva_line_t,
-        name="Hlt1TrackMuonMVA",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],

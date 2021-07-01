@@ -24,7 +24,7 @@ namespace ParKalmanFilter {
     KalmanFloat chi2T;
     KalmanFloat ipChi2;
     KalmanFloat ip;
-
+    KalmanFloat bpv_z;
     unsigned ndof;
     unsigned ndofV;
     unsigned ndofT;
@@ -97,5 +97,8 @@ namespace ParKalmanFilter {
     }
 
     __device__ __host__ inline KalmanFloat eta() const { return atanhf(pz() / p()); }
+
+    __device__ __host__ inline int charge() const { return best_qop > 0 ? 1 : -1; }
+
   };
 } // namespace ParKalmanFilter

@@ -74,6 +74,7 @@ __device__ void associate_and_muon_id(
     tracks[i].ipChi2 = best_value;
     tracks[i].is_muon = is_muon[i];
     tracks[i].ip = kalman_ip(states.state(i), *(vertices.data() + best_index));
+    tracks[i].bpv_z  = (vertices.data() + best_index) -> position.z;
   }
 }
 

@@ -19,8 +19,11 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
   const auto maxPt_GeV = parameters.maxPt / Gaudi::Units::GeV;
   const auto minPt_GeV = parameters.minPt / Gaudi::Units::GeV;
   const auto ipChi2 = track.ip_chi2();
+  const auto minBPVz   = parameters.minBPVz;
+
   const bool decision =
     track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
+						  track.bpv_z >= minBPVz &&
     ((ptShift > maxPt_GeV && ipChi2 > parameters.minIPChi2) ||
      (ptShift > minPt_GeV && ptShift < maxPt_GeV &&
       logf(ipChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +

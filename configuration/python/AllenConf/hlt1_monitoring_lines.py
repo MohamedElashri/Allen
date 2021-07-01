@@ -11,7 +11,8 @@ from AllenCore.generator import make_algorithm
 
 def make_beam_line(pre_scaler_hash_string="beam_line_pre",
                    post_scaler_hash_string="beam_line_post",
-                   beam_crossing_type=0):
+                   beam_crossing_type=0 ,
+                   name = None):
     name_map = {
         0: "Hlt1NoBeam",
         1: "Hlt1BeamOne",
@@ -24,7 +25,7 @@ def make_beam_line(pre_scaler_hash_string="beam_line_pre",
 
     return make_algorithm(
         beam_crossing_line_t,
-        name=name_map[beam_crossing_type],
+        name= name or name_map[beam_crossing_type],
         beam_crossing_type=beam_crossing_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string,
@@ -36,6 +37,7 @@ def make_beam_line(pre_scaler_hash_string="beam_line_pre",
 
 def make_velo_micro_bias_line(
         velo_tracks,
+        name = "Hlt1VeloMicroBias", 
         pre_scaler_hash_string="velo_micro_bias_line_pre",
         post_scaler_hash_string="velo_micro_bias_line_post"):
     number_of_events = initialize_number_of_events()
@@ -44,7 +46,7 @@ def make_velo_micro_bias_line(
 
     return make_algorithm(
         velo_micro_bias_line_t,
-        name="Hlt1VeloMicroBias",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
@@ -55,6 +57,7 @@ def make_velo_micro_bias_line(
 
 
 def make_odin_event_type_line(
+        name = None,
         pre_scaler_hash_string="odin_event_type_line_pre",
         post_scaler_hash_string="odin_event_type_line_post",
         odin_event_type=0x8):
@@ -65,7 +68,7 @@ def make_odin_event_type_line(
 
     return make_algorithm(
         odin_event_type_line_t,
-        name=name_map[odin_event_type],
+        name= name or name_map[odin_event_type_int],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],

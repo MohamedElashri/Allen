@@ -18,6 +18,9 @@ __device__ bool d2kk_line::d2kk_line_t::select(
                         particle.eta() > parameters.minEta && particle.eta() < parameters.maxEta &&
                         particle.doca12() < parameters.maxDOCA && particle.minpt() > parameters.minTrackPt &&
                         particle.minip() > parameters.minTrackIP &&
-                        fabsf(particle.m12(Allen::mK, Allen::mK) - Allen::mDz) < parameters.massWindow;
+                        fabsf(particle.m12(Allen::mK, Allen::mK) - Allen::mDz) < parameters.massWindow && 
+												 vertex.z >= parameters.minZ;
+  
+
   return decision;
 }

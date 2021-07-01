@@ -25,6 +25,7 @@ namespace single_high_pt_muon_line {
     PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float) maxChi2Ndof;
     PROPERTY(singleMinPt_t, "singleMinPt", "singleMinPt description", float) singleMinPt;
     PROPERTY(singleMinP_t, "singleMinP", "singleMinP description", float) singleMinP;
+    PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best associated primary vertex", float) minBPVz;
   };
 
   struct single_high_pt_muon_line_t : public SelectionAlgorithm,
@@ -40,5 +41,6 @@ namespace single_high_pt_muon_line {
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
     Property<singleMinPt_t> m_singleMinPt {this, 6000.f / Gaudi::Units::MeV};
     Property<singleMinP_t> m_singleMinP {this, 6000.f / Gaudi::Units::MeV};
+    Property<minBPVz_t> m_minBPVz {this, -500.f / Gaudi::Units::mm};
   };
 } // namespace single_high_pt_muon_line

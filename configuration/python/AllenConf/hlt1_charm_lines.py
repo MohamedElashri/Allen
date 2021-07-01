@@ -9,6 +9,7 @@ from AllenConf.odin import decode_odin
 
 def make_d2kk_line(forward_tracks,
                    secondary_vertices,
+                   name = "Hlt1D2KK", 
                    pre_scaler_hash_string="d2kk_line_pre",
                    post_scaler_hash_string="d2kk_line_post"):
     number_of_events = initialize_number_of_events()
@@ -17,7 +18,7 @@ def make_d2kk_line(forward_tracks,
 
     return make_algorithm(
         d2kk_line_t,
-        name="Hlt1D2KK",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
@@ -28,6 +29,7 @@ def make_d2kk_line(forward_tracks,
 
 def make_d2pipi_line(forward_tracks,
                      secondary_vertices,
+                     name = "Hlt1D2PiPi", 
                      pre_scaler_hash_string="d2pipi_line_pre",
                      post_scaler_hash_string="d2pipi_line_post"):
     number_of_events = initialize_number_of_events()
@@ -36,7 +38,7 @@ def make_d2pipi_line(forward_tracks,
 
     return make_algorithm(
         d2pipi_line_t,
-        name="Hlt1D2PiPi",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
