@@ -7,7 +7,24 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------------
-The project requires CMake 3.18, Python3, Clang 9 or more recent (in addition `clang-dev` on Ubuntu), Boost, ZeroMQ and the nlohmann json library.
+
+The following packages are required in order to be able to compile Allen. Package names listed here are CentOS 8 names, package names for other distributions may slightly change:
+
+* cmake version 3.18 or newer
+* boost-devel version 1.69 or newer
+* clang version 9 or newer
+* json-devel
+* zeromq-devel
+* zlib-devel
+* python3
+
+The following python3 packages are also needed, which can be installed with pip, conda, or the package manager:
+
+* wrapt
+* cachetools
+* pydot
+* sympy
+
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
@@ -25,7 +42,7 @@ we show a proposed development setup with CVMFS and CentOS 7:
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.2/x86_64-centos7/setup.sh
     ```
 
-* HIP target: Either a local installation of HIP 4.2.0 or CVMFS are required:
+* HIP target: Either a local installation of ROCm or CVMFS are required:
 
     ```console
     source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt

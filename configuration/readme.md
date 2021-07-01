@@ -187,7 +187,7 @@ Generated sequence represented as algorithms with execution masks:
   host_prefix_sum_t/prefix_sum_offsets_velo_track_hit_number
   saxpy_t/saxpy
 Generating sequence files...
-Generated sequence files Sequence.h, ConfiguredInputAggregates.h and Sequence.json
+Generated sequence files Sequence.h and Sequence.json
 ```
 
 To find out how to write a trigger line in Allen and how to add it to the sequence, follow the instructions [here](../selections.md).
