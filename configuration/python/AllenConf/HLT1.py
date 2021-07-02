@@ -318,11 +318,14 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         reconstructed_objects["long_track_particles"],
         reconstructed_objects["velo_states"])
 
-    monitoring_lines.append( line_maker(
-        make_velo_micro_bias_line(reconstructed_objects["velo_tracks"], name = "Hlt1VeloMicroBias_gec"),
-        prefilter = [gec] ) )
+    if EnableGEC:
+        monitoring_lines.append(
+            line_maker(
+                make_velo_micro_bias_line(
+                    reconstructed_objects["velo_tracks"],
+                    name="Hlt1VeloMicroBias_gec"),
+                prefilter=[gec]))
 
-    #physics_lines, monitoring_lines = [], []
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
                        ] + [tup[0] for tup in monitoring_lines]
