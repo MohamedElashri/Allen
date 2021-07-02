@@ -331,6 +331,9 @@ namespace VertexFit {
     // Sum of track charges
     sv.charge = trackA.charge() + trackB.charge();    
 
+    // Minimum p of constituent tracks.
+    sv.minp = trackA.p() < trackB.p() ? trackA.p() : trackB.p();
+
     // Minimum pt of constituent tracks.
     sv.minpt = stateA.pt() < stateB.pt() ? stateA.pt() : stateB.pt();
 
