@@ -39,18 +39,7 @@ __device__ std::tuple<const unsigned, const float> SMOG2_minimum_bias_line::SMOG
                                                      velo_tracks.total_number_of_tracks()};
   const unsigned track_index = parameters.dev_offsets_velo_tracks[event_number] + i;
   const KalmanVeloState state = kalmanvelo_states.get_kalman_state(track_index);
-
-  // TODO: how to deal with projection onto the beam axis?
-  float3 beamline {0.f, 0.f, 0.f};
-  const float dz = (state.tx * (beamline.x - state.x) + state.ty * (beamline.y - state.y)) /
-                   (state.tx * state.tx + state.ty * state.ty);
-
-  float z = -9999.f;
-  if (dz * state.c20 >= 0.f && dz * state.c31 >= 0.f) {
-    z = state.z + dz;
-  }
-
-  return std::forward_as_tuple(velo_tracks.number_of_hits(i), z);
+  return std::forward_as_tuple(velo_tracks.number_of_hits(i), state.z);
 }
 
 // Selection function
@@ -63,8 +52,7 @@ __device__ bool SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::select(
   const auto& velo_track_state_poca_z = std::get<1>(input);
 
   // Check if pv satisfies requirement
-  const bool decision =
-    (velo_track_hit_number >= parameters.minNHits && velo_track_state_poca_z >= parameters.minZ &&
-     velo_track_state_poca_z < parameters.maxZ);
+  const bool decision = velo_track_state_poca_z < parameters.maxZ && velo_track_state_poca_z >= parameters.minZ &&
+                        velo_track_hit_number >= parameters.minNHits;
   return decision;
 }
