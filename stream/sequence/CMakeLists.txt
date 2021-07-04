@@ -64,13 +64,6 @@ foreach(sequence ${BUILD_SEQUENCES})
     )
   endif()
 
-
-  # Depend of Sequence.json instead of configuration/sequences/ConfiguredSequence.h.
-  # By doing this, if the ${SEQUENCE}.py changes, a re-configuration will be triggered.
-  # The json will always be updated, satisfying the dependence and not triggering a re-configuration
-  # until the ${SEQUENCE}.py changes again.
-  # However, since the Sequence.h is only copied *if different*, this will not necessarily trigger a re-compilation.
-  # In other words, the timestamp of Sequence.json is used to keep up with that of ${SEQUENCE}.py.
-  add_custom_target(configured_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
+  add_custom_target(configured_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/code_generation/configuration/sequences/ConfiguredSequence.h")
   add_dependencies(Stream_${sequence} configured_${sequence})
 endforeach()

@@ -59,13 +59,13 @@ for P>3GeV,Pt>0.5GeV                              :       657/    28730   2.29% 
 
 
 muon_validator validation:
-Muon fraction in all MCPs:                                              11305/   830894   0.01% 
-Muon fraction in MCPs to which a track(s) was matched:                    435/    44077   0.01% 
-Correctly identified muons with isMuon:                                   367/      435  84.37% 
-Correctly identified muons from strange decays with isMuon:                 1/        1 100.00% 
-Correctly identified muons from B decays with isMuon:                      92/      104  88.46% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      3598/    43642   8.24% 
-Ghost tracks identified as muon with isMuon:                              106/     1064   9.96% 
+Muon fraction in all MCPs:                                              11305/   830894   0.01%
+Muon fraction in MCPs to which a track(s) was matched:                    435/    44077   0.01%
+Correctly identified muons with isMuon:                                   367/      435  84.37%
+Correctly identified muons from strange decays with isMuon:                 1/        1 100.00%
+Correctly identified muons from B decays with isMuon:                      92/      104  88.46%
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      3598/    43642   8.24%
+Ghost tracks identified as muon with isMuon:                              106/     1064   9.96%
 
 
 rate_validator validation:

@@ -116,12 +116,12 @@ void calo_decode::calo_decode_t::operator()(
   initialize<dev_ecal_digits_t>(arguments, SHRT_MAX, context);
 
   if (runtime_options.mep_layout) {
-    global_function(calo_decode_dispatch<true>)(
+    global_function(calo_decode<true>)(
       dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
       arguments, constants.dev_ecal_geometry);
   }
   else {
-    global_function(calo_decode_dispatch<false>)(
+    global_function(calo_decode<false>)(
       dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
       arguments, constants.dev_ecal_geometry);
   }

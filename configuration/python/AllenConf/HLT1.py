@@ -10,7 +10,7 @@ from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
 
 from AllenConf.validators import rate_validation
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.odin import decode_odin

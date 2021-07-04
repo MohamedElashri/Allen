@@ -42,11 +42,13 @@ class ParsedAlgorithm():
 
 
 class Property():
-    def __init__(self, typename, typedef, name, description):
+    def __init__(self, typename, typedef, name, description, default_value, scope = "algorithm"):
         self.typename = typename
         self.typedef = typedef
         self.name = name
         self.description = description
+        self.default_value = default_value
+        self.scope = scope
 
 
 class Parameter():
@@ -71,7 +73,7 @@ class Parameter():
 def make_default_algorithm_properties():
     return [
         Property("verbosity_t", "int", "\"verbosity\"",
-                 "\"verbosity of algorithm\"")
+                 "\"verbosity of algorithm\"", 3, "baseclass")
     ]
 
 
@@ -217,13 +219,16 @@ class AlgorithmTraversal():
                     typedef = [a.type.spelling
                                for a in child.get_children()][0]
             if typedef == "" or typedef == "int":
-                typedef = "unknown_t"
+                # If the type is empty or int, it is not to be trusted and instead the tag is employed here
+                typedef = AlgorithmTraversal.__properties[typename]["property_type"]
             # Unfortunately, for properties we need to rely on tokens found in the
             # namespace to get the literals.
             name = AlgorithmTraversal.__properties[typename]["name"]
             description = AlgorithmTraversal.__properties[typename][
                 "description"]
-            return ("Property", typename, typedef, name, description)
+            default_value = AlgorithmTraversal.__properties[typename][
+                "default_value"]
+            return ("Property", typename, typedef, name, description, default_value)
         return None
 
     @staticmethod
@@ -295,12 +300,24 @@ class AlgorithmTraversal():
                             typename = ts[last_found + 2]
                             name = ts[last_found + 4]
                             description = ts[last_found + 6]
+                            closing_parenthesis = ts.index(")", last_found + 8)
+                            property_type = "".join(ts[last_found + 8:closing_parenthesis])
                             AlgorithmTraversal.__properties[typename] = {
                                 "name": name,
-                                "description": description
+                                "description": description,
+                                "property_type": property_type
                             }
                         except ValueError:
-                            break
+                            # Traverse the "Property"s to find out the default values
+                            try:
+                                last_found = ts.index("Property", last_found + 1)
+                                typename = ts[last_found + 2]
+                                comma_position = ts.index(",", last_found)
+                                semicolon_position = ts.index(";", last_found)
+                                default_value = "".join(ts[comma_position+1:semicolon_position-1])
+                                AlgorithmTraversal.__properties[typename]["default_value"] = default_value
+                            except ValueError:
+                                break
                     return (c.kind, c.spelling,
                             AlgorithmTraversal.traverse_children(
                                 c, AlgorithmTraversal.algorithm))

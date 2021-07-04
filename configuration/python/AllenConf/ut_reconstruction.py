@@ -9,7 +9,7 @@ from AllenConf.algorithms import (
     ut_copy_track_hit_number_t, ut_consolidate_tracks_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
 
@@ -24,6 +24,7 @@ def decode_ut():
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
+
 
     prefix_sum_ut_hits = make_algorithm(
         host_prefix_sum_t,
@@ -41,6 +42,7 @@ def decode_ut():
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
+
 
     ut_find_permutation = make_algorithm(
         ut_find_permutation_t,

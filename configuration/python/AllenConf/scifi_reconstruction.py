@@ -10,7 +10,7 @@ from AllenConf.algorithms import (
     lf_quality_filter_t, scifi_copy_track_hit_number_t,
     scifi_consolidate_tracks_t)
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
 

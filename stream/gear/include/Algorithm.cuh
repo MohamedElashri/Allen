@@ -44,6 +44,13 @@ namespace Allen {
       }
     }
 
+    template<typename T, typename R>
+    void set_property_value(const R& value)
+    {
+      auto prop = const_cast<Allen::Property<T>*>(dynamic_cast<Allen::Property<T> const*>(get_prop(T::name)));
+      prop->set_value(value);
+    }
+
     // Gets the value of property with type T
     template<typename T>
     T property() const
@@ -94,9 +101,9 @@ namespace Allen {
       return GlobalFunction<Fn> {m_properties, fn};
     }
 
-  protected:
     PROPERTY(verbosity_t, "verbosity", "verbosity of algorithm", int);
 
+  protected:
     BaseProperty const* get_prop(const std::string& prop_name) const override
     {
       if (m_properties.find(prop_name) != m_properties.end()) {

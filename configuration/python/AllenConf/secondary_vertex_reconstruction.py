@@ -6,7 +6,7 @@ from AllenConf.algorithms import (velo_pv_ip_t, kalman_velo_only_t,
                                   fit_secondary_vertices_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):

@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <CaloCountDigits.cuh>
+#include <CaloDecodeKernels.cuh>
 
 __device__ void
 offsets(mask_t const* event_list, unsigned const n_events, unsigned* number_of_digits, CaloGeometry const& geometry)

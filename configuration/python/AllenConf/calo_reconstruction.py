@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.algorithms import data_provider_t, calo_count_digits_t, host_prefix_sum_t, calo_decode_t, track_digit_selective_matching_t, brem_recovery_t, momentum_brem_correction_t
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def decode_calo():

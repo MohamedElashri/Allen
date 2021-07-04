@@ -5,7 +5,7 @@ from AllenConf.algorithms import (beam_crossing_line_t, velo_micro_bias_line_t,
                                   odin_event_type_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.odin import decode_odin
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def make_beam_line(pre_scaler_hash_string="beam_line_pre",

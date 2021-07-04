@@ -8,7 +8,7 @@ from AllenConf.algorithms import (
     host_sel_report_validator_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.persistency import make_dec_reporter, make_gather_selections
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def mc_data_provider():

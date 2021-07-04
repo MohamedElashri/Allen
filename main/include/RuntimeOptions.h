@@ -16,7 +16,7 @@ struct IInputProvider;
  * @brief Runtime options singleton.
  */
 struct RuntimeOptions {
-  IInputProvider const* input_provider;
+  const std::shared_ptr<IInputProvider> input_provider;
   size_t const slice_index;
   std::tuple<unsigned, unsigned> event_interval;
   unsigned number_of_selected_events;
@@ -30,7 +30,7 @@ struct RuntimeOptions {
   ROOTService* root_service;
 
   RuntimeOptions(
-    IInputProvider const* ip,
+    std::shared_ptr<IInputProvider> ip,
     size_t const index,
     std::tuple<unsigned, unsigned> param_event_interval,
     unsigned param_number_of_repetitions,
@@ -40,7 +40,7 @@ struct RuntimeOptions {
     uint param_inject_mem_fail,
     CheckerInvoker* param_checker_invoker,
     ROOTService* param_root_service) :
-    input_provider {ip},
+    input_provider {std::move(ip)},
     slice_index {index}, event_interval(param_event_interval),
     number_of_selected_events(std::get<1>(param_event_interval) - std::get<0>(param_event_interval)),
     number_of_repetitions(param_number_of_repetitions), fill_extra_host_buffers(fill_extra),

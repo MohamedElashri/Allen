@@ -148,10 +148,23 @@ auto tuple_ref_by_inheritance(Tuple&& tuple)
 
 namespace Allen {
   template<typename T, typename U>
-  using forward_type_t = std::conditional_t<std::is_const_v<T>, std::add_const_t<U>, std::remove_const_t<U>>;
+  struct forward_type {
+  private:
+    using R = std::remove_reference_t<T>;
+    using U1 = std::conditional_t<std::is_const<R>::value, std::add_const_t<U>, U>;
+    using U2 = std::conditional_t<std::is_volatile<R>::value, std::add_volatile_t<U1>, U1>;
+    using U3 = std::conditional_t<std::is_lvalue_reference<T>::value, std::add_lvalue_reference_t<U2>, U2>;
+    using U4 = std::conditional_t<std::is_rvalue_reference<T>::value, std::add_rvalue_reference_t<U3>, U3>;
+
+  public:
+    using type = U4;
+  };
+
+  template<typename T, typename U>
+  using forward_type_t = typename forward_type<T, U>::type;
 
   template<typename T>
-  using bool_as_char_t = std::conditional_t<std::is_same_v<std::decay_t<T>, bool>, char, std::decay_t<T>>;
+  using bool_as_char_t = std::conditional_t<std::is_same_v<std::decay_t<T>, bool>, forward_type_t<T, char>, T>;
 
   /**
    * @brief Checks whether class U is derived from class T,
@@ -168,4 +181,27 @@ namespace Allen {
   public:
     static constexpr bool value = decltype(isDerivedFrom::test(std::declval<U>()))::value;
   };
+
+  // SFINAE-based invocation of member function iff class provides it.
+  // This is just one way to write a type trait, it's not necessarily
+  // the best way. You could use the Detection Idiom, for example
+  // (http://en.cppreference.com/w/cpp/experimental/is_detected).
+  template<typename T, typename = void>
+  struct has_init_member_fn : std::false_type {
+  };
+
+  // std::void_t is a C++17 library feature. It can be replaced
+  // with your own implementation of void_t, or often by making the
+  // decltype expression void, whether by casting or by comma operator
+  // (`decltype(expr, void())`)
+  template<typename T>
+  struct has_init_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
+  };
+
+  template<typename T>
+  void initialize_algorithm(T& alg) {
+    if constexpr (has_init_member_fn<T>::value) {
+      alg.init();
+    }
+  }
 } // namespace Allen

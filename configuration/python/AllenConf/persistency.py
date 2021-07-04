@@ -8,7 +8,7 @@ from AllenConf.algorithms import make_rb_hits_t, make_rb_stdinfo_t, make_rb_objt
 from AllenConf.algorithms import calc_selrep_size_t, make_selrep_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, mep_layout
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def make_gather_selections(lines):

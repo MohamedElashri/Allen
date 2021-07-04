@@ -4,12 +4,8 @@
 from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenCore.cftree_ops import get_best_order, get_execution_list_for, BoolNode
-from AllenCore.AllenSequenceGenerator import generate_allen_sequence
-from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
+from AllenCore.cftree_ops import get_best_order, BoolNode
 from AllenConf.algorithms import (
-    AlgorithmCategory,
-    host_init_event_list_t,
     event_list_intersection_t,
     event_list_union_t,
     event_list_inversion_t,
@@ -19,46 +15,6 @@ from AllenConf.algorithms import (
 def is_combiner(alg):
     return alg.type in (event_list_intersection_t, event_list_union_t,
                         event_list_inversion_t)
-
-
-def make_algorithm(alg_type, name, **kwargs):
-    """
-    Makes an Algorithm with a weight extracted from the benchmark weights.
-
-    In order to determine the weight of Allen algorithms, a profiled benchmark of `nsys profile`
-    is used for most entries, where the field average time is used.
-    Each algorithm has an entry in the file `allen_benchmarks.py`, with the exception of:
-
-    * Prefix sum algorithms (identified by prefix_sum in its name): A weight of 1000.0 is manually set.
-    * Algorithms of category SelectionAlgorithm: A weight of 10.0 is set.
-    * Else: A weight of 100.0 is set. A message is shown identifying the algorithm with no weight.
-    """
-    if "average_eff" in kwargs:
-        eff = kwargs['average_eff']
-    elif name in benchmark_efficiencies:
-        eff = benchmark_efficiencies[name]
-    else:
-        eff = .99  # TODO we could also just do 1, but then they wont be considered in masks
-
-    if "weight" in kwargs:
-        weight = kwargs["weight"]
-    elif name in benchmark_weights:
-        weight = benchmark_weights[name]
-    elif "prefix_sum" in name:  # hard coded heuristic for now, TODO might want to change
-        weight = 1000.0
-    elif alg_type.category() == AlgorithmCategory.SelectionAlgorithm:
-        weight = 10.0
-    else:
-        weight = 100.0
-
-    return Algorithm(
-        alg_type, name=name, weight=weight, average_eff=eff, **kwargs)
-
-
-def initialize_event_lists(**kwargs):
-    initialize_lists = make_algorithm(
-        host_init_event_list_t, name="initialize_event_lists")
-    return initialize_lists
 
 
 def add_event_list_combiners(order):
@@ -71,6 +27,7 @@ def add_event_list_combiners(order):
     OR, AND and NOT gate. This equivalence is used to transform NodeLogic into combiners.
     """
 
+    from AllenCore.generator import initialize_event_lists
     def _make_combiner(inputs, logic):
         # TODO shall we somehow make the name so that parantheses are obvious?
         # here, a combinerfor (A & B) | C gets the same name as A & (B | C)
@@ -170,21 +127,3 @@ def add_event_list_combiners(order):
             alg.inputs[mask_input[0]] = output_mask[0]
 
     return tuple(final_sequence_unique)
-
-
-def generate(root):
-    """Generates an Allen sequence out of a root node."""
-    best_order, score = get_execution_list_for(root)
-    final_seq = add_event_list_combiners(best_order)
-
-    print("Generated sequence represented as algorithms with execution masks:")
-    for alg, mask_in in final_seq:
-        if mask_in == None:
-            mask_in_str = ""
-        elif isinstance(mask_in, Algorithm):
-            mask_in_str = f" in:{str(mask_in).split('/')[1]}"
-        elif isinstance(mask_in, BoolNode):
-            mask_in_str = f" in:{mask_in}"
-        print(f"  {alg}{mask_in_str}")
-
-    return generate_allen_sequence([alg for (alg, _) in final_seq])

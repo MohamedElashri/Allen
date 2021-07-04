@@ -196,7 +196,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
   const LHCb::ODIN&) const
 {
-  int rv = m_tes_input_provider->set_banks(allen_banks, m_bankTypes);
+  int rv = m_tes_input_provider->set_banks(allen_banks);
   if (rv > 0) {
     error() << "Error in reading dumped raw banks" << endmsg;
   }
@@ -208,7 +208,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const bool mep_layout = false;
   const uint inject_mem_fail = 0;
   auto root_service = std::make_unique<ROOTService>();
-  RuntimeOptions runtime_options {m_tes_input_provider.get(),
+  RuntimeOptions runtime_options {m_tes_input_provider,
                                   slice_index,
                                   {event_start, event_end},
                                   m_number_of_repetitions,

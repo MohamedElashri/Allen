@@ -208,7 +208,7 @@ void run_stream(
   size_t const stream_id,
   int device_id,
   Allen::IStream* stream,
-  IInputProvider const* input_provider,
+  std::shared_ptr<IInputProvider> input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
   ROOTService* root_service,

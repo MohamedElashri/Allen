@@ -100,15 +100,15 @@ public:
  */
 template<
   typename ParametersAndPropertiesTuple,
-  typename ParameterTuple = void,
-  typename ParameterStruct = void,
-  typename InputAggregates = void>
+  typename ParameterTuple,
+  typename ParameterStruct,
+  typename InputAggregatesTuple = std::tuple<>>
 struct ArgumentRefManager {
 public:
   using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
   using parameters_tuple_t = ParameterTuple;
   using parameters_struct_t = ParameterStruct;
-  using input_aggregates_t = InputAggregates;
+  using input_aggregates_t = InputAggregatesTuple;
 
 private:
   mutable std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
@@ -121,6 +121,11 @@ public:
     input_aggregates_t input_aggregates) :
     m_tuple_to_argument_data(tuple_to_argument_data),
     m_input_aggregates(input_aggregates)
+  {}
+
+  ArgumentRefManager(
+    std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>> tuple_to_argument_data) :
+    m_tuple_to_argument_data(tuple_to_argument_data)
   {}
 
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
@@ -199,6 +204,8 @@ public:
 
   InputAggregate() = default;
 
+  InputAggregate(const std::vector<std::reference_wrapper<ArgumentData>>& argument_data_v) : m_argument_data_v(argument_data_v) {}
+
   template<typename Tuple, std::size_t... Is>
   InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
   {}
@@ -212,7 +219,6 @@ public:
 
   T first(const unsigned index) const
   {
-    static_assert(std::is_base_of_v<host_datatype, T> && "first can only access host datatypes");
     assert(index < m_argument_data_v.size() && "Index is in bounds");
     return data(index)[0];
   }
@@ -241,20 +247,20 @@ static auto makeInputAggregate(std::tuple<Ts&...> tp)
 }
 
 // Macro
-#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                             \
-  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                    \
-    using type = InputAggregate<__VA_ARGS__>;                                                        \
-    void parameter(__VA_ARGS__) const {}                                                             \
-    using deps = std::tuple<>;                                                                       \
-    ARGUMENT_NAME() = default;                                                                       \
-    ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                         \
-    template<typename... Ts>                                                                         \
+#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                            \
+  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                   \
+    using type = InputAggregate<__VA_ARGS__>;                                                       \
+    void parameter(__VA_ARGS__) const {}                                                            \
+    using deps = std::tuple<>;                                                                      \
+    ARGUMENT_NAME() = default;                                                                      \
+    ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                        \
+    template<typename... Ts>                                                                        \
     ARGUMENT_NAME(std::tuple<Ts&...> value) : m_value(makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
-    {}                                                                                               \
-    const type& value() const { return m_value; }                                                    \
-                                                                                                     \
-  private:                                                                                           \
-    type m_value {};                                                                                 \
+    {}                                                                                              \
+    const type& value() const { return m_value; }                                                   \
+                                                                                                    \
+  private:                                                                                          \
+    type m_value {};                                                                                \
   }
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)

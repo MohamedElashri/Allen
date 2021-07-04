@@ -341,9 +341,14 @@ int allen(
                               !mep_layout,          // MEPs should be transposed to Allen layout
                               !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
-    input_provider = std::make_unique<
-      MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal>>(
-      number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
+
+    input_provider = std::make_shared<MEPProvider<
+      BankTypes::VP,
+      BankTypes::UT,
+      BankTypes::FT,
+      BankTypes::MUON,
+      BankTypes::ODIN,
+      BankTypes::ECal>>(number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
@@ -354,7 +359,7 @@ int allen(
                               events_per_slice,          // number of events per read buffer
                               n_io_reps,                 // number of loops over the input files
                               !disable_run_changes};     // Whether to split slices by run number
-    input_provider = std::make_unique<MDFProvider<
+    input_provider = std::make_shared<MDFProvider<
       BankTypes::VP,
       BankTypes::UT,
       BankTypes::FT,
@@ -509,7 +514,7 @@ int allen(
                         stream_id,
                         device_id,
                         streams[stream_id].get(),
-                        input_provider.get(),
+                        input_provider,
                         zmqSvc,
                         checker_invoker.get(),
                         root_service.get(),

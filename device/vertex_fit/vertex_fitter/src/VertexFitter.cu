@@ -14,7 +14,7 @@ void VertexFit::fit_secondary_vertices_t::set_arguments_size(
 
 void VertexFit::fit_secondary_vertices_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
+  const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
@@ -22,10 +22,12 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  safe_assign_to_host_buffer<dev_consolidated_svs_t>(
-    host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, context);
+  if (runtime_options.do_check) {
+    safe_assign_to_host_buffer<dev_consolidated_svs_t>(
+      host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, context);
 
-  assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_offsets, arguments, context);
+    assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_offsets, arguments, context);
+  }
 }
 
 __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)

@@ -8,7 +8,7 @@ from AllenConf.algorithms import (
     velo_copy_track_hit_number_t, velo_consolidate_tracks_t,
     velo_kalman_filter_t)
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def decode_velo():

@@ -7,7 +7,7 @@ from AllenConf.algorithms import (
     pv_beamline_cleanup_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def make_pvs(velo_tracks):
@@ -84,3 +84,12 @@ def make_pvs(velo_tracks):
         "dev_number_of_multi_final_vertices":
         pv_beamline_cleanup.dev_number_of_multi_final_vertices_t
     }
+
+
+def pv_finder():
+    from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+    decoded_velo = decode_velo()
+    velo_tracks = make_velo_tracks(decoded_velo)
+    pvs = make_pvs(velo_tracks)
+    alg = pvs["dev_multi_final_vertices"].producer
+    return alg

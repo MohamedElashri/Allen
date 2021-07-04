@@ -4,7 +4,7 @@
 from AllenConf.ut_reconstruction import ut_tracking
 from AllenConf.utils import gec
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenCore.event_list_utils import generate
+from AllenCore.generator import generate
 
 ut_tracking_sequence = CompositeNode(
     "UTTrackingWithGEC", [gec("gec"), ut_tracking()],

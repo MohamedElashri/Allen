@@ -67,6 +67,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/selections/Postscale/include)
 include_directories(${CMAKE_SOURCE_DIR}/mdf/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
+include_directories(${PROJECT_BINARY_DIR}/code_generation/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 

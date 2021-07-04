@@ -230,7 +230,7 @@ private:
     auto c = config.find(algorithm->name());
     if (c != config.end()) algorithm->set_properties(c->second);
     // * Invoke void initialize() const, iff it exists
-    if constexpr (has_member_fn<Alg>::value) {
+    if constexpr (Allen::has_init_member_fn<Alg>::value) {
       algorithm->init();
     };
   }

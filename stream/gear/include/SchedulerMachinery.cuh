@@ -11,24 +11,6 @@
 #include "ArgumentManager.cuh"
 #include "AllenTypeTraits.cuh"
 
-namespace {
-  // SFINAE-based invocation of member function iff class provides it.
-  // This is just one way to write a type trait, it's not necessarily
-  // the best way. You could use the Detection Idiom, for example
-  // (http://en.cppreference.com/w/cpp/experimental/is_detected).
-  template<typename T, typename = void>
-  struct has_member_fn : std::false_type {
-  };
-
-  // std::void_t is a C++17 library feature. It can be replaced
-  // with your own implementation of void_t, or often by making the
-  // decltype expression void, whether by casting or by comma operator
-  // (`decltype(expr, void())`)
-  template<typename T>
-  struct has_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
-  };
-} // namespace
-
 namespace Sch {
   // Get the ArgumentRefManagerType from the function operator()
   template<typename Function>

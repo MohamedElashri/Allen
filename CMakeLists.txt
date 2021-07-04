@@ -633,7 +633,6 @@ add_subdirectory(host)
 add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
-add_subdirectory(configuration)
 
 add_subdirectory(stream)
 

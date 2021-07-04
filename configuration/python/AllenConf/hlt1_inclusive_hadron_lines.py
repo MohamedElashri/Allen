@@ -6,7 +6,7 @@ from AllenConf.algorithms import (
     two_track_preprocess_t, two_track_evaluator_t, two_track_catboost_line_t,
     two_track_mva_evaluator_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
 

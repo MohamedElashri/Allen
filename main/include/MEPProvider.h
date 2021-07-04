@@ -107,7 +107,7 @@ public:
     size_t events_per_slice,
     boost::optional<size_t> n_events,
     std::vector<std::string> connections,
-    MEPProviderConfig config = MEPProviderConfig {}) noexcept(false) :
+    MEPProviderConfig config = MEPProviderConfig {}) :
     InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_buffer_status(config.n_buffers), m_slice_free(n_slices, true), m_banks_count {0}, m_event_ids {n_slices},
     m_connections {std::move(connections)}, m_config {config}
@@ -177,7 +177,7 @@ public:
   }
 
   /// Destructor
-  virtual ~MEPProvider() noexcept(false)
+  virtual ~MEPProvider()
   {
 
     // Set flag to indicate the prefetch thread should exit, wake it

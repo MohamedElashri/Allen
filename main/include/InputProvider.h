@@ -19,7 +19,7 @@
 struct IInputProvider {
 
   /// Desctructor
-  virtual ~IInputProvider() noexcept(false) {};
+  virtual ~IInputProvider() {};
 
   /**
    * @brief      Get event ids in a given slice

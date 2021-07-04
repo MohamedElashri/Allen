@@ -176,7 +176,6 @@ namespace Allen {
       return s.str();
     }
 
-  protected:
     void set_value(V value) { m_cached_value = value; }
 
   private:
@@ -185,5 +184,4 @@ namespace Allen {
     std::string m_name;
     std::string m_description;
   };
-
 } // namespace Allen

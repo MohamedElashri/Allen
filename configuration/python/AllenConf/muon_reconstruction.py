@@ -6,7 +6,7 @@ from AllenConf.algorithms import (
     muon_populate_tile_and_tdc_t, muon_add_coords_crossing_maps_t,
     muon_populate_hits_t, is_muon_t)
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 
 
 def decode_muon():
