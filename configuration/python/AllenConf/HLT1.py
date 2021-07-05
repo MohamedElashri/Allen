@@ -56,24 +56,34 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines = [passthrough_line( name = 'Hlt1Passthrough' + name_suffix)]
     lines.append(
         line_maker(
-            "Hlt1KsToPiPi" + name_suffix,
-            make_kstopipi_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker("Hlt1TrackMVA",
-                   make_track_mva_line(forward_tracks, long_track_particles)))
-    lines.append(
-        line_maker("Hlt1TwoTrackMVA",
-                   make_two_track_mva_line(forward_tracks,
-                                           secondary_vertices)))
-    lines.append(
-        line_maker("Hlt1TwoTrackKs",
-                   make_two_track_line_ks(forward_tracks, secondary_vertices)))
+            make_kstopipi_line(
+                forward_tracks, 
+                secondary_vertices, 
+                name = "Hlt1KsToPiPi" + name_suffix)))
     lines.append(
         line_maker(
-            "Hlt1SingleHighPtMuon",
-            make_single_high_pt_muon_line(forward_tracks,
-                                          long_track_particles)))
+            make_track_mva_line(
+                forward_tracks, 
+                long_track_particles, 
+                name = "Hlt1TrackMVA" + name_suffix )))
+    lines.append(
+        line_maker(
+            make_two_track_mva_line(
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1TwoTrackMVA" + name_suffix)))
+    lines.append(
+        line_maker(
+            make_two_track_line_ks(
+                forward_tracks, 
+                secondary_vertices, 
+                name = "Hlt1TwoTrackKs" + name_suffix)))
+    lines.append(
+        line_maker(
+            make_single_high_pt_muon_line(
+                forward_tracks, 
+                long_track_particles, 
+                name = "Hlt1SingleHighPtMuon" + name_suffix )))
     lines.append(
         line_maker(
             make_single_high_pt_muon_no_muid_line(forward_tracks,
@@ -81,28 +91,33 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                                                   name = "Hlt1SingleHighPtMuonNoMuID" + prefilter_suffix)))
     lines.append(
             make_low_pt_muon_line(
-                forward_tracks, long_track_particles, name = "Hlt1LowPtMuon" + name_suffix),
-        ))
+                forward_tracks,
+                long_track_particles,
+                name="Hlt1LowPtMuon" + name_suffix)))
     lines.append(
         line_maker(
             make_d2kk_line(
-                forward_tracks, secondary_vertices, name = "Hlt1D2KK" + name_suffix),
-        ))
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1D2KK" + name_suffix)))
     lines.append(
         line_maker(
             make_d2kpi_line(
-                forward_tracks, secondary_vertices, name = "Hlt1D2KPi" + name_suffix),
-        ))
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1D2KPi" + name_suffix)))
     lines.append(
         line_maker(
             make_d2pipi_line(
-                forward_tracks, secondary_vertices, name = "Hlt1D2PiPi" + name_suffix),
-        ))
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1D2PiPi" + name_suffix)))
     lines.append(
         line_maker(
             make_di_muon_mass_line(
-                forward_tracks, secondary_vertices, name = "Hlt1DiMuonHighMass" + name_suffix),
-        ))
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonHighMass" + name_suffix)))
     lines.append(
         line_maker(
             "Hlt1DiMuonLowMass",
@@ -117,18 +132,19 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                 minMass=0.,
                 maxDoca=0.2,
                 maxVertexChi2=25.,
-                minIPChi2=4.),
-        ))
+                minIPChi2=4.)))
     lines.append(
         line_maker(
             make_di_muon_soft_line(
-                forward_tracks, secondary_vertices, name = "Hlt1DiMuonSoft" + name_suffix),
-        ))
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonSoft" + name_suffix)))
     lines.append(
         line_maker(
             make_low_pt_di_muon_line(
-                forward_tracks, secondary_vertices, name = "Hlt1LowPtDiMuon" + name_suffix),
-        ))
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1LowPtDiMuon" + name_suffix)))
     lines.append(
         line_maker(
             make_track_muon_mva_line(forward_tracks, long_track_particles, name = "Hlt1TrackMuonMVA" + name_suffix )
@@ -146,61 +162,42 @@ def default_monitoring_lines(velo_tracks, forward_tracks,
                 name = "Hlt1NoBeam" + name_suffix,
                 beam_crossing_type=0, 
                 pre_scaler_hash_string="no_beam_line_pre" + name_suffix,
-                post_scaler_hash_string="no_beam_line_post" + name_suffix),
-        ))
+                post_scaler_hash_string="no_beam_line_post" + name_suffix)))
     lines.append(
         line_maker(
             make_beam_line(
                 name = "Hlt1BeamOne" + name_suffix,
                 beam_crossing_type=1,
                 pre_scaler_hash_string="beam_one_line_pre" + name_suffix,
-                post_scaler_hash_string="beam_one_line_post" + name_suffix),
-        ))
+                post_scaler_hash_string="beam_one_line_post" + name_suffix)))
     lines.append(
         line_maker(
             make_beam_line(
                 name = "Hlt1BeamTwo" + name_suffix,
                 beam_crossing_type=2,
                 pre_scaler_hash_string="beam_two_line_pre" + name_suffix,
-                post_scaler_hash_string="beam_two_line_post" + name_suffix),
-        ))
+                post_scaler_hash_string="beam_two_line_post" + name_suffix)))
     lines.append(
         line_maker(
             make_beam_line(
                 name = "Hlt1BothBeams" + name_suffix,
                 beam_crossing_type=3,
                 pre_scaler_hash_string="both_beams_line_pre" + name_suffix,
-                post_scaler_hash_string="both_beams_line_post" + name_suffix),
-        ))
+                post_scaler_hash_string="both_beams_line_post" + name_suffix)))
     lines.append(
         line_maker(
             make_odin_event_type_line(
                 name = "Hlt1ODINLumi" + name_suffix,
                 odin_event_type=0x8,
                 pre_scaler_hash_string="odin_lumi_line_pre" + name_suffix,
-                post_scaler_hash_string="odin_lumi_line_post" + name_suffix),
-        ))
+                post_scaler_hash_string="odin_lumi_line_post" + name_suffix)))
     lines.append(
         line_maker(
             make_odin_event_type_line(
                 name = "Hlt1ODINNoBias" + name_suffix,
                 odin_event_type=0x4,
                 pre_scaler_hash_string="odin_no_bias_pre" + name_suffix,
-                post_scaler_hash_string="odin_no_bias_post" + name_suffix),
-            enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1Passthrough", make_passthrough_line(), enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1RICH1Alignment",
-            make_rich_1_line(forward_tracks, long_track_particles),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "HLt1RICH2Alignment",
-            make_rich_2_line(forward_tracks, long_track_particles),
-            enableGEC=True))
+                post_scaler_hash_string="odin_no_bias_post" + name_suffix) ))
     lines.append(
         line_maker(
             "Hlt1BeamGas",
@@ -324,7 +321,20 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
                 make_velo_micro_bias_line(
                     reconstructed_objects["velo_tracks"],
                     name="Hlt1VeloMicroBias_gec"),
-                prefilter=[gec]))
+                prefilter=gec))
+        monitoring_lines.append(
+            line_maker(
+                make_rich_1_line(
+                    hlt1_reconstruction(), 
+                    name = "Hlt1RICH1Alignment_gec" ),
+                prefilter=gec))
+        monitoring_lines.append(
+            line_maker(
+                make_rich_2_line(
+                    hlt1_reconstruction(), 
+                    name = "HLt1RICH2Alignment_gec"),
+                prefilter = gec)) 
+
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
@@ -357,7 +367,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
                 reconstructed_objects["velo_states"], 
                 reconstructed_objects["pvs"],         
                 reconstructed_objects["forward_tracks"],        
-                reconstructed_objects["kalman_velo_only"],      
+                reconstructed_objects["long_track_particles"],      
                 reconstructed_objects["secondary_vertices"], 
                 name_suffix = name_suffix )
         
