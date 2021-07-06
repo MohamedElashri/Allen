@@ -199,7 +199,8 @@ namespace Allen {
   };
 
   template<typename T>
-  void initialize_algorithm(T& alg) {
+  void initialize_algorithm(T& alg)
+  {
     if constexpr (has_init_member_fn<T>::value) {
       alg.init();
     }

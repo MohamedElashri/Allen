@@ -11,5 +11,4 @@ forward_tracking_sequence = CompositeNode(
     NodeLogic.LAZY_AND,
     force_order=True)
 
-
 generate(forward_tracking_sequence)

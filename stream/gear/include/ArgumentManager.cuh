@@ -204,7 +204,9 @@ public:
 
   InputAggregate() = default;
 
-  InputAggregate(const std::vector<std::reference_wrapper<ArgumentData>>& argument_data_v) : m_argument_data_v(argument_data_v) {}
+  InputAggregate(const std::vector<std::reference_wrapper<ArgumentData>>& argument_data_v) :
+    m_argument_data_v(argument_data_v)
+  {}
 
   template<typename Tuple, std::size_t... Is>
   InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
@@ -247,20 +249,20 @@ static auto makeInputAggregate(std::tuple<Ts&...> tp)
 }
 
 // Macro
-#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                            \
-  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                   \
-    using type = InputAggregate<__VA_ARGS__>;                                                       \
-    void parameter(__VA_ARGS__) const {}                                                            \
-    using deps = std::tuple<>;                                                                      \
-    ARGUMENT_NAME() = default;                                                                      \
-    ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                        \
-    template<typename... Ts>                                                                        \
+#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                             \
+  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                    \
+    using type = InputAggregate<__VA_ARGS__>;                                                        \
+    void parameter(__VA_ARGS__) const {}                                                             \
+    using deps = std::tuple<>;                                                                       \
+    ARGUMENT_NAME() = default;                                                                       \
+    ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                         \
+    template<typename... Ts>                                                                         \
     ARGUMENT_NAME(std::tuple<Ts&...> value) : m_value(makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
-    {}                                                                                              \
-    const type& value() const { return m_value; }                                                   \
-                                                                                                    \
-  private:                                                                                          \
-    type m_value {};                                                                                \
+    {}                                                                                               \
+    const type& value() const { return m_value; }                                                    \
+                                                                                                     \
+  private:                                                                                           \
+    type m_value {};                                                                                 \
   }
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)

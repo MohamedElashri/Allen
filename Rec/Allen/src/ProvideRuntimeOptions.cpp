@@ -28,7 +28,8 @@ public:
   ProvideRuntimeOptions(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  RuntimeOptions operator()(std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const override;
+  RuntimeOptions operator()(
+    std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const override;
 
 private:
   const unsigned m_number_of_repetitions = 1;
@@ -49,18 +50,21 @@ ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocato
 {}
 
 RuntimeOptions ProvideRuntimeOptions::operator()(
-  std::array<std::tuple<std::vector<char>,int>, LHCb::RawBank::LastType> const& allen_banks) const
+  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const
 {
   // bankTypes = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN}
   const size_t n_slices = 1;
   const size_t events_per_slice = 1;
   const unsigned event_start = 0;
   const unsigned event_end = 1;
-  auto tes_provider =
-    std::make_shared<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN,
-      BankTypes::ECal,
-      BankTypes::HCal>>(
-      n_slices, events_per_slice, event_end - event_start);
+  auto tes_provider = std::make_shared<TESProvider<
+    BankTypes::VP,
+    BankTypes::UT,
+    BankTypes::FT,
+    BankTypes::MUON,
+    BankTypes::ODIN,
+    BankTypes::ECal,
+    BankTypes::HCal>>(n_slices, events_per_slice, event_end - event_start);
   tes_provider->set_banks(allen_banks);
 
   // initialize RuntimeOptions

@@ -25,7 +25,6 @@ def decode_ut():
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
 
-
     prefix_sum_ut_hits = make_algorithm(
         host_prefix_sum_t,
         name="prefix_sum_ut_hits",
@@ -42,7 +41,6 @@ def decode_ut():
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
-
 
     ut_find_permutation = make_algorithm(
         ut_find_permutation_t,
