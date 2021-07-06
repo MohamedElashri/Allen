@@ -22,7 +22,18 @@ epyc7502-full:
     - .run_jobs_full
 ```
 
-4. If you added a new CUDA device - did you check `OVERRIDE_CUDA_ARCH_FLAG` in `.gitlab-ci.yml` contains the right flags for this device?  
+4. Add the jobs to the dependencies of `.device-jobs` and `.depend_full_run_jobs`:
+```yaml
+.device-jobs:
+  dependencies:
+    - ...
+
+.depend_full_run_jobs:
+  dependencies:
+    - ...
+```
+
+5. If you added a new CUDA device, check `OVERRIDE_CUDA_ARCH_FLAG` in `.gitlab-ci.yml` contains the right flags for this device
 
 ## Adding new tests
 
