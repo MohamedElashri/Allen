@@ -797,16 +797,14 @@ __device__ void velo_search_by_triplet::track_seeding_vectorized(
 
       if (best_fit < max_scatter) {
         // Add the track to the container of seeds
-        const auto trackP =
-          atomicAdd(dev_atomics_velo + atomics::number_of_seeds, 1) % Velo::Constants::max_tracks_to_follow;
-        tracklets[trackP] = Velo::TrackletHits {best_h0, h1_index, best_h2};
+        const auto track_number =
+          atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
+        tracklets[track_number] = Velo::TrackletHits {best_h0, h1_index, best_h2};
 
         // Add the tracks to the bag of tracks to_follow
         // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
         // and hence it is stored in tracklets
-        const auto ttfP =
-          atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
-        tracks_to_follow[ttfP] = bits::seed | trackP;
+        tracks_to_follow[track_number] = bits::seed | track_number;
       }
     }
   }
