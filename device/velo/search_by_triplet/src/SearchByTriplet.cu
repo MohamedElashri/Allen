@@ -812,4 +812,3 @@ __device__ void velo_search_by_triplet::track_seeding_vectorized(
   }
 }
 #endif
-
