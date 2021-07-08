@@ -27,14 +27,14 @@ void for_each(Tuple&& tup, F&& f)
 }
 
 template<class T>
-struct optional_resize {
-  void operator()(T&, size_t) {}
-};
+void optional_resize(T&, size_t)
+{}
 
 template<class... Args>
-struct optional_resize<std::vector<Args...>> {
-  void operator()(std::vector<Args...>& v, size_t s) { v.resize(s); }
-};
+void optional_resize(std::vector<Args...>& v, size_t s)
+{
+  v.resize(s);
+}
 
 namespace DumpUtils {
 
