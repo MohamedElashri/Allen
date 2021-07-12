@@ -12,16 +12,12 @@ namespace Velo {
   static constexpr unsigned num_atomics = 3;
 
   namespace Constants {
-
     // Detector constants
     static constexpr unsigned n_modules = 52;
     static constexpr unsigned n_module_pairs = n_modules / 2;
     static constexpr unsigned n_sensors_per_module = 4;
     static constexpr unsigned n_sensors = n_modules * n_sensors_per_module;
     static constexpr float z_endVelo = 770; // FIXME_GEOMETRY_HARDCODING
-
-    // Constant for maximum number of hits in a module pair
-    static constexpr unsigned max_numhits_in_module_pair = 1024;
 
     // Constants for requested storage on device
     static constexpr unsigned max_tracks = 1200;

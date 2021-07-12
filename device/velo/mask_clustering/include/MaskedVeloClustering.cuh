@@ -34,21 +34,6 @@ namespace velo_masked_clustering {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  // Function
-  __global__ void velo_masked_clustering(
-    Parameters parameters,
-    const VeloGeometry* dev_velo_geometry,
-    const uint8_t* dev_velo_sp_patterns,
-    const float* dev_velo_sp_fx,
-    const float* dev_velo_sp_fy);
-
-  __global__ void velo_masked_clustering_mep(
-    Parameters parameters,
-    const VeloGeometry* dev_velo_geometry,
-    const uint8_t* dev_velo_sp_patterns,
-    const float* dev_velo_sp_fx,
-    const float* dev_velo_sp_fy);
-
   struct velo_masked_clustering_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

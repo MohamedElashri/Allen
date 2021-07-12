@@ -1,8 +1,7 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-
-#include "TrackForwarding.cuh"
+#include "BinarySearch.cuh"
 #include "ClusteringDefinitions.cuh"
 #include "SearchByTriplet.cuh"
 #include "VeloTools.cuh"
@@ -30,8 +29,7 @@ void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
   set_size<dev_hit_used_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
   set_size<dev_atomics_velo_t>(arguments, first<host_number_of_events_t>(arguments) * Velo::num_atomics);
   set_size<dev_number_of_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_rel_indices_t>(
-    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_numhits_in_module_pair);
+  set_size<dev_rel_indices_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
 }
 
 void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
@@ -122,8 +120,6 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const auto velo_cluster_container =
     Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
-  const auto hit_phi = parameters.dev_hit_phi + hit_offset;
-
   Velo::TrackHits* tracks = parameters.dev_tracks + tracks_offset;
   bool* hit_used = parameters.dev_hit_used + hit_offset;
 
@@ -131,11 +127,9 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   Velo::TrackletHits* three_hit_tracks =
     parameters.dev_three_hit_tracks + event_number * Velo::Constants::max_three_hit_tracks;
   Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
-  unsigned short* h1_rel_indices =
-    parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module_pair;
+  uint16_t* h1_rel_indices = parameters.dev_rel_indices + hit_offset;
 
   unsigned* dev_atomics_velo = parameters.dev_atomics_velo + event_number * Velo::num_atomics;
-  const int16_t phi_tolerance = hit_phi_float_to_16(parameters.phi_tolerance);
 
   unsigned first_module_pair = Velo::Constants::n_module_pairs - 1;
 
@@ -152,6 +146,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   // Due to shared module data initialization
   __syncthreads();
 
+  const auto phi_tolerance_i16 = hit_phi_float_to_16(parameters.phi_tolerance);
+
   // Do first track seeding
   const auto initial_seeding_candidates = initial_seeding_h0_candidates;
   dispatch<target::Default, target::CPU>(track_seeding, track_seeding_vectorized)(
@@ -163,8 +159,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     h1_rel_indices,
     dev_atomics_velo,
     parameters.max_scatter,
-    hit_phi,
-    phi_tolerance,
+    phi_tolerance_i16,
     initial_seeding_candidates);
 
   // Prepare forwarding - seeding loop
@@ -201,7 +196,6 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     // Track Forwarding
     track_forwarding(
       velo_cluster_container,
-      hit_phi,
       hit_used,
       module_pair_data,
       diff_ttf,
@@ -212,7 +206,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       tracks,
       dev_atomics_velo,
       parameters.dev_number_of_velo_tracks,
-      phi_tolerance,
+      phi_tolerance_i16,
       parameters.max_scatter,
       parameters.max_skipped_modules,
       event_number);
@@ -231,8 +225,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       h1_rel_indices,
       dev_atomics_velo,
       parameters.max_scatter,
-      hit_phi,
-      phi_tolerance,
+      phi_tolerance_i16,
       seeding_candidates);
 
     --first_module_pair;
@@ -262,19 +255,45 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 }
 
 /**
+ * @brief Returns the first possible candidate, according to
+ *        extrapolation of the track to phi minus the tolerance.
+ *        Returns the candidate, and the extrapolated phi value.
+ */
+__device__ std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_candidate(
+  const Velo::ModulePair& module_pair,
+  const int16_t* hit_phis,
+  const Velo::HitBase& h0,
+  const float tx,
+  const float ty,
+  const float dz,
+  const int16_t phi_tolerance)
+{
+  const auto predx = tx * dz;
+  const auto predy = ty * dz;
+  const auto x_prediction = h0.x + predx;
+  const auto y_prediction = h0.y + predy;
+  const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
+
+  return {binary_search_leftmost(
+            hit_phis + module_pair.hit_start,
+            module_pair.hit_num,
+            static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
+          track_extrapolation_phi};
+}
+
+/**
  * @brief Search for compatible triplets in
  *        three neighbouring modules on one side
  */
-__device__ void track_seeding(
+__device__ void velo_search_by_triplet::track_seeding(
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
   const bool* hit_used,
   Velo::TrackletHits* tracklets,
   unsigned* tracks_to_follow,
-  unsigned short* h1_indices,
+  uint16_t* h1_indices,
   unsigned* dev_atomics_velo,
   const float max_scatter,
-  const int16_t* hit_phi,
   const int16_t phi_tolerance,
   const unsigned h0_candidates_to_consider)
 {
@@ -305,14 +324,14 @@ __device__ void track_seeding(
     const Velo::HitBase h1 {
       velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
 
-    const auto h1_phi = hit_phi[h1_index];
+    const auto h1_phi = velo_cluster_container.phi(h1_index);
 
     // Get candidates on previous module
     std::array<unsigned, max_h0_candidates> best_h0s;
 
     // Iterate over previous module until the first n candidates are found
     auto phi_index = binary_search_leftmost(
-      hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
+      velo_cluster_container.phi_begin() + module_pair_data[shared::previous_module_pair].hit_start,
       module_pair_data[shared::previous_module_pair].hit_num,
       h1_phi);
 
@@ -356,7 +375,7 @@ __device__ void track_seeding(
       // Get candidates by performing a binary search in expected phi
       const auto candidate_h2 = find_forward_candidate(
         module_pair_data[shared::next_module_pair],
-        hit_phi,
+        velo_cluster_container.phi_begin(),
         h0,
         tx,
         ty,
@@ -373,7 +392,7 @@ __device__ void track_seeding(
         const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
 
         // Check the phi difference is within the tolerance with modulo arithmetic.
-        const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+        const int16_t phi_diff = velo_cluster_container.phi(h2_index) - extrapolated_phi;
         const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
         if (abs_phi_diff > phi_tolerance) {
           break;
@@ -419,9 +438,8 @@ __device__ void track_seeding(
 /**
  * @brief Performs the track forwarding of forming tracks
  */
-__device__ void track_forwarding(
+__device__ void velo_search_by_triplet::track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
-  const int16_t* hit_phi,
   bool* hit_used,
   const Velo::ModulePair* module_pair_data,
   const unsigned diff_ttf,
@@ -451,7 +469,7 @@ __device__ void track_forwarding(
     Velo::TrackHits* t;
 
     if (track_flag) {
-      t = (Velo::TrackHits*) &(tracklets[track_number]);
+      t = reinterpret_cast<Velo::TrackHits*>(tracklets + track_number);
       number_of_hits = 3;
     }
     else {
@@ -486,7 +504,7 @@ __device__ void track_forwarding(
     // Get candidates by performing a binary search in expected phi
     const auto candidate_h2 = find_forward_candidate(
       module_pair_data[shared::next_module_pair],
-      hit_phi,
+      velo_cluster_container.phi_begin(),
       h0,
       tx,
       ty,
@@ -503,7 +521,7 @@ __device__ void track_forwarding(
       const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
 
       // Check the phi difference is within the tolerance with modulo arithmetic.
-      const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+      const int16_t phi_diff = velo_cluster_container.phi(h2_index) - extrapolated_phi;
       const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
       if (abs_phi_diff > phi_tolerance) {
         break;
@@ -588,7 +606,7 @@ __device__ void track_forwarding(
  * @brief Search for compatible triplets in
  *        three neighbouring modules on one side
  */
-__device__ void track_seeding_vectorized(
+__device__ void velo_search_by_triplet::track_seeding_vectorized(
   Velo::ConstClusters& velo_cluster_container,
   const Velo::ModulePair* module_pair_data,
   const bool* hit_used,
@@ -597,7 +615,6 @@ __device__ void track_seeding_vectorized(
   uint16_t*,
   unsigned* dev_atomics_velo,
   const float max_scatter,
-  const int16_t* hit_phi,
   const int16_t phi_tolerance,
   const unsigned h0_candidates_to_consider)
 {
@@ -613,14 +630,14 @@ __device__ void track_seeding_vectorized(
       const Velo::HitBase h1 {
         velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
 
-      const auto h1_phi = hit_phi[h1_index];
+      const auto h1_phi = velo_cluster_container.phi(h1_index);
 
       // Get candidates on previous module
       std::array<unsigned, max_h0_candidates> best_h0s;
 
       // Iterate over previous module until the first n candidates are found
       auto phi_index = binary_search_leftmost(
-        hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
+        velo_cluster_container.phi_begin() + module_pair_data[shared::previous_module_pair].hit_start,
         module_pair_data[shared::previous_module_pair].hit_num,
         h1_phi);
 
@@ -682,8 +699,7 @@ __device__ void track_seeding_vectorized(
         const auto predy = ty * dz;
         const auto x_prediction = h0_xs + predx;
         const auto y_prediction = h0_ys + predy;
-        const auto atan_value_f =
-          (Allen::constants::pi_f_float + fast_atan2f(y_prediction, x_prediction)) * Velo::Tools::convert_factor;
+        const auto atan_value_f = fast_atan2f(y_prediction, x_prediction) * Velo::Tools::convert_factor_i16;
 
         std::array<int, vector128_length()> h2_candidate_indices;
         std::array<int16_t, vector128_length()> extrapolated_phis;
@@ -691,12 +707,10 @@ __device__ void track_seeding_vectorized(
         std::array<bool, vector128_length()> active;
 
         for (unsigned vector_element = 0; vector_element < batch_length; ++vector_element) {
-          const uint16_t atan_value_u16 = static_cast<uint16_t>(atan_value_f[vector_element]);
-          const int16_t* atan_value_i16p = reinterpret_cast<const int16_t*>(&atan_value_u16);
-          const int16_t atan_value_i16 = atan_value_i16p[0];
+          const int16_t atan_value_i16 = static_cast<int16_t>(atan_value_f[vector_element]);
 
           const auto candidate_h2_index_found = binary_search_leftmost(
-            hit_phi + module_pair_data[shared::next_module_pair].hit_start,
+            velo_cluster_container.phi_begin() + module_pair_data[shared::next_module_pair].hit_start,
             module_pair_data[shared::next_module_pair].hit_num,
             int16_t(atan_value_i16 - phi_tolerance));
 
@@ -730,7 +744,7 @@ __device__ void track_seeding_vectorized(
                 const uint16_t h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
 
                 // Check the phi difference is within the tolerance with modulo arithmetic.
-                const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phis[vector_element];
+                const int16_t phi_diff = velo_cluster_container.phi(h2_index) - extrapolated_phis[vector_element];
                 const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
                 if (abs_phi_diff > phi_tolerance) {
                   active[vector_element] = false;

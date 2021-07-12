@@ -116,7 +116,6 @@ namespace Velo {
   /**
    * @brief Structure to access VELO clusters.
    */
-  constexpr unsigned velo_cluster_size = 3 * sizeof(half_t) + sizeof(uint32_t);
   template<typename T>
   struct Clusters_t {
   protected:
@@ -125,8 +124,9 @@ namespace Velo {
     unsigned m_offset;
 
   public:
-    constexpr static unsigned element_size = sizeof(unsigned) + 3 * sizeof(half_t);
-    constexpr static unsigned offset_half_t = sizeof(unsigned) / sizeof(half_t);
+    constexpr static unsigned element_size = sizeof(unsigned) + sizeof(int16_t) + 3 * sizeof(half_t);
+    constexpr static unsigned offset_coordinates = sizeof(unsigned) / sizeof(half_t);
+    constexpr static unsigned offset_phi = (sizeof(unsigned) + 3 * sizeof(half_t)) / sizeof(int16_t);
 
     __host__ __device__
     Clusters_t(T* base_pointer, const unsigned total_estimated_number_of_clusters, const unsigned offset = 0) :
@@ -134,7 +134,6 @@ namespace Velo {
       m_total_number_of_hits(total_estimated_number_of_clusters), m_offset(offset)
     {}
 
-    // Accessors and lvalue references for all types
     __host__ __device__ unsigned id(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
@@ -151,39 +150,60 @@ namespace Velo {
     {
       assert(m_offset + index < m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
-        m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index)]);
+        m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * (m_offset + index)]);
     }
 
     __host__ __device__ void set_x(const unsigned index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index)] = value;
+      m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * (m_offset + index)] = value;
     }
 
     __host__ __device__ float y(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
-        m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
+        m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
     }
 
     __host__ __device__ void set_y(const unsigned index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 1] = value;
+      m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * (m_offset + index) + 1] = value;
     }
 
     __host__ __device__ float z(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
-        m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
+        m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
     }
 
     __host__ __device__ void set_z(const unsigned index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index) + 2] = value;
+      m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * (m_offset + index) + 2] = value;
+    }
+
+    __host__ __device__ int16_t phi(const unsigned index) const
+    {
+      assert(m_offset + index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, int16_t>::t*>(
+        m_base_pointer)[m_total_number_of_hits * offset_phi + m_offset + index];
+    }
+
+    __host__ __device__ void set_phi(const unsigned index, const int16_t value)
+    {
+      assert(m_offset + index < m_total_number_of_hits);
+      reinterpret_cast<typename ForwardType<T, int16_t>::t*>(
+        m_base_pointer)[m_total_number_of_hits * offset_phi + m_offset + index] = value;
+    }
+
+    // Pointer accessor for binary search
+    __host__ __device__ typename ForwardType<T, int16_t>::t* phi_begin() const
+    {
+      return reinterpret_cast<typename ForwardType<T, int16_t>::t*>(m_base_pointer) +
+             m_total_number_of_hits * offset_phi + m_offset;
     }
   };
 

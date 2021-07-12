@@ -1,6 +1,6 @@
 velo_validator validation:
-TrackChecker output                               :      2050/   239015   0.86% ghosts
-01_velo                                           :    100547/   102077  98.50% ( 98.51%),      2171 (  2.11%) clones, pur  99.70%, hit eff  96.62%
+TrackChecker output                               :      2052/   239017   0.86% ghosts
+01_velo                                           :    100548/   102077  98.50% ( 98.51%),      2170 (  2.11%) clones, pur  99.70%, hit eff  96.62%
 02_long                                           :     57650/    57988  99.42% ( 99.46%),       826 (  1.41%) clones, pur  99.83%, hit eff  97.86%
 03_long_P>5GeV                                    :     36684/    36811  99.65% ( 99.70%),       419 (  1.13%) clones, pur  99.84%, hit eff  98.41%
 04_long_strange                                   :      2500/     2542  98.35% ( 98.60%),        36 (  1.42%) clones, pur  99.39%, hit eff  97.40%
