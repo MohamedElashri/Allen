@@ -6,9 +6,9 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
-
 #include "DumpMuonGeometry.h"
 #include "Utils.h"
+#include "fmt/format.h"
 
 DECLARE_COMPONENT(DumpMuonGeometry)
 
@@ -17,10 +17,10 @@ StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
   const auto& det = detector();
   m_daqHelper.initSvc(detSvc(), msgSvc());
 
-  for (auto station = det.childBegin(); station != det.childEnd(); ++station) {
-    if ((*station)->name().find("/MF") != std::string::npos) continue; // skip muon filters
-    std::string name = (*station)->name();
-    auto path = DeMuonLocation::Cabling + "/" + std::string {name.end() - 2, name.end()} + "/Cabling";
+  for (auto* station : det.childIDetectorElements()) {
+    std::string_view name = station->name();
+    if (name.find("/MF") != std::string_view::npos) continue; // skip muon filters
+    auto path = fmt::format("{}/{}/Cabling", DeMuonLocation::Cabling, name.substr(name.size() - 2));
     info() << "Registering " << path << endmsg;
     updMgrSvc->registerCondition(&m_daqHelper, path, &MuonDAQHelper::updateLUT);
   }
