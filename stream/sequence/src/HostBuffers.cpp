@@ -19,7 +19,7 @@
 
 void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_lines, const bool do_check)
 {
-  constexpr unsigned host_buffers_max_velo_tracks = 2048;
+  constexpr unsigned host_buffers_max_velo_tracks = 4000;
 
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
