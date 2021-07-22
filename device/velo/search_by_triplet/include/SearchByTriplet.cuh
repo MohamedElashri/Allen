@@ -115,9 +115,7 @@ namespace velo_search_by_triplet {
 
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
     // Register contracts for this algorithm
-    using contracts = std::tuple<
-      cluster_container_checks,
-      track_container_checks>;
+    using contracts = std::tuple<cluster_container_checks, track_container_checks>;
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

@@ -49,7 +49,12 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO tracks found:\n";
-    print_velo_tracks<dev_tracks_t, dev_number_of_velo_tracks_t, dev_three_hit_tracks_t, dev_atomics_velo_t, dev_offsets_estimated_input_size_t>(arguments);
+    print_velo_tracks<
+      dev_tracks_t,
+      dev_number_of_velo_tracks_t,
+      dev_three_hit_tracks_t,
+      dev_atomics_velo_t,
+      dev_offsets_estimated_input_size_t>(arguments);
   }
 }
 
@@ -274,12 +279,11 @@ __device__ std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_can
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  return {
-    binary_search_leftmost(
-      hit_phis + module_pair.hit_start,
-      module_pair.hit_num,
-      static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
-    track_extrapolation_phi};
+  return {binary_search_leftmost(
+            hit_phis + module_pair.hit_start,
+            module_pair.hit_num,
+            static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
+          track_extrapolation_phi};
 }
 
 /**

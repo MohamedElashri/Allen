@@ -40,8 +40,11 @@ __device__ void down_sweep_2048(unsigned* data_block)
   }
 }
 
-__device__ void
-prefix_sum_single_block_implementation(unsigned* dev_total_sum, unsigned* dev_array, const unsigned array_size, unsigned* data_block)
+__device__ void prefix_sum_single_block_implementation(
+  unsigned* dev_total_sum,
+  unsigned* dev_array,
+  const unsigned array_size,
+  unsigned* data_block)
 {
   // Prefix sum of elements in dev_array
   // Using Blelloch scan https://www.youtube.com/watch?v=mmYv3Haj6uc
@@ -131,4 +134,3 @@ __global__ void prefix_sum_single_block(unsigned* dev_total_sum, unsigned* dev_a
 
   prefix_sum_single_block_implementation(dev_total_sum, dev_array, array_size, data_block);
 }
-
