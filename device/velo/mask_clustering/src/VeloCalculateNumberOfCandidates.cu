@@ -25,7 +25,7 @@ __global__ void velo_calculate_number_of_candidates_kernel(
     }
 
     unsigned number_of_candidates = 0;
-    for (unsigned raw_bank_number = 0; raw_bank_number < raw_event.number_of_raw_banks; ++raw_bank_number) {
+    for (unsigned raw_bank_number = 0; raw_bank_number < number_of_raw_banks; ++raw_bank_number) {
       // Read raw bank
       VeloRawBank raw_bank;
       if constexpr (mep_layout) {
