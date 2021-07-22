@@ -16,11 +16,6 @@ namespace velo_calculate_number_of_candidates {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x_prop;
   };
 
-  // Global function
-  __global__ void velo_calculate_number_of_candidates(Parameters parameters, const unsigned number_of_events);
-
-  __global__ void velo_calculate_number_of_candidates_mep(Parameters parameters, const unsigned number_of_events);
-
   // Algorithm
   struct velo_calculate_number_of_candidates_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
