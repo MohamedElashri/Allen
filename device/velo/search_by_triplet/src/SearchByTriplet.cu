@@ -19,13 +19,14 @@ void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_tracks);
-  set_size<dev_tracklets_t>(
-    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
+  const unsigned track_container_size =
+    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
+
+  set_size<dev_tracks_t>(arguments, track_container_size);
+  set_size<dev_tracklets_t>(arguments, track_container_size);
+  set_size<dev_three_hit_tracks_t>(arguments, track_container_size);
   set_size<dev_tracks_to_follow_t>(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
-  set_size<dev_three_hit_tracks_t>(
-    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_three_hit_tracks);
   set_size<dev_hit_used_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
   set_size<dev_atomics_velo_t>(arguments, first<host_number_of_events_t>(arguments) * Velo::num_atomics);
   set_size<dev_number_of_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -48,7 +49,7 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO tracks found:\n";
-    print_velo_tracks<dev_tracks_t, dev_number_of_velo_tracks_t, dev_three_hit_tracks_t, dev_atomics_velo_t>(arguments);
+    print_velo_tracks<dev_tracks_t, dev_number_of_velo_tracks_t, dev_three_hit_tracks_t, dev_atomics_velo_t, dev_offsets_estimated_input_size_t>(arguments);
   }
 }
 
@@ -109,7 +110,6 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Pointers to data within the event
-  const unsigned tracks_offset = event_number * Velo::Constants::max_tracks;
   const unsigned total_estimated_number_of_clusters =
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
   const unsigned* module_hit_start =
@@ -120,13 +120,13 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const auto velo_cluster_container =
     Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
+  const unsigned tracks_offset = Velo::track_offset(parameters.dev_offsets_estimated_input_size, event_number);
   Velo::TrackHits* tracks = parameters.dev_tracks + tracks_offset;
-  bool* hit_used = parameters.dev_hit_used + hit_offset;
+  Velo::TrackletHits* three_hit_tracks = parameters.dev_three_hit_tracks + tracks_offset;
+  Velo::TrackletHits* tracklets = parameters.dev_tracklets + tracks_offset;
 
   unsigned* tracks_to_follow = parameters.dev_tracks_to_follow + event_number * Velo::Constants::max_tracks_to_follow;
-  Velo::TrackletHits* three_hit_tracks =
-    parameters.dev_three_hit_tracks + event_number * Velo::Constants::max_three_hit_tracks;
-  Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
+  bool* hit_used = parameters.dev_hit_used + hit_offset;
   uint16_t* h1_rel_indices = parameters.dev_rel_indices + hit_offset;
 
   unsigned* dev_atomics_velo = parameters.dev_atomics_velo + event_number * Velo::num_atomics;
@@ -274,11 +274,12 @@ __device__ std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_can
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  return {binary_search_leftmost(
-            hit_phis + module_pair.hit_start,
-            module_pair.hit_num,
-            static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
-          track_extrapolation_phi};
+  return {
+    binary_search_leftmost(
+      hit_phis + module_pair.hit_start,
+      module_pair.hit_num,
+      static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
+    track_extrapolation_phi};
 }
 
 /**

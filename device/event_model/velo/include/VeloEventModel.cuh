@@ -209,4 +209,12 @@ namespace Velo {
 
   typedef const Clusters_t<const char> ConstClusters;
   typedef Clusters_t<char> Clusters;
+
+  /**
+   * @brief Returns the track offset of an event.
+   */
+  __host__ __device__ inline unsigned track_offset(const unsigned* offsets, const unsigned event_number) {
+    const auto offset_event = offsets[event_number * Velo::Constants::n_module_pairs];
+    return offset_event * Velo::Constants::max_number_of_tracks_per_cluster;
+  }
 } // namespace Velo

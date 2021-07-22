@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "GetSeeds.cuh"
 
+static constexpr unsigned get_seeds_max_velo_tracks_constant = 2048;
+
 void pv_get_seeds::pv_get_seeds_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -87,7 +89,7 @@ __global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
   const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  PatPV::vtxCluster vclusters[Velo::Constants::max_tracks];
+  PatPV::vtxCluster vclusters[get_seeds_max_velo_tracks_constant];
 
   int counter_number_of_clusters = 0;
   for (unsigned i = 0; i < number_of_tracks_event; i++) {
@@ -109,7 +111,7 @@ __global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
     counter_number_of_clusters++;
   }
 
-  float zseeds[Velo::Constants::max_tracks];
+  float zseeds[get_seeds_max_velo_tracks_constant];
 
   int number_final_clusters = find_clusters(vclusters, zseeds, counter_number_of_clusters, parameters);
 
@@ -185,7 +187,7 @@ __device__ int pv_get_seeds::find_clusters(
 
   int return_number_of_clusters = 0;
   // count final number of clusters
-  PatPV::vtxCluster pvclus[Velo::Constants::max_tracks];
+  PatPV::vtxCluster pvclus[get_seeds_max_velo_tracks_constant];
   for (int i = 0; i < number_of_clusters; i++) {
     if (vclus[i].ntracks != 0) {
       pvclus[return_number_of_clusters] = vclus[i];
