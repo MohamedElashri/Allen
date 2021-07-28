@@ -18,6 +18,32 @@ namespace {
   using std::vector;
 
   namespace fs = boost::filesystem;
+
+  template<typename T, auto Extent>
+  constexpr void pop_n(gsl::span<const char>& buffer, size_t n, gsl::span<T, Extent> out)
+  {
+    static_assert(std::is_trivially_copyable_v<T>);
+    assert(out.size() >= n);
+    auto sz = n * sizeof(T);
+    assert(buffer.size() >= sz);
+    std::memcpy(out.data(), buffer.data(), sz);
+    buffer = buffer.subspan(sz);
+  }
+
+  template<typename Out>
+  constexpr void pop_n(gsl::span<const char>& buffer, size_t n, Out& out)
+  {
+    pop_n(buffer, n, gsl::span {out});
+  }
+
+  template<typename Out>
+  [[nodiscard]] constexpr Out pop(gsl::span<const char>& buffer)
+  {
+    Out out {};
+    pop_n(buffer, 1, gsl::span {&out, 1});
+    return out;
+  }
+
 } // namespace
 
 // Declaration of the Algorithm Factory
@@ -47,10 +73,10 @@ size_t lookup_index(MuonTable const& table, LHCb::MuonTileID const& tile)
   auto index = table.offset_fun(table, tile);
 
   if (ypad < table.gridY[idx]) {
-    index = index + table.gridX[idx] * ypad + xpad - table.gridX[idx];
+    index += table.gridX[idx] * ypad + xpad - table.gridX[idx];
   }
   else {
-    index = index + table.gridX[idx] * table.gridY[idx] + 2 * table.gridX[idx] * (ypad - table.gridY[idx]) + xpad;
+    index += table.gridX[idx] * table.gridY[idx] + 2 * table.gridX[idx] * (ypad - table.gridY[idx]) + xpad;
   }
   return index;
 }
@@ -99,10 +125,10 @@ tuple<std::reference_wrapper<const MuonTable>, string> lookup_table(
   if (uncrossed) {
     if (tile.station() <= 1 || tile.region() != 0) {
       if (tile.layout().xGrid() == x1 && tile.layout().yGrid() == y1) {
-        table = tuple {std::cref(stripX), "stripX"};
+        table = {std::cref(stripX), "stripX"};
       }
       else {
-        table = tuple {std::cref(stripY), "stripY"};
+        table = {std::cref(stripY), "stripY"};
       }
     }
   }
@@ -121,39 +147,24 @@ void coord_position(
   double& dy,
   double& z)
 {
-
   auto r = lookup_table(tile, uncrossed, pad, stripX, stripY);
   lookup(std::get<0>(r).get(), tile, x, dx, y, dy, z);
 }
 
-void read_muon_table(const char* raw_input, MuonTable& pad, MuonTable& stripX, MuonTable& stripY)
+void read_muon_table(gsl::span<const char> raw_input, MuonTable& pad, MuonTable& stripX, MuonTable& stripY)
 {
-
   size_t n = 0;
   for (MuonTable& muonTable : {std::ref(pad), std::ref(stripX), std::ref(stripY)}) {
     for_each(
-      make_tuple(
-        std::ref(muonTable.gridX),
-        std::ref(muonTable.gridY),
-        std::ref(muonTable.sizeX),
-        std::ref(muonTable.sizeY),
-        std::ref(muonTable.offset)),
+      std::tie(muonTable.gridX, muonTable.gridY, muonTable.sizeX, muonTable.sizeY, muonTable.offset),
       [&n, &raw_input](auto& table) {
-        size_t s = 0;
-        std::copy_n((size_t*) raw_input, 1, &s);
+        auto s = pop<size_t>(raw_input);
 
-        // Some metaprogramming to resize the underlying
-        // container if it is a vector and get the underlying
-        // value type
-        using table_t = typename std::remove_reference_t<decltype(table)>;
-        using T = typename table_t::value_type;
-        optional_resize<table_t> {}(table, s);
+        optional_resize(table, s);
         assert(s == table.size());
 
         // Read the data into the container
-        raw_input += sizeof(size_t);
-        std::copy_n((T*) raw_input, s, table.data());
-        raw_input += sizeof(T) * s;
+        pop_n(raw_input, s, table);
         ++n;
       });
 
@@ -162,19 +173,14 @@ void read_muon_table(const char* raw_input, MuonTable& pad, MuonTable& stripX, M
     }
     assert((muonTable.sizeOffset.back() + 24 * muonTable.gridY.back()) == muonTable.sizeX.size());
 
-    size_t tableSize = 0;
-    std::copy_n((size_t*) raw_input, 1, &tableSize);
-    raw_input += sizeof(size_t);
+    auto tableSize = pop<size_t>(raw_input);
     assert(tableSize == 4);
 
     for (size_t i = 0; i < tableSize; i++) {
-      size_t stationTableSize = 0;
-      std::copy_n((size_t*) raw_input, 1, &stationTableSize);
-      raw_input += sizeof(size_t);
-      (muonTable.table)[i].resize(stationTableSize);
-      for (size_t j = 0; j < stationTableSize; j++) {
-        std::copy_n((float*) raw_input, 3, muonTable.table[i][j].data());
-        raw_input += sizeof(float) * 3;
+      auto stationTableSize = pop<size_t>(raw_input);
+      muonTable.table[i].resize(stationTableSize);
+      for (auto& tbl : muonTable.table[i]) {
+        pop_n(raw_input, 3, tbl);
       }
     }
   }
@@ -193,10 +199,10 @@ StatusCode TestMuonTable::initialize()
   std::vector<char> raw_input(read_size);
 
   std::ifstream input(p.c_str(), std::ios::binary);
-  input.read(&raw_input[0], read_size);
+  input.read(raw_input.data(), read_size);
   input.close();
 
-  read_muon_table(raw_input.data(), m_pad, m_stripX, m_stripY);
+  read_muon_table(raw_input, m_pad, m_stripX, m_stripY);
 
   return StatusCode::SUCCESS;
 }
