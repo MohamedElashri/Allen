@@ -55,11 +55,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
                                                                    host_ut_region_offsets[6],
                                                                    host_ut_region_offsets[9],
                                                                    host_ut_region_offsets[12]};
-  auto current_sector_offset = 0;
+  int current_sector_offset = 0;
   auto& host_unique_x_sector_layer_offsets = m_constants.get().host_unique_x_sector_layer_offsets;
   auto& host_unique_x_sector_offsets = m_constants.get().host_unique_x_sector_offsets;
   auto& host_unique_sector_xs = m_constants.get().host_unique_sector_xs;
-  host_unique_x_sector_offsets[current_sector_offset];
   host_unique_x_sector_layer_offsets[0] = 0;
 
   for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
