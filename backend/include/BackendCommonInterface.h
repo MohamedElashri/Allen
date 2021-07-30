@@ -15,7 +15,7 @@ namespace Allen {
   // Memcpy kind used in memory transfers, analogous to cudaMemcpyKind
   enum memcpy_kind { memcpyHostToHost, memcpyHostToDevice, memcpyDeviceToHost, memcpyDeviceToDevice, memcpyDefault };
 
-  enum host_register_kind { hostRegisterDefault, hostRegisterPortable, hostRegisterMapped };
+  enum host_register_kind { hostRegisterDefault, hostRegisterPortable, hostRegisterMapped, hostRegisterIoMemory, hostRegisterReadOnly };
 
   enum class error { success, errorMemoryAllocation };
 

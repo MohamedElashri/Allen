@@ -122,6 +122,12 @@ namespace Allen {
     switch (kind) {
     case hostRegisterPortable: return hipHostRegisterPortable;
     case hostRegisterMapped: return hipHostRegisterMapped;
+    case hostRegisterReadOnly:
+      warning_cout << "hostRegisterReadOnly is not supported by HIP\n";
+      return hipHostRegisterDefault;
+    case hostRegisterIoMemory:
+      warning_cout << "hostRegisterIoMemory is not supported by HIP\n";
+      return hipHostRegisterDefault;
     default: return hipHostRegisterDefault;
     }
   }

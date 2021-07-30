@@ -81,6 +81,8 @@ namespace Allen {
     switch (kind) {
     case hostRegisterPortable: return cudaHostRegisterPortable;
     case hostRegisterMapped: return cudaHostRegisterMapped;
+    case hostRegisterIoMemory: return cudaHostRegisterIoMemory;
+    case hostRegisterReadOnly: return cudaHostRegisterReadOnly;
     default: return cudaHostRegisterDefault;
     }
   }
