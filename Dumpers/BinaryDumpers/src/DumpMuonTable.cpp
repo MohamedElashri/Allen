@@ -131,7 +131,7 @@ DumpUtils::Dumps DumpMuonTable::dumpGeometry() const
           }
           else {
             auto sizeIdx = MuonUtils::size_index(sizeOffset, gridX, gridY, tile);
-            if (UNLIKELY(msgLevel(MSG::VERBOSE))) {
+            if (msgLevel(MSG::VERBOSE)) {
               verbose() << (info_output % t % static_cast<unsigned int>(tile) % station % region % quarter % gidx %
                             gridX[gidx] % gridY[gidx] % x % y % index % xp % yp % zp % dx % dy % sizeIdx)
                         << endmsg;
