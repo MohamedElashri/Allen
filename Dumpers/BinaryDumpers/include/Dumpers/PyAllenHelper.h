@@ -1,8 +1,9 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
+#include <GaudiKernel/IService.h>
 #include <Dumpers/IUpdater.h>
-#include <GaudiKernel/Service.h>
+#include <Allen/InputProvider.h>
 
 /**
  * @brief      Helper function to cast the LHCb-implementation of the Allen
@@ -12,4 +13,12 @@
  *
  * @return     The Allen non-event data manager as an IUpdater
  */
-Allen::NonEventData::IUpdater* cast_updater(IService* updater_svc);
+template<typename TO>
+struct cast_service {
+  TO* operator()(IService* svc) {
+    return dynamic_cast<TO*>(svc);
+  }
+};
+
+// template cast_service<Allen::NonEventData::IUpdater>;
+// template cast_service<IInputProvider>(IService* svc);

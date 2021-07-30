@@ -17,12 +17,18 @@ interpreter = gbl.gInterpreter
 # FIXME: Once the headers are installed properly, this should not be
 # necessary anymore
 allen_dir = os.environ['ALLEN_PROJECT_ROOT']
+interpreter.Declare("#include <Dumpers/IUpdater.h>")
 interpreter.Declare("#include <Allen/Allen.h>")
 interpreter.Declare("#include <Allen/Provider.h>")
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
                                 'hlt1_pp_default')
+
+
+def cast_service(return_type, svc):
+    return gbl.cast_service(return_type)()(svc)
+
 
 # Handle commandline arguments
 parser = argparse.ArgumentParser()
@@ -35,7 +41,6 @@ parser.add_argument(
     dest="param_folder",
     default=os.path.join(allen_dir, "input", "parameters"))
 parser.add_argument("-n", dest="n_events", default="0")
-parser.add_argument("-o", dest="event_offset", default="0")
 parser.add_argument("-t", dest="threads", default="1")
 parser.add_argument("-r", dest="repetitions", default="1")
 parser.add_argument("-m", dest="reserve", default="1024")
@@ -53,16 +58,19 @@ parser.add_argument(
                          "upgrade_mc_minbias_scifi_v5.mdf"))
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
 parser.add_argument(
-    "--monitoring-save-period", dest="mon_save_period", default="0")
+    "--output-file", dest="output_file", default=None)
+parser.add_argument(
+    "--monitoring-save-period", dest="mon_save_period", default=0)
 parser.add_argument(
     "--monitoring-filename",
     dest="mon_filename",
     default="monitoringHists.root", help="Histogram filename")
 parser.add_argument(
-    "--disable-run-changes", dest="disable_run_changes", default="1")
+    "--disable-run-changes", dest="disable_run_changes", default=1)
 parser.add_argument(
-    "--events-per-slice", dest="events_per_slice", default="1000")
-parser.add_argument("--device", dest="device", default="0", help="Device index")
+    "--events-per-slice", dest="events_per_slice", default=1000,
+    help="number of events per batch submitted to the GPU")
+parser.add_argument("--device", dest="device", default=0, help="Device index")
 
 args = parser.parse_args()
 
@@ -82,7 +90,27 @@ setup_allen_non_event_data_service()
 ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc', 'ZeroMQSvc']
 
-# until here
+if args.mep is not None:
+    ApplicationMgr().ExtSvc += ['MEPProvider']
+    from Configurables import MEPProvider
+
+    mep_provider = MEPProvider()
+    mep_provider.NSlices = args.slices
+    mep_provider.EventsPerSlice = 1000
+    mep_provider.OutputLevel = 2
+    # Number of MEP buffers and number of transpose/offset threads
+    mep_provider.BufferConfig = (4, 3)
+    mep_provider.TransposeMEPs = False
+    mep_provider.SplitByRun = False
+    mep_provider.Source = "Files"
+    mep_dir = args.mep
+    mep_provider.Connections = sorted([os.path.join(mep_dir, mep_file)
+                                       for mep_file in os.listdir(mep_dir)
+                                       if mep_file.endswith('.mep')])
+    mep_provider.LoopOnMEPs = False
+    mep_provider.Preload = True
+    mep_provider.EvtMax = 50000
+    mep_provider.BufferNUMA = [0, 0, 1, 1]
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()
@@ -90,16 +118,15 @@ gaudi.initialize()
 svc = gaudi.service("AllenUpdater", interface=gbl.IService)
 zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
-updater = gbl.cast_updater(svc)
+updater = cast_service(gbl.Allen.NonEventData.IUpdater, svc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
-for flag, value in (("g", args.det_folder),
-                    ("params", args.param_folder),
-                    ("n", args.n_events), ("o", args.event_offset),
+for flag, value in (("g", args.det_folder), ("params", args.param_folder),
+                    ("n", args.n_events),
                     ("t", args.threads), ("r", args.repetitions),
-                    ("m", args.reserve),
-                    ("v", args.verbosity),
+                    ("output-file", args.output_file),
+                    ("m", args.reserve), ("v", args.verbosity),
                     ("p", args.print_memory), ("i", args.import_fwd),
                     ("sequence", args.sequence),
                     ("s", args.slices), ("mdf", args.mdf),
@@ -110,13 +137,20 @@ for flag, value in (("g", args.det_folder),
                     ("monitoring-filename", args.mon_filename),
                     ("events-per-slice", args.events_per_slice),
                     ("device", args.device), ("run-from-json", "1")):
-    options[flag] = value
+    if value is not None:
+        options[flag] = str(value)
 
 con = gbl.std.string("")
 
 # Create provider
-provider = gbl.Allen.make_provider(options)
+if args.mep:
+    mep_provider = gaudi.service("MEPProvider", interface=gbl.IService)
+    provider = cast_service(gbl.IInputProvider, mep_provider)
+else:
+    provider = gbl.Allen.make_provider(options)
 output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
+
+gaudi.start()
 
 # run Allen
 gbl.allen(options, updater, provider, output_handler, zmqSvc, con.c_str())

@@ -8,7 +8,6 @@
 
 gaudi_add_library(BinaryDumpers
                   SOURCES
-                    src/lib/PyAllenHelper.cpp
                     src/lib/TestUTBoards.cpp
                   LINK PUBLIC
                     Gaudi::GaudiKernel
