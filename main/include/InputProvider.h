@@ -26,6 +26,7 @@ public:
     bool writable = true;
     int work_counter = 0;
     std::vector<std::tuple<size_t, size_t>> intervals;
+    size_t index = 0;
   };
 
   /// Desctructor
