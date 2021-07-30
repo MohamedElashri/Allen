@@ -65,6 +65,7 @@ __device__ void calculate_number_of_hits<3>(
     const uint32_t channelID = (raw_bank.data[i] & UT::Decoding::v4::chan_mask) >> UT::Decoding::v4::chan_offset;
     const uint32_t index = channelID / m_nStripsPerHybrid;
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + index;
+    if (fullChanIndex >= boards.number_of_channels) continue;
     const uint32_t station = boards.stations[fullChanIndex] - 1;
     const uint32_t layer = boards.layers[fullChanIndex] - 1;
     const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
