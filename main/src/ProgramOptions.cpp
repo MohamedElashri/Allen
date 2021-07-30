@@ -39,8 +39,6 @@ std::vector<ProgramOption> allen_program_options()
   return {{{"g", "geometry"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
           {{"params"}, "folder containing parameters that do not change with the geometry", "../input/parameters/"},
           {{"mdf"}, "comma-separated list of MDF files to use as input"},
-          {{"mep"}, "comma-separated list of MEP files to use as input"},
-          {{"transpose-mep"}, "Transpose MEPs instead of decoding from MEP layout directly", "0", "don't transpose"},
           {{"print-status"}, "show status of buffer and socket", "0"},
           {{"print-config"}, "show current algorithm configuration", "0"},
           {{"write-configuration"}, "write current algorithm configuration to file", "0"},
