@@ -469,9 +469,6 @@ __device__ void velo_search_by_triplet::track_forwarding(
     const auto skipped_modules = (full_track_number & bits::skipped_modules) >> bits::skipped_module_position;
     auto track_number = full_track_number & bits::track_number;
 
-    assert(
-      track_flag ? track_number < Velo::Constants::max_tracks_to_follow : track_number < Velo::Constants::max_tracks);
-
     unsigned number_of_hits;
     Velo::TrackHits* t;
 

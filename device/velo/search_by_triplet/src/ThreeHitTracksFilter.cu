@@ -121,7 +121,6 @@ __device__ void three_hit_tracks_filter_impl(
     // Store them in the tracks container
     if (!any_used && chi2 < max_chi2) {
       const unsigned track_insert_number = atomicAdd(number_of_output_tracks, 1);
-      assert(track_insert_number < Velo::Constants::max_tracks);
       output_tracks[track_insert_number] = t;
     }
   }
