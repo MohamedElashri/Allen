@@ -23,8 +23,9 @@ void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
     first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
 
   set_size<dev_tracks_t>(arguments, track_container_size);
-  set_size<dev_tracklets_t>(arguments, track_container_size);
   set_size<dev_three_hit_tracks_t>(arguments, track_container_size);
+  set_size<dev_tracklets_t>(
+    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
   set_size<dev_tracks_to_follow_t>(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_tracks_to_follow);
   set_size<dev_hit_used_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
@@ -128,9 +129,10 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const unsigned tracks_offset = Velo::track_offset(parameters.dev_offsets_estimated_input_size, event_number);
   Velo::TrackHits* tracks = parameters.dev_tracks + tracks_offset;
   Velo::TrackletHits* three_hit_tracks = parameters.dev_three_hit_tracks + tracks_offset;
-  Velo::TrackletHits* tracklets = parameters.dev_tracklets + tracks_offset;
 
+  Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
   unsigned* tracks_to_follow = parameters.dev_tracks_to_follow + event_number * Velo::Constants::max_tracks_to_follow;
+
   bool* hit_used = parameters.dev_hit_used + hit_offset;
   uint16_t* h1_rel_indices = parameters.dev_rel_indices + hit_offset;
 
@@ -279,11 +281,12 @@ __device__ std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_can
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  return {binary_search_leftmost(
-            hit_phis + module_pair.hit_start,
-            module_pair.hit_num,
-            static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
-          track_extrapolation_phi};
+  return {
+    binary_search_leftmost(
+      hit_phis + module_pair.hit_start,
+      module_pair.hit_num,
+      static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
+    track_extrapolation_phi};
 }
 
 /**
