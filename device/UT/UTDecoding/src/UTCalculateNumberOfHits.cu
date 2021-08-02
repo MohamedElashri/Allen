@@ -89,21 +89,24 @@ __device__ void calculate_number_of_hits<4>(
   UTRawBank<4> const& raw_bank)
 {
   if (raw_bank.get_n_hits() == 0) return;
-  for (unsigned lane = threadIdx.y; lane < UT::Decoding::ut_number_of_sectors_per_board; lane += blockDim.y) {
+  for (unsigned lane = threadIdx.y; lane < UT::Decoding::v5::n_lanes; lane += blockDim.y) {
     if (raw_bank.number_of_hits[lane] == 0) continue;
     // find the sector group to which these hits are added
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
     assert(fullChanIndex < boards.number_of_channels);
     const uint32_t s = boards.stations[fullChanIndex];
     if (s == 0) continue;
+    // Looking downstream, there are 2 stations UTa with X and U layer and UTb with V and X layer
     const uint32_t station = s - 1;
     const uint32_t layer = boards.layers[fullChanIndex] - 1;
+    // The region corresponds to the 3 types of staves that mount the
+    // 4 different sensor types (A in the outer, B in the central, C and D in the inner region).
     const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
     const uint32_t sector = boards.sectors[fullChanIndex] - 1;
 
     // add the hits to the global counters and offsets
     const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
-    assert(idx < 12);
+    assert(idx < UT::Decoding::v5::max_region_index);
     const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
     unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[idx_offset];
     atomicAdd(hits_sector_group, raw_bank.number_of_hits[lane]);

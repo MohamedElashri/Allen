@@ -26,6 +26,8 @@ namespace UT {
     namespace v5 {
       static constexpr int strip_mask = 0xFFE0;
       static constexpr int strip_offset = 5;
+      static constexpr unsigned n_lanes = 6;
+      static constexpr unsigned max_region_index = 12;
     } // namespace v5
 
     static constexpr unsigned ut_number_of_sectors_per_board = 6;
