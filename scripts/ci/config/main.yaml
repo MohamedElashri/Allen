@@ -66,6 +66,11 @@ a10:
     - .a10
     - .run_job
 
+a5000:
+  extends:
+    - .a5000
+    - .run_job
+
 a6000:
   extends:
     - .a6000
@@ -96,6 +101,7 @@ epyc7502:
     - epyc7502
     - x862630v4
     - mi100
+    - a5000
     - a6000
     - a40
     - a10
@@ -291,6 +297,13 @@ a10-full:
     - .cuda_run_job
 
 
+a5000-full:
+  extends:
+    - .a5000
+    - .run_jobs_full
+    - .cuda_run_job
+
+
 a6000-full:
   extends:
     - .a6000
@@ -330,6 +343,7 @@ mi100-full:
     - quadrortx6000-full
     - a40-full
     - a10-full
+    - a5000-full
     - a6000-full
     - teslav100-full
 
