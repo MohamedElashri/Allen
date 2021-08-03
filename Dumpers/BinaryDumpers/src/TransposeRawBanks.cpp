@@ -120,7 +120,7 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> Tr
 
       // Debug/testing histogram with the sizes of the binary data per bank
       auto histo = m_histos[bt];
-      if (UNLIKELY(histo == nullptr)) {
+      if (histo == nullptr) {
         warning() << "No histogram booked for bank type " << toString(bt) << endmsg;
       }
       else {
