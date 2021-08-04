@@ -22,19 +22,20 @@ struct UTRawBank {
       number_of_hits[0] = *p & 0x0000FFFFU;
     }
     else if constexpr (decoding_version == 4) {
-      number_of_hits[4] = (*p & 0xFFU) >> 0U;
-      number_of_hits[5] = (*p & 0xFF00U) >> 8U;
-      p += 1;
-      number_of_hits[0] = (*p & 0xFFU) >> 0U;
-      number_of_hits[1] = (*p & 0xFF00U) >> 8U;
-      number_of_hits[2] = (*p & 0xFF0000U) >> 16U;
-      number_of_hits[3] = (*p & 0xFF000000U) >> 24U;
-
       bool bad = false;
-      for (int i = 0; i < static_cast<int>(number_of_hits.size()); ++i) {
-        bad |= (number_of_hits[i] == 255);
-      }
-
+      auto add_to_hits = [this, &bad](uint32_t&& n_hits_in_lane, uint32_t&& lane_index) {
+        if (n_hits_in_lane == 255)
+          bad = true;
+        else
+          number_of_hits[lane_index] = n_hits_in_lane;
+      };
+      add_to_hits((*p & 0xFFU) >> 0U, 4U);
+      add_to_hits((*p & 0xFF00U) >> 8U, 5U);
+      p += 1;
+      add_to_hits((*p & 0xFFU) >> 0U, 0U);
+      add_to_hits((*p & 0xFF00U) >> 8U, 1U);
+      add_to_hits((*p & 0xFF0000U) >> 16U, 2U);
+      add_to_hits((*p & 0xFF000000U) >> 24U, 3U);
       // the header contains garbage if there are actually no words to decode (and there are always 6 words -- the word
       // is 0 if there are no hits in the lane)
       // also protect against corrupt events
@@ -53,18 +54,20 @@ struct UTRawBank {
       number_of_hits[0] = *p & 0x0000FFFFU;
     }
     else if constexpr (decoding_version == 4) {
-      number_of_hits[4] = (*p & 0xFFU) >> 0U;
-      number_of_hits[5] = (*p & 0xFF00U) >> 8U;
-      p += 1;
-      number_of_hits[0] = (*p & 0xFFU) >> 0U;
-      number_of_hits[1] = (*p & 0xFF00U) >> 8U;
-      number_of_hits[2] = (*p & 0xFF0000U) >> 16U;
-      number_of_hits[3] = (*p & 0xFF000000U) >> 24U;
-
       bool bad = false;
-      for (int i = 0; i < static_cast<int>(number_of_hits.size()); ++i) {
-        bad |= (number_of_hits[i] == 255);
-      }
+      auto add_to_hits = [this, &bad](uint32_t&& n_hits_in_lane, uint32_t&& lane_index) {
+        if (n_hits_in_lane == 255)
+          bad = true;
+        else
+          number_of_hits[lane_index] = n_hits_in_lane;
+      };
+      add_to_hits((*p & 0xFFU) >> 0U, 4U);
+      add_to_hits((*p & 0xFF00U) >> 8U, 5U);
+      p += 1;
+      add_to_hits((*p & 0xFFU) >> 0U, 0U);
+      add_to_hits((*p & 0xFF00U) >> 8U, 1U);
+      add_to_hits((*p & 0xFF0000U) >> 16U, 2U);
+      add_to_hits((*p & 0xFF000000U) >> 24U, 3U);
 
       if (((ut_fragment_end - ut_fragment) < static_cast<long>(6 * sizeof(uint32_t))) || bad)
         number_of_hits = {0, 0, 0, 0, 0, 0};
