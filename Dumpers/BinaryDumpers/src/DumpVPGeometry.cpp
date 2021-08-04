@@ -3,10 +3,9 @@
 \*****************************************************************************/
 #include <tuple>
 #include <vector>
-
 #include "DumpVPGeometry.h"
-#include <GaudiKernel/SystemOfUnits.h>
-
+#include "GaudiKernel/SystemOfUnits.h"
+#include "Kernel/VPChannelID.h"
 #include <boost/numeric/conversion/cast.hpp>
 
 DECLARE_COMPONENT(DumpVPGeometry)
