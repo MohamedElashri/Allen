@@ -72,7 +72,6 @@ private:
 
 public:
   using iteration_t = LineIteration::default_iteration_tag;
-
   void init()
   {
     auto derived_instance = static_cast<const Derived*>(this);
@@ -125,6 +124,22 @@ public:
    * @brief Default block dim x of kernel call. Can be "overriden".
    */
   static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 256; }
+
+  /**
+   * @brief Default monitor function.
+   */
+  // template<typename... Args>
+  // static __device__  void monitor(Args...) {}
+
+  // template<typename... Args>
+  // static __host__ void output_monitor(Args...) {}
+  static void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) {}
+  template<typename INPUT>
+  static __device__ void monitor(const Parameters&, INPUT, unsigned, bool)
+  {}
+  static __host__ void
+  output_monitor(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&)
+  {}
 };
 
 #if defined(DEVICE_COMPILER)
@@ -137,6 +152,7 @@ template<typename Derived, typename Parameters>
 __global__ void process_line(Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  // const unsigned event_number_plus_one = parameters.dev_event_list[blockIdx.x+1];
   const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
 
   // ODIN data
@@ -155,8 +171,11 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
     // Do selection
     for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-      parameters.dev_decisions[Derived::offset(parameters, event_number) + i] =
-        Derived::select(parameters, Derived::get_input(parameters, event_number, i));
+      auto input = Derived::get_input(parameters, event_number, i);
+      bool sel = Derived::select(parameters, input);
+      unsigned index = Derived::offset(parameters, event_number) + i;
+      parameters.dev_decisions[index] = sel;
+      Derived::monitor(parameters, input, index, sel);
     }
   }
 
@@ -195,8 +214,11 @@ __global__ void process_line_iterate_events(
     const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
 
     if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-      parameters.dev_decisions[event_number] =
-        Derived::select(parameters, Derived::get_input(parameters, event_number));
+      auto input = Derived::get_input(parameters, event_number);
+      bool decision = Derived::select(parameters, input);
+      parameters.dev_decisions[event_number] = decision;
+
+      Derived::monitor(parameters, input, event_number, decision);
     }
   }
 
@@ -245,7 +267,7 @@ struct LineIterationDispatch<Derived, Parameters, LineIteration::event_iteration
 template<typename Derived, typename Parameters>
 void Line<Derived, Parameters>::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
+  const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
   const Allen::Context& context) const
@@ -261,9 +283,13 @@ void Line<Derived, Parameters>::operator()(
     derived_instance->template property<typename Parameters::post_scaler_t>();
   data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
 
+  Derived::init_monitor(arguments, context);
+
   // Dispatch the executing global function.
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
     arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
+
+  derived_instance->output_monitor(arguments, runtime_options, context);
 }
 
 #endif

@@ -510,6 +510,7 @@ int allen(
   }
 
   auto checker_invoker = std::make_unique<CheckerInvoker>();
+  auto root_service = std::make_unique<ROOTService>();
 
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
@@ -521,6 +522,7 @@ int allen(
                         input_provider.get(),
                         zmqSvc,
                         checker_invoker.get(),
+                        root_service.get(),
                         number_of_repetitions,
                         do_check,
                         cpu_offload,

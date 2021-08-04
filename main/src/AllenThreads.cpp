@@ -12,6 +12,7 @@
 #include <HostBuffersManager.cuh>
 #include <MonitorManager.h>
 #include <CheckerInvoker.h>
+#include <ROOTService.h>
 #include <InputProvider.h>
 #include <StreamWrapper.cuh>
 #include <Tools.h>
@@ -209,6 +210,7 @@ void run_stream(
   IInputProvider const* input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
+  ROOTService* root_service,
   unsigned n_reps,
   bool do_check,
   bool cpu_offload,
@@ -270,7 +272,8 @@ void run_stream(
          mep_layout,
          inject_mem_fail,
          std::move(mc_events),
-         checker_invoker});
+         checker_invoker,
+         root_service});
 
       if (status == Allen::error::errorMemoryAllocation) {
         zmqSvc->send(control, "SPLIT", send_flags::sndmore);

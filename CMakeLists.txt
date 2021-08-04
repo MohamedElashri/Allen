@@ -740,6 +740,7 @@ if (USE_MPI AND MPI_FOUND)
 endif()
 
 if (USE_ROOT AND ROOT_FOUND)
+  target_compile_definitions(AllenLib PRIVATE ${ALLEN_ROOT_DEFINITIONS})
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
   target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})

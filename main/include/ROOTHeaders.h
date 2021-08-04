@@ -24,5 +24,6 @@
 #include <TClass.h>
 #include <TBufferFile.h>
 #include <TArrayI.h>
+#include <TROOT.h>
 
 #endif

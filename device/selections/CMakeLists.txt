@@ -37,8 +37,19 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB selections_src "Hlt1/src/*cu")
-file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/muon/src/*cu" "lines/monitoring/src/*cu")
+file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/inclusive_hadron/src/*cpp" "lines/muon/src/*cu" "lines/monitoring/src/*cu")
 allen_add_device_library(Selections STATIC
   ${selections_src}
   ${lines_src}
 )
+
+add_dependencies(Selections configured_sequence)
+
+if(USE_ROOT AND ROOT_FOUND)
+  target_compile_definitions(Selections PRIVATE WITH_ROOT)
+  target_include_directories(Selections SYSTEM BEFORE PRIVATE
+    ${ROOT_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR}
+  )
+  # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
+endif()
