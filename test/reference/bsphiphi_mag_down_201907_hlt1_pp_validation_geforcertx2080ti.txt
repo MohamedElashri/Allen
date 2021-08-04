@@ -69,6 +69,7 @@ Ghost tracks identified as muon with isMuon:                              184/  
 
 
 rate_validator validation:
+Hlt1KsToPiPi:             25/  1000, (  750.00 +/-   148.11) kHz
 Hlt1TrackMVA:            212/  1000, ( 6360.00 +/-   387.75) kHz
 Hlt1TwoTrackMVA:         373/  1000, (11190.00 +/-   458.79) kHz
 Hlt1TwoTrackCatBoost:    389/  1000, (11670.00 +/-   462.51) kHz

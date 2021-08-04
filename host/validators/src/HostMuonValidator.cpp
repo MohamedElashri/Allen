@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #include "HostMuonValidator.h"
 #include "PrepareTracks.h"
+#include <ROOTHeaders.h>
 
 void host_muon_validator::host_muon_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,

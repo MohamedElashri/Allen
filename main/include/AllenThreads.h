@@ -12,6 +12,7 @@ struct CheckerInvoker;
 struct HostBuffersManager;
 struct MonitorManager;
 struct IInputProvider;
+struct ROOTService;
 
 std::string connection(const size_t id, std::string suffix = "");
 
@@ -31,6 +32,7 @@ void run_stream(
   IInputProvider const* input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
+  ROOTService* root_service,
   unsigned n_reps,
   bool do_check,
   bool cpu_offload,

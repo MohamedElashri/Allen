@@ -11,6 +11,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "RunAllen.h"
+#include "ROOTService.h"
 
 DECLARE_COMPONENT(RunAllen)
 
@@ -181,6 +182,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   const size_t slice_index = 0;
   const bool mep_layout = false;
   const uint inject_mem_fail = 0;
+  auto root_service = std::make_unique<ROOTService>();
   RuntimeOptions runtime_options {m_tes_input_provider.get(),
                                   slice_index,
                                   {event_start, event_end},
@@ -190,7 +192,8 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
                                   mep_layout,
                                   inject_mem_fail,
                                   {},
-                                  nullptr};
+                                  nullptr,
+                                  root_service.get()};
 
   const unsigned buf_idx = m_n_buffers - 1;
   const unsigned stream_index = m_number_of_streams - 1;
