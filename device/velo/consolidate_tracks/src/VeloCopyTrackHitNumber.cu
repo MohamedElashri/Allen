@@ -50,7 +50,8 @@ __global__ void velo_copy_track_hit_number::velo_copy_track_hit_number(
   velo_copy_track_hit_number::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const auto event_tracks = parameters.dev_tracks + event_number * Velo::Constants::max_tracks;
+  const unsigned tracks_offset = Velo::track_offset(parameters.dev_offsets_estimated_input_size, event_number);
+  const auto event_tracks = parameters.dev_tracks + tracks_offset;
   const auto number_of_tracks =
     parameters.dev_offsets_velo_tracks[event_number + 1] - parameters.dev_offsets_velo_tracks[event_number];
   const auto number_of_three_hit_tracks = parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1] -

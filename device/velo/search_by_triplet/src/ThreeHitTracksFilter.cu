@@ -10,9 +10,11 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments
   const Constants&,
   const HostBuffers&) const
 {
+  const unsigned track_container_size =
+    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
+
   set_size<dev_number_of_three_hit_tracks_output_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_three_hit_tracks_output_t>(
-    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::max_tracks);
+  set_size<dev_three_hit_tracks_output_t>(arguments, track_container_size);
 }
 
 void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
@@ -29,7 +31,10 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO three hit tracks found:\n";
-    print_velo_three_hit_tracks<dev_three_hit_tracks_output_t, dev_number_of_three_hit_tracks_output_t>(arguments);
+    print_velo_three_hit_tracks<
+      dev_three_hit_tracks_output_t,
+      dev_number_of_three_hit_tracks_output_t,
+      dev_offsets_estimated_input_size_t>(arguments);
   }
 }
 
@@ -116,7 +121,6 @@ __device__ void three_hit_tracks_filter_impl(
     // Store them in the tracks container
     if (!any_used && chi2 < max_chi2) {
       const unsigned track_insert_number = atomicAdd(number_of_output_tracks, 1);
-      assert(track_insert_number < Velo::Constants::max_tracks);
       output_tracks[track_insert_number] = t;
     }
   }
@@ -128,7 +132,6 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   // Data initialization
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned tracks_offset = event_number * Velo::Constants::max_tracks;
 
   // Pointers to data within the event
   const unsigned total_estimated_number_of_clusters =
@@ -143,8 +146,8 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
     Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
   // Input three hit tracks
-  const Velo::TrackletHits* input_tracks =
-    parameters.dev_three_hit_tracks_input + event_number * Velo::Constants::max_three_hit_tracks;
+  const unsigned tracks_offset = Velo::track_offset(parameters.dev_offsets_estimated_input_size, event_number);
+  const Velo::TrackletHits* input_tracks = parameters.dev_three_hit_tracks_input + tracks_offset;
   const auto number_of_input_tracks =
     parameters.dev_atomics_velo[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
 

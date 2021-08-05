@@ -127,6 +127,7 @@ def make_velo_tracks(decoded_velo):
         velo_three_hit_tracks_filter_t,
         name="velo_three_hit_tracks_filter",
         host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_total_number_of_velo_clusters_t=host_total_number_of_velo_clusters,
         dev_sorted_velo_cluster_container_t=velo_sort_by_phi.
         dev_sorted_velo_cluster_container_t,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
@@ -156,6 +157,7 @@ def make_velo_tracks(decoded_velo):
         dev_tracks_t=velo_search_by_triplet.dev_tracks_t,
         dev_offsets_velo_tracks_t=prefix_sum_offsets_velo_tracks.
         dev_output_buffer_t,
+        dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_offsets_number_of_three_hit_tracks_filtered_t=
         prefix_sum_offsets_number_of_three_hit_tracks_filtered.
         dev_output_buffer_t,

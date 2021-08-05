@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "FitSeeds.cuh"
 
+static constexpr unsigned fit_seeds_max_velo_tracks_constant = 2048;
+
 void fit_seeds::pv_fit_seeds_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -70,19 +72,19 @@ __device__ bool fit_vertex(
   unsigned tracks_offset)
 {
 
-  float tr_state_x[Velo::Constants::max_tracks];
-  float tr_state_y[Velo::Constants::max_tracks];
-  float tr_state_z[Velo::Constants::max_tracks];
+  float tr_state_x[fit_seeds_max_velo_tracks_constant];
+  float tr_state_y[fit_seeds_max_velo_tracks_constant];
+  float tr_state_z[fit_seeds_max_velo_tracks_constant];
 
-  float tr_state_tx[Velo::Constants::max_tracks];
-  float tr_state_ty[Velo::Constants::max_tracks];
+  float tr_state_tx[fit_seeds_max_velo_tracks_constant];
+  float tr_state_ty[fit_seeds_max_velo_tracks_constant];
 
-  float tr_state_c00[Velo::Constants::max_tracks];
-  float tr_state_c11[Velo::Constants::max_tracks];
-  float tr_state_c20[Velo::Constants::max_tracks];
-  float tr_state_c22[Velo::Constants::max_tracks];
-  float tr_state_c31[Velo::Constants::max_tracks];
-  float tr_state_c33[Velo::Constants::max_tracks];
+  float tr_state_c00[fit_seeds_max_velo_tracks_constant];
+  float tr_state_c11[fit_seeds_max_velo_tracks_constant];
+  float tr_state_c20[fit_seeds_max_velo_tracks_constant];
+  float tr_state_c22[fit_seeds_max_velo_tracks_constant];
+  float tr_state_c31[fit_seeds_max_velo_tracks_constant];
+  float tr_state_c33[fit_seeds_max_velo_tracks_constant];
 
   // position at which derivatives are evaluated
 

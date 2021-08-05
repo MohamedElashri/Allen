@@ -119,6 +119,7 @@ template<
   typename NumberOfVeloTracks,
   typename VeloTracklets,
   typename NumberOfVeloTracklets,
+  typename OffsetsEstimatedInputSize,
   typename Arguments>
 __host__ inline void print_velo_tracks(Arguments arguments)
 {
@@ -127,6 +128,7 @@ __host__ inline void print_velo_tracks(Arguments arguments)
   const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments);
   const auto tracklethits = make_vector<VeloTracklets>(arguments);
   const auto number_of_velo_tracklets = make_vector<NumberOfVeloTracklets>(arguments);
+  const auto offsets_estimated_input_size = make_vector<OffsetsEstimatedInputSize>(arguments);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
@@ -136,11 +138,10 @@ __host__ inline void print_velo_tracks(Arguments arguments)
     std::cout << "Event #" << event_number << ": " << event_number_of_velo_tracks << " tracks and "
               << event_number_of_velo_tracklets << " tracklets:\n";
 
-    const auto tracks_offset = event_number * Velo::Constants::max_tracks;
-    const auto tracklets_offset = event_number * Velo::Constants::max_three_hit_tracks;
+    const auto track_offset = Velo::track_offset(offsets_estimated_input_size.data(), event_number);
     for (unsigned i = 0; i < event_number_of_velo_tracks; ++i) {
       std::cout << " Track #" << i << ": ";
-      const auto track = trackhits[tracks_offset + i];
+      const auto track = trackhits[track_offset + i];
       for (unsigned j = 0; j < track.hitsNum; ++j) {
         std::cout << track.hits[j] << ", ";
       }
@@ -148,7 +149,7 @@ __host__ inline void print_velo_tracks(Arguments arguments)
     }
     for (unsigned i = 0; i < event_number_of_velo_tracklets; ++i) {
       std::cout << " Tracklet #" << i << ": ";
-      const auto track = tracklethits[tracklets_offset + i];
+      const auto track = tracklethits[track_offset + i];
       for (unsigned j = 0; j < 3; ++j) {
         std::cout << track.hits[j] << ", ";
       }
@@ -159,21 +160,22 @@ __host__ inline void print_velo_tracks(Arguments arguments)
   }
 }
 
-template<typename VeloTracks, typename NumberOfVeloTracks, typename Arguments>
+template<typename VeloTracks, typename NumberOfVeloTracks, typename OffsetsEstimatedInputSize, typename Arguments>
 __host__ inline void print_velo_three_hit_tracks(Arguments arguments)
 {
   // Prints the velo clusters
   const auto trackhits = make_vector<VeloTracks>(arguments);
   const auto number_of_velo_tracks = make_vector<NumberOfVeloTracks>(arguments);
+  const auto offsets_estimated_input_size = make_vector<OffsetsEstimatedInputSize>(arguments);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
     std::cout << "Event #" << event_number << ": " << event_number_of_velo_tracks << " tracklets:\n";
 
-    const auto tracks_offset = event_number * Velo::Constants::max_tracks;
+    const auto track_offset = Velo::track_offset(offsets_estimated_input_size.data(), event_number);
     for (unsigned i = 0; i < event_number_of_velo_tracks; ++i) {
       std::cout << " Track #" << i << ": ";
-      const auto track = trackhits[tracks_offset + i];
+      const auto track = trackhits[track_offset + i];
       for (unsigned j = 0; j < 3; ++j) {
         std::cout << track.hits[j] << ", ";
       }

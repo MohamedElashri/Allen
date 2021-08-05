@@ -19,6 +19,8 @@
 
 void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_lines, const bool do_check)
 {
+  constexpr unsigned host_buffers_max_velo_tracks = 4000;
+
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
   Allen::malloc_host((void**) &host_number_of_events, sizeof(unsigned));
@@ -92,13 +94,13 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
     host_atomics_velo =
       reinterpret_cast<decltype(host_atomics_velo)>(malloc((2 * max_number_of_events + 1) * sizeof(int)));
     host_velo_track_hit_number = reinterpret_cast<decltype(host_velo_track_hit_number)>(
-      malloc(max_number_of_events * Velo::Constants::max_tracks * sizeof(unsigned)));
-    host_velo_track_hits = reinterpret_cast<decltype(host_velo_track_hits)>(
-      malloc(max_number_of_events * Velo::Constants::max_tracks * Velo::Constants::max_track_size * sizeof(Velo::Hit)));
+      malloc(max_number_of_events * host_buffers_max_velo_tracks * sizeof(unsigned)));
+    host_velo_track_hits = reinterpret_cast<decltype(host_velo_track_hits)>(malloc(
+      max_number_of_events * host_buffers_max_velo_tracks * Velo::Constants::max_track_size * sizeof(Velo::Hit)));
     host_velo_kalman_beamline_states = reinterpret_cast<decltype(host_velo_kalman_beamline_states)>(
-      malloc(max_number_of_events * Velo::Constants::max_tracks * Velo::Consolidated::States::size));
+      malloc(max_number_of_events * host_buffers_max_velo_tracks * Velo::Consolidated::States::size));
     host_velo_kalman_endvelo_states = reinterpret_cast<decltype(host_velo_kalman_endvelo_states)>(
-      malloc(max_number_of_events * Velo::Constants::max_tracks * Velo::Consolidated::States::size));
+      malloc(max_number_of_events * host_buffers_max_velo_tracks * Velo::Consolidated::States::size));
 
     host_atomics_ut =
       reinterpret_cast<decltype(host_atomics_ut)>(malloc(UT::num_atomics * (max_number_of_events + 1) * sizeof(int)));
