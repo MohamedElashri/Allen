@@ -21,7 +21,7 @@
 namespace Allen {
   namespace Configuration {
     namespace Detail {
-      std::regex const array_expr {"\\{(?:\\s*(\\d+)\\s*,?)+\\}"};
+      std::regex const array_expr {"\\[(?:\\s*(\\d+)\\s*,?)+\\]"};
       std::regex const digit_expr {"(\\d+)"};
     } // namespace Detail
 
