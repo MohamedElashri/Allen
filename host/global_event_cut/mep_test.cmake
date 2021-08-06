@@ -23,5 +23,6 @@ if (NOT STANDALONE)
 endif()
 
 target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
+add_dependencies(mep_gec struct_to_tuple)
 
 install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
