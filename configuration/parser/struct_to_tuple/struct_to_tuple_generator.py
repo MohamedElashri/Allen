@@ -4,10 +4,10 @@
 ###############################################################################
 
 
-class GenerateStructToTuple:
+class StructToTupleGenerator:
     def __init__(self):
-        self.pre_filename = "StructToTuple_pre.cuh"
-        self.post_filename = "StructToTuple_post.cuh"
+        self.pre_filename = "struct_to_tuple/StructToTuple_pre.cuh"
+        self.post_filename = "struct_to_tuple/StructToTuple_post.cuh"
 
     def __generate_code_struct_to_tuple(self, maximum_number_of_parameters):
         s = ""
@@ -37,7 +37,3 @@ class GenerateStructToTuple:
             s += f.read()
         with open(output_filename, "w") as f:
             f.write(s)
-
-
-gen = GenerateStructToTuple()
-gen.generate_file("StructToTuple.cuh", 100)
