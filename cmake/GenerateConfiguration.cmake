@@ -104,6 +104,7 @@ add_custom_command(
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
 add_custom_target(struct_to_tuple DEPENDS "${CODE_GENERATION_DIR}/StructToTuple.cuh")
+target_include_directories(struct_to_tuple PUBLIC "${PROJECT_BINARY_DIR}/code_generation/sequences/include")
 
 if(NOT STANDALONE)
   # We need to get the list of algorithms at configuration time in order to

@@ -266,7 +266,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_library(${ARGV})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    # target_include_directories(${ARGV0} PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
     add_dependencies(${ARGV0} struct_to_tuple)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0}
@@ -296,7 +295,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       DESTINATION ${destination})
-    # target_include_directories(${ARGV0} PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
     add_dependencies(${ARGV0} struct_to_tuple)
   endfunction()
 
@@ -340,9 +338,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION lib)
-    # target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include ${PROJECT_BINARY_DIR}/code_generation)
-    # target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    # install(TARGETS ${ARGV0} LIBRARY DESTINATION lib)
     add_dependencies(${ARGV0} struct_to_tuple)
   endfunction()
 
@@ -364,9 +359,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION ${destination})
-    # target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include ${PROJECT_BINARY_DIR}/code_generation)
-    # target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    # install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
     add_dependencies(${ARGV0} struct_to_tuple)
   endfunction()
 
@@ -432,9 +424,6 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION ${destination})
-    # target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${PROJECT_BINARY_DIR}/code_generation)
-    # target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    # install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
     add_dependencies(${ARGV0} struct_to_tuple)
   endfunction()
 

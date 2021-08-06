@@ -14,7 +14,6 @@ allen_add_host_library(Stream STATIC ${stream_src})
 
 include(GenerateConfiguration)
 
-target_include_directories(Stream PRIVATE "${PROJECT_BINARY_DIR}/code_generation/sequences/include")
 target_link_libraries(Stream
   PRIVATE
     Associate

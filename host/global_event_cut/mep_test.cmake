@@ -15,6 +15,7 @@ target_link_libraries(mep_gec PRIVATE
   Backend
   HostCommon
   LHCbEvent
+  struct_to_tuple
   ${MPI_CXX_LIBRARIES})
 
 if (NOT STANDALONE)
