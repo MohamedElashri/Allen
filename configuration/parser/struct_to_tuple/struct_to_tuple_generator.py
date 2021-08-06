@@ -6,8 +6,8 @@
 
 class StructToTupleGenerator:
     def __init__(self):
-        self.pre_filename = "struct_to_tuple/StructToTuple_pre.cuh"
-        self.post_filename = "struct_to_tuple/StructToTuple_post.cuh"
+        self.pre_filename = "struct_to_tuple/StructToTuple_pre"
+        self.post_filename = "struct_to_tuple/StructToTuple_post"
 
     def __generate_code_struct_to_tuple(self, maximum_number_of_parameters):
         s = ""
