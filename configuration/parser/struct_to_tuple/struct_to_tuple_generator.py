@@ -16,7 +16,7 @@ class StructToTupleGenerator:
             for j in range(i):
                 s += "any_type, "
             s = s[:-2]
-            s += ">{}) {\n    auto&& ["
+            s += ">) {\n    auto&& ["
             for j in range(i):
                 s += "p" + str(j) + ", "
             s = s[:-2]
