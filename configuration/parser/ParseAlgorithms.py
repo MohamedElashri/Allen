@@ -615,8 +615,9 @@ if __name__ == '__main__':
         nargs="?",
         type=str,
         default="views",
+        choices=["views", "wrapperlist", "wrappers"],
         help=
-        "action that will be performed, one of [views, wrapperlist, wrappers]")
+        "action that will be performed")
     args = parser.parse_args()
 
     prefix_project_folder = args.prefix_project_folder + "/"
@@ -641,8 +642,4 @@ if __name__ == '__main__':
         # Write Gaudi wrappers on top of all algorithms
         AllenCore.write_gaudi_algorithms(parsed_algorithms,
                                          args.algorithm_wrappers_folder)
-    else:
-        raise Exception(
-            "Unexpected action required from ParseAlgorithms, generate is not one of [views, wrapperlist, wrappers]"
-        )
     print(f"{args.generate} successfully generated.")
