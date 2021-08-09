@@ -33,11 +33,11 @@ void ROOTService::file(std::string const& root_file)
 TTree* ROOTService::ttree(std::string const& name)
 {
   if (m_file) {
-    if (!gDirectory->GetListOfKeys()->Contains(name.c_str())) {
+    if (!m_file->GetListOfKeys()->Contains(name.c_str())) {
       m_tree = std::make_unique<TTree>(name.c_str(), name.c_str());
     }
     else {
-      m_tree = std::unique_ptr<TTree>(static_cast<TTree*>(gDirectory->Get(name.c_str())));
+      m_tree = std::unique_ptr<TTree>(static_cast<TTree*>(m_file->Get(name.c_str())));
     }
     return m_tree.get();
   }
