@@ -85,6 +85,7 @@ __device__ void pre_decode_raw_bank<3>(
     const uint32_t strip = channelID - (index * m_nStripsPerHybrid) + 1;
 
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + index;
+    if (fullChanIndex >= boards.number_of_channels) continue;
     const uint32_t station = boards.stations[fullChanIndex] - 1;
     const uint32_t layer = boards.layers[fullChanIndex] - 1;
     const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
@@ -166,6 +167,8 @@ __device__ void pre_decode_raw_bank<4>(
     if (raw_bank.number_of_hits[lane] == 0) continue;
     // we can do some things that only depend on lane and sourceID before decoding individual hits
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
+    const uint32_t s = boards.stations[fullChanIndex];
+    if (s == 0) continue;
     const uint32_t station = boards.stations[fullChanIndex] - 1;
     const uint32_t layer = boards.layers[fullChanIndex] - 1;
     const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
