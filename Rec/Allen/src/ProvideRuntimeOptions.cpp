@@ -37,6 +37,7 @@ private:
   const bool m_cpu_offload = true;
   const bool m_param_inject_mem_fail = false;
   mutable CheckerInvoker m_checker_invoker {};
+  mutable ROOTService m_root_service {};
 };
 
 ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -81,7 +82,8 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
           mep_layout,
           m_param_inject_mem_fail,
           std::move(mc_events),
-          &m_checker_invoker};
+          &m_checker_invoker,
+          &m_root_service};
 }
 
 DECLARE_COMPONENT(ProvideRuntimeOptions)
