@@ -10,9 +10,7 @@ import codecs
 from collections import OrderedDict
 from AlgorithmTraversalLibClang import AlgorithmTraversal
 import argparse
-
-# Prefix folder, prepended to device / host folder
-prefix_project_folder = "../"
+import pickle
 
 
 def get_clang_so_location():
@@ -54,14 +52,14 @@ class Parser():
         return list_of_files
 
     @staticmethod
-    def get_all_filenames():
+    def get_all_filenames(prefix_project_folder):
         return Parser.__get_filenames(prefix_project_folder + Parser.__device_folder, Parser.__sought_extensions_compiled) + \
             Parser.__get_filenames(prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
-    def parse_all(algorithm_parser=AlgorithmTraversal()):
+    def parse_all(prefix_project_folder, algorithm_parser=AlgorithmTraversal()):
         """Parses all files and traverses algorithm definitions."""
-        all_filenames = Parser.get_all_filenames()
+        all_filenames = Parser.get_all_filenames(prefix_project_folder)
         algorithms = []
         for filename in all_filenames:
             with codecs.open(filename, 'r', 'utf-8') as f:
@@ -611,35 +609,47 @@ if __name__ == '__main__':
         default="",
         help="converted algorithms folder")
     parser.add_argument(
+        "--parsed_algorithms",
+        nargs="?",
+        type=str,
+        default="",
+        help="location of parsed algorithms")
+    parser.add_argument(
         "--generate",
         nargs="?",
         type=str,
         default="views",
-        choices=["views", "wrapperlist", "wrappers"],
+        choices=["parsed_algorithms", "views", "wrapperlist", "wrappers"],
         help=
         "action that will be performed")
+    
     args = parser.parse_args()
+    if args.generate == "parsed_algorithms":
+        parsed_algorithms = Parser().parse_all(args.prefix_project_folder + "/")
+        with open(args.filename, "wb") as f:
+            pickle.dump(parsed_algorithms, f)
+    else:
+        if args.parsed_algorithms:
+            # Load pregenerated parsed_algorithms
+            with open(args.parsed_algorithms, "rb") as f:
+                parsed_algorithms = pickle.load(f)
+        else:
+            # Otherwise generate parsed_algorithms on the fly
+            parsed_algorithms = Parser().parse_all(args.prefix_project_folder + "/")
 
-    prefix_project_folder = args.prefix_project_folder + "/"
-
-    print("Parsing algorithms...")
-    parsed_algorithms = Parser().parse_all()
-
-    print(f"Generating {args.generate}...")
-    if args.generate == "views":
-        # Generate algorithm python views
-        AllenCore.write_algorithms_view(parsed_algorithms, args.filename)
-    elif args.generate == "wrapperlist":
-        # Generate Gaudi wrapper filenames
-        gaudi_wrapper_filenames = AllenCore.write_gaudi_algorithms(
-            parsed_algorithms,
-            args.algorithm_wrappers_folder,
-            write_files=False)
-        # Write algorithm list in txt format for CMake
-        AllenCore.write_algorithm_filename_list(gaudi_wrapper_filenames,
-                                                args.filename)
-    elif args.generate == "wrappers":
-        # Write Gaudi wrappers on top of all algorithms
-        AllenCore.write_gaudi_algorithms(parsed_algorithms,
-                                         args.algorithm_wrappers_folder)
-    print(f"{args.generate} successfully generated.")
+        if args.generate == "views":
+            # Generate algorithm python views
+            AllenCore.write_algorithms_view(parsed_algorithms, args.filename)
+        elif args.generate == "wrapperlist":
+            # Generate Gaudi wrapper filenames
+            gaudi_wrapper_filenames = AllenCore.write_gaudi_algorithms(
+                parsed_algorithms,
+                args.algorithm_wrappers_folder,
+                write_files=False)
+            # Write algorithm list in txt format for CMake
+            AllenCore.write_algorithm_filename_list(gaudi_wrapper_filenames,
+                                                    args.filename)
+        elif args.generate == "wrappers":
+            # Write Gaudi wrappers on top of all algorithms
+            AllenCore.write_gaudi_algorithms(parsed_algorithms,
+                                             args.algorithm_wrappers_folder)
