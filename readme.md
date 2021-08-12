@@ -49,14 +49,6 @@ we show a proposed development setup with CVMFS and CentOS 7:
     source /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
     ```
 
-* CUDACLANG target: A version of the clang compiler with ptx support is required,
-  alongside a local installation of CUDA 10.1 (currently latest supported release):
-
-    ```console
-    source /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0/x86_64-centos7/setup.sh
-    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.1/x86_64-centos7/setup.sh
-    ```
-
 Optionally the project can be compiled with ROOT. Histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/plotting/readme.md).
 
 Where to find input
@@ -104,11 +96,11 @@ The build process can be configured with cmake options. For a complete list of o
 Alternatively, cmake options can be passed with `-D` when invoking the cmake command (eg. `cmake -D<option>=<value> ..`). Here is a brief explanation of some options:
 
 * `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
-* `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU` (default), `CUDA`, `HIP` (experimental) and `CUDACLANG` (experimental).
+* `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU` (default), `CUDA` and `HIP` (experimental).
 * `SEQUENCE` - Selects the sequence to be compiled (the sequence must be selected at compile time). For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.py` extension, ie. `-DSEQUENCE=velo`.
 * `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo` (default), `Release` or `Debug`.
 * `USE_ROOT` - Configure to run with / without ROOT. `OFF` by default.
-* `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation. It only has effect if the target device is either `CUDA` or `CUDACLANG`.
+* `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation.
 * `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
 
 ### As a Gaudi/LHCb project
