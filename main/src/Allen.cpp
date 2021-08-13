@@ -1023,7 +1023,9 @@ loop_error:
   if (print_status) {
     buffers_manager->printStatus();
   }
-  monitor_manager->saveHistograms();
+  if (!mon_filename.empty()) {
+    monitor_manager->saveHistograms(mon_filename);
+  }
 
   // Print checker reports
   checker_invoker->report(n_events_processed * number_of_repetitions);
