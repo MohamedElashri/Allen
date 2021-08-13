@@ -88,6 +88,8 @@ public:
     std::vector<size_t>& sizes) const = 0;
 
   virtual void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const = 0;
+
+  virtual bool release_buffers() = 0;
 };
 
 
@@ -133,6 +135,8 @@ public:
   size_t events_per_slice() const override { return m_events_per_slice; }
 
   std::optional<size_t> const& n_events() const { return m_nevents; }
+
+  bool release_buffers() override { return true; }
 
 protected:
 
