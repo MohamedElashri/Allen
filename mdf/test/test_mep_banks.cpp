@@ -9,18 +9,24 @@
 #include <unordered_set>
 #include <map>
 
+#include <TransposeTypes.h>
+#include <Provider.h>
+#include <ProgramOptions.h>
+#include <MEPTools.h>
 #include <Event/RawBank.h>
-#include <read_mdf.hpp>
-#include <read_mep.hpp>
 #include <Timer.h>
-#include <InputTools.h>
-#include <MDFProvider.h>
-#include <MEPProvider.h>
-#include <TransposeMEP.h>
 #include <ClusteringDefinitions.cuh>
 #include <SciFiRaw.cuh>
 #include <UTRaw.cuh>
 #include <MuonRaw.cuh>
+
+#include <GaudiKernel/Bootstrap.h>
+#include <GaudiKernel/IProperty.h>
+#include <GaudiKernel/IAppMgrUI.h>
+#include <GaudiKernel/IStateful.h>
+#include <GaudiKernel/ISvcLocator.h>
+#include <GaudiKernel/SmartIF.h>
+
 
 #define CATCH_CONFIG_RUNNER
 #include <catch.hpp>
@@ -29,8 +35,8 @@ using namespace std;
 using namespace std::string_literals;
 
 struct Config {
-  vector<string> mdf_files;
-  vector<string> mep_files;
+  std::string mdf_files;
+  std::string mep_files;
   size_t n_slices = 1;
   size_t n_events = 10;
   bool run = false;
@@ -38,32 +44,66 @@ struct Config {
 
 namespace {
   Config s_config;
-  MDFProviderConfig mdf_config {true, 2, 1};
 
-  unique_ptr<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mep;
-  unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mdf;
+  std::unique_ptr<IInputProvider> mdf;
+  IInputProvider* mep;
 
   size_t slice_mdf = 0, slice_mep = 0;
   size_t filled_mdf = 0, filled_mep = 0;
 
-  vector<char> mep_buffer;
-  Slices mep_slices;
-  EventIDs events_mep;
 } // namespace
+
+IInputProvider* mep_provider() {
+  SmartIF<IStateful> app = Gaudi::createApplicationMgr();
+  auto prop = app.as<IProperty>();
+  bool sc = prop->setProperty("ExtSvc", "[\"MEPProvider\"]").isSuccess();
+  sc &= prop->setProperty("JobOptionsType", "\"NONE\"");
+  sc &= app->configure();
+  if (sc) {
+    auto sloc = app.as<ISvcLocator>();
+    auto provider = sloc->service<IService>("MEPProvider");
+    if (!provider) return nullptr;
+    auto provider_prop = provider.as<IProperty>();
+    sc &= provider_prop->setProperty("NSlices", "1").isSuccess();
+    sc &= provider_prop->setProperty("EventsPerSlice", std::to_string(s_config.n_events));
+    sc &= provider_prop->setProperty("EvtMax", std::to_string(s_config.n_events));
+    sc &= provider_prop->setProperty("SplitByRun", "0");
+    sc &= provider_prop->setProperty("Source", "\"Files\"");
+    sc &= provider_prop->setProperty("BufferConfig", "(1, 1)");
+    sc &= provider_prop->setProperty("OutputLevel", "2");
+
+    auto mep_files = split_string(s_config.mep_files, ",");
+    std::stringstream ss;
+    ss << "[\"" << mep_files.front();
+    mep_files.erase(mep_files.begin());
+    for (auto f : mep_files) {
+      ss << "\",\"" << f;
+    }
+    ss << "\"]";
+    sc &= provider_prop->setProperty("Connections", ss.str());
+
+    sc &= app->initialize();
+    sc &= app->start();
+    return dynamic_cast<IInputProvider*>(provider.get());
+  }
+  else {
+    return nullptr;
+  }
+}
 
 int main(int argc, char* argv[])
 {
 
   Catch::Session session; // There must be exactly one instance
 
-  string directory;
-
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
   auto cli = session.cli()                          // Get Catch's composite command line parser
-             | Opt(directory, string {"directory"}) // bind variable to a new option, with a hint string
-                 ["--directory"]("input directory") |
-             Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
+             | Opt(s_config.mdf_files, string {"MDF files"}) // bind variable to a new option, with a hint string
+                 ["--mdf"]("MDF files")
+             | Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
+                 ["--mep"]("MEP files")
+             | Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
                ["--nevents"]("number of events");
 
   // Now pass the new composite back to Catch so it uses that
@@ -75,29 +115,26 @@ int main(int argc, char* argv[])
     return returnCode;
   }
 
-  s_config.run = !directory.empty();
-
+  s_config.run = !s_config.mdf_files.empty();
   if (s_config.run) {
     // Allocate providers and get slices
-    mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
+    std::map<std::string, std::string> options = {{"s", "1"},
+                                                  {"b", "VP,UT,FTCluster,Muon,ODIN"},
+                                                  {"n", std::to_string(s_config.n_events)},
+                                                  {"mdf", s_config.mdf_files},
+                                                  {"events-per-slice", std::to_string(s_config.n_events)},
+                                                  {"disable-run-changes", "1"}};
+
+    mdf = Allen::make_provider(options);
 
     bool good = false, timed_out = false, done = false;
     uint runno = 0;
     std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
-
-    MEPProviderConfig mep_config {false, // verify MEP checksums
-                                  2,     // number of read buffers
-                                  1u,    // number of transpose threads
-                                  4u,    // MPI sliding window size
-                                  false, // Receive from MPI or read files
-                                  false, // Run the application non-stop
-                                  false, // MEPs should be transposed to Allen layout
-                                  false, // Whether to split slices by run number
-                                  {}};   // Map of receiver to MPI rank to receive from
-    mep = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mep_files, mep_config);
-    mep->start();
+    mep = mep_provider();
+    if (mep == nullptr) {
+      std::cerr << "Failed to obtain MEPProvider\n";
+      return 1;
+    }
     std::tie(good, done, timed_out, slice_mep, filled_mep, runno) = mep->get_slice();
   }
 
@@ -177,9 +214,21 @@ void compare<BankTypes::UT>(
       auto const mep_bank = MEP::raw_bank<UTRawBank<4>>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
       auto const event_offset = allen_raw_event.raw_bank_offsets[bank];
       auto const allen_bank = allen_raw_event.getUTRawBank<4>(bank);
+
+      // The bank size is derived from the Allen layout, where the
+      // source ID is part of the data.
+      auto const fragment_size = allen_raw_event.raw_bank_offsets[bank + 1] - event_offset - sizeof(uint32_t);
+
+      // skip buggy banks without content
+      if (fragment_size < sizeof(uint32_t) * 6) continue;
+
       REQUIRE(mep_bank.sourceID == allen_bank.sourceID);
       REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
-      for (size_t j = 0; j < ((allen_raw_event.raw_bank_offsets[bank + 1] - event_offset) >> 1) - 4; ++j) {
+
+      // Skip the 64bit header
+      // The fragment size is in bytes, but the bank data are shorts,
+      // so divide by 2
+      for (size_t j = 0; j < ((fragment_size - 2 * sizeof(uint32_t)) >> 1); ++j) {
         REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
       }
     }
@@ -295,6 +344,16 @@ TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", VeloTag, UTTag, SciFiTag, MuonTag)
 
   // Check that the number of events read matches
   REQUIRE(filled_mep == filled_mdf);
+
+  auto events_mdf = mdf->event_ids(slice_mdf);
+  auto events_mep = mep->event_ids(slice_mdf);
+
+  for (size_t i = 0; i < filled_mdf; ++i) {
+    auto [run_mdf, event_mdf] = events_mdf[i];
+    auto [run_mep, event_mep] = events_mep[i];
+    REQUIRE(run_mdf == run_mep);
+    REQUIRE(event_mdf == event_mep);
+  }
 
   auto mep_banks = mep->banks(TestType::BT, slice_mep);
   auto mdf_banks = mdf->banks(TestType::BT, slice_mdf);

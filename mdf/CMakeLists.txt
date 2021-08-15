@@ -71,7 +71,7 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Transpose Threads::Threads EventModel)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Transpose Threads::Threads EventModel AllenZMQ)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
     target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
@@ -81,8 +81,11 @@ function(test_program)
 endfunction()
 
 if (BUILD_TESTING)
-  add_library(Transpose STATIC ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp)
-  target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent)
+  add_library(Transpose STATIC
+    ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp
+    ${PROJECT_SOURCE_DIR}/main/src/Provider.cpp
+    ${PROJECT_SOURCE_DIR}/main/src/ZMQOutputSender.cpp)
+  target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent AllenZMQ EventModel AllenFS)
 
   test_program(NAME dump_banks)
   test_program(NAME test_read)
@@ -90,6 +93,7 @@ if (BUILD_TESTING)
   test_program(NAME bench_provider )
   test_program(NAME bench_transpose)
   test_program(NAME test_mdf_transpose)
+  test_program(NAME test_mep_banks)
   if (STANDALONE)
     add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   else()
