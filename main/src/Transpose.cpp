@@ -338,8 +338,8 @@ std::tuple<bool, bool, size_t> transpose_events(
 
 
 Allen::Slices allocate_slices(size_t n_slices,
-		       std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun,
-		       std::unordered_set<BankTypes> const& bank_types
+             std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun,
+             std::unordered_set<BankTypes> const& bank_types
 )
 {
   Allen::Slices slices;
@@ -357,14 +357,14 @@ Allen::Slices allocate_slices(size_t n_slices,
       if (n_offsets) Allen::malloc_host((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned));
 
       for (size_t i = 0; i < n_offsets + 1; ++i) {
-	offsets_mem[i] = 0;
+        offsets_mem[i] = 0;
       }
       std::vector<gsl::span<char>> spans {};
       if (n_bytes) {
-	spans.emplace_back(events_mem, n_bytes);
+        spans.emplace_back(events_mem, n_bytes);
       }
       bank_slices.emplace_back(
-	std::move(spans), n_bytes, offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)}, 1);
+        std::move(spans), n_bytes, offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)}, 1);
     }
   }
   return slices;
