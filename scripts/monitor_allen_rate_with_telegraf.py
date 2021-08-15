@@ -10,7 +10,7 @@ from threading import Thread
 import requests
 from dateutil.parser import *
 import datetime
-
+import socket as sock
 import sys
 import zmq
 
@@ -18,7 +18,7 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 
 
 def send(telegraf_string):
-    telegraf_url = 'http://localhost:8186/telegraf'
+    telegraf_url = 'http://dcinflux01:8189/telegraf'
     session = requests.session()
     session.trust_env = False
     try:
@@ -35,7 +35,7 @@ def send_to_telegraf(rate, device, app_name, rate_name):
     now = datetime.datetime.now()
     timestamp = datetime.datetime.timestamp(now) * 1000000000
 
-    telegraf_string = "AllenIntegrationTest,%s=%s " % (app_name, device)
+    telegraf_string = "AllenIntegrationTest,host=%s,%s=%s " % (sock.gethostname(), app_name, device)
     telegraf_string += "%s=%.2f " % (rate_name, float(rate))
     telegraf_string += " %d" % timestamp
 
@@ -50,10 +50,10 @@ def main():
     ctx = zmq.Context()
     sockets = {}
     connections = {
-        "ipc:///tmp/allen_throughput_%s": (["0", "1", "2"], 'AllenInstance',
+        "ipc:///tmp/allen_throughput_%s": (["0"], 'AllenInstance',
                                            'allen_rate'),
-        "tcp://%s:%s": ([('lbdaqrome02', '35001')], 'OutputWriter',
-                        'output_rate')
+        # "tcp://%s:%s": ([('lbdaqrome02', '35001')], 'OutputWriter',
+        #                 'output_rate')
     }
     for connection, (ids, app_name, rate_name) in connections.items():
         for socket_id in ids:

@@ -10,12 +10,13 @@ import sys
 import time
 import datetime
 import requests
+import socket as sock
 
 SYS_DIR = '/sys/class/infiniband'
 
 
 def send(telegraf_string):
-    telegraf_url = 'http://localhost:8186/telegraf' 
+    telegraf_url = 'http:///dcinflux01:8189/telegraf' 
     session = requests.session()
     session.trust_env = False 
     try:
@@ -36,7 +37,7 @@ def send_to_telegraf(labels, mbps_in_, mbps_out_, kpps_in_, kpps_out_):
     for lab, mbps_in, mbps_out, kpps_in, kpps_out in zip(labels, mbps_in_, mbps_out_, kpps_in_, kpps_out_):
         print(lab, mbps_in)
   
-        telegraf_string = "AllenIntegrationTest,ib_link=%s " % (lab)
+        telegraf_string = "AllenIntegrationTest,host=%s,ib_link=%s " % (sock.gethostname(), lab)
         telegraf_string += "mbps_in=%.2f,mbps_out=%.2f,kpps_in=%.2f,kpps_out=%.2f " % (float(mbps_in), float(mbps_out), float(kpps_in), float(kpps_out)) 
         telegraf_string += " %d" % timestamp 
 
