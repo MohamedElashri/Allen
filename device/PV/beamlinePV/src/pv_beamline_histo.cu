@@ -22,6 +22,8 @@ void pv_beamline_histo::pv_beamline_histo_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
+  initialize<dev_zhisto_t>(arguments, 0, context);
+
   global_function(pv_beamline_histo)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_beamline.data());
 }
@@ -48,14 +50,6 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
   const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   float* histo_base_pointer = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
-
-  // find better way to intialize histogram bins to zero
-  if (threadIdx.x == 0) {
-    for (int i = 0; i < BeamlinePVConstants::Common::Nbins; i++) {
-      *(histo_base_pointer + i) = 0.f;
-    }
-  }
-  __syncthreads();
 
   for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     PVTrack trk = parameters.dev_pvtracks[event_tracks_offset + index];
