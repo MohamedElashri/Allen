@@ -118,6 +118,12 @@ if(ENABLE_CONTRACTS)
   add_compile_definitions(ENABLE_CONTRACTS)
 endif()
 
+# Chioce of profiling with callgrind
+option(CALLGRIND_PROFILE "Set Callgrind macros around sequence" OFF)
+if(CALLGRIND_PROFILE)
+  add_compile_definitions(CALLGRIND_PROFILE)
+endif()
+
 # Deal with device target architecture
 if(NOT STANDALONE)
   message(STATUS "Configured Gaudi build")

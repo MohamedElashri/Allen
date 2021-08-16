@@ -5,6 +5,10 @@
 #include "StreamWrapper.cuh"
 #include "ValidationAlgorithm.cuh"
 
+#ifdef CALLGRIND_PROFILE
+#include <valgrind/callgrind.h>
+#endif
+
 StreamWrapper::StreamWrapper() {}
 
 void StreamWrapper::initialize_streams(
@@ -102,6 +106,10 @@ void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
 
 Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
+#ifdef CALLGRIND_PROFILE
+  CALLGRIND_START_INSTRUMENTATION;
+#endif
+
   host_buffers = host_buffers_manager->getBuffers(buf_idx);
   // The sequence is only run if there are events to run on
   auto event_start = std::get<0>(runtime_options.event_interval);
@@ -141,6 +149,11 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
       }
     }
   }
+
+#ifdef CALLGRIND_PROFILE
+  CALLGRIND_STOP_INSTRUMENTATION;
+  CALLGRIND_DUMP_STATS;
+#endif
 
   return Allen::error::success;
 }
