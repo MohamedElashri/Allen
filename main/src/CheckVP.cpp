@@ -27,13 +27,13 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uns
     int n_sps_event = 0;
     for (unsigned i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks(); i_raw_bank++) {
       const auto raw_bank = raw_event.raw_bank(i_raw_bank);
-      n_sps_event += raw_bank.sp_count;
+      n_sps_event += raw_bank.count;
       if (i_raw_bank != raw_bank.sensor_index) {
         error_cout << "at raw bank " << i_raw_bank << ", but index = " << raw_bank.sensor_index << std::endl;
         ++error_count;
       }
-      if (raw_bank.sp_count > 0) {
-        uint32_t sp_word = raw_bank.sp_word[0];
+      if (raw_bank.count > 0) {
+        uint32_t sp_word = raw_bank.word[0];
         uint8_t sp = sp_word & 0xFFU;
         if (0 == sp) {
           continue;

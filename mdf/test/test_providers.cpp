@@ -35,7 +35,7 @@ namespace {
   Config s_config;
   MDFProviderConfig mdf_config {true, 2, 1};
 
-  unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mdf;
+  unique_ptr<MDFProvider<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mdf;
 
   size_t slice_mdf = 0;
   size_t filled_mdf = 0;
@@ -126,13 +126,12 @@ int main(int argc, char* argv[])
       }
     }
     // Allocate providers and get slices
-    mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+    mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
 
     bool good = false, timed_out = false, done = false;
     uint runno = 0;
     std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
-
     assert(good);
     assert(!timed_out);
     assert(filled_mdf == s_config.n_events);
@@ -150,7 +149,7 @@ int main(int argc, char* argv[])
       return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
     };
     mep_slices =
-      allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(1, size_fun);
+      allocate_slices<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(1, size_fun);
 
     transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
   }
@@ -201,6 +200,7 @@ TEMPLATE_TEST_CASE(
   "[MEP MDF]",
   BTTag<BankTypes::ODIN>,
   BTTag<BankTypes::VP>,
+  BTTag<BankTypes::VPRetinaCluster>,
   BTTag<BankTypes::UT>,
   BTTag<BankTypes::FT>,
   BTTag<BankTypes::MUON>)

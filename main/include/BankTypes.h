@@ -12,13 +12,14 @@
 #include <cassert>
 #include <gsl/span>
 
-constexpr auto NBankTypes = 10;
-enum class BankTypes { VP, UT, FT, MUON, ODIN, OTRaw, OTError, Rich, ECal, HCal, Unknown };
+constexpr auto NBankTypes = 11;
+enum class BankTypes { VP, VPRetinaCluster, UT, FT, MUON, ODIN, OTRaw, OTError, Rich, ECal, HCal, Unknown };
 
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.
 // FIXME: make this configurable
 const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 20.f},
+                                                        {BankTypes::VPRetinaCluster, 20.f},
                                                         {BankTypes::UT, 12.f},
                                                         {BankTypes::FT, 15.f},
                                                         {BankTypes::MUON, 4.f},

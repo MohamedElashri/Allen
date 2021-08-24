@@ -9,6 +9,7 @@
 
 namespace {
   const std::map<BankTypes, std::string> BankNames = {{BankTypes::VP, "VP"},
+                                                      {BankTypes::VPRetinaCluster, "VPRetinaCluster"},
                                                       {BankTypes::UT, "UT"},
                                                       {BankTypes::FT, "FTCluster"},
                                                       {BankTypes::MUON, "Muon"},

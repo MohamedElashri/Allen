@@ -11,75 +11,122 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def decode_velo():
-    number_of_events = initialize_number_of_events()
-    velo_banks = make_algorithm(
-        data_provider_t, name="velo_banks", bank_type="VP")
+@configurable
+def decode_velo(retina_decoding=False):
+    if retina_decoding:        
+        velo_retina_banks = make_algorithm(
+            data_provider_t, name="velo_retina_banks", bank_type="VPRetinaCluster")
 
-    velo_calculate_number_of_candidates = make_algorithm(
-        velo_calculate_number_of_candidates_t,
-        name="velo_calculate_number_of_candidates",
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
-        dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
-    )
+        calculate_number_of_retinaclusters_each_sensor = make_algorithm(
+            calculate_number_of_retinaclusters_each_sensor_t,
+            name="calculate_number_of_retinaclusters_each_sensor",
+            host_number_of_selected_events_t=initialize_lists.
+            host_number_of_selected_events_t,
+            dev_event_list_t=initialize_lists.dev_event_list_t,
+            dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
+            dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
+            dev_raw_offsets_t)
 
-    prefix_sum_offsets_velo_candidates = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_offsets_velo_candidates",
-        dev_input_buffer_t=velo_calculate_number_of_candidates.
-        dev_number_of_candidates_t,
-    )
+        prefix_sum_offsets_estimated_input_size = make_algorithm(
+            host_prefix_sum_t,
+            name="prefix_sum_offsets_estimated_input_size",
+            dev_input_buffer_t=calculate_number_of_retinaclusters_each_sensor.dev_each_sensor_size_t)        
+        
+        decode_retinaclusters = make_algorithm(
+            decode_retinaclusters_t
+            name="decode_retinaclusters",
+            host_total_number_of_velo_clusters_t=
+            prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
+            host_number_of_selected_events_t=initialize_lists.
+            host_number_of_selected_events_t,
+            dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
+            dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
+            dev_raw_offsets_t,
+            dev_offsets_each_sensor_size_t=
+            prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            dev_event_list_t=initialize_lists.dev_event_list_t)
 
-    velo_estimate_input_size = make_algorithm(
-        velo_estimate_input_size_t,
-        name="velo_estimate_input_size",
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_cluster_candidates_t=prefix_sum_offsets_velo_candidates.
-        host_total_sum_holder_t,
-        dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
-        dev_output_buffer_t,
-        dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
-        dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
-    )
+        return {
+            "dev_velo_cluster_container":
+            decode_retinaclusters.dev_velo_cluster_container_t,
+            "dev_module_cluster_num":
+            decode_retinaclusters.dev_module_cluster_num_t,
+            "dev_offsets_estimated_input_size":
+            prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            "host_total_number_of_velo_clusters":
+            prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
+            "dev_velo_clusters":
+            decode_retinaclusters.dev_velo_cluster_container_t
+        }      
+    else:  
+        number_of_events = initialize_number_of_events()
+        velo_banks = make_algorithm(
+            data_provider_t, name="velo_banks", bank_type="VP")
 
-    prefix_sum_offsets_estimated_input_size = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_offsets_estimated_input_size",
-        dev_input_buffer_t=velo_estimate_input_size.dev_estimated_input_size_t,
-    )
+        velo_calculate_number_of_candidates = make_algorithm(
+            velo_calculate_number_of_candidates_t,
+            name="velo_calculate_number_of_candidates",
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
+            dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
+        )
 
-    velo_masked_clustering = make_algorithm(
-        velo_masked_clustering_t,
-        name="velo_masked_clustering",
-        host_total_number_of_velo_clusters_t=
-        prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
-        dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
-        dev_offsets_estimated_input_size_t=
-        prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
-        dev_module_candidate_num_t=velo_estimate_input_size.
-        dev_module_candidate_num_t,
-        dev_cluster_candidates_t=velo_estimate_input_size.
-        dev_cluster_candidates_t,
-        dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
-        dev_output_buffer_t,
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
-    )
+        prefix_sum_offsets_velo_candidates = make_algorithm(
+            host_prefix_sum_t,
+            name="prefix_sum_offsets_velo_candidates",
+            dev_input_buffer_t=velo_calculate_number_of_candidates.
+            dev_number_of_candidates_t,
+        )
 
-    return {
-        "dev_velo_cluster_container":
-        velo_masked_clustering.dev_velo_cluster_container_t,
-        "dev_module_cluster_num":
-        velo_masked_clustering.dev_module_cluster_num_t,
-        "dev_offsets_estimated_input_size":
-        prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
-        "host_total_number_of_velo_clusters":
-        prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
-        "dev_velo_clusters":
-        velo_masked_clustering.dev_velo_clusters_t
-    }
+        velo_estimate_input_size = make_algorithm(
+            velo_estimate_input_size_t,
+            name="velo_estimate_input_size",
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_number_of_cluster_candidates_t=prefix_sum_offsets_velo_candidates.
+            host_total_sum_holder_t,
+            dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
+            dev_output_buffer_t,
+            dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
+            dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
+        )
+
+        prefix_sum_offsets_estimated_input_size = make_algorithm(
+            host_prefix_sum_t,
+            name="prefix_sum_offsets_estimated_input_size",
+            dev_input_buffer_t=velo_estimate_input_size.dev_estimated_input_size_t,
+        )
+
+        velo_masked_clustering = make_algorithm(
+            velo_masked_clustering_t,
+            name="velo_masked_clustering",
+            host_total_number_of_velo_clusters_t=
+            prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
+            dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
+            dev_offsets_estimated_input_size_t=
+            prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            dev_module_candidate_num_t=velo_estimate_input_size.
+            dev_module_candidate_num_t,
+            dev_cluster_candidates_t=velo_estimate_input_size.
+            dev_cluster_candidates_t,
+            dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
+            dev_output_buffer_t,
+            dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        )
+
+        return {
+            "dev_velo_cluster_container":
+            velo_masked_clustering.dev_velo_cluster_container_t,
+            "dev_module_cluster_num":
+            velo_masked_clustering.dev_module_cluster_num_t,
+            "dev_offsets_estimated_input_size":
+            prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            "host_total_number_of_velo_clusters":
+            prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
+            "dev_velo_clusters":
+            velo_masked_clustering.dev_velo_clusters_t
+        }
 
 
 def make_velo_tracks(decoded_velo):

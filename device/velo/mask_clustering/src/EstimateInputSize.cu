@@ -15,8 +15,8 @@ __device__ void estimate_raw_bank_size(
 {
   unsigned* estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_index / 8);
   unsigned found_cluster_candidates = 0;
-  for (unsigned sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
-    const uint32_t sp_word = raw_bank.sp_word[sp_index];
+  for (unsigned sp_index = threadIdx.x; sp_index < raw_bank.count; sp_index += blockDim.x) { // Decode sp
+    const uint32_t sp_word = raw_bank.word[sp_index];
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
     const uint8_t sp = sp_word & 0xFFU;
@@ -90,8 +90,8 @@ __device__ void estimate_raw_bank_size(
       const uint32_t sp_row = sp_addr & 0x3FU;
       const uint32_t sp_col = sp_addr >> 6;
 
-      for (unsigned k = 0; k < raw_bank.sp_count; ++k) {
-        const uint32_t other_sp_word = raw_bank.sp_word[k];
+      for (unsigned k = 0; k < raw_bank.count; ++k) {
+        const uint32_t other_sp_word = raw_bank.word[k];
         const uint32_t other_no_sp_neighbours = sp_word & 0x80000000U;
 
         if (!other_no_sp_neighbours) {
