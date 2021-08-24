@@ -77,6 +77,7 @@ __global__ void decode_retinaclusters_kernel(
     parameters.dev_velo_clusters[event_number] = velo_cluster_container;
   }
 
+
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
 

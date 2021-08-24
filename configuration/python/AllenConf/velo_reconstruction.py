@@ -21,14 +21,13 @@ def decode_velo(retina_decoding=True):
             data_provider_t,
             name="velo_retina_banks",
             bank_type="VPRetinaCluster")
-
+            
         calculate_number_of_retinaclusters_each_sensor = make_algorithm(
             calculate_number_of_retinaclusters_each_sensor_t,
             name="calculate_number_of_retinaclusters_each_sensor",
             host_number_of_events_t=number_of_events["host_number_of_events"],
             dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
-            dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
-            dev_raw_offsets_t)
+            dev_velo_retina_raw_input_offsets_t=velo_retina_banks.dev_raw_offsets_t)
 
         prefix_sum_offsets_estimated_input_size = make_algorithm(
             host_prefix_sum_t,
@@ -108,14 +107,10 @@ def decode_velo(retina_decoding=True):
             host_number_of_events_t=number_of_events["host_number_of_events"],
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
-            dev_offsets_estimated_input_size_t=
-            prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
-            dev_module_candidate_num_t=velo_estimate_input_size.
-            dev_module_candidate_num_t,
-            dev_cluster_candidates_t=velo_estimate_input_size.
-            dev_cluster_candidates_t,
-            dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
-            dev_output_buffer_t,
+            dev_offsets_estimated_input_size_t=prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            dev_module_candidate_num_t=velo_estimate_input_size.dev_module_candidate_num_t,
+            dev_cluster_candidates_t=velo_estimate_input_size.dev_cluster_candidates_t,
+            dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.dev_output_buffer_t,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
         )
 
