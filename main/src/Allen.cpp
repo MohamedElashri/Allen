@@ -219,7 +219,7 @@ int allen(
     control_index = items.size() - 1;
     items[control_index] = {*allen_control, 0, zmq::POLLIN, 0};
   }
-
+//   
   // Load constant parameters from JSON
   configuration_reader = std::make_unique<ConfigurationReader>(json_configuration_file);
 
