@@ -17,7 +17,7 @@ gaudi_depends_on_subdirs(Det/FTDet
                          Event/DigiEvent
                          GaudiAlg
                          Pr/PrKernel
-			 Muon/MuonID)
+                         Muon/MuonID)
 
 find_package(Boost REQUIRED)
 find_package(Rangev3 REQUIRED)

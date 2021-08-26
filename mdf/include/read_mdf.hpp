@@ -29,7 +29,10 @@ namespace Allen {
     {LHCb::RawBank::Muon, BankTypes::MUON},
     {LHCb::RawBank::ODIN, BankTypes::ODIN},
     {LHCb::RawBank::HcalPacked, BankTypes::HCal},
-    {LHCb::RawBank::EcalPacked, BankTypes::ECal}};
+    {LHCb::RawBank::EcalPacked, BankTypes::ECal},
+    {LHCb::RawBank::OTError, BankTypes::OTError}, // used for PV MC info
+    {LHCb::RawBank::OTRaw, BankTypes::OTRaw},     // used for track MC info
+  };
 
   using buffer_map = std::unordered_map<BankTypes, std::pair<std::vector<char>, std::vector<unsigned int>>>;
 

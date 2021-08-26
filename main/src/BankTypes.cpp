@@ -16,8 +16,8 @@ namespace {
                                                       {BankTypes::Rich, "Rich"},
                                                       {BankTypes::HCal, "HcalPacked"},
                                                       {BankTypes::ECal, "EcalPacked"},
-                                                      {BankTypes::OTRaw, "OTRaw"},
-                                                      {BankTypes::OTError, "OTError"}};
+                                                      {BankTypes::OTRaw, "tracks"},
+                                                      {BankTypes::OTError, "PVs"}};
 }
 
 std::string bank_name(BankTypes type)

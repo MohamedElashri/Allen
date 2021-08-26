@@ -45,7 +45,7 @@ void MCEvent::load_particles(const std::vector<char>& particles)
 
   uint32_t number_mcp = *((uint32_t*) input);
   input += sizeof(uint32_t);
-  // debug_cout << "num MCPs = " << number_mcp << std::endl;
+  debug_cout << "num MCPs = " << number_mcp << std::endl;
   for (uint32_t i = 0; i < number_mcp; ++i) {
     MCParticle p;
     p.key = *((uint32_t*) input);
@@ -68,6 +68,8 @@ void MCEvent::load_particles(const std::vector<char>& particles)
     input += sizeof(float);
     p.isLong = (bool) *((int8_t*) input);
     input += sizeof(int8_t);
+    // debug_cout << " at MCP " << i << ": key = " << p.key << ", pid = " << p.pid << ", p = " << p.p << ", isLong = "
+    // << p.isLong << std::endl;
     p.isDown = (bool) *((int8_t*) input);
     input += sizeof(int8_t);
     p.hasVelo = (bool) *((int8_t*) input);
@@ -82,8 +84,10 @@ void MCEvent::load_particles(const std::vector<char>& particles)
     input += sizeof(int8_t);
     p.fromStrangeDecay = (bool) *((int8_t*) input);
     input += sizeof(int8_t);
-    p.motherKey = *((uint32_t*) input);
-    input += sizeof(uint32_t);
+    p.motherKey = *((int*) input);
+    input += sizeof(int);
+    p.mother_pid = *((int*) input);
+    input += sizeof(int);
     p.DecayOriginMother_key = *((int*) input);
     input += sizeof(int);
     p.DecayOriginMother_pid = *((int*) input);

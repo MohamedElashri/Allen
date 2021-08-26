@@ -192,9 +192,19 @@ std::tuple<bool, bool, bool> transpose_event(
       banks_offsets = std::get<2>(slice).data();
       n_banks_offsets = &std::get<3>(slice);
 
+      // Count the number of banks
+      unsigned n_rb = 1;
+      auto bank_for_counting = bank + b->totalSize();
+      auto* b_count_rb = reinterpret_cast<const LHCb::RawBank*>(bank_for_counting);
+      while (b_count_rb->type() == prev_type) {
+        bank_for_counting += b_count_rb->totalSize();
+        b_count_rb = reinterpret_cast<const LHCb::RawBank*>(bank_for_counting);
+        n_rb++;
+      }
+
       // Calculate the size taken by storing the number of banks
       // and offsets to all banks within the event
-      auto preamble_words = 2 + banks_count[bt];
+      auto preamble_words = 2 + n_rb;
 
       // Initialize offset to start of this set of banks from the
       // previous one and increment with the preamble size
@@ -212,7 +222,7 @@ std::tuple<bool, bool, bool> transpose_event(
       ++(*n_banks_offsets);
 
       // Write the number of banks
-      banks_write[0] = banks_count[bt];
+      banks_write[0] = n_rb;
 
       // All bank offsets are uit32_t so cast to that type
       banks_offsets_write = banks_write + 1;

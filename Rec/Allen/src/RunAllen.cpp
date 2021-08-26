@@ -60,15 +60,15 @@ StatusCode RunAllen::initialize()
   }
 
   // get constants
-  std::string geometry_path = resolveEnvVars(m_paramDir);
+  const std::string params_path = resolveEnvVars(m_paramDir);
 
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(muon_field_of_interest_params, geometry_path + "/field_of_interest_params.bin");
+  read_muon_field_of_interest(muon_field_of_interest_params, params_path + "/field_of_interest_params.bin");
 
-  m_constants.reserve_and_initialize(muon_field_of_interest_params, geometry_path + "/params_kalman_FT6x2/");
+  m_constants.reserve_and_initialize(muon_field_of_interest_params, params_path + "/params_kalman_FT6x2/");
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(geometry_path + "/muon_catboost_model.json");
+    std::make_unique<CatboostModelReader>(params_path + "/muon_catboost_model.json");
   m_constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
@@ -79,7 +79,7 @@ StatusCode RunAllen::initialize()
     muon_catboost_model_reader->split_feature());
 
   std::unique_ptr<CatboostModelReader> two_track_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(geometry_path + "/two_track_catboost_model_small.json");
+    std::make_unique<CatboostModelReader>(params_path + "/two_track_catboost_model_small.json");
   m_constants.initialize_two_track_catboost_model_constants(
     two_track_catboost_model_reader->n_trees(),
     two_track_catboost_model_reader->tree_depths(),
@@ -191,7 +191,6 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
                                   m_cpu_offload,
                                   mep_layout,
                                   inject_mem_fail,
-                                  {},
                                   nullptr,
                                   root_service.get()};
 

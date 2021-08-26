@@ -12,9 +12,12 @@ from Configurables import (ApplicationMgr, DumpUTGeometry, DumpFTGeometry,
                            DumpMuonTable, DumpMuonGeometry, DumpCaloGeometry,
                            DumpVPGeometry, DumpMagneticField, DumpBeamline,
                            DumpUTLookupTables, AllenUpdater)
+from PyConf import configurable
 
 
-def setup_allen_non_event_data_service(dump_binaries=False):
+@configurable
+def setup_allen_non_event_data_service(dump_geometry=False,
+                                       out_dir="geometry"):
     """Setup Allen non-event data
 
     An ExtSvc is added to the ApplicationMgr to provide the Allen non-event
@@ -28,7 +31,7 @@ def setup_allen_non_event_data_service(dump_binaries=False):
     hcal_geom = partial(
         DumpCaloGeometry, name="DumpHcal", Location=hcal_location)
     producers = [
-        p(DumpToFile=dump_binaries)
+        p(DumpToFile=dump_geometry, OutputDirectory=out_dir)
         for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry,
                   DumpMuonGeometry, DumpMuonTable, DumpMagneticField,
                   DumpBeamline, DumpUTLookupTables, ecal_geom, hcal_geom)

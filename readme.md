@@ -53,28 +53,16 @@ Optionally the project can be compiled with ROOT. Histograms of reconstructible 
 
 Where to find input
 ---------------------
-Input from 5k events for each of the following decay modes can be found here:
+For standalone Allen processing, two input file types are supported: MDF and MEP files. MEP files are used during data taking and for integration studies with the online environment. MDF files are the standard input for Allen devlopments. For various samples, MDF files and the corresponding geometry information required for standalone Allen processing have been produced and are available here:
 
-* minimum bias, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/minbias_mag_down.tar.gz`
-* Bs->PhiPhi, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_down.tar.gz`
-* Bs->PhiPhi, mag up: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_up.tar.gz`
-* J/Psi->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/JpsiMuMu/mag_down.tar.gz`
-* Ds->KKPi, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Ds2KKPi/Ds2KKPi_mag_down.tar.gz`
-* B->KstEE, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/KstEE/KstEE_mag_down.tar.gz`
-* B->KstMuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/KstMuMu/KstMuMu_mag_down.tar.gz`
-* Z->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Z2MuMu/Z2MuMu_mag_down.tar.gz`
-* Ks0->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Ks0mumu/Ks02MuMu_mag_down.tar.gz`
+`/eos/lhcb/wg/rta/WP6/Allen/mdf_input/`
+
+The directory name corresponds to the TestFileDB key of the sample. Some of these files have also been copied to the GPU development server (see [this section](#where-to-develop-for-gpus) below), because they are used in the nightly CI tests. These can be found here:
+
+`/scratch/allen_data/mdf_input/`
 
 If other inputs are required, follow these instructions for producing them:
-[https://gitlab.cern.ch/lhcb/Allen/blob/allen_tdr/Dumpers/readme.md](https://gitlab.cern.ch/lhcb/Allen/blob/allen_tdr/Dumpers/readme.md)
-
-Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
-
-```console
-python3 scripts/makeFakeODIN.py /path/to/data/banks/
-```
-
-This will create a random ODIN bank for each bank in `/path/to/data/banks/VP`.
+[https://gitlab.cern.ch/lhcb/Allen/blob/master/Dumpers/readme.md](https://gitlab.cern.ch/lhcb/Allen/blob/master/Dumpers/readme.md)
 
 How to build it
 ---------------

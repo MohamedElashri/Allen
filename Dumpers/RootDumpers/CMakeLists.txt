@@ -19,6 +19,6 @@ gaudi_add_module(RootDumpers
                  src/*.cpp
                  INCLUDE_DIRS Event/TrackEvent
                  LINK_LIBRARIES DAQEventLib DAQKernelLib GaudiAlgLib
-                                PrKernel TrackEvent)
+                                PrKernel TrackEvent MCEvent ROOT::Tree LinkerEvent RelationsLib)
 
 gaudi_add_test(QMTest QMTEST)

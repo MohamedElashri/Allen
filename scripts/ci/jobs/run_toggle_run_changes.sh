@@ -8,7 +8,7 @@ set -euxo pipefail
 check_build_exists
 
 RUN_OPTIONS="-n 1000 -m 700"
-JOB="./Allen --mdf ${ALLEN_DATA}/${MDF_INPUT} -f ${ALLEN_DATA}/${INPUT_FILES} ${RUN_OPTIONS}"
+JOB="./Allen --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf ${RUN_OPTIONS}"
 
 if [ "$RUN_CHANGES" = "OFF" ]; then
   OUTPUT_DIR="run_no_run_changes_output_${SEQUENCE}"

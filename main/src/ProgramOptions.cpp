@@ -37,8 +37,8 @@ std::vector<ProgramOption> allen_program_options()
   // Format: options {short / long, short / long, ...}, description,
   //         [optional default value], [optional description default value]
   return {
-    {{"f", "folder"}, "folder containing data directories", "../input/minbias/"},
     {{"g", "geometry"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
+    {{"params"}, "folder containing parameters that do not change with the geometry", "../input/parameters/"},
     {{"mdf"}, "comma-separated list of MDF files to use as input"},
     {{"mep"}, "comma-separated list of MEP files to use as input"},
     {{"transpose-mep"}, "Transpose MEPs instead of decoding from MEP layout directly", "0", "don't transpose"},

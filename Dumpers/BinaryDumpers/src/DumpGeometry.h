@@ -22,6 +22,7 @@
 #include <Kernel/ICondDBInfo.h>
 
 #include "Utils.h"
+
 #include <Dumpers/IUpdater.h>
 #include <Dumpers/Identifiers.h>
 
@@ -52,8 +53,8 @@ protected:
 
   virtual DumpUtils::Dumps dumpGeometry() const = 0;
 
-  std::string outputDirectory() const { return m_outputDirectory.value(); }
   std::string geometrySuffix() const;
+  std::string outputDirectory() const { return m_outputDirectory.value() + "_" + geometrySuffix(); }
 
   const DETECTOR& detector() const { return *m_det; }
   DETECTOR& detector() { return *(const_cast<DumpGeometry<DETECTOR>*>(this)->m_det); }
@@ -157,11 +158,6 @@ private:
 template<typename DETECTOR>
 StatusCode DumpGeometry<DETECTOR>::initialize()
 {
-  if (m_dumpToFile.value() && !DumpUtils::createDirectory(m_outputDirectory.value())) {
-    error() << "Failed to create directory " << m_outputDirectory.value() << endmsg;
-    return StatusCode::FAILURE;
-  }
-
   // Facilitate derived services getting tools
   m_toolSvc = service("ToolSvc", true);
 
@@ -190,6 +186,11 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
     if (msgLevel(MSG::DEBUG)) {
       debug() << "tag: " << e.first->first << " " << e.first->second << endmsg;
     }
+  }
+
+  if (m_dumpToFile.value() && !DumpUtils::createDirectory(outputDirectory())) {
+    error() << "Failed to create directory " << outputDirectory() << endmsg;
+    return StatusCode::FAILURE;
   }
 
   // Get the requested detector
@@ -253,7 +254,7 @@ StatusCode DumpGeometry<DETECTOR>::dump()
         debug() << std::setw(20) << id << ": " << std::setw(7) << data.size() << " bytes." << endmsg;
       }
       if (m_dumpToFile.value()) {
-        auto name = outputDirectory() + "/" + filename + "_" + geometrySuffix() + ".bin";
+        auto name = outputDirectory() + "/" + filename + ".bin";
         std::ofstream output {name, std::ios::out | std::ios::binary};
         output.write(data.data(), data.size());
       }

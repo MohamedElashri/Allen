@@ -39,7 +39,8 @@ struct MCParticle {
   bool fromBeautyDecay;
   bool fromCharmDecay;
   bool fromStrangeDecay;
-  uint32_t motherKey;
+  int motherKey;
+  int mother_pid;
   int DecayOriginMother_key;
   int DecayOriginMother_pid;
   float DecayOriginMother_pt;

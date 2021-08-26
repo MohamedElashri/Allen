@@ -4,16 +4,32 @@
 from AllenConf.algorithms import (
     mc_data_provider_t, host_velo_validator_t, host_velo_ut_validator_t,
     host_forward_validator_t, host_muon_validator_t, host_pv_validator_t,
-    host_rate_validator_t, host_kalman_validator_t)
+    host_rate_validator_t, host_kalman_validator_t, host_data_provider_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm
 
 
-def velo_validation(velo_tracks, name="velo_validator"):
-    mc_data_provider = make_algorithm(
-        mc_data_provider_t, name="mc_data_provider")
-
+def mc_data_provider():
+    host_mc_particle_banks = make_algorithm(
+        host_data_provider_t,
+        name="host_mc_particle_banks",
+        bank_type="tracks")
+    host_mc_pv_banks = make_algorithm(
+        host_data_provider_t, name="host_mc_pv_banks", bank_type="PVs")
     number_of_events = initialize_number_of_events()
+    return make_algorithm(
+        mc_data_provider_t,
+        name="mc_data_provider",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_mc_particle_banks_t=host_mc_particle_banks.host_raw_banks_t,
+        host_mc_particle_offsets_t=host_mc_particle_banks.host_raw_offsets_t,
+        host_mc_pv_banks_t=host_mc_pv_banks.host_raw_banks_t,
+        host_mc_pv_offsets_t=host_mc_pv_banks.host_raw_offsets_t)
+
+
+def velo_validation(velo_tracks, name="velo_validator"):
+    number_of_events = initialize_number_of_events()
+    mc_events = mc_data_provider()
 
     return make_algorithm(
         host_velo_validator_t,
@@ -24,13 +40,11 @@ def velo_validation(velo_tracks, name="velo_validator"):
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
-        host_mc_events_t=mc_data_provider.host_mc_events_t)
+        host_mc_events_t=mc_events.host_mc_events_t)
 
 
 def veloUT_validation(veloUT_tracks, name="veloUT_validator"):
-    mc_data_provider = make_algorithm(
-        mc_data_provider_t, name="mc_data_provider")
-
+    mc_events = mc_data_provider()
     number_of_events = initialize_number_of_events()
 
     velo_tracks = veloUT_tracks["velo_tracks"]
@@ -45,7 +59,7 @@ def veloUT_validation(veloUT_tracks, name="veloUT_validator"):
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
-        host_mc_events_t=mc_data_provider.host_mc_events_t,
+        host_mc_events_t=mc_events.host_mc_events_t,
         dev_velo_kalman_endvelo_states_t=velo_states[
             "dev_velo_kalman_endvelo_states"],
         dev_offsets_ut_tracks_t=veloUT_tracks["dev_offsets_ut_tracks"],
@@ -57,9 +71,7 @@ def veloUT_validation(veloUT_tracks, name="veloUT_validator"):
 
 
 def forward_validation(forward_tracks, name="forward_validator"):
-    mc_data_provider = make_algorithm(
-        mc_data_provider_t, name="mc_data_provider")
-
+    mc_events = mc_data_provider()
     number_of_events = initialize_number_of_events()
 
     veloUT_tracks = forward_tracks["veloUT_tracks"]
@@ -75,7 +87,7 @@ def forward_validation(forward_tracks, name="forward_validator"):
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
-        host_mc_events_t=mc_data_provider.host_mc_events_t,
+        host_mc_events_t=mc_events.host_mc_events_t,
         dev_velo_kalman_endvelo_states_t=velo_states[
             "dev_velo_kalman_endvelo_states"],
         dev_offsets_ut_tracks_t=veloUT_tracks["dev_offsets_ut_tracks"],
@@ -96,9 +108,7 @@ def forward_validation(forward_tracks, name="forward_validator"):
 
 
 def muon_validation(muonID, name="muon_validator"):
-    mc_data_provider = make_algorithm(
-        mc_data_provider_t, name="mc_data_provider")
-
+    mc_events = mc_data_provider()
     number_of_events = initialize_number_of_events()
 
     forward_tracks = muonID["forward_tracks"]
@@ -115,7 +125,7 @@ def muon_validation(muonID, name="muon_validator"):
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
-        host_mc_events_t=mc_data_provider.host_mc_events_t,
+        host_mc_events_t=mc_events.host_mc_events_t,
         dev_velo_kalman_endvelo_states_t=velo_states[
             "dev_velo_kalman_endvelo_states"],
         dev_offsets_ut_tracks_t=veloUT_tracks["dev_offsets_ut_tracks"],
@@ -137,13 +147,12 @@ def muon_validation(muonID, name="muon_validator"):
 
 
 def pv_validation(pvs, name="pv_validator"):
-    mc_data_provider = make_algorithm(
-        mc_data_provider_t, name="mc_data_provider")
+    mc_events = mc_data_provider()
 
     return make_algorithm(
         host_pv_validator_t,
         name=name,
-        host_mc_events_t=mc_data_provider.host_mc_events_t,
+        host_mc_events_t=mc_events.host_mc_events_t,
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"])
@@ -165,9 +174,7 @@ def rate_validation(gather_selections, name="rate_validator"):
 
 def kalman_validation(kalman_velo_only, name="kalman_validator"):
     number_of_events = initialize_number_of_events()
-
-    mc_data_provider = make_algorithm(
-        mc_data_provider_t, name="mc_data_provider")
+    mc_events = mc_data_provider()
 
     forward_tracks = kalman_velo_only["forward_tracks"]
     veloUT_tracks = forward_tracks["veloUT_tracks"]
@@ -184,7 +191,7 @@ def kalman_validation(kalman_velo_only, name="kalman_validator"):
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
-        host_mc_events_t=mc_data_provider.host_mc_events_t,
+        host_mc_events_t=mc_events.host_mc_events_t,
         dev_velo_kalman_states_t=velo_states["dev_velo_kalman_endvelo_states"],
         dev_offsets_ut_tracks_t=veloUT_tracks["dev_offsets_ut_tracks"],
         dev_offsets_ut_track_hit_number_t=veloUT_tracks[

@@ -25,7 +25,7 @@ struct RuntimeOptions {
   bool cpu_offload;
   bool mep_layout;
   uint inject_mem_fail;
-  MCEvents const mc_events;
+  const MCEvents mc_events;
   CheckerInvoker* checker_invoker;
   ROOTService* root_service;
 
@@ -38,7 +38,6 @@ struct RuntimeOptions {
     bool param_cpu_offload,
     bool param_mep_layout,
     uint param_inject_mem_fail,
-    MCEvents&& param_mc_events,
     CheckerInvoker* param_checker_invoker,
     ROOTService* param_root_service) :
     input_provider {ip},
@@ -46,7 +45,6 @@ struct RuntimeOptions {
     number_of_selected_events(std::get<1>(param_event_interval) - std::get<0>(param_event_interval)),
     number_of_repetitions(param_number_of_repetitions), do_check(param_do_check),
     cpu_offload(param_cpu_offload), mep_layout {param_mep_layout}, inject_mem_fail {param_inject_mem_fail},
-    mc_events(std::forward<MCEvents>(param_mc_events)), checker_invoker(param_checker_invoker),
-    root_service(param_root_service)
+    checker_invoker(param_checker_invoker), root_service(param_root_service)
   {}
 };

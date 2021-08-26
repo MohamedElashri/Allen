@@ -17,7 +17,7 @@
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
     <text>--disable-run-changes</text><text>1</text>
     <text>--monitoring-filename</text><text>mep_input_hists.root</text>
-    <text>--mep</text><text>${ALLEN_PROJECT_ROOT}/input/minbias/banks/mep/upgrade_mc_minbias_scifi_v5_pf10.mep</text>
+    <text>--mep</text><text>${ALLEN_PROJECT_ROOT}/input/minbias/mep/upgrade_mc_minbias_scifi_v5_pf10.mep</text>
   </set></argument>
   <argument name="reference"><text>../refs/allen_10ev.ref</text></argument>
   <arguement name="timeout"><integer>600</integer></arguement>

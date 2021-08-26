@@ -15,7 +15,6 @@
 #include <Timer.h>
 #include <InputTools.h>
 #include <MDFProvider.h>
-#include <BinaryProvider.h>
 #include <TransposeMEP.h>
 
 #define CATCH_CONFIG_RUNNER
@@ -25,7 +24,6 @@ using namespace std;
 using namespace std::string_literals;
 
 struct Config {
-  vector<string> banks_dirs;
   vector<string> mdf_files;
   vector<string> mep_files;
   size_t n_slices = 1;
@@ -38,10 +36,9 @@ namespace {
   MDFProviderConfig mdf_config {true, 2, 1};
 
   unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mdf;
-  unique_ptr<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> binary;
 
-  size_t slice_mdf = 0, slice_binary = 0;
-  size_t filled_mdf = 0, filled_binary = 0;
+  size_t slice_mdf = 0;
+  size_t filled_mdf = 0;
 
   vector<char> mep_buffer;
   Slices mep_slices;
@@ -119,19 +116,15 @@ int main(int argc, char* argv[])
   }
 
   s_config.run = !directory.empty();
-  if (s_config.run) {
-    for (auto [ext, dir] : {std::tuple {string {"mdf"}, std::ref(s_config.mdf_files)},
-                            std::tuple {string {"mep"}, std::ref(s_config.mep_files)}}) {
-      for (auto file : list_folder(directory + "/banks/" + ext, ext)) {
-        dir.get().push_back(directory + "/banks/" + ext + "/" + file);
-      }
-    }
-  }
-  for (auto sd : {"UT"s, "VP"s, "FTCluster"s, "Muon"s, "ODIN"s}) {
-    s_config.banks_dirs.push_back(directory + "/banks/" + sd);
-  }
 
   if (s_config.run) {
+    // Get input file names
+    for (auto [ext, dir] : {std::tuple {string {"mdf"}, std::ref(s_config.mdf_files)},
+                            std::tuple {string {"mep"}, std::ref(s_config.mep_files)}}) {
+      for (auto file : list_folder(directory + ext, ext)) {
+        dir.get().push_back(directory + ext + "/" + file);
+      }
+    }
     // Allocate providers and get slices
     mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
@@ -139,21 +132,10 @@ int main(int argc, char* argv[])
     bool good = false, timed_out = false, done = false;
     uint runno = 0;
     std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
-    auto const& events_mdf = mdf->event_ids(slice_mdf);
 
-    binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      s_config.n_slices,
-      s_config.n_events,
-      s_config.n_events,
-      s_config.banks_dirs,
-      1,
-      boost::optional<std::string> {},
-      events_mdf);
-
-    std::tie(good, done, timed_out, slice_binary, filled_binary, runno) = binary->get_slice();
     assert(good);
     assert(!timed_out);
-    assert(filled_binary == s_config.n_events);
+    assert(filled_mdf == s_config.n_events);
   }
 
   if (s_config.run) {
@@ -215,8 +197,8 @@ void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right)
 
 // Main test case, multiple bank types are checked
 TEMPLATE_TEST_CASE(
-  "MDF versus Binary",
-  "[MDF binary]",
+  "MDF vs MEP",
+  "[MEP MDF]",
   BTTag<BankTypes::ODIN>,
   BTTag<BankTypes::VP>,
   BTTag<BankTypes::UT>,
@@ -225,68 +207,27 @@ TEMPLATE_TEST_CASE(
 {
 
   if (!s_config.run) return;
-
-  // Check that the number of events read matches
-  REQUIRE(filled_binary == filled_mdf);
 
   // Get the events
   auto const& events_mdf = mdf->event_ids(slice_mdf);
-  auto const& events_binary = binary->event_ids(slice_binary);
 
   // Check that the events match
   SECTION("Checking Event IDs")
   {
-    REQUIRE(events_mdf.size() == events_binary.size());
-    for (size_t i = 0; i < events_mdf.size(); ++i) {
-      auto [run_mdf, event_mdf] = events_mdf[i];
-      auto [run_binary, event_binary] = events_binary[i];
-      REQUIRE(run_mdf == run_binary);
-      REQUIRE(event_mdf == event_binary);
-    }
-  }
-
-  // Get the banks
-  auto banks_mdf = mdf->banks(TestType::BT, slice_mdf);
-  auto banks_binary = binary->banks(TestType::BT, slice_binary);
-
-  SECTION("Checking offsets") { check_offsets(banks_mdf, banks_binary); }
-
-  SECTION("Checking data") { check_banks(banks_mdf, banks_binary); }
-}
-
-// Main test case, multiple bank types are checked
-TEMPLATE_TEST_CASE(
-  "Binary vs MEP",
-  "[MEP binary]",
-  BTTag<BankTypes::ODIN>,
-  BTTag<BankTypes::VP>,
-  BTTag<BankTypes::UT>,
-  BTTag<BankTypes::FT>,
-  BTTag<BankTypes::MUON>)
-{
-
-  if (!s_config.run) return;
-
-  // Get the events
-  auto const& events_binary = binary->event_ids(slice_binary);
-
-  // Check that the events match
-  SECTION("Checking Event IDs")
-  {
-    REQUIRE(events_mep.size() == events_binary.size());
+    REQUIRE(events_mep.size() == events_mdf.size());
     for (size_t i = 0; i < events_mep.size(); ++i) {
       auto [run_mep, event_mep] = events_mep[i];
-      auto [run_binary, event_binary] = events_binary[i];
-      REQUIRE(run_mep == run_binary);
-      REQUIRE(event_mep == event_binary);
+      auto [run_mdf, event_mdf] = events_mdf[i];
+      REQUIRE(run_mep == run_mdf);
+      REQUIRE(event_mep == event_mdf);
     }
   }
 
   // Get the banks
   auto banks_mep = mep_banks(mep_slices, TestType::BT, 0);
-  auto banks_binary = binary->banks(TestType::BT, slice_binary);
+  auto banks_mdf = mdf->banks(TestType::BT, slice_mdf);
 
-  SECTION("Checking offsets") { check_offsets(banks_mep, banks_binary); }
+  SECTION("Checking offsets") { check_offsets(banks_mep, banks_mdf); }
 
-  SECTION("Checking data") { check_banks(banks_mep, banks_binary); }
+  SECTION("Checking data") { check_banks(banks_mep, banks_mdf); }
 }

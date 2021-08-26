@@ -146,5 +146,5 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
     dzdy,
     globaldy);
 
-  return {{tuple {output.buffer(), "ft_geometry", Allen::NonEventData::SciFiGeometry::id}}};
+  return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
 }

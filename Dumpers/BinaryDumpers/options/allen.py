@@ -27,11 +27,13 @@ default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
 # Handle commandline arguments
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "-f", dest="folder", default=os.path.join(allen_dir, "input", "minbias"))
-parser.add_argument(
     "-g",
     dest="det_folder",
     default=os.path.join(allen_dir, "input", "detector_configuration", "down"))
+parser.add_argument(
+    "--params",
+    dest="param_folder",
+    default=os.path.join(allen_dir, "input", "parameters"))
 parser.add_argument("-n", dest="n_events", default="0")
 parser.add_argument("-o", dest="event_offset", default="0")
 parser.add_argument("-t", dest="threads", default="1")
@@ -41,7 +43,11 @@ parser.add_argument("-m", dest="reserve", default="1024")
 parser.add_argument("-v", dest="verbosity", default="3")
 parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
-parser.add_argument("--mdf", dest="mdf", default="")
+parser.add_argument(
+    "--mdf",
+    dest="mdf",
+    default=os.path.join(allen_dir, "input", "minbias", "mdf",
+                         "upgrade_mc_minbias_scifi_v5.mdf"))
 parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
 parser.add_argument(
@@ -88,7 +94,7 @@ updater = gbl.cast_updater(svc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
-for flag, value in (("f", args.folder), ("g", args.det_folder),
+for flag, value in (("g", args.det_folder), ("params", args.param_folder),
                     ("n", args.n_events), ("o", args.event_offset),
                     ("t",
                      args.threads), ("r",

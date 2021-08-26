@@ -7,8 +7,8 @@
 #include <tuple>
 #include <vector>
 #include "DumpMuonGeometry.h"
-#include "Utils.h"
 #include "fmt/format.h"
+#include "Utils.h"
 
 DECLARE_COMPONENT(DumpMuonGeometry)
 

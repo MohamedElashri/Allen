@@ -9,12 +9,13 @@
       # run_throughput tests
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
-        INPUT_FILES: ["minbias_mag_down_201907"]
-
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_1k"]
+ 
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
-        INPUT_FILES: ["bsphiphi_mag_down_201907"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
 
 
 .run_matrix_jobs_full:
@@ -24,26 +25,27 @@
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_no_gec"]
-        INPUT_FILES: ["minbias_mag_down_201907"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_1k"]
 
       # run throughput, default, SMOG2_pppHe
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_default"]
-        INPUT_FILES: ["SMOG2_pppHe"]
+        DATA_TAG: ["SMOG2_pppHe_1k"]
 
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_scifi_v6"]
-        INPUT_FILES: ["SciFiv6_upgrade_DC19_01_MinBiasMD"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_1k"]
         GEOMETRY: ["scifi_v6"]
 
       # run physics efficiency, scifi_v6
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_scifi_v6_validation"]
-        INPUT_FILES: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
         GEOMETRY: ["scifi_v6"]
 
       # FIXME
@@ -51,7 +53,7 @@
       #   BUILD_TYPE: ["Debug"]
       #   OPTIONS: ["USE_ROOT"]
       #   SEQUENCE: ["hlt1_pp_validation"]
-      #   INPUT_FILES: ["bsphiphi_mag_down_201907"]
+      #   DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
 
       - TEST_NAME: "run_built_tests"
         BUILD_TYPE: [RelWithDebInfo, Debug]
@@ -62,7 +64,13 @@
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_complex_validation"]
-        INPUT_FILES: ["bsphiphi_mag_down_201907"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
+
+      - TEST_NAME: "run_throughput"
+        SEQUENCE: ["hlt1_pp_scifi_v6"]
+        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01"]
+        GEOMETRY: ["sim10_up08_md"]
+  
 
 .run_jobs:
   extends:
@@ -110,8 +118,7 @@
     matrix:
       - TEST_NAME: "run_toggle_run_changes"
         SEQUENCE: ["hlt1_pp_validation"]
-        MDF_INPUT: "mdf/upgrade_mc_minbias_scifi_v5_000.mdf"
-        INPUT_FILES: "minbias_mag_down_201907"
+        DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_1k"
         RUN_CHANGES: ["ON", "OFF"]
   artifacts:
     expire_in: 1 day
