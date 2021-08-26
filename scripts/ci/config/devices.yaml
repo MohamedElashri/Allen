@@ -52,13 +52,6 @@
   tags: [a10]
 
 
-.a5000:
-  variables:
-    DEVICE_ID: "a5000"
-    TARGET: "CUDA"
-  tags: [a5000]
-
-
 .a6000:
   variables:
     DEVICE_ID: "a6000"
