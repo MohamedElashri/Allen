@@ -13,6 +13,7 @@
 #include <MonitorManager.h>
 #include <CheckerInvoker.h>
 #include <ROOTService.h>
+#include <MCRaw.h>
 #include <InputProvider.h>
 #include <StreamWrapper.cuh>
 #include <Tools.h>
@@ -215,8 +216,7 @@ void run_stream(
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
-  uint inject_mem_fail,
-  const std::string& mc_folder)
+  uint inject_mem_fail)
 {
   Allen::set_device(device_id, stream_id);
 
@@ -252,13 +252,6 @@ void run_stream(
     }
 
     if (idx) {
-      MCEvents mc_events;
-      if (do_check) {
-        // Get list of events that are in the slice
-        auto const& events = input_provider->event_ids(*idx, first, last);
-        mc_events = checker_invoker->load(mc_folder, events);
-      }
-
       // Run the stream
       auto status = wrapper->run_stream(
         stream_id,
@@ -271,7 +264,6 @@ void run_stream(
          cpu_offload,
          mep_layout,
          inject_mem_fail,
-         std::move(mc_events),
          checker_invoker,
          root_service});
 

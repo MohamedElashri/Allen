@@ -17,7 +17,7 @@ namespace {
 }
 
 constexpr auto NBankTypes = 10;
-enum class BankTypes { VP, UT, FT, MUON, ODIN, Rich, ECal, HCal, OTRaw, OTError, Unknown };
+enum class BankTypes { VP, UT, FT, MUON, ODIN, OTRaw, OTError, Rich, ECal, HCal, Unknown };
 
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.
@@ -30,8 +30,8 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 12.f},
                                                         {BankTypes::HCal, 2.1},
                                                         {BankTypes::ECal, 8.f},
                                                         {BankTypes::ODIN, 0.2f},
-                                                        {BankTypes::OTRaw, 110.f},
-                                                        {BankTypes::OTError, 0.3f}};
+                                                        {BankTypes::OTRaw, 110.f},   // for track MC info
+                                                        {BankTypes::OTError, 0.3f}}; // for PV MC info
 
 // Average measured event size, measured
 // FIXME: make this configurable

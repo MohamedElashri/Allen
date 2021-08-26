@@ -46,7 +46,7 @@ Add a key to `.run_matrix_jobs_minimal:parallel:matrix:` in `common-run.yaml` e.
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency" # name of the test - runs the bash script scripts/ci/jobs/$TEST_NAME.sh
         SEQUENCE: ["hlt1_pp_validation"]    # sequence(s) to run the test on
-        INPUT_FILES: ["bsphiphi_mag_down_201907"] # input dataset
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"] # input dataset
 ```
 
 Other variables can be set (but are optional - see below).
@@ -59,7 +59,7 @@ Add a key to `.run_matrix_jobs_full:parallel:matrix:` in `common-run.yaml` e.g.
         BUILD_TYPE: ["RelWithDebInfo"]  # use RelWithDebInfo build
 #        OPTIONS: [""]                  # leave out for default build, with no additional build options
         SEQUENCE: ["hlt1_pp_default"]   # sequence
-        INPUT_FILES: ["SMOG2_pppHe"]    # dataset name
+        DATA_TAG: ["SMOG2_pppHe_1k"]    # dataset name
 #        GEOMETRY: [""]                 # don't add this, to use the default geom
 ```
 

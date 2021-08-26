@@ -1,36 +1,21 @@
-Produce binary input for Allen with Moore
+Produce MDF input for standalone Allen 
 ================================
 
-These are instructions for how to produce binary input for Allen from lxplus Moore.
+These are instructions for how to produce MDF files for Allen standalone running by running Moore. The MDF files will contain raw banks with the raw data from the sub-detectors and raw banks containing MC information about tracks and vertices required for the physics checks inside Allen.
 
 
-Follow [these](../Rec/Allen/readme.md) instruction to call Allen from Moore and use the options script [dump_binary_input_for_standalone_Allen.py](https://gitlab.cern.ch/lhcb/Moore/blob/master/Hlt/RecoConf/options/dump_binary_input_for_standalone_Allen.py).
-The output directory where the dumped binaries are stored can be specified with `outputDir = "dump/"`.
+Follow [these](../Rec/Allen/readme.md) instruction to call Allen from Moore. Then use this [options script](https://gitlab.cern.ch/lhcb/Moore/blob/master/Hlt/RecoConf/options/mdf_for_standalone_Allen.py) to dump both an MDF file
+and the geometry information required for standalone Allen processing. The easiest is to use as input files from the TestFileDB, then only the key has to be specified. The output will be located in a directory, whose name is the TestFileDB key. This directory will contain two subdirectories: `mdf` with the MDF file containing the raw banks and `geometry_dddb-tag_sim-tag` with binary files containing the geometry information required for Allen. 
+Call the script in a stack setup like so:
+```
+./Moore/run gaudirun.py Moore/Hlt/RecoConf/options/mdf_for_standalone_Allen.py
+```
 
-This directory (`Dumpers`) contains the dumpers for raw banks, geometries and hit objects, as well as
-configuration and MC file scripts. In the [Rec](https://gitlab.cern.ch/lhcb/Rec) project, `Pr/PrMCTools` contains the PrTrackerDumper, from which MC information can be dumped
-for every MCParticle. This is used for truth matching within Allen.
-
-
-By default, the following output directories will be created in the current directory:
-
-* `banks`: all raw banks (VP, UT, FTCluster, Muon)
-* `geometry`: geometry description for the different sub-detectors needed within HLT1 on GPUs
-* `MC_info/tracks`: binary files containing MC information needed to calculate track reconstruction efficiencies
-* `MC_info/PVs`: binary files containing MC information needed to calculate PV reconstruction efficiencies
-* `TrackerDumper`: ROOT files containing MC information for all dumped MCParticles as well as all hits in every sub-detector
-
-In addition to the banks dumped here, ODIN banks are required to run Allen in standalone mode. Please follow the instructions [here](https://gitlab.cern.ch/lhcb/Allen/blob/master/readme.md#where-to-find-input) on how to create those.
-
-Saving of the ROOT files in the `TrackerDumper` directory is switched on by default in the configuration of the PrTrackerDumper, however it is explicitly set to false in the `dump_MC_info.py` and `dump_banks_and_MC_info.py` scripts to reduce the size of memory required by the dumped output.
-If the ROOT files are required, their dumping can be enabled by setting `DumpToROOT=True` in these scripts.
-
-For changing the output location, the OutputDirectory can be set in the configuration script, for example in dump_banks.py:
-`dump_banks.OutputDirectory = "/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/mag_down/banks"`
-    
-For the TrackerDumper, `OutputDirectory` is the directory for the ROOT files, `MCOutputDirectory` is the directory for the binary files.
-
-
+If you would like to dump a large amount of events into MDF files, it is convenient to produce several MDF output files to avoid too large single files. This [python script](https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/options/mdf_split_for_standalone_Allen.py) produces several MDF output files from the input files. Again, the TestFileDB entry is used to specify the input. The output MDF files combine a number of input files, configurable with `n_files_per_chunk`. Call this script like so:
+```
+./Moore/run bash --norc
+python Moore/Hlt/RecoConf/options/mdf_split_for_standalone_Allen.py
+```
 
     
     

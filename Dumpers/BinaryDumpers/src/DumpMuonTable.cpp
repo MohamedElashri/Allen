@@ -168,5 +168,5 @@ DumpUtils::Dumps DumpMuonTable::dumpGeometry() const
     }
   }
 
-  return {{std::tuple {output.buffer(), "muon_table", Allen::NonEventData::MuonLookupTables::id}}};
+  return {{std::tuple {output.buffer(), "muon_tables", Allen::NonEventData::MuonLookupTables::id}}};
 }

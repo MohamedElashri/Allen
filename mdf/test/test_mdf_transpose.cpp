@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <unordered_set>
 #include <map>
+#include <filesystem>
 
 #include <Event/RawBank.h>
 #include <read_mdf.hpp>
@@ -25,8 +26,8 @@ using namespace std;
 using namespace std::string_literals;
 
 struct Config {
-  vector<string> mdf_files;
-  vector<string> mep_files;
+  vector<string> mdf_files = {"upgrade_mc_minbias_scifi_v5.mdf"};
+  vector<string> mep_files = {"upgrade_mc_minbias_scifi_v5_pf10.mep"};
   size_t n_slices = 2;
   size_t n_events = 5;
   bool run = false;
@@ -180,11 +181,22 @@ int main(int argc, char* argv[])
 
   s_config.run = !directory.empty();
 
+  for (auto file : s_config.mdf_files) {
+    std::cout << " File name = " << file << std::endl;
+  }
+
   if (!directory.empty()) {
     for (auto [ext, dir] : {std::tuple {string {"mdf"}, std::ref(s_config.mdf_files)},
                             std::tuple {string {"mep"}, std::ref(s_config.mep_files)}}) {
-      for (auto file : list_folder(directory + "/banks/" + ext, ext)) {
-        dir.get().push_back(directory + "/banks/" + ext + "/" + file);
+      for (auto& file : dir.get()) {
+        const auto filename = directory + ext + "/" + file;
+        if (std::filesystem::exists(filename)) {
+          file = filename;
+          std::cout << "modified filename = " << filename << std::endl;
+        }
+        else {
+          return 1;
+        }
       }
     }
   }

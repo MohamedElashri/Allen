@@ -13,8 +13,12 @@
 #include "Event/MCTrackInfo.h"
 #include "Event/MCVertex.h"
 #include "Event/ODIN.h"
-#include "GaudiAlg/Consumer.h"
+#include "Event/RawEvent.h"
+#include "Event/RawBank.h"
+#include "GaudiAlg/Transformer.h"
 #include "Linker/LinkerWithKey.h"
+
+#include "Associators/Associators.h"
 
 /** @class PVDumper PVDumper.h
  *  tool to dump the MC truth informaiton for PVs
@@ -23,19 +27,18 @@
  *  @author Florian Reiss
  *  @date   2018-12-17
  */
-class PVDumper : public Gaudi::Functional::Consumer<
-                   void(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&, const LHCb::ODIN&)> {
+class PVDumper
+  : public Gaudi::Functional::Transformer<LHCb::RawEvent(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&)> {
 public:
   /// Standard constructor
   PVDumper(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&, const LHCb::ODIN& odin) const override;
+  LHCb::RawEvent operator()(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&) const override;
 
 private:
   int count_reconstructible_mc_particles(const LHCb::MCVertex&, const MCTrackInfo&) const;
-
-  Gaudi::Property<std::string> m_outputDirectory {this, "OutputDirectory", "MC_info/PVs"};
+  LHCb::RawBank::BankType m_bankType = LHCb::RawBank::OTError;
 };
 #endif // PVDUMPER_H

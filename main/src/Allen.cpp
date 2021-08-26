@@ -39,7 +39,6 @@
 #include "Tools.h"
 #include "InputTools.h"
 #include "InputReader.h"
-#include "BinaryProvider.h"
 #include "MDFProvider.h"
 #include "MEPProvider.h"
 #include "Timer.h"
@@ -78,11 +77,9 @@ int allen(
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
 {
-  // Folder containing raw, MC and muon information
-  std::string folder_data = "../input/minbias/";
-  const std::string folder_rawdata = "banks/";
   // Folder containing detector configuration and catboost model
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
+  std::string folder_parameters = "../input/parameters/";
   std::string json_constants_configuration_file = "Sequence.json";
 
   unsigned number_of_slices = 0;
@@ -105,7 +102,7 @@ int allen(
   std::map<std::string, int> receivers = {{"mem", 1}};
   int mpi_window_size = 4;
   // Input file options
-  std::string mdf_input;
+  std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf";
   std::string mep_input;
   bool mep_layout = true;
   std::string output_file;
@@ -130,11 +127,11 @@ int allen(
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag_in({"f", "folder"})) {
-      folder_data = arg + "/";
-    }
-    else if (flag_in({"g", "geometry"})) {
+    if (flag_in({"g", "geometry"})) {
       folder_detector_configuration = arg + "/";
+    }
+    else if (flag_in({"params"})) {
+      folder_parameters = arg + "/";
     }
     else if (flag_in({"mdf"})) {
       mdf_input = arg;
@@ -242,13 +239,10 @@ int allen(
   }
 
   // Options sanity check
-  if (folder_data.empty() || folder_detector_configuration.empty()) {
+  if (folder_detector_configuration.empty()) {
     std::string missing_folder = "";
 
-    if (folder_data.empty())
-      missing_folder = "data folder";
-    else if (folder_detector_configuration.empty() && do_check)
-      missing_folder = "detector configuration";
+    if (folder_detector_configuration.empty() && do_check) missing_folder = "detector configuration";
 
     error_cout << "No folder for " << missing_folder << " specified\n";
     return -1;
@@ -308,16 +302,6 @@ int allen(
     events_per_slice = number_of_events_requested;
   }
 
-  // Raw data input folders
-  const auto folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
-  const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
-  const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
-  const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
-  const auto folder_name_ecal_raw = folder_data + folder_rawdata + "EcalPacked";
-  const auto folder_name_hcal_raw = folder_data + folder_rawdata + "HcalPacked";
-  const auto folder_name_ODIN_raw = folder_data + folder_rawdata + "ODIN";
-  const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
-
   std::unique_ptr<ConfigurationReader> configuration_reader;
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
@@ -346,7 +330,7 @@ int allen(
     items[control_index] = {*allen_control, 0, zmq::POLLIN, 0};
   }
 
-  // Create the InputProvider, either MDF or Binary
+  // Create the InputProvider, either MDF or MEP
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
   if (!mep_input.empty() || with_mpi) {
     MEPProviderConfig config {false,                // verify MEP checksums
@@ -383,34 +367,24 @@ int allen(
       BankTypes::MUON,
       BankTypes::ODIN,
       BankTypes::ECal,
-      BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
-  }
-  else {
-    mep_layout = false;
-    // The binary input provider expects the folders for the bank types as connections
-    std::vector<std::string> connections = {
-      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
-    input_provider =
-      std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-        number_of_slices, events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
+      BankTypes::HCal,
+      BankTypes::OTRaw,
+      BankTypes::OTError>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
 
   // Load constant parameters from JSON
   configuration_reader = std::make_unique<ConfigurationReader>(json_constants_configuration_file);
 
   // Read the Muon catboost model
-  muon_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
+  muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_parameters + "muon_catboost_model.json");
   two_track_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(folder_detector_configuration + "two_track_catboost_model_small.json");
+    std::make_unique<CatboostModelReader>(folder_parameters + "two_track_catboost_model_small.json");
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(
-    muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
+  read_muon_field_of_interest(muon_field_of_interest_params, folder_parameters + "field_of_interest_params.bin");
 
   // Initialize detector constants on GPU
   Constants constants;
-  constants.reserve_and_initialize(
-    muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
+  constants.reserve_and_initialize(muon_field_of_interest_params, folder_parameters + "params_kalman_FT6x2/");
   constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
@@ -527,8 +501,7 @@ int allen(
                         do_check,
                         cpu_offload,
                         mep_layout,
-                        inject_mem_fail,
-                        folder_data + "/MC_info"};
+                        inject_mem_fail};
   };
 
   // Lambda with the execution of the input thread that polls the
@@ -850,6 +823,17 @@ int allen(
           if (msg == "SLICE") {
             slice_index = zmqSvc->receive<size_t>(socket);
             auto n_filled = zmqSvc->receive<size_t>(socket);
+
+            // Check once that raw banks with MC information are available if MC check is requested
+            if (n_events_read == 0 && do_check) {
+              auto bno_pvs = input_provider->banks(BankTypes::OTError, *slice_index);
+              auto bno_tracks = input_provider->banks(BankTypes::OTRaw, *slice_index);
+              if (std::get<2>(bno_pvs).size() == 1 || std::get<2>(bno_tracks).size() == 1) {
+                error_cout << "No raw bank containing MC information found in input file" << std::endl;
+                goto loop_error;
+              }
+            }
+
             // FIXME: make the warmup time configurable
             if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
               info_cout << "Starting timer for throughput measurement\n";

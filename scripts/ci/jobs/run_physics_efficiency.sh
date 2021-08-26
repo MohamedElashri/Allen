@@ -12,7 +12,7 @@ check_build_exists
 
 RUN_OPTIONS="-n 1000 -m 1000"
 
-# Configure the input files (-f) and geometry (-g)
+# Configure the input files (--mdf) and geometry (-g)
 
 if [ ! -z ${GEOMETRY+x} ]; then
   RUN_OPTIONS="${RUN_OPTIONS} -g ../input/detector_configuration/${GEOMETRY}"
@@ -20,7 +20,7 @@ fi
 
 set -euxo pipefail
 
-RUN_OPTIONS="${RUN_OPTIONS} -f ${ALLEN_DATA}/${INPUT_FILES}"
+RUN_OPTIONS="${RUN_OPTIONS} --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf"
 
 OUTPUT_FOLDER="${TEST_NAME}_output_${SEQUENCE}"
 
@@ -50,4 +50,4 @@ setupViews
 
 {
   eval "${ALLEN}"
-} 2>&1 | tee "${OUTPUT_FOLDER}/${INPUT_FILES}_${SEQUENCE}_${DEVICE_ID}.txt"
+} 2>&1 | tee "${OUTPUT_FOLDER}/${DATA_TAG}_${SEQUENCE}_${DEVICE_ID}.txt"

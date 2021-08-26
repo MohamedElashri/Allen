@@ -142,5 +142,11 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   if (id == ids.end()) {
     throw GaudiException {"Cannot find "s + det.caloName(), name(), StatusCode::FAILURE};
   }
-  return {{std::tuple {output.buffer(), det.caloName() + "_geometry", id->second}}};
+
+  if (det.caloName()[0] == 'E') {
+    return {{std::tuple {output.buffer(), "ecal_geometry", id->second}}};
+  }
+  else {
+    return {{std::tuple {output.buffer(), "hcal_geometry", id->second}}};
+  }
 }

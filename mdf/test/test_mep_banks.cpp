@@ -15,7 +15,6 @@
 #include <Timer.h>
 #include <InputTools.h>
 #include <MDFProvider.h>
-#include <BinaryProvider.h>
 #include <MEPProvider.h>
 #include <TransposeMEP.h>
 #include <ClusteringDefinitions.cuh>
@@ -30,7 +29,6 @@ using namespace std;
 using namespace std::string_literals;
 
 struct Config {
-  vector<string> banks_dirs;
   vector<string> mdf_files;
   vector<string> mep_files;
   size_t n_slices = 1;
@@ -44,15 +42,13 @@ namespace {
 
   unique_ptr<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mep;
   unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mdf;
-  unique_ptr<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> binary;
 
-  size_t slice_mdf = 0, slice_mep = 0, slice_binary = 0;
-  size_t filled_mdf = 0, filled_mep = 0, filled_binary = 0;
+  size_t slice_mdf = 0, slice_mep = 0;
+  size_t filled_mdf = 0, filled_mep = 0;
 
   vector<char> mep_buffer;
   Slices mep_slices;
   EventIDs events_mep;
-  std::vector<int> ids;
 } // namespace
 
 int main(int argc, char* argv[])
@@ -80,17 +76,6 @@ int main(int argc, char* argv[])
   }
 
   s_config.run = !directory.empty();
-  if (s_config.run) {
-    for (auto [ext, dir] : {std::tuple {string {"mdf"}, std::ref(s_config.mdf_files)},
-                            std::tuple {string {"mep"}, std::ref(s_config.mep_files)}}) {
-      for (auto file : list_folder(directory + "/banks/" + ext, ext)) {
-        dir.get().push_back(directory + "/banks/" + ext + "/" + file);
-      }
-    }
-  }
-  for (auto sd : {"UT"s, "VP"s, "FTCluster"s, "Muon"s, "ODIN"s}) {
-    s_config.banks_dirs.push_back(directory + "/banks/" + sd);
-  }
 
   if (s_config.run) {
     // Allocate providers and get slices
@@ -100,7 +85,6 @@ int main(int argc, char* argv[])
     bool good = false, timed_out = false, done = false;
     uint runno = 0;
     std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
-    auto const& events_mdf = mdf->event_ids(slice_mdf);
 
     MEPProviderConfig mep_config {false, // verify MEP checksums
                                   2,     // number of read buffers
@@ -115,17 +99,6 @@ int main(int argc, char* argv[])
       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mep_files, mep_config);
     mep->start();
     std::tie(good, done, timed_out, slice_mep, filled_mep, runno) = mep->get_slice();
-
-    binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      s_config.n_slices,
-      s_config.n_events,
-      s_config.n_events,
-      s_config.banks_dirs,
-      false,
-      boost::optional<std::string> {},
-      events_mdf);
-
-    std::tie(good, done, timed_out, slice_binary, filled_binary, runno) = binary->get_slice();
   }
 
   return session.run();
@@ -144,7 +117,7 @@ template<typename... BankType>
 void compare_UT(
   gsl::span<char const> mep_fragments,
   gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> alle_fragments,
+  gsl::span<char const> allen_fragments,
   gsl::span<unsigned const> allen_offsets,
   size_t const i_event);
 
@@ -314,21 +287,6 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
     REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
     compare<BT>(std::get<3>(mep_data), mep_fragments, mep_offsets, allen_banks[0], allen_offsets, i);
   }
-}
-
-// Main test case, multiple bank types are checked
-TEMPLATE_TEST_CASE("MEP versus Binary", "[MEP binary]", VeloTag, UTTag, SciFiTag, MuonTag)
-{
-  if (!s_config.run) return;
-
-  // Check that the number of events read matches
-  REQUIRE(filled_binary == filled_mep);
-
-  // Get the banks
-  auto mep_banks = mep->banks(TestType::BT, slice_mep);
-  auto binary_banks = binary->banks(TestType::BT, slice_binary);
-
-  SECTION("Checking banks") { check_banks<TestType::BT>(mep_banks, binary_banks, s_config.n_events); }
 }
 
 // Main test case, multiple bank types are checked

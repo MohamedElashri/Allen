@@ -16,18 +16,10 @@ if [ ! -z ${GEOMETRY+x} ]; then
   RUN_OPTIONS="$RUN_OPTIONS -g ../input/detector_configuration/${GEOMETRY}"
 fi
 
-# if INPUT_FILES is set, use that instead of $DATA_TAG
-# otherwise, keep normal behaviour.
-if [ ! -z ${INPUT_FILES+x} ]; then
-  RUN_OPTIONS="-f ${ALLEN_DATA}/${INPUT_FILES} ${RUN_OPTIONS}"
-else
-  INPUT_FILES="${DATA_TAG}"
-  RUN_OPTIONS="-f ${ALLEN_DATA}/${DATA_TAG} ${RUN_OPTIONS}"
-fi
-
+RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf ${RUN_OPTIONS}"
 
 set -euxo pipefail
-OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${INPUT_FILES}/${DEVICE_ID}"
+OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}/${DEVICE_ID}"
 mkdir -p ${OUTPUT_FOLDER_REL}
 
 OUTPUT_FOLDER=$(realpath ${OUTPUT_FOLDER_REL})
@@ -116,10 +108,10 @@ THROUGHPUT_KHZ=$(python -c "print('%.2f' % (float(${THROUGHPUT}) / 1000.0))")
 echo "Throughput (Hz): ${THROUGHPUT}"
 echo "Throughput (kHz, 2 d.p.): ${THROUGHPUT_KHZ}"
 
-echo "${INPUT_FILES}" > "${OUTPUT_FOLDER}/input_files.txt"
+echo "${DATA_TAG}" > "${OUTPUT_FOLDER}/input_files.txt"
 echo "${SEQUENCE}" > "${OUTPUT_FOLDER}/sequence.txt"
 echo "${THROUGHPUT}" > "${OUTPUT_FOLDER}/throughput.txt"
 echo "${CI_COMMIT_SHORT_SHA}" > "${OUTPUT_FOLDER}/revision.txt"
 
 # write metric to display on MR
-echo "throughput_kHz{device=\"${DEVICE_ID}\",sequence=\"${SEQUENCE}\",dataset=\"${INPUT_FILES}\"} ${THROUGHPUT_KHZ}" >> "${OUTPUT_FOLDER}/metrics.txt"
+echo "throughput_kHz{device=\"${DEVICE_ID}\",sequence=\"${SEQUENCE}\",dataset=\"${DATA_TAG}\"} ${THROUGHPUT_KHZ}" >> "${OUTPUT_FOLDER}/metrics.txt"

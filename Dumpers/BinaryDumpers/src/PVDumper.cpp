@@ -37,49 +37,45 @@ DECLARE_COMPONENT(PVDumper)
 //=============================================================================
 
 PVDumper::PVDumper(const std::string& name, ISvcLocator* pSvcLocator) :
-  Consumer(
+  Transformer(
     name,
     pSvcLocator,
+    // Input
     {KeyValue {"MCVerticesLocation", LHCb::MCVertexLocation::Default},
-     KeyValue {"MCPropertyLocation", LHCb::MCPropertyLocation::TrackInfo},
-     KeyValue {"ODINLocation", LHCb::ODINLocation::Default}})
+     KeyValue {"MCPropertyLocation", LHCb::MCPropertyLocation::TrackInfo}},
+    // Output
+    KeyValue {"OutputRawEventLocation", "Allen/MCPVRawEvent"})
 {}
 
-StatusCode PVDumper::initialize()
-{
-  auto dir = fs::path {m_outputDirectory.value()};
-  if (!fs::exists(dir)) {
-    boost::system::error_code ec;
-    bool success = fs::create_directories(dir, ec);
-    success &= !ec;
-    if (!success) {
-      error() << "Failed to create directory " << dir.string() << ": " << ec.message() << endmsg;
-      return StatusCode::FAILURE;
-    }
-  }
-  return StatusCode::SUCCESS;
-}
+StatusCode PVDumper::initialize() { return StatusCode::SUCCESS; }
 
-void PVDumper::operator()(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty& MCProp, const LHCb::ODIN& odin)
-  const
+LHCb::RawEvent PVDumper::operator()(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty& MCProp) const
 {
-  // Binary file to dump MC PVs info
-  DumpUtils::FileWriter outfile_PV {m_outputDirectory.value() + "/" + std::to_string(odin.runNumber()) + "_" +
-                                    std::to_string(odin.eventNumber()) + ".bin"};
+
+  DumpUtils::Writer writer;
 
   auto goodVertex = [](const auto* v) {
     return !v->mother() && v->type() == LHCb::MCVertex::MCVertexType::ppCollision;
   };
 
   int n_PVs = std::count_if(MCVertices.begin(), MCVertices.end(), goodVertex);
-  outfile_PV.write(n_PVs);
+  writer.write(n_PVs);
 
   MCTrackInfo trInfo {MCProp};
   for (const auto& mcv : MCVertices) {
     if (!goodVertex(mcv)) continue;
     const auto& pv = mcv->position();
-    outfile_PV.write(count_reconstructible_mc_particles(*mcv, trInfo), pv.X(), pv.Y(), pv.Z());
+    writer.write(count_reconstructible_mc_particles(*mcv, trInfo), pv.X(), pv.Y(), pv.Z());
   }
+
+  // Write PV MC information to raw event
+  LHCb::RawEvent rawEvent;
+  constexpr int bankSize = 64512;
+  for (const auto [sourceID, data] : LHCb::range::enumerate(LHCb::range::chunk(writer.buffer(), bankSize))) {
+    rawEvent.addBank(sourceID, m_bankType, 1, data);
+  }
+
+  return rawEvent;
 }
 
 // count number reconstructible tracks in the same way as PrimaryVertexChecker
