@@ -13,7 +13,7 @@ def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):
     number_of_events = initialize_number_of_events()
     ut_tracks = forward_tracks["veloUT_tracks"]
     velo_tracks = ut_tracks["velo_tracks"]
-    velo_kalman_filter = run_velo_kalman_filter(velo_tracks)
+    velo_states = run_velo_kalman_filter(velo_tracks)
 
     velo_pv_ip = make_algorithm(
         velo_pv_ip_t,
@@ -22,12 +22,11 @@ def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):
             "host_number_of_reconstructed_velo_tracks"],
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_velo_kalman_beamline_states_t=velo_kalman_filter[
-            "dev_velo_kalman_beamline_states"],
         dev_offsets_all_velo_tracks_t=velo_tracks[
             "dev_offsets_all_velo_tracks"],
-        dev_offsets_velo_track_hit_number_t=velo_tracks[
-            "dev_offsets_velo_track_hit_number"],
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_velo_kalman_beamline_states_view_t=velo_states[
+            "dev_velo_kalman_beamline_states_view"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"],

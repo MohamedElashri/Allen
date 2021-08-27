@@ -30,28 +30,21 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
 __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_tracks::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Velo consolidated types
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_beamline_states {parameters.dev_velo_states,
-                                                        velo_tracks.total_number_of_tracks()};
-
-  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
+  const auto velo_states = parameters.dev_velo_states_view[event_number];
 
   auto ut_number_of_selected_velo_tracks = parameters.dev_ut_number_of_selected_velo_tracks + event_number;
-  auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
+  auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + velo_tracks.offset();
 
-  for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
-    const unsigned current_track_offset = event_tracks_offset + i;
-    const auto velo_beamline_state = velo_beamline_states.get(current_track_offset);
-    Velo::Consolidated::ConstHits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits.get(), i);
-    const auto backward = velo_beamline_state.z > consolidated_hits.z(0);
+  for (unsigned i = threadIdx.x; i < velo_states.size(); i += blockDim.x) {
+    const auto velo_track = velo_tracks.track(i);
+    const auto velo_state = velo_states.state(i);
+
+    const auto backward = velo_state.z() > velo_track.hit(0).z();
     if (
-      !backward && parameters.dev_accepted_velo_tracks[current_track_offset] &&
-      velo_track_in_UTA_acceptance(velo_beamline_state)) {
+      !backward && parameters.dev_accepted_velo_tracks[velo_tracks.offset() + i] &&
+      velo_track_in_UTA_acceptance(velo_state)) {
       int current_track = atomicAdd(ut_number_of_selected_velo_tracks, 1);
       ut_selected_velo_tracks[current_track] = i;
     }

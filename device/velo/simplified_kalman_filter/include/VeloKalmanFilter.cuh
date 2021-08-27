@@ -58,12 +58,11 @@ namespace velo_kalman_filter {
    */
   template<bool upstream>
   __device__ KalmanVeloState simplified_fit(
-    Velo::Consolidated::ConstHits& consolidated_hits,
+    const Allen::Views::Velo::Consolidated::Track& track,
     const MiniState& stateAtBeamLine,
-    const unsigned nhits,
     float* dev_beamline)
   {
-    const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);
+    const bool backward = stateAtBeamLine.z > track.hit(0).z();
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
     const float noise2PerLayer =
       1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
@@ -71,9 +70,9 @@ namespace velo_kalman_filter {
     // assume the hits are sorted,
     // but don't assume anything on the direction of sorting
     int firsthit = 0;
-    int lasthit = nhits - 1;
+    int lasthit = track.number_of_hits() - 1;
     int dhit = 1;
-    if ((consolidated_hits.z(lasthit) - consolidated_hits.z(firsthit)) * direction < 0) {
+    if ((track.hit(lasthit).z() - track.hit(firsthit).z()) * direction < 0) {
       const int temp = firsthit;
       firsthit = lasthit;
       lasthit = temp;
@@ -83,9 +82,10 @@ namespace velo_kalman_filter {
     // We filter x and y simultaneously but take them uncorrelated.
     // filter first the first hit.
     KalmanVeloState state;
-    state.x = consolidated_hits.x(firsthit);
-    state.y = consolidated_hits.y(firsthit);
-    state.z = consolidated_hits.z(firsthit);
+    const auto hit = track.hit(firsthit);
+    state.x = hit.x();
+    state.y = hit.y();
+    state.z = hit.z();
     state.tx = stateAtBeamLine.tx;
     state.ty = stateAtBeamLine.ty;
 
@@ -99,10 +99,10 @@ namespace velo_kalman_filter {
 
     // add remaining hits
     for (auto i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
-      int hitindex = i;
-      const auto hit_x = consolidated_hits.x(hitindex);
-      const auto hit_y = consolidated_hits.y(hitindex);
-      const auto hit_z = consolidated_hits.z(hitindex);
+      const auto hit = track.hit(i);
+      const auto hit_x = hit.x();
+      const auto hit_y = hit.y();
+      const auto hit_z = hit.z();
 
       // add the noise
       state.c22 += noise2PerLayer;
@@ -156,10 +156,21 @@ namespace velo_kalman_filter {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
     DEVICE_OUTPUT(dev_velo_kalman_endvelo_states_t, char) dev_velo_kalman_endvelo_states;
+    DEVICE_OUTPUT(
+      dev_velo_kalman_beamline_states_view_t,
+      Allen::Views::Velo::Consolidated::States,
+      dev_velo_kalman_beamline_states_t,
+      dev_offsets_all_velo_tracks_t)
+    dev_velo_kalman_beamline_states_view;
+    DEVICE_OUTPUT(
+      dev_velo_kalman_endvelo_states_view_t,
+      Allen::Views::Velo::Consolidated::States,
+      dev_velo_kalman_endvelo_states_t,
+      dev_offsets_all_velo_tracks_t)
+    dev_velo_kalman_endvelo_states_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

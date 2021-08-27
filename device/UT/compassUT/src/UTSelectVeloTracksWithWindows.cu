@@ -69,14 +69,9 @@ __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_w
   ut_select_velo_tracks_with_windows::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Velo consolidated types
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
-  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
+  const unsigned event_tracks_offset = velo_tracks.offset();
 
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
@@ -88,10 +83,10 @@ __global__ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_w
   auto ut_selected_velo_tracks_with_windows = parameters.dev_ut_selected_velo_tracks_with_windows + event_tracks_offset;
 
   for (unsigned i = threadIdx.x; i < ut_number_of_selected_tracks; i += blockDim.x) {
-    const auto current_velo_track = ut_selected_velo_tracks[i];
-    if (found_active_windows(ut_windows_layers, number_of_tracks_event, current_velo_track)) {
+    const auto velo_track_index = ut_selected_velo_tracks[i];
+    if (found_active_windows(ut_windows_layers, velo_tracks.size(), velo_track_index)) {
       int current_track = atomicAdd(ut_number_of_selected_velo_tracks_with_windows, 1);
-      ut_selected_velo_tracks_with_windows[current_track] = current_velo_track;
+      ut_selected_velo_tracks_with_windows[current_track] = velo_track_index;
     }
   }
 }

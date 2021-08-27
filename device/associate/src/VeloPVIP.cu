@@ -29,38 +29,34 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
 }
 
 namespace Distance {
-  __device__ float
-  velo_ip(Velo::Consolidated::ConstStates& velo_kalman_states, const unsigned state_index, const PV::Vertex& vertex)
+  __device__ float velo_ip(const KalmanVeloState& state, const PV::Vertex& vertex, const float denom)
   {
-    float tx = velo_kalman_states.tx(state_index);
-    float ty = velo_kalman_states.ty(state_index);
-    float dz = vertex.position.z - velo_kalman_states.z(state_index);
-    float dx = velo_kalman_states.x(state_index) + dz * tx - vertex.position.x;
-    float dy = velo_kalman_states.y(state_index) + dz * ty - vertex.position.y;
-    return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
+    float tx = state.tx;
+    float ty = state.ty;
+    float dz = vertex.position.z - state.z;
+    float dx = state.x + dz * tx - vertex.position.x;
+    float dy = state.y + dz * ty - vertex.position.y;
+    return sqrtf((dx * dx + dy * dy) * denom);
   }
 
-  __device__ float velo_ip_chi2(
-    Velo::Consolidated::ConstStates& velo_kalman_states,
-    const unsigned state_index,
-    const PV::Vertex& vertex)
+  __device__ float velo_ip_chi2(const KalmanVeloState& velo_kalman_state, const PV::Vertex& vertex)
   {
     // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
-    float tx = velo_kalman_states.tx(state_index);
-    float ty = velo_kalman_states.ty(state_index);
-    float dz = vertex.position.z - velo_kalman_states.z(state_index);
-    float dx = velo_kalman_states.x(state_index) + dz * tx - vertex.position.x;
-    float dy = velo_kalman_states.y(state_index) + dz * ty - vertex.position.y;
+    float tx = velo_kalman_state.tx;
+    float ty = velo_kalman_state.ty;
+    float dz = vertex.position.z - velo_kalman_state.z;
+    float dx = velo_kalman_state.x + dz * tx - vertex.position.x;
+    float dy = velo_kalman_state.y + dz * ty - vertex.position.y;
 
     // compute the covariance matrix. first only the trivial parts:
-    float cov00 = vertex.cov00 + velo_kalman_states.c00(state_index);
+    float cov00 = vertex.cov00 + velo_kalman_state.c00;
     float cov10 = vertex.cov10; // state c10 is 0.f;
-    float cov11 = vertex.cov11 + velo_kalman_states.c11(state_index);
+    float cov11 = vertex.cov11 + velo_kalman_state.c11;
 
     // add the contribution from the extrapolation
-    cov00 += dz * dz * velo_kalman_states.c22(state_index) + 2 * dz * velo_kalman_states.c20(state_index);
+    cov00 += dz * dz * velo_kalman_state.c22 + 2 * dz * velo_kalman_state.c20;
     // cov10 is unchanged: state c32, c30 and c21 are  0.f
-    cov11 += dz * dz * velo_kalman_states.c33(state_index) + 2 * dz * velo_kalman_states.c31(state_index);
+    cov11 += dz * dz * velo_kalman_state.c33 + 2 * dz * velo_kalman_state.c31;
 
     // add the contribution from pv Z
     cov00 += tx * tx * vertex.cov22 - 2 * tx * vertex.cov20;
@@ -78,16 +74,18 @@ namespace Distance {
 } // namespace Distance
 
 __device__ void associate(
-  Velo::Consolidated::ConstStates& velo_kalman_states,
+  const Allen::Views::Velo::Consolidated::States& velo_kalman_states,
   Allen::device::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table)
 {
   for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
+    const KalmanVeloState state = velo_kalman_states.state(i);
+    const float denom = 1.f / (1.0f + state.tx * state.tx + state.ty * state.ty);
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
     for (unsigned j = 0; j < vertices.size(); ++j) {
-      float val = fabsf(Distance::velo_ip(velo_kalman_states, i, *(vertices.data() + j)));
+      float val = fabsf(Distance::velo_ip(state, *(vertices.data() + j), denom));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
       first = false;
@@ -102,24 +100,19 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Consolidated Velo tracks for this event
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  unsigned const event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
+  const auto velo_kalman_states = parameters.dev_velo_kalman_beamline_states_view[event_number];
 
-  Associate::Consolidated::Table velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
+  Associate::Consolidated::Table velo_pv_ip {parameters.dev_velo_pv_ip,
+                                             parameters.dev_offsets_all_velo_tracks[number_of_events]};
   velo_pv_ip.cutoff() = Associate::VeloPVIP::baseline;
-
-  // Consolidated Velo fitted states for this event
-  Velo::Consolidated::ConstStates velo_kalman_states {
-    parameters.dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks(), event_tracks_offset};
 
   Allen::device::span<const PV::Vertex> vertices {parameters.dev_multi_final_vertices +
                                                     event_number * PV::max_number_vertices,
                                                   *(parameters.dev_number_of_multi_final_vertices + event_number)};
 
   // The track <-> PV association table for this event
-  auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
+  auto pv_table = velo_pv_ip.event_table(velo_tracks.offset(), velo_tracks.size());
 
   // Perform the association for this event
   associate(velo_kalman_states, vertices, pv_table);

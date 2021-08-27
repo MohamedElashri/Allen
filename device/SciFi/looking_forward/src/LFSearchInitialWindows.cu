@@ -46,11 +46,8 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
-  const unsigned velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
+  const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   // UT consolidated tracks
   UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
@@ -84,12 +81,12 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
     const float ut_tx = parameters.dev_ut_tx[ut_track_index];
     const float ut_z = parameters.dev_ut_z[ut_track_index];
 
-    const unsigned velo_states_index = velo_event_tracks_offset + velo_track_index;
-    const MiniState velo_state = velo_states.get(velo_states_index);
+    const auto velo_track = velo_tracks_view.track(velo_track_index);
+    const auto velo_state = velo_track.state(velo_states_view);
 
     // extrapolate velo y & ty to z of UT x and tx
     // use ty from Velo state
-    const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty};
+    const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty()};
     const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
 
     // Store state for access in other algorithms

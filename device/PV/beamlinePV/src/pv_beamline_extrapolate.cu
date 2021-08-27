@@ -28,35 +28,30 @@ void pv_beamline_extrapolate::pv_beamline_extrapolate_t::operator()(
 __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_extrapolate::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_kalman_beamline_states,
-                                               velo_tracks.total_number_of_tracks()};
+  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
+  const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
-  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  // const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+  // const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
-    const auto s {velo_states.get(event_tracks_offset + index)};
-    parameters.dev_pvtrack_unsorted_z[event_tracks_offset + index] = s.z;
+  for (unsigned index = threadIdx.x; index < velo_tracks_view.size(); index += blockDim.x) {
+    parameters.dev_pvtrack_unsorted_z[velo_tracks_view.offset() + index] = velo_states_view.state(index).z();
   }
 
   __syncthreads();
 
   // Insert in order
-  for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
-    const auto z = parameters.dev_pvtrack_unsorted_z[event_tracks_offset + index];
+  for (unsigned index = threadIdx.x; index < velo_tracks_view.size(); index += blockDim.x) {
+    const auto z = parameters.dev_pvtrack_unsorted_z[velo_tracks_view.offset() + index];
     unsigned insert_position = 0;
 
-    for (unsigned other = 0; other < number_of_tracks_event; ++other) {
-      const auto other_z = parameters.dev_pvtrack_unsorted_z[event_tracks_offset + other];
+    for (unsigned other = 0; other < velo_tracks_view.size(); ++other) {
+      const auto other_z = parameters.dev_pvtrack_unsorted_z[velo_tracks_view.offset() + other];
       insert_position += z > other_z || (z == other_z && index > other);
     }
 
-    const auto s = velo_states.get_kalman_state(event_tracks_offset + index);
-    parameters.dev_pvtracks[event_tracks_offset + insert_position] = PVTrack {s};
-    parameters.dev_pvtrack_z[event_tracks_offset + index] = z;
+    parameters.dev_pvtracks[velo_tracks_view.offset() + insert_position] = PVTrack {velo_states_view.state(index)};
+    parameters.dev_pvtrack_z[velo_tracks_view.offset() + index] = z;
   }
 }

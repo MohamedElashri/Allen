@@ -10,6 +10,246 @@
 #include "ConsolidatedTypes.cuh"
 #include "BackendCommon.h"
 
+namespace Allen {
+  namespace Views {
+    namespace Velo {
+      namespace Consolidated {
+        struct Hit {
+        private:
+          constexpr static unsigned offset_coordinates = sizeof(unsigned) / sizeof(half_t);
+
+          const half_t* m_base_pointer;
+          unsigned m_index;
+          unsigned m_total_number_of_hits;
+
+        public:
+          __host__ __device__
+          Hit(const half_t* base_pointer, const unsigned index, const unsigned total_number_of_hits) :
+            m_base_pointer(base_pointer),
+            m_index(index), m_total_number_of_hits(total_number_of_hits)
+          {}
+
+          __host__ __device__ unsigned id() const { return reinterpret_cast<const unsigned*>(m_base_pointer)[m_index]; }
+
+          __host__ __device__ float x() const
+          {
+            return static_cast<float>(m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * m_index]);
+          }
+
+          __host__ __device__ float y() const
+          {
+            return static_cast<float>(m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * m_index + 1]);
+          }
+
+          __host__ __device__ float z() const
+          {
+            return static_cast<float>(m_base_pointer[offset_coordinates * m_total_number_of_hits + 3 * m_index + 2]);
+          }
+
+          __host__ __device__ operator ::Velo::HitBase() const { return ::Velo::HitBase {x(), y(), z()}; }
+
+          __host__ __device__ operator ::Velo::Hit() const { return ::Velo::Hit {x(), y(), z(), id()}; }
+        };
+
+        struct Hits {
+        private:
+          const half_t* m_base_pointer;
+          unsigned m_offset;
+          unsigned m_size;
+          unsigned m_total_number_of_hits;
+
+        public:
+          __host__ __device__ Hits(
+            const char* base_pointer,
+            const unsigned* offset_tracks,
+            const unsigned* offset_track_hit_number,
+            const unsigned event_number,
+            const unsigned number_of_events) :
+            m_base_pointer(reinterpret_cast<const half_t*>(base_pointer)),
+            m_offset(offset_track_hit_number[offset_tracks[event_number]]),
+            m_size(
+              offset_track_hit_number[offset_tracks[event_number + 1]] -
+              offset_track_hit_number[offset_tracks[event_number]]),
+            m_total_number_of_hits(offset_track_hit_number[offset_tracks[number_of_events]])
+          {}
+
+          __host__ __device__ unsigned size() const { return m_size; }
+
+          __host__ __device__ Hit hit(const unsigned index) const
+          {
+            assert(index < m_size);
+            return Hit {m_base_pointer, m_offset + index, m_total_number_of_hits};
+          }
+
+          /**
+           * @brief This offset indicates the relative position of the
+           *        hits in the container for the current event.
+           */
+          __host__ __device__ unsigned offset() const { return m_offset; }
+        };
+
+        struct State {
+        private:
+          constexpr static unsigned nb_elements_state = 5;
+          constexpr static unsigned nb_elements_cov = 6;
+
+          const float* m_base_pointer;
+          unsigned m_index;
+          unsigned m_total_number_of_tracks;
+
+        public:
+          __host__ __device__
+          State(const char* base_pointer, const unsigned index, const unsigned total_number_of_tracks) :
+            m_base_pointer(reinterpret_cast<const float*>(base_pointer)),
+            m_index(index), m_total_number_of_tracks(total_number_of_tracks)
+          {}
+
+          __host__ __device__ float x() const { return m_base_pointer[nb_elements_state * m_index]; }
+
+          __host__ __device__ float y() const { return m_base_pointer[nb_elements_state * m_index + 1]; }
+
+          __host__ __device__ float z() const { return m_base_pointer[nb_elements_state * m_index + 2]; }
+
+          __host__ __device__ float tx() const { return m_base_pointer[nb_elements_state * m_index + 3]; }
+
+          __host__ __device__ float ty() const { return m_base_pointer[nb_elements_state * m_index + 4]; }
+
+          __host__ __device__ float c00() const
+          {
+            return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index];
+          }
+
+          __host__ __device__ float c20() const
+          {
+            return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 1];
+          }
+
+          __host__ __device__ float c22() const
+          {
+            return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 2];
+          }
+
+          __host__ __device__ float c11() const
+          {
+            return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 3];
+          }
+
+          __host__ __device__ float c31() const
+          {
+            return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 4];
+          }
+
+          __host__ __device__ float c33() const
+          {
+            return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 5];
+          }
+
+          __host__ __device__ operator MiniState() const { return MiniState {x(), y(), z(), tx(), ty()}; }
+
+          __host__ __device__ operator KalmanVeloState() const
+          {
+            return KalmanVeloState {x(), y(), z(), tx(), ty(), c00(), c20(), c22(), c11(), c31(), c33()};
+          }
+        };
+
+        struct States {
+        private:
+          const char* m_base_pointer;
+          unsigned m_offset;
+          unsigned m_size;
+          unsigned m_total_number_of_tracks;
+
+        public:
+          __host__ __device__ States(
+            const char* base_pointer,
+            const unsigned* offset_tracks,
+            const unsigned event_number,
+            const unsigned number_of_events) :
+            m_base_pointer(base_pointer),
+            m_offset(offset_tracks[event_number]),
+            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]),
+            m_total_number_of_tracks(offset_tracks[number_of_events])
+          {}
+
+          __host__ __device__ unsigned size() const { return m_size; }
+
+          __host__ __device__ State state(const unsigned track_index) const
+          {
+            assert(track_index < m_size);
+            return State {m_base_pointer, m_offset + track_index, m_total_number_of_tracks};
+          }
+
+          /**
+           * @brief This offset indicates the relative position of the
+           *        states in the container for the current event.
+           */
+          __host__ __device__ unsigned offset() const { return m_offset; }
+        };
+
+        struct Track {
+        private:
+          const Hits& m_hits;
+          unsigned m_offset;
+          unsigned m_number_of_hits;
+          unsigned m_track_index;
+
+        public:
+          __host__ __device__
+          Track(const Hits& hits, const unsigned offset, const unsigned number_of_hits, const unsigned track_index) :
+            m_hits(hits),
+            m_offset(offset), m_number_of_hits(number_of_hits), m_track_index(track_index)
+          {}
+
+          __host__ __device__ unsigned track_index() const { return m_track_index; }
+
+          __host__ __device__ unsigned number_of_hits() const { return m_number_of_hits; }
+
+          __host__ __device__ Hit hit(const unsigned index) const { return m_hits.hit(m_offset + index); }
+
+          __host__ __device__ State state(const States& states_view) const { return states_view.state(m_track_index); }
+        };
+
+        struct Tracks {
+        private:
+          Hits m_hits;
+          const unsigned* m_offset_track_hit_number;
+          unsigned m_offset;
+          unsigned m_size;
+
+        public:
+          __host__ __device__ Tracks(
+            const char* hits_base_pointer,
+            const unsigned* offset_tracks,
+            const unsigned* offset_track_hit_number,
+            const unsigned event_number,
+            const unsigned number_of_events) :
+            m_hits(Hits {hits_base_pointer, offset_tracks, offset_track_hit_number, event_number, number_of_events}),
+            m_offset_track_hit_number(offset_track_hit_number + offset_tracks[event_number]),
+            m_offset(offset_tracks[event_number]), m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
+          {}
+
+          __host__ __device__ unsigned size() const { return m_size; }
+
+          __host__ __device__ Track track(const unsigned index) const
+          {
+            assert(index < m_size);
+            return Track {m_hits,
+                          m_offset_track_hit_number[index] - m_offset_track_hit_number[0],
+                          m_offset_track_hit_number[index + 1] - m_offset_track_hit_number[index],
+                          index};
+          }
+
+          /**
+           * @brief This offset indicates the relative position of the
+           *        tracks in the container for the current event.
+           */
+          __host__ __device__ unsigned offset() const { return m_offset; }
+        };
+      } // namespace Consolidated
+    }   // namespace Velo
+  }     // namespace Views
+} // namespace Allen
+
 namespace Velo {
   namespace Consolidated {
     /**
@@ -27,7 +267,7 @@ namespace Velo {
 
       __host__ __device__ Hits_t(const Hits_t<T>& hits) : Velo::Clusters_t<T>(hits) {}
 
-      __host__ __device__ void set(const unsigned index, const Velo::Hit& hit)
+      __host__ __device__ void set(const unsigned index, const ::Velo::Hit& hit)
       {
         assert(m_offset + index < m_total_number_of_hits);
         this->set_x(index, hit.x);
@@ -36,10 +276,10 @@ namespace Velo {
         this->set_id(index, hit.LHCbID);
       }
 
-      __host__ __device__ Velo::Hit get(const unsigned index) const
+      __host__ __device__ ::Velo::Hit get(const unsigned index) const
       {
         assert(m_offset + index < m_total_number_of_hits);
-        return Velo::Hit {this->x(index), this->y(index), this->z(index), this->id(index)};
+        return ::Velo::Hit {this->x(index), this->y(index), this->z(index), this->id(index)};
       }
     };
 
@@ -93,7 +333,7 @@ namespace Velo {
     template<typename T>
     struct States_t {
     private:
-      typename ForwardType<T, float>::t* m_base_pointer;
+      Allen::forward_type_t<T, float>* m_base_pointer;
       const unsigned m_total_number_of_tracks;
       const unsigned m_offset;
 
@@ -103,7 +343,7 @@ namespace Velo {
       constexpr static unsigned nb_elements_cov = 6;
 
       __host__ __device__ States_t(T* base_pointer, const unsigned total_number_of_tracks, const unsigned offset = 0) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
+        m_base_pointer(reinterpret_cast<Allen::forward_type_t<T, float>*>(base_pointer)),
         m_total_number_of_tracks(total_number_of_tracks), m_offset(offset)
       {}
 

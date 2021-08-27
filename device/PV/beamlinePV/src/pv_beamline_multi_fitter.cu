@@ -32,23 +32,19 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   const float* dev_beamline)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
   unsigned* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
-  const unsigned number_of_tracks = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
+  ;
 
   const float* zseeds = parameters.dev_zpeaks + event_number * PV::max_number_vertices;
   const unsigned number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
 
-  const PVTrack* tracks = parameters.dev_pvtracks + event_tracks_offset;
+  const PVTrack* tracks = parameters.dev_pvtracks + velo_tracks_view.offset();
 
   PV::Vertex* vertices = parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
   PV::Vertex vertex;
-  const float* pvtracks_denom = parameters.dev_pvtracks_denom + event_tracks_offset;
+  const float* pvtracks_denom = parameters.dev_pvtracks_denom + velo_tracks_view.offset();
 
   const float2 seed_pos_xy {dev_beamline[0], dev_beamline[1]};
 
@@ -56,8 +52,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   // Exploit the fact tracks are sorted by z
   int first_track_in_range = -1;
   unsigned number_of_tracks_in_range = 0;
-  for (unsigned i = 0; i < number_of_tracks; i++) {
-    const auto z = parameters.dev_pvtrack_z[event_tracks_offset + i];
+  for (unsigned i = 0; i < velo_tracks_view.size(); i++) {
+    const auto z = parameters.dev_pvtrack_z[velo_tracks_view.offset() + i];
     if (BeamlinePVConstants::Common::zmin < z && z < BeamlinePVConstants::Common::zmax) {
       if (first_track_in_range == -1) {
         first_track_in_range = i;

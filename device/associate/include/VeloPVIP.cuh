@@ -16,9 +16,10 @@ namespace velo_pv_ip {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
+    DEVICE_INPUT(dev_velo_kalman_beamline_states_view_t, Allen::Views::Velo::Consolidated::States)
+    dev_velo_kalman_beamline_states_view;
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_OUTPUT(dev_velo_pv_ip_t, char) dev_velo_pv_ip;

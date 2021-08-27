@@ -41,18 +41,12 @@ __device__ float gauss_integral(float x)
 __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Parameters parameters, float* dev_beamline)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
-  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
-
+  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
   float* histo_base_pointer = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
 
-  for (unsigned index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
-    PVTrack trk = parameters.dev_pvtracks[event_tracks_offset + index];
+  for (unsigned index = threadIdx.x; index < velo_tracks_view.size(); index += blockDim.x) {
+    PVTrack trk = parameters.dev_pvtracks[velo_tracks_view.offset() + index];
     // apply the z cut here
     if (BeamlinePVConstants::Common::zmin < trk.z && trk.z < BeamlinePVConstants::Common::zmax) {
       const float diffx2 = (trk.x.x - dev_beamline[0]) * (trk.x.x - dev_beamline[0]);

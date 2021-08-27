@@ -47,13 +47,9 @@ __global__ void ut_search_windows::ut_search_windows(
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
-  // Velo consolidated types
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
-
-  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
+  const auto velo_states = parameters.dev_velo_states_view[event_number];
+  const unsigned event_tracks_offset = velo_tracks.offset();
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
@@ -69,10 +65,8 @@ __global__ void ut_search_windows::ut_search_windows(
     const unsigned layer_offset = ut_hit_offsets.layer_offset(layer);
 
     for (unsigned i = threadIdx.y; i < ut_number_of_selected_tracks; i += blockDim.y) {
-      const auto current_velo_track = ut_selected_velo_tracks[i];
-
-      const unsigned current_track_offset = event_tracks_offset + current_velo_track;
-      const MiniState velo_state = velo_states.get(current_track_offset);
+      const auto velo_track_index = ut_selected_velo_tracks[i];
+      const auto velo_state = velo_states.state(velo_track_index);
 
       const auto candidates = calculate_windows(
         layer,
@@ -92,8 +86,8 @@ __global__ void ut_search_windows::ut_search_windows(
       short* windows_layers =
         parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
 
-      const int track_pos = UT::Constants::n_layers * number_of_tracks_event;
-      const int layer_pos = layer * number_of_tracks_event + current_velo_track;
+      const int track_pos = UT::Constants::n_layers * velo_tracks.size();
+      const int layer_pos = layer * velo_tracks.size() + velo_track_index;
 
       windows_layers[0 * track_pos + layer_pos] = std::get<0>(candidates) - layer_offset; // first_candidate
       windows_layers[1 * track_pos + layer_pos] = std::get<2>(candidates) - layer_offset; // left_group_first
