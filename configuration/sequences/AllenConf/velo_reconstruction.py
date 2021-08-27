@@ -208,6 +208,8 @@ def make_velo_tracks(decoded_velo):
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t,
         "dev_accepted_velo_tracks":
         velo_consolidate_tracks.dev_accepted_velo_tracks_t,
+        "dev_velo_tracks_view":
+        velo_consolidate_tracks.dev_velo_tracks_view_t,
     }
 
 
@@ -223,16 +225,18 @@ def run_velo_kalman_filter(velo_tracks):
             "host_number_of_reconstructed_velo_tracks"],
         dev_offsets_all_velo_tracks_t=velo_tracks[
             "dev_offsets_all_velo_tracks"],
-        dev_offsets_velo_track_hit_number_t=velo_tracks[
-            "dev_offsets_velo_track_hit_number"],
-        dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
     )
 
     return {
         "dev_velo_kalman_beamline_states":
         velo_kalman_filter.dev_velo_kalman_beamline_states_t,
         "dev_velo_kalman_endvelo_states":
-        velo_kalman_filter.dev_velo_kalman_endvelo_states_t
+        velo_kalman_filter.dev_velo_kalman_endvelo_states_t,
+        "dev_velo_kalman_beamline_states_view":
+        velo_kalman_filter.dev_velo_kalman_beamline_states_view_t,
+        "dev_velo_kalman_endvelo_states_view":
+        velo_kalman_filter.dev_velo_kalman_endvelo_states_view_t,
     }
 
 

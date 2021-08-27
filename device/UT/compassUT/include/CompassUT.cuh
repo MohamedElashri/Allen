@@ -19,9 +19,8 @@ namespace compass_ut {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits; // actual hit contents
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo; // prefixsum, offset to tracks
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, unsigned)
     dev_ut_number_of_selected_velo_tracks;

@@ -19,9 +19,7 @@ namespace lf_search_initial_windows {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
     DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_x_t, float) dev_ut_x;
@@ -29,6 +27,7 @@ namespace lf_search_initial_windows {
     DEVICE_INPUT(dev_ut_z_t, float) dev_ut_z;
     DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_OUTPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
     DEVICE_OUTPUT(dev_ut_states_t, MiniState) dev_ut_states;
     DEVICE_OUTPUT(dev_scifi_lf_process_track_t, bool) dev_scifi_lf_process_track;

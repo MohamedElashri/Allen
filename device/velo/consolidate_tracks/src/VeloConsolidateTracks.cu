@@ -15,6 +15,7 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
     arguments,
     first<host_number_of_reconstructed_velo_tracks_t>(arguments) +
       first<host_number_of_three_hit_tracks_filtered_t>(arguments));
+  set_size<dev_velo_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
@@ -24,11 +25,13 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
-    arguments);
+  initialize<dev_velo_tracks_view_t>(arguments, 0, context);
 
   // Set all found tracks to accepted
   initialize<dev_accepted_velo_tracks_t>(arguments, 1, context);
+
+  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
+    arguments);
 
   if (runtime_options.do_check) {
     assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, context);
@@ -57,6 +60,13 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
   const Velo::TrackletHits* three_hit_tracks = parameters.dev_three_hit_tracks_output + tracks_offset;
 
   // Consolidated datatypes
+  const auto velo_tracks_view = Allen::Views::Velo::Consolidated::Tracks {parameters.dev_velo_track_hits,
+                                                                          parameters.dev_offsets_all_velo_tracks,
+                                                                          parameters.dev_offsets_velo_track_hit_number,
+                                                                          event_number,
+                                                                          number_of_events};
+  parameters.dev_velo_tracks_view[event_number] = velo_tracks_view;
+
   Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
                                           parameters.dev_offsets_velo_track_hit_number,
                                           event_number,

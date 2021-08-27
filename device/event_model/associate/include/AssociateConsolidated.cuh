@@ -29,15 +29,20 @@ namespace Associate {
         const unsigned total_number,
         const unsigned size) :
         m_base_pointer(base_pointer),
-        m_event_tracks_offset(event_tracks_offset), m_total_number(total_number),
-        m_size(size)
+        m_event_tracks_offset(event_tracks_offset), m_total_number(total_number), m_size(size)
       {}
 
       __host__ __device__ unsigned total_number() { return m_total_number; }
 
-      __host__ __device__ unsigned pv(const unsigned index) const { return *(m_base_pointer + 2 + m_event_tracks_offset + index); }
+      __host__ __device__ unsigned pv(const unsigned index) const
+      {
+        return *(m_base_pointer + 2 + m_event_tracks_offset + index);
+      }
 
-      __host__ __device__ unsigned& pv(const unsigned index) { return *(m_base_pointer + 2 + m_event_tracks_offset + index); }
+      __host__ __device__ unsigned& pv(const unsigned index)
+      {
+        return *(m_base_pointer + 2 + m_event_tracks_offset + index);
+      }
 
       __host__ __device__ float value(const unsigned index) const
       {
@@ -51,9 +56,7 @@ namespace Associate {
           m_base_pointer + 2 + m_event_tracks_offset + m_total_number + index);
       }
 
-      __host__ __device__ unsigned size() {
-        return m_size;
-      }
+      __host__ __device__ unsigned size() { return m_size; }
     };
 
     typedef const EventTable_t<const char> ConstEventTable;
@@ -68,7 +71,8 @@ namespace Associate {
 
     public:
       __host__ __device__ Table_t(typename ForwardType<T, char>::t* base_pointer, const unsigned total_number) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T, unsigned>::t*>(base_pointer)), m_total_number(total_number)
+        m_base_pointer(reinterpret_cast<typename ForwardType<T, unsigned>::t*>(base_pointer)),
+        m_total_number(total_number)
       {}
 
       __host__ __device__ unsigned total_number() const { return m_total_number; }
@@ -97,17 +101,29 @@ namespace Associate {
         return *reinterpret_cast<typename ForwardType<T, float>::t*>(m_base_pointer + 2 + m_total_number);
       }
 
-      __host__ __device__ EventTable_t<typename ForwardType<T, char>::t>
-      event_table(const ::Consolidated::TracksDescription& track_index, const unsigned event_number) const
+      __host__ __device__ EventTable_t<typename ForwardType<T, char>::t> event_table(
+        const ::Consolidated::TracksDescription& track_index,
+        const unsigned event_number) const
       {
         const unsigned event_tracks_offset = track_index.tracks_offset(event_number);
         return {m_base_pointer, event_tracks_offset, m_total_number, track_index.number_of_tracks(event_number)};
+      }
+
+      __host__ __device__ EventTable_t<typename ForwardType<T, char>::t> event_table(
+        const unsigned tracks_offset,
+        const unsigned number_of_tracks) const
+      {
+        const unsigned event_tracks_offset = tracks_offset;
+        return {m_base_pointer, event_tracks_offset, m_total_number, number_of_tracks};
       }
     };
 
     typedef const Table_t<const char> ConstTable;
     typedef Table_t<char> Table;
 
-    __host__ __device__ inline unsigned table_size(unsigned const tn) { return sizeof(unsigned) * (tn + 1) + sizeof(float) * (tn + 1); }
+    __host__ __device__ inline unsigned table_size(unsigned const tn)
+    {
+      return sizeof(unsigned) * (tn + 1) + sizeof(float) * (tn + 1);
+    }
   } // namespace Consolidated
 } // namespace Associate

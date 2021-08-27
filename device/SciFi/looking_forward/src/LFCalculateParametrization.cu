@@ -10,11 +10,8 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Velo consolidated types
-  Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
-  const unsigned velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
+  const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   // UT consolidated tracks
   UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
@@ -43,8 +40,8 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
     const auto velo_track_index = ut_tracks.velo_track(track.ut_track_index);
 
-    const unsigned velo_states_index = velo_tracks_offset_event + velo_track_index;
-    const MiniState velo_state = velo_states.get(velo_states_index);
+    const auto velo_track = velo_tracks_view.track(velo_track_index);
+    const auto velo_state = velo_track.state(velo_states_view);
 
     // Note: The notation 1, 2, 3 is used here (instead of h0, h1, h2)
     //       to avoid mistakes, as the code is similar to that of Hybrid Seeding
@@ -66,7 +63,7 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
     const auto z3_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(2)];
 
     // Updated d_ratio
-    const auto track_y_ref = velo_state.y + velo_state.ty * (z2_noref - velo_state.z);
+    const auto track_y_ref = velo_state.y() + velo_state.ty() * (z2_noref - velo_state.z());
     const auto radius_position = sqrtf((5.f * 5.f * 1.e-8f * x2 * x2 + 1e-6f * track_y_ref * track_y_ref));
     const auto d_ratio = -1.f * (LookingForward::d_ratio_par_0 + LookingForward::d_ratio_par_1 * radius_position +
                                  LookingForward::d_ratio_par_2 * radius_position * radius_position);

@@ -21,7 +21,7 @@ namespace lf_triplet_seeding {
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_count;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
-    DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
     DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;

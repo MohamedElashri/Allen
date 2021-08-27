@@ -27,22 +27,17 @@ __global__ void pv_beamline_calculate_denom::pv_beamline_calculate_denom(
   pv_beamline_calculate_denom::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
-  const unsigned number_of_tracks = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
 
   const float* zseeds = parameters.dev_zpeaks + event_number * PV::max_number_vertices;
   const unsigned number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
 
-  const PVTrack* tracks = parameters.dev_pvtracks + event_tracks_offset;
-  float* pvtracks_denom = parameters.dev_pvtracks_denom + event_tracks_offset;
+  const PVTrack* tracks = parameters.dev_pvtracks + velo_tracks.offset();
+  float* pvtracks_denom = parameters.dev_pvtracks_denom + velo_tracks.offset();
 
   // Precalculate all track denoms
-  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < velo_tracks.size(); i += blockDim.x) {
     auto track_denom = 0.f;
     const auto track = tracks[i];
 

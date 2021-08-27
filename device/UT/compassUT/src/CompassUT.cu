@@ -46,12 +46,9 @@ __global__ void compass_ut::compass_ut(
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
-  // Velo consolidated types
-  Velo::Consolidated::ConstTracks velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
-  const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(event_number);
+  const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
+  const auto velo_states = parameters.dev_velo_states_view[event_number];
+  const unsigned event_tracks_offset = velo_tracks.offset();
 
   const short* windows_layers =
     parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
@@ -80,9 +77,8 @@ __global__ void compass_ut::compass_ut(
     const auto current_velo_track = ut_selected_velo_tracks[i];
     compass_ut_tracking(
       windows_layers,
-      number_of_tracks_event,
+      velo_tracks.size(),
       current_velo_track,
-      event_tracks_offset + current_velo_track,
       velo_states,
       ut_hits,
       ut_hit_offsets,
@@ -106,8 +102,7 @@ __device__ void compass_ut::compass_ut_tracking(
   const short* windows_layers,
   const unsigned number_of_tracks_event,
   const int i_track,
-  const unsigned current_track_offset,
-  Velo::Consolidated::ConstStates& velo_states,
+  const Allen::Views::Velo::Consolidated::States& velo_states,
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const float* bdl_table,
@@ -125,7 +120,7 @@ __device__ void compass_ut::compass_ut_tracking(
   const float sigma_velo_slope)
 {
   // select velo track to join with UT hits
-  const MiniState velo_state = velo_states.get(current_track_offset);
+  const MiniState velo_state = velo_states.state(i_track);
 
   fill_shared_windows(windows_layers, number_of_tracks_event, i_track, win_size_shared);
 

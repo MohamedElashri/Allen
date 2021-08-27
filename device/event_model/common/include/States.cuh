@@ -25,6 +25,32 @@ struct KalmanVeloState {
 
   __host__ __device__ KalmanVeloState() {}
 
+  __host__ __device__ KalmanVeloState(
+    const float _x,
+    const float _y,
+    const float _z,
+    const float _tx,
+    const float _ty,
+    const float _c00,
+    const float _c20,
+    const float _c22,
+    const float _c11,
+    const float _c31,
+    const float _c33)
+  {
+    x = _x;
+    y = _y;
+    z = _z;
+    tx = _tx;
+    ty = _ty;
+    c00 = _c00;
+    c20 = _c20;
+    c22 = _c22;
+    c11 = _c11;
+    c31 = _c31;
+    c33 = _c33;
+  }
+
   __host__ __device__ KalmanVeloState(const KalmanVeloState& other) :
     x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty), c00(other.c00), c20(other.c20), c22(other.c22),
     c11(other.c11), c31(other.c31), c33(other.c33)

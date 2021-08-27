@@ -110,9 +110,8 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
         host_number_of_reconstructed_ut_tracks,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
-        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_endvelo_states_view"],
         dev_offsets_ut_tracks_t=dev_offsets_ut_tracks,
         dev_offsets_ut_track_hit_number_t=dev_offsets_ut_track_hit_number,
         dev_ut_x_t=dev_ut_x,
@@ -120,7 +119,8 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
         dev_ut_z_t=dev_ut_z,
         dev_ut_qop_t=dev_ut_qop,
         dev_ut_track_velo_indices_t=dev_ut_track_velo_indices,
-        hit_window_size=hit_window_size)
+        hit_window_size=hit_window_size,
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"])
 
     lf_triplet_seeding = make_algorithm(
         lf_triplet_seeding_t,
@@ -132,7 +132,8 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
         dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_endvelo_states_view"],
         dev_offsets_ut_tracks_t=dev_offsets_ut_tracks,
         dev_offsets_ut_track_hit_number_t=dev_offsets_ut_track_hit_number,
         dev_ut_track_velo_indices_t=dev_ut_track_velo_indices,
@@ -153,9 +154,9 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
         host_number_of_reconstructed_ut_tracks,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
-        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"],
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_endvelo_states_view"],
         dev_offsets_ut_tracks_t=dev_offsets_ut_tracks,
         dev_offsets_ut_track_hit_number_t=dev_offsets_ut_track_hit_number,
         dev_ut_track_velo_indices_t=dev_ut_track_velo_indices,
@@ -245,9 +246,8 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
         dev_scifi_tracks_t=lf_quality_filter.dev_scifi_tracks_t,
         dev_scifi_lf_parametrization_consolidate_t=lf_quality_filter.
         dev_scifi_lf_parametrization_consolidate_t,
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
-        dev_velo_states_t=velo_states["dev_velo_kalman_endvelo_states"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_endvelo_states_view"],
         dev_ut_qop_t=dev_ut_qop,
         dev_ut_track_velo_indices_t=dev_ut_track_velo_indices)
 

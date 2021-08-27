@@ -29,20 +29,15 @@ def make_pvs(velo_tracks):
         name="pv_beamline_extrapolate",
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks,
-        host_number_of_events_t=host_number_of_events,
-        dev_number_of_events_t=dev_number_of_events,
-        dev_velo_kalman_beamline_states_t=velo_states[
-            "dev_velo_kalman_beamline_states"],
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number)
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_beamline_states_view"])
 
     pv_beamline_histo = make_algorithm(
         pv_beamline_histo_t,
         name="pv_beamline_histo",
         host_number_of_events_t=host_number_of_events,
-        dev_number_of_events_t=dev_number_of_events,
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t)
 
     pv_beamline_peak = make_algorithm(
@@ -54,12 +49,9 @@ def make_pvs(velo_tracks):
     pv_beamline_calculate_denom = make_algorithm(
         pv_beamline_calculate_denom_t,
         name="pv_beamline_calculate_denom",
-        host_number_of_events_t=host_number_of_events,
-        dev_number_of_events_t=dev_number_of_events,
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks,
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t,
         dev_zpeaks_t=pv_beamline_peak.dev_zpeaks_t,
         dev_number_of_zpeaks_t=pv_beamline_peak.dev_number_of_zpeaks_t)
@@ -68,11 +60,9 @@ def make_pvs(velo_tracks):
         pv_beamline_multi_fitter_t,
         name="pv_beamline_multi_fitter",
         host_number_of_events_t=host_number_of_events,
-        dev_number_of_events_t=dev_number_of_events,
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks,
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
-        dev_offsets_velo_track_hit_number_t=dev_offsets_velo_track_hit_number,
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t,
         dev_zpeaks_t=pv_beamline_peak.dev_zpeaks_t,
         dev_number_of_zpeaks_t=pv_beamline_peak.dev_number_of_zpeaks_t,

@@ -54,10 +54,7 @@ __global__
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Velo consolidated types
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
-                                               parameters.dev_atomics_velo[number_of_events]};
-  const unsigned velo_tracks_offset_event = parameters.dev_atomics_velo[event_number];
+  const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   // UT consolidated tracks
   UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
@@ -87,10 +84,8 @@ __global__
       const auto qop = ut_tracks.qop(ut_track_number);
       const int* initial_windows = parameters.dev_scifi_lf_initial_windows + current_ut_track_index;
 
-      const unsigned velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const auto x_at_z_magnet =
-        velo_states.x(velo_states_index) +
-        (LookingForward::z_magnet - velo_states.z(velo_states_index)) * velo_states.tx(velo_states_index);
+      const auto velo_state = velo_states_view.state(velo_track_index);
+      const auto x_at_z_magnet = velo_state.x() + (LookingForward::z_magnet - velo_state.z()) * velo_state.tx();
 
       for (unsigned triplet_seed = threadIdx.y; triplet_seed < LookingForward::n_triplet_seeds;
            triplet_seed += blockDim.y) {
@@ -150,7 +145,7 @@ __global__
             z2,
             qop,
             (parameters.dev_ut_states + current_ut_track_index)->tx,
-            velo_states.tx(velo_states_index),
+            velo_state.tx(),
             x_at_z_magnet,
             shared_xs + triplet_seed * parameters.hit_window_size,
             shared_indices + triplet_seed * LookingForward::triplet_seeding_block_dim_x *
