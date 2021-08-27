@@ -128,8 +128,8 @@ __device__ void pre_decode_raw_bank<3>(
     if (sign_0 ^ sign_1) {
       composed_1 = -composed_1;
     }
-
-    const int composed_value = ((composed_0 << 16) & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
+    const auto composed_0_shifted = sign_0 ? -(abs(composed_0) << 16) : composed_0 << 16;
+    const int composed_value = (composed_0_shifted & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
     const float* composed_value_float = reinterpret_cast<const float*>(&composed_value);
 
     const unsigned base_sector_group_offset = dev_unique_x_sector_offsets[idx_offset];
@@ -208,7 +208,8 @@ __device__ void pre_decode_raw_bank<4>(
         composed_1 = -composed_1;
       }
 
-      const int composed_value = ((composed_0 << 16) & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
+      const auto composed_0_shifted = sign_0 ? -(abs(composed_0) << 16) : composed_0 << 16;
+      const int composed_value = (composed_0_shifted & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
       const float* composed_value_float = reinterpret_cast<const float*>(&composed_value);
 
       // Finally we need to fill the global containers correctly
