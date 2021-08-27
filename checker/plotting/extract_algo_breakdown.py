@@ -72,7 +72,7 @@ def main(argv):
             if i > 0:
                 try:
                     plot_data[algorithm_name_parser.parse_algorithm_name(
-                        row[6])] = float(row[0])
+                        row[0])] = float(row[1])
                 except:
                     print(traceback.format_exc())
 
