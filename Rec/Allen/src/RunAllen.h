@@ -22,12 +22,10 @@
 #include "InputReader.h"
 #include "RegisterConsumers.h"
 #include <Dumpers/IUpdater.h>
-#include "StreamWrapper.cuh"
 #include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"
 #include "RuntimeOptions.h"
 #include "BankTypes.h"
-#include "Stream.cuh"
 #include "StreamWrapper.cuh"
 #include "Logger.h"
 #include "TESProvider.h"
