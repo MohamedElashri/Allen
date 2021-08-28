@@ -57,6 +57,10 @@ if [ "${PROFILE_DEVICE}" = "${DEVICE_ID}" ]; then
   ncu -i allen_report.ncu-rep --csv > allen_report.csv
   python3 ${TOPLEVEL}/scripts/parse_ncu_output.py --input_filename=allen_report.csv --output_filename=allen_report_custom_metric.csv
   python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_custom_metric.csv -d ${OUTPUT_FOLDER}
+  
+  mv allen_report.csv ${OUTPUT_FOLDER}
+  mv allen_report_custom_metric.csv ${OUTPUT_FOLDER}
+  mv allen_report.ncu-rep ${OUTPUT_FOLDER}
 
   rm -rf tmp
 
