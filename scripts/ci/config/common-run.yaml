@@ -80,7 +80,6 @@
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     LCG_ARCHITECTURE: "x86_64-centos7-clang10-opt"
-    PROFILE_DEVICE: "geforcertx3090"
     BUILD_TYPE: "RelWithDebInfo"
 
   retry: 2

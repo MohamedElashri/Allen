@@ -48,11 +48,21 @@ if [ "${PROFILE_DEVICE}" = "${DEVICE_ID}" ]; then
   mkdir tmp
 
   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS} 2>&1 | tee ${OUTPUT_FOLDER}/output.txt
-  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile --trace=cuda ./Allen ${RUN_PROFILER_OPTIONS}
-  nsys stats --report gpukernsum report1.qdrep -o allen_report
-  python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_gpukernsum.csv -d ${OUTPUT_FOLDER}
 
-  rm -rf report1.qdrep tmp
+  # The following ncu command always fails at removing the tmp folder, ignore that failure with || true
+  {
+  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ncu --print-summary per-kernel --target-processes all -o allen_report ./Allen ${RUN_PROFILER_OPTIONS}
+  } || true
+  
+  ncu -i allen_report.ncu-rep --csv > allen_report.csv
+  python3 ${TOPLEVEL}/scripts/parse_ncu_output.py --input_filename=allen_report.csv --output_filename=allen_report_custom_metric.csv
+  python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_custom_metric.csv -d ${OUTPUT_FOLDER}
+  
+  mv allen_report.csv ${OUTPUT_FOLDER}
+  mv allen_report_custom_metric.csv ${OUTPUT_FOLDER}
+  mv allen_report.ncu-rep ${OUTPUT_FOLDER}
+
+  rm -rf tmp
 
 else
 

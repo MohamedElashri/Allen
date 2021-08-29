@@ -21,8 +21,8 @@ class AlgorithmNameParser:
         # "velo_search_by_triplet::velo_search_by_triplet(velo_search_by_triplet::Parameters, VeloGeometry const*)"
         # "void process_line<di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Parameters>(di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Parameters, unsigned int, float, unsigned int, char const*, unsigned int const*, unsigned int const*)"
         # "void process_line_iterate_events<passthrough_line::passthrough_line_t, passthrough_line::Parameters>(passthrough_line::passthrough_line_t, passthrough_line::Parameters, unsigned int, unsigned int, float, unsigned int, char const*, unsigned int const*, unsigned int const*)"
-        algorithm_regexp_expression = "([a-zA-Z][a-zA-Z\_0-9]+::)?([a-zA-Z][a-zA-Z\_0-9]+).*"
-        sel_algorithm_regexp_expression = "void process_line[a-zA-Z\_0-9]*<([a-zA-Z][a-zA-Z\_0-9]+::)?([a-zA-Z][a-zA-Z\_0-9]+).*"
+        algorithm_regexp_expression = "(void )?([a-zA-Z][a-zA-Z\_0-9]+::)?(?P<algorithm_name>[a-zA-Z][a-zA-Z\_0-9]+).*"
+        sel_algorithm_regexp_expression = "void process_line[a-zA-Z\_0-9]*<([a-zA-Z][a-zA-Z\_0-9]+::)?(?P<line_name>[a-zA-Z][a-zA-Z\_0-9]+).*"
         self.__algorithm_pattern = re.compile(algorithm_regexp_expression)
         self.__sel_algorithm_pattern = re.compile(
             sel_algorithm_regexp_expression)
@@ -30,11 +30,11 @@ class AlgorithmNameParser:
     def parse_algorithm_name(self, full_name):
         m0 = self.__sel_algorithm_pattern.match(full_name)
         if m0:
-            return m0.group(2)
+            return m0.group("line_name")
         else:
             m1 = self.__algorithm_pattern.match(full_name)
             if m1:
-                return m1.group(2)
+                return m1.group("algorithm_name")
             else:
                 print(full_name)
 
@@ -72,7 +72,7 @@ def main(argv):
             if i > 0:
                 try:
                     plot_data[algorithm_name_parser.parse_algorithm_name(
-                        row[6])] = float(row[0])
+                        row[0])] = float(row[1])
                 except:
                     print(traceback.format_exc())
 

@@ -43,7 +43,7 @@
   variables:
     TEST_NAME: "publish_throughput"
     LCG_ARCHITECTURE: "x86_64-centos7-clang10-opt"
-    BREAKDOWN_DEVICE_ID: "geforcertx3090"
+    BREAKDOWN_DEVICE_ID: "a40"
     PUBLISH_ARTIFACT_NAME: "publish_throughput"
 
   tags: [cvmfs]
