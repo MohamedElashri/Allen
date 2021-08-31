@@ -53,6 +53,9 @@ public:
     m_decReport |= ((((unsigned int) dec) << decisionBits) & decisionMask);
   }
 
+  // Get line decision.
+  __device__ __host__ bool getDecision() { return ((bool) ((m_decReport & decisionMask) >> decisionBits)); }
+
   // Set the error bits.
   __device__ __host__ void setErrorBits(const unsigned int val)
   {
@@ -83,4 +86,7 @@ public:
 
   // Get the DecReport data.
   __device__ __host__ unsigned int getDecReport() { return m_decReport; }
+
+  // Set the dec report.
+  __device__ __host__ void setDecReport(unsigned int data) { m_decReport = data; }
 };

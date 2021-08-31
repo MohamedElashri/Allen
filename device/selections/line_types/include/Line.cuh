@@ -8,6 +8,7 @@
 #include <DeterministicScaler.cuh>
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
+#include "LHCbIDContainer.cuh"
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \
@@ -72,6 +73,8 @@ private:
 
 public:
   using iteration_t = LineIteration::default_iteration_tag;
+  constexpr static auto lhcbid_container = LHCbIDContainer::none;
+
   void init()
   {
     auto derived_instance = static_cast<const Derived*>(this);
@@ -99,6 +102,7 @@ public:
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
+    set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
   }
 
   void operator()(
@@ -274,6 +278,9 @@ void Line<Derived, Parameters>::operator()(
 {
   initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
+
+  // Populate container with tag.
+  data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);
 
   const auto* derived_instance = static_cast<const Derived*>(this);
 

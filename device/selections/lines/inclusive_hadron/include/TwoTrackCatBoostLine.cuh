@@ -22,6 +22,7 @@ namespace two_track_catboost_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -38,6 +39,8 @@ namespace two_track_catboost_line {
   struct two_track_catboost_line_t : public SelectionAlgorithm,
                                      Parameters,
                                      Line<two_track_catboost_line_t, Parameters> {
+
+    constexpr static auto lhcbid_container = LHCbIDContainer::sv;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
 

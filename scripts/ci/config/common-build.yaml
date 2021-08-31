@@ -27,7 +27,9 @@
       # debug builds with GCC, Clang with various additional cmake options
       - LCG_ARCHITECTURE: 
           - x86_64-centos7-clang10-opt
-          - x86_64-centos7-gcc10-opt
+          # TODO: The CI builders run out of memory for the gcc-10 builds
+          # They should be reintroduced once the sequence is type-erased.
+          # - x86_64-centos7-gcc10-opt
         BUILD_TYPE: Debug
         OPTIONS:
           - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT

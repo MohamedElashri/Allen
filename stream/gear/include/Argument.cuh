@@ -22,6 +22,8 @@ struct device_datatype {
 };
 struct aggregate_datatype {
 };
+struct optional_datatype {
+};
 
 // Checks all Ts inherit from host_datatype
 template<typename... Ts>
@@ -119,6 +121,21 @@ struct mask_t {
     using output_datatype<mask_t>::output_datatype;                        \
     void parameter(mask_t) {}                                              \
     using deps = std::tuple<>;                                             \
+  }
+
+// Support for optional input aggregates
+#define DEVICE_INPUT_OPTIONAL(ARGUMENT_NAME, ...)                                                 \
+  struct ARGUMENT_NAME : public device_datatype, optional_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                                            \
+    void parameter(__VA_ARGS__) const {}                                                          \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                            \
+  }
+
+#define HOST_INPUT_OPTIONAL(ARGUMENT_NAME, ...)                                                 \
+  struct ARGUMENT_NAME : public host_datatype, optional_datatype, input_datatype<__VA_ARGS__> { \
+    using input_datatype<__VA_ARGS__>::input_datatype;                                          \
+    void parameter(__VA_ARGS__) const {}                                                        \
+    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                          \
   }
 
 using DeviceDimensions = std::array<unsigned, 3>;

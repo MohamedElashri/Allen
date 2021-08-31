@@ -94,3 +94,36 @@ Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Inclusive:              1000/  1000, (30000.00 +/-     0.00) kHz
 
+
+selreport_validator validation:
+                      Events  Candidates
+Hlt1KsToPiPi:             29          30
+Hlt1TrackMVA:            197         299
+Hlt1TwoTrackMVA:         350         855
+Hlt1TwoTrackCatBoost:    373         917
+Hlt1SingleHighPtMuon:      2           2
+Hlt1LowPtMuon:           104         118
+Hlt1D2KK:                 24          27
+Hlt1D2KPi:                29          34
+Hlt1D2PiPi:               30          31
+Hlt1DiMuonHighMass:       12          13
+Hlt1DiMuonLowMass:        30          35
+Hlt1DiMuonSoft:            0           0
+Hlt1LowPtDiMuon:          54          66
+Hlt1TrackMuonMVA:         10          10
+Hlt1GECPassthrough:      845           0
+Hlt1NoBeam:                0           0
+Hlt1BeamOne:               0           0
+Hlt1BeamTwo:               0           0
+Hlt1BothBeams:             2           0
+Hlt1VeloMicroBias:         0           0
+Hlt1ODINLumi:              0           0
+Hlt1ODINNoBias:            0           0
+Hlt1Passthrough:        1000           0
+
+Total decisions: 3091
+Total tracks:    1670
+Total SVs:       1283
+Total hits:      41303
+Total stdinfo:   21583
+
