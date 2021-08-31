@@ -54,6 +54,24 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
   ::memset(dec_reports, 0, dec_reports_size);
   host_dec_reports = {dec_reports, dec_reports_size};
 
+  // Buffer for saving sel reports to the host.
+  uint32_t* sel_reports = nullptr;
+  // SelReports for events selected by the passthrough line have a
+  // size of 20. SelReports for almost all events selected by physics
+  // lines have a size of 100-200 with almost all <300. So 300 is
+  // chosen as a reasonable safe value for the maximum average
+  // SelReport size for all events.
+  size_t const max_average_sel_report_size = 300;
+  size_t const sel_reports_size = max_number_of_events * max_average_sel_report_size * sizeof(uint32_t);
+  Allen::malloc_host((void**) &sel_reports, sel_reports_size);
+  ::memset(sel_reports, 0, sel_reports_size);
+  host_sel_reports = {sel_reports, sel_reports_size};
+
+  uint32_t* sel_report_offsets = nullptr;
+  Allen::malloc_host((void**) &sel_report_offsets, (max_number_of_events + 1) * sizeof(uint32_t));
+  ::memset(sel_report_offsets, 0, (max_number_of_events + 1) * sizeof(uint32_t));
+  host_sel_report_offsets = {sel_report_offsets, (max_number_of_events + 1) * sizeof(uint32_t)};
+
   // Buffer for saving events passing Hlt1 selections.
   Allen::malloc_host((void**) &host_passing_event_list, max_number_of_events * sizeof(bool));
   ::memset(host_passing_event_list, 0, max_number_of_events * sizeof(bool));

@@ -42,8 +42,8 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
 
   if (threadIdx.x == 0) {
     // Set TCK and taskID for each event dec report
-    event_dec_reports[0] = Hlt1::TCK;
-    event_dec_reports[1] = Hlt1::taskID;
+    event_dec_reports[0] = parameters.tck;
+    event_dec_reports[1] = parameters.task_id;
   }
 
   for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0];
@@ -61,7 +61,7 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
     // TODO: The following are all placeholder values for now.
     dec_report.setErrorBits(0);
     dec_report.setNumberOfCandidates(1);
-    dec_report.setIntDecisionID(line_index);
+    dec_report.setIntDecisionID(line_index + 1);
     dec_report.setExecutionStage(1);
 
     event_dec_reports[2 + line_index] = dec_report.getDecReport();

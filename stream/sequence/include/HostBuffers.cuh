@@ -131,6 +131,8 @@ struct HostBuffers {
   gsl::span<uint32_t> host_dec_reports = {};
   gsl::span<bool> host_selections = {};
   gsl::span<unsigned> host_selections_offsets = {};
+  gsl::span<unsigned> host_sel_reports = {};
+  gsl::span<unsigned> host_sel_report_offsets;
 
   // Non pinned datatypes: CPU algorithms
   std::vector<char> host_velo_states;

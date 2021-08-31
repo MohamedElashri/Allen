@@ -50,10 +50,11 @@ class Property():
 
 
 class Parameter():
-    def __init__(self, typename, datatype, is_input, typedef, aggregate):
+    def __init__(self, typename, datatype, is_input, typedef, aggregate, optional):
         self.typename = typename
         self.typedef = typedef
         self.aggregate = aggregate
+        self.optional = optional
         if datatype == "host_datatype" and is_input:
             self.kind = "HostInput"
         elif datatype == "host_datatype" and not is_input:
@@ -91,21 +92,9 @@ def make_parsed_algorithms(filename, data):
             for t in algorithm_data[3]:
                 kind = t[0]
                 if kind == "Property":
-                    typename = t[1]
-                    typedef = t[2]
-                    prop_name = t[3]
-                    description = t[4]
-                    properties.append(
-                        Property(typename, typedef, prop_name, description))
+                    properties.append(Property(*t[1:]))
                 elif kind == "Parameter":
-                    typename = t[1]
-                    datatype = t[2]
-                    is_input = t[3]
-                    typedef = t[4]
-                    aggregate = t[5]
-                    parameters.append(
-                        Parameter(typename, datatype, is_input, typedef,
-                                  aggregate))
+                    parameters.append(Parameter(*t[1:]))
             parsed_algorithms.append(
                 ParsedAlgorithm(name, scope, filename, namespace, parameters,
                                 properties))
@@ -134,6 +123,7 @@ class AlgorithmTraversal():
     # Accepted tokens for parameter parsing
     __parameter_io_datatypes = ["device_datatype", "host_datatype"]
     __parameter_aggregate = ["aggregate_datatype"]
+    __parameter_optional = ["optional_datatype"]
 
     # Ignored namespaces. Definition of algorithms start by looking into namespaces,
     # therefore ignoring some speeds up the traversal.
@@ -200,11 +190,14 @@ class AlgorithmTraversal():
             io = None
             typedef = None
             aggregate = False
+            optional = False
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER and child.type.spelling in AlgorithmTraversal.__parameter_io_datatypes:
                     kind = child.type.spelling
                 elif child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER and child.type.spelling in AlgorithmTraversal.__parameter_aggregate:
                     aggregate = True
+                elif child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER and child.type.spelling in AlgorithmTraversal.__parameter_optional:
+                    optional = True
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
@@ -214,7 +207,7 @@ class AlgorithmTraversal():
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
             if kind and typedef and io != None:
-                return ("Parameter", typename, kind, io, typedef, aggregate)
+                return ("Parameter", typename, kind, io, typedef, aggregate, optional)
         elif is_property:
             # - There is a function (property) which captures:
             #   * f.type.spelling: The type (restricted to POD types)

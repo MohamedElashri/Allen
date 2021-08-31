@@ -74,6 +74,7 @@ using prepend_to_tuple_t = typename details::TuplePrepend<Element, Tuple>::type;
 
 // Reverses a tuple
 namespace details {
+
   template<typename T, typename I>
   struct ReverseTuple;
 

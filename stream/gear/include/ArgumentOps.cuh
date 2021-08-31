@@ -310,7 +310,13 @@ struct SingleArgumentOverloadResolution<
 };
 
 template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base_of_v<host_datatype, Arg>>> {
+struct SingleArgumentOverloadResolution<
+  Arg,
+  Args,
+  std::enable_if_t<
+    std::is_base_of_v<host_datatype, Arg> &&
+    !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
+      std::is_same_v<typename Arg::type, uint8_t> || std::is_same_v<typename Arg::type, int8_t>)>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));

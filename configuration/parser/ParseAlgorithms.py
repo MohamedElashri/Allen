@@ -142,11 +142,11 @@ class AlgorithmCategory(Enum):\n\
         i -= 1
         s += "\n" + AllenCore.prefix(i) + ")\n"
 
-        # aggregates
+        # aggregates: parameters marked optional or aggregate
         s += AllenCore.prefix(i) + "aggregates = ("
         i += 1
         for param in algorithm.parameters:
-            if param.aggregate:
+            if param.aggregate or param.optional:
                 s += "\n" + AllenCore.prefix(i) + "\"" + param.typename + "\","
         i -= 1
         s += ")\n\n"

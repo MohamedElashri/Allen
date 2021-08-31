@@ -4,7 +4,8 @@
 from AllenConf.algorithms import (
     mc_data_provider_t, host_velo_validator_t, host_velo_ut_validator_t,
     host_forward_validator_t, host_muon_validator_t, host_pv_validator_t,
-    host_rate_validator_t, host_kalman_validator_t, host_data_provider_t)
+    host_rate_validator_t, host_kalman_validator_t, host_data_provider_t,
+    host_sel_report_validator_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.event_list_utils import make_algorithm
 
@@ -212,3 +213,17 @@ def kalman_validation(kalman_velo_only, name="kalman_validator"):
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"])
+
+
+def selreport_validation(make_selreports,
+                         gather_selections,
+                         name="selreport_validator"):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        host_sel_report_validator_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_names_of_lines_t=gather_selections.host_names_of_active_lines_t,
+        dev_sel_reports_t=make_selreports["dev_sel_reports"],
+        dev_sel_report_offsets_t=make_selreports["dev_selrep_offsets"])

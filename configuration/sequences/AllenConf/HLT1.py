@@ -13,7 +13,7 @@ from AllenCore.event_list_utils import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.odin import decode_odin
-from AllenConf.persistency import make_gather_selections, make_global_decision
+from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer
 
 
 # Helper function to make composite nodes with the gec
@@ -218,7 +218,15 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
     hlt1_node = CompositeNode(
-        "Allen", [lines, make_global_decision(lines=line_algorithms)],
+        "Allen", [
+            lines,
+            make_sel_report_writer(
+                lines=line_algorithms,
+                forward_tracks=reconstructed_objects["forward_tracks"],
+                secondary_vertices=reconstructed_objects["secondary_vertices"])
+            ["dev_sel_reports"].producer,
+            make_global_decision(lines=line_algorithms)
+        ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
 

@@ -135,4 +135,8 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only):
         prefix_sum_secondary_vertices.host_total_sum_holder_t,
         "dev_sv_offsets":
         prefix_sum_secondary_vertices.dev_output_buffer_t,
+        "dev_svs_trk1_idx":
+        filter_tracks.dev_svs_trk1_idx_t,
+        "dev_svs_trk2_idx":
+        filter_tracks.dev_svs_trk2_idx_t
     }

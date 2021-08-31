@@ -9,9 +9,9 @@ from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, fit_secondary_vertices
 from AllenConf.validators import (
     velo_validation, veloUT_validation, forward_validation, muon_validation,
-    pv_validation, rate_validation, kalman_validation)
+    pv_validation, rate_validation, kalman_validation, selreport_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.persistency import make_gather_selections
+from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.utils import gec
 
 
@@ -66,6 +66,14 @@ def validator_node(reconstructed_objects, line_algorithms):
                 "kalman_validation",
                 kalman_validation(reconstructed_objects["kalman_velo_only"])),
             rate_validation(make_gather_selections(lines=line_algorithms)),
+            selreport_validation(
+                make_sel_report_writer(
+                    lines=line_algorithms,
+                    forward_tracks=reconstructed_objects["forward_tracks"],
+                    secondary_vertices=reconstructed_objects[
+                        "secondary_vertices"]),
+                make_gather_selections(lines=line_algorithms),
+            )
         ],
         NodeLogic.NONLAZY_AND,
         force_order=False)
