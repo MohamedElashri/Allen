@@ -132,17 +132,16 @@ void compare<BankTypes::VP>(
 {
   auto const mep_n_banks = mep_offsets[0];
 
-  const auto allen_raw_event = VeloRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+  const auto allen_raw_event = Velo::VeloRawEvent(allen_banks.data() + allen_offsets[i_event]);
+  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
-    auto const mep_bank = MEP::raw_bank<VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const event_offset = allen_raw_event.raw_bank_offset[bank];
-    auto const allen_bank = VeloRawBank(allen_raw_event.payload + event_offset);
+    auto const mep_bank = MEP::raw_bank<Velo::VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const allen_bank = allen_raw_event.raw_bank(bank);
     REQUIRE(mep_bank.sensor_index == allen_bank.sensor_index);
     REQUIRE(mep_bank.sp_count == allen_bank.sp_count);
-    for (size_t j = 0; j < ((allen_raw_event.raw_bank_offset[bank + 1] - event_offset) >> 2) - 2; ++j) {
+    for (size_t j = 0; j < allen_bank.sp_count; ++j) {
       REQUIRE(allen_bank.sp_word[j] == mep_bank.sp_word[j]);
     }
   }
@@ -199,12 +198,12 @@ void compare<BankTypes::FT>(
   auto const mep_n_banks = mep_offsets[0];
 
   const auto allen_raw_event = SciFi::SciFiRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
     auto const mep_bank = MEP::raw_bank<SciFi::SciFiRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const allen_bank = allen_raw_event.getSciFiRawBank(bank);
+    auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto mep_len = mep_bank.last - mep_bank.data;
     auto allen_len = allen_bank.last - allen_bank.data;
     REQUIRE(mep_bank.sourceID == allen_bank.sourceID);
@@ -227,12 +226,12 @@ void compare<BankTypes::MUON>(
   auto const mep_n_banks = mep_offsets[0];
 
   const auto allen_raw_event = Muon::MuonRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
     auto const mep_bank = MEP::raw_bank<Muon::MuonRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const allen_bank = allen_raw_event.getMuonBank(bank);
+    auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto mep_len = mep_bank.last - mep_bank.data;
     auto allen_len = allen_bank.last - allen_bank.data;
     REQUIRE(mep_bank.sourceID == allen_bank.sourceID);

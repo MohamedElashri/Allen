@@ -18,10 +18,6 @@ namespace scifi_pre_decode_v4 {
     DEVICE_OUTPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
   };
 
-  __global__ void scifi_pre_decode_v4(Parameters, const char* scifi_geometry);
-
-  __global__ void scifi_pre_decode_v4_mep(Parameters, const char* scifi_geometry);
-
   struct scifi_pre_decode_v4_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

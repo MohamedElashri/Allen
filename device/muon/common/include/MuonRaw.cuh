@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cassert>
+#include <MEPTools.h>
 
 namespace Muon {
   struct MuonRawBank {
@@ -30,26 +31,42 @@ namespace Muon {
   };
 
   struct MuonRawEvent {
-    static constexpr size_t batches_per_bank = 4;
-    uint32_t number_of_raw_banks;
+  private:
+    uint32_t m_number_of_raw_banks;
+    uint32_t* m_raw_bank_offset;
+    char* m_payload;
 
-    uint32_t* raw_bank_offset;
-    char* payload;
-
-    __device__ MuonRawEvent(const char* event)
+    __device__ __host__ void initialize(const char* event)
     {
       const char* p = event;
-      number_of_raw_banks = ((uint32_t*) p)[0];
+      m_number_of_raw_banks = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      raw_bank_offset = (uint32_t*) p;
-      p += (number_of_raw_banks + 1) * sizeof(uint32_t);
-      payload = (char*) p;
+      m_raw_bank_offset = (uint32_t*) p;
+      p += (m_number_of_raw_banks + 1) * sizeof(uint32_t);
+      m_payload = (char*) p;
     }
 
-    __device__ MuonRawBank getMuonBank(const uint32_t index) const
+  public:
+    static constexpr size_t batches_per_bank = 4;
+
+    __device__ __host__ MuonRawEvent(const char* event) { initialize(event); }
+
+    __device__ __host__ MuonRawEvent(
+      const char* dev_scifi_raw_input,
+      const unsigned* dev_scifi_raw_input_offsets,
+      const unsigned event_number)
     {
-      MuonRawBank bank(payload + raw_bank_offset[index], payload + raw_bank_offset[index + 1]);
-      return bank;
+      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number]);
+    }
+
+    __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }
+
+    __device__ __host__ MuonRawBank raw_bank(const unsigned index) const
+    {
+      return MuonRawBank {m_payload + m_raw_bank_offset[index], m_payload + m_raw_bank_offset[index + 1]};
     }
   };
+
+  template<bool mep_layout>
+  using RawEvent = std::conditional_t<mep_layout, MEP::RawEvent<MuonRawBank>, MuonRawEvent>;
 } // namespace Muon

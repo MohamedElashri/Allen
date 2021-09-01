@@ -26,12 +26,12 @@ std::vector<std::vector<uint32_t>> clustering(
   for (size_t i = 1; i < event_offsets.size(); ++i) {
     std::vector<unsigned int> lhcb_ids;
 
-    VeloRawEvent e(events.data() + event_offsets[i - 1]);
+    Velo::VeloRawEvent e(events.data() + event_offsets[i - 1]);
 
-    for (unsigned int raw_bank = 0; raw_bank < e.number_of_raw_banks; ++raw_bank) {
+    for (unsigned int raw_bank_index = 0; raw_bank_index < e.number_of_raw_banks(); ++raw_bank_index) {
       std::vector<uint32_t> pixel_idx;
 
-      const auto velo_raw_bank = VeloRawBank(e.payload + e.raw_bank_offset[raw_bank]);
+      const auto velo_raw_bank = e.raw_bank(raw_bank_index);
       const unsigned int sensor = velo_raw_bank.sensor_index;
       // const unsigned int module = sensor / Velo::Constants::n_sensors_per_module;
       // const float* ltg = g.ltg + 16 * sensor;

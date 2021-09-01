@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <BackendCommon.h>
+#include <MEPTools.h>
 
 namespace SciFi {
   struct SciFiRawBank {
@@ -30,25 +31,51 @@ namespace SciFi {
   };
 
   struct SciFiRawEvent {
-    uint32_t number_of_raw_banks;
-    uint32_t* raw_bank_offset;
-    char* payload;
+  private:
+    uint32_t m_number_of_raw_banks;
+    uint32_t* m_raw_bank_offset;
+    char* m_payload;
 
-    __device__ __host__ SciFiRawEvent(const char* event)
+    __device__ __host__ void initialize(const char* event)
     {
       const char* p = event;
-      number_of_raw_banks = *((uint32_t*) p);
+      m_number_of_raw_banks = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      raw_bank_offset = (uint32_t*) p;
-      p += (number_of_raw_banks + 1) * sizeof(uint32_t);
-      payload = (char*) p;
+      m_raw_bank_offset = (uint32_t*) p;
+      p += (m_number_of_raw_banks + 1) * sizeof(uint32_t);
+      m_payload = (char*) p;
     }
-    __device__ __host__ SciFiRawBank getSciFiRawBank(const uint32_t index) const
+
+  public:
+    __device__ __host__ SciFiRawEvent(const char* event) { initialize(event); }
+
+    __device__ __host__ SciFiRawEvent(
+      const char* dev_scifi_raw_input,
+      const unsigned* dev_scifi_raw_input_offsets,
+      const unsigned event_number)
     {
-      SciFiRawBank bank(payload + raw_bank_offset[index], payload + raw_bank_offset[index + 1]);
-      return bank;
+      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number]);
+    }
+
+    __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }
+
+    __device__ __host__ SciFiRawBank raw_bank(const unsigned index) const
+    {
+      return SciFiRawBank {m_payload + m_raw_bank_offset[index], m_payload + m_raw_bank_offset[index + 1]};
+    }
+
+    // get bank size in bytes, subtract four bytes for header word
+    __device__ __host__ unsigned bank_size(const unsigned index) const
+    {
+      return m_raw_bank_offset[index + 1] - m_raw_bank_offset[index] - 4;
     }
   };
+
+  /**
+   * @brief RawEvent view for both MEP and MDF.
+   */
+  template<bool mep_layout>
+  using RawEvent = std::conditional_t<mep_layout, MEP::RawEvent<SciFiRawBank>, SciFiRawEvent>;
 
   namespace SciFiRawBankParams { // from SciFi/SciFiDAQ/src/SciFiRawBankParams.h
     enum shifts {

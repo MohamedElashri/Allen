@@ -43,22 +43,10 @@ namespace host_global_event_cut {
       // Check SciFi clusters
       unsigned n_SciFi_clusters = 0;
 
-      if constexpr (mep_layout) {
-        auto const number_of_scifi_raw_banks = scifi_offsets[0];
-        for (unsigned i = 0; i < number_of_scifi_raw_banks; ++i) {
-          unsigned const offset_index = 2 + number_of_scifi_raw_banks * (1 + event_number);
-          unsigned bank_size =
-            scifi_offsets[offset_index + i + number_of_scifi_raw_banks] - scifi_offsets[offset_index + i];
-          n_SciFi_clusters += bank_size;
-        }
-      }
-      else {
-        const SciFi::SciFiRawEvent scifi_event(parameters.scifi_banks[0].data() + scifi_offsets[event_number]);
-        for (unsigned i = 0; i < scifi_event.number_of_raw_banks; ++i) {
-          // get bank size in bytes, subtract four bytes for header word
-          unsigned bank_size = scifi_event.raw_bank_offset[i + 1] - scifi_event.raw_bank_offset[i] - 4;
-          n_SciFi_clusters += bank_size;
-        }
+      const auto scifi_event =
+        SciFi::RawEvent<mep_layout> {parameters.scifi_banks[0].data(), scifi_offsets.data(), event_number};
+      for (unsigned i = 0; i < scifi_event.number_of_raw_banks(); ++i) {
+        n_SciFi_clusters += scifi_event.bank_size(i);
       }
 
       // Bank size is given in bytes. There are 2 bytes per cluster.

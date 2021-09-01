@@ -17,10 +17,6 @@ namespace scifi_calculate_cluster_count_v4 {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void scifi_calculate_cluster_count_v4(Parameters, const char* scifi_geometry);
-
-  __global__ void scifi_calculate_cluster_count_v4_mep(Parameters, const char* scifi_geometry);
-
   struct scifi_calculate_cluster_count_v4_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

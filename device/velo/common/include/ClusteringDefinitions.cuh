@@ -10,6 +10,7 @@
 #include <cstring>
 #include "Logger.h"
 #include "VeloDefinitions.cuh"
+#include <MEPTools.h>
 
 namespace VeloClustering {
   static constexpr uint32_t mask_bottom = 0xFFFEFFFF;
@@ -52,51 +53,72 @@ namespace VP {
   static constexpr double Pitch = 0.055;
 } // namespace VP
 
-struct VeloRawEvent {
-  uint32_t number_of_raw_banks;
-  uint32_t* raw_bank_offset;
-  char* payload;
+namespace Velo {
+  struct VeloRawBank {
+    uint32_t sensor_index;
+    uint32_t sp_count;
+    uint32_t* sp_word;
 
-  __device__ __host__ VeloRawEvent(const char* event)
-  {
-    const char* p = event;
-    number_of_raw_banks = *((uint32_t*) p);
-    p += sizeof(uint32_t);
-    raw_bank_offset = (uint32_t*) p;
-    p += (number_of_raw_banks + 1) * sizeof(uint32_t);
-    payload = (char*) p;
-  }
-};
+    // For MEP format
+    __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment)
+    {
+      sensor_index = source_id;
+      const char* p = fragment;
+      sp_count = *((uint32_t*) p);
+      p += sizeof(uint32_t);
+      sp_word = (uint32_t*) p;
+    }
 
-struct VeloRawBank {
-  uint32_t sensor_index;
-  uint32_t sp_count;
-  uint32_t* sp_word;
+    // For Allen format
+    __device__ __host__ VeloRawBank(const char* raw_bank)
+    {
+      const char* p = raw_bank;
+      sensor_index = *((uint32_t*) p);
+      p += sizeof(uint32_t);
+      sp_count = *((uint32_t*) p);
+      p += sizeof(uint32_t);
+      sp_word = (uint32_t*) p;
+    }
+  };
 
-  // For flexibility upon defining container
-  __device__ __host__ VeloRawBank() {}
+  struct VeloRawEvent {
+  private:
+    uint32_t m_number_of_raw_banks;
+    uint32_t* m_raw_bank_offset;
+    char* m_payload;
 
-  // For MEP format
-  __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment)
-  {
-    sensor_index = source_id;
-    const char* p = fragment;
-    sp_count = *((uint32_t*) p);
-    p += sizeof(uint32_t);
-    sp_word = (uint32_t*) p;
-  }
+    __device__ __host__ void initialize(const char* event)
+    {
+      const char* p = event;
+      m_number_of_raw_banks = *((uint32_t*) p);
+      p += sizeof(uint32_t);
+      m_raw_bank_offset = (uint32_t*) p;
+      p += (m_number_of_raw_banks + 1) * sizeof(uint32_t);
+      m_payload = (char*) p;
+    }
 
-  // For Allen format
-  __device__ __host__ VeloRawBank(const char* raw_bank)
-  {
-    const char* p = raw_bank;
-    sensor_index = *((uint32_t*) p);
-    p += sizeof(uint32_t);
-    sp_count = *((uint32_t*) p);
-    p += sizeof(uint32_t);
-    sp_word = (uint32_t*) p;
-  }
-};
+  public:
+    __device__ __host__ VeloRawEvent(const char* event) { initialize(event); }
+
+    __device__ __host__ VeloRawEvent(
+      const char* dev_scifi_raw_input,
+      const unsigned* dev_scifi_raw_input_offsets,
+      const unsigned event_number)
+    {
+      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number]);
+    }
+
+    __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }
+
+    __device__ __host__ VeloRawBank raw_bank(const unsigned index) const
+    {
+      return VeloRawBank {m_payload + m_raw_bank_offset[index]};
+    }
+  };
+
+  template<bool mep_layout>
+  using RawEvent = std::conditional_t<mep_layout, MEP::RawEvent<VeloRawBank>, VeloRawEvent>;
+} // namespace Velo
 
 /**
  * @brief Velo geometry description typecast.

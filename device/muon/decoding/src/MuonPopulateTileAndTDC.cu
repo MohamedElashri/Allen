@@ -4,47 +4,6 @@
 #include <MEPTools.h>
 #include <MuonPopulateTileAndTDC.cuh>
 
-void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
-{
-  set_size<dev_storage_tile_id_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
-  set_size<dev_storage_tdc_value_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
-  set_size<dev_atomics_muon_t>(
-    arguments,
-    first<host_number_of_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
-      Muon::Constants::n_quarters);
-}
-
-void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants&,
-  HostBuffers&,
-  const Allen::Context& context) const
-{
-  initialize<dev_atomics_muon_t>(arguments, 0, context);
-  initialize<dev_storage_tile_id_t>(arguments, 0, context);
-  initialize<dev_storage_tdc_value_t>(arguments, 0, context);
-
-  if (runtime_options.mep_layout) {
-    global_function(muon_populate_tile_and_tdc_mep)(
-      size<dev_event_list_t>(arguments),
-      // FIXME:
-      10 * Muon::MuonRawEvent::batches_per_bank,
-      context)(arguments);
-  }
-  else {
-    global_function(muon_populate_tile_and_tdc)(
-      size<dev_event_list_t>(arguments),
-      // FIXME:
-      10 * Muon::MuonRawEvent::batches_per_bank,
-      context)(arguments);
-  }
-}
-
 __device__ void decode_muon_bank(
   Muon::MuonRawToHits const* muon_raw_to_hits,
   int const batch_index,
@@ -93,11 +52,12 @@ __device__ void decode_muon_bank(
   }
 }
 
-__global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
-  muon_populate_tile_and_tdc::Parameters parameters)
+template<bool mep_layout>
+__global__ void muon_populate_tile_and_tdc_kernel(muon_populate_tile_and_tdc::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const auto raw_event = Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[event_number]);
+  const auto raw_event =
+    Muon::RawEvent<mep_layout> {parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number};
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -108,12 +68,12 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks() * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
 
-    const auto raw_bank = raw_event.getMuonBank(bank_index);
+    const auto raw_bank = raw_event.raw_bank(bank_index);
 
     decode_muon_bank(
       parameters.dev_muon_raw_to_hits,
@@ -126,34 +86,35 @@ __global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc(
   }
 }
 
-__global__ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_mep(
-  muon_populate_tile_and_tdc::Parameters parameters)
+void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const auto storage_station_region_quarter_offsets =
-    parameters.dev_storage_station_region_quarter_offsets +
-    event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-  unsigned* atomics_muon = parameters.dev_atomics_muon + event_number * 2 * Muon::Constants::n_stations *
-                                                           Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  set_size<dev_storage_tile_id_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
+  set_size<dev_storage_tdc_value_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
+  set_size<dev_atomics_muon_t>(
+    arguments,
+    first<host_number_of_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
+      Muon::Constants::n_quarters);
+}
 
-  auto const n_muon_banks = parameters.dev_muon_raw_offsets[0];
-  // batches_per_bank = 4
-  constexpr uint32_t batches_per_bank_mask = 0x3;
-  constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < n_muon_banks * Muon::MuonRawEvent::batches_per_bank; i += blockDim.x) {
-    const auto bank_index = i >> batches_per_bank_shift;
-    const auto batch_index = i & batches_per_bank_mask;
+void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers&,
+  const Allen::Context& context) const
+{
+  initialize<dev_atomics_muon_t>(arguments, 0, context);
+  initialize<dev_storage_tile_id_t>(arguments, 0, context);
+  initialize<dev_storage_tdc_value_t>(arguments, 0, context);
 
-    const auto raw_bank = MEP::raw_bank<Muon::MuonRawBank>(
-      parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number, bank_index);
-
-    decode_muon_bank(
-      parameters.dev_muon_raw_to_hits,
-      batch_index,
-      raw_bank,
-      storage_station_region_quarter_offsets,
-      atomics_muon,
-      parameters.dev_storage_tile_id,
-      parameters.dev_storage_tdc_value);
-  }
+  global_function(
+    runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<true> : muon_populate_tile_and_tdc_kernel<false>)(
+    size<dev_event_list_t>(arguments),
+    // FIXME:
+    10 * Muon::MuonRawEvent::batches_per_bank,
+    context)(arguments);
 }

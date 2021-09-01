@@ -16,10 +16,6 @@ namespace scifi_calculate_cluster_count_v6 {
     DEVICE_OUTPUT(dev_scifi_hit_count_t, unsigned) dev_scifi_hit_count;
   };
 
-  __global__ void scifi_calculate_cluster_count_v6(Parameters, const char* scifi_geometry);
-
-  __global__ void scifi_calculate_cluster_count_v6_mep(Parameters, const char* scifi_geometry);
-
   struct scifi_calculate_cluster_count_v6_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

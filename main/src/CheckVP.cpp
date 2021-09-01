@@ -23,10 +23,10 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uns
     [[maybe_unused]] uint32_t sp_count = *((uint32_t*) p);
     p += sizeof(uint32_t);
 
-    const auto raw_event = VeloRawEvent(raw_input);
+    const auto raw_event = Velo::VeloRawEvent(raw_input);
     int n_sps_event = 0;
-    for (unsigned i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks; i_raw_bank++) {
-      const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[i_raw_bank]);
+    for (unsigned i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks(); i_raw_bank++) {
+      const auto raw_bank = raw_event.raw_bank(i_raw_bank);
       n_sps_event += raw_bank.sp_count;
       if (i_raw_bank != raw_bank.sensor_index) {
         error_cout << "at raw bank " << i_raw_bank << ", but index = " << raw_bank.sensor_index << std::endl;
