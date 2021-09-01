@@ -14,7 +14,7 @@ Call the script in a stack setup like so:
 If you would like to dump a large amount of events into MDF files, it is convenient to produce several MDF output files to avoid too large single files. This [python script](https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/options/mdf_split_for_standalone_Allen.py) produces several MDF output files from the input files. Again, the TestFileDB entry is used to specify the input. The output MDF files combine a number of input files, configurable with `n_files_per_chunk`. Call this script like so:
 ```
 ./Moore/run bash --norc
-python Moore/Hlt/RecoConf/options/mdf_split_for_standalone_Allen.py
+python Moore/Hlt/RecoConf/scripts/mdf_split_for_standalone_Allen.py
 ```
 
     
