@@ -13,31 +13,11 @@ __global__ void velo_calculate_number_of_candidates_kernel(
        event_index += blockDim.x * gridDim.x) {
     const auto event_number = parameters.dev_event_list[event_index];
 
-    // Read raw event
-    unsigned number_of_raw_banks;
-    if constexpr (mep_layout) {
-      number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
-    }
-    else {
-      const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
-      const auto raw_event = VeloRawEvent(raw_input);
-      number_of_raw_banks = raw_event.number_of_raw_banks;
-    }
-
+    const auto velo_raw_event =
+      Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number};
     unsigned number_of_candidates = 0;
-    for (unsigned raw_bank_number = 0; raw_bank_number < number_of_raw_banks; ++raw_bank_number) {
-      // Read raw bank
-      VeloRawBank raw_bank;
-      if constexpr (mep_layout) {
-        raw_bank = MEP::raw_bank<VeloRawBank>(
-          parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
-      }
-      else {
-        const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
-        const auto raw_event = VeloRawEvent(raw_input);
-        raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-      }
-
+    for (unsigned raw_bank_number = 0; raw_bank_number < velo_raw_event.number_of_raw_banks(); ++raw_bank_number) {
+      const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
       number_of_candidates += raw_bank.sp_count;
     }
 

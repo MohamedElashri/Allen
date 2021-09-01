@@ -22,10 +22,6 @@ namespace muon_populate_tile_and_tdc {
     DEVICE_OUTPUT(dev_atomics_muon_t, unsigned) dev_atomics_muon;
   };
 
-  __global__ void muon_populate_tile_and_tdc(Parameters);
-
-  __global__ void muon_populate_tile_and_tdc_mep(Parameters);
-
   struct muon_populate_tile_and_tdc_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

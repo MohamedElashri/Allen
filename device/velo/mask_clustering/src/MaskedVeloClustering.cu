@@ -136,7 +136,7 @@ __device__ void no_neighbour_sp(
   VeloGeometry const& g,
   int const module_pair_number,
   unsigned const cluster_start,
-  VeloRawBank const& raw_bank)
+  Velo::VeloRawBank const& raw_bank)
 {
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
@@ -237,7 +237,7 @@ __device__ void rest_of_clusters(
   unsigned* module_pair_cluster_num,
   VeloGeometry const& g,
   uint32_t const candidate,
-  VeloRawBank const& raw_bank)
+  Velo::VeloRawBank const& raw_bank)
 {
   const auto sp_index = candidate >> 11;
   const auto raw_bank_number = (candidate >> 3) & 0xFF;
@@ -452,33 +452,15 @@ __global__ void velo_masked_clustering_kernel(
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
-
-  // Read raw event
-  unsigned number_of_raw_banks;
-  if constexpr (mep_layout) {
-    number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
-  }
-  else {
-    const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
-    const auto raw_event = VeloRawEvent(raw_input);
-    number_of_raw_banks = raw_event.number_of_raw_banks;
-  }
+  const auto velo_raw_event =
+    Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number};
 
   // process no neighbour sp
-  for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
+  for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < velo_raw_event.number_of_raw_banks();
+       raw_bank_number += blockDim.x) {
     const auto module_pair_number = raw_bank_number / 8;
     const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
-
-    VeloRawBank raw_bank;
-    if constexpr (mep_layout) {
-      raw_bank = MEP::raw_bank<VeloRawBank>(
-        parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
-    }
-    else {
-      const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
-      const auto raw_event = VeloRawEvent(raw_input);
-      raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    }
+    const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
 
     no_neighbour_sp(
       module_pair_cluster_start,
@@ -503,16 +485,7 @@ __global__ void velo_masked_clustering_kernel(
 
     assert(raw_bank_number < Velo::Constants::n_sensors);
 
-    VeloRawBank raw_bank;
-    if constexpr (mep_layout) {
-      raw_bank = MEP::raw_bank<VeloRawBank>(
-        parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number, raw_bank_number);
-    }
-    else {
-      const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[event_number];
-      const auto raw_event = VeloRawEvent(raw_input);
-      raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    }
+    const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
 
     rest_of_clusters(
       module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);

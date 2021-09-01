@@ -58,4 +58,32 @@ namespace MEP {
     return detail::raw_bank<Bank, uint32_t const, char const*, char const*>(blocks, offsets, event, bank);
   }
 
+  template<class Bank>
+  struct RawEvent {
+  private:
+    const char* m_raw_input;
+    const unsigned* m_raw_input_offsets;
+    unsigned m_event_number;
+
+  public:
+    __host__ __device__
+    RawEvent(const char* raw_input, const unsigned* raw_input_offsets, const unsigned event_number) :
+      m_raw_input(raw_input),
+      m_raw_input_offsets(raw_input_offsets), m_event_number(event_number)
+    {}
+
+    __host__ __device__ unsigned number_of_raw_banks() const { return m_raw_input_offsets[0]; }
+
+    __host__ __device__ Bank raw_bank(const unsigned index) const
+    {
+      return MEP::raw_bank<Bank>(m_raw_input, m_raw_input_offsets, m_event_number, index);
+    }
+
+    __host__ __device__ unsigned bank_size(const unsigned index) const
+    {
+      const auto n_raw_banks = number_of_raw_banks();
+      const auto offset_index = 2 + n_raw_banks * (1 + m_event_number);
+      return m_raw_input_offsets[offset_index + index + n_raw_banks] - m_raw_input_offsets[offset_index + index];
+    }
+  };
 } // namespace MEP

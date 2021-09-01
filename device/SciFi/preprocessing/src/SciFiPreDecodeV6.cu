@@ -5,37 +5,6 @@
 #include <MEPTools.h>
 #include "assert.h"
 
-void scifi_pre_decode_v6::scifi_pre_decode_v6_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
-{
-  set_size<dev_cluster_references_t>(
-    arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
-}
-
-void scifi_pre_decode_v6::scifi_pre_decode_v6_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers&,
-  const Allen::Context& context) const
-{
-  if (runtime_options.mep_layout) {
-    global_function(scifi_pre_decode_v6_mep)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
-      arguments, constants.dev_scifi_geometry);
-  }
-  else {
-    global_function(scifi_pre_decode_v6)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
-      arguments, constants.dev_scifi_geometry);
-  }
-}
-
-using namespace SciFi;
-
 __device__ void store_sorted_cluster_reference_v6(
   SciFi::ConstHitCount& hit_count,
   const uint32_t uniqueMat,
@@ -69,17 +38,16 @@ __device__ void store_sorted_cluster_reference_v6(
     (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition & 0x07) << 13 | (delta & 0xFF);
 }
 
-__global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
-  scifi_pre_decode_v6::Parameters parameters,
-  const char* scifi_geometry)
+template<bool mep_layout>
+__global__ void scifi_pre_decode_v6_kernel(scifi_pre_decode_v6::Parameters parameters, const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  SciFiGeometry geom(scifi_geometry);
-  const auto event =
-    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[event_number]);
+  SciFi::SciFiGeometry geom(scifi_geometry);
+  const auto scifi_raw_event =
+    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number);
 
-  ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
@@ -92,10 +60,10 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   __syncthreads();
 
   // Main execution loop
-  for (unsigned i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
-    const unsigned current_raw_bank = getRawBankIndexOrderedByX(i);
+  for (unsigned i = threadIdx.x; i < scifi_raw_event.number_of_raw_banks(); i += blockDim.x) {
+    const unsigned current_raw_bank = SciFi::getRawBankIndexOrderedByX(i);
 
-    auto rawbank = event.getSciFiRawBank(current_raw_bank);
+    auto rawbank = scifi_raw_event.raw_bank(current_raw_bank);
     const uint16_t* starting_it = rawbank.data + 2;
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
@@ -106,8 +74,8 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
-      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-      const auto chid = SciFiChannelID(ch);
+      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
+      const auto chid = SciFi::SciFiChannelID(ch);
       const uint32_t correctedMat = chid.correctedUniqueMat();
 
       const auto store_sorted_v6_fn = [&](const int condition, const int delta) {
@@ -124,19 +92,19 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
           delta);
       };
 
-      if (!cSize(c)) {
+      if (!SciFi::cSize(c)) {
         // Single cluster
         store_sorted_v6_fn(0x01, 0x00);
       }
-      else if (fraction(c)) {
-        if (it + 1 == last || getLinkInBank(c) != getLinkInBank(*(it + 1))) {
+      else if (SciFi::fraction(c)) {
+        if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(*(it + 1))) {
           // last cluster in bank or in sipm
           store_sorted_v6_fn(0x02, 0x00);
         }
         else {
           const unsigned c2 = *(it + 1);
-          assert(cSize(c2) && !fraction(c2));
-          const unsigned int widthClus = (cell(c2) - cell(c) + 2);
+          assert(SciFi::cSize(c2) && !SciFi::fraction(c2));
+          const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
           if (widthClus > 8) {
             uint16_t j = 0;
             for (; j < widthClus - 4; j += 4) {
@@ -157,90 +125,24 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   }
 }
 
-__global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
-  scifi_pre_decode_v6::Parameters parameters,
-  const char* scifi_geometry)
+void scifi_pre_decode_v6::scifi_pre_decode_v6_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  set_size<dev_cluster_references_t>(
+    arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
+}
 
-  SciFiGeometry geom(scifi_geometry);
-  ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
-
-  __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
-  __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
-
-  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
-    shared_mat_offsets[i] = *hit_count.mat_offsets_p(i);
-    shared_mat_count[i] = 0;
-  }
-
-  __syncthreads();
-
-  auto const n_scifi_banks = parameters.dev_scifi_raw_input_offsets[0];
-
-  // Main execution loop
-  for (unsigned i = threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
-    // Create SciFi raw bank from MEP layout
-    auto const rawbank = MEP::raw_bank<SciFiRawBank>(
-      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number, i);
-
-    const uint16_t* starting_it = rawbank.data + 2;
-    uint16_t* last = rawbank.last;
-    if (*(last - 1) == 0) --last; // Remove padding at the end
-
-    if (starting_it >= last || starting_it >= rawbank.last) continue;
-
-    const unsigned number_of_iterations = last - starting_it;
-    for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
-      auto it = starting_it + it_number;
-      const uint16_t c = *it;
-      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-      const auto chid = SciFiChannelID(ch);
-      const uint32_t correctedMat = chid.correctedUniqueMat();
-
-      const auto store_sorted_v6_fn = [&](const int condition, const int delta) {
-        store_sorted_cluster_reference_v6(
-          hit_count,
-          correctedMat,
-          ch,
-          shared_mat_offsets,
-          shared_mat_count,
-          i,
-          it_number,
-          parameters.dev_cluster_references,
-          condition,
-          delta);
-      };
-
-      if (!cSize(c)) {
-        // Single cluster
-        store_sorted_v6_fn(0x01, 0x00);
-      }
-      else if (fraction(c)) {
-        if (it + 1 == last || getLinkInBank(c) != getLinkInBank(*(it + 1))) {
-          // last cluster in bank or in sipm
-          store_sorted_v6_fn(0x02, 0x00);
-        }
-        else {
-          const unsigned c2 = *(it + 1);
-          assert(cSize(c2) && !fraction(c2));
-          const unsigned int widthClus = (cell(c2) - cell(c) + 2);
-          if (widthClus > 8) {
-            uint16_t j = 0;
-            for (; j < widthClus - 4; j += 4) {
-              // big cluster(s)
-              store_sorted_v6_fn(0x03, j);
-            }
-
-            // add the last edge
-            store_sorted_v6_fn(0x04, j);
-          }
-          else {
-            store_sorted_v6_fn(0x05, 0x00);
-          }
-          ++it_number;
-        }
-      }
-    }
-  }
+void scifi_pre_decode_v6::scifi_pre_decode_v6_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  const Allen::Context& context) const
+{
+  global_function(runtime_options.mep_layout ? scifi_pre_decode_v6_kernel<true> : scifi_pre_decode_v6_kernel<false>)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
+    arguments, constants.dev_scifi_geometry);
 }

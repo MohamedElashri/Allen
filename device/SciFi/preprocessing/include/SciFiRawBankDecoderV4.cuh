@@ -32,14 +32,6 @@ namespace scifi_raw_bank_decoder_v4 {
     direct_decoder_block_dim;
   };
 
-  __global__ void scifi_raw_bank_decoder_v4(Parameters, const char* scifi_geometry);
-
-  __global__ void scifi_direct_decoder_v4(Parameters, const char* scifi_geometry);
-
-  __global__ void scifi_raw_bank_decoder_v4_mep(Parameters, const char* scifi_geometry);
-
-  __global__ void scifi_direct_decoder_v4_mep(Parameters, const char* scifi_geometry);
-
   struct scifi_raw_bank_decoder_v4_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

@@ -5,42 +5,10 @@
 #include <MEPTools.h>
 #include "assert.h"
 
-void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
-{
-  set_size<dev_scifi_hits_t>(
-    arguments,
-    first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
-}
-
-void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers&,
-  const Allen::Context& context) const
-{
-  if (runtime_options.mep_layout) {
-    global_function(scifi_raw_bank_decoder_v6_mep)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_scifi_geometry);
-  }
-  else {
-    global_function(scifi_raw_bank_decoder_v6)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_scifi_geometry);
-  }
-}
-
-using namespace SciFi;
-
 // Merge of PrStoreFTHit and RawBankDecoder.
 __device__ void make_cluster_v6(
   const int hit_index,
-  const SciFiGeometry& geom,
+  const SciFi::SciFiGeometry& geom,
   uint32_t chan,
   uint8_t fraction,
   uint8_t pseudoSize,
@@ -76,16 +44,17 @@ __device__ void make_cluster_v6(
   hits.assembled_datatype(hit_index) = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
 }
 
-__global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
+template<bool mep_layout>
+__global__ void scifi_raw_bank_decoder_v6_kernel(
   scifi_raw_bank_decoder_v6::Parameters parameters,
   const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const SciFiGeometry geom {scifi_geometry};
-  const auto event =
-    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[event_number]);
+  const SciFi::SciFiGeometry geom {scifi_geometry};
+  const auto scifi_raw_event =
+    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
                     parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
@@ -99,16 +68,16 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
     const int condition = (cluster_reference >> 13) & 0x07;
     const int delta_parameter = cluster_reference & 0xFF;
 
-    const auto rawbank = event.getSciFiRawBank(raw_bank_number);
+    const auto rawbank = scifi_raw_event.raw_bank(raw_bank_number);
     const uint16_t* it = rawbank.data + 2;
     it += it_number;
 
     const uint16_t c = *it;
-    const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
+    const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
 
     // Call parameters for make_cluster
     uint32_t cluster_chan = ch;
-    uint8_t cluster_fraction = fraction(c);
+    uint8_t cluster_fraction = SciFi::fraction(c);
     uint8_t pseudoSize = 4;
 
     assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
@@ -118,7 +87,7 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
     }
     else if (condition > 0x02) {
       const auto c2 = *(it + 1);
-      const auto widthClus = (cell(c2) - cell(c) + 2);
+      const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
 
       if (condition == 0x03) {
         pseudoSize = 0;
@@ -141,66 +110,25 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
   }
 }
 
-__global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_mep(
-  scifi_raw_bank_decoder_v6::Parameters parameters,
-  const char* scifi_geometry)
+void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const SciFiGeometry geom {scifi_geometry};
+  set_size<dev_scifi_hits_t>(
+    arguments,
+    first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
+}
 
-  SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
-  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
-  const unsigned number_of_hits_in_event = hit_count.event_number_of_hits();
-
-  for (unsigned i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
-    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
-    const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
-    const int it_number = (cluster_reference >> 16) & 0xFF;
-    const int condition = (cluster_reference >> 13) & 0x07;
-    const int delta_parameter = cluster_reference & 0xFF;
-
-    auto const rawbank = MEP::raw_bank<SciFiRawBank>(
-      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number, raw_bank_number);
-
-    const uint16_t* it = rawbank.data + 2;
-    it += it_number;
-
-    const uint16_t c = *it;
-    const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-
-    // Call parameters for make_cluster
-    uint32_t cluster_chan = ch;
-    uint8_t cluster_fraction = fraction(c);
-    uint8_t pseudoSize = 4;
-
-    assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
-
-    if (condition == 0x02) {
-      pseudoSize = 0;
-    }
-    else if (condition > 0x02) {
-      const auto c2 = *(it + 1);
-      const auto widthClus = (cell(c2) - cell(c) + 2);
-
-      if (condition == 0x03) {
-        pseudoSize = 0;
-        cluster_fraction = 1;
-        cluster_chan += delta_parameter;
-      }
-      else if (condition == 0x04) {
-        pseudoSize = 0;
-        cluster_fraction = (widthClus - 1) % 2;
-        cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
-      }
-      else if (condition == 0x05) {
-        pseudoSize = widthClus;
-        cluster_fraction = (widthClus - 1) % 2;
-        cluster_chan += (widthClus - 1) / 2 - 1;
-      }
-    }
-
-    make_cluster_v6(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
-  }
+void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  const Allen::Context& context) const
+{
+  global_function(
+    runtime_options.mep_layout ? scifi_raw_bank_decoder_v6_kernel<true> : scifi_raw_bank_decoder_v6_kernel<false>)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_scifi_geometry);
 }

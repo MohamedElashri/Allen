@@ -21,10 +21,6 @@ namespace scifi_raw_bank_decoder_v6 {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void scifi_raw_bank_decoder_v6(Parameters, const char* scifi_geometry);
-
-  __global__ void scifi_raw_bank_decoder_v6_mep(Parameters, const char* scifi_geometry);
-
   struct scifi_raw_bank_decoder_v6_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

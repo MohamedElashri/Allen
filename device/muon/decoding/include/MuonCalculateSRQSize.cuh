@@ -18,10 +18,6 @@ namespace muon_calculate_srq_size {
     DEVICE_OUTPUT(dev_storage_station_region_quarter_sizes_t, unsigned) dev_storage_station_region_quarter_sizes;
   };
 
-  __global__ void muon_calculate_srq_size(Parameters);
-
-  __global__ void muon_calculate_srq_size_mep(Parameters);
-
   struct muon_calculate_srq_size_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

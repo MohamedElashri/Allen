@@ -5,37 +5,6 @@
 #include "SciFiPreDecodeV4.cuh"
 #include <cassert>
 
-void scifi_pre_decode_v4::scifi_pre_decode_v4_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
-{
-  set_size<dev_cluster_references_t>(
-    arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
-}
-
-void scifi_pre_decode_v4::scifi_pre_decode_v4_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers&,
-  const Allen::Context& context) const
-{
-  if (runtime_options.mep_layout) {
-    global_function(scifi_pre_decode_v4_mep)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
-      arguments, constants.dev_scifi_geometry);
-  }
-  else {
-    global_function(scifi_pre_decode_v4)(
-      dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
-      arguments, constants.dev_scifi_geometry);
-  }
-}
-
-using namespace SciFi;
-
 __device__ void store_sorted_cluster_reference_v4(
   SciFi::ConstHitCount& hit_count,
   const uint32_t uniqueMat,
@@ -64,8 +33,8 @@ __device__ void store_sorted_cluster_reference_v4(
 
 __device__ void pre_decode_raw_bank_v4(
   SciFi::ConstHitCount& hit_count,
-  SciFiGeometry const& geom,
-  SciFiRawBank const& rawbank,
+  SciFi::SciFiGeometry const& geom,
+  SciFi::SciFiRawBank const& rawbank,
   const unsigned bank_index,
   uint32_t const* shared_mat_offsets,
   uint32_t* shared_mat_count,
@@ -80,8 +49,8 @@ __device__ void pre_decode_raw_bank_v4(
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
-      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-      const auto chid = SciFiChannelID(ch);
+      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
+      const auto chid = SciFi::SciFiChannelID(ch);
       const uint32_t correctedMat = chid.correctedUniqueMat();
 
       store_sorted_cluster_reference_v4(
@@ -99,15 +68,12 @@ __device__ void pre_decode_raw_bank_v4(
   }
 }
 
-__global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
-  scifi_pre_decode_v4::Parameters parameters,
-  const char* scifi_geometry)
+template<bool mep_layout>
+__global__ void scifi_pre_decode_v4_kernel(scifi_pre_decode_v4::Parameters parameters, const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  SciFiGeometry geom(scifi_geometry);
-  const auto event =
-    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[event_number]);
+  SciFi::SciFiGeometry geom(scifi_geometry);
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
@@ -120,14 +86,16 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
 
   __syncthreads();
 
+  const auto scifi_raw_event =
+    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number);
+
   // Main execution loop
-  for (unsigned i = SciFi::Constants::n_consecutive_raw_banks + threadIdx.x; i < event.number_of_raw_banks;
+  for (unsigned i = SciFi::Constants::n_consecutive_raw_banks + threadIdx.x; i < scifi_raw_event.number_of_raw_banks();
        i += blockDim.x) {
-    auto rawbank = event.getSciFiRawBank(i);
     pre_decode_raw_bank_v4(
       hit_count,
       geom,
-      rawbank,
+      scifi_raw_event.raw_bank(i),
       i,
       (const uint32_t*) &shared_mat_offsets,
       (uint32_t*) &shared_mat_count,
@@ -135,40 +103,24 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
   }
 }
 
-__global__ void scifi_pre_decode_v4::scifi_pre_decode_v4_mep(
-  scifi_pre_decode_v4::Parameters parameters,
-  const char* scifi_geometry)
+void scifi_pre_decode_v4::scifi_pre_decode_v4_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  set_size<dev_cluster_references_t>(
+    arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
+}
 
-  SciFiGeometry geom(scifi_geometry);
-  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
-
-  __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
-  __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mats_without_group];
-  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_mats_without_group; i += blockDim.x) {
-    shared_mat_offsets[i] = hit_count.mat_offsets(
-      i + SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank);
-    shared_mat_count[i] = 0;
-  }
-
-  __syncthreads();
-
-  auto const n_scifi_banks = parameters.dev_scifi_raw_input_offsets[0];
-
-  // Main execution loop
-  for (unsigned i = SciFi::Constants::n_consecutive_raw_banks + threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
-
-    // Create SciFi raw bank from MEP layout
-    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(
-      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number, i);
-    pre_decode_raw_bank_v4(
-      hit_count,
-      geom,
-      raw_bank,
-      i,
-      (const uint32_t*) &shared_mat_offsets,
-      (uint32_t*) &shared_mat_count,
-      parameters.dev_cluster_references);
-  }
+void scifi_pre_decode_v4::scifi_pre_decode_v4_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  const Allen::Context& context) const
+{
+  global_function(runtime_options.mep_layout ? scifi_pre_decode_v4_kernel<true> : scifi_pre_decode_v4_kernel<false>)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
+    arguments, constants.dev_scifi_geometry);
 }
