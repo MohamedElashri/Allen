@@ -12,6 +12,7 @@ from Configurables import RawEventJuggler
 from Configurables import PrTrackerDumper, DumpVeloUTState
 from Configurables import AuditorSvc, SequencerTimerTool
 from Configurables import PrTrackAssociator
+from Configurables import LHCb__UnpackRaeEvent as UnpackRawEvent
 from Gaudi.Configuration import appendPostConfigAction
 
 # Upgrade MC
@@ -44,10 +45,16 @@ trackSys = TrackSys(
 # Upgrade DBs
 CondDB().Upgrade = True
 
+unpacker = UnpackRawEvent(
+    'UnpackRawEvent',
+    BankTypes=['ODIN'],
+    RawEventLocation='DAQ/RawEvent',
+    RawBankLocations=['DAQ/RawBanks/ODIN']),
+
 # Main sequence and sequence for the Juggler to append to
 mainSeq = GaudiSequencer("MainSequence")
 juggleSeq = GaudiSequencer("JuggleSeq")
-juggleSeq.Members = [createODIN()]
+juggleSeq.Members = [unpacker, createODIN()]
 mainSeq.Members = [juggleSeq, 'ProcessPhase/Reco']
 ApplicationMgr().TopAlg = [mainSeq]
 
