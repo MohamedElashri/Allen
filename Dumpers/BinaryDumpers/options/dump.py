@@ -12,8 +12,10 @@ from Allen.config import setup_allen_non_event_data_service
 from Configurables import RootHistCnv__PersSvc
 from Configurables import IODataManager
 from Configurables import (VPClus, createODIN, TransposeRawBanks, DumpRawBanks,
-                           DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
-                           MuonRec, PrepareMuonHits, DumpUTHits)
+                           LHCb__UnpackRawEvent as UnpackRawEvent, DumpFTHits,
+                           DumpMuonCoords, DumpMuonCommonHits, MuonRec,
+                           PrepareMuonHits, DumpUTHits)
+
 from Configurables import TestMuonTable
 
 app = LHCbApp(
@@ -35,7 +37,15 @@ decode_muon = MuonRec()
 muon_hits = PrepareMuonHits()
 
 dec_seq = GaudiSequencer("DecodingSeq")
+
+unpacker = UnpackRawEvent(
+    'UnpackRawEvent',
+    BankTypes=['ODIN'],
+    RawEventLocation='DAQ/RawEvent',
+    RawBankLocations=['DAQ/RawBanks/ODIN']),
+
 dec_seq.Members = [
+    unpacker,
     createODIN(), vp_decoder, store_ut, ft_decoder, store_ft, decode_muon,
     muon_hits
 ]
