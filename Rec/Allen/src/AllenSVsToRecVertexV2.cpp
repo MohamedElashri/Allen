@@ -30,7 +30,7 @@ public:
   StatusCode initialize() override;
 
   // Algorithm execution
-  LHCb::Event::v2::RecVertices operator()(const HostBuffers&) const override;
+  LHCb::Event::v2::RecVertices operator()(const HostBuffers&, const std::vector<LHCb::Event::v2::Track>&) const override;
 };
 
 #endif
