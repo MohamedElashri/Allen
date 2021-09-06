@@ -195,6 +195,8 @@ private:
   std::vector<std::reference_wrapper<ArgumentData>> m_argument_data_v;
 
 public:
+  using type = T;
+
   InputAggregate() = default;
 
   template<typename Tuple, std::size_t... Is>
@@ -290,7 +292,8 @@ struct WrappedTuple<
 template<typename T, typename... R>
 struct WrappedTuple<std::tuple<T, R...>, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
   using prev_wrapped_tuple = WrappedTuple<std::tuple<R...>>;
-  using parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
+  using parameters_and_properties_tuple_t =
+    prepend_to_tuple_t<T, typename prev_wrapped_tuple::parameters_and_properties_tuple_t>;
   using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
   using aggregates_tuple_t = prepend_to_tuple_t<T, typename prev_wrapped_tuple::aggregates_tuple_t>;
 };
