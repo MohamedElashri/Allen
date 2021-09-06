@@ -108,35 +108,41 @@ def generate_sequence(algorithms, sequence_filename, prefix_includes):
     s += "\nusing configured_sequence_arguments_t = std::tuple<\n"
     for i, algorithm in enumerate(algorithms):
         s += "  std::tuple<"
-        for (
+        gaudi_data_handles = [p for p in algorithm.type.getDefaultProperties(
+        ).items() if isinstance(p[1], GaudiDataHandle)]
+        for parameter_index, (
                 parameter_name,
                 parameter,
-        ) in algorithm.type.getDefaultProperties().items():
-            if isinstance(parameter, GaudiDataHandle):
-                # Deal with input aggregates separately
-                if parameter_name in algorithm.inputs and type(
-                        algorithm.inputs[parameter_name]) == list:
-                    s += "std::tuple<"
-                    for single_parameter in algorithm.inputs[
-                            parameter_name]:
-                        parameter_full_name = clean_prefix(
-                            single_parameter.location)
-                        s += f"{parameter_full_name}, "
-                    s = s[:-2] + ">, "
-                else:
-                    # It can be either an input or an output
-                    if parameter_name in algorithm.inputs:
-                        parameter_location = algorithm.inputs[
-                            parameter_name].location
-                    elif parameter_name in algorithm.outputs:
-                        parameter_location = algorithm.outputs[
-                            parameter_name].location
-                    else:
-                        raise "Parameter should either be an input or an output"
+        ) in enumerate(gaudi_data_handles):
+            # Deal with input aggregates separately
+            if parameter_name in algorithm.inputs and type(
+                    algorithm.inputs[parameter_name]) == list:
+                s += "std::tuple<"
+                for single_param_i, single_parameter in enumerate(algorithm.inputs[
+                        parameter_name]):
                     parameter_full_name = clean_prefix(
-                        parameter_location)
-                    s += f"{parameter_full_name}, "
-        s = s[:-2] + ">"
+                        single_parameter.location)
+                    s += f"{parameter_full_name}"
+                    if single_param_i != len(algorithm.inputs[
+                            parameter_name]) - 1:
+                        s += ", "
+                s += ">"
+            else:
+                # It can be either an input or an output
+                if parameter_name in algorithm.inputs:
+                    parameter_location = algorithm.inputs[
+                        parameter_name].location
+                elif parameter_name in algorithm.outputs:
+                    parameter_location = algorithm.outputs[
+                        parameter_name].location
+                else:
+                    raise "Parameter should either be an input or an output"
+                parameter_full_name = clean_prefix(
+                    parameter_location)
+                s += f"{parameter_full_name}"
+            if parameter_index != len(gaudi_data_handles) - 1:
+                s += ", "
+        s += ">"
         if i != len(algorithms) - 1:
             s += ",\n"
         else:
@@ -146,7 +152,8 @@ def generate_sequence(algorithms, sequence_filename, prefix_includes):
     s += "constexpr auto sequence_algorithm_names = std::array{\n"
     for i, algorithm in enumerate(algorithms):
         s += f"  \"{algorithm.name}\""
-        if i != len(algorithms) - 1: s += ",\n"
+        if i != len(algorithms) - 1:
+            s += ",\n"
     s += "};\n\n"
 
     # Generate populate_sequence_parameter_names
@@ -176,7 +183,7 @@ def generate_json_configuration(algorithms, filename):
     sequence_json["configured_lines"] = configured_lines
     with open(filename, 'w') as outfile:
         dump(sequence_json, outfile)
-        
+
 
 def generate_allen_sequence(
     algorithms,
@@ -200,7 +207,7 @@ def generate_allen_sequence(
     generate_sequence(algorithms, sequence_filename, prefix_includes)
 
     generate_json_configuration(algorithms, json_configuration_filename)
-    
+
     print(
         f"Generated sequence files {sequence_filename} and {json_configuration_filename}"
     )
