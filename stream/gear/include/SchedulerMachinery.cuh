@@ -96,9 +96,10 @@ namespace Sch {
     // Types unused from Args...
     using previous_t = typename ArgumentsNotIn<std::tuple<Args...>, std::tuple<OtherArguments, RestOfArguments...>>::t;
 
-    // We append Arg only if it is _not_ on the previous algorithms
+    // We append Arg only if it is _not_ on the previous algorithms and _not_ repeated
     using t = std::conditional_t<
-      IsInAnyArgumentTuple<Arg, std::tuple<OtherArguments, RestOfArguments...>>::value,
+      IsInAnyArgumentTuple<Arg, std::tuple<OtherArguments, RestOfArguments...>>::value ||
+        ((std::is_same_v<Arg, Args> || ...)),
       previous_t,
       append_to_tuple_t<previous_t, Arg>>;
   };
