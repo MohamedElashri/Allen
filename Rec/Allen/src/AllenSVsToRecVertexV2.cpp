@@ -21,7 +21,7 @@
 #include "VertexDefinitions.cuh"
 
 class AllenSVsToRecVertexV2 final
-  : public Gaudi::Functional::Transformer<LHCb::Event::v2::RecVertices(const HostBuffers&)> {
+  : public Gaudi::Functional::Transformer<LHCb::Event::v2::RecVertices(const HostBuffers&, const std::vector<LHCb::Event::v2::Track>&)> {
 public:
   // Standard constructor
   AllenSVsToRecVertexV2(const std::string& name, ISvcLocator* pSvcLocator);
@@ -42,8 +42,8 @@ AllenSVsToRecVertexV2::AllenSVsToRecVertexV2(const std::string& name, ISvcLocato
     name,
     pSvcLocator,
     // Inputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"},
-     KeyValue {"OutputTracks", "Allen/Out/ForwardTracks"}},
+    {KeyValue{"AllenOutput", "Allen/Out/HostBuffers"},
+     KeyValue{"OutputTracks", "Allen/Out/ForwardTracks"}},
     // Outputs
     {KeyValue {"OutputSVs", "Allen/Out/RecVertex"}})
 {}
@@ -62,10 +62,10 @@ LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
     const unsigned n_svs = host_buffers.host_number_of_svs[i_event];
 
     LHCb::Event::v2::RecVertices sv_container;
-    sv_container.reserve(n_pvs);
+    sv_container.reserve(n_svs);
 
     for (unsigned int i = 0; i < n_svs; i++) {
-        const VertexFit::TrackMVAVertex& sv = host_buffers.host_consolidated_svs[i];
+        const VertexFit::TrackMVAVertex& sv = host_buffers.host_secondary_vertices[i];
         Gaudi::SymMatrix3x3 poscov;
         poscov(0, 0) = sv.cov00;
         poscov(1, 0) = sv.cov10;
@@ -75,7 +75,7 @@ LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
         poscov(2, 2) = sv.cov22;
         Gaudi::XYZPoint position {sv.x, sv.y, sv.z};
         auto& new_sv = sv_container.emplace_back(    
-            position, poscov, LHCb::Event::v2::Track::Chi2PerDoF {vertex.chi2/2, 2});
+            position, poscov, LHCb::Event::v2::Track::Chi2PerDoF {sv.chi2/2, 2});
         const unsigned i_trackA = sv.trk1;
         const unsigned i_trackB = sv.trk2;
         new_sv.addToTracks(&tracks[i_trackA], 0.f);
