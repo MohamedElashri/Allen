@@ -60,7 +60,8 @@ int main(int argc, char* argv[])
   auto bank_ids = Allen::bank_ids();
 
   // Transposed slices
-  std::unordered_set<BankTypes> bank_types{BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+  std::unordered_set<BankTypes> bank_types {
+    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
   auto size_fun = [buffer_size, n_events](BankTypes) -> std::tuple<size_t, size_t> { return {buffer_size, n_events}; };
   Allen::Slices slices = allocate_slices(n_slices, bank_types, size_fun);
 
@@ -109,8 +110,10 @@ int main(int argc, char* argv[])
 
   // Measure and report read throughput
   t.stop();
-  auto n_read = std::accumulate(
-    read_buffers.begin(), read_buffers.end(), 0., [](double s, Allen::ReadBuffer const& rb) { return s + std::get<0>(rb); });
+  auto n_read =
+    std::accumulate(read_buffers.begin(), read_buffers.end(), 0., [](double s, Allen::ReadBuffer const& rb) {
+      return s + std::get<0>(rb);
+    });
   cout << "read " << std::lround(n_read) << " events; " << n_read / t.get() << " events/s\n";
 
   // Count the number of banks of each type
@@ -134,8 +137,8 @@ int main(int argc, char* argv[])
 
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
-    threads.emplace_back(
-      thread {[i, n_reps, n_events, &read_buffers, &slices, &bank_types, &bank_ids, &banks_count, &banks_version, &event_ids] {
+    threads.emplace_back(thread {
+      [i, n_reps, n_events, &read_buffers, &slices, &bank_types, &bank_ids, &banks_count, &banks_version, &event_ids] {
         auto& read_buffer = read_buffers[i];
         for (size_t rep = 0; rep < n_reps; ++rep) {
 

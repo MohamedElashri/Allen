@@ -256,7 +256,8 @@ TEST_CASE("MDF slice full", "[MDF slice]")
     return {as, n_events + 1};
   };
 
-  std::unordered_set<BankTypes> allen_types{BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+  std::unordered_set<BankTypes> allen_types {
+    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
   auto slices = allocate_slices(s_config.n_slices, allen_types, size_fun);
 
   bool good = false, transpose_full = false;
@@ -266,16 +267,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   for (auto [slice_index, check_full] : {std::tuple {0u, true}, std::tuple {1u, false}}) {
     std::tie(good, transpose_full, n_transposed) = transpose_events(
-      read_buffer,
-      slices,
-      slice_index,
-      ids,
-      allen_types,
-      banks_count,
-      banks_version,
-      event_ids[0],
-      max_events,
-      false);
+      read_buffer, slices, slice_index, ids, allen_types, banks_count, banks_version, event_ids[0], max_events, false);
     std::cout << "transposed: " << n_transposed << " " << transpose_full << "\n";
     REQUIRE(good);
     REQUIRE(transpose_full == check_full);

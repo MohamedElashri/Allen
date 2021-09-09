@@ -89,8 +89,7 @@ namespace details {
   };
 
   template<typename T>
-  struct ReverseTuple<T, std::index_sequence<>>
-  {
+  struct ReverseTuple<T, std::index_sequence<>> {
     using type = T;
   };
 

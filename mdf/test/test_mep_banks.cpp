@@ -27,7 +27,6 @@
 #include <GaudiKernel/ISvcLocator.h>
 #include <GaudiKernel/SmartIF.h>
 
-
 #define CATCH_CONFIG_RUNNER
 #include <catch.hpp>
 
@@ -53,7 +52,8 @@ namespace {
 
 } // namespace
 
-IInputProvider* mep_provider() {
+IInputProvider* mep_provider()
+{
   SmartIF<IStateful> app = Gaudi::createApplicationMgr();
   auto prop = app.as<IProperty>();
   bool sc = prop->setProperty("ExtSvc", "[\"MEPProvider\"]").isSuccess();
@@ -98,12 +98,12 @@ int main(int argc, char* argv[])
 
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
-  auto cli = session.cli()                          // Get Catch's composite command line parser
+  auto cli = session.cli()                                   // Get Catch's composite command line parser
              | Opt(s_config.mdf_files, string {"MDF files"}) // bind variable to a new option, with a hint string
-                 ["--mdf"]("MDF files")
-             | Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
-                 ["--mep"]("MEP files")
-             | Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
+                 ["--mdf"]("MDF files") |
+             Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
+               ["--mep"]("MEP files") |
+             Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
                ["--nevents"]("number of events");
 
   // Now pass the new composite back to Catch so it uses that

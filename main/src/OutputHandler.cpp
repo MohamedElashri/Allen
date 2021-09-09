@@ -50,15 +50,15 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
     // size of the SelReport RawBank
     auto const event_number = selected_events[i];
-    const unsigned sel_report_size = (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
+    const unsigned sel_report_size =
+      (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
 
     // add DecReport and SelReport sizes to the total size (including two RawBank headers)
     auto [buffer_id, buffer_span] =
       buffer(m_sizes[i] + header_size + 2 * bank_header_size + dec_report_size + sel_report_size);
 
     // In case output was cancelled
-    if (buffer_span.empty())
-      continue;
+    if (buffer_span.empty()) continue;
 
     // Add the header
     auto* header = reinterpret_cast<LHCb::MDFHeader*>(buffer_span.data());

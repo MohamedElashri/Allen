@@ -15,9 +15,7 @@
  */
 template<typename TO>
 struct cast_service {
-  TO* operator()(IService* svc) {
-    return dynamic_cast<TO*>(svc);
-  }
+  TO* operator()(IService* svc) { return dynamic_cast<TO*>(svc); }
 };
 
 // template cast_service<Allen::NonEventData::IUpdater>;

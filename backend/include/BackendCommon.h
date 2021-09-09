@@ -93,7 +93,7 @@ namespace Allen {
   } // namespace device
 } // namespace Allen
 #else
-#include<cmath>
+#include <cmath>
 #endif
 
 // Replacement for gsl::span in device code

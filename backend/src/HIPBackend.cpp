@@ -12,8 +12,7 @@ void Allen::print_device_memory_consumption()
   hipCheck(hipMemGetInfo(&free_byte, &total_byte));
   float free_percent = (float) free_byte / total_byte * 100;
   float used_percent = (float) (total_byte - free_byte) / total_byte * 100;
-  verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used "
-               << std::endl;
+  verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
 }
 
 std::tuple<bool, std::string, unsigned> Allen::set_device(int hip_device, size_t stream_id)

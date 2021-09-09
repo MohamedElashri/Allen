@@ -56,8 +56,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
     // Read the banks
     auto const buffer_offset = event_offsets[n_filled];
     assert(buffer_offset < buffer.size());
-    gsl::span<char> buffer_span {buffer_start + buffer_offset,
-                                 static_cast<events_size>(buffer.size() - buffer_offset)};
+    gsl::span<char> buffer_span {buffer_start + buffer_offset, static_cast<events_size>(buffer.size() - buffer_offset)};
     std::tie(eof, error, bank_span) =
       MDF::read_banks(input, header, std::move(buffer_span), compress_buffer, check_checksum);
     // Fill the start offset of the next event
@@ -289,19 +288,19 @@ std::tuple<bool, bool, bool> transpose_event(
 }
 
 /**
-* @brief      Reset a slice
-*
-* @param      slices
-* @param      slice_index
-* @param      event_ids
-*/
+ * @brief      Reset a slice
+ *
+ * @param      slices
+ * @param      slice_index
+ * @param      event_ids
+ */
 
-void reset_slice(Allen::Slices& slices,
+void reset_slice(
+  Allen::Slices& slices,
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
   EventIDs& event_ids,
-   bool mep);
-
+  bool mep);
 
 std::tuple<bool, bool, size_t> transpose_events(
   const Allen::ReadBuffer& read_buffer,
@@ -336,11 +335,10 @@ std::tuple<bool, bool, size_t> transpose_events(
   return {success, full, i_event - event_start};
 }
 
-
-Allen::Slices allocate_slices(size_t n_slices,
-             std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun,
-             std::unordered_set<BankTypes> const& bank_types
-)
+Allen::Slices allocate_slices(
+  size_t n_slices,
+  std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun,
+  std::unordered_set<BankTypes> const& bank_types)
 {
   Allen::Slices slices;
   for (auto bank_type : bank_types) {

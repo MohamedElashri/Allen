@@ -23,14 +23,11 @@
  *
  */
 
-//template<BankTypes... Banks>
+// template<BankTypes... Banks>
 class TESProvider final : public InputProvider {
 public:
- TESProvider(size_t n_slices,
-	     size_t events_per_slice,
-	     std::optional<size_t> n_events) :
-   InputProvider {n_slices, events_per_slice, {},
-   IInputProvider::Layout::Allen, n_events}
+  TESProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
+    InputProvider {n_slices, events_per_slice, {}, IInputProvider::Layout::Allen, n_events}
   {}
 
   /**
@@ -51,7 +48,8 @@ public:
         std::cout << "ERROR: LHCb::RawBank index out of scope from conversion between Allen and LHCb raw bank types"
                   << std::endl;
         return 1;
-      } else if (banks.empty()) {
+      }
+      else if (banks.empty()) {
         continue;
       }
       auto bank = static_cast<LHCb::RawBank::BankType>(i);
@@ -90,8 +88,10 @@ public:
     return m_banks_and_offsets[ib];
   }
 
-  EventIDs event_ids(size_t, std::optional<size_t> = {}, std::optional<size_t> = {})
-    const override { return EventIDs{}; }
+  EventIDs event_ids(size_t, std::optional<size_t> = {}, std::optional<size_t> = {}) const override
+  {
+    return EventIDs {};
+  }
 
   void slice_free(size_t) override {};
 
@@ -99,7 +99,6 @@ public:
   {
     return {false, false, false, 0, 0, 0};
   }
-
 
   void event_sizes(size_t const, gsl::span<unsigned int const> const, std::vector<size_t>&) const override {}
 

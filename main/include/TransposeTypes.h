@@ -24,17 +24,17 @@ namespace LHCb {
 
 namespace Allen {
 
-// Read buffer containing the number of events, offsets to the start
-// of the event and the event data
-using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>, size_t>;
-using ReadBuffers = std::vector<ReadBuffer>;
+  // Read buffer containing the number of events, offsets to the start
+  // of the event and the event data
+  using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>, size_t>;
+  using ReadBuffers = std::vector<ReadBuffer>;
 
-// A slice contains transposed bank data, offsets to the start of each
-// set of banks and the number of sets of banks
-using Slice = std::tuple<std::vector<gsl::span<char>>, size_t, gsl::span<unsigned int>, size_t>;
-using BankSlices = std::vector<Slice>;
-using Slices = std::array<BankSlices, NBankTypes>;
+  // A slice contains transposed bank data, offsets to the start of each
+  // set of banks and the number of sets of banks
+  using Slice = std::tuple<std::vector<gsl::span<char>>, size_t, gsl::span<unsigned int>, size_t>;
+  using BankSlices = std::vector<Slice>;
+  using Slices = std::array<BankSlices, NBankTypes>;
 
-std::vector<int> bank_ids();
+  std::vector<int> bank_ids();
 
-}
+} // namespace Allen

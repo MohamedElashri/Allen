@@ -28,9 +28,14 @@ namespace Allen {
 
   std::unique_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);
 
-  std::unique_ptr<OutputHandler> output_handler(IInputProvider* input_provider,
-                                                IZeroMQSvc* zmq_svc,
-                                                std::map<std::string, std::string> const& options);
+  std::unique_ptr<OutputHandler> output_handler(
+    IInputProvider* input_provider,
+    IZeroMQSvc* zmq_svc,
+    std::map<std::string, std::string> const& options);
 
-  Allen::IOConf io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads, bool quiet = false);
-}
+  Allen::IOConf io_configuration(
+    unsigned number_of_slices,
+    unsigned number_of_repetitions,
+    unsigned number_of_threads,
+    bool quiet = false);
+} // namespace Allen

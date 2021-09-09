@@ -84,8 +84,8 @@ struct MDFProviderConfig {
  * @param      Configuration struct
  *
  */
-//template<BankTypes... Banks>
-//class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
+// template<BankTypes... Banks>
+// class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
 class MDFProvider final : public InputProvider {
 public:
   MDFProvider(
@@ -95,9 +95,9 @@ public:
     std::vector<std::string> connections,
     std::unordered_set<BankTypes> const& bank_types,
     MDFProviderConfig config = MDFProviderConfig {}) :
-  InputProvider {n_slices, events_per_slice,  bank_types, IInputProvider::Layout::Allen, n_events},
-    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true), m_banks_count {0},
-    m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    InputProvider {n_slices, events_per_slice, bank_types, IInputProvider::Layout::Allen, n_events},
+    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true),
+    m_banks_count {0}, m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
@@ -279,8 +279,7 @@ public:
    *
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    std::optional<unsigned int> timeout = {}) override
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> timeout = {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
@@ -346,7 +345,9 @@ public:
 
         if (
           status.work_counter == 0 && std::get<0>(m_buffers[i_read]) == std::get<3>(m_buffers[i_read]) &&
-          (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), [i_read] (auto const stb) { return stb.buffer_index == i_read; }) == m_slice_to_buffer.end())) {
+          (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), [i_read](auto const stb) {
+             return stb.buffer_index == i_read;
+           }) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
           // "Reset" buffer; the 0th offset is always 0. Set transpose
@@ -367,7 +368,9 @@ public:
     }
   }
 
-  gsl::span<char const> raw_banks(Allen::ReadBuffer const& buffer, size_t const read_event_start, size_t const event) const {
+  gsl::span<char const> raw_banks(Allen::ReadBuffer const& buffer, size_t const read_event_start, size_t const event)
+    const
+  {
     auto const event_index = event + read_event_start;
 
     // FIXME structured binding version below triggers clang 11 bug
@@ -511,7 +514,8 @@ private:
         --status.work_counter;
         m_transpose_cond.notify_one();
         break;
-      } else {
+      }
+      else {
         m_slice_to_buffer[*slice_index] = {static_cast<int>(i_read), std::get<3>(m_buffers[i_read])};
       }
 

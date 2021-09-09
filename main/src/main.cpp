@@ -25,7 +25,6 @@
 #include <zmq/svc.h>
 #include <Provider.h>
 
-
 #ifdef DEBUG
 #include <fenv.h>
 #endif

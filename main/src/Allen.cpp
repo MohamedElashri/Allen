@@ -235,32 +235,6 @@ int allen(
     info_cout << "\n";
   }
 
-  // Determine wether to run with async I/O.
-  bool enable_async_io = true;
-  size_t n_io_reps = number_of_repetitions;
-  if ((number_of_slices == 0 || number_of_slices == 1) && number_of_repetitions > 1) {
-    // NOTE: Special case to be able to compare throughput with and
-    // without async I/O; if repetitions are requested and the number
-    // of slices is default (0) or 1, never free the initially filled
-    // slice.
-    enable_async_io = false;
-    number_of_slices = 1;
-    n_io_reps = 1;
-    debug_cout << "Disabling async I/O to measure throughput without it.\n";
-  }
-  else if (number_of_slices <= number_of_threads) {
-    warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
-    number_of_slices = number_of_threads + 1;
-    number_of_repetitions = 1;
-  }
-  else {
-    info_cout << "Using " << number_of_slices << " input slices."
-              << "\n";
-    number_of_repetitions = 1;
-  }
-=======
->>>>>>> Fix make_provider
-
   number_of_buffers = number_of_threads + n_mon + 1;
 
   std::unique_ptr<ConfigurationReader> configuration_reader;
@@ -660,7 +634,8 @@ int allen(
               }
 
               if (throughput_socket) {
-                zmqSvc->send(*throughput_socket, std::to_string(n_events_measured * io_conf.number_of_repetitions / dt));
+                zmqSvc->send(
+                  *throughput_socket, std::to_string(n_events_measured * io_conf.number_of_repetitions / dt));
               }
               previous_time_measurement = elapsed_time;
               n_events_measured = 0;
@@ -765,7 +740,9 @@ int allen(
             }
 
             // FIXME: make the warmup time configurable
-            if (!t && (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !io_conf.async_io)) {
+            if (
+              !t && (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) ||
+                     !io_conf.async_io)) {
               info_cout << "Starting timer for throughput measurement\n";
               throughput_start = n_events_processed * io_conf.number_of_repetitions;
               t = Timer {};
@@ -937,7 +914,7 @@ int allen(
       if (msg == "STOP") {
         stop_timeout = zmqSvc->receive<float>(*allen_control);
         stop = true;
-        t_stop = Timer{};
+        t_stop = Timer {};
       }
       else if (msg == "START") {
         // Start the input provider
@@ -964,7 +941,8 @@ int allen(
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
     bool io_cond =
-      ((!io_conf.async_io && stream_ready.count() == number_of_threads) || (io_conf.async_io && io_done)) && !run_change;
+      ((!io_conf.async_io && stream_ready.count() == number_of_threads) || (io_conf.async_io && io_done)) &&
+      !run_change;
     if (t && io_cond && io_conf.number_of_repetitions > 1) {
       if (!throughput_processed) {
         throughput_processed = n_events_processed * io_conf.number_of_repetitions - throughput_start;
@@ -974,8 +952,9 @@ int allen(
 
     // Check if we're done
     if (stream_ready.count() == number_of_threads && io_cond) {
-      if (buffer_manager->buffersEmpty() &&
-          (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
+      if (
+        buffer_manager->buffersEmpty() &&
+        (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
         info_cout << "Processing complete\n";
         if (allen_control && stop) {
           stop = false;
@@ -1047,7 +1026,8 @@ loop_error:
   }
 
   if (output_handler != nullptr) {
-    info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_handler->connection() << "\n";
+    info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to "
+              << output_handler->connection() << "\n";
   }
 
   // Reset device

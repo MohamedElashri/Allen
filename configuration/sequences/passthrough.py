@@ -11,10 +11,10 @@ from AllenConf.algorithms import data_provider_t
 from AllenConf.HLT1 import line_maker
 
 bank_providers = [decode_odin()['dev_odin_raw_input'].producer]
-for det, bt in (("velo", "VP"), ("ut", "UT"),
-                ("scifi", "FTCluster"), ("muon", "Muon")):
-    bank_providers.append(make_algorithm(
-        data_provider_t, name=det + "_banks", bank_type=bt))
+for det, bt in (("velo", "VP"), ("ut", "UT"), ("scifi", "FTCluster"),
+                ("muon", "Muon")):
+    bank_providers.append(
+        make_algorithm(data_provider_t, name=det + "_banks", bank_type=bt))
 
 passthrough_line = line_maker(
     "Hlt1Passthrough",

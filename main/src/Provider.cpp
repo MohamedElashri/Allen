@@ -11,10 +11,14 @@
 #include <FileWriter.h>
 #include <ZMQOutputSender.h>
 
-Allen::IOConf Allen::io_configuration(unsigned number_of_slices, unsigned number_of_repetitions, unsigned number_of_threads, bool quiet)
+Allen::IOConf Allen::io_configuration(
+  unsigned number_of_slices,
+  unsigned number_of_repetitions,
+  unsigned number_of_threads,
+  bool quiet)
 {
   // Determine wether to run with async I/O.
-  Allen::IOConf io_conf{true, number_of_slices, number_of_repetitions, number_of_repetitions};
+  Allen::IOConf io_conf {true, number_of_slices, number_of_repetitions, number_of_repetitions};
   if ((number_of_slices == 0 || number_of_slices == 1) && number_of_repetitions > 1) {
     // NOTE: Special case to be able to compare throughput with and
     // without async I/O; if repetitions are requested and the number
@@ -100,7 +104,7 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
         auto const bt = bank_type(name);
         if (bt == BankTypes::Unknown) {
           error_cout << "Unknown bank type " << name << "requested.\n";
-          return std::unique_ptr<IInputProvider>{};
+          return std::unique_ptr<IInputProvider> {};
         }
         else {
           bank_types.emplace(bt);
@@ -131,15 +135,16 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
                               events_per_slice,          // number of events per read buffer
                               io_conf.n_io_reps,         // number of loops over the input files
                               !disable_run_changes};     // Whether to split slices by run number
-    return std::make_unique<MDFProvider>(io_conf.number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
+    return std::make_unique<MDFProvider>(
+      io_conf.number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
   }
   return {};
 }
 
-
-std::unique_ptr<OutputHandler> Allen::output_handler(IInputProvider* input_provider,
-                                                     IZeroMQSvc* zmq_svc,
-                                                     std::map<std::string, std::string> const& options)
+std::unique_ptr<OutputHandler> Allen::output_handler(
+  IInputProvider* input_provider,
+  IZeroMQSvc* zmq_svc,
+  std::map<std::string, std::string> const& options)
 {
   std::string output_file;
   std::string json_file = "Sequence.json";
@@ -157,7 +162,7 @@ std::unique_ptr<OutputHandler> Allen::output_handler(IInputProvider* input_provi
 
   // Load constant parameters from JSON
   size_t n_lines = 0;
-  ConfigurationReader configuration_reader{json_file};
+  ConfigurationReader configuration_reader {json_file};
   auto const& configuration = configuration_reader.params();
   auto conf_it = configuration.find("gather_selections");
   if (conf_it != configuration.end()) {
@@ -172,8 +177,7 @@ std::unique_ptr<OutputHandler> Allen::output_handler(IInputProvider* input_provi
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider, output_file, n_lines, zmq_svc);
+        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, n_lines, zmq_svc);
       }
       else {
         output_handler = std::make_unique<FileWriter>(input_provider, output_file, n_lines);

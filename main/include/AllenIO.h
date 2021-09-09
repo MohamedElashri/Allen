@@ -13,4 +13,4 @@ namespace Allen {
     std::function<ssize_t(char const*, size_t)> write;
     std::function<void(void)> close;
   };
-}
+} // namespace Allen

@@ -35,7 +35,8 @@ def send_to_telegraf(rate, device, app_name, rate_name):
     now = datetime.datetime.now()
     timestamp = datetime.datetime.timestamp(now) * 1000000000
 
-    telegraf_string = "AllenIntegrationTest,host=%s,%s=%s " % (sock.gethostname(), app_name, device)
+    telegraf_string = "AllenIntegrationTest,host=%s,%s=%s " % (
+        sock.gethostname(), app_name, device)
     telegraf_string += "%s=%.2f " % (rate_name, float(rate))
     telegraf_string += " %d" % timestamp
 

@@ -50,8 +50,11 @@ parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
 parser.add_argument("-s", dest="slices", default=2)
-parser.add_argument("-b", "--bank-types", dest="bank_types",
-                    default="VP,FTCluster,UT,Muon,ODIN")
+parser.add_argument(
+    "-b",
+    "--bank-types",
+    dest="bank_types",
+    default="VP,FTCluster,UT,Muon,ODIN")
 parser.add_argument(
     "--mdf",
     dest="mdf",
@@ -79,10 +82,13 @@ parser.add_argument(
     help="Add profiler start and stop calls",
 )
 parser.add_argument("--output-file", dest="output_file", default=None)
-parser.add_argument("--monitoring-save-period", dest="mon_save_period", default=0)
 parser.add_argument(
-    "--monitoring-filename", dest="mon_filename", default="", help="Histogram filename"
-)
+    "--monitoring-save-period", dest="mon_save_period", default=0)
+parser.add_argument(
+    "--monitoring-filename",
+    dest="mon_filename",
+    default="",
+    help="Histogram filename")
 parser.add_argument(
     "--enable-run-changes",
     dest="enable_run_changes",
@@ -109,7 +115,6 @@ args = parser.parse_args()
 runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
-
 
 app = LHCbApp(
     DataType="Upgrade",
@@ -142,13 +147,10 @@ if args.mep is not None:
     mep_provider.SplitByRun = False
     mep_provider.Source = "Files"
     mep_dir = args.mep
-    mep_provider.Connections = sorted(
-        [
-            os.path.join(mep_dir, mep_file)
-            for mep_file in os.listdir(mep_dir)
-            if mep_file.endswith(".mep")
-        ]
-    )
+    mep_provider.Connections = sorted([
+        os.path.join(mep_dir, mep_file) for mep_file in os.listdir(mep_dir)
+        if mep_file.endswith(".mep")
+    ])
     mep_provider.LoopOnMEPs = False
     mep_provider.Preload = args.reuse_meps
     mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
@@ -179,7 +181,7 @@ for flag, value in [("g", args.det_folder), ("params", args.param_folder),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),
                     ("events-per-slice", args.events_per_slice),
-                    ("device", args.device), ("run-from-json", "1")):
+                    ("device", args.device), ("run-from-json", "1")]:
     if value is not None:
         options[flag] = str(value)
 
@@ -208,7 +210,6 @@ def sleep_fun():
 if args.reuse_meps:
     sleep_thread = Thread(target=sleep_fun)
     sleep_thread.start()
-
 
 if args.profile == "CUDA":
     runtime_lib.cudaProfilerStart()

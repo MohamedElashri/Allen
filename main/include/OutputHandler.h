@@ -12,14 +12,12 @@
 #include "BankTypes.h"
 #include "Timer.h"
 
-
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider,
-                std::string connection,
-                size_t n_lines)
-  : m_input_provider {input_provider}, m_connection{std::move(connection)},
-    m_sizes(input_provider->events_per_slice()), m_nlines{n_lines} {}
+  OutputHandler(IInputProvider const* input_provider, std::string connection, size_t n_lines) :
+    m_input_provider {input_provider}, m_connection {std::move(connection)},
+    m_sizes(input_provider->events_per_slice()), m_nlines {n_lines}
+  {}
 
   virtual ~OutputHandler() {}
 

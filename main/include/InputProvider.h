@@ -17,10 +17,7 @@
 
 class IInputProvider {
 public:
-  enum class Layout {
-    Allen,
-    MEP
-  };
+  enum class Layout { Allen, MEP };
 
   struct BufferStatus {
     bool writable = true;
@@ -70,8 +67,7 @@ public:
    *
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
-  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    std::optional<unsigned int> timeout = {}) = 0;
+  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> timeout = {}) = 0;
 
   /**
    * @brief      Get banks and offsets of a given type
@@ -92,13 +88,16 @@ public:
   virtual bool release_buffers() = 0;
 };
 
-
 class InputProvider : public IInputProvider {
 public:
-
   InputProvider() = default;
 
-  InputProvider(size_t n_slices, size_t events_per_slice, std::unordered_set<BankTypes> types, Layout layout, std::optional<size_t> n_events)
+  InputProvider(
+    size_t n_slices,
+    size_t events_per_slice,
+    std::unordered_set<BankTypes> types,
+    Layout layout,
+    std::optional<size_t> n_events)
   {
     init_input(n_slices, events_per_slice, types, layout, n_events);
   }
@@ -139,9 +138,12 @@ public:
   bool release_buffers() override { return true; }
 
 protected:
-
-  void init_input(size_t n_slices, size_t events_per_slice, std::unordered_set<BankTypes> types,
-                  Layout layout, std::optional<size_t> n_events)
+  void init_input(
+    size_t n_slices,
+    size_t events_per_slice,
+    std::unordered_set<BankTypes> types,
+    Layout layout,
+    std::optional<size_t> n_events)
   {
     m_nslices = n_slices;
     m_events_per_slice = events_per_slice;
@@ -160,7 +162,6 @@ protected:
   }
 
 private:
-
   // MEP layout
   Layout m_layout = Layout::Allen;
 

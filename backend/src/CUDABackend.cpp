@@ -15,8 +15,7 @@ void Allen::print_device_memory_consumption()
   cudaCheck(cudaMemGetInfo(&free_byte, &total_byte));
   float free_percent = (float) free_byte / total_byte * 100;
   float used_percent = (float) (total_byte - free_byte) / total_byte * 100;
-  verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used "
-               << std::endl;
+  verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
 }
 
 std::tuple<bool, std::string, unsigned> Allen::set_device(int cuda_device, size_t stream_id)
@@ -48,8 +47,8 @@ std::tuple<bool, std::string, unsigned> Allen::set_device(int cuda_device, size_
       return {false, "", 0};
     }
     else {
-      debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": "
-                 << device_properties.name << "\n\n";
+      debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": " << device_properties.name
+                 << "\n\n";
     }
   } catch (const std::invalid_argument& e) {
     error_cout << e.what() << std::endl;
