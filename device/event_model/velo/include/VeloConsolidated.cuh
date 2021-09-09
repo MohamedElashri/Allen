@@ -59,6 +59,8 @@ namespace Allen {
           unsigned m_total_number_of_hits = 0;
 
         public:
+          __host__ __device__ Hits() = default;
+
           __host__ __device__ Hits(
             const char* base_pointer,
             const unsigned* offset_tracks,

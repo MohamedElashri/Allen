@@ -71,7 +71,6 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
   // initialize RuntimeOptions
   const size_t slice_index = 0;
   const bool mep_layout = false;
-  MCEvents mc_events;
 
   return {tes_provider,
           slice_index,
@@ -81,7 +80,6 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
           m_cpu_offload,
           mep_layout,
           m_param_inject_mem_fail,
-          std::move(mc_events),
           &m_checker_invoker,
           &m_root_service};
 }

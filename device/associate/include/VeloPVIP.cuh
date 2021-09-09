@@ -9,6 +9,7 @@
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
 #include "DeviceAlgorithm.cuh"
+#include "VeloConsolidated.cuh"
 
 namespace velo_pv_ip {
   struct Parameters {
