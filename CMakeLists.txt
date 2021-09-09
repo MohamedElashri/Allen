@@ -580,7 +580,6 @@ target_include_directories(AllenCommon
 target_include_directories(Common
   SYSTEM INTERFACE
   ${Boost_INCLUDE_DIRS})
-target_link_libraries(Common INTERFACE cppgsl::cppgsl)
 
 set(AllenHeaders)
 foreach(header
@@ -640,7 +639,15 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 allen_add_host_library(HostCommon STATIC ${common_sources})
 
 target_link_libraries(HostCommon PRIVATE AllenFS nlohmann_json::nlohmann_json
-  EventModel Gear Backend mdf NonEventData Common LHCbEvent cppgsl::cppgsl)
+  EventModel Gear Backend mdf NonEventData Common LHCbEvent)
+
+if (NOT STANDALONE)
+  target_link_libraries(Common INTERFACE cppgsl::cppgsl)
+  target_link_libraries(HostCommon PRIVATE cppgsl::cppgsl)
+else()
+  target_include_directories(HostCommon PUBLIC SYSTEM ${CPPGSL_INCLUDE_DIR})
+  target_include_directories(Common INTERFACE SYSTEM ${CPPGSL_INCLUDE_DIR})
+endif()
 
 target_link_libraries(AllenCommon PUBLIC mdf AllenFS nlohmann_json::nlohmann_json)
 

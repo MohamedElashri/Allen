@@ -9,6 +9,7 @@ allen_add_device_library(Selections STATIC
 )
 
 target_link_libraries(Selections PRIVATE
+  Common
   Backend
   HostEventModel
   EventModel
@@ -18,6 +19,15 @@ target_link_libraries(Selections PRIVATE
   VertexFitter)
 
 add_dependencies(Selections configured_sequence)
+
+if(USE_ROOT AND ROOT_FOUND)
+  target_compile_definitions(Selections PRIVATE WITH_ROOT)
+  target_include_directories(Selections SYSTEM BEFORE PRIVATE
+    ${ROOT_INCLUDE_DIRS}
+  )
+  # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
+endif()
 
 target_include_directories(Selections PUBLIC
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/configuration/sequences>
