@@ -50,7 +50,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
     // size of the SelReport RawBank
     auto const event_number = selected_events[i];
-    // const unsigned sel_report_size = (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
+    const unsigned sel_report_size = (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
 
     // add DecReport and SelReport sizes to the total size (including two RawBank headers)
     auto [buffer_id, buffer_span] =
@@ -97,13 +97,13 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       buffer_span.data() + header_size + m_sizes[i]);
 
     // add the sel report
-    // add_raw_bank(
-    //   LHCb::RawBank::HltSelReports,
-    //   11u,
-    //   1 << 13,
-    //   {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
-    //    static_cast<events_size>(sel_report_size)},
-    //   buffer_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
+    add_raw_bank(
+      LHCb::RawBank::HltSelReports,
+      11u,
+      1 << 13,
+      {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
+       static_cast<events_size>(sel_report_size)},
+      buffer_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
 
     auto s = write_buffer(buffer_id);
     if (!s) return {s, i};

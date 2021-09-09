@@ -55,6 +55,7 @@
 #include "CPUID.h"
 #include <tuple>
 #include "Provider.h"
+#include "ROOTService.h"
 
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };

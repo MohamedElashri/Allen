@@ -4,7 +4,6 @@
 #include <string>
 
 #include <MDFProvider.h>
-#include <BinaryProvider.h>
 #include <Provider.h>
 #include <BankTypes.h>
 #include <ProgramOptions.h>
@@ -70,7 +69,7 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag_in({"mdf"})) {
+    if (flag_in(flag, {"mdf"})) {
       mdf_input = arg;
     }
     else if (flag_in(flag, {"n", "number-of-events"})) {
@@ -130,16 +129,9 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
                               4,                         // number of transpose threads
                               events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
                               events_per_slice,          // number of events per read buffer
-                              n_io_reps,                 // number of loops over the input files
+                              io_conf.n_io_reps,         // number of loops over the input files
                               !disable_run_changes};     // Whether to split slices by run number
-    return std::make_unique<MDFProvider<
-      BankTypes::VP,
-      BankTypes::UT,
-      BankTypes::FT,
-      BankTypes::MUON,
-      BankTypes::ODIN,
-      BankTypes::ECal,
-      BankTypes::HCal>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
+    return std::make_unique<MDFProvider>(io_conf.number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
   }
   return {};
 }

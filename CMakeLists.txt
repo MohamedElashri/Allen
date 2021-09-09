@@ -143,19 +143,13 @@ if(CALLGRIND_PROFILE)
 endif()
 
 if (NOT STANDALONE)
-  set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
-endif()
-include(AllenDependencies) # public deps
-
-if (NOT STANDALONE)
-  message(STATUS "LHCb stack build")
-
   set(target_hip FALSE)
   set(target_cuda FALSE)
 
   string(REPLACE "+" ";" compiler_split "${LCG_COMPILER}")
   foreach(device_comp IN LISTS compiler_split)
-    if ("${device_comp}" MATCHES "cuda([0-9]+)_([0-9]+)((gcc|clang)([0-9]+))?")
+    # "${device_comp}" MATCHES "cuda([0-9]+)_([0-9]+)((gcc|clang)([0-9]+))?" OR
+    if (DEFINED CMAKE_CUDA_COMPILER)
       set(target_cuda TRUE)
     elseif ("${device_comp}" STREQUAL "hip")
       set(target_hip TRUE)
@@ -175,13 +169,19 @@ if (NOT STANDALONE)
   message(STATUS "Allen device target: " ${TARGET_DEVICE})
   set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
+  set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
+else()
+  message(STATUS "Allen device target: " ${TARGET_DEVICE})
+  set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
+endif()
+
+include(AllenDependencies)
+
+if (NOT STANDALONE)
   lhcb_add_subdirectories(
     Rec/Allen
     Dumpers/BinaryDumpers
     Dumpers/RootDumpers)
-else()
-  message(STATUS "Allen device target: " ${TARGET_DEVICE})
-  set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 endif()
 
 # Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.
@@ -577,10 +577,10 @@ target_include_directories(AllenCommon
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
-target_include_directories(AllenCommon INTERFACE SYSTEM
-  ${CPPGSL_INCLUDE_DIR}
+target_include_directories(Common
+  SYSTEM INTERFACE
   ${Boost_INCLUDE_DIRS})
-
+target_link_libraries(Common INTERFACE cppgsl::cppgsl)
 
 set(AllenHeaders)
 foreach(header
@@ -634,24 +634,13 @@ else()
   target_link_libraries(AllenFS INTERFACE std::filesystem)
 endif()
 
-find_package(Threads REQUIRED)
+message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
 # Add host library
 allen_add_host_library(HostCommon STATIC ${common_sources})
 
-target_include_directories(HostCommon PUBLIC
-  PRIVATE
-  SYSTEM ${ZMQ_INCLUDE_DIRS}
-  ${CMAKE_SOURCE_DIR}/Dumpers/BinaryDumpers
-  ${CMAKE_SOURCE_DIR}/Dumpers/RootDumpers
-  ${CMAKE_SOURCE_DIR}/backend/include
-  ${CMAKE_SOURCE_DIR}/integration/non_event_data/include
-  ${CMAKE_SOURCE_DIR}/checker/tracking/include)
-
-message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
-
 target_link_libraries(HostCommon PRIVATE AllenFS nlohmann_json::nlohmann_json
-  EventModel Gear Backend mdf NonEventData Common LHCbEvent)
+  EventModel Gear Backend mdf NonEventData Common LHCbEvent cppgsl::cppgsl)
 
 target_link_libraries(AllenCommon PUBLIC mdf AllenFS nlohmann_json::nlohmann_json)
 
@@ -691,7 +680,7 @@ if (USE_ROOT AND ROOT_FOUND)
 endif()
 
 if (NOT STANDALONE)
-  target_include_directories(AllenLib PUBLIC ${AIDA_INCLUDE_DIRS})
+  target_link_libraries(AllenLib PRIVATE AIDA::aida)
 endif()
 
 allen_add_executable(Allen ${main_cpp_path})

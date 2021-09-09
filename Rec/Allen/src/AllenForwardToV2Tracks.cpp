@@ -19,7 +19,7 @@
 // Allen
 #include "HostBuffers.cuh"
 #include "Logger.h"
-#include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"

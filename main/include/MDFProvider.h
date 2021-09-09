@@ -25,6 +25,7 @@
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <write_mdf.hpp>
+#include <Event/RawBank.h>
 #include "BankMapping.h"
 
 #include <SliceUtils.h>
@@ -266,8 +267,8 @@ public:
     auto const offsets = std::get<2>(tup);
     auto const offsets_size = std::get<3>(tup);
 
-    span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-    span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
+    gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
+    gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
   }
 
@@ -372,9 +373,8 @@ public:
     // FIXME structured binding version below triggers clang 11 bug
     //       revert after clang fix available
     // auto const& [n_filled, event_offsets, event_buffer, transpose_start] = m_buffers[i_read];
-    auto const& tup = m_buffers[i_read];
-    auto const& event_offsets = std::get<1>(tup);
-    auto const& event_buffer = std::get<2>(tup);
+    auto const& event_offsets = std::get<1>(buffer);
+    auto const& event_buffer = std::get<2>(buffer);
 
     auto event_offset = event_offsets[event_index];
 

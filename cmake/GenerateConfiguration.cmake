@@ -137,11 +137,17 @@ else()
 endif()
 
 function(generate_sequence sequence)
+  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
+  file(MAKE_DIRECTORY ${sequence_dir})
   if(NOT STANDALONE)
-    install(FILES "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${sequence}.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
+      COMMAND
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" ${CMAKE_BINARY_DIR}/run "${Python3_EXECUTABLE}" "${sequence}.py" &&
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view checkout_gaudi_dirs
+      WORKING_DIRECTORY ${sequence_dir})
   else()
-    set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
-    file(MAKE_DIRECTORY ${sequence_dir})
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
       COMMAND

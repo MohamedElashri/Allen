@@ -42,6 +42,7 @@ find_package(cppgsl REQUIRED)
 if(STANDALONE OR WITH_Allen_PRIVATE_DEPENDENCIES)
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
+  find_package(Threads REQUIRED)
 
   # Boost
   find_package(Boost REQUIRED COMPONENTS filesystem iostreams thread regex

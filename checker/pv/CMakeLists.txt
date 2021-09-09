@@ -12,7 +12,7 @@ target_link_libraries(PVChecking PRIVATE HostEventModel EventModel Gear Backend 
 if(USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(PVChecking PRIVATE WITH_ROOT)
   target_include_directories(PVChecking SYSTEM BEFORE PRIVATE
-    ${ROOT_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR}
+    ${ROOT_INCLUDE_DIRS}
   )
   # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
   string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
