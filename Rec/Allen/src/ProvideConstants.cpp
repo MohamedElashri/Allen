@@ -49,7 +49,7 @@ public:
 private:
   Constants m_constants;
 
-  Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
+  Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/parameters"};
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 };
 
