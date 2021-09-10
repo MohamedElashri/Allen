@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 
   if (!directory.empty()) {
     for (auto& file : s_config.mdf_files) {
-      const auto filename = directory + ext + "/" + file;
+      const auto filename = directory + "/mdf/" + file;
       if (std::filesystem::exists(filename)) {
         file = filename;
       }

@@ -92,7 +92,11 @@ if (BUILD_TESTING)
   test_program(NAME bench_provider )
   test_program(NAME bench_transpose)
   test_program(NAME test_mdf_transpose)
-  test_program(NAME test_mep_banks)
+
+  if (NOT STANDALONE)
+    test_program(NAME test_mep_banks)
+    target_link_libraries(test_mep_banks PRIVATE Gaudi::GaudiKernel)
+  endif()
 
   add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --directory ${CMAKE_SOURCE_DIR}/input/minbias)
 endif()
