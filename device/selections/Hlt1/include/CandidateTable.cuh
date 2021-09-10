@@ -21,7 +21,7 @@ namespace Selections {
 
   public:
     __host__ __device__ CandidateTable() = default;
-    
+
     __host__ __device__
     CandidateTable(unsigned candidate_count, unsigned* candidate_indices_base, unsigned* candidate_inserts_base) :
       m_candidate_count(candidate_count),

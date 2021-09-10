@@ -22,7 +22,7 @@ def make_line_composite_node_with_gec(line_name,
                                       line_algorithm,
                                       gec_name="gec"):
     return CompositeNode(
-        line_name, [gec(name=gec_name), line_algorithm],
+        line_name, [gec(name=gec_name, max_scifi_ut_clusters=5000), line_algorithm],
         NodeLogic.LAZY_AND,
         force_order=True)
 
@@ -40,95 +40,95 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
 def default_physics_lines(forward_tracks, kalman_velo_only,
                           secondary_vertices):
     lines = []
-    lines.append(
-        line_maker(
-            "Hlt1KsToPiPi",
-            make_kstopipi_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1KsToPiPi",
+    #         make_kstopipi_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
     lines.append(
         line_maker(
             "Hlt1TrackMVA",
             make_track_mva_line(forward_tracks, kalman_velo_only),
             enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1TwoTrackMVA",
-            make_two_track_mva_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1TwoTrackCatBoost",
-            make_two_track_catboost_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1SingleHighPtMuon",
-            make_single_high_pt_muon_line(forward_tracks, kalman_velo_only),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1LowPtMuon",
-            make_low_pt_muon_line(forward_tracks, kalman_velo_only),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1D2KK",
-            make_d2kk_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1D2KPi",
-            make_d2kpi_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1D2PiPi",
-            make_d2pipi_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1DiMuonHighMass",
-            make_di_muon_mass_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1DiMuonLowMass",
-            make_di_muon_mass_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1DiMuonLowMass",
-                pre_scaler_hash_string="di_muon_low_mass_line_pre",
-                post_scaler_hash_string="di_muon_low_mass_line_post",
-                minHighMassTrackPt="500.",
-                minHighMassTrackP="3000.",
-                minMass="0.",
-                maxDoca="0.2",
-                maxVertexChi2="25.",
-                minIPChi2="4."),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1DiMuonSoft",
-            make_di_muon_soft_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1LowPtDiMuon",
-            make_low_pt_di_muon_line(forward_tracks, secondary_vertices),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1TrackMuonMVA",
-            make_track_muon_mva_line(forward_tracks, kalman_velo_only),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1GECPassthrough",
-            make_passthrough_line(
-                name="Hlt1GECPassthrough",
-                pre_scaler_hash_string="passthrough_with_gec_line_pre",
-                post_scaler_hash_string="passthrough_with_gec_line_post"),
-            enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1TwoTrackMVA",
+    #         make_two_track_mva_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1TwoTrackCatBoost",
+    #         make_two_track_catboost_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1SingleHighPtMuon",
+    #         make_single_high_pt_muon_line(forward_tracks, kalman_velo_only),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1LowPtMuon",
+    #         make_low_pt_muon_line(forward_tracks, kalman_velo_only),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1D2KK",
+    #         make_d2kk_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1D2KPi",
+    #         make_d2kpi_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1D2PiPi",
+    #         make_d2pipi_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1DiMuonHighMass",
+    #         make_di_muon_mass_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1DiMuonLowMass",
+    #         make_di_muon_mass_line(
+    #             forward_tracks,
+    #             secondary_vertices,
+    #             name="Hlt1DiMuonLowMass",
+    #             pre_scaler_hash_string="di_muon_low_mass_line_pre",
+    #             post_scaler_hash_string="di_muon_low_mass_line_post",
+    #             minHighMassTrackPt="500.",
+    #             minHighMassTrackP="3000.",
+    #             minMass="0.",
+    #             maxDoca="0.2",
+    #             maxVertexChi2="25.",
+    #             minIPChi2="4."),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1DiMuonSoft",
+    #         make_di_muon_soft_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1LowPtDiMuon",
+    #         make_low_pt_di_muon_line(forward_tracks, secondary_vertices),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1TrackMuonMVA",
+    #         make_track_muon_mva_line(forward_tracks, kalman_velo_only),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1GECPassthrough",
+    #         make_passthrough_line(
+    #             name="Hlt1GECPassthrough",
+    #             pre_scaler_hash_string="passthrough_with_gec_line_pre",
+    #             post_scaler_hash_string="passthrough_with_gec_line_post"),
+    #         enableGEC=True))
 
     return lines
 
@@ -143,51 +143,51 @@ def default_monitoring_lines(velo_tracks):
                 pre_scaler_hash_string="no_beam_line_pre",
                 post_scaler_hash_string="no_beam_line_post"),
             enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1BeamOne",
-            make_beam_line(
-                beam_crossing_type="1",
-                pre_scaler_hash_string="beam_one_line_pre",
-                post_scaler_hash_string="beam_one_line_post"),
-            enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1BeamTwo",
-            make_beam_line(
-                beam_crossing_type="2",
-                pre_scaler_hash_string="beam_two_line_pre",
-                post_scaler_hash_string="beam_two_line_post"),
-            enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1BothBeams",
-            make_beam_line(
-                beam_crossing_type="3",
-                pre_scaler_hash_string="both_beams_line_pre",
-                post_scaler_hash_string="both_beams_line_post"),
-            enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1VeloMicroBias",
-            make_velo_micro_bias_line(velo_tracks),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1ODINLumi",
-            make_odin_event_type_line(
-                odin_event_type="0x8",
-                pre_scaler_hash_string="odin_lumi_line_pre",
-                post_scaler_hash_string="odin_lumi_line_post"),
-            enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1ODINNoBias",
-            make_odin_event_type_line(
-                odin_event_type="0x4",
-                pre_scaler_hash_string="odin_no_bias_pre",
-                post_scaler_hash_string="odin_no_bias_post"),
-            enableGEC=False))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1BeamOne",
+    #         make_beam_line(
+    #             beam_crossing_type="1",
+    #             pre_scaler_hash_string="beam_one_line_pre",
+    #             post_scaler_hash_string="beam_one_line_post"),
+    #         enableGEC=False))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1BeamTwo",
+    #         make_beam_line(
+    #             beam_crossing_type="2",
+    #             pre_scaler_hash_string="beam_two_line_pre",
+    #             post_scaler_hash_string="beam_two_line_post"),
+    #         enableGEC=False))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1BothBeams",
+    #         make_beam_line(
+    #             beam_crossing_type="3",
+    #             pre_scaler_hash_string="both_beams_line_pre",
+    #             post_scaler_hash_string="both_beams_line_post"),
+    #         enableGEC=False))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1VeloMicroBias",
+    #         make_velo_micro_bias_line(velo_tracks),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1ODINLumi",
+    #         make_odin_event_type_line(
+    #             odin_event_type="0x8",
+    #             pre_scaler_hash_string="odin_lumi_line_pre",
+    #             post_scaler_hash_string="odin_lumi_line_post"),
+    #         enableGEC=False))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1ODINNoBias",
+    #         make_odin_event_type_line(
+    #             odin_event_type="0x4",
+    #             pre_scaler_hash_string="odin_no_bias_pre",
+    #             post_scaler_hash_string="odin_no_bias_post"),
+    #         enableGEC=False))
     lines.append(
         line_maker(
             "Hlt1Passthrough", make_passthrough_line(), enableGEC=False))
@@ -221,6 +221,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
+            make_global_decision(lines=line_algorithms),
             make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["forward_tracks"],

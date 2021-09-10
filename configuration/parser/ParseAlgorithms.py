@@ -199,6 +199,10 @@ class AlgorithmCategory(Enum):\n\
             f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
             for p, init in zip(algorithm.properties, properties_initialization)
         ]
+        properties += [
+          # a property indicating that it contains optionals
+          'Gaudi::Property<bool> m_hasOptionals{this, "hasOptionals", true};'
+        ]
 
 
         # split into aggregates and normal inputs
@@ -221,11 +225,11 @@ class AlgorithmCategory(Enum):\n\
             f"std::vector<DataObjectReadHandle<Allen::parameter_vector<{typ}>>> m_{agg.typename};" for agg,typ in zip(aggregates, aggregate_types)
         ]
         aggregate_input_vectors = ["\n".join([
-            f"Gaudi::Property<std::vector<std::string>> m_{agg.typename}Locations",
+            f"Gaudi::Property<std::vector<std::string>> m_{agg.typename}_locations",
             f"{{this, \"{agg.typename}\", {{}},",
             f"  [=]( Gaudi::Details::PropertyBase& ) {{",
             f"    this->m_{agg.typename} =",
-            f"      Gaudi::Functional::details::make_vector_of_handles<decltype( this->m_{agg.typename} )>( this, m_{agg.typename}Locations );",
+            f"      Gaudi::Functional::details::make_vector_of_handles<decltype( this->m_{agg.typename} )>( this, m_{agg.typename}_locations );",
             f"    std::for_each( this->m_{agg.typename}.begin(), this->m_{agg.typename}.end(),",
             f"                    []( auto& h ) {{ h.setOptional( true ); }} );",
             f"}},",
@@ -287,11 +291,19 @@ class AlgorithmCategory(Enum):\n\
         ))
 
         # loop over inputs to get them
+        # required
         code += "\n".join((
             f"auto const& {inp.typename} = *m_{inp.typename}.get();"
-            for inp in inputs
+            for inp in inputs if not inp.optional
+        ))
+        # optional
+        code += "\n".join((
+            f"auto const* {inp.typename}_ptr = m_{inp.typename}.getIfExists();\n"
+            f"auto const& {inp.typename} = {inp.typename}_ptr ? *{inp.typename}_ptr : decltype(*{inp.typename}_ptr){{}};"
+            for inp in inputs if inp.optional
         ))
 
+        code += "\n"
         code += "auto const& runtime_options = *m_runtime_options.get();\n"
         code += "auto const& constants = *m_constants.get();\n"
 
@@ -299,7 +311,9 @@ class AlgorithmCategory(Enum):\n\
             f"std::vector<Allen::TESWrapperInput<{typ}>> tes_wrappers_{agg.typename};\n" +
             f"tes_wrappers_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
             f"for (auto const& h : m_{agg.typename}) {{\n" +
-            f"  tes_wrappers_{agg.typename}.emplace_back(*h.get(), \"{agg.typename}\");\n" +
+            f"  auto* inp = h.getIfExists(); \n" +
+            f"  if (inp) \n" +
+            f"    tes_wrappers_{agg.typename}.emplace_back(*inp, \"{agg.typename}\");\n" +
             f"}}\n" +
             f"std::vector<std::reference_wrapper<ArgumentData>> arg_data_{agg.typename};\n" +
             f"arg_data_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
@@ -401,6 +415,10 @@ class AlgorithmCategory(Enum):\n\
         properties = [
             f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
             for p, init in zip(algorithm.properties, properties_initialization)
+        ]
+        properties += [
+          # a property indicating that it does not contain optionals
+          'Gaudi::Property<bool> m_hasOptionals{this, "hasOptionals", false};'
         ]
 
         inputs = [
@@ -564,7 +582,7 @@ class AlgorithmCategory(Enum):\n\
                                write_files=True):
         algorithms_generated_filenames = []
         for alg in algorithms:
-            if not [var for var in alg.parameters if var.aggregate]:
+            if not [var for var in alg.parameters if var.aggregate or var.optional]:
                 code = AllenCore.generate_gaudi_wrapper(alg)
             else:
                 code = AllenCore.generate_gaudi_wrapper_for_aggregate(alg)
@@ -622,7 +640,7 @@ if __name__ == '__main__':
         choices=["parsed_algorithms", "views", "wrapperlist", "wrappers"],
         help=
         "action that will be performed")
-    
+
     args = parser.parse_args()
     if args.generate == "parsed_algorithms":
         parsed_algorithms = Parser().parse_all(args.prefix_project_folder + "/")
