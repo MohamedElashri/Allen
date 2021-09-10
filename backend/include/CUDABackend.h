@@ -139,15 +139,6 @@ namespace Allen {
   {
     cudaCheck(cudaHostRegister(ptr, size, convert_allen_to_cuda_host_register_kind(flags)));
   }
-
-  /**
-   * @brief Prints the memory consumption of the device.
-   */
-  void print_device_memory_consumption();
-
-  std::tuple<bool, std::string, unsigned> set_device(int cuda_device, size_t stream_id);
-
-  std::tuple<bool, int> get_device_id(const std::string& pci_bus_id);
 } // namespace Allen
 
 #endif

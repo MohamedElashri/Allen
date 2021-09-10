@@ -37,7 +37,43 @@ if (NOT STANDALONE)
   set(USE_ROOT ON)
 endif()
 
+# Device runtime libraries
+if(TARGET_DEVICE STREQUAL "CUDA")
+  find_package(CUDAToolkit REQUIRED)
+elseif(TARGET_DEVICE STREQUAL "HIP")
+  # Setup HIPCC compiler
+  if(NOT DEFINED ROCM_PATH)
+    if(NOT DEFINED ENV{ROCM_PATH})
+      set(ROCM_PATH "/opt/rocm" CACHE PATH "Path where ROCM has been installed")
+    else()
+      set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "Path where ROCM has been installed")
+    endif()
+  endif()
+
+  set(HIP_PATH "${ROCM_PATH}/hip")
+  set(HIP_CLANG_PATH "${ROCM_PATH}/llvm/bin")
+  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
+  find_package(HIP QUIET REQUIRED)
+
+  if(HIP_FOUND)
+    message(STATUS "Found HIP: " ${HIP_VERSION})
+  else()
+    message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable ROCM_PATH is set.")
+  endif()
+endif()
+
 find_package(cppgsl REQUIRED)
+
+else()
+  find_package(cppgsl QUIET)
+  if (cppgsl_FOUND)
+    message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIR})
+  else()
+    set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
+    message(STATUS "Using internal gsl-lite")
+  endif()
+endif()
+>>>>>>> Fix backend refactor
 
 if(STANDALONE OR WITH_Allen_PRIVATE_DEPENDENCIES)
   # https://github.com/nlohmann/json

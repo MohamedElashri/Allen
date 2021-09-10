@@ -14,8 +14,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   target_link_libraries(AllenRuntime INTERFACE CUDA::cudart)
 elseif(TARGET_DEVICE STREQUAL "HIP")
   list(APPEND backend_sources src/HIPBackend.cpp)
-  find_package(hip REQUIRED)
-  target_link_libraries(AllenRuntime INTERFACE hip::host)
+  target_link_libraries(AllenRuntime INTERFACE ${HIP_HOST_INTERFACE})
 endif()
 
 # Vectorization interface library

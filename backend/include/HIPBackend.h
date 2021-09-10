@@ -1,10 +1,10 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-
 #pragma once
 
-#ifdef TARGET_DEVICE_HIP
+#include <Logger.h>
+#include "BackendCommonInterface.h"
 
 #if !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
@@ -40,7 +40,7 @@
 #endif
 
 #if !defined(DEVICE_COMPILER)
-#include "math.h"
+#include <cmath>
 #endif
 
 #include <iomanip>
@@ -185,14 +185,4 @@ namespace Allen {
     hipCheck(hipHostRegister(ptr, size, convert_allen_to_hip_host_register_kind(flags)));
   }
 
-  /**
-   * @brief Prints the memory consumption of the device.
-   */
-  void print_device_memory_consumption();
-
-  std::tuple<bool, std::string, unsigned> inline set_device(int hip_device, size_t stream_id);
-
-  std::tuple<bool, int> inline get_device_id(const std::string& pci_bus_id);
 } // namespace Allen
-
-#endif

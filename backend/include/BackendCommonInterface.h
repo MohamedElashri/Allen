@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #pragma once
 
+#include <string>
+
 namespace Allen {
   // Holds an execution context. An execution
   // context allows to execute kernels in parallel,
