@@ -552,7 +552,6 @@ set(allen_lib_sources
 
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
-target_link_libraries(AllenCommon INTERFACE AllenRuntime)
 target_include_directories(AllenCommon
   INTERFACE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
@@ -560,6 +559,7 @@ target_include_directories(AllenCommon
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
 target_include_directories(AllenCommon INTERFACE SYSTEM
   ${CPPGSL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+target_link_libraries(AllenCommon INTERFACE AllenRuntime)
 
 set(AllenHeaders)
 foreach(header
