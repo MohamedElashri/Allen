@@ -341,26 +341,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
 elseif(TARGET_DEVICE STREQUAL "HIP")
 
-  # Setup HIPCC compiler
-  if(NOT DEFINED ROCM_PATH)
-    if(NOT DEFINED ENV{ROCM_PATH})
-      set(ROCM_PATH "/opt/rocm" CACHE PATH "Path where ROCM has been installed")
-    else()
-      set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "Path where ROCM has been installed")
-    endif()
-  endif()
-
-  # Find HIP
-  set(HIP_PATH "${ROCM_PATH}/hip")
-  set(HIP_CLANG_PATH "${ROCM_PATH}/llvm/bin")
-  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
-  find_package(HIP QUIET REQUIRED)
-  if(HIP_FOUND)
-    message(STATUS "Found HIP: " ${HIP_VERSION})
-  else()
-    message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable ROCM_PATH is set.")
-  endif()
-
   # Deal with build type (HIP)
   if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
     set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
@@ -572,14 +552,14 @@ set(allen_lib_sources
 
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
+target_link_libraries(AllenCommon INTERFACE AllenRuntime)
 target_include_directories(AllenCommon
   INTERFACE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
-target_include_directories(Common
-  SYSTEM INTERFACE
-  ${Boost_INCLUDE_DIRS})
+target_include_directories(AllenCommon INTERFACE SYSTEM
+  ${CPPGSL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
 
 set(AllenHeaders)
 foreach(header
@@ -601,8 +581,8 @@ foreach(header
   list(APPEND AllenHeaders main/include/${header})
 endforeach()
 
-set_target_properties(Common PROPERTIES PUBLIC_HEADER "${AllenHeaders}")
-install(TARGETS Common EXPORT Allen
+set_target_properties(AllenCommon PROPERTIES PUBLIC_HEADER "${AllenHeaders}")
+install(TARGETS AllenCommon EXPORT Allen
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
 
 #Make sure extra search paths get included as system to avoid
@@ -611,16 +591,6 @@ if (DEFINED ENV{CPLUS_INCLUDE_PATH})
   target_include_directories(AllenCommon SYSTEM INTERFACE $ENV{CPLUS_INCLUDE_PATH})
 elseif (DEFINED ENV{CPATH})
   target_include_directories(AllenCommon SYSTEM INTERFACE $ENV{CPATH})
-endif()
-
-if (TARGET_DEVICE STREQUAL "CUDA")
-  find_package(CUDAToolkit)
-  target_link_libraries(AllenCommon PUBLIC CUDA::cudart)
-  target_include_directories(AllenCommon SYSTEM INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-elseif(TARGET_DEVICE STREQUAL "HIP")
-  # find_package(hip) doesn't work as hip-targets.cmake is not relocatable
-  find_library(hip_runtime_lib amdhip64 HINTS ${HIP_PATH}/lib REQUIRED)
-  target_link_libraries(AllenCommon PUBLIC ${hip_runtime_lib})
 endif()
 
 # Use std::filesystem or Boost filesystem depeding on availability
@@ -638,18 +608,9 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 # Add host library
 allen_add_host_library(HostCommon STATIC ${common_sources})
 
-target_link_libraries(HostCommon PRIVATE AllenFS nlohmann_json::nlohmann_json
-  EventModel Gear Backend mdf NonEventData Common LHCbEvent)
-
-if (NOT STANDALONE)
-  target_link_libraries(Common INTERFACE cppgsl::cppgsl)
-  target_link_libraries(HostCommon PRIVATE cppgsl::cppgsl)
-else()
-  target_include_directories(HostCommon PUBLIC SYSTEM ${CPPGSL_INCLUDE_DIR})
-  target_include_directories(Common INTERFACE SYSTEM ${CPPGSL_INCLUDE_DIR})
-endif()
-
-target_link_libraries(AllenCommon PUBLIC mdf AllenFS nlohmann_json::nlohmann_json)
+target_link_libraries(HostCommon PRIVATE AllenCommon AllenFS nlohmann_json::nlohmann_json
+  EventModel Gear Backend mdf NonEventData LHCbEvent cppgsl::cppgsl)
+target_link_libraries(AllenCommon PUBLIC mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 
 allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
 
