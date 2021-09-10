@@ -11,7 +11,7 @@
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
         #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_1k"]
- 
+
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
@@ -72,7 +72,7 @@
 
       - TEST_NAME: "run_built_tests"
         BUILD_TYPE: [RelWithDebInfo, Debug]
-        OPTIONS: [BUILD_TESTS+ENABLE_CONTRACTS]
+        OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
         SEQUENCE: ["hlt1_pp_default"]
 
       # run physics efficiency, complex_validation
@@ -85,7 +85,7 @@
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01"]
         GEOMETRY: ["sim10_up08_md"]
-  
+
 
 .run_jobs:
   extends:
