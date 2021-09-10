@@ -35,7 +35,35 @@ if (NOT STANDALONE)
 
   #Always enable ROOT for LHCb stack builds
   set(USE_ROOT ON)
+
+  # Detect device target from binary tag
+  set(target_hip FALSE)
+  set(target_cuda FALSE)
+
+  string(REPLACE "+" ";" compiler_split "${LCG_COMPILER}")
+  foreach(device_comp IN LISTS compiler_split)
+    # "${device_comp}" MATCHES "cuda([0-9]+)_([0-9]+)((gcc|clang)([0-9]+))?" OR
+    if (DEFINED CMAKE_CUDA_COMPILER)
+      set(target_cuda TRUE)
+    elseif ("${device_comp}" STREQUAL "hip")
+      set(target_hip TRUE)
+    endif()
+  endforeach()
+
+  if(${target_hip} AND NOT ${target_cuda})
+    set(device "HIP")
+  elseif(${target_cuda} AND NOT ${target_hip})
+    set(device "CUDA")
+  elseif(${target_cuda} AND ${target_hip})
+  	message(FATAL_ERROR "Cannot simultaneously build for HIP and CUDA targets")
+  else()
+	set(device "CPU")
+  endif()
+
+  set(TARGET_DEVICE ${device} CACHE STRING "Target architecture of the device")
 endif()
+
+message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
 # Device runtime libraries
 if(TARGET_DEVICE STREQUAL "CUDA")
@@ -64,18 +92,7 @@ endif()
 
 find_package(cppgsl REQUIRED)
 
-else()
-  find_package(cppgsl QUIET)
-  if (cppgsl_FOUND)
-    message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIR})
-  else()
-    set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
-    message(STATUS "Using internal gsl-lite")
-  endif()
-endif()
->>>>>>> Fix backend refactor
-
-if(STANDALONE OR WITH_Allen_PRIVATE_DEPENDENCIES)
+if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
   find_package(Threads REQUIRED)
@@ -131,7 +148,7 @@ if (STANDALONE AND USE_ROOT)
   else()
     message(STATUS "Compiling without ROOT")
   endif()
-elseif(WITH_Allen_PRIVATE_DEPENDENCIES)
+elseif(NOT STANDALONE AND WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO Thread)
   find_package(TBB REQUIRED)
   set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)

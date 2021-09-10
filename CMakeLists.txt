@@ -142,40 +142,10 @@ if(CALLGRIND_PROFILE)
   add_compile_definitions(CALLGRIND_PROFILE)
 endif()
 
-if (NOT STANDALONE)
-  set(target_hip FALSE)
-  set(target_cuda FALSE)
-
-  string(REPLACE "+" ";" compiler_split "${LCG_COMPILER}")
-  foreach(device_comp IN LISTS compiler_split)
-    # "${device_comp}" MATCHES "cuda([0-9]+)_([0-9]+)((gcc|clang)([0-9]+))?" OR
-    if (DEFINED CMAKE_CUDA_COMPILER)
-      set(target_cuda TRUE)
-    elseif ("${device_comp}" STREQUAL "hip")
-      set(target_hip TRUE)
-    endif()
-  endforeach()
-
-  if (${target_hip} AND NOT ${target_cuda})
-    set(TARGET_DEVICE "HIP")
-  elseif(${target_cuda} AND NOT ${target_hip})
-    set(TARGET_DEVICE "CUDA")
-  elseif(${target_cuda} AND ${target_hip})
-  	message(FATAL_ERROR "Cannot simultaneously build for HIP and CUDA targets")
-  else()
-	set(TARGET_DEVICE "CPU")
-  endif()
-
-  message(STATUS "Allen device target: " ${TARGET_DEVICE})
-  set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
-
-  set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
-else()
-  message(STATUS "Allen device target: " ${TARGET_DEVICE})
-  set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
-endif()
-
+set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
 include(AllenDependencies)
+
+set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
 if (NOT STANDALONE)
   lhcb_add_subdirectories(
