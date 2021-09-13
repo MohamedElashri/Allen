@@ -22,7 +22,8 @@ def make_line_composite_node_with_gec(line_name,
                                       line_algorithm,
                                       gec_name="gec"):
     return CompositeNode(
-        line_name, [gec(name=gec_name, max_scifi_ut_clusters=5000), line_algorithm],
+        line_name,
+        [gec(name=gec_name, max_scifi_ut_clusters=5000), line_algorithm],
         NodeLogic.LAZY_AND,
         force_order=True)
 
