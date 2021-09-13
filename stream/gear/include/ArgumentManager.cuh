@@ -141,6 +141,11 @@ public:
   typename T::type first() const
   {
     static_assert(std::is_base_of_v<host_datatype, T> && "first can only access host datatypes");
+    if constexpr ( std::is_base_of_v<optional_datatype, T> ) {
+      if (pointer<T>() == nullptr) {
+        return 0;
+      }
+    }
     return pointer<T>()[0];
   }
 

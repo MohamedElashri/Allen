@@ -61,7 +61,7 @@ struct KalmanVeloState {
  * Minimal state used in most track reconstruction algorithms
  */
 struct MiniState {
-  float x, y, z, tx, ty;
+  float x = 0, y = 0, z = 0, tx = 0, ty = 0;
 
   __host__ __device__ MiniState() {}
 

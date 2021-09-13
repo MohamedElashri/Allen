@@ -314,7 +314,9 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_rb_substr_t=make_rb_substr.dev_rb_substr_t,
         dev_rb_stdinfo_t=make_rb_stdinfo.dev_rb_stdinfo_t)
 
-    return {
-        "dev_sel_reports": make_selreps.dev_sel_reports_t,
-        "dev_selrep_offsets": prefix_sum_selrep_size.dev_output_buffer_t
-    }
+    return [count_long_track_hits, prefix_sum_long_track_hits, make_hits_container,
+            calc_rb_hits_size, prefix_sum_track_tags, prefix_sum_sv_tags,
+            prefix_sum_selected_hits, prefix_sum_hits_size, calc_rb_substr_size,
+            prefix_sum_substr_size, prefix_sum_stdinfo_size, prefix_sum_candidate_count,
+            make_rb_hits, make_rb_substr, make_rb_stdinfo, make_rb_objtyp,
+            calc_selrep_size, prefix_sum_selrep_size, make_selreps]

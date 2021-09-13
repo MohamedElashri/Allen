@@ -299,9 +299,14 @@ class AlgorithmCategory(Enum):\n\
         # optional
         code += "\n".join((
             f"auto const* {inp.typename}_ptr = m_{inp.typename}.getIfExists();\n"
-            f"auto const& {inp.typename} = {inp.typename}_ptr ? *{inp.typename}_ptr : decltype(*{inp.typename}_ptr){{}};"
+            f"auto const& {inp.typename} = {inp.typename}_ptr ? *{inp.typename}_ptr : decltype(*{inp.typename}_ptr){{{{}},{{}}}};"
             for inp in inputs if inp.optional
         ))
+            # we need decltype(*{inp.typename}_ptr){{{{}},{{}}}} to initialize a vector with 2 elements (most often ints), such that
+            # the typical access pattern of [event_number], [event_number + 1] for offsets works. Initializing explicitly with 0s fails
+            # if more complicated types are to be initialized.
+            # keep in mind that we only have single events in mind here, so that event_number == 0 is always true.
+            # for gaudi this is a reasonable assumption as it only runs single events at a time.
 
         code += "\n"
         code += "auto const& runtime_options = *m_runtime_options.get();\n"
