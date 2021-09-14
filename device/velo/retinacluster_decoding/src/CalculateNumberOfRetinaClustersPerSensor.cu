@@ -9,35 +9,21 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_kernel(calculate_
 {
   const auto event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
-//   unsigned* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  uint* each_sensor_size = parameters.dev_each_sensor_size + event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
-  
-//   unsigned* event_candidate_num = parameters.dev_module_candidate_num + event_number;
-//   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
+  uint* each_sensor_size = parameters.dev_each_sensor_size + selected_event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
 
-  // Read raw event
-  unsigned number_of_raw_banks;
-  if constexpr (mep_layout) {
-    number_of_raw_banks = parameters.dev_velo_retina_raw_input_offsets[0];
-  }
-  else {
-    const char* raw_input = parameters.dev_velo_retina_raw_input + parameters.dev_velo_retina_raw_input_offsets[selected_event_number];
-    const auto raw_event = VeloRawEvent(raw_input);
-    number_of_raw_banks = raw_event.number_of_raw_banks;
-  }
+  // Read raw event  
+  const auto velo_raw_event =
+    Velo::RawEvent<mep_layout> {parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, selected_event_number};
+    
+  unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
+    
+//   printf("Hello from CalculateNumberOfRetinaClustersPerSensor, block %d, thread %d, number_of_raw_banks %d\n", blockDim.x, threadIdx.x, number_of_raw_banks);
 
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
-    VeloRawBank raw_bank;
-    if constexpr (mep_layout) {
-      raw_bank = MEP::raw_bank<VeloRawBank>(parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, selected_event_number, raw_bank_number);
-    }
-    else {
-      const char* raw_input = parameters.dev_velo_retina_raw_input + parameters.dev_velo_retina_raw_input_offsets[selected_event_number];
-      const auto raw_event = VeloRawEvent(raw_input);
-      raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    }
+    const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
 
     each_sensor_size[raw_bank.sensor_index] = raw_bank.count;
+    printf("Sensor %d, count %d\n", raw_bank.sensor_index, raw_bank.count);
   }
 }
 

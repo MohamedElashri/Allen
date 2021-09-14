@@ -57,6 +57,7 @@ private:
   Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes {this,
                                                                   "BankTypes",
                                                                   {LHCb::RawBank::VP,
+                                                                   LHCb::RawBank::VPRetinaCluster,
                                                                    LHCb::RawBank::UT,
                                                                    LHCb::RawBank::FTCluster,
                                                                    LHCb::RawBank::EcalPacked,

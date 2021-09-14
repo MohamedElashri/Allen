@@ -29,7 +29,7 @@ def decode_velo(retina_decoding=False):
         prefix_sum_offsets_estimated_input_size = make_algorithm(
             host_prefix_sum_t,
             name="prefix_sum_offsets_estimated_input_size",
-            dev_input_buffer_t=calculate_number_of_retinaclusters_each_sensor.dev_each_sensor_size_t)        
+            dev_input_buffer_t=calculate_number_of_retinaclusters_each_sensor.dev_each_sensor_size_t)
         
         decode_retinaclusters = make_algorithm(
             decode_retinaclusters_t,
@@ -38,7 +38,9 @@ def decode_velo(retina_decoding=False):
             host_number_of_events_t=number_of_events["host_number_of_events"],
             dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
             dev_velo_retina_raw_input_offsets_t=velo_retina_banks.dev_raw_offsets_t,
-            dev_offsets_each_sensor_size_t=prefix_sum_offsets_estimated_input_size.dev_output_buffer_t)
+            dev_offsets_each_sensor_size_t=prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        )
 
         return {
             "dev_velo_cluster_container":
