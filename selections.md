@@ -127,6 +127,7 @@ outputs and properties. However, certain inputs and outputs are assumed and must
 * `DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets;`: Will contain the offsets to each event decisions.
 * `HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler;`: Will contain the post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling.
 * `HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash;`: Will contain the hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling.
+* `HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;`: The LHCbIDContainer type selected by the line (`track`, `sv`, or `none`).
 * `PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler;`: Pre-scaling factor.
 * `PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler;`: Post-scaling factor.
 * `PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;`: Pre-scaler hash string. Must not be empty.
@@ -193,6 +194,7 @@ namespace example_one_track_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -269,6 +271,7 @@ namespace example_two_track_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -355,6 +358,7 @@ namespace velo_micro_bias_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -444,6 +448,7 @@ namespace example_one_velo_track_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;
@@ -544,6 +549,12 @@ __device__ bool example_one_velo_track_line::example_one_velo_track_line_t::sele
 
 It is important that the return type of `get_input` is the same as the input type of `select`.
 
+### LHCbIDContainer
+
+Each line must have a public data member `lhcbid_container` specifying the type of LHCbIDContainer the line selects. This tells the SelReport writer how to construct the SelReport for each line. Currently this can be a track, a secondary vertex, or none. For predefined line types, this has already been defined:
+* `OneTrackLine`: `constexpr static auto lhcbid_container = LHCbIDContainer::track;`
+* `TwoTrackLine`: `constexpr static auto lhcbid_container = LHCbIDContainer::sv;`
+* `EventLine`: `constexpr static auto lhcbid_container = LHCbIDContainer::none;`
 
 ### Adding your selection to the Allen sequence
 After creating the selection source code, the selection can either be added to an existing sequence or a new sequence is generated.
@@ -699,28 +710,36 @@ Head to `configuration/sequences` and add a new configuration file.
     from AllenConf.HLT1 import line_maker
     from AllenCore.event_list_utils import generate
 
-      # Reconstruct objects needed as input for selection lines
-      reconstructed_objects = hlt1_reconstruction()
+    # Reconstruct objects needed as input for selection lines
+    reconstructed_objects = hlt1_reconstruction()
 
-      lines = []
-      lines.append(
-        line_maker(
-            "Hlt1OneTracExample",
-            make_one_track_example_line(forward_tracks, kalman_velo_only),
-            enableGEC=True))
+    lines = []
+    lines.append(
+      line_maker(
+          "Hlt1OneTracExample",
+          make_one_track_example_line(forward_tracks, kalman_velo_only),
+          enableGEC=True))
 
-      line_algorithms = [tup[0] for tup in lines]
-      line_nodes = [tup[1] for tup in lines]
+    line_algorithms = [tup[0] for tup in lines]
+    line_nodes = [tup[1] for tup in lines]
 
-      lines = CompositeNode(
-        "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+    lines = CompositeNode(
+      "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
-      custom_hlt1_node = CompositeNode(
-        "Allen", [lines, make_dec_reporter(lines=line_algorithms)],
-        NodeLogic.NONLAZY_AND,
-        force_order=True)
+    custom_hlt1_node = CompositeNode(
+      "Allen", [
+          lines,
+          make_sel_report_writer(
+              lines=line_algorithms,
+              forward_tracks=reconstructed_objects["forward_tracks"],
+              secondary_vertices=reconstructed_objects["secondary_vertices"])
+          ["dev_sel_reports"].producer,
+          make_global_decision(lines=line_algorithms)
+      ],
+      NodeLogic.NONLAZY_AND,
+      force_order=True)
 
-      generate(custom_hlt1_node)
+    generate(custom_hlt1_node)
   ```
   The `lines` CompositeNode gathers all lines. In our case this is only one, but the addition of more lines is straight-forward by appending more entries to `lines` with more calls to the `line_maker`. 
   The `custom_hlt1_node` combines the lines with the DecReport algorithm to setup the full HLT1. 
