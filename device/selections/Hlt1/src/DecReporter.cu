@@ -13,6 +13,8 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
 {
   set_size<dev_dec_reports_t>(
     arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
+  set_size<host_dec_reports_t>(
+    arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
 }
 
 void dec_reporter::dec_reporter_t::operator()(
@@ -22,9 +24,12 @@ void dec_reporter::dec_reporter_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
+  initialize<host_dec_reports_t>(arguments, 0, context);
+
   global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
+  Allen::copy<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
   safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
 }
 

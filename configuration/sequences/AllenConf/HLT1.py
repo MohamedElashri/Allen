@@ -9,6 +9,7 @@ from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_l
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
 
+from AllenConf.validators import rate_validation
 from AllenCore.event_list_utils import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -225,7 +226,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
                 forward_tracks=reconstructed_objects["forward_tracks"],
                 secondary_vertices=reconstructed_objects["secondary_vertices"])
             ["dev_sel_reports"].producer,
-            make_global_decision(lines=line_algorithms)
+            make_global_decision(lines=line_algorithms),
+            rate_validation(lines=line_algorithms)
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)

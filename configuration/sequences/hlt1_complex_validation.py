@@ -64,8 +64,11 @@ lines_leaf = CompositeNode(
     "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
 hlt1_leaf = CompositeNode(
-    "Allen",
-    [lines_leaf, make_global_decision(lines=line_algorithms)],
+    "Allen", [
+        lines_leaf,
+        make_global_decision(lines=line_algorithms),
+        rate_validation(line_algorithms)
+    ],
     NodeLogic.NONLAZY_AND,
     force_order=True)
 
@@ -107,8 +110,7 @@ validators_leaf = CompositeNode(
             "restricted_kalman_validation",
             kalman_validation(
                 restricted_hlt1_reconstruction["kalman_velo_only"],
-                "restricted_kalman_validation")),
-        rate_validation(make_gather_selections(line_algorithms)),
+                "restricted_kalman_validation"))
     ],
     NodeLogic.NONLAZY_AND,
     force_order=False)

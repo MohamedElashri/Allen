@@ -65,7 +65,6 @@ def validator_node(reconstructed_objects, line_algorithms):
             make_composite_node_with_gec(
                 "kalman_validation",
                 kalman_validation(reconstructed_objects["kalman_velo_only"])),
-            rate_validation(make_gather_selections(lines=line_algorithms)),
             selreport_validation(
                 make_sel_report_writer(
                     lines=line_algorithms,
