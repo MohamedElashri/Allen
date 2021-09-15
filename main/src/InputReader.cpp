@@ -146,6 +146,6 @@ void ConfigurationReader::save(std::string file_name)
 {
   nlohmann::json j(m_params);
   std::ofstream o(file_name);
-  o << j;
+  o << std::setw(4) << j;
   o.close();
 }

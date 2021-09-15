@@ -24,4 +24,6 @@ remove_throughput = LineSkipper(regexps=[
 skip_options = BlockSkipper("Requested options:",
                             "Setting number of slices to 2")
 
-preprocessor = LHCbPreprocessor + remove_throughput + skip_options
+skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
+
+preprocessor = LHCbPreprocessor + remove_throughput + skip_options + skip_rates

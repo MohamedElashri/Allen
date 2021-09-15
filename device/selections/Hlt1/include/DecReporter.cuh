@@ -13,6 +13,7 @@ namespace dec_reporter {
     DEVICE_INPUT(dev_selections_t, bool) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_OUTPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
+    HOST_OUTPUT(host_dec_reports_t, unsigned) host_dec_reports;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(tck_t, "tck", "TCK", unsigned) tck;
     PROPERTY(task_id_t, "task_is", "Task ID", unsigned) task_id;

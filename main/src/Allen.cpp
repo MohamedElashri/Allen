@@ -1089,10 +1089,8 @@ loop_error:
   monitor_manager->saveHistograms(mon_filename);
 
   // Print checker reports
-  if (do_check) {
-    checker_invoker->report(n_events_processed);
-    checker_invoker.reset();
-  }
+  checker_invoker->report(n_events_processed);
+  checker_invoker.reset();
 
   // Print throughput measurement result
   if (t && throughput_processed) {

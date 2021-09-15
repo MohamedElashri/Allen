@@ -2,36 +2,28 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "RateChecker.h"
-#include "SelectionsEventModel.cuh"
+#include "ProgramOptions.h"
+#include "HltDecReport.cuh"
 
 double binomial_error(int n, int k) { return 1. / n * std::sqrt(1. * k * (1. - 1. * k / n)); }
 
-void RateChecker::accumulate(
-  const std::vector<std::string>& names_of_lines,
-  gsl::span<const Allen::bool_as_char_t<bool>> selections,
-  gsl::span<const unsigned> selections_offsets,
-  const unsigned number_of_events)
+void RateChecker::accumulate(const char* line_names, const unsigned* dec_reports, const unsigned number_of_events)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
-  const auto number_of_lines = names_of_lines.size();
   if (!m_counters.size()) {
-    m_line_names = names_of_lines;
-    m_counters = std::vector<unsigned>(number_of_lines, 0);
+    m_line_names = split_string(line_names, ",");
+    m_counters = std::vector<unsigned>(m_line_names.size(), 0);
   }
-
-  Selections::ConstSelections sels {
-    reinterpret_cast<const bool*>(selections.data()), selections_offsets.data(), number_of_events};
+  const auto number_of_lines = m_line_names.size();
 
   for (auto i = 0u; i < number_of_events; ++i) {
     bool any_line_fired = false;
+    auto const* decs = dec_reports + (2 + number_of_lines) * i;
     for (auto j = 0u; j < number_of_lines; ++j) {
-      auto decs = sels.get_span(j, i);
-      for (auto k = 0u; k < decs.size(); ++k) {
-        if (decs[k]) {
-          ++m_counters[j];
-          any_line_fired = true;
-          break;
-        }
+      HltDecReport dec_report(decs[2 + j]);
+      if (dec_report.decision()) {
+        ++m_counters[j];
+        any_line_fired = true;
       }
     }
     if (any_line_fired) {

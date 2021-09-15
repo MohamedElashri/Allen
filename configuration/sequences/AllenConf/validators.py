@@ -7,6 +7,7 @@ from AllenConf.algorithms import (
     host_rate_validator_t, host_kalman_validator_t, host_data_provider_t,
     host_sel_report_validator_t)
 from AllenConf.utils import initialize_number_of_events
+from AllenConf.persistency import make_dec_reporter, make_gather_selections
 from AllenCore.event_list_utils import make_algorithm
 
 
@@ -159,8 +160,10 @@ def pv_validation(pvs, name="pv_validator"):
             "dev_number_of_multi_final_vertices"])
 
 
-def rate_validation(gather_selections, name="rate_validator"):
+def rate_validation(lines, name="rate_validator"):
     number_of_events = initialize_number_of_events()
+    dec_reporter = make_dec_reporter(lines)
+    gather_selections = make_gather_selections(lines)
 
     return make_algorithm(
         host_rate_validator_t,
@@ -169,8 +172,7 @@ def rate_validation(gather_selections, name="rate_validator"):
         host_names_of_lines_t=gather_selections.host_names_of_active_lines_t,
         host_number_of_active_lines_t=gather_selections.
         host_number_of_active_lines_t,
-        dev_selections_t=gather_selections.dev_selections_t,
-        dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
+        host_dec_reports_t=dec_reporter.host_dec_reports_t)
 
 
 def kalman_validation(kalman_velo_only, name="kalman_validator"):
