@@ -13,6 +13,7 @@ namespace single_high_pt_muon_line {
     DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
+    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;

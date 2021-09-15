@@ -33,6 +33,7 @@ namespace LineIteration {
  *
  *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
  *  MASK_INPUT(dev_event_list_t) dev_event_list;
+ *  MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
  *  DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
  *  DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
  *  DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -99,6 +100,8 @@ public:
   {
     set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
+      arguments, first<typename Parameters::host_number_of_events_t>(arguments));
+    set_size<typename Parameters::dev_selected_events_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
@@ -188,6 +191,23 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   if (blockIdx.x == 0) {
     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
       parameters.dev_decisions_offsets[i] = Derived::offset(parameters, i);
+    }
+  }
+
+  __syncthreads(); // let all decisions be filled before we conclude the per-event decision
+
+  // fill overall decision
+  if (blockIdx.x == 0) {
+    unsigned mask_idx = 0;
+    for (unsigned evt_idx = threadIdx.x; evt_idx < number_of_events; evt_idx += blockDim.x) {
+      bool event_decision = false;
+      for (unsigned i = 0; i < input_size; ++i) {
+        event_decision |= parameters.dev_decisions[i];
+      }
+      if (event_decision) {
+        parameters.dev_selected_events[mask_idx] = mask_t{evt_idx};
+        ++mask_idx;
+      }
     }
   }
 }
