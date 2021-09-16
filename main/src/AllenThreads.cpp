@@ -15,7 +15,7 @@
 #include <ROOTService.h>
 #include <MCRaw.h>
 #include <InputProvider.h>
-#include <StreamWrapper.cuh>
+#include <IStream.h>
 #include <Tools.h>
 
 namespace {
@@ -207,13 +207,12 @@ void run_stream(
   size_t const thread_id,
   size_t const stream_id,
   int device_id,
-  StreamWrapper* wrapper,
+  Allen::IStream* stream,
   IInputProvider const* input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
   ROOTService* root_service,
   unsigned n_reps,
-  bool do_check,
   bool cpu_offload,
   bool mep_layout,
   uint inject_mem_fail)
@@ -253,14 +252,13 @@ void run_stream(
 
     if (idx) {
       // Run the stream
-      auto status = wrapper->run_stream(
-        stream_id,
+      auto status = stream->run(
         buf,
         {input_provider,
          *idx,
          {static_cast<unsigned>(first), static_cast<unsigned>(last)},
          n_reps,
-         do_check,
+         false,
          cpu_offload,
          mep_layout,
          inject_mem_fail,

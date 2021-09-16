@@ -67,7 +67,6 @@ include_directories(${CMAKE_SOURCE_DIR}/device/selections/Postscale/include)
 include_directories(${CMAKE_SOURCE_DIR}/mdf/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/external)
-include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -75,61 +74,9 @@ if (NOT GaudiProject_FOUND)
   include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
 endif()
 
-file(GLOB stream_sequence_cpp "sequence/src/*cpp")
+allen_add_host_library(StreamUtils STATIC
+  sequence/src/Constants.cpp
+  sequence/src/HostBuffers.cpp
+  sequence/src/HostBuffersManager.cpp)
 
-include(GenerateConfiguration)
-
-allen_add_host_library(Stream STATIC ${stream_sequence_cpp})
-
-# Set property of compiling only this one object concurrently (ninja)
-# Rationale: Stream.cpp alone requires GBs to compile and may result otherwise in killing the build job.
-set_property(GLOBAL APPEND PROPERTY JOB_POOLS one_job=1)
-set_property(TARGET Stream PROPERTY JOB_POOL_COMPILE one_job)
-
-target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
-
-# Depend of Sequence.json instead of configuration/sequences/ConfiguredSequence.h.
-# By doing this, if the ${SEQUENCE}.py changes, a re-configuration will be triggered.
-# The json will always be updated, satisfying the dependence and not triggering a re-configuration
-# until the ${SEQUENCE}.py changes again.
-# However, since the Sequence.h is only copied *if different*, this will not necessarily trigger a re-compilation.
-# In other words, the timestamp of Sequence.json is used to keep up with that of ${SEQUENCE}.py.
-add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/Sequence.json" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
-add_dependencies(Stream configured_sequence)
-
-target_link_libraries(Stream PRIVATE
-  Associate
-  Velo
-  AllenPatPV
-  PV_beamline
-  HostClustering
-  HostPrefixSum
-  UT
-  Kalman
-  VertexFitter
-  Selections
-  SciFi
-  HostGEC
-  Calo
-  Muon
-  Utils
-  Examples
-  HostDataProvider
-  HostInitEventList
-  Backend
-  Validators)
-
-# FIXME: this hack will not be needed once all upstream projects are migrated to new cmake configuration
-if (TARGET Gaudi::GaudiKernel)
-  target_link_libraries(Stream PRIVATE Gaudi::GaudiKernel)
-endif()
-if (TARGET LHCb::DAQEventLib)
-  target_link_libraries(Stream PRIVATE LHCb::DAQEventLib)
-endif()
-
-if (ROOT_FOUND)
-  target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(Stream SYSTEM BEFORE PRIVATE
-    ${ROOT_INCLUDE_DIRS}
-  )
-endif()
+add_subdirectory(sequence ${CMAKE_BINARY_DIR}/sequences)

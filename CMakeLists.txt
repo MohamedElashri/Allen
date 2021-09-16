@@ -16,6 +16,7 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
+set(SEQUENCE_BUILD_JOBS 1 CACHE STRING "Number of sequence build jobs"  )
 
 # --------
 # Settings
@@ -64,9 +65,12 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # Unrestricted options
 # --------------------
 
-# Configured sequence
-set(SEQUENCE hlt1_pp_default CACHE STRING "Configured sequence")
-message(STATUS "Configured sequence: " ${SEQUENCE})
+# Sequences to build, SEQUENCE argument overrides SEQUENCES for now
+set(SEQUENCES "hlt1_pp_(default|no_gec)\$" CACHE STRING "Sequences to build; \"all\" builds all sequences")
+if (DEFINED SEQUENCE)
+  message(STATUS "The SEQUENCE argument is deprecated, please use SEQUENCES instead; note that SEQUENCES is a regex")
+  set(SEQUENCES "^${SEQUENCE}\$")
+endif()
 
 # Configured CPU architecture
 set(CPU_ARCH native CACHE STRING "Target CPU architecture")
@@ -294,6 +298,8 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   message(STATUS "Device architecture set to ${DEVICE_ARCHITECTURE}")
 endif()
 
+include(ConfigurationUtils)
+
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
   # This seems to be needed across compilers
@@ -311,11 +317,16 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_library(${ARGV})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION lib OPTIONAL)
+
+    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib OPTIONAL)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
   endfunction()
 
   function(allen_add_device_library)
+    set(destination lib)
+    list(FIND ARGV STREAM is_stream)
+    list(FILTER ARGV EXCLUDE REGEX "STREAM")
+
     foreach(arg IN LISTS ARGN)
       if(${arg} MATCHES "\\.cu$")
         set_source_files_properties(${arg} PROPERTIES LANGUAGE CXX)
@@ -323,9 +334,14 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_library(${ARGV})
+
+    if (NOT ${is_stream} EQUAL -1)
+      set(destination lib/sequences)
+    endif()
+
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
+    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination} OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
@@ -387,22 +403,30 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib)
   endfunction()
 
-#Define allen_add_device_library and allen_add_executable HIP specializations
   function(allen_add_device_library)
+    set(destination lib)
+    list(FIND ARGV STREAM is_stream)
+    list(FILTER ARGV EXCLUDE REGEX "STREAM")
+
+    if (NOT ${is_stream} EQUAL -1)
+      set(destination lib/sequences)
+    endif()
+
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+
     target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
+    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
   allen_project()
@@ -427,18 +451,35 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_host_library)
+    set(destination lib)
+    list(FIND ARGV STREAM is_stream)
+    list(FILTER ARGV EXCLUDE REGEX "STREAM")
+
+    if (NOT ${is_stream} EQUAL -1)
+      set(destination lib/sequences)
+    endif()
+
     add_library(${ARGV})
+
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_device_library)
+    set(destination lib)
+    list(FIND ARGV STREAM is_stream)
+    list(FILTER ARGV EXCLUDE REGEX "STREAM")
+
+    if (NOT ${is_stream} EQUAL -1)
+      set(destination lib/sequences)
+    endif()
+
     add_library(${ARGV})
-    set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
+    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
@@ -446,7 +487,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
@@ -508,7 +549,7 @@ endif()
 
 if (USE_ROOT)
    if (GaudiProject_FOUND)
-     find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO)
+     find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO Thread)
      find_package(TBB REQUIRED)
      set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
      set(ALLEN_ROOT_LIBRARIES ${ROOT_LIBRARIES} ${TBB_LIBRARIES})
@@ -520,9 +561,9 @@ if (USE_ROOT)
      elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
      else()
-       message(FATAL "ROOTSYS must be set to use ROOT with a standalone build of Allen")
+       message(FATAL_ERROR "ROOTSYS must be set to use ROOT with a standalone build of Allen")
      endif()
-     find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
+     find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree RIO Thread)
      if (ROOT_FOUND)
        message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
 
@@ -560,6 +601,21 @@ set(EXTERNAL_DIR "external")
 
 find_package(Boost REQUIRED COMPONENTS iostreams)
 
+# Determine which sequences to generate or copy configurations for
+file(GLOB available_sequences "configuration/sequences/*.py")
+set(BUILD_SEQUENCES "")
+foreach(sequence_filename ${available_sequences})
+  get_filename_component(sequence ${sequence_filename} NAME_WE)
+  string(REGEX MATCH "${SEQUENCES}" sequence_matches ${sequence})
+  if (sequence_matches OR "${SEQUENCES}" STREQUAL "all")
+    list(APPEND BUILD_SEQUENCES ${sequence})
+  endif()
+endforeach()
+
+if(NOT BUILD_SEQUENCES)
+  message(FATAL_ERROR "No sequences selected to be built with pattern ${SEQUENCES}.")
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
 include_directories(checker/tracking/include)
 include_directories(device/PV/beamlinePV/include)
@@ -572,13 +628,14 @@ endif()
 
 add_subdirectory(backend)
 add_subdirectory(device)
-add_subdirectory(stream)
 add_subdirectory(checker)
 add_subdirectory(host)
 add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
 add_subdirectory(configuration)
+
+add_subdirectory(stream)
 
 #Make sure extra search paths get included as system to avoid
 #warnings in external headers
@@ -637,20 +694,29 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 #Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")
-file(GLOB common_device_sources "main/src/*.cu")
+set(allen_lib_sources)
 
 #Remove main.cpp from common_sources
-foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend)
+foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend StreamLoader RegisterConsumers)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
 
+set(allen_lib_sources
+  ${Allen_cpp_path}
+  ${AllenThreads_cpp_path}
+  ${OutputHandler_cpp_path}
+  ${ZMQOutputSender_cpp_path}
+  ${RegisterConsumers_cpp_path}
+  ${StreamLoader_cpp_path})
+
 if (USE_MPI AND MPI_FOUND)
-  list(APPEND common_sources "main/src/MPISend.cpp")
+  list(APPEND allen_lib_sources "main/src/MPISend.cpp")
 endif()
 
+
 #common libraries
-allen_add_host_library(Common STATIC ${common_sources})
+allen_add_host_library(AllenCommon SHARED ${common_sources})
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
@@ -663,25 +729,35 @@ if(NOT Filesystem_FOUND)
 else()
   target_link_libraries(allen_fs INTERFACE std::filesystem)
 endif()
-target_link_libraries(Common mdf allen_fs nlohmann_json::nlohmann_json)
 
 if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${common_device_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
-set(allen_lib_sources ${Allen_cpp_path}
-                      ${AllenThreads_cpp_path}
-                      ${OutputHandler_cpp_path}
-                      ${ZMQOutputSender_cpp_path})
+if (TARGET_DEVICE STREQUAL "CUDA")
+  find_package(CUDAToolkit)
+  target_link_libraries(AllenCommon PUBLIC CUDA::cudart)
+elseif(TARGET_DEVICE STREQUAL "HIP")
+  # find_package(hip) doesn't work as hip-targets.cmake is not relocatable
+  find_library(hip_runtime_lib amdhip64 HINTS ${HIP_PATH}/lib REQUIRED)
+  target_link_libraries(AllenCommon PUBLIC ${hip_runtime_lib})
+endif()
 
-allen_add_device_library(AllenLib SHARED ${allen_lib_sources})
+target_link_libraries(AllenCommon PUBLIC mdf allen_fs nlohmann_json::nlohmann_json)
+
+allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
 
 # Required packages
 find_package(Threads REQUIRED)
 
+if (TARGET_DEVICE STREQUAL "CUDA")
+  find_package(CUDAToolkit)
+  target_link_libraries(AllenLib PUBLIC CUDA::cudart)
+endif()
+
 target_link_libraries(AllenLib PUBLIC
-  Stream
-  Common
+  StreamUtils
+  AllenCommon
   TrackChecking
   PVChecking
   CheckClustering
@@ -690,7 +766,8 @@ target_link_libraries(AllenLib PUBLIC
   NonEventData
   AllenZMQ
   HostCombiners
-  Threads::Threads)
+  Threads::Threads
+  ${CMAKE_DL_LIBS})
 
 if (USE_MPI AND MPI_FOUND)
   get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)

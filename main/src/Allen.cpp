@@ -42,7 +42,6 @@
 #include "MDFProvider.h"
 #include "MEPProvider.h"
 #include "Timer.h"
-#include "StreamWrapper.cuh"
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
 #include "Consumers.h"
@@ -51,6 +50,8 @@
 #include "MonitorManager.h"
 #include "FileWriter.h"
 #include "ZMQOutputSender.h"
+#include "IStream.h"
+#include "StreamLoader.h"
 #include "AllenThreads.h"
 #include "Allen.h"
 #include "RegisterConsumers.h"
@@ -68,6 +69,8 @@ namespace {
  *
  * @param      {key : value} command-line arguments as std::strings
  * @param      IUpdater instance
+ * @param      IZeroMQSvc instance
+ * @param      name of control connection
  *
  * @return     int
  */
@@ -80,13 +83,14 @@ int allen(
   // Folder containing detector configuration and catboost model
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string folder_parameters = "../input/parameters/";
-  std::string json_constants_configuration_file = "Sequence.json";
+  std::string json_constants_configuration_file;
+  // Sequence to run
+  std::string sequence;
 
   unsigned number_of_slices = 0;
   unsigned number_of_buffers = 0;
   long number_of_events_requested = 0;
   unsigned events_per_slice = 0;
-  unsigned start_event_offset = 0;
   unsigned number_of_threads = 1;
   unsigned number_of_repetitions = 1;
   unsigned verbosity = 3;
@@ -94,7 +98,6 @@ int allen(
   bool non_stop = false;
   bool write_config = false;
   // do_check will be true when a MC validator algorithm was configured
-  bool do_check = contains_validator_algorithm();
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
   // MPI options
@@ -183,6 +186,9 @@ int allen(
     else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
     }
+    else if (flag_in({"sequence"})) {
+      sequence = arg;
+    }
     else if (flag_in({"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
     }
@@ -238,14 +244,8 @@ int allen(
     }
   }
 
-  // Options sanity check
-  if (folder_detector_configuration.empty()) {
-    std::string missing_folder = "";
-
-    if (folder_detector_configuration.empty() && do_check) missing_folder = "detector configuration";
-
-    error_cout << "No folder for " << missing_folder << " specified\n";
-    return -1;
+  if (json_constants_configuration_file.empty()) {
+    json_constants_configuration_file = sequence + ".json";
   }
 
   // Set verbosity level
@@ -293,9 +293,6 @@ int allen(
   }
 
   number_of_buffers = number_of_threads + n_mon + 1;
-
-  // Print configured sequence
-  // print_configured_sequence();
 
   // Set a sane default for the number of events per input slice
   if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
@@ -410,42 +407,42 @@ int allen(
 
   auto const& configuration = configuration_reader->params();
 
-  // Create streams
-  StreamWrapper stream_wrapper;
-  stream_wrapper.initialize_streams(
-    number_of_threads,
-    print_memory_usage,
-    start_event_offset,
-    reserve_mb,
-    reserve_host_mb,
-    device_memory_alignment,
-    constants,
-    configuration);
-
   // Find the number of lines from gather_selections
   size_t n_lines = 0;
+  unsigned error_line = 0;
   auto conf_it = configuration.find("gather_selections");
   if (conf_it != configuration.end()) {
     auto prop_it = conf_it->second.find("names_of_active_lines");
     if (prop_it != conf_it->second.end()) {
       auto line_names = split_string(prop_it->second, ",");
       n_lines = line_names.size();
+      // find the name of the error event line
+      auto it = std::find_if(line_names.begin(), line_names.end(), [](std::string_view line_name) {
+        return line_name.find("ErrorEvent") != std::string::npos;
+      });
+      error_line = std::distance(line_names.begin(), it);
     }
   }
 
-  // create host buffers
-  std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
-    number_of_buffers, events_per_slice, n_lines, do_check, stream_wrapper.errorevent_line);
+  // Load stream factory
+  auto [stream_factory, do_check] = Allen::load_stream(sequence);
+  if (!stream_factory) {
+    error_cout << "Failed to load sequence " << sequence << "\n";
+    exit(1);
+  }
+  std::vector<std::unique_ptr<Allen::IStream>> streams;
 
-  stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
+  // create host buffers
+  std::unique_ptr<HostBuffersManager> buffers_manager =
+    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, do_check, error_line);
 
   if (print_status) {
-    buffer_manager->printStatus();
+    buffers_manager->printStatus();
   }
 
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
-    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), 30, time(0));
+    std::make_unique<MonitorManager>(n_mon, buffers_manager.get(), 30, time(0));
 
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
@@ -462,7 +459,22 @@ int allen(
     }
   }
 
-  auto algo_config = stream_wrapper.get_algorithm_configuration();
+  // Notify used memory if requested verbose mode
+  if (logger::verbosity() >= logger::verbose) {
+    Allen::print_device_memory_consumption();
+  }
+
+  // Create all the streams
+  for (unsigned t = 0; t < number_of_threads; ++t) {
+    auto& sequence = streams.emplace_back((*stream_factory)(
+      print_memory_usage, reserve_mb, reserve_host_mb, device_memory_alignment, constants, buffers_manager.get()));
+    sequence->configure_algorithms(configuration);
+  }
+
+  // Print configured sequence
+  streams.front()->print_configured_sequence();
+
+  auto algo_config = streams.front()->get_algorithm_configuration();
   if (print_config) {
     info_cout << "Algorithm configuration\n";
     for (auto kv : algo_config) {
@@ -478,11 +490,6 @@ int allen(
     return 0;
   }
 
-  // Notify used memory if requested verbose mode
-  if (logger::verbosity() >= logger::verbose) {
-    Allen::print_device_memory_consumption();
-  }
-
   auto checker_invoker = std::make_unique<CheckerInvoker>();
   auto root_service = std::make_unique<ROOTService>();
 
@@ -492,13 +499,12 @@ int allen(
                         thread_id,
                         stream_id,
                         device_id,
-                        &stream_wrapper,
+                        streams[stream_id].get(),
                         input_provider.get(),
                         zmqSvc,
                         checker_invoker.get(),
                         root_service.get(),
                         number_of_repetitions,
-                        do_check,
                         cpu_offload,
                         mep_layout,
                         inject_mem_fail};
@@ -513,7 +519,7 @@ int allen(
   // Lambda with the execution of the output thread
   const auto output_thread = [&](unsigned thread_id, unsigned) {
     return std::thread {
-      run_output, thread_id, zmqSvc, output_handler ? output_handler.get() : nullptr, buffer_manager.get()};
+      run_output, thread_id, zmqSvc, output_handler ? output_handler.get() : nullptr, buffers_manager.get()};
   };
 
   // Lambda with the execution of the monitoring thread
@@ -525,8 +531,8 @@ int allen(
 
   // Vector of worker threads
   using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t>>;
-  workers_t streams;
-  streams.reserve(number_of_threads);
+  workers_t stream_threads;
+  stream_threads.reserve(number_of_threads);
   workers_t io_workers;
   io_workers.reserve(n_io);
   workers_t mon_workers;
@@ -560,7 +566,7 @@ int allen(
 
   // Start all workers and check if the threads are ready
   size_t thread_id = 0;
-  for (auto& [workers, start, n, type, handle] : {std::tuple {&streams,
+  for (auto& [workers, start, n, type, handle] : {std::tuple {&stream_threads,
                                                               start_thread {stream_thread},
                                                               number_of_threads,
                                                               std::string("GPU"),
@@ -663,7 +669,7 @@ int allen(
   auto check_processors = [&]() {
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[i].revents & zmq::POLLIN) {
-        auto& socket = std::get<1>(streams[i]);
+        auto& socket = std::get<1>(stream_threads[i]);
         auto msg = zmqSvc->receive<std::string>(socket);
         if (msg == "SPLIT") {
           // This slice required too much memory to process
@@ -682,7 +688,7 @@ int allen(
             write_queue.push(std::make_tuple(slice_index, first_event, buffer_index));
             input_slice_status[slice_index][first_event] = SliceStatus::Processed;
             // this also marks the buffer as filled
-            buffer_manager->writeSingleEventPassthrough(buffer_index);
+            buffers_manager->writeSingleEventPassthrough(buffer_index);
           }
           else {
             // Split slice and add sub-slices to the queue for processing
@@ -698,7 +704,7 @@ int allen(
             monitor_manager->fillSplit();
 
             // Release the buffer to be used again
-            buffer_manager->returnBufferUnfilled(buffer_index);
+            buffers_manager->returnBufferUnfilled(buffer_index);
           }
         }
         else {
@@ -743,7 +749,7 @@ int allen(
           write_queue.push(std::make_tuple(slice_index, first_event, buffer_index));
 
           input_slice_status[slice_index][first_event] = SliceStatus::Processed;
-          buffer_manager->returnBufferFilled(buffer_index);
+          buffers_manager->returnBufferFilled(buffer_index);
         }
       }
     }
@@ -757,7 +763,7 @@ int allen(
         assert(msg == "MONITORED");
         auto buffer_index = zmqSvc->receive<size_t>(socket);
         auto monitor_index = zmqSvc->receive<unsigned>(socket);
-        buffer_manager->returnBufferProcessed(buffer_index);
+        buffers_manager->returnBufferProcessed(buffer_index);
         monitor_manager->freeMonitor(monitor_index);
       }
     }
@@ -780,18 +786,18 @@ int allen(
 
   // Main event loop
   // - Check if input slices are available from the input thread
-  // - Distribute new input slices to streams as soon as they arrive
+  // - Distribute new input slices to stream_threads as soon as they arrive
   //   in a round-robin fashion
   // - If any slices failed to process then distribute the split sub-slices
-  //   to streams for processing
-  // - Check if any streams are done with a slice and mark it to be written out
+  //   to stream_threads for processing
+  // - Check if any stream_threads are done with a slice and mark it to be written out
   // - Send any processed slice+buffer pairs to I/O for writing
   // - Also send host buffers to monitoring thread
   // - Check if the loop should exit
   //
   // NOTE: special behaviour is implemented for testing without asynch
   // I/O and with repetitions. In this case, a single slice is
-  // distributed to all streams once.
+  // distributed to all stream_threads once.
   while (error_count == 0) {
 
     // Wait for messages to come in from the I/O, monitoring or stream threads
@@ -800,7 +806,7 @@ int allen(
     // If we have a pending run change we must do that before receiving further input from the I/O threads
     if (run_change) {
       if (next_run_number) {
-        // Only process the run change once all GPU streams have finished
+        // Only process the run change once all GPU stream_threads have finished
         if (stream_ready.count() == number_of_threads) {
           debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
           updater->update(*next_run_number);
@@ -883,7 +889,7 @@ int allen(
               events_in_slice[slc_idx][0] = 0;
             }
 
-            buffer_manager->returnBufferWritten(buf_idx);
+            buffers_manager->returnBufferWritten(buf_idx);
           }
           else if (msg == "DONE") {
             if (((allen_control && stop) || !allen_control) && !io_done) {
@@ -902,7 +908,7 @@ int allen(
     }
 
     // If there is a slice, send it to the next processor; when async
-    // I/O is disabled send the slice(s) to all streams
+    // I/O is disabled send the slice(s) to all stream_threads
     if (slice_index) {
       bool first = true;
       while ((enable_async_io && first) || (!enable_async_io && stream_ready.count())) {
@@ -915,8 +921,8 @@ int allen(
         if (enable_async_io) {
           input_slice_status[*slice_index][0] = SliceStatus::Processing;
         }
-        buffer_index = std::optional<size_t> {buffer_manager->assignBufferToFill()};
-        auto& socket = std::get<1>(streams[processor_index]);
+        buffer_index = std::optional<size_t> {buffers_manager->assignBufferToFill()};
+        auto& socket = std::get<1>(stream_threads[processor_index]);
         zmqSvc->send(socket, "PROCESS", send_flags::sndmore);
         zmqSvc->send(socket, *slice_index, send_flags::sndmore);
         zmqSvc->send(socket, size_t(0), send_flags::sndmore);
@@ -945,8 +951,8 @@ int allen(
         prev_processor = 0;
       }
       input_slice_status[slice_idx][first_evt] = SliceStatus::Processing;
-      buffer_index = std::optional<size_t> {buffer_manager->assignBufferToFill()};
-      auto& socket = std::get<1>(streams[processor_index]);
+      buffer_index = std::optional<size_t> {buffers_manager->assignBufferToFill()};
+      auto& socket = std::get<1>(stream_threads[processor_index]);
       zmqSvc->send(socket, "PROCESS", send_flags::sndmore);
       zmqSvc->send(socket, slice_idx, send_flags::sndmore);
       zmqSvc->send(socket, first_evt, send_flags::sndmore);
@@ -975,7 +981,7 @@ int allen(
     }
 
     // Send any available HostBuffers to montoring threads
-    buffer_index = std::optional<size_t> {buffer_manager->assignBufferToProcess()};
+    buffer_index = std::optional<size_t> {buffers_manager->assignBufferToProcess()};
     while ((*buffer_index) != SIZE_MAX) {
       // check if a monitor is available
       std::optional<size_t> monitor_index = monitor_manager->getFreeMonitor();
@@ -986,9 +992,9 @@ int allen(
       }
       else {
         // if no free monitors then mark the buffer as processed
-        buffer_manager->returnBufferProcessed(*buffer_index);
+        buffers_manager->returnBufferProcessed(*buffer_index);
       }
-      buffer_index = std::optional<size_t> {buffer_manager->assignBufferToProcess()};
+      buffer_index = std::optional<size_t> {buffers_manager->assignBufferToProcess()};
     }
     buffer_index.reset();
 
@@ -1042,7 +1048,7 @@ int allen(
 
     // Check if we're done
     if (
-      stream_ready.count() == number_of_threads && buffer_manager->buffersEmpty() && io_cond &&
+      stream_ready.count() == number_of_threads && buffers_manager->buffersEmpty() && io_cond &&
       (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
       info_cout << "Processing complete\n";
       if (allen_control && stop) {
@@ -1076,7 +1082,7 @@ loop_error:
   }
 
   // Send stop signal to all threads and join them
-  for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(streams)}) {
+  for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(stream_threads)}) {
     for (auto& worker : workers.get()) {
       zmqSvc->send(std::get<1>(worker), "DONE");
       std::get<0>(worker).join();
@@ -1084,7 +1090,7 @@ loop_error:
   }
 
   if (print_status) {
-    buffer_manager->printStatus();
+    buffers_manager->printStatus();
   }
   monitor_manager->saveHistograms(mon_filename);
 

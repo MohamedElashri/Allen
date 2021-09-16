@@ -39,12 +39,11 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB selections_src "Hlt1/src/*cu")
 file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/inclusive_hadron/src/*cpp" "lines/muon/src/*cu" "lines/monitoring/src/*cu")
+
 allen_add_device_library(Selections STATIC
   ${selections_src}
   ${lines_src}
 )
-
-add_dependencies(Selections configured_sequence)
 
 if(USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(Selections PRIVATE WITH_ROOT)

@@ -153,67 +153,6 @@ namespace Sch {
   template<typename ConfiguredArguments>
   using InDependencies = InDependenciesImpl<reverse_tuple_t<ConfiguredArguments>>;
 
-  // Helper to just print the arguments
-  template<typename Arguments>
-  struct PrintArguments;
-
-  template<>
-  struct PrintArguments<std::tuple<>> {
-    static constexpr void print() {}
-  };
-
-  template<typename Argument>
-  struct PrintArguments<std::tuple<Argument>> {
-    static constexpr void print() { info_cout << "'" << Argument::name << "'"; }
-  };
-
-  template<typename Argument, typename ArgumentSecond, typename... Arguments>
-  struct PrintArguments<std::tuple<Argument, ArgumentSecond, Arguments...>> {
-    static constexpr void print()
-    {
-      info_cout << "'" << Argument::name << "', ";
-      PrintArguments<std::tuple<ArgumentSecond, Arguments...>>::print();
-    }
-  };
-
-  // Print the configured sequence
-  template<typename Dependencies>
-  struct PrintAlgorithmSequence;
-
-  template<>
-  struct PrintAlgorithmSequence<std::tuple<>> {
-    static constexpr void print() {};
-  };
-
-  template<typename Algorithm, typename... Algorithms>
-  struct PrintAlgorithmSequence<std::tuple<Algorithm, Algorithms...>> {
-    static constexpr void print()
-    {
-      // info_cout << " " << Algorithm::name << std::endl;
-      PrintAlgorithmSequence<std::tuple<Algorithms...>>::print();
-    }
-  };
-
-  template<typename Dependencies>
-  struct PrintAlgorithmSequenceDetailed;
-
-  template<>
-  struct PrintAlgorithmSequenceDetailed<std::tuple<>> {
-    static constexpr void print() {};
-  };
-
-  template<typename Algorithm, typename... Algorithms>
-  struct PrintAlgorithmSequenceDetailed<std::tuple<Algorithm, Algorithms...>> {
-    static constexpr void print()
-    {
-      // info_cout << "  ['" << Algorithm::name << "', [";
-      // PrintArguments<typename Algorithm::Arguments>::print();
-      // info_cout << "]]," << std::endl;
-
-      PrintAlgorithmSequenceDetailed<std::tuple<Algorithms...>>::print();
-    }
-  };
-
   template<typename ArgumentsTuple, typename ArgumentRefManager, typename ConfiguredArguments>
   struct ProduceArgumentsArray;
 

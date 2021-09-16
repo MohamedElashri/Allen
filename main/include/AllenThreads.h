@@ -13,6 +13,9 @@ struct HostBuffersManager;
 struct MonitorManager;
 struct IInputProvider;
 struct ROOTService;
+namespace Allen {
+  struct IStream;
+}
 
 std::string connection(const size_t id, std::string suffix = "");
 
@@ -28,13 +31,12 @@ void run_stream(
   size_t const thread_id,
   size_t const stream_id,
   int device_id,
-  StreamWrapper* wrapper,
+  Allen::IStream* stream,
   IInputProvider const* input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
   ROOTService* root_service,
   unsigned n_reps,
-  bool do_check,
   bool cpu_offload,
   bool mep_layout,
   uint inject_mem_fail);

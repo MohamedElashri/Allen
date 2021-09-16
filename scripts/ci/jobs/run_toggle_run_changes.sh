@@ -8,7 +8,7 @@ set -euxo pipefail
 check_build_exists
 
 RUN_OPTIONS="-n 1000 -m 700"
-JOB="./Allen --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf ${RUN_OPTIONS}"
+JOB="./Allen --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} ${RUN_OPTIONS}"
 
 if [ "$RUN_CHANGES" = "OFF" ]; then
   OUTPUT_DIR="run_no_run_changes_output_${SEQUENCE}"
@@ -41,6 +41,6 @@ else
   exit 1
 fi
 
-{ 
-  eval "${ALLEN}" 
+{
+  eval "${ALLEN}"
 } 2>&1 | tee "${OUTPUT_DIR}/minbias_${DEVICE_ID}.txt"

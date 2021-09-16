@@ -13,7 +13,7 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 target_link_libraries(NonEventData
   HostClustering
   Backend
-  Common)
+  AllenCommon)
 
 target_include_directories(NonEventData PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

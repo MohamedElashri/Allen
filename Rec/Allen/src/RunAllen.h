@@ -26,7 +26,8 @@
 #include "HostBuffersManager.cuh"
 #include "RuntimeOptions.h"
 #include "BankTypes.h"
-#include "StreamWrapper.cuh"
+#include "IStream.h"
+#include "StreamLoader.h"
 #include "Logger.h"
 #include "TESProvider.h"
 #include "HltDecReport.cuh"
@@ -57,22 +58,23 @@ private:
                                                    LHCb::RawBank::EcalPacked,
                                                    LHCb::RawBank::HcalPacked};
   std::vector<std::string> m_line_names;
-  const unsigned m_number_of_streams = 1;
   const unsigned m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
   const unsigned m_n_buffers = 1;
   const bool m_do_check = true;
 
-  std::unique_ptr<StreamWrapper> m_stream_wrapper;
+  Allen::StreamFactory m_stream_factory;
+  std::unique_ptr<Allen::IStream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
   std::unique_ptr<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>
     m_tes_input_provider;
 
+  Gaudi::Property<std::string> m_sequence {this, "Sequence", "hlt1_pp_default"};
   Gaudi::Property<unsigned> m_tck {this, "TCK", 0};
 
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 
-  Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_INSTALL_DIR}/constants/Sequence.json"};
+  Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_INSTALL_DIR}/constants/hlt1_pp_default.json"};
   Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/parameters"};
 
   // If set to false, events are only filtered by the GEC

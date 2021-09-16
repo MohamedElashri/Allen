@@ -4,9 +4,9 @@
 ###############################################################################
 import os
 from functools import partial
-from GaudiPython.Bindings import AppMgr, gbl
 from Configurables import LHCbApp, CondDB, ApplicationMgr
 from Allen.config import setup_allen_non_event_data_service
+from GaudiPython.Bindings import AppMgr, gbl
 import argparse
 
 # Load Allen entry point and helpers
@@ -22,7 +22,7 @@ interpreter.Declare("#include <{}>".format(header_path))
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
-                                     'constants', 'Sequence.json')
+                                     'constants', 'hlt1_pp_default.json')
 
 # Handle commandline arguments
 parser = argparse.ArgumentParser()
@@ -43,6 +43,7 @@ parser.add_argument("-m", dest="reserve", default="1024")
 parser.add_argument("-v", dest="verbosity", default="3")
 parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
+parser.add_argument("--sequence", dest="sequence", default="hlt1_pp_default")
 parser.add_argument(
     "--mdf",
     dest="mdf",
@@ -95,18 +96,21 @@ updater = gbl.cast_updater(svc)
 # options map
 options = gbl.std.map("std::string", "std::string")()
 for flag, value in (("g", args.det_folder), ("params", args.param_folder),
-                    ("n", args.n_events), ("o", args.event_offset),
-                    ("t",
-                     args.threads), ("r",
-                                     args.repetitions), ("configuration",
-                                                         args.configuration),
-                    ("c", args.check), ("m", args.reserve), ("v",
-                                                             args.verbosity),
-                    ("p", args.print_memory), ("i", args.import_fwd),
-                    ("mdf",
-                     args.mdf), ("cpu-offload",
-                                 args.cpu_offload), ("disable-run-changes",
-                                                     args.disable_run_changes),
+                    ("n", args.n_events), ("o",
+                                           args.event_offset), ("t",
+                                                                args.threads),
+                    ("r",
+                     args.repetitions), ("configuration",
+                                         args.configuration), ("c",
+                                                               args.check),
+                    ("m", args.reserve), ("v",
+                                          args.verbosity), ("p",
+                                                            args.print_memory),
+                    ("i", args.import_fwd), ("sequence",
+                                             args.sequence), ("mdf", args.mdf),
+                    ("cpu-offload",
+                     args.cpu_offload), ("disable-run-changes",
+                                         args.disable_run_changes),
                     ("monitoring-save-period",
                      args.mon_save_period), ("monitoring-filename",
                                              args.mon_filename),

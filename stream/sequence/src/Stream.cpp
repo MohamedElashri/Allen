@@ -1,91 +1,29 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include "Stream.cuh"
-#include "StreamWrapper.cuh"
+#include <memory>
+
+#include "IStream.h"
+#include "Stream.h"
 #include "ValidationAlgorithm.cuh"
 
 #ifdef CALLGRIND_PROFILE
 #include <valgrind/callgrind.h>
 #endif
 
-StreamWrapper::StreamWrapper() {}
-
-void StreamWrapper::initialize_streams(
-  const unsigned n,
-  const bool print_memory_usage,
-  const unsigned start_event_offset,
-  const size_t reserve_mb,
-  const size_t reserve_host_mb,
-  const unsigned required_memory_alignment,
-  const Constants& constants,
-  const std::map<std::string, std::map<std::string, std::string>>& config)
-{
-  for (unsigned i = 0; i < n; ++i) {
-    streams.push_back(new Stream());
-  }
-
-  for (size_t i = 0; i < streams.size(); ++i) {
-    streams[i]->initialize(
-      print_memory_usage, start_event_offset, reserve_mb, reserve_host_mb, required_memory_alignment, constants);
-
-    // Configuration of the algorithms must happen after stream initialization
-    streams[i]->configure_algorithms(config);
-  }
-}
-
-void StreamWrapper::initialize_streams_host_buffers_manager(HostBuffersManager* buffers_manager)
-{
-  for (size_t i = 0; i < streams.size(); ++i) {
-    streams[i]->set_host_buffer_manager(buffers_manager);
-  }
-}
-
-Allen::error StreamWrapper::run_stream(const unsigned i, const unsigned buf_idx, const RuntimeOptions& runtime_options)
-{
-  return streams[i]->run_sequence(buf_idx, runtime_options);
-}
-
-std::map<std::string, std::map<std::string, std::string>> StreamWrapper::get_algorithm_configuration()
-{
-  return streams.front()->get_algorithm_configuration();
-}
-
-StreamWrapper::~StreamWrapper()
-{
-  for (auto& stream : streams) {
-    delete stream;
-  }
-}
-
-void print_configured_sequence()
-{
-  info_cout << "\nConfigured sequence of algorithms:\n";
-  Sch::PrintAlgorithmSequence<configured_sequence_t>::print();
-  info_cout << std::endl;
-}
-
-bool contains_validator_algorithm()
-{
-  return Sch::ContainsAlgorithmType<ValidationAlgorithm, configured_sequence_t>::value;
-}
-
 /**
  * @brief Sets up the chain that will be executed later.
  */
-Allen::error Stream::initialize(
+Stream::Stream(
   const bool param_do_print_memory_manager,
-  const unsigned param_start_event_offset,
   const size_t reserve_mb,
   const size_t reserve_host_mb,
   const unsigned required_memory_alignment,
-  const Constants& param_constants)
+  const Constants& param_constants,
+  HostBuffersManager* buffers_manager) :
+  do_print_memory_manager {param_do_print_memory_manager},
+  host_buffers_manager {buffers_manager}, constants {param_constants}
 {
-  // Set options
-  do_print_memory_manager = param_do_print_memory_manager;
-  start_event_offset = param_start_event_offset;
-  constants = param_constants;
-
   // Initialize context
   m_context.initialize();
 
@@ -94,17 +32,9 @@ Allen::error Stream::initialize(
 
   // Populate names of parameters in the sequence
   populate_sequence_argument_names(scheduler.argument_manager);
-
-  return Allen::error::success;
 }
 
-void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager)
-{
-  // Set host buffers manager
-  host_buffers_manager = buffers_manager;
-}
-
-Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& runtime_options)
+Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_options)
 {
 #ifdef CALLGRIND_PROFILE
   CALLGRIND_START_INSTRUMENTATION;
@@ -156,4 +86,32 @@ Allen::error Stream::run_sequence(const unsigned buf_idx, const RuntimeOptions& 
 #endif
 
   return Allen::error::success;
+}
+
+/**
+ * @brief Print the type and name of the algorithms in the sequence
+ */
+void Stream::print_configured_sequence() { scheduler.print_sequence(); }
+
+/**
+ * @brief Checks whether the sequence contains any validator algorithms.
+ */
+extern "C" bool contains_validator_algorithm()
+{
+  return Sch::ContainsAlgorithmType<ValidationAlgorithm, configured_sequence_t>::value;
+}
+
+/**
+ * @brief Create an instance of a sequence to be run inside a stream
+ */
+extern "C" Allen::IStream* create_stream(
+  const bool param_print_memory_usage,
+  const size_t param_reserve_mb,
+  const size_t reserve_host_mb,
+  const unsigned required_memory_alignment,
+  const Constants& constants,
+  HostBuffersManager* buffers_manager)
+{
+  return new Stream {
+    param_print_memory_usage, param_reserve_mb, reserve_host_mb, required_memory_alignment, constants, buffers_manager};
 }

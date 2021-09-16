@@ -2,17 +2,6 @@ Call Allen from Gaudi, event loop directed by Moore
 =============================
 The software can be compiled either based on the nightlies or by compiling the full stack, as described [here](https://gitlab.cern.ch/lhcb/Allen/-/blob/master/readme.md#call-allen-with-gaudi-steer-event-loop-from-moore).
 
-The default HLT1 sequence is `hlt1_pp_default`. If you would like to use a different sequence when compiling Allen, you can pass CMake arguments by adding the following lines to `utils/config.json`
-```
-{
-    "cmakeFlags": {
-		"Allen": "-DSTANDALONE=OFF -DSEQUENCE=my_other_sequence"
-	}
-}
-```
-Note that `make Allen/purge` is required to pick up the changed CMake variables, if you had already compiled Allen inside the stack before.
-
-
 Call the executable from within the stack directory as in the following examples:
 ```
 ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
@@ -42,6 +31,32 @@ To check the muon identification efficiency and misID efficiency:
 
 The scripts in `Moore/Hlt/RecoConf/scripts/` can be used to produce plots of the various efficiencies and resolutions from the ROOT files produced by one of the previous calls to Moore.
 
+Running a different sequence
+------------------------------
+
+To run a different sequence, the function call that sets up the
+control flow can be wrapped using a `with` statement:
+
+```python
+with sequence.bind(sequence="hlt1_pp_no_gec"):
+    run_allen(options)
+```
+
+A different set of configuration parameters can be configured in the
+same way:
+```python
+with sequence.bind(json="/path/to/custom/config.json"):
+    run_allen(options)
+```
+
+To obtain a JSON file that contains all configurable parameters, the
+following can be used:
+```console
+./Moore/run Allen --write-configuration 1
+```
+This will write a file `config.json` in the current working
+directory, which can be used to rerun with a different set of cuts
+without rebuilding.
 
 Call HLT1 selection efficiency script in MooreAnalysis
 ------------------------------

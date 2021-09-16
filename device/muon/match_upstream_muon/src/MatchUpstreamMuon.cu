@@ -29,7 +29,7 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
     constants.dev_muonmatch_search_windows,
     first<host_number_of_events_t>(arguments));
 
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, context);
   }
 }

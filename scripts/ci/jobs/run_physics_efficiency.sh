@@ -20,7 +20,7 @@ fi
 
 set -euxo pipefail
 
-RUN_OPTIONS="${RUN_OPTIONS} --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf"
+RUN_OPTIONS="${RUN_OPTIONS} --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}"
 
 OUTPUT_FOLDER="${TEST_NAME}_output_${SEQUENCE}"
 

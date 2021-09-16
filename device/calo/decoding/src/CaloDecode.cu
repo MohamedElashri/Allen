@@ -140,7 +140,7 @@ void calo_decode::calo_decode_t::operator()(
       arguments, constants.dev_ecal_geometry, constants.dev_hcal_geometry);
   }
 
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     safe_assign_to_host_buffer<dev_ecal_digits_offsets_t>(host_buffers.host_ecal_digits_offsets, arguments, context);
     safe_assign_to_host_buffer<dev_hcal_digits_offsets_t>(host_buffers.host_hcal_digits_offsets, arguments, context);
     safe_assign_to_host_buffer<dev_ecal_digits_t>(host_buffers.host_ecal_digits, arguments, context);
