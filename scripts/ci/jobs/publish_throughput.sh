@@ -31,6 +31,5 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
         -t devices_throughputs_${SEQUENCE_DATASET}.csv \
         -b run_throughput_output_${SEQUENCE_DATASET}/${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
     
-    # FIXME!
-    # python checker/plotting/post_telegraf.py -d . -s "${SEQUENCE}" -b "${CI_COMMIT_REF_NAME}"
+    python checker/plotting/post_telegraf.py -f devices_throughputs_${SEQUENCE_DATASET}.csv . -s "${SEQUENCE}" -b "${CI_COMMIT_REF_NAME}" -d "${INPUT_FILES}"
 done
