@@ -104,7 +104,7 @@ struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t.
 // deal with in a special way. A maximum of one input mask and one output mask per algorithm
 // is allowed.
 struct mask_t {
-  unsigned m_data;
+  unsigned m_data = 0;
 
   __host__ __device__ operator unsigned() const { return m_data; }
 };

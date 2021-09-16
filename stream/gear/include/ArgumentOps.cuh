@@ -169,7 +169,7 @@ namespace Allen {
     assert((container_a.size() - offset_a) >= elements_to_copy && (container_b.size() - offset_b) >= elements_to_copy);
 
     if (kind == memcpyHostToHost) {
-      std::memcpy(container_a.data() + offset_a, container_b.data() + offset_b, elements_to_copy * sizeof(T));
+      std::memcpy(static_cast<void*>(container_a.data() + offset_a), static_cast<void*>(container_b.data() + offset_b), elements_to_copy * sizeof(T));
     }
     else {
       Allen::memcpy_async(

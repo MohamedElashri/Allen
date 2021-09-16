@@ -13,6 +13,8 @@ namespace velo_micro_bias_line {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
+    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
+    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
     DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
