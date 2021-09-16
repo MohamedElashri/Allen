@@ -33,9 +33,8 @@ void MuonFilter::muon_filter_t::operator()(
 
   Allen::copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, context);
 
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_selected_events_mf_t>(host_buffers.host_selected_events_mf, arguments, context);
-    assign_to_host_buffer<dev_event_list_mf_t>(host_buffers.host_event_list_mf, arguments, context);
   }
 }
 

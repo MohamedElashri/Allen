@@ -86,11 +86,10 @@ target_include_directories(mep_gec PUBLIC
   ${CMAKE_SOURCE_DIR}/main/include
   ${Boost_INCLUDE_DIRS})
 
-if (STANDALONE)
-  target_link_libraries(mep_gec PUBLIC Common mdf ${MPI_CXX_LIBRARIES})
-else()
+target_link_libraries(mep_gec PRIVATE AllenCommon mdf ${MPI_CXX_LIBRARIES})
+if (NOT STANDALONE)
   find_package(fmt REQUIRED)
-  target_link_libraries(mep_gec PUBLIC Common mdf ${MPI_CXX_LIBRARIES} fmt::fmt)
+  target_link_libraries(mep_gec PRIVATE fmt::fmt)
 endif()
 
 target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)

@@ -38,7 +38,7 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants);
 
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, context);
     assign_to_host_buffer<dev_scifi_tracks_t>(host_buffers.host_scifi_tracks, arguments, context);
   }

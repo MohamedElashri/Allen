@@ -89,6 +89,7 @@ class Scheduler {
     void (*get_configuration)(const void* self, std::map<std::string, std::map<std::string, std::string>>& config) =
       nullptr;
     std::string (*name)(const void* self) = nullptr;
+    std::string (*type)() = nullptr;
     void (*run)(
       void* self,
       host_memory_manager_t&,
@@ -105,7 +106,8 @@ class Scheduler {
     template<typename Alg, typename Traits>
     VTable(Alg& alg, Traits) :
       algorithm {&alg}, configure {configure_<Alg>}, get_configuration {get_configuration_<Alg>},
-      name {[](const void* self) { return static_cast<const Alg*>(self)->name(); }}, run {run_<Alg, Traits>}
+      name {[](const void* self) { return static_cast<const Alg*>(self)->name(); }},
+      type {[] { return demangle<Alg>(); }}, run {run_<Alg, Traits>}
     {}
   };
 
@@ -175,13 +177,27 @@ public:
   }
 
   // Return constants for algorithms in the sequence
-  auto get_algorithm_configuration()
+  auto get_algorithm_configuration() const
   {
     std::map<std::string, std::map<std::string, std::string>> config;
     std::for_each(vtbls.begin(), vtbls.end(), [&config](auto& vtbl) {
       std::invoke(vtbl.get_configuration, vtbl.algorithm, config);
     });
     return config;
+  }
+
+  void print_sequence() const
+  {
+    info_cout << "\nSequence:\n";
+    std::for_each(vtbls.begin(), vtbls.end(), [](auto& vtbl) {
+      auto t = vtbl.type();
+      auto n = t.find("::");
+      if (n != std::string::npos) {
+        t = t.substr(n + 2);
+      }
+      info_cout << t << "/" << vtbl.name(vtbl.algorithm) << "\n";
+    });
+    info_cout << "\n";
   }
 
   //  Runs a sequence of algorithms.

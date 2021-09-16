@@ -85,7 +85,7 @@ Alternatively, cmake options can be passed with `-D` when invoking the cmake com
 
 * `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
 * `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU` (default), `CUDA` and `HIP` (experimental).
-* `SEQUENCE` - Selects the sequence to be compiled (the sequence must be selected at compile time). For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.py` extension, ie. `-DSEQUENCE=velo`.
+* `SEQUENCES` - Either a regex or `all`, if a regex is passed and the pattern is found in a sequence name, it will be built. For a complete list of sequences available, check `configuration/sequences/`. The name of a sequence is given by its filename without the `.py` extension.
 * `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo` (default), `Release` or `Debug`.
 * `USE_ROOT` - Configure to run with / without ROOT. `OFF` by default.
 * `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation.
@@ -109,7 +109,7 @@ Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set
 To compile a sequence other than the default sequence (hlt1_pp_default), compile for example with
 
 ```
-make Allen CMAKEFLAGS='-DSEQUENCE=velo'.
+make Allen CMAKEFLAGS='-DSEQUENCES=hlt1_pp.
 ```
 Note that default CMAKEFLAGS are set for Allen in `utils/default-config.json` of the stack setup. For convenience, it is easiest to change the sequence there.
 
@@ -147,7 +147,7 @@ Note that this setup uses the nightlies from Tuesday. Adopt the day of the night
 
 #### Call Allen with Gaudi, steer event loop from Allen
 Allen can also be built as a Gaudi/LHCb cmake project; it then depends
-on Rec and Online. To build Allen like this, is the same as building
+on Rec To build Allen like this, is the same as building
 any other Gaudi/LHCb project:
 
     LbLogin -c x86_64-centos7-gcc9-opt
@@ -157,7 +157,7 @@ any other Gaudi/LHCb project:
     make install
 
 ##### Build options
-By default the `hlt1_pp_default` sequence is selected, Allen is built with
+By default all sequences are built, Allen is built with
 CUDA, and the CUDA stack is searched for in `/usr/local/cuda`. These
 defaults (and other cmake variables) can be changed by adding the same
 flags that you would pass to a standalone build to the `CMAKEFLAGS`
@@ -195,7 +195,7 @@ A run of the program with the help option `-h` will let you know the basic optio
     --mdf {comma-separated list of MDF files to use as input}
     --mep {comma-separated list of MEP files to use as input}
     --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)
-    --configuration {path to json file containing values of configurable algorithm constants}=Sequence.json
+    --configuration {path to json file containing values of configurable algorithm constants}
     --print-status {show status of buffer and socket}=0
     --print-config {show current algorithm configuration}=0
     --write-configuration {write current algorithm configuration to file}=0
@@ -207,7 +207,7 @@ A run of the program with the help option `-h` will let you know the basic optio
     -m, --memory {memory to reserve per thread / stream (megabytes)}=1024
     -v, --verbosity {verbosity [0-5]}=3 (info)
     -p, --print-memory {print memory usage}=0
-    -i, --import-tracks {import forward tracks dumped from Moore}
+     --sequence {sequence to run}=hlt1_pp_default
     --cpu-offload {offload part of the computation to CPU}=1
     --output-file {Write selected event to output file}
     --device {select device to use}=0
@@ -222,11 +222,14 @@ Here are some example run options:
     # Run all input files shipped with Allen once
     ./Allen
 
+    # Run a validation sequence over the files shipped with Allen
+    ./Allen --sequence hlt1_pp_validation
+
     # Specify input files, run once over all of them
     ./Allen -f ../input/minbias/
 
-    # Run a total of 1000 events once without tracking validation. If less than 1000 events are
-    # provided, the existing ones will be reused in round-robin.
+    # Run a total of 1000 events once without tracking validation. If
+    fewer than 1000 events are available, all available events wil be run.
     ./Allen -n 1000
 
     # Run four streams, each with 4000 events and 20 repetitions

@@ -24,14 +24,15 @@
 #include "SchedulerMachinery.cuh"
 #include "Scheduler.cuh"
 #include "CheckerInvoker.h"
+#include "IStream.h"
+
 #include "ConfiguredSequence.h"
 
 class Timer;
 
-struct Stream {
+struct Stream : virtual public Allen::IStream {
+private:
   using scheduler_t = SchedulerFor_t<configured_sequence_t, configured_arguments_t, configured_sequence_arguments_t>;
-
-  Stream() = default;
 
   // Dynamic scheduler
   scheduler_t scheduler {configured_sequence_t {}, sequence_algorithm_names};
@@ -46,35 +47,42 @@ struct Stream {
   HostBuffersManager* host_buffers_manager;
   HostBuffers* host_buffers {0};
 
-  // Start event offset
-  unsigned start_event_offset;
-
   // Number of input events
   unsigned number_of_input_events;
 
-  // Memory base pointers for host and device
-  char* host_base_pointer;
-  char* dev_base_pointer;
-
   // Constants
-  Constants constants;
+  Constants const& constants;
 
-  Allen::error initialize(
+public:
+  Stream(
     const bool param_print_memory_usage,
-    const unsigned param_start_event_offset,
     const size_t param_reserve_mb,
     const size_t reserve_host_mb,
     const unsigned required_memory_alignment,
-    const Constants& param_constants);
+    const Constants& param_constants,
+    HostBuffersManager* buffers_manager);
 
-  void set_host_buffer_manager(HostBuffersManager* buffers_manager);
+  Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options) override;
 
-  Allen::error run_sequence(const unsigned buf_idx, RuntimeOptions const& runtime_options);
-
-  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
+  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config) override
   {
     scheduler.configure_algorithms(config);
   }
 
-  auto get_algorithm_configuration() { return scheduler.get_algorithm_configuration(); }
+  void print_configured_sequence() override;
+
+  std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration() const override
+  {
+    return scheduler.get_algorithm_configuration();
+  }
 };
+
+extern "C" bool contains_validator_algorithm();
+
+extern "C" Allen::IStream* create_stream(
+  const bool param_print_memory_usage,
+  const size_t param_reserve_mb,
+  const size_t reserve_host_mb,
+  const unsigned required_memory_alignment,
+  const Constants& constants,
+  HostBuffersManager* buffers_manager);

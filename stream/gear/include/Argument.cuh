@@ -193,7 +193,7 @@ struct property_datatype<DeviceDimensions> {
   __host__ __device__ operator dim3() const { return {this->m_value[0], this->m_value[1], this->m_value[2]}; }
 
 protected:
-  t m_value;
+  t m_value = {0, 0, 0};
 };
 
 // Properties have an additional property method to be able to parse it with libclang.

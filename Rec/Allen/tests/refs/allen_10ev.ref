@@ -53,7 +53,6 @@ AllenUpdater        DEBUG Updating UTBoards
 AllenUpdater        DEBUG Updating UTGeometry
 AllenUpdater        DEBUG Updating UTLookupTables
 AllenUpdater        DEBUG Updating VeloGeometry
-Starting timer for throughput measurement
 Input complete
 Processing complete
 EventLoopMgr         INFO Histograms converted successfully according to request.

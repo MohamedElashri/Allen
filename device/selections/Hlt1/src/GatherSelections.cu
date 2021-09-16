@@ -196,7 +196,7 @@ void gather_selections::gather_selections_t::operator()(
   }
 
   // If running the validation, save relevant information
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     host_buffers.host_names_of_lines = std::string(property<names_of_active_lines_t>());
     host_buffers.host_number_of_lines = first<host_number_of_active_lines_t>(arguments);
     safe_assign_to_host_buffer<dev_selections_t>(host_buffers.host_selections, arguments, context);

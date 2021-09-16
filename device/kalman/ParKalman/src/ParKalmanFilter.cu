@@ -22,7 +22,7 @@ void kalman_filter::kalman_filter_t::operator()(
   global_function(kalman_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
 
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
   }
 }

@@ -16,7 +16,7 @@ if [ ! -z ${GEOMETRY+x} ]; then
   RUN_OPTIONS="$RUN_OPTIONS -g ../input/detector_configuration/${GEOMETRY}"
 fi
 
-RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf ${RUN_OPTIONS}"
+RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} ${RUN_OPTIONS}"
 
 set -euxo pipefail
 OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}/${DEVICE_ID}"
@@ -53,11 +53,11 @@ if [ "${PROFILE_DEVICE}" = "${DEVICE_ID}" ]; then
   {
   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ncu --print-summary per-kernel --target-processes all -o allen_report ./Allen ${RUN_PROFILER_OPTIONS}
   } || true
-  
+
   ncu -i allen_report.ncu-rep --csv > allen_report.csv
   python3 ${TOPLEVEL}/scripts/parse_ncu_output.py --input_filename=allen_report.csv --output_filename=allen_report_custom_metric.csv
   python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f allen_report_custom_metric.csv -d ${OUTPUT_FOLDER}
-  
+
   mv allen_report.csv ${OUTPUT_FOLDER}
   mv allen_report_custom_metric.csv ${OUTPUT_FOLDER}
   mv allen_report.ncu-rep ${OUTPUT_FOLDER}

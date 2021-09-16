@@ -28,7 +28,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, context);
     assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, context);
     assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, context);

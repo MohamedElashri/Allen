@@ -12,6 +12,7 @@
 
 #include "RunAllen.h"
 #include "ROOTService.h"
+#include <StreamLoader.h>
 
 DECLARE_COMPONENT(RunAllen)
 
@@ -101,34 +102,9 @@ StatusCode RunAllen::initialize()
 
   // Initialize stream
   const bool print_memory_usage = false;
-  const unsigned start_event_offset = 0;
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
   const unsigned required_memory_alignment =
     64; // 64 bytes is equivalent to 512-bit alignment (currently widest vectors)
-
-  m_stream_wrapper.reset(new StreamWrapper());
-  m_stream_wrapper->initialize_streams(
-    m_number_of_streams,
-    print_memory_usage,
-    start_event_offset,
-    reserve_mb,
-    reserve_mb, // host memory same as "device"
-    required_memory_alignment,
-    m_constants,
-    configuration_reader.params());
-
-  // Initialize host buffers (where Allen output is stored)
-  m_host_buffers_manager.reset(
-    new HostBuffersManager(m_n_buffers, 2, m_line_names.size(), m_do_check, m_stream_wrapper->errorevent_line));
-  m_stream_wrapper->initialize_streams_host_buffers_manager(m_host_buffers_manager.get());
-
-  // Initialize input provider
-  const size_t number_of_slices = 1;
-  const size_t events_per_slice = 1;
-  const size_t n_events = 1;
-  m_tes_input_provider.reset(
-    new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
-      number_of_slices, events_per_slice, n_events));
 
   // Get HLT1 selection names from configuration and initialize rate counters
   auto selection_params = configuration_reader.params("gather_selections");
@@ -152,6 +128,43 @@ StatusCode RunAllen::initialize()
     }
     debug() << endmsg;
   }
+
+  // find the name of the error event line
+  auto it = std::find_if(m_line_names.begin(), m_line_names.end(), [](std::string_view line_name) {
+    return line_name.find("ErrorEvent") != std::string::npos;
+  });
+  auto const error_line = std::distance(m_line_names.begin(), it);
+
+  // Load the algorithm sequence factory
+  bool validation_sequence = false;
+  std::tie(m_stream_factory, validation_sequence) = Allen::load_stream(m_sequence.value());
+  if (!m_stream_factory) {
+    error() << "Failed to load sequence " << m_sequence.value() << endmsg;
+    return StatusCode::FAILURE;
+  }
+  else if (validation_sequence) {
+    error() << "A validation sequence cannot be used with the RunAllen wrapper." << endmsg;
+    return StatusCode::FAILURE;
+  }
+  else {
+    info() << "Loaded sequence: " << m_sequence.value() << endmsg;
+  }
+
+  // Initialize host buffers (where Allen output is stored)
+  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_line_names.size(), m_do_check, error_line));
+
+  // Instantiate the sequence
+  m_stream = (*m_stream_factory)(
+    print_memory_usage, reserve_mb, reserve_mb, required_memory_alignment, m_constants, m_host_buffers_manager.get());
+  m_stream->configure_algorithms(configuration_reader.params());
+
+  // Initialize input provider
+  const size_t number_of_slices = 1;
+  const size_t events_per_slice = 1;
+  const size_t n_events = 1;
+  m_tes_input_provider.reset(
+    new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
+      number_of_slices, events_per_slice, n_events));
 
   m_hlt1_line_rates.reserve(m_line_names.size());
   for (unsigned i = 0; i < m_line_names.size(); ++i) {
@@ -195,8 +208,7 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
                                   root_service.get()};
 
   const unsigned buf_idx = m_n_buffers - 1;
-  const unsigned stream_index = m_number_of_streams - 1;
-  Allen::error cuda_rv = m_stream_wrapper->run_stream(stream_index, buf_idx, runtime_options);
+  Allen::error cuda_rv = m_stream->run(buf_idx, runtime_options);
   if (cuda_rv != Allen::error::success) {
     error() << "Allen exited with errorCode " << rv << endmsg;
     // how to exit a filter with failure?
