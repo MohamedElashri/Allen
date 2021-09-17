@@ -186,25 +186,30 @@ $> ./build.${CMTCONFIG}/run bindings/Allen.py
 How to run the standalone project
 -------------
 
-Some binary input files are included with the project for testing.
+Some MDF input files are included with the project for testing:
+* `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI TestFile DB entry. Includes raw banks with MC information.
+* `input/minbias/mdf/upgrade_mc_minbias_scifi_v5_000.mdf`: Minbias sample produced from production of the SciFi group. Does not include raw banks with MC information, but is the sample used for benchmark throughput measurements since early Allen days.
+* `input/minbias/mdf/upgrade_mc_minbias_scifi_v5_000.mep`: Contains the same raw banks as the previous sample, but in MEP layout.
+
 A run of the program with the help option `-h` will let you know the basic options:
 
     Usage: ./Allen
-    -f, --folder {folder containing data directories}=../input/minbias/
     -g, --geometry {folder containing detector configuration}=../input/detector_configuration/down/
+    --params {folder containing parameters that do not change with the geometry}=../input/parameters/
     --mdf {comma-separated list of MDF files to use as input}
     --mep {comma-separated list of MEP files to use as input}
     --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)
     --configuration {path to json file containing values of configurable algorithm constants}
     --print-status {show status of buffer and socket}=0
-    --print-config {show current algorithm configuration}=0
+     --print-config {show current algorithm configuration}=0
     --write-configuration {write current algorithm configuration to file}=0
     -n, --number-of-events {number of events to process}=0 (all)
     -s, --number-of-slices {number of input slices to allocate}=0 (one more than the number of threads)
     --events-per-slice {number of events per slice}=1000
     -t, --threads {number of threads / streams}=1
     -r, --repetitions {number of repetitions per thread / stream}=1
-    -m, --memory {memory to reserve per thread / stream (megabytes)}=1024
+    -m, --memory {memory to reserve on the device per thread / stream (megabytes)}=1000
+    --host-memory {memory to reserve on the host per thread / stream (megabytes)}=200
     -v, --verbosity {verbosity [0-5]}=3 (info)
     -p, --print-memory {print memory usage}=0
      --sequence {sequence to run}=hlt1_pp_default
@@ -215,31 +220,26 @@ A run of the program with the help option `-h` will let you know the basic optio
     --with-mpi {Read events with MPI}
     --mpi-window-size {Size of MPI sliding window}=4
     --mpi-number-of-slices {Number of MPI network slices}=6
+    --inject-mem-fail {Whether to insert random memory failures (0: off 1-15: rate of 1 in 2^N)}=0
+    --monitoring-filename {ROOT file to write monitoring histograms to}=monitoringHists.root
+    --monitoring-save-period {Number of seconds between writes of the monitoring histograms (0: off)}=0
+    --disable-run-changes {Ignore signals to update non-event data with each run change}=1
     -h {show this help}
 
-Here are some example run options:
+Here are some examples for run options:
 
-    # Run all input files shipped with Allen once
-    ./Allen
+    # Run on an MDF input file shipped with Allen once
+    ./Allen --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf
 
-    # Run a validation sequence over the files shipped with Allen
-    ./Allen --sequence hlt1_pp_validation
-
-    # Specify input files, run once over all of them
-    ./Allen -f ../input/minbias/
-
-    # Run a total of 1000 events once without tracking validation. If
-    fewer than 1000 events are available, all available events wil be run.
-    ./Allen -n 1000
+    # Run a total of 1000 events once. If less than 1000 events are
+    # provided, the existing ones will be reused in round-robin.
+    ./Allen -n 1000 --mdf /path/to/mdf/input/file
 
     # Run four streams, each with 4000 events and 20 repetitions
-    ./Allen -t 4 -n 4000 -r 20
+    ./Allen -t 4 -n 4000 -r 20 --mdf /path/to/mdf/input/file
 
     # Run one stream with 5000 events and print all memory allocations
-    ./Allen -n 5000 -p 1
-
-    # Default throughput test configuration
-    ./Allen -t 16 -n 500 -m 500 -r 1000
+    ./Allen -n 5000 -p 1 --mdf /path/to/mdf/input/file
 
 Where to develop for GPUs
 -------------------------
@@ -259,13 +259,14 @@ The results of the tests are published in this [mattermost channel](https://matt
 For local throughput measurements, we recommend the following settings in Allen standalone mode:
 
 ```console
-./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16
+./Allen --mdf /scratch/allen_data/mdf_input/upgrade_mc_minbias_scifi_v5_000.mdf  -n 500 -m 500 -r 1000 -t 16
 ```
+Note that the file `upgrade_mc_minbias_scifi_v5_000.mdf` does not contain MC information, so it cannot be used with the `hlt1_pp_validation` sequence. For other input files, please see [here](#where-to-find-input) and [here](#how-to-run-the-standalone-project).
 
 Calling Allen with the Nvidia profiler will give information on how much time is spent on which kernel call (note that a slowdown in throughput of around 7% is observed on the master branch when running nvprof, possibly due to the additional data being copied to and from the device):
 
 ```console
-nvprof ./Allen -f /scratch/allen_data/minbias_mag_down -n 500 -m 500 -r 1000 -t 16
+nvprof ./Allen --mdf /scratch/allen_data/mdf_input/upgrade_mc_minbias_scifi_v5_000.mdf  -n 500 -m 500 -r 1000 -t 16
 ```
 
 ### Links to more readmes
@@ -277,6 +278,7 @@ The following readmes explain various aspects of Allen:
 * [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore.
 * [Building and running inside Docker](readme_docker.md).
 * [Documentation on how to create contracts](doc/contracts.md).
+* [Produce MDF input files for standalone Allen](Dumpers/readme.md)
 
 ### Mattermost discussion channels
 
