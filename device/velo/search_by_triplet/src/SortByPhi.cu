@@ -115,7 +115,7 @@ __device__ void velo_sort_by_phi::calculate_permutation(
       
 //       printf("gx %f, gy %f, gz %f, phi %f, id %ld\n", velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index), velo_cluster_container.z(hit_index), velo_cluster_container.phi(hit_index), velo_cluster_container.id(hit_index));
       
-      std::cout << "gx " << velo_cluster_container.x(hit_index) << " gy " << velo_cluster_container.y(hit_index) << " gz " << velo_cluster_container.z(hit_index) << " phi " << velo_cluster_container.phi(hit_index) << " id " << velo_cluster_container.id(hit_index) << "\n";
+      std::cout << "gx " << velo_cluster_container.x(hit_index) << " gy " << velo_cluster_container.y(hit_index) << " gz " << velo_cluster_container.z(hit_index) << " phi " << velo_cluster_container.phi(hit_index) << " id " << velo_cluster_container.id(hit_index) << " index " << hit_index << "\n";
 
       // Find out local position
       unsigned position = 0;

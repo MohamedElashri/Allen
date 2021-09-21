@@ -8,12 +8,12 @@
 __device__ void put_retinaclusters_into_container(
   Velo::Clusters velo_cluster_container,
   VeloGeometry const& g,
-  uint const cluster_start,
+  unsigned const cluster_start,
   Velo::VeloRawBank const& raw_bank)
 {
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
-  for (uint rc_index = threadIdx.x; rc_index < raw_bank.count; rc_index += blockDim.x) {
+  for (unsigned rc_index = threadIdx.x; rc_index < raw_bank.count; rc_index += blockDim.x) {
     // Decode cluster
     const uint32_t word = raw_bank.word[rc_index];
 
@@ -29,7 +29,7 @@ __device__ void put_retinaclusters_into_container(
     const float gx = ( ltg[0] * local_x + ltg[1] * local_y + ltg[9] );
     const float gy = ( ltg[3] * local_x + ltg[4] * local_y + ltg[10] );
     const float gz = ( ltg[6] * local_x + ltg[7] * local_y + ltg[11] );
-    const uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+    const unsigned cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
 
     velo_cluster_container.set_id(cluster_start + rc_index, get_lhcb_id(cid));
     velo_cluster_container.set_x(cluster_start + rc_index, gx);
@@ -39,7 +39,7 @@ __device__ void put_retinaclusters_into_container(
     
 //     printf("Sensor %d, word %d, local_x %f, local_y %f, gx %f, gy %f, phi %f, cid %d, lhcb_id %ld\n", raw_bank.sensor_index, word, local_x, local_y, gx, gy, hit_phi_16(gx, gy), cid, get_lhcb_id(cid));
     
-    std::cout << "Sensor " << raw_bank.sensor_index << " word " << word << " local_x " << local_x << " local_y " << local_y << " gx " << gx << " gy " << gy << " phi " << hit_phi_16(gx, gy) << " cid " << cid << " lhcb_id " << get_lhcb_id(cid) << "\n";
+    std::cout << "Sensor " << raw_bank.sensor_index << " word " << word << " local_x " << local_x << " local_y " << local_y << " gx " << gx << " gy " << gy << " phi " << hit_phi_16(gx, gy) << " cid " << cid << " lhcb_id " << get_lhcb_id(cid) << " index " << cluster_start + rc_index << "gx read from container " << velo_cluster_container.x(cluster_start + rc_index) << "\n";
     
   }
 }
@@ -49,26 +49,28 @@ __global__ void decode_retinaclusters_kernel(decode_retinaclusters::Parameters p
   const VeloGeometry* dev_velo_geometry)
 {
   
-  const uint number_of_events = parameters.dev_number_of_events[0];
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned event_number = blockIdx.x;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
   
-  const uint* sensor_cluster_start =
+  const unsigned* sensor_cluster_start =
     parameters.dev_offsets_each_sensor_size + selected_event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
     
-  uint* module_pair_cluster_num = parameters.dev_module_pair_cluster_num + selected_event_number * Velo::Constants::n_module_pairs;
+  unsigned* module_pair_cluster_num = parameters.dev_module_pair_cluster_num + selected_event_number * Velo::Constants::n_module_pairs;
   
-  uint* offsets_pair_module_size = parameters.dev_offsets_module_pair_cluster + 1 + selected_event_number * Velo::Constants::n_module_pairs;
+  unsigned* offsets_pair_module_size = parameters.dev_offsets_module_pair_cluster + 1 + selected_event_number * Velo::Constants::n_module_pairs;
   
-  uint* first_number_of_dev_offsets_module_pair_cluster = parameters.dev_offsets_module_pair_cluster;
+  unsigned* first_number_of_dev_offsets_module_pair_cluster = parameters.dev_offsets_module_pair_cluster;
   first_number_of_dev_offsets_module_pair_cluster[0] = 0;
 
-  const uint* offsets_each_sensor_size = parameters.dev_offsets_each_sensor_size + selected_event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
+  const unsigned* offsets_each_sensor_size = parameters.dev_offsets_each_sensor_size + selected_event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
   
   // Local pointers to parameters.dev_velo_cluster_container
-  const uint estimated_number_of_clusters =
-    parameters.dev_offsets_each_sensor_size[Velo::Constants::n_module_pairs * number_of_events];
+  const unsigned estimated_number_of_clusters =
+    parameters.dev_offsets_each_sensor_size[Velo::Constants::n_module_pairs * number_of_events * 8];
+    
   auto velo_cluster_container = Velo::Clusters {parameters.dev_velo_cluster_container, estimated_number_of_clusters};
+  
   parameters.dev_velo_clusters[selected_event_number] = velo_cluster_container;
 
 
@@ -91,7 +93,7 @@ __global__ void decode_retinaclusters_kernel(decode_retinaclusters::Parameters p
     const auto offsets_sensor_behind = (module_pair_number + 1) * 8;
     const auto offsets_sensor_in_front = module_pair_number * 8;
     
-    const uint cluster_start = sensor_cluster_start[raw_bank_number];
+    const unsigned cluster_start = sensor_cluster_start[raw_bank_number];
     
     offsets_pair_module_size[module_pair_number] = offsets_each_sensor_size[offsets_sensor_behind];
     

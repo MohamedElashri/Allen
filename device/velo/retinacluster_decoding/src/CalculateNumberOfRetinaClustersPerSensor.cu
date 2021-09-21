@@ -8,8 +8,8 @@ template<bool mep_layout>
 __global__ void calculate_number_of_retinaclusters_each_sensor_kernel(calculate_number_of_retinaclusters_each_sensor::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const uint selected_event_number = parameters.dev_event_list[event_number];
-  uint* each_sensor_size = parameters.dev_each_sensor_size + selected_event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
+  const unsigned selected_event_number = parameters.dev_event_list[event_number];
+  unsigned* each_sensor_size = parameters.dev_each_sensor_size + selected_event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
 
   // Read raw event  
   const auto velo_raw_event =
