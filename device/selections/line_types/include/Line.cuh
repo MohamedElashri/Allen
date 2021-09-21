@@ -214,7 +214,7 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
 
   if (threadIdx.x == 0 && event_decision) {
     const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
-    parameters.dev_selected_events[index] = mask_t{event_number};
+    parameters.dev_selected_events[index] = mask_t {event_number};
   }
 }
 
@@ -255,7 +255,7 @@ __global__ void process_line_iterate_events(
 
     if (decision) {
       const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
-      parameters.dev_selected_events[index] = mask_t{event_number};
+      parameters.dev_selected_events[index] = mask_t {event_number};
     }
   }
 
@@ -330,8 +330,10 @@ void Line<Derived, Parameters>::operator()(
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
     arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
 
-  Allen::copy<typename Parameters::host_selected_events_size_t, typename Parameters::dev_selected_events_size_t>(arguments, context);
-  reduce_size<typename Parameters::dev_selected_events_t>(arguments, first<typename Parameters::host_selected_events_size_t>(arguments));
+  Allen::copy<typename Parameters::host_selected_events_size_t, typename Parameters::dev_selected_events_size_t>(
+    arguments, context);
+  reduce_size<typename Parameters::dev_selected_events_t>(
+    arguments, first<typename Parameters::host_selected_events_size_t>(arguments));
 
   derived_instance->output_monitor(arguments, runtime_options, context);
 }

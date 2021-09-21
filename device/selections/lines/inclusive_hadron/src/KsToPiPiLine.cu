@@ -14,10 +14,8 @@ void kstopipi_line::kstopipi_line_t::set_arguments_size(
 {
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
 
-  set_size<dev_sv_masses_t>(
-    arguments, kstopipi_line::kstopipi_line_t::get_decisions_size(arguments));
-  set_size<host_sv_masses_t>(
-    arguments, kstopipi_line::kstopipi_line_t::get_decisions_size(arguments));
+  set_size<dev_sv_masses_t>(arguments, kstopipi_line::kstopipi_line_t::get_decisions_size(arguments));
+  set_size<host_sv_masses_t>(arguments, kstopipi_line::kstopipi_line_t::get_decisions_size(arguments));
 
   set_size<dev_pt_t>(arguments, kstopipi_line::kstopipi_line_t::get_decisions_size(arguments));
   set_size<host_pt_t>(arguments, kstopipi_line::kstopipi_line_t::get_decisions_size(arguments));
