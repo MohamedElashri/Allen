@@ -24,7 +24,7 @@ foreach(sequence ${BUILD_SEQUENCES})
   # Rationale: Stream.cpp alone requires GBs to compile and may result otherwise in killing the build job.
   set_property(TARGET Stream_${sequence} PROPERTY JOB_POOL_COMPILE sequence_job)
 
-  target_include_directories(Stream_${sequence} PRIVATE "${PROJECT_BINARY_DIR}/sequences/${sequence}")
+  target_include_directories(Stream_${sequence} PRIVATE "${PROJECT_BINARY_DIR}/code_generation/sequences/${sequence}/include")
   target_link_libraries(Stream_${sequence} PRIVATE
     StreamUtils
     Associate
@@ -64,6 +64,6 @@ foreach(sequence ${BUILD_SEQUENCES})
     )
   endif()
 
-  add_custom_target(configured_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/code_generation/configuration/sequences/ConfiguredSequence.h")
+  add_custom_target(configured_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/code_generation/sequences/${sequence}/include/ConfiguredSequence.h")
   add_dependencies(Stream_${sequence} configured_${sequence})
 endforeach()

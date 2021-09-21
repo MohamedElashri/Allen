@@ -26,7 +26,7 @@ void global_decision::global_decision_t::operator()(
 
   global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
 
-  if (runtime_options.do_check)
+  if (runtime_options.fill_extra_host_buffers)
     assign_to_host_buffer<dev_global_decision_t>(host_buffers.host_passing_event_list, arguments, context);
 }
 

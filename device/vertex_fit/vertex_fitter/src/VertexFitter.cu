@@ -22,7 +22,7 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  if (runtime_options.do_check) {
+  if (runtime_options.fill_extra_host_buffers) {
     safe_assign_to_host_buffer<dev_consolidated_svs_t>(
       host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, context);
 

@@ -52,6 +52,7 @@ endif()
 message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
 
 # Parse Allen algorithms
+# TODO: Parsing should depend on ALL algorithm headers and ALL algorithm sources
 add_custom_command(
   OUTPUT "${PARSED_ALGORITHMS_OUTPUTFILE}"
   COMMAND
@@ -67,6 +68,17 @@ add_custom_command(
     ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate views --filename "${ALGORITHMS_OUTPUTFILE}" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+
+# Copy Allen build directories
+add_custom_command(
+  OUTPUT "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}"
+  COMMENT "Copying sequence definitions and configuration utilities"
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
+    ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}"
+  DEPENDS "${CMAKE_SOURCE_DIR}/configuration/python/AllenConf" "${CMAKE_SOURCE_DIR}/configuration/AllenCore")
+
+add_custom_target(copy_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
 if(NOT STANDALONE)
   # We need to get the list of algorithms at configuration time in order to
@@ -103,57 +115,27 @@ else()
 endif()
 
 function(generate_sequence sequence)
-  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
-  set(generate_dir ${PROJECT_SEQUENCE_DIR}/generate_${sequence})
+  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence}/include)
   file(MAKE_DIRECTORY ${sequence_dir})
-  file(MAKE_DIRECTORY ${generate_dir})
 
   if(NOT STANDALONE)
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/include/ConfiguredSequence.h"
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
       COMMAND
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
-        ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" -a PYTHONPATH=${PROJECT_SEQUENCE_DIR} "${Python3_EXECUTABLE}" "${sequence}.py" &&
-        ${CMAKE_COMMAND} -E rename "Sequence.h" "${sequence_dir}/include/ConfiguredSequence.h" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" -a PYTHONPATH=${PROJECT_SEQUENCE_DIR} "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
+        ${CMAKE_COMMAND} -E rename "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E rename "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}"
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" copy_conf_core
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
-
-    # add_custom_command(
-    #   OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
-    #   COMMAND
-    #     ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${generate_dir}" &&
-    #     ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" -a PYTHONPATH=${PROJECT_SEQUENCE_DIR} "${Python3_EXECUTABLE}" "${sequence}.py" &&
-    #     ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
-    #     ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-    #   DEPENDS gen_algorithms
-    #   COMMENT "Generating headers and configuration: ${sequence}."
-    #   WORKING_DIRECTORY ${generate_dir})
   else()
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/include/ConfiguredSequence.h"
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
       COMMAND
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
-        ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}" &&
-        ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${PROJECT_SEQUENCE_DIR}" &&
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${Python3_EXECUTABLE}" "${sequence}.py" &&
-        ${CMAKE_COMMAND} -E rename "Sequence.h" "${CODE_GENERATION_DIR}/include/ConfiguredSequence.h" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
+        ${CMAKE_COMMAND} -E rename "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E rename "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${PROJECT_SEQUENCE_DIR}/PyConf" "${ALGORITHMS_OUTPUTFILE}"
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${PROJECT_SEQUENCE_DIR}/PyConf" "${ALGORITHMS_OUTPUTFILE}" copy_conf_core
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
-
-    # add_custom_command(
-    #   OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
-    #   COMMAND
-    #     ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${generate_dir}" &&
-    #     ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${sequence}.py" &&
-    #     ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
-    #     ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-    #   DEPENDS gen_algorithms checkout_gaudi_dirs
-    #   COMMENT "Generating headers and configuration: ${sequence}."
-    #   WORKING_DIRECTORY ${generate_dir})
   endif()
 
   install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
