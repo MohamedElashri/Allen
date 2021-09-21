@@ -48,7 +48,7 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
                                     velo_container_view.id(hit_index) > previous_hit_id);
             }
             previous_hit_phi = velo_container_view.phi(hit_index);
-            previous_hit_phi = velo_container_view.id(hit_index);
+            previous_hit_id = velo_container_view.id(hit_index);
 
             x_greater_than_min_value &= velo_container_view.x(hit_index) > velo_cluster_min_x;
             x_lower_than_max_value &= velo_container_view.x(hit_index) < velo_cluster_max_x;
