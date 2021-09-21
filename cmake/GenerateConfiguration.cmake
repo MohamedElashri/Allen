@@ -2,8 +2,6 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 
-include_guard(GLOBAL)
-
 # Deal with configuration generation machinery
 # * If clang is available, we can and will generate the configuration files
 # * Otherwise, fail and message that it is not possible to generate configurations
@@ -15,6 +13,9 @@ set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
 set(PARSED_ALGORITHMS_OUTPUTFILE ${CODE_GENERATION_DIR}/parsed_algorithms.pickle)
 set(ALGORITHMS_GENERATION_SCRIPT ${ALLEN_PARSER_DIR}/ParseAlgorithms.py)
+
+include_guard(GLOBAL)
+
 file(MAKE_DIRECTORY ${CODE_GENERATION_DIR})
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
@@ -69,6 +70,8 @@ add_custom_command(
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
+add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
+
 # Copy Allen build directories
 add_custom_command(
   OUTPUT "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}"
@@ -122,19 +125,19 @@ function(generate_sequence sequence)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
       COMMAND
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" -a PYTHONPATH=${PROJECT_SEQUENCE_DIR} "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" -p "PYTHONPATH=${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
         ${CMAKE_COMMAND} -E rename "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E rename "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" copy_conf_core
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   else()
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
       COMMAND
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
+        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
         ${CMAKE_COMMAND} -E rename "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E rename "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" "${PROJECT_SEQUENCE_DIR}/PyConf" "${ALGORITHMS_OUTPUTFILE}" copy_conf_core
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core checkout_gaudi_dirs
       WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
   endif()
 

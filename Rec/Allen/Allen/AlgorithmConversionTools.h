@@ -84,24 +84,6 @@ namespace Allen {
 } // namespace Allen
 
 // Parsers are in namespace LHCb for ADL to work.
-inline StatusCode parse(DeviceDimensions& result, const std::string& in)
-{
-  std::array<unsigned, 3> dims;
-  using Gaudi::Parsers::parse;
-  auto sc = parse(dims, in);
-  if (!sc) return sc;
-
-  result = DeviceDimensions {dims};
-  return StatusCode::SUCCESS;
-}
-
-inline std::ostream& toStream(const DeviceDimensions& dim, std::ostream& s)
-{
-  std::array<unsigned, 3> a {dim.x, dim.y, dim.z};
-  using Gaudi::Utils::toStream;
-  return toStream(a, s);
-}
-
 inline StatusCode parse(BankTypes& result, const std::string& in)
 {
   // This takes care of quoting
