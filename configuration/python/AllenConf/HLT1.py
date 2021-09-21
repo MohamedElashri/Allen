@@ -226,7 +226,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["forward_tracks"],
-                secondary_vertices=reconstructed_objects["secondary_vertices"])
+                secondary_vertices=reconstructed_objects["secondary_vertices"]),
             make_global_decision(lines=line_algorithms),
             rate_validation(lines=line_algorithms)
         ],
