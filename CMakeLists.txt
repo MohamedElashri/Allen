@@ -66,10 +66,10 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # --------------------
 
 # Sequences to build, SEQUENCE argument overrides SEQUENCES for now
-set(SEQUENCES "hlt1_pp_(default|no_gec)\$" CACHE STRING "Sequences to build; \"all\" builds all sequences")
+set(SEQUENCES "hlt1_pp_(default|no_gec)" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
 if (DEFINED SEQUENCE)
-  message(STATUS "The SEQUENCE argument is deprecated, please use SEQUENCES instead; note that SEQUENCES is a regex")
-  set(SEQUENCES "^${SEQUENCE}\$")
+  message(STATUS "The SEQUENCE argument is deprecated, please use SEQUENCES instead")
+  set(SEQUENCES "${SEQUENCE}")
 endif()
 
 # Configured CPU architecture
@@ -606,7 +606,7 @@ file(GLOB available_sequences "configuration/sequences/*.py")
 set(BUILD_SEQUENCES "")
 foreach(sequence_filename ${available_sequences})
   get_filename_component(sequence ${sequence_filename} NAME_WE)
-  string(REGEX MATCH "${SEQUENCES}" sequence_matches ${sequence})
+  string(REGEX MATCH "^${SEQUENCES}\$" sequence_matches ${sequence})
   if (sequence_matches OR "${SEQUENCES}" STREQUAL "all")
     list(APPEND BUILD_SEQUENCES ${sequence})
   endif()

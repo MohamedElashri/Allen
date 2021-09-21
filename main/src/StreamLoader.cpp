@@ -39,7 +39,14 @@ std::tuple<Allen::StreamFactory, bool> Allen::load_stream(std::string const& seq
   for (std::string_view d : {"sequences", ""}) {
     stream_path = lib_path;
     if (!d.empty()) stream_path /= d;
-    stream_path /= fs::path {std::string {"libStream_"} + sequence + ".so"};
+
+#ifdef __APPLE__
+    const auto dynlib_extension = "dylib";
+#else
+    const auto dynlib_extension = "so";
+#endif
+
+    stream_path /= fs::path {std::string {"libStream_"} + sequence + "." + dynlib_extension};
     debug_cout << "Looking for stream library " << stream_path.string() << "\n";
     if (fs::exists(stream_path)) break;
   }
