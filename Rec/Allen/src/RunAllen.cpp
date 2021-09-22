@@ -90,6 +90,17 @@ StatusCode RunAllen::initialize()
     two_track_catboost_model_reader->split_border(),
     two_track_catboost_model_reader->split_feature());
 
+  std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader =
+    std::make_unique<TwoTrackMVAModelReader>(params_path + "/two_track_mva_model.json");
+  m_constants.initialize_two_track_mva_model_constants(
+    two_track_mva_model_reader->weights(),
+    two_track_mva_model_reader->biases(),
+    two_track_mva_model_reader->layer_sizes(),
+    two_track_mva_model_reader->n_layers(),
+    two_track_mva_model_reader->monotone_constraints(),
+    two_track_mva_model_reader->nominal_cut(),
+    two_track_mva_model_reader->lambda());
+
   // Allen Consumers
   register_consumers(updater, m_constants);
 

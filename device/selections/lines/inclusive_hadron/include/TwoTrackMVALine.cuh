@@ -4,13 +4,15 @@
 #pragma once
 
 #include "SelectionAlgorithm.cuh"
-#include "TwoTrackLine.cuh"
+#include "Line.cuh"
+#include "VertexDefinitions.cuh"
 
 namespace two_track_mva_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+    DEVICE_INPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
@@ -23,37 +25,50 @@ namespace two_track_mva_line {
     HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(minMCor_t, "minMCor", "minMCor description", float) minMCor;
-    PROPERTY(minEta_t, "minEta", "minEta description", float) minEta;
-    PROPERTY(maxEta_t, "maxEta", "maxEta description", float) maxEta;
-    PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
-    PROPERTY(maxNTrksAssoc_t, "maxNTrksAssoc", "maxNTrksAssoc description", int)
-    maxNTrksAssoc; // Placeholder. To be replaced with MVA selection.
-    PROPERTY(minFDChi2_t, "minFDChi2", "minFDChi2 description", float)
-    minFDChi2; // Placeholder. To be replaced with MVA selection.
-    PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float) minTrackIPChi2;
+    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
+    pre_scaler_hash_string;
+    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
+    post_scaler_hash_string;
+
+    PROPERTY(minMVA_t, "minMVA", "Minimum passing MVA response.", float) minMVA;
+    PROPERTY(minPt_t, "minPt", "Minimum track pT in MeV.", float) minPt;
+    PROPERTY(minSVpt_t, "minSVpt", "Minimum SV pT in MeV.", float) minSVpt;
+    PROPERTY(minEta_t, "minEta", "Minimum PV-SV eta.", float) minEta;
+    PROPERTY(maxEta_t, "maxEta", "Maximum PV-SV eta.", float) maxEta;
+    PROPERTY(minMcor_t, "minMcor", "Minimum corrected mass in MeV", float) minMcor;
+    PROPERTY(maxSVchi2_t, "maxSVchi2", "Maximum SV chi2", float) maxSVchi2;
+    PROPERTY(maxDOCA_t, "maxDOCA", "Maximum DOCA between two tracks", float) maxDOCA;
   };
 
-  struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
+  struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, Line<two_track_mva_line_t, Parameters> {
+
+    constexpr static auto lhcbid_container = LHCbIDContainer::sv;
+
+    __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
+
+    static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
+
+    __device__ static std::tuple<const VertexFit::TrackMVAVertex&, const float>
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+
+    __device__ static bool select(
+      const Parameters& parameters,
+      std::tuple<const VertexFit::TrackMVAVertex&, const float> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::MeV};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
-    Property<minMCor_t> m_minMCor {this, 1000.0f / Gaudi::Units::MeV};
-    Property<minEta_t> m_minEta {this, 2.0f};
-    Property<maxEta_t> m_maxEta {this, 5.0f};
-    Property<minTrackPt_t> m_minTrackPt {this, 700.f / Gaudi::Units::MeV};
-    Property<maxNTrksAssoc_t> m_maxNTrksAssoc {this, 1};
-    Property<minFDChi2_t> m_minFDChi2 {this, 0.0f};
-    Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 12.f};
+
+    Property<minMVA_t> m_minMVA {this, 0.92385f};
+    Property<minPt_t> m_minPt {this, 200.f};
+    Property<minSVpt_t> m_minSVpt {this, 1000.f};
+    Property<minEta_t> m_minEta {this, 2.f};
+    Property<maxEta_t> m_maxEta {this, 5.f};
+    Property<minMcor_t> m_minMcor {this, 1000.f};
+    Property<maxSVchi2_t> m_maxSVchi2 {this, 20.f};
+    Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
   };
+
 } // namespace two_track_mva_line

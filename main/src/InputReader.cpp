@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #include <gsl/gsl>
 #include <InputReader.h>
+#include <boost/algorithm/string.hpp>
 
 namespace {
   using std::make_pair;
@@ -110,6 +111,68 @@ CatboostModelReader::CatboostModelReader(const std::string& file_name)
     m_split_border.insert(std::end(m_split_border), std::begin(tree_split_borders), std::end(tree_split_borders));
     m_split_feature.insert(std::end(m_split_feature), std::begin(tree_split_features), std::end(tree_split_features));
   }
+}
+
+TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
+{
+  if (!exists_test(file_name)) {
+    throw StrException("Two Track MVA model file " + file_name + " does not exist.");
+  }
+  std::ifstream i(file_name);
+  nlohmann::json j;
+  i >> j;
+
+  std::map<int, int> layer_sizes {};
+  std::map<int, std::vector<float>> biases {};
+  std::map<int, std::vector<float>> weights {};
+
+  layer_sizes[0] = 4; // input size hard coded
+  for (auto el = j.begin(); el != j.end(); ++el) {
+    // map is sorted
+    std::vector<std::string> tokens;
+    boost::split(tokens, el.key(), boost::is_any_of("."));
+    if (el.key().find("bias") != std::string::npos) {
+      int layer_n = std::stoi(tokens[tokens.size() - 2]) + 1;
+      layer_sizes[layer_n] = el.value().size();
+      biases[layer_n] = std::vector<float> {};
+      for (auto el_bias : el.value()) {
+        biases[layer_n].push_back(el_bias);
+      }
+    }
+    else if (el.key().find("weight") != std::string::npos) {
+      int layer_n = std::stoi(tokens[tokens.size() - 2]) + 1;
+      weights[layer_n] = std::vector<float> {};
+      for (auto weight_row : el.value()) {
+        for (auto weight_el : weight_row) {
+          weights[layer_n].push_back(weight_el);
+        }
+      }
+    }
+  }
+  for (auto el : layer_sizes) {
+    m_layer_sizes.push_back(el.second);
+  }
+
+  for (auto el : weights) {
+    for (auto el_w : el.second) {
+      m_weights.push_back(el_w);
+    }
+  }
+  for (auto el : biases) {
+    for (auto el_b : el.second) {
+      m_biases.push_back(el_b);
+    }
+  }
+
+  // hardcode monotone constraints for now
+  // monotone constraints define in which features we want to be monotonic:
+  // 0 -> -lambda <= df/dx <= lambda
+  // 1 -> 0 <= df/dx <= 2*lambda
+  // -1 -> -2*lambda <= df/dx <= 0
+  m_monotone_constraints = std::vector<float> {1, 1, 0, 1};
+  m_lambda = j["sigmanet.sigma"][0];
+  m_nominal_cut = j["nominal_cut"];
+  m_n_layers = m_layer_sizes.size();
 }
 
 ConfigurationReader::ConfigurationReader(const std::string& file_name)

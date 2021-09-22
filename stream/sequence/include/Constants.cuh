@@ -120,6 +120,15 @@ struct Constants {
   float* dev_two_track_catboost_leaf_values = nullptr;
   int* dev_two_track_catboost_leaf_offsets = nullptr;
 
+  // Two track mva constants
+  float* dev_two_track_mva_weights = nullptr;
+  float* dev_two_track_mva_biases = nullptr;
+  int* dev_two_track_mva_layer_sizes = nullptr;
+  int dev_two_track_mva_n_layers = 0;
+  float* dev_two_track_mva_monotone_constraints = nullptr;
+  float dev_two_track_mva_lambda = 0;
+  float dev_two_track_mva_nominal_cut = 0;
+
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
 
   // Kalman filter
@@ -170,4 +179,13 @@ struct Constants {
     const std::vector<int>& leaf_offsets,
     const std::vector<float>& split_borders,
     const std::vector<int>& split_features);
+
+  void initialize_two_track_mva_model_constants(
+    const std::vector<float>& weights,
+    const std::vector<float>& biases,
+    const std::vector<int>& layer_sizes,
+    const int n_layers,
+    const std::vector<float>& monotone_constraints,
+    float nominal_cut,
+    float lambda);
 };
