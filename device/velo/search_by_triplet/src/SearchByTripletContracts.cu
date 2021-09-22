@@ -73,22 +73,32 @@ void velo_search_by_triplet::track_container_checks::operator()(
   const Constants&,
   const Allen::Context&) const
 {
-  const auto velo_tracks_container = make_vector<Parameters::dev_tracks_t>(arguments);
+  const auto trackhits = make_vector<Parameters::dev_tracks_t>(arguments);
+  const auto number_of_velo_tracks = make_vector<Parameters::dev_number_of_velo_tracks_t>(arguments);
+  const auto offsets_estimated_input_size = make_vector<Parameters::dev_offsets_estimated_input_size_t>(arguments);
 
-  auto maximum_number_of_hits = true;
-  auto no_repeated_hits = true;
+  bool maximum_number_of_hits = true;
+  bool no_repeated_hits = true;
 
-  for (const auto& track : velo_tracks_container) {
-    maximum_number_of_hits &= track.hitsNum <= Velo::Constants::max_track_size;
+  for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
+    const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
 
-    // Check repeated hits in the hits of the track
-    std::vector<uint16_t> hits(track.hitsNum);
-    for (unsigned i = 0; i < track.hitsNum; ++i) {
-      hits[i] = track.hits[i];
+    const auto track_offset = Velo::track_offset(offsets_estimated_input_size.data(), event_number);
+    for (unsigned i = 0; i < event_number_of_velo_tracks; ++i) {
+      const auto track = trackhits[track_offset + i];
+      for (unsigned j = 0; j < track.hitsNum; ++j) {
+        maximum_number_of_hits &= track.hitsNum <= Velo::Constants::max_track_size;
+      }
+
+      // Check repeated hits in the hits of the track
+      std::vector<uint16_t> hits(track.hitsNum);
+      for (unsigned i = 0; i < track.hitsNum; ++i) {
+        hits[i] = track.hits[i];
+      }
+      std::sort(hits.begin(), hits.end());
+      auto it = std::adjacent_find(hits.begin(), hits.end());
+      no_repeated_hits &= it == hits.end();
     }
-    std::sort(hits.begin(), hits.end());
-    auto it = std::adjacent_find(hits.begin(), hits.end());
-    no_repeated_hits &= it == hits.end();
   }
 
   require(maximum_number_of_hits, "Require that all VELO tracks have a maximum number of hits");
