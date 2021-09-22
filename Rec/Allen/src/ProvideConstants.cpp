@@ -106,6 +106,15 @@ StatusCode ProvideConstants::initialize()
     two_track_catboost_model_reader.leaf_offsets(),
     two_track_catboost_model_reader.split_border(),
     two_track_catboost_model_reader.split_feature());
+  TwoTrackMVAModelReader two_track_mva_model_reader {geometry_path + "/two_track_mva_model.json"};
+  constants.initialize_two_track_mva_model_constants(
+    two_track_mva_model_reader.weights(),
+    two_track_mva_model_reader.biases(),
+    two_track_mva_model_reader.layer_sizes(),
+    two_track_mva_model_reader.n_layers(),
+    two_track_mva_model_reader.monotone_constraints(),
+    two_track_mva_model_reader.nominal_cut(),
+    two_track_mva_model_reader.lambda());
 
   // Allen Consumers
   register_consumers(updater, m_constants);
