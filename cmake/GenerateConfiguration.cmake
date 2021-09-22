@@ -126,19 +126,19 @@ function(generate_sequence sequence)
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
       COMMAND
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" -p "PYTHONPATH=${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
-        ${CMAKE_COMMAND} -E rename "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
-        ${CMAKE_COMMAND} -E rename "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core
-      WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
+      WORKING_DIRECTORY ${sequence_dir})
   else()
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
       COMMAND
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
-        ${CMAKE_COMMAND} -E rename "Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
-        ${CMAKE_COMMAND} -E rename "Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core checkout_gaudi_dirs
-      WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
+      WORKING_DIRECTORY ${sequence_dir})
   endif()
 
   install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
