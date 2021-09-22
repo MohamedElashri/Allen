@@ -163,3 +163,32 @@ void Constants::initialize_two_track_catboost_model_constants(
     leaf_offsets.size() * sizeof(int),
     Allen::memcpyHostToDevice);
 }
+
+void Constants::initialize_two_track_mva_model_constants(
+  const std::vector<float>& weights,
+  const std::vector<float>& biases,
+  const std::vector<int>& layer_sizes,
+  const int n_layers,
+  const std::vector<float>& monotone_constraints,
+  float nominal_cut,
+  float lambda)
+{
+  dev_two_track_mva_nominal_cut = nominal_cut;
+  dev_two_track_mva_lambda = lambda;
+  dev_two_track_mva_n_layers = n_layers;
+
+  Allen::malloc((void**) &dev_two_track_mva_weights, weights.size() * sizeof(float));
+  Allen::malloc((void**) &dev_two_track_mva_biases, biases.size() * sizeof(float));
+  Allen::malloc((void**) &dev_two_track_mva_layer_sizes, layer_sizes.size() * sizeof(int));
+  Allen::malloc((void**) &dev_two_track_mva_monotone_constraints, monotone_constraints.size() * sizeof(float));
+
+  Allen::memcpy(dev_two_track_mva_weights, weights.data(), weights.size() * sizeof(float), Allen::memcpyHostToDevice);
+  Allen::memcpy(dev_two_track_mva_biases, biases.data(), biases.size() * sizeof(float), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_two_track_mva_layer_sizes, layer_sizes.data(), layer_sizes.size() * sizeof(int), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_two_track_mva_monotone_constraints,
+    monotone_constraints.data(),
+    monotone_constraints.size() * sizeof(float),
+    Allen::memcpyHostToDevice);
+}

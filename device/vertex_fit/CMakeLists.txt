@@ -4,6 +4,7 @@
 include_directories(vertex_fitter/include)
 include_directories(common/include)
 include_directories(two_track_catboost/include)
+include_directories(two_track_mva/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/event_model/SciFi/include)
@@ -31,10 +32,12 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
 file(GLOB two_track_catboost_src "two_track_catboost/src/*cu")
+file(GLOB two_track_mva_src "two_track_mva/src/*cu")
 
 allen_add_device_library(VertexFitter STATIC
   ${vertex_fitter_src}
   ${two_track_catboost_src}
+  ${two_track_mva_src}
 )
 
 target_link_libraries(VertexFitter Kalman)

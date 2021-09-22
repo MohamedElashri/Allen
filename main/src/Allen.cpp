@@ -80,7 +80,7 @@ int allen(
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
 {
-  // Folder containing detector configuration and catboost model
+  // Folder containing detector configuration and mva models
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string folder_parameters = "../input/parameters/";
   std::string json_constants_configuration_file;
@@ -305,6 +305,8 @@ int allen(
 
   std::unique_ptr<CatboostModelReader> two_track_catboost_model_reader;
 
+  std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
+
   std::unique_ptr<IInputProvider> input_provider;
 
   // Number of requested events as an optional
@@ -376,6 +378,9 @@ int allen(
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_parameters + "muon_catboost_model.json");
   two_track_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_parameters + "two_track_catboost_model_small.json");
+  // Two Track Model
+  two_track_mva_model_reader = std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "two_track_mva_model.json");
+
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(muon_field_of_interest_params, folder_parameters + "field_of_interest_params.bin");
 
@@ -390,6 +395,7 @@ int allen(
     muon_catboost_model_reader->leaf_offsets(),
     muon_catboost_model_reader->split_border(),
     muon_catboost_model_reader->split_feature());
+
   constants.initialize_two_track_catboost_model_constants(
     two_track_catboost_model_reader->n_trees(),
     two_track_catboost_model_reader->tree_depths(),
@@ -398,6 +404,15 @@ int allen(
     two_track_catboost_model_reader->leaf_offsets(),
     two_track_catboost_model_reader->split_border(),
     two_track_catboost_model_reader->split_feature());
+
+  constants.initialize_two_track_mva_model_constants(
+    two_track_mva_model_reader->weights(),
+    two_track_mva_model_reader->biases(),
+    two_track_mva_model_reader->layer_sizes(),
+    two_track_mva_model_reader->n_layers(),
+    two_track_mva_model_reader->monotone_constraints(),
+    two_track_mva_model_reader->nominal_cut(),
+    two_track_mva_model_reader->lambda());
 
   // Register all consumers
   register_consumers(updater, constants);
