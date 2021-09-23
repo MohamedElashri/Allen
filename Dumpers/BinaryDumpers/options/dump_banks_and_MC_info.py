@@ -85,7 +85,8 @@ def AddDumpers():
     dump_mc.MCOutputDirectory = output_file + "/MC_info/tracks"
     dump_pvmc = PVDumper("DumpPVMCInfo")
     dump_pvmc.OutputDirectory = output_file + "/MC_info/PVs"
-    dump_banks = DumpRawBanks(BankTypes=["VP", "VPRetinaCluster", "UT", "FTCluster", "Muon"])
+    dump_banks = DumpRawBanks(
+        BankTypes=["VP", "VPRetinaCluster", "UT", "FTCluster", "Muon"])
     dump_banks.OutputDirectory = output_file + "/banks"
     dump_muon_coords = DumpMuonCoords()
     dump_muon_coords.OutputDirectory = output_file + "/muon_coords"

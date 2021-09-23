@@ -34,7 +34,7 @@ void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
   global_function(velo_sort_by_phi)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-//   if (property<verbosity_t>() >= logger::debug) {  
+  if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO clusters after velo_sort_by_phi:\n";
     print_velo_clusters<
       dev_sorted_velo_cluster_container_t,
@@ -42,7 +42,7 @@ void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
       dev_module_cluster_num_t,
       host_total_number_of_velo_clusters_t,
       host_number_of_events_t>(arguments);
-//   }
+  }
 }
 
 /**
@@ -95,13 +95,7 @@ __device__ void velo_sort_by_phi::calculate_permutation(
   const Velo::Clusters& velo_cluster_container,
   unsigned* hit_permutations)
 {
-  
-  printf("VELO clusters before VELO sort by phi\n");
-  
   for (unsigned module_pair = threadIdx.x; module_pair < Velo::Constants::n_module_pairs; module_pair += blockDim.x) {
-    
-    std::cout << "Module pair " << module_pair << "\n";
-    
     const auto hit_start = module_pair_hit_start[module_pair];
     const auto hit_num = module_pair_hit_num[module_pair];
 
@@ -112,10 +106,6 @@ __device__ void velo_sort_by_phi::calculate_permutation(
     for (unsigned hit_rel_id = threadIdx.y; hit_rel_id < hit_num; hit_rel_id += blockDim.y) {
       const auto hit_index = hit_start + hit_rel_id;
       const auto phi = velo_cluster_container.phi(hit_index);
-      
-//       printf("gx %f, gy %f, gz %f, phi %f, id %ld\n", velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index), velo_cluster_container.z(hit_index), velo_cluster_container.phi(hit_index), velo_cluster_container.id(hit_index));
-      
-      std::cout << "gx " << velo_cluster_container.x(hit_index) << " gy " << velo_cluster_container.y(hit_index) << " gz " << velo_cluster_container.z(hit_index) << " phi " << velo_cluster_container.phi(hit_index) << " id " << velo_cluster_container.id(hit_index) << " index " << hit_index << "\n";
 
       // Find out local position
       unsigned position = 0;

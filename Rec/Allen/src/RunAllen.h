@@ -60,7 +60,6 @@ private:
 
   std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
-  std::unique_ptr<ROOTService> m_root_service;
 
   Gaudi::Property<std::string> m_sequence {this, "Sequence", "hlt1_pp_default"};
 

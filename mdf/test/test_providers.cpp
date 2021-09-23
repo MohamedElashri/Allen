@@ -35,7 +35,14 @@ namespace {
   Config s_config;
   MDFProviderConfig mdf_config {true, 2, 1};
 
-  unique_ptr<MDFProvider<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mdf;
+  unique_ptr<MDFProvider<
+    BankTypes::VP,
+    BankTypes::VPRetinaCluster,
+    BankTypes::UT,
+    BankTypes::FT,
+    BankTypes::MUON,
+    BankTypes::ODIN>>
+    mdf;
 
   size_t slice_mdf = 0;
   size_t filled_mdf = 0;
@@ -126,8 +133,13 @@ int main(int argc, char* argv[])
       }
     }
     // Allocate providers and get slices
-    mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
+    mdf = make_unique<MDFProvider<
+      BankTypes::VP,
+      BankTypes::VPRetinaCluster,
+      BankTypes::UT,
+      BankTypes::FT,
+      BankTypes::MUON,
+      BankTypes::ODIN>>(s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
 
     bool good = false, timed_out = false, done = false;
     uint runno = 0;
@@ -148,8 +160,13 @@ int main(int argc, char* argv[])
     auto size_fun = [pf](BankTypes) -> std::tuple<size_t, size_t> {
       return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
     };
-    mep_slices =
-      allocate_slices<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(1, size_fun);
+    mep_slices = allocate_slices<
+      BankTypes::VP,
+      BankTypes::VPRetinaCluster,
+      BankTypes::UT,
+      BankTypes::FT,
+      BankTypes::MUON,
+      BankTypes::ODIN>(1, size_fun);
 
     transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
   }
