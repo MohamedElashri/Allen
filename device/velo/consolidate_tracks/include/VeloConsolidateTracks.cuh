@@ -30,18 +30,55 @@ namespace velo_consolidate_tracks {
     DEVICE_OUTPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     DEVICE_OUTPUT(
+      dev_velo_hits_view_t,
+      Allen::Views::Velo::Consolidated::Hits,
+      dev_velo_track_hits_t,
+      dev_offsets_all_velo_tracks_t,
+      dev_offsets_velo_track_hit_number_t)
+    dev_velo_hits_view;
+    DEVICE_OUTPUT(
+      dev_velo_track_view_t,
+      Allen::Views::Velo::Consolidated::Track,
+      dev_velo_hits_view_t,
+      dev_velo_track_hits_t,
+      dev_offsets_all_velo_tracks_t,
+      dev_offsets_velo_track_hit_number_t)
+    dev_velo_track_view;
+    DEVICE_OUTPUT(
       dev_velo_tracks_view_t,
       Allen::Views::Velo::Consolidated::Tracks,
+      dev_velo_hits_view_t,
+      dev_velo_track_view_t,
       dev_velo_track_hits_t,
       dev_offsets_all_velo_tracks_t,
       dev_offsets_velo_track_hit_number_t)
     dev_velo_tracks_view;
+    DEVICE_OUTPUT(
+      dev_velo_multi_event_tracks_view_t,
+      Allen::Views::Velo::Consolidated::MultiEventTracks,
+      dev_velo_hits_view_t,
+      dev_velo_track_view_t,
+      dev_velo_tracks_view_t,
+      dev_velo_track_hits_t,
+      dev_offsets_all_velo_tracks_t,
+      dev_offsets_velo_track_hit_number_t)
+    dev_velo_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void velo_consolidate_tracks(Parameters);
 
+  struct lhcb_id_container_checks : public Allen::contract::Postcondition {
+    void operator()(
+      const ArgumentReferences<Parameters>&,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context&) const;
+  };
+
   struct velo_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
+    using contracts = std::tuple<lhcb_id_container_checks>;
+
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,

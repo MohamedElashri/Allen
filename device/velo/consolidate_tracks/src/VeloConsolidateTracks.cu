@@ -3,19 +3,60 @@
 \*****************************************************************************/
 #include "VeloConsolidateTracks.cuh"
 
+/**
+ * @brief Creates VELO views for hits, track, tracks and multieventtracks.
+ */
+__global__ void create_velo_views(velo_consolidate_tracks::Parameters parameters)
+{
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned event_number = blockIdx.x;
+
+  const auto event_tracks_offset = parameters.dev_offsets_all_velo_tracks[event_number];
+  const auto event_number_of_tracks = parameters.dev_offsets_all_velo_tracks[event_number + 1] - event_tracks_offset;
+
+  for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
+    new (parameters.dev_velo_track_view + event_tracks_offset + track_index)
+      Allen::Views::Velo::Consolidated::Track {parameters.dev_velo_hits_view,
+                                               parameters.dev_offsets_all_velo_tracks,
+                                               parameters.dev_offsets_velo_track_hit_number,
+                                               track_index,
+                                               event_number};
+  }
+
+  if (threadIdx.x == 0) {
+    new (parameters.dev_velo_hits_view + event_number)
+      Allen::Views::Velo::Consolidated::Hits {parameters.dev_velo_track_hits,
+                                              parameters.dev_offsets_all_velo_tracks,
+                                              parameters.dev_offsets_velo_track_hit_number,
+                                              event_number,
+                                              number_of_events};
+
+    new (parameters.dev_velo_tracks_view + event_number) Allen::Views::Velo::Consolidated::Tracks {
+      parameters.dev_velo_track_view, parameters.dev_offsets_all_velo_tracks, event_number};
+  }
+
+  if (blockIdx.x == 0 && threadIdx.x == 0) {
+    new (parameters.dev_velo_multi_event_tracks_view)
+      Allen::Views::Velo::Consolidated::MultiEventTracks {parameters.dev_velo_tracks_view, number_of_events};
+  }
+}
+
 void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
   const Constants&,
   const HostBuffers&) const
 {
+  const auto total_number_of_velo_tracks = first<host_number_of_reconstructed_velo_tracks_t>(arguments) +
+                                           first<host_number_of_three_hit_tracks_filtered_t>(arguments);
+
   set_size<dev_velo_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * Velo::Clusters::element_size);
-  set_size<dev_accepted_velo_tracks_t>(
-    arguments,
-    first<host_number_of_reconstructed_velo_tracks_t>(arguments) +
-      first<host_number_of_three_hit_tracks_filtered_t>(arguments));
+  set_size<dev_accepted_velo_tracks_t>(arguments, total_number_of_velo_tracks);
+  set_size<dev_velo_hits_view_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_velo_track_view_t>(arguments, total_number_of_velo_tracks);
   set_size<dev_velo_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_velo_multi_event_tracks_view_t>(arguments, 1);
 }
 
 void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
@@ -25,13 +66,17 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  initialize<dev_velo_tracks_view_t>(arguments, 0, context);
-
   // Set all found tracks to accepted
   initialize<dev_accepted_velo_tracks_t>(arguments, 1, context);
 
+  // Initialize dev_velo_multi_event_tracks_view_t to avoid invalid std::function destructor
+  initialize<dev_velo_multi_event_tracks_view_t>(arguments, 0, context);
+  initialize<dev_velo_tracks_view_t>(arguments, 0, context);
+
   global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
     arguments);
+
+  global_function(create_velo_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 
   if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, context);
@@ -58,14 +103,6 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
   const auto tracks_offset = Velo::track_offset(parameters.dev_offsets_estimated_input_size, event_number);
   const Velo::TrackHits* event_tracks = parameters.dev_tracks + tracks_offset;
   const Velo::TrackletHits* three_hit_tracks = parameters.dev_three_hit_tracks_output + tracks_offset;
-
-  // Consolidated datatypes
-  const auto velo_tracks_view = Allen::Views::Velo::Consolidated::Tracks {parameters.dev_velo_track_hits,
-                                                                          parameters.dev_offsets_all_velo_tracks,
-                                                                          parameters.dev_offsets_velo_track_hit_number,
-                                                                          event_number,
-                                                                          number_of_events};
-  parameters.dev_velo_tracks_view[event_number] = velo_tracks_view;
 
   Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
                                           parameters.dev_offsets_velo_track_hit_number,
@@ -122,4 +159,49 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
         consolidated_hits.set_id(i, velo_cluster_container.id(hit_index));
       });
   }
+}
+
+void velo_consolidate_tracks::lhcb_id_container_checks::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const Allen::Context&) const
+{
+  const auto velo_multi_event_tracks_view = make_vector<Parameters::dev_velo_multi_event_tracks_view_t>(arguments);
+  const Allen::IMultiEventLHCbIDContainer* multiev_id_cont =
+    reinterpret_cast<const Allen::IMultiEventLHCbIDContainer*>(velo_multi_event_tracks_view.data());
+
+  // Conditions to check
+  const bool size_is_number_of_events =
+    velo_multi_event_tracks_view[0].number_of_events() == multiev_id_cont->number_of_id_containers();
+  bool equal_number_of_tracks_and_sequences = true;
+  bool equal_number_of_hits_and_ids = true;
+  bool lhcb_ids_never_zero = true;
+  bool lhcb_ids_have_velo_preamble = true;
+
+  for (unsigned event_number = 0; event_number < velo_multi_event_tracks_view[0].number_of_events(); ++event_number) {
+    const auto& tracks = velo_multi_event_tracks_view[0].container(event_number);
+    const auto& id_cont = multiev_id_cont->id_container(event_number);
+    equal_number_of_tracks_and_sequences &= tracks.size() == id_cont.number_of_id_sequences();
+
+    for (unsigned sequence_index = 0; sequence_index < tracks.size(); ++sequence_index) {
+      const auto& track = tracks.track(sequence_index);
+      const auto& id_seq = id_cont.id_sequence(sequence_index);
+      equal_number_of_hits_and_ids &= track.number_of_hits() == id_seq.number_of_ids();
+
+      for (unsigned id_index = 0; id_index < id_seq.number_of_ids(); ++id_index) {
+        lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
+        lhcb_ids_have_velo_preamble &= lhcb_id::is_velo(id_seq.id(id_index));
+      }
+    }
+  }
+
+  require(size_is_number_of_events, "Require that number of events is equal to MultiEventLHCbIDContainer size");
+  require(
+    equal_number_of_tracks_and_sequences,
+    "Require that the number of tracks equals the number of LHCb ID sequences for all events");
+  require(
+    equal_number_of_hits_and_ids, "Require that the number of hits equals the number of LHCb IDs for all sequences");
+  require(lhcb_ids_never_zero, "Require that LHCb IDs are never zero");
+  require(lhcb_ids_have_velo_preamble, "Require that LHCb IDs of VELO container have VELO preamble");
 }
