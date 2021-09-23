@@ -4,13 +4,13 @@
 #include <MEPTools.h>
 #include <DecodeRetinaClusters.cuh>
 #include <VeloTools.cuh>
+#include <BinarySearch.cuh>
 
 __global__ void populate_module_pair_offsets_and_sizes(
   decode_retinaclusters::Parameters parameters,
   const unsigned module_pair_cluster_num_size)
 {
-
-  constexpr unsigned step_size = 8;
+  constexpr unsigned step_size = (Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module) / Velo::Constants::n_module_pairs;
   auto offsets = parameters.dev_offsets_each_sensor_size;
 
   for (unsigned element = threadIdx.x; element < module_pair_cluster_num_size; element += blockDim.x) {
@@ -25,34 +25,32 @@ __global__ void populate_module_pair_offsets_and_sizes(
 __device__ void put_retinaclusters_into_container(
   Velo::Clusters velo_cluster_container,
   VeloGeometry const& g,
-  unsigned const cluster_start,
-  Velo::VeloRawBank const& raw_bank)
+  unsigned const cluster_index,
+  const unsigned raw_bank_sensor_index,
+  const unsigned raw_bank_word)
 {
-  const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
+  const float* ltg = g.ltg + g.n_trans * raw_bank_sensor_index;
+  
+  // Decode cluster
+  const uint32_t cx = (raw_bank_word >> 14) & 0x3FF;
+  const float fx = ((raw_bank_word >> 11) & 0x7) / 8.f;
+  const uint32_t cy = (raw_bank_word >> 3) & 0xFF;
+  const float fy = (raw_bank_word & 0x7FF) / 8.f;
 
-  for (unsigned rc_index = threadIdx.x; rc_index < raw_bank.count; rc_index += blockDim.x) {
-    // Decode cluster
-    const uint32_t word = raw_bank.word[rc_index];
-    const uint32_t cx = (word >> 14) & 0x3FF;
-    const float fx = ((word >> 11) & 0x7) / 8.f;
-    const uint32_t cy = (word >> 3) & 0xFF;
-    const float fy = (word & 0x7FF) / 8.f;
+  const uint32_t chip = cx >> VP::ChipColumns_division;
+  const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+  const float local_y = (0.5f + fy) * Velo::Constants::pixel_size;
 
-    const uint32_t chip = cx >> VP::ChipColumns_division;
-    const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-    const float local_y = (0.5f + fy) * Velo::Constants::pixel_size;
+  const float gx = (ltg[0] * local_x + ltg[1] * local_y + ltg[9]);
+  const float gy = (ltg[3] * local_x + ltg[4] * local_y + ltg[10]);
+  const float gz = (ltg[6] * local_x + ltg[7] * local_y + ltg[11]);
+  const unsigned cid = get_channel_id(raw_bank_sensor_index, chip, cx & VP::ChipColumns_mask, cy);
 
-    const float gx = (ltg[0] * local_x + ltg[1] * local_y + ltg[9]);
-    const float gy = (ltg[3] * local_x + ltg[4] * local_y + ltg[10]);
-    const float gz = (ltg[6] * local_x + ltg[7] * local_y + ltg[11]);
-    const unsigned cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
-
-    velo_cluster_container.set_id(cluster_start + rc_index, get_lhcb_id(cid));
-    velo_cluster_container.set_x(cluster_start + rc_index, gx);
-    velo_cluster_container.set_y(cluster_start + rc_index, gy);
-    velo_cluster_container.set_z(cluster_start + rc_index, gz);
-    velo_cluster_container.set_phi(cluster_start + rc_index, hit_phi_16(gx, gy));
-  }
+  velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
+  velo_cluster_container.set_x(cluster_index, gx);
+  velo_cluster_container.set_y(cluster_index, gy);
+  velo_cluster_container.set_z(cluster_index, gz);
+  velo_cluster_container.set_phi(cluster_index, hit_phi_16(gx, gy));
 }
 
 template<bool mep_layout>
@@ -63,13 +61,13 @@ __global__ void decode_retinaclusters_kernel(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const unsigned* sensor_cluster_start =
+  const unsigned* sensor_offsets =
     parameters.dev_offsets_each_sensor_size +
     event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
 
   // Local pointers to parameters.dev_velo_cluster_container
   const unsigned total_number_of_clusters =
-    parameters.dev_offsets_each_sensor_size[Velo::Constants::n_module_pairs * number_of_events * 8];
+    parameters.dev_offsets_each_sensor_size[number_of_events * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module];
 
   auto velo_cluster_container = Velo::Clusters {parameters.dev_velo_cluster_container, total_number_of_clusters};
   if (threadIdx.x == 0 && threadIdx.y == 0) {
@@ -86,9 +84,15 @@ __global__ void decode_retinaclusters_kernel(
   unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
 
   // Populate retina clusters
-  for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.y) {
+  const auto event_clusters_offset = sensor_offsets[0];
+  const auto number_of_clusters_in_event = sensor_offsets[Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module] - event_clusters_offset;
+
+  for (unsigned cluster_number = threadIdx.x; cluster_number < number_of_clusters_in_event; cluster_number += blockDim.x) {
+    const unsigned raw_bank_number = binary_search_rightmost(sensor_offsets, Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module, cluster_number + event_clusters_offset);
+    unsigned index_within_raw_bank = cluster_number - (sensor_offsets[raw_bank_number] - event_clusters_offset);
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-    put_retinaclusters_into_container(velo_cluster_container, g, sensor_cluster_start[raw_bank_number], raw_bank);
+
+    put_retinaclusters_into_container(velo_cluster_container, g, event_clusters_offset + cluster_number, raw_bank.sensor_index, raw_bank.word[index_within_raw_bank]);
   }
 }
 
@@ -123,4 +127,14 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
 
   global_function(populate_module_pair_offsets_and_sizes)(1, 1024, context)(
     arguments, size<dev_module_cluster_num_t>(arguments));
+
+  if (property<verbosity_t>() >= logger::debug) {
+    info_cout << "VELO clusters after decode_retina_clusters:\n";
+    print_velo_clusters<
+      dev_velo_cluster_container_t,
+      dev_offsets_module_pair_cluster_t,
+      dev_module_cluster_num_t,
+      host_total_number_of_velo_clusters_t,
+      host_number_of_events_t>(arguments);
+  }
 }

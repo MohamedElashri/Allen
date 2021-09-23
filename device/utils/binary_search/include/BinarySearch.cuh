@@ -19,8 +19,7 @@ __host__ __device__ int binary_search_leftmost(const T* array, const unsigned ar
   int r = array_size;
   while (l < r) {
     const int m = (l + r) / 2;
-    const auto array_element = array[m];
-    if (value > array_element) {
+    if (value > array[m]) {
       l = m + 1;
     }
     else {
@@ -28,6 +27,23 @@ __host__ __device__ int binary_search_leftmost(const T* array, const unsigned ar
     }
   }
   return l;
+}
+
+template<typename T>
+__host__ __device__ int binary_search_rightmost(const T* array, const unsigned array_size, const T& value)
+{
+  int l = 0;
+  int r = array_size;
+  while (l < r) {
+    const int m = (l + r) / 2;
+    if (array[m] > value) {
+      r = m;
+    }
+    else {
+      l = m + 1;
+    }
+  }
+  return r - 1;
 }
 
 /**
