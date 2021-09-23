@@ -32,10 +32,6 @@ public:
     std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const override;
 
 private:
-  const unsigned m_number_of_repetitions = 1;
-  const bool m_do_check = false;
-  const bool m_cpu_offload = true;
-  const bool m_param_inject_mem_fail = false;
   mutable CheckerInvoker m_checker_invoker {};
   mutable ROOTService m_root_service {};
 };
@@ -53,7 +49,10 @@ ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocato
 RuntimeOptions ProvideRuntimeOptions::operator()(
   std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const
 {
-  // bankTypes = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN}
+  const unsigned number_of_repetitions = 1;
+  const bool do_check = false;
+  const bool cpu_offload = true;
+  const bool param_inject_mem_fail = false;
   const size_t n_slices = 1;
   const size_t events_per_slice = 1;
   const unsigned event_start = 0;
@@ -75,11 +74,11 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
   return {tes_provider,
           slice_index,
           {event_start, event_end},
-          m_number_of_repetitions,
-          m_do_check,
-          m_cpu_offload,
+          number_of_repetitions,
+          do_check,
+          cpu_offload,
           mep_layout,
-          m_param_inject_mem_fail,
+          param_inject_mem_fail,
           &m_checker_invoker,
           &m_root_service};
 }
