@@ -48,6 +48,6 @@ namespace decode_retinaclusters {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{4, 32, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{1024, 1, 1}}};
   };
 } // namespace decode_retinaclusters
