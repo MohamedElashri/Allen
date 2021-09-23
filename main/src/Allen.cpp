@@ -307,7 +307,7 @@ int allen(
 
   std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
 
-  std::unique_ptr<IInputProvider> input_provider;
+  std::shared_ptr<IInputProvider> input_provider;
 
   // Number of requested events as an optional
   boost::optional<size_t> n_events = boost::make_optional(false, size_t {});
