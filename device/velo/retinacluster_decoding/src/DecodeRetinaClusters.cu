@@ -29,8 +29,7 @@ __global__ void populate_module_pair_offsets_and_sizes(
   decode_retinaclusters::Parameters parameters,
   const unsigned module_pair_cluster_num_size)
 {
-
-  constexpr unsigned step_size = 8;
+  constexpr unsigned step_size = (Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module) / Velo::Constants::n_module_pairs;
   auto offsets = parameters.dev_offsets_each_sensor_size;
 
   for (unsigned element = threadIdx.x; element < module_pair_cluster_num_size; element += blockDim.x) {
