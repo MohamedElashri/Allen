@@ -7,6 +7,58 @@
 #include "BackendCommon.h"
 #include "Common.h"
 
+namespace Allen {
+  template<typename T>
+  struct MultiEventContainer {
+  private:
+    const T* m_container = nullptr;
+    unsigned m_number_of_events = 0;
+
+  public:
+    __host__ __device__ MultiEventContainer() = default;
+    __host__ __device__ MultiEventContainer(const T* container, const unsigned number_of_events) :
+      m_container(container), m_number_of_events(number_of_events)
+    {}
+    __host__ __device__ unsigned number_of_events() const { return m_number_of_events; }
+    __host__ __device__ const T& container(const unsigned event_number) const
+    {
+      assert(event_number < m_number_of_events);
+      return m_container[event_number];
+    }
+  };
+
+  struct ILHCbIDSequence {
+    virtual __host__ __device__ unsigned number_of_ids() const = 0;
+    virtual __host__ __device__ unsigned id(const unsigned) const = 0;
+    virtual __host__ __device__ ~ILHCbIDSequence() {}
+  };
+
+  struct ILHCbIDContainer {
+    virtual __host__ __device__ unsigned number_of_id_sequences() const = 0;
+    virtual __host__ __device__ const ILHCbIDSequence& id_sequence(const unsigned) const = 0;
+    virtual __host__ __device__ ~ILHCbIDContainer() {}
+  };
+
+  struct IMultiEventLHCbIDContainer {
+    virtual __host__ __device__ unsigned number_of_id_containers() const = 0;
+    virtual __host__ __device__ const ILHCbIDContainer& id_container(const unsigned) const = 0;
+    virtual __host__ __device__ ~IMultiEventLHCbIDContainer() {}
+  };
+
+  template<typename T>
+  struct MultiEventLHCbIDContainer : MultiEventContainer<T>, IMultiEventLHCbIDContainer {
+    using MultiEventContainer<T>::MultiEventContainer;
+    __host__ __device__ unsigned number_of_id_containers() const override
+    {
+      return MultiEventContainer<T>::number_of_events();
+    }
+    __host__ __device__ const ILHCbIDContainer& id_container(const unsigned event_number) const override
+    {
+      return MultiEventContainer<T>::container(event_number);
+    }
+  };
+} // namespace Allen
+
 namespace Consolidated {
 
   // base_pointer contains first: an array with the number of tracks in every event

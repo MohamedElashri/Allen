@@ -18,9 +18,9 @@ namespace Allen {
         private:
           constexpr static unsigned offset_coordinates = sizeof(unsigned) / sizeof(half_t);
 
-          const half_t* m_base_pointer;
-          unsigned m_index;
-          unsigned m_total_number_of_hits;
+          const half_t* m_base_pointer = nullptr;
+          unsigned m_index = 0;
+          unsigned m_total_number_of_hits = 0;
 
         public:
           __host__ __device__
@@ -53,10 +53,10 @@ namespace Allen {
 
         struct Hits {
         private:
-          const half_t* m_base_pointer;
-          unsigned m_offset;
-          unsigned m_size;
-          unsigned m_total_number_of_hits;
+          const half_t* m_base_pointer = nullptr;
+          unsigned m_offset = 0;
+          unsigned m_size = 0;
+          unsigned m_total_number_of_hits = 0;
 
         public:
           __host__ __device__ Hits(
@@ -93,9 +93,9 @@ namespace Allen {
           constexpr static unsigned nb_elements_state = 5;
           constexpr static unsigned nb_elements_cov = 6;
 
-          const float* m_base_pointer;
-          unsigned m_index;
-          unsigned m_total_number_of_tracks;
+          const float* m_base_pointer = nullptr;
+          unsigned m_index = 0;
+          unsigned m_total_number_of_tracks = 0;
 
         public:
           __host__ __device__
@@ -154,12 +154,14 @@ namespace Allen {
 
         struct States {
         private:
-          const char* m_base_pointer;
-          unsigned m_offset;
-          unsigned m_size;
-          unsigned m_total_number_of_tracks;
+          const char* m_base_pointer = nullptr;
+          unsigned m_offset = 0;
+          unsigned m_size = 0;
+          unsigned m_total_number_of_tracks = 0;
 
         public:
+          __host__ __device__ States() = default;
+
           __host__ __device__ States(
             const char* base_pointer,
             const unsigned* offset_tracks,
@@ -186,57 +188,65 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
-        struct Track {
+        struct Track : Allen::ILHCbIDSequence {
         private:
-          const Hits& m_hits;
-          unsigned m_offset;
-          unsigned m_number_of_hits;
-          unsigned m_track_index;
+          const Hits* m_hits = nullptr;
+          unsigned m_track_index = 0;
+          unsigned m_offset = 0;
+          unsigned m_number_of_hits = 0;
 
         public:
-          __host__ __device__
-          Track(const Hits& hits, const unsigned offset, const unsigned number_of_hits, const unsigned track_index) :
-            m_hits(hits),
-            m_offset(offset), m_number_of_hits(number_of_hits), m_track_index(track_index)
-          {}
+          __host__ __device__ Track(
+            const Hits* hits,
+            const unsigned* offset_tracks,
+            const unsigned* offset_track_hit_number,
+            const unsigned track_index,
+            const unsigned event_number) :
+            m_hits(hits + event_number),
+            m_track_index(track_index)
+          {
+            const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
+            m_offset = offset_event[track_index] - offset_event[0];
+            m_number_of_hits = offset_event[track_index + 1] - offset_event[track_index];
+          }
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
           __host__ __device__ unsigned number_of_hits() const { return m_number_of_hits; }
 
-          __host__ __device__ Hit hit(const unsigned index) const { return m_hits.hit(m_offset + index); }
+          __host__ __device__ Hit hit(const unsigned index) const
+          {
+            assert(m_hits != nullptr);
+            assert(index < m_number_of_hits);
+            return m_hits->hit(m_offset + index);
+          }
 
           __host__ __device__ State state(const States& states_view) const { return states_view.state(m_track_index); }
+
+          __host__ __device__ unsigned number_of_ids() const override { return number_of_hits(); }
+
+          __host__ __device__ unsigned id(const unsigned index) const override { return hit(index).id(); }
         };
 
-        struct Tracks {
+        struct Tracks : Allen::ILHCbIDContainer {
         private:
-          Hits m_hits;
-          const unsigned* m_offset_track_hit_number;
-          unsigned m_offset;
-          unsigned m_size;
+          const Track* m_track = nullptr;
+          unsigned m_offset = 0;
+          unsigned m_size = 0;
 
         public:
-          __host__ __device__ Tracks(
-            const char* hits_base_pointer,
-            const unsigned* offset_tracks,
-            const unsigned* offset_track_hit_number,
-            const unsigned event_number,
-            const unsigned number_of_events) :
-            m_hits(Hits {hits_base_pointer, offset_tracks, offset_track_hit_number, event_number, number_of_events}),
-            m_offset_track_hit_number(offset_track_hit_number + offset_tracks[event_number]),
-            m_offset(offset_tracks[event_number]), m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
+          __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
+            m_track(track + offset_tracks[event_number]), m_offset(offset_tracks[event_number]),
+            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
           {}
 
           __host__ __device__ unsigned size() const { return m_size; }
 
-          __host__ __device__ Track track(const unsigned index) const
+          __host__ __device__ const Track& track(const unsigned index) const
           {
+            assert(m_track != nullptr);
             assert(index < m_size);
-            return Track {m_hits,
-                          m_offset_track_hit_number[index] - m_offset_track_hit_number[0],
-                          m_offset_track_hit_number[index + 1] - m_offset_track_hit_number[index],
-                          index};
+            return m_track[index];
           }
 
           /**
@@ -244,7 +254,16 @@ namespace Allen {
            *        tracks in the container for the current event.
            */
           __host__ __device__ unsigned offset() const { return m_offset; }
+
+          __host__ __device__ unsigned number_of_id_sequences() const override { return size(); }
+
+          __host__ __device__ const ILHCbIDSequence& id_sequence(const unsigned container_number) const override
+          {
+            return track(container_number);
+          }
         };
+
+        using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;
       } // namespace Consolidated
     }   // namespace Velo
   }     // namespace Views
