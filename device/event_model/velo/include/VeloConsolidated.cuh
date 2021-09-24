@@ -160,8 +160,6 @@ namespace Allen {
           unsigned m_total_number_of_tracks = 0;
 
         public:
-          __host__ __device__ States() = default;
-
           __host__ __device__ States(
             const char* base_pointer,
             const unsigned* offset_tracks,
