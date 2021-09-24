@@ -71,6 +71,11 @@ a6000:
     - .a6000
     - .run_job
 
+a5000:
+  extends:
+    - .a5000
+    - .run_job
+
 mi100:
   extends:
     - .mi100
@@ -97,6 +102,7 @@ epyc7502:
     - x862630v4
     - mi100
     - a6000
+    - a5000
     - a40
     - a10
     - teslav100
@@ -298,6 +304,13 @@ a6000-full:
     - .cuda_run_job
 
 
+a5000-full:
+  extends:
+    - .a5000
+    - .run_jobs_full
+    - .cuda_run_job
+
+
 # HIP
 
 
@@ -331,6 +344,7 @@ mi100-full:
     - a40-full
     - a10-full
     - a6000-full
+    - a5000-full
     - teslav100-full
 
 

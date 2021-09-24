@@ -59,6 +59,13 @@
   tags: [a6000]
 
 
+.a5000:
+  variables:
+    DEVICE_ID: "a5000"
+    TARGET: "CUDA"
+  tags: [a5000]
+
+
 .mi100:
   variables:
     DEVICE_ID: "mi100"
