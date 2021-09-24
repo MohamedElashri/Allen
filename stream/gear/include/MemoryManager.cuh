@@ -72,7 +72,7 @@ public:
   void reserve_memory(size_t memory_size, const unsigned memory_alignment)
   {
     if (m_base_pointer) Target::free(m_base_pointer);
-    Target::malloc((void**) &m_base_pointer, memory_size);
+    Target::malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
 
     m_guaranteed_alignment = memory_alignment;
     m_max_available_memory = memory_size;
@@ -279,7 +279,7 @@ public:
     // We will allocate in a char*
     char* memory_pointer;
 
-    Target::malloc(&memory_pointer, requested_size);
+    Target::malloc(reinterpret_cast<void**>(&memory_pointer), requested_size);
 
     argument_manager.template set_pointer<Argument>(memory_pointer);
 
@@ -311,7 +311,7 @@ public:
 
     Target::free(argument_manager.template pointer<Argument>());
 
-    m_total_memory_required -= it->size() * sizeof(typename Argument::type);
+    m_total_memory_required -= it->second.size * sizeof(typename Argument::type);
 
     m_memory_segments.erase(tag);
   }

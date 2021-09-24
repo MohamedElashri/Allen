@@ -67,7 +67,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
 
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);
-  set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size());
+  set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size() + 1);
   set_size<host_selections_lines_offsets_t>(arguments, dev_input_selections.size_of_aggregate() + 1);
   set_size<host_selections_offsets_t>(
     arguments, first<host_number_of_events_t>(arguments) * dev_input_selections.size_of_aggregate() + 1);
@@ -96,6 +96,7 @@ void gather_selections::gather_selections_t::operator()(
   const Allen::Context& context) const
 {
   // Save the names of active lines as output
+  initialize<host_names_of_active_lines_t>(arguments, 0, context);
   const auto line_names = std::string(property<names_of_active_lines_t>());
   line_names.copy(data<host_names_of_active_lines_t>(arguments), line_names.size());
 
