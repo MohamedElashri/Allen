@@ -15,7 +15,7 @@ namespace Allen {
     unsigned m_number_of_events = 0;
 
   public:
-    __host__ __device__ MultiEventContainer() = default;
+    MultiEventContainer() = default;
     __host__ __device__ MultiEventContainer(const T* container, const unsigned number_of_events) :
       m_container(container), m_number_of_events(number_of_events)
     {}
