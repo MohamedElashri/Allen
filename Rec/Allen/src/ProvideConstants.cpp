@@ -107,7 +107,7 @@ StatusCode ProvideConstants::initialize()
     two_track_catboost_model_reader.split_border(),
     two_track_catboost_model_reader.split_feature());
   TwoTrackMVAModelReader two_track_mva_model_reader {geometry_path + "/two_track_mva_model.json"};
-  constants.initialize_two_track_mva_model_constants(
+  m_constants.initialize_two_track_mva_model_constants(
     two_track_mva_model_reader.weights(),
     two_track_mva_model_reader.biases(),
     two_track_mva_model_reader.layer_sizes(),
