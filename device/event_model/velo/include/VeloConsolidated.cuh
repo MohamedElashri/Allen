@@ -24,7 +24,7 @@ namespace Allen {
 
         public:
           Hit() = default;
-          
+
           __host__ __device__
           Hit(const half_t* base_pointer, const unsigned index, const unsigned total_number_of_hits) :
             m_base_pointer(base_pointer),
