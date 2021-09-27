@@ -46,13 +46,15 @@
       # retina clustering jobs
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_retina_cluster"]
+        SEQUENCE: ["hlt1_pp_retina_cluster_scifi_v6"]
         DATA_TAG: ["minbias_2019_retinacluster_mdf"]
-      
+        GEOMETRY: ["scifi_v6"]
+
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_retina_cluster"]
+        SEQUENCE: ["hlt1_pp_validation_retina_cluster_scifi_v6"]
         DATA_TAG: ["bsphiphi_2019_retinacluster_mdf"]
+        GEOMETRY: ["scifi_v6"]
 
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"

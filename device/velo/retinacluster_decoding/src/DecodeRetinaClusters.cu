@@ -82,8 +82,6 @@ __global__ void decode_retinaclusters_kernel(
   const auto velo_raw_event = Velo::RawEvent<mep_layout> {
     parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, event_number};
 
-  unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
-
   // Populate retina clusters
   const auto event_clusters_offset = sensor_offsets[0];
   const auto number_of_clusters_in_event =
