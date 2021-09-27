@@ -58,7 +58,8 @@
           - hlt1_pp_scifi_v6
           - hlt1_pp_scifi_v6_validation
           #- hlt1_complex_validation
-          - hlt1_pp_retina_cluster
+          - hlt1_pp_retina_cluster_scifi_v6
+          - hlt1_pp_validation_retina_cluster_scifi_v6
 
 .build_job:
   extends: .base_job
