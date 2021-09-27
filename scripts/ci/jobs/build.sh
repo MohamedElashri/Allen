@@ -85,19 +85,6 @@ while [ $TRIES -le $MAXTRIES ] ; do
       RETRY=1
     fi
 
-
-    # This is a hack to compensate for the lack of -Werror support
-    # in the CUDA compiler(s) 
-    if grep -q ": warning #" build.log ; then 
-      if [[ $ADDITIONAL_OPTIONS == *"TREAT_WARNINGS_AS_ERRORS"* ]]; then
-        if [ $TARGET = "CUDA" ]; then 
-          echo "CUDA warnings were detected in the log, and TREAT_WARNINGS_AS_ERRORS is enabled!"
-          echo "Please fix these warnings and try again."
-          exit 1;
-        fi
-      fi
-    fi
-
     if [ ${RETRY} -ne 0 ]; then
       # retry at least once starting from the target that failed, after waiting between 60 - 90 seconds.
       # choose the wait time randomly, such that if other jobs on the same runner also fail close to this
@@ -112,6 +99,19 @@ while [ $TRIES -le $MAXTRIES ] ; do
       exit $RC
     fi
   fi
+
+  # This is a hack to compensate for the lack of -Werror support
+  # in the CUDA compiler(s) 
+  if grep -q ": warning #" build.log ; then 
+    if [[ $ADDITIONAL_OPTIONS == *"TREAT_WARNINGS_AS_ERRORS"* ]]; then
+      if [ $TARGET = "CUDA" ]; then 
+        echo "CUDA warnings were detected in the log, and TREAT_WARNINGS_AS_ERRORS is enabled!"
+        echo "Please fix these warnings and try again."
+        exit 1;
+      fi
+    fi
+  fi
+
 
   if [ $TRIES -gt 1 ]; then
     # the build was successful, with retries.
