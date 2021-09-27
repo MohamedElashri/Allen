@@ -43,6 +43,17 @@
         DATA_TAG: ["SMOG2_pppHe_1k"]
         GEOMETRY: ["smog"]
 
+      # retina clustering jobs
+      - TEST_NAME: "run_throughput"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_retina_cluster"]
+        DATA_TAG: ["minbias_2019_retinacluster_mdf"]
+      
+      - TEST_NAME: "run_physics_efficiency"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_retina_cluster"]
+        DATA_TAG: ["bsphiphi_2019_retinacluster_mdf"]
+
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
