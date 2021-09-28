@@ -33,7 +33,19 @@ namespace decode_retinaclusters {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim_prop;
   };
 
+  // Define postconditions
+  struct cluster_container_checks : public Allen::contract::Postcondition {
+    void operator()(
+      const ArgumentReferences<Parameters>&,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context&) const;
+  };
+
   struct decode_retinaclusters_t : public DeviceAlgorithm, Parameters {
+
+    using contracts = std::tuple<cluster_container_checks>;
+
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
