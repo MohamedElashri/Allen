@@ -33,9 +33,6 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
       Allen::NonEventData::ECalGeometry {},
       std::make_unique<Consumers::HostDeviceGeometry>(constants.host_ecal_geometry, constants.dev_ecal_geometry)),
     make_tuple(
-      Allen::NonEventData::HCalGeometry {},
-      std::make_unique<Consumers::HostDeviceGeometry>(constants.host_hcal_geometry, constants.dev_hcal_geometry)),
-    make_tuple(
       Allen::NonEventData::MuonGeometry {},
       std::make_unique<Consumers::MuonGeometry>(
         constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)),

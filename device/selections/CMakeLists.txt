@@ -5,6 +5,7 @@ include_directories(lines/calibration/include)
 include_directories(lines/charm/include)
 include_directories(lines/inclusive_hadron/include)
 include_directories(lines/muon/include)
+include_directories(lines/electron/include)
 include_directories(lines/monitoring/include)
 include_directories(line_types/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -38,7 +39,7 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 file(GLOB selections_src "Hlt1/src/*cu")
-file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/inclusive_hadron/src/*cpp" "lines/muon/src/*cu" "lines/monitoring/src/*cu")
+file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/inclusive_hadron/src/*cpp" "lines/muon/src/*cu" "lines/electron/src/*cu" "lines/monitoring/src/*cu")
 
 allen_add_device_library(Selections STATIC
   ${selections_src}

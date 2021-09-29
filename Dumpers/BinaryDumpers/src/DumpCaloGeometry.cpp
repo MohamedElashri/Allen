@@ -99,7 +99,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
 
   // Check if 'E'cal or 'H'cal
   std::vector<uint16_t> neighbors(indexSize * max_neighbors, 0);
-  std::vector<float> xy(indexSize * 2, 0);
+  std::vector<float> xy(indexSize * 2, 0.f);
   std::vector<float> gain(indexSize, 0.f);
   // Create neighbours per cellID.
   for (auto const& param : det.cellParams()) {
@@ -121,8 +121,44 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     gain[idx] = det.cellGain(param.cellID());
   }
 
-  // Write the neighbors offset, the xy offset, minimum card code, array of CellIDs,
-  // the array of neighbors and the array of xy values.
+  // Get toLocalMatrix
+  std::vector<float> toLocalMatrix_elements(12, 0.f);
+  det.toLocalMatrix().GetComponents(toLocalMatrix_elements.begin(), toLocalMatrix_elements.end());
+
+  // Get front, showermax and back planes a,b,c,d parameters (A plane in 3D is defined as a*x+b*y+c*z+d=0)
+  std::vector<float> calo_planes {static_cast<float>(det.plane(CaloPlane::Front).A()),
+                                  static_cast<float>(det.plane(CaloPlane::Front).B()),
+                                  static_cast<float>(det.plane(CaloPlane::Front).C()),
+                                  static_cast<float>(det.plane(CaloPlane::Front).D()),
+                                  static_cast<float>(det.plane(CaloPlane::ShowerMax).A()),
+                                  static_cast<float>(det.plane(CaloPlane::ShowerMax).B()),
+                                  static_cast<float>(det.plane(CaloPlane::ShowerMax).C()),
+                                  static_cast<float>(det.plane(CaloPlane::ShowerMax).D()),
+                                  static_cast<float>(det.plane(CaloPlane::Back).A()),
+                                  static_cast<float>(det.plane(CaloPlane::Back).B()),
+                                  static_cast<float>(det.plane(CaloPlane::Back).C()),
+                                  static_cast<float>(det.plane(CaloPlane::Back).D())};
+
+  // Get Module size
+  float module_size = static_cast<float>(det.cellSize(det.firstCellID(1)));
+
+  // Get ranges of area in the global dense index
+  std::vector<uint32_t> digits_ranges;
+  if (det.caloName()[0] == 'E') {
+    digits_ranges = {
+      indexOffset,
+      IndexDetails::Constants<CaloCellCode::CaloIndex::EcalCalo, IndexDetails::Area::Middle>::global_offset,
+      IndexDetails::Constants<CaloCellCode::CaloIndex::EcalCalo, IndexDetails::Area::Inner>::global_offset,
+      indexOffset + indexSize};
+  }
+  else {
+    digits_ranges = {
+      indexOffset,
+      IndexDetails::Constants<CaloCellCode::CaloIndex::HcalCalo, IndexDetails::Area::Inner>::global_offset,
+      indexOffset + indexSize};
+  }
+
+  // Write all the parameters to the geometry file
   DumpUtils::Writer output {};
   output.write(static_cast<uint32_t>(min));
   output.write(static_cast<uint32_t>(max_channels));
@@ -137,6 +173,13 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   output.write(xy);
   output.write(static_cast<uint32_t>(gain.size()));
   output.write(gain);
+  output.write(static_cast<uint32_t>(toLocalMatrix_elements.size()));
+  output.write(toLocalMatrix_elements);
+  output.write(static_cast<uint32_t>(calo_planes.size()));
+  output.write(calo_planes);
+  output.write(module_size);
+  output.write(static_cast<uint32_t>(digits_ranges.size()));
+  output.write(digits_ranges);
 
   auto id = ids.find(det.caloName());
   if (id == ids.end()) {

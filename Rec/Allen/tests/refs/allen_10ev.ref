@@ -26,7 +26,6 @@ ToolSvc.PrUTMag...   INFO Start generation of VeloUT deflection LUTs
 ToolSvc.PrUTMag...   INFO Generation of VeloUT deflection LUTs finished
 AllenUpdater        DEBUG Registered Producer for UTLookupTables
 AllenUpdater        DEBUG Registered Producer for EcalGeometry
-AllenUpdater        DEBUG Registered Producer for HcalGeometry
 EventLoopMgr      WARNING Unable to locate service "EventSelector"
 EventLoopMgr      WARNING No events will be processed from external input.
 ApplicationMgr       INFO Application Manager Initialized successfully
@@ -38,13 +37,11 @@ AllenUpdater        DEBUG Registered Consumer for MagneticField
 AllenUpdater        DEBUG Registered Consumer for Beamline
 AllenUpdater        DEBUG Registered Consumer for VeloGeometry
 AllenUpdater        DEBUG Registered Consumer for EcalGeometry
-AllenUpdater        DEBUG Registered Consumer for HcalGeometry
 AllenUpdater        DEBUG Registered Consumer for MuonGeometry
 AllenUpdater        DEBUG Registered Consumer for MuonLookupTables
 AllenUpdater        DEBUG Running Update 0
 AllenUpdater        DEBUG Updating Beamline
 AllenUpdater        DEBUG Updating EcalGeometry
-AllenUpdater        DEBUG Updating HcalGeometry
 AllenUpdater        DEBUG Updating MagneticField
 AllenUpdater        DEBUG Updating MuonGeometry
 AllenUpdater        DEBUG Updating MuonLookupTables
