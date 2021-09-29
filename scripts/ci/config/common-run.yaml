@@ -49,6 +49,18 @@
         SEQUENCE: ["hlt1_pp_retina_cluster_scifi_v6"]
         DATA_TAG: ["minbias_2019_retinacluster_mdf"]
         GEOMETRY: ["scifi_v6"]
+        
+      - TEST_NAME: "run_throughput"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_scifi_v6"]
+        DATA_TAG: ["minbias_2019_retinacluster_mdf"]
+        GEOMETRY: ["scifi_v6"]
+        
+      - TEST_NAME: "run_throughput"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_scifi_v6"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMU_1k"]
+        GEOMETRY: ["scifi_v6"]
 
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
