@@ -145,13 +145,13 @@ namespace Allen {
             return m_number_of_hits + velo_track().number_of_hits();
           }
           
-          __host__ __device__ unsigned qop() const { return m_qop[m_track_index]; }
+          __host__ __device__ unsigned qop() const { return m_qop[m_offset + m_track_index]; }
 
-          __host__ __device__ Hit hit(const unsigned index) const
+          __host__ __device__ Hit hit(const unsigned ut_hit_index) const
           {
             assert(m_hits != nullptr);
-            assert(index < m_number_of_hits);
-            return m_hits->hit(m_offset + index);
+            assert(ut_hit_index < m_number_of_hits);
+            return m_hits->hit(m_offset + ut_hit_index);
           }
 
           __host__ __device__ unsigned number_of_ids() const override 
