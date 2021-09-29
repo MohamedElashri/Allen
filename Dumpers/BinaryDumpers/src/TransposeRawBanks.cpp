@@ -60,7 +60,6 @@ private:
                                                                    LHCb::RawBank::UT,
                                                                    LHCb::RawBank::FTCluster,
                                                                    LHCb::RawBank::EcalPacked,
-                                                                   LHCb::RawBank::HcalPacked,
                                                                    LHCb::RawBank::Muon,
                                                                    LHCb::RawBank::ODIN}};
 

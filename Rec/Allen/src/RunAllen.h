@@ -55,8 +55,7 @@ private:
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon,
-                                                   LHCb::RawBank::EcalPacked,
-                                                   LHCb::RawBank::HcalPacked};
+                                                   LHCb::RawBank::EcalPacked};
   std::vector<std::string> m_line_names;
   const unsigned m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;

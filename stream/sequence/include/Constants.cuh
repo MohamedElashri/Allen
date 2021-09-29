@@ -85,8 +85,6 @@ struct Constants {
   // Calo
   std::vector<char> host_ecal_geometry;
   char* dev_ecal_geometry = nullptr;
-  std::vector<char> host_hcal_geometry;
-  char* dev_hcal_geometry = nullptr;
 
   // Muon
   char* dev_muon_geometry_raw = nullptr;

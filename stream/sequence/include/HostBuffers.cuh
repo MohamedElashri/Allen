@@ -110,9 +110,7 @@ struct HostBuffers {
 
   // Calo
   gsl::span<unsigned> host_ecal_digits_offsets = {};
-  gsl::span<unsigned> host_hcal_digits_offsets = {};
   gsl::span<CaloDigit> host_ecal_digits = {};
-  gsl::span<CaloDigit> host_hcal_digits = {};
 
   // Secondary vertices
   unsigned* host_number_of_svs;

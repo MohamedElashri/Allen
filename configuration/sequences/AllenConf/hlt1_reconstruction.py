@@ -5,6 +5,7 @@ from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_vel
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
 from AllenConf.muon_reconstruction import decode_muon, is_muon
+from AllenConf.calo_reconstruction import decode_calo, make_track_matching
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, fit_secondary_vertices
 from AllenConf.validators import (
@@ -18,6 +19,7 @@ from AllenConf.utils import gec
 def hlt1_reconstruction():
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
+    velo_states = run_velo_kalman_filter(velo_tracks)
     pvs = make_pvs(velo_tracks)
     decoded_ut = decode_ut()
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
@@ -28,7 +30,10 @@ def hlt1_reconstruction():
     kalman_velo_only = make_kalman_velo_only(forward_tracks, pvs, muonID)
     secondary_vertices = fit_secondary_vertices(forward_tracks, pvs,
                                                 kalman_velo_only)
-
+    decoded_calo = decode_calo()
+    calo_matching_objects = make_track_matching(
+        decoded_calo, velo_tracks, velo_states, ut_tracks, forward_tracks,
+        kalman_velo_only)
     return {
         "velo_tracks": velo_tracks,
         "pvs": pvs,
@@ -36,7 +41,8 @@ def hlt1_reconstruction():
         "forward_tracks": forward_tracks,
         "muonID": muonID,
         "kalman_velo_only": kalman_velo_only,
-        "secondary_vertices": secondary_vertices
+        "secondary_vertices": secondary_vertices,
+        "calo_matching_objects": calo_matching_objects,
     }
 
 

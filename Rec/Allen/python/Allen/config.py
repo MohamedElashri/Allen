@@ -25,16 +25,13 @@ def setup_allen_non_event_data_service(dump_geometry=False,
     """
     from functools import partial
     ecal_location = "/dd/Structure/LHCb/DownstreamRegion/Ecal"
-    hcal_location = "/dd/Structure/LHCb/DownstreamRegion/Hcal"
     ecal_geom = partial(
         DumpCaloGeometry, name="DumpEcal", Location=ecal_location)
-    hcal_geom = partial(
-        DumpCaloGeometry, name="DumpHcal", Location=hcal_location)
     producers = [
         p(DumpToFile=dump_geometry, OutputDirectory=out_dir)
         for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry,
                   DumpMuonGeometry, DumpMuonTable, DumpMagneticField,
-                  DumpBeamline, DumpUTLookupTables, ecal_geom, hcal_geom)
+                  DumpBeamline, DumpUTLookupTables, ecal_geom)
     ]
     ApplicationMgr().ExtSvc += [
         AllenUpdater(OutputLevel=2),

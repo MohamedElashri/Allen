@@ -15,35 +15,36 @@
 #include "MEPTools.h"
 
 struct CaloRawEvent {
-  uint32_t number_of_raw_banks;
-  const char* data;
-  const uint32_t* offsets;
+  uint32_t number_of_raw_banks = 0;
+  const char* data = nullptr;
 
   // For Allen format
-  __device__ __host__ CaloRawEvent(const char* events, const uint32_t* o) :
-    number_of_raw_banks {((uint32_t*) (events + o[0]))[0]}, data {events}, offsets {o}
-  {}
-
-  __device__ __host__ CaloRawBank bank(unsigned event, unsigned n)
+  __device__ __host__ CaloRawEvent(char const* event_data, uint32_t const* offsets, unsigned const event_number)
   {
-    const char* event_data = data + offsets[event];
-    uint32_t* bank_offsets = ((uint32_t*) event_data) + 1;
-    return CaloRawBank {event_data + (number_of_raw_banks + 2) * sizeof(uint32_t) + bank_offsets[n],
+    data = event_data + offsets[event_number];
+    number_of_raw_banks = reinterpret_cast<uint32_t const*>(data)[0];
+  }
+
+  __device__ __host__ CaloRawBank bank(unsigned const n)
+  {
+    uint32_t const* bank_offsets = reinterpret_cast<uint32_t const*>(data) + 1;
+    return CaloRawBank {data + (number_of_raw_banks + 2) * sizeof(uint32_t) + bank_offsets[n],
                         bank_offsets[n + 1] - bank_offsets[n]};
   }
 };
 
 struct CaloMepEvent {
-  uint32_t number_of_raw_banks;
-  const char* blocks;
-  const uint32_t* offsets;
+  uint32_t number_of_raw_banks = 0;
+  const char* blocks = nullptr;
+  const uint32_t* offsets = nullptr;
+  const unsigned event = 0;
 
   // For Allen format
-  __device__ __host__ CaloMepEvent(const char* b, const uint32_t* o) :
-    number_of_raw_banks {MEP::number_of_banks(o)}, blocks {b}, offsets {o}
+  __device__ __host__ CaloMepEvent(const char* b, const uint32_t* o, unsigned const event_number) :
+    number_of_raw_banks {MEP::number_of_banks(o)}, blocks {b}, offsets {o}, event {event_number}
   {}
 
-  __device__ __host__ CaloRawBank bank(unsigned event, unsigned n)
+  __device__ __host__ CaloRawBank bank(unsigned const n)
   {
     return MEP::raw_bank<CaloRawBank>(blocks, offsets, event, n);
   }
