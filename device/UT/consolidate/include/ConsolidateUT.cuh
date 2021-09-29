@@ -27,31 +27,46 @@ namespace ut_consolidate_tracks {
     DEVICE_OUTPUT(dev_ut_track_params_t, float) dev_ut_track_params;
     DEVICE_OUTPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_OUTPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+    DEVICE_OUTPUT(
       dev_ut_hits_view_t,
-      DEPENDENCIES(dev_ut_track_hits_t, dev_offsets_ut_tracks_t, dev_offsets_ut_track_hit_number_t),
-      Allen::Views::UT::Consolidated::Hits)
+      Allen::Views::UT::Consolidated::Hits,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
     dev_ut_hits_view;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+    DEVICE_OUTPUT(  
       dev_ut_track_view_t,
-      DEPENDENCIES(dev_ut_hits_view_t, dev_velo_tracks_view_t, dev_ut_track_velo_indices_t, dev_ut_track_params_t),
-      Allen::Views::UT::Consolidated::Track)
+      Allen::Views::UT::Consolidated::Track,
+      dev_ut_hits_view_t,
+      dev_velo_tracks_view_t,
+      dev_ut_qop_t,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
     dev_ut_track_view;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+    DEVICE_OUTPUT(
       dev_ut_tracks_view_t,
-      DEPENDENCIES(dev_ut_track_view_t),
-      Allen::Views::UT::Consolidated::Tracks)
+      Allen::Views::UT::Consolidated::Tracks,
+      dev_ut_hits_view_t,
+      dev_ut_track_view_t,
+      dev_velo_tracks_view_t,
+      dev_ut_qop_t,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
     dev_ut_tracks_view;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+    DEVICE_OUTPUT(
       dev_ut_multi_event_tracks_view_t,
-      DEPENDENCIES(dev_ut_tracks_view_t),
-      Allen::Views::UT::Consolidated::MultiEventTracks)
+      Allen::Views::UT::Consolidated::MultiEventTracks,
+      dev_ut_hits_view_t,
+      dev_ut_track_view_t,
+      dev_ut_tracks_view_t,
+      dev_velo_tracks_view_t,
+      dev_ut_qop_t,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
     dev_ut_multi_event_tracks_view;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_ut_multi_event_lhcb_id_container_t,
-      DEPENDENCIES(dev_ut_multi_event_tracks_view_t),
-      Allen::IMultiEventLHCbIDContainer*)
-    dev_ut_multi_event_lhcb_id_container;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

@@ -105,7 +105,7 @@ namespace Allen {
           const Allen::Views::Velo::Consolidated::Tracks* m_velo_tracks = nullptr;
           const float* m_qop = nullptr;
           unsigned m_track_index = 0;
-          unsigned m_velo_track_index = 0;
+          unsigned m_velo_track_index = 0; // Could just store a pointer to the velo index array
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
 

@@ -12,18 +12,16 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
 
   const auto event_tracks_offset = parameters.dev_atomics_ut[event_number];
   const auto event_number_of_tracks = parameters.dev_atomics_ut[event_number + 1] - event_tracks_offset;
-  const auto event_ut_track_velo_indices = parameters.dev_ut_track_velo_indices + event_tracks_offset;
+
   for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
-    const auto velo_track_index = event_ut_track_velo_indices[track_index];
     new (parameters.dev_ut_track_view + event_tracks_offset + track_index)
       Allen::Views::UT::Consolidated::Track {parameters.dev_ut_hits_view,
-                                             &parameters.dev_velo_tracks_view[event_number].track(velo_track_index),
-                                             parameters.dev_ut_track_velo_indices,
-                                             parameters.dev_ut_track_params,
+                                             parameters.dev_velo_tracks_view + event_number, // Is this right?
+                                             parameters.dev_ut_qop,
                                              parameters.dev_atomics_ut,
                                              parameters.dev_ut_track_hit_number,
-                                             event_number_of_tracks,
                                              track_index,
+                                             parameters.dev_ut_track_velo_indices[event_tracks_offset + track_index],
                                              event_number};
   }
 
@@ -34,17 +32,16 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
                                             parameters.dev_ut_track_hit_number,
                                             event_number,
                                             number_of_events};
-
-    new (parameters.dev_ut_tracks_view + event_number)
-      Allen::Views::UT::Consolidated::Tracks {parameters.dev_ut_track_view, parameters.dev_atomics_ut, event_number};
+    
+    new (parameters.dev_ut_tracks_view + event_number) Allen::Views::UT::Consolidated::Tracks {
+      parameters.dev_ut_track_view, parameters.dev_atomics_ut, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_ut_multi_event_tracks_view)
       Allen::Views::UT::Consolidated::MultiEventTracks {parameters.dev_ut_tracks_view, number_of_events};
-
-    parameters.dev_ut_multi_event_lhcb_id_container[0] = parameters.dev_ut_multi_event_tracks_view;
   }
+
 }
 
 void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
@@ -56,13 +53,14 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
   set_size<dev_ut_track_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::Hits::element_size);
   set_size<dev_ut_track_velo_indices_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
-  set_size<dev_ut_qop_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
-  set_size<dev_ut_track_params_t>(arguments, 4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_x_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_z_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_tx_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+
   set_size<dev_ut_hits_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_track_view_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_multi_event_tracks_view_t>(arguments, 1);
-  set_size<dev_ut_multi_event_lhcb_id_container_t>(arguments, 1);
 }
 
 void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
