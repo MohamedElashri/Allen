@@ -34,7 +34,7 @@ namespace ut_consolidate_tracks {
       dev_offsets_ut_tracks_t,
       dev_offsets_ut_track_hit_number_t)
     dev_ut_hits_view;
-    DEVICE_OUTPUT(  
+    DEVICE_OUTPUT(
       dev_ut_track_view_t,
       Allen::Views::UT::Consolidated::Track,
       dev_ut_hits_view_t,

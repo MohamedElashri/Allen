@@ -30,37 +30,31 @@ namespace Allen {
             m_index(index), m_total_number_of_hits(total_number_of_hits)
           {}
 
-          __host__ __device__ uint8_t plane_code() const {
-            auto plane_code_base_pointer = reinterpret_cast<const uint8_t*>(m_base_pointer + 6 * m_total_number_of_hits);
+          __host__ __device__ uint8_t plane_code() const
+          {
+            auto plane_code_base_pointer =
+              reinterpret_cast<const uint8_t*>(m_base_pointer + 6 * m_total_number_of_hits);
             return plane_code_base_pointer[m_index];
           }
 
-          __host__ __device__ float yBegin() const {
-            return m_base_pointer[m_index];
-          }
+          __host__ __device__ float yBegin() const { return m_base_pointer[m_index]; }
 
-          __host__ __device__ float yEnd() const {
-            return m_base_pointer[m_total_number_of_hits + m_index];
-          }
+          __host__ __device__ float yEnd() const { return m_base_pointer[m_total_number_of_hits + m_index]; }
 
-          __host__ __device__ float zAtYEq0() const {
-            return m_base_pointer[2 * m_total_number_of_hits + m_index];
-          }
+          __host__ __device__ float zAtYEq0() const { return m_base_pointer[2 * m_total_number_of_hits + m_index]; }
 
-          __host__ __device__ float xAtYEq0() const {
-            return m_base_pointer[3 * m_total_number_of_hits + m_index];
-          }
+          __host__ __device__ float xAtYEq0() const { return m_base_pointer[3 * m_total_number_of_hits + m_index]; }
 
-          __host__ __device__ float weight() const {
-            return m_base_pointer[4 * m_total_number_of_hits + m_index];
-          }
+          __host__ __device__ float weight() const { return m_base_pointer[4 * m_total_number_of_hits + m_index]; }
 
-          __host__ __device__ uint32_t id() const {
+          __host__ __device__ uint32_t id() const
+          {
             return reinterpret_cast<const uint32_t*>(m_base_pointer)[5 * m_total_number_of_hits + m_index];
           }
 
-          __host__ __device__ operator ::UT::Hit() const {
-            return ::UT::Hit {yBegin(), yEnd(), zAtYEq0(), xAtYEq0(), weight(), id(), plane_code()}; 
+          __host__ __device__ operator ::UT::Hit() const
+          {
+            return ::UT::Hit {yBegin(), yEnd(), zAtYEq0(), xAtYEq0(), weight(), id(), plane_code()};
           }
         };
 
@@ -120,10 +114,7 @@ namespace Allen {
             const unsigned velo_track_index,
             const unsigned event_number) :
             m_hits(hits + event_number),
-            m_velo_tracks(velo_tracks),
-            m_qop(qop),
-            m_track_index(track_index),
-            m_velo_track_index(velo_track_index)
+            m_velo_tracks(velo_tracks), m_qop(qop), m_track_index(track_index), m_velo_track_index(velo_track_index)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
@@ -141,10 +132,11 @@ namespace Allen {
 
           __host__ __device__ unsigned number_of_ut_hits() const { return m_number_of_hits; }
 
-          __host__ __device__ unsigned number_of_total_hits() const {
+          __host__ __device__ unsigned number_of_total_hits() const
+          {
             return m_number_of_hits + velo_track().number_of_hits();
           }
-          
+
           __host__ __device__ unsigned qop() const { return m_qop[m_offset + m_track_index]; }
 
           __host__ __device__ Hit hit(const unsigned ut_hit_index) const
@@ -154,17 +146,15 @@ namespace Allen {
             return m_hits->hit(m_offset + ut_hit_index);
           }
 
-          __host__ __device__ unsigned number_of_ids() const override 
-          { 
-            return number_of_total_hits();
-          }
+          __host__ __device__ unsigned number_of_ids() const override { return number_of_total_hits(); }
 
           __host__ __device__ unsigned id(const unsigned index) const override
           {
             auto n_velo_hits = velo_track().number_of_hits();
             if (index < n_velo_hits) {
               return velo_track().hit(index).id();
-            } else {
+            }
+            else {
               return hit(index - n_velo_hits).id();
             }
           }
@@ -179,18 +169,15 @@ namespace Allen {
         public:
           Tracks() = default;
 
-          __host__ __device__ Tracks(
-            const Track* track, 
-            const unsigned* offset_tracks, 
-            const unsigned event_number) :
-            m_track(track + offset_tracks[event_number]),
-            m_offset(offset_tracks[event_number]),
+          __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
+            m_track(track + offset_tracks[event_number]), m_offset(offset_tracks[event_number]),
             m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
           {}
 
           __host__ __device__ unsigned size() const { return m_size; }
 
-          __host__ __device__ const Track& track(const unsigned index) const{
+          __host__ __device__ const Track& track(const unsigned index) const
+          {
             assert(m_track != nullptr);
             assert(index < m_size);
             return m_track[index];
@@ -208,8 +195,8 @@ namespace Allen {
 
         using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;
       } // namespace Consolidated
-    } // namespace UT
-  } // namespace Views
+    }   // namespace UT
+  }     // namespace Views
 } // namespace Allen
 
 namespace UT {

@@ -32,16 +32,15 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
                                             parameters.dev_ut_track_hit_number,
                                             event_number,
                                             number_of_events};
-    
-    new (parameters.dev_ut_tracks_view + event_number) Allen::Views::UT::Consolidated::Tracks {
-      parameters.dev_ut_track_view, parameters.dev_atomics_ut, event_number};
+
+    new (parameters.dev_ut_tracks_view + event_number)
+      Allen::Views::UT::Consolidated::Tracks {parameters.dev_ut_track_view, parameters.dev_atomics_ut, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_ut_multi_event_tracks_view)
       Allen::Views::UT::Consolidated::MultiEventTracks {parameters.dev_ut_tracks_view, number_of_events};
   }
-
 }
 
 void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
