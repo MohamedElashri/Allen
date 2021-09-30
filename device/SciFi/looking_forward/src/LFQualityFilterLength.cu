@@ -45,8 +45,8 @@ __global__ void lf_quality_filter_length::lf_quality_filter_length(lf_quality_fi
   const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
   const auto ut_event_tracks_offset = ut_tracks_view.offset();
   // TODO: Don't do this. Will be replaced when SciFi EM is updated.
-  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
-                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
+  const auto ut_total_number_of_tracks = 
+    parameters.dev_ut_tracks_view[number_of_events-1].offset() + parameters.dev_ut_tracks_view[number_of_events-1].size();
 
   const auto number_of_tracks = parameters.dev_scifi_lf_atomics[event_number];
 
