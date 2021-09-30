@@ -119,7 +119,10 @@ namespace Allen {
             const unsigned event_number) :
             m_hits(hits + event_number),
             m_velo_track(velo_track), 
-            m_qop(qop), m_x(x), m_z(z), m_tx(tx),
+            m_qop(qop + offset_tracks[event_number]), 
+            m_x(x + offset_tracks[event_number]), 
+            m_z(z + offset_tracks[event_number]), 
+            m_tx(tx + offset_tracks[event_number]),
             m_track_index(track_index)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
@@ -138,13 +141,13 @@ namespace Allen {
             return m_number_of_hits + m_velo_track->number_of_hits();
           }
 
-          __host__ __device__ float qop() const { return m_qop[m_offset + m_track_index]; }
+          __host__ __device__ float qop() const { return m_qop[m_track_index]; }
 
-          __host__ __device__ float x() const {return m_x[m_offset + m_track_index]; }
+          __host__ __device__ float x() const {return m_x[m_track_index]; }
           
-          __host__ __device__ float z() const {return m_z[m_offset + m_track_index]; }
+          __host__ __device__ float z() const {return m_z[m_track_index]; }
 
-          __host__ __device__ float tx() const {return m_tx[m_offset + m_track_index]; }
+          __host__ __device__ float tx() const {return m_tx[m_track_index]; }
 
           __host__ __device__ Hit hit(const unsigned ut_hit_index) const
           {

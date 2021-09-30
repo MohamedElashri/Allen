@@ -12,11 +12,12 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
 
   const auto event_tracks_offset = parameters.dev_atomics_ut[event_number];
   const auto event_number_of_tracks = parameters.dev_atomics_ut[event_number + 1] - event_tracks_offset;
-
+  const auto event_ut_track_velo_indices = parameters.dev_ut_track_velo_indices + event_tracks_offset;
   for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
+    const auto velo_track_index = event_ut_track_velo_indices[track_index];
     new (parameters.dev_ut_track_view + event_tracks_offset + track_index)
       Allen::Views::UT::Consolidated::Track {parameters.dev_ut_hits_view,
-                                             parameters.dev_velo_tracks_view[event_number].track_pointer(track_index),
+                                             parameters.dev_velo_tracks_view[event_number].track_pointer(velo_track_index),
                                              parameters.dev_ut_qop,
                                              parameters.dev_ut_x,
                                              parameters.dev_ut_z,
