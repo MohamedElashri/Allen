@@ -14,9 +14,9 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   const auto ut_event_tracks_offset = ut_tracks_view.offset();
-  // TODO: Don't do this. Needs changes to the SciFi EM.
-  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
-                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
+  // TODO: Don't do this.
+  const auto ut_total_number_of_tracks = 
+    parameters.dev_ut_tracks_view[number_of_events-1].offset() + parameters.dev_ut_tracks_view[number_of_events-1].size();
 
   // SciFi hits
   const unsigned total_number_of_hits =
@@ -32,7 +32,6 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
-
     const auto ut_track = ut_tracks_view.track(track.ut_track_index);
     const auto velo_track = ut_track.velo_track();
     const auto velo_state = velo_track.state(velo_states_view);

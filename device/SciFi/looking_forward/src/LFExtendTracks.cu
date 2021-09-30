@@ -15,8 +15,8 @@ __global__ void lf_create_tracks::lf_extend_tracks(
   const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
   const auto ut_event_tracks_offset = ut_tracks_view.offset();
   // TODO: Don't do this. Needs changes to the SciFi EM.
-  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
-                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
+  const auto ut_total_number_of_tracks = 
+    parameters.dev_ut_tracks_view[number_of_events-1].offset() + parameters.dev_ut_tracks_view[number_of_events-1].size();
 
   // SciFi hits
   const unsigned total_number_of_hits =
