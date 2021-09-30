@@ -132,7 +132,7 @@ namespace Allen {
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
-          __host__ __device__ Allen::Views::Velo::Consolidated::Track velo_track() const { return *m_velo_track; }
+          __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const { return *m_velo_track; }
 
           __host__ __device__ unsigned number_of_ut_hits() const { return m_number_of_hits; }
 
