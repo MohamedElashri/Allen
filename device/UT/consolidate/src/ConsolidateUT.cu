@@ -220,14 +220,12 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
 
       for (unsigned id_index = 0; id_index < track.number_of_total_hits() - track.number_of_ut_hits(); id_index++) {
         lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
-        velo_ids_have_velo_preamble &= lhcb_id::is_velo(id_seq.id(id_index));
+        velo_ids_have_velo_preamble &= lhcb_id::is_velo(id_seq.id(id_index));  
       }
 
-      for (unsigned id_index = track.number_of_total_hits() - track.number_of_ut_hits();
-           id_index < track.number_of_total_hits();
-           id_index++) {
-        lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
-        ut_ids_have_ut_preamble &= lhcb_id::is_ut(id_seq.id(id_index));
+      for (unsigned id_index = track.number_of_total_hits() - track.number_of_ut_hits(); id_index < track.number_of_total_hits(); id_index++) {
+          lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
+          ut_ids_have_ut_preamble &= lhcb_id::is_ut(id_seq.id(id_index));
       }
     }
   }
