@@ -40,6 +40,9 @@ namespace ut_consolidate_tracks {
       dev_ut_hits_view_t,
       dev_velo_tracks_view_t,
       dev_ut_qop_t,
+      dev_ut_x_t,
+      dev_ut_z_t,
+      dev_ut_tx_t,
       dev_ut_track_hits_t,
       dev_offsets_ut_tracks_t,
       dev_offsets_ut_track_hit_number_t)
@@ -51,6 +54,9 @@ namespace ut_consolidate_tracks {
       dev_ut_track_view_t,
       dev_velo_tracks_view_t,
       dev_ut_qop_t,
+      dev_ut_x_t,
+      dev_ut_z_t,
+      dev_ut_tx_t,
       dev_ut_track_hits_t,
       dev_offsets_ut_tracks_t,
       dev_offsets_ut_track_hit_number_t)
@@ -63,6 +69,9 @@ namespace ut_consolidate_tracks {
       dev_ut_tracks_view_t,
       dev_velo_tracks_view_t,
       dev_ut_qop_t,
+      dev_ut_x_t,
+      dev_ut_z_t,
+      dev_ut_tx_t,
       dev_ut_track_hits_t,
       dev_offsets_ut_tracks_t,
       dev_offsets_ut_track_hit_number_t)
