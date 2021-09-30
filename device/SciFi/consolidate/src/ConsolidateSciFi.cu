@@ -166,7 +166,6 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
                                             parameters.dev_scifi_track_ut_indices,
                                             event_number,
                                             number_of_events};
-
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const unsigned event_offset = scifi_hit_count.event_offset();
 
