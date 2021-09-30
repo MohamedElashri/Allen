@@ -97,6 +97,7 @@ namespace Allen {
         private:
           const Hits* m_hits = nullptr;
           const Allen::Views::Velo::Consolidated::Track* m_velo_track = nullptr;
+          const unsigned* m_velo_track_indices = nullptr;
           const float* m_qop = nullptr;
           const float* m_x = nullptr;
           const float* m_z = nullptr;
@@ -109,6 +110,7 @@ namespace Allen {
           __host__ __device__ Track(
             const Hits* hits,
             const Allen::Views::Velo::Consolidated::Track* velo_track,
+            const unsigned* velo_track_indices,
             const float* qop,
             const float* x,
             const float* z,
@@ -118,10 +120,11 @@ namespace Allen {
             const unsigned track_index,
             const unsigned event_number) :
             m_hits(hits + event_number),
-            m_velo_track(velo_track), 
-            m_qop(qop + offset_tracks[event_number]), 
-            m_x(x + offset_tracks[event_number]), 
-            m_z(z + offset_tracks[event_number]), 
+            m_velo_track(velo_track),
+            m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
+            m_qop(qop + offset_tracks[event_number]),
+            m_x(x + offset_tracks[event_number]),
+            m_z(z + offset_tracks[event_number]),
             m_tx(tx + offset_tracks[event_number]),
             m_track_index(track_index)
           {
@@ -131,6 +134,8 @@ namespace Allen {
           }
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
+
+          __host__ __device__ unsigned velo_track_index() const { return m_velo_track_indices[m_track_index]; }
 
           __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const { return *m_velo_track; }
 

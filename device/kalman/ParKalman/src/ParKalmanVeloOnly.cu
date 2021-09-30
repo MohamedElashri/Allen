@@ -437,6 +437,14 @@ __device__ void simplified_fit(
   KalmanFloat qop = init_qop;
   KalmanFloat z = first_hit.z();
 
+  // Initialize the covariance.
+  KalmanFloat cXX = 100.0;
+  KalmanFloat cXTx = 0;
+  KalmanFloat cTxTx = 0.01;
+  KalmanFloat cYY = 100.0;
+  KalmanFloat cYTy = 0;
+  KalmanFloat cTyTy = 0.01;
+
   // Initialize the chi2.
   KalmanFloat chi2 = 0;
 
@@ -458,12 +466,8 @@ __device__ void simplified_fit(
     const auto hit_x = hit.x();
     const auto hit_y = hit.y();
     const auto hit_z = hit.z();
-
-    const KalmanFloat xprime = hit_x + hit_y;
-    const KalmanFloat yprime = hit_y - hit_x;
-    const bool infoil = (yprime > -15 && xprime >= 0 && xprime < 15) || (yprime < 15 && xprime > -15 && xprime <= 0);
-    simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2, infoil);
-    simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2, infoil);
+    simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
+    simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
     z = hit_z;
   }
   __syncthreads();
@@ -538,10 +542,11 @@ __global__ void kalman_velo_only::kalman_velo_only(
     const auto velo_track = ut_track.velo_track();
     const int i_velo_track = ut_track.velo_track_index();
     const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop(i_scifi_track);
-    ParKalmanFilter::FittedTrack track;
-    simplified_fit(velo_track, init_qop, track);
-    track.ip = pv_table.value(i_velo_track);
-    track.is_electron = false;
-    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track] = track;
+    simplified_fit(
+      velo_track,
+      init_qop,
+      parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
+    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track].ip =
+      pv_table.value(i_velo_track);
   }
 }
