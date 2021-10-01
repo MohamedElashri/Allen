@@ -19,12 +19,10 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
       Allen::Views::UT::Consolidated::Track {parameters.dev_ut_hits_view,
                                              parameters.dev_velo_tracks_view[event_number].track_pointer(velo_track_index),
                                              parameters.dev_ut_track_velo_indices,
-                                             parameters.dev_ut_qop,
-                                             parameters.dev_ut_x,
-                                             parameters.dev_ut_z,
-                                             parameters.dev_ut_tx,
+                                             parameters.dev_ut_track_params,
                                              parameters.dev_atomics_ut,
                                              parameters.dev_ut_track_hit_number,
+                                             event_number_of_tracks,
                                              track_index,
                                              event_number};
   }
@@ -56,10 +54,8 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
   set_size<dev_ut_track_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::Hits::element_size);
   set_size<dev_ut_track_velo_indices_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
-  set_size<dev_ut_x_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
-  set_size<dev_ut_z_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
-  set_size<dev_ut_tx_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
-
+  set_size<dev_ut_qop_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_ut_track_params_t>(arguments, 4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_hits_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_track_view_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));

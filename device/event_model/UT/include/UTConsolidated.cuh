@@ -98,34 +98,29 @@ namespace Allen {
           const Hits* m_hits = nullptr;
           const Allen::Views::Velo::Consolidated::Track* m_velo_track = nullptr;
           const unsigned* m_velo_track_indices = nullptr;
-          const float* m_qop = nullptr;
-          const float* m_x = nullptr;
-          const float* m_z = nullptr;
-          const float* m_tx = nullptr;
+          const float* m_track_params = nullptr;
+          unsigned m_number_of_tracks_event = 0;
           unsigned m_track_index = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
+          
 
         public:
           __host__ __device__ Track(
             const Hits* hits,
             const Allen::Views::Velo::Consolidated::Track* velo_track,
             const unsigned* velo_track_indices,
-            const float* qop,
-            const float* x,
-            const float* z,
-            const float* tx,
+            const float* track_params,
             const unsigned* offset_tracks,
             const unsigned* offset_track_hit_number,
+            const unsigned number_of_tracks_event,
             const unsigned track_index,
             const unsigned event_number) :
             m_hits(hits + event_number),
             m_velo_track(velo_track),
             m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
-            m_qop(qop + offset_tracks[event_number]),
-            m_x(x + offset_tracks[event_number]),
-            m_z(z + offset_tracks[event_number]),
-            m_tx(tx + offset_tracks[event_number]),
+            m_track_params(track_params + 4 * offset_tracks[event_number]),
+            m_number_of_tracks_event(number_of_tracks_event),
             m_track_index(track_index)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
@@ -146,13 +141,13 @@ namespace Allen {
             return m_number_of_hits + m_velo_track->number_of_hits();
           }
 
-          __host__ __device__ float qop() const { return m_qop[m_track_index]; }
+          __host__ __device__ float qop() const { return m_track_params[m_track_index]; }
 
-          __host__ __device__ float x() const {return m_x[m_track_index]; }
+          __host__ __device__ float x() const {return m_track_params[m_track_index + m_number_of_tracks_event]; }
           
-          __host__ __device__ float z() const {return m_z[m_track_index]; }
+          __host__ __device__ float z() const {return m_track_params[m_track_index + 2 * m_number_of_tracks_event]; }
 
-          __host__ __device__ float tx() const {return m_tx[m_track_index]; }
+          __host__ __device__ float tx() const {return m_track_params[m_track_index + 3 * m_number_of_tracks_event]; }
 
           __host__ __device__ Hit hit(const unsigned ut_hit_index) const
           {

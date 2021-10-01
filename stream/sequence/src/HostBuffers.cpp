@@ -130,6 +130,36 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
   const size_t host_ut_track_hits_sz =
     max_number_of_events * UT::Constants::max_num_tracks * UT::Constants::max_track_size * sizeof(UT::Hit);
   host_ut_track_hits = gsl::span<char> {reinterpret_cast<char*>(malloc(host_ut_track_hits_sz)), host_ut_track_hits_sz};
+  // host_atomics_ut =
+  //   reinterpret_cast<decltype(host_atomics_ut)>(malloc(UT::num_atomics * (max_number_of_events + 1) * sizeof(int)));
+  // host_ut_tracks = reinterpret_cast<decltype(host_ut_tracks)>(
+  //   malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(UT::TrackHits)));
+  // host_ut_track_hit_number = reinterpret_cast<decltype(host_ut_track_hit_number)>(
+  //   malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(unsigned)));
+  // host_ut_track_hits = reinterpret_cast<decltype(host_ut_track_hits)>(
+  //   malloc(max_number_of_events * UT::Constants::max_num_tracks * UT::Constants::max_track_size * sizeof(UT::Hit)));
+  // host_ut_qop = reinterpret_cast<decltype(host_ut_qop)>(
+  //   malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
+  // host_ut_track_velo_indices = reinterpret_cast<decltype(host_ut_track_velo_indices)>(
+  //   malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
+  // host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
+  //   max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+  //   sizeof(SciFi::TrackHits)));
+  // host_scifi_track_hit_number = reinterpret_cast<decltype(host_scifi_track_hit_number)>(malloc(
+  //   max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+  //   sizeof(unsigned)));
+  // host_scifi_track_hits = reinterpret_cast<decltype(host_scifi_track_hits)>(malloc(
+  //   max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+  //   SciFi::Constants::max_track_size * sizeof(SciFi::Hit)));
+  // host_scifi_qop = reinterpret_cast<decltype(host_scifi_qop)>(malloc(
+  //   max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+  //   sizeof(float)));
+  // host_scifi_states = reinterpret_cast<decltype(host_scifi_states)>(malloc(
+  //   max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+  //   sizeof(MiniState)));
+  // host_scifi_track_ut_indices = reinterpret_cast<decltype(host_scifi_track_ut_indices)>(malloc(
+  //   max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+  //   sizeof(unsigned)));
 
   host_ut_qop = reinterpret_cast<decltype(host_ut_qop)>(
     malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));

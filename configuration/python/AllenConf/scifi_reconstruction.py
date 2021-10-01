@@ -72,7 +72,6 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
     dev_offsets_velo_track_hit_number = velo_tracks[
         "dev_offsets_velo_track_hit_number"]
     dev_accepted_velo_tracks = velo_tracks["dev_accepted_velo_tracks"]
-
     host_number_of_reconstructed_ut_tracks = ut_tracks[
         "host_number_of_reconstructed_ut_tracks"]
     dev_offsets_ut_tracks = ut_tracks["dev_offsets_ut_tracks"]
