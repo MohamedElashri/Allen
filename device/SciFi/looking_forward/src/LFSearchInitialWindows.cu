@@ -54,7 +54,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
 
   const int ut_event_number_of_tracks = ut_tracks_view.size();
   const int ut_event_tracks_offset = ut_tracks_view.offset();
-  // This is gross, but it should work for now.
+  // TODO: Don't do this. Needs changes to the SciFi EM.
   const unsigned total_number_of_ut_tracks = 
     parameters.dev_ut_tracks_view[number_of_events-1].offset() + parameters.dev_ut_tracks_view[number_of_events-1].size();
 

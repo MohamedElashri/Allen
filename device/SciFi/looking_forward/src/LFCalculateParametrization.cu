@@ -14,7 +14,7 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   const auto ut_event_tracks_offset = ut_tracks_view.offset();
-  // TODO: Don't do this.
+  // TODO: Don't do this. Needs changes to the SciFi EM.
   const auto ut_total_number_of_tracks = 
     parameters.dev_ut_tracks_view[number_of_events-1].offset() + parameters.dev_ut_tracks_view[number_of_events-1].size();
 
