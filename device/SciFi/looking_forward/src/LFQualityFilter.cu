@@ -61,7 +61,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
   const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
   const auto ut_event_number_of_tracks = ut_tracks_view.size();
   const auto ut_event_tracks_offset = ut_tracks_view.offset();
-  // TODO: Don't do this. Needs changes to the SciFi EM.
+  // TODO: Don't do this. Will be replaced when SciFi EM is updated.
   const auto ut_total_number_of_tracks = 
     parameters.dev_ut_tracks_view[number_of_events-1].offset() + parameters.dev_ut_tracks_view[number_of_events-1].size();
 
