@@ -5,6 +5,46 @@
 
 INSTANTIATE_ALGORITHM(scifi_consolidate_tracks::scifi_consolidate_tracks_t)
 
+__global__ void create_scifi_views(scifi_consolidate_tracks::Parameters parameters)
+{
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned event_number = blockIdx.x;
+
+  const auto event_tracks_offset = parameters.dev_atomics_scifi[event_number];
+  const auto event_number_of_tracks = parameters.dev_atomics_scifi[event_number + 1] - event_tracks_offset;
+  const auto event_scifi_track_ut_indices = parameters.dev_scifi_track_ut_indices + event_tracks_offset;
+  for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
+    const auto ut_track_index = event_scifi_track_ut_indices[track_index];
+    new (parameters.dev_scifi_track_view + event_tracks_offset + track_index)
+      Allen::Views::SciFi::Consolidated::Track {parameters.dev_scifi_hits_view,
+                                                &parameters.dev_ut_tracks_view[event_number].track(ut_track_index),
+                                                parameters.dev_scifi_qop,
+                                                parameters.dev_atomics_scifi,
+                                                parameters.dev_scifi_track_hit_number,
+                                                track_index,
+                                                event_number};
+  }
+
+  if (threadIdx.x == 0) {
+    new (parameters.dev_scifi_hits_view + event_number)
+      Allen::Views::SciFi::Consolidated::Hits {parameters.dev_scifi_track_hits,
+                                               parameters.dev_atomics_scifi,
+                                               parameters.dev_scifi_track_hit_number,
+                                               event_number,
+                                               number_of_events};
+
+    new (parameters.dev_scifi_tracks_view + event_number)
+      Allen::Views::SciFi::Consolidated::Tracks {parameters.dev_scifi_track_view, 
+                                                 parameters.dev_atomics_scifi,
+                                                 event_number};
+  }
+
+  if (blockIdx.x == 0 && threadIdx.x == 0) {
+    new (parameters.dev_scifi_multi_event_tracks_view)
+      Allen::Views::SciFi::Consolidated::MultiEventTracks {parameters.dev_scifi_tracks_view, number_of_events};
+  }
+}
+
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -16,6 +56,10 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   set_size<dev_scifi_qop_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_scifi_track_ut_indices_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_scifi_states_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_scifi_hits_view_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_scifi_track_view_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_scifi_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_scifi_multi_event_tracks_view_t>(arguments, 1);
 }
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
@@ -25,8 +69,13 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
+  initialize<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
+  initialize<dev_scifi_tracks_view_t>(arguments, 0, context);
+
   global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
+
+  global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 
   if (runtime_options.fill_extra_host_buffers) {
     // Transmission device to host of Scifi consolidated tracks
