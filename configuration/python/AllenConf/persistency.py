@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import gather_selections_t, dec_reporter_t, global_decision_t
+from AllenAlgorithms.algorithms import gather_selections_t, dec_reporter_t, global_decision_t, routingbits_writer_t
 from AllenAlgorithms.algorithms import host_prefix_sum_t, make_selrep_t
 from AllenAlgorithms.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.odin import decode_odin
@@ -49,10 +49,37 @@ def make_dec_reporter(lines, TCK=0):
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
 
+def make_routingbits_configuration(lines):
+    gather_selections = make_gather_selections(lines)
+    return make_algorithm(
+        host_routingbits_configuration_t,
+        name="host_routingbits_configuration",
+        host_number_of_active_lines_t=gather_selections.host_number_of_active_lines_t,
+        host_names_of_active_lines_t=gather_selections.host_names_of_active_lines_t)
+
+
+def make_routingbits_writer(lines):
+    gather_selections = make_gather_selections(lines)
+    dec_reporter = make_dec_reporter(lines)
+    number_of_events = initialize_number_of_events()
+    routingbits_configuration = make_routingbits_configuration(lines)
+
+    return make_algorithm(
+        routingbits_writer_t,
+        name="routingbits_writer",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_active_lines_t=gather_selections.host_number_of_active_lines_t,
+        host_names_of_active_lines_t=gather_selections.host_names_of_active_lines_t,
+        dev_number_of_active_lines_t=gather_selections.dev_number_of_active_lines_t,
+        host_routingbits_associatedlines_t=routingbits_configuration.host_routingbits_associatedlines_t,
+        dev_dec_reports_t=dec_reporter.dev_dec_reports_t)
+
 
 def make_global_decision(lines):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
+    routingbits_configuration = make_routingbits_configuration(lines)
+    routingbits_writer = make_routingbits_writer(lines)
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -70,6 +97,8 @@ def make_global_decision(lines):
 def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
+    routingbits_configuration = make_routingbits_configuration(lines)
+    routingbits_writer = make_routingbits_writer(lines)
     number_of_events = initialize_number_of_events()
 
     prefix_sum_max_objects = make_algorithm(

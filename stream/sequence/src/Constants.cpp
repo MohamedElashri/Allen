@@ -10,6 +10,7 @@
 #include "MuonDefinitions.cuh"
 #include "MuonGeometry.cuh"
 #include "MuonTables.cuh"
+#include "RoutingBitsConfiguration.cuh"
 
 void Constants::reserve_constants()
 {
@@ -20,6 +21,7 @@ void Constants::reserve_constants()
   Allen::malloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float));
   Allen::malloc((void**) &dev_muonmatch_search_muon_chambers, sizeof(MatchUpstreamMuon::MuonChambers));
   Allen::malloc((void**) &dev_muonmatch_search_windows, sizeof(MatchUpstreamMuon::SearchWindows));
+  Allen::malloc((void**) &dev_routingbits_conf, sizeof(RoutingBitsConfiguration::RoutingBits));
 
   host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
   host_ut_dxDy.resize(UT::Constants::n_layers);

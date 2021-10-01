@@ -33,6 +33,10 @@ namespace MatchUpstreamMuon {
   struct SearchWindows;
 } // namespace MatchUpstreamMuon
 
+namespace RoutingBitsConfiguration {
+  struct RoutingBits;
+}
+
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
  * @details __constant__ memory on the GPU has very few use cases.
@@ -123,6 +127,10 @@ struct Constants {
 
   // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
+ 
+  // Routing bits
+  RoutingBitsConfiguration::RoutingBits* host_routingbits_conf = nullptr; 
+  RoutingBitsConfiguration::RoutingBits* dev_routingbits_conf = nullptr; 
 
   /**
    * @brief Reserves and initializes constants.

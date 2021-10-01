@@ -4,10 +4,10 @@
 from AllenAlgorithms.algorithms import (
     mc_data_provider_t, host_velo_validator_t, host_velo_ut_validator_t,
     long_track_validator_t, muon_validator_t, host_pv_validator_t,
-    host_rate_validator_t, kalman_validator_t, host_data_provider_t,
+    host_rate_validator_t, host_routingbits_validator_t, kalman_validator_t, host_data_provider_t,
     host_sel_report_validator_t)
 from AllenConf.utils import initialize_number_of_events
-from AllenConf.persistency import make_dec_reporter, make_gather_selections
+from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer
 from AllenCore.generator import make_algorithm
 
 
@@ -142,6 +142,21 @@ def rate_validation(lines, name="rate_validator"):
         host_number_of_active_lines_t,
         host_dec_reports_t=dec_reporter.host_dec_reports_t)
 
+def routingbits_validation(lines, name="routingbits_validator"):
+    number_of_events = initialize_number_of_events()
+    dec_reporter = make_dec_reporter(lines)
+    gather_selections = make_gather_selections(lines)
+    routingbits_writer = make_routingbits_writer(lines)
+
+    return make_algorithm(
+        host_routingbits_validator_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_names_of_lines_t=gather_selections.host_names_of_active_lines_t,
+        host_number_of_active_lines_t=gather_selections.
+        host_number_of_active_lines_t,
+        host_dec_reports_t=dec_reporter.host_dec_reports_t,
+        host_routingbits_t=routingbits_writer.host_routingbits_t)
 
 def kalman_validation(kalman_velo_only, name="kalman_validator"):
     number_of_events = initialize_number_of_events()
