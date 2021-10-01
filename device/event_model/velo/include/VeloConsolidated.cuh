@@ -259,13 +259,6 @@ namespace Allen {
             return m_track[index];
           }
 
-          __host__ __device__ const Track* track_pointer(const unsigned index) const
-          {
-            assert(m_track != nullptr);
-            assert(index < m_size);
-            return m_track + index;
-          }
-
           /**
            * @brief This offset indicates the relative position of the
            *        tracks in the container for the current event.
