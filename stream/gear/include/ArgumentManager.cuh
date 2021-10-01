@@ -129,15 +129,15 @@ public:
   using parameters_tuple_t = ParameterTuple;
   using parameters_struct_t = ParameterStruct;
   using input_aggregates_t = InputAggregatesTuple;
+  using store_t = std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>;
 
 private:
-  mutable std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
-    m_tuple_to_argument_data;
+  mutable store_t m_tuple_to_argument_data;
   input_aggregates_t m_input_aggregates;
 
 public:
   ArgumentRefManager(
-    std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>> tuple_to_argument_data,
+    store_t tuple_to_argument_data,
     input_aggregates_t input_aggregates) :
     m_tuple_to_argument_data(tuple_to_argument_data),
     m_input_aggregates(input_aggregates)

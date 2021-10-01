@@ -35,6 +35,9 @@ void host_init_event_list::host_init_event_list_t::operator()(
   Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 }
 
+// The code below would be generated with
+// INSTANTIATE_ALGORITHM(host_init_event_list::host_init_event_list_t)
+
 template<>
 Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(
   host_init_event_list::host_init_event_list_t*,
@@ -50,11 +53,35 @@ Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(
     },
     [](
       const std::any& instance,
-      std::any arguments,
+      std::any arguments_array,
+      std::vector<std::reference_wrapper<ArgumentData>> input_aggregates,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) {
-      std::any_cast<const host_init_event_list::host_init_event_list_t&>(instance).set_arguments_size(
-        std::any_cast<ArgumentReferences<host_init_event_list::Parameters>>(arguments), runtime_options, constants, host_buffers);
-    }};
+        // Create args array
+        auto store = std::any_cast<ArgumentReferences<host_init_event_list::Parameters>::store_t>(arguments_array); // std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
+        // Create input aggregate t
+        auto input_agg_store = ArgumentReferences<host_init_event_list::Parameters>::input_aggregates_t{input_aggregates};
+        // Create ArgumentRefManager
+        auto arg_ref_manager = ArgumentReferences<host_init_event_list::Parameters>{store, input_agg_store};
+        std::any_cast<const host_init_event_list::host_init_event_list_t&>(instance).set_arguments_size(arg_ref_manager, runtime_options, constants, host_buffers);
+    }
+    // ,
+    // [](
+    //   const std::any& instance,
+    //   std::any arguments_array,
+    //   std::vector<std::reference_wrapper<ArgumentData>> input_aggregates,
+    //   const RuntimeOptions& runtime_options,
+    //   const Constants& constants,
+    //   const HostBuffers& host_buffers,
+    //   const Allen::Context& context) {
+    //     // Create args array
+    //     auto store = std::any_cast<ArgumentReferences<host_init_event_list::Parameters>::store_t>(arguments_array); // std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
+    //     // Create input aggregate t
+    //     auto input_agg_store = ArgumentReferences<host_init_event_list::Parameters>::input_aggregates_t{input_aggregates};
+    //     // Create ArgumentRefManager
+    //     auto arg_ref_manager = ArgumentReferences<host_init_event_list::Parameters>{store, input_agg_store};
+    //     std::any_cast<const host_init_event_list::host_init_event_list_t&>(instance)(arg_ref_manager, runtime_options, constants, host_buffers, context);
+    // }
+    };
 }
