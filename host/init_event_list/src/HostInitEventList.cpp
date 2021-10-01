@@ -34,3 +34,27 @@ void host_init_event_list::host_init_event_list_t::operator()(
 
   Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 }
+
+template<>
+Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(
+  host_init_event_list::host_init_event_list_t*,
+  const std::string& name)
+{
+  auto alg = host_init_event_list::host_init_event_list_t {};
+  alg.set_name(name);
+
+  return TypeErasedAlgorithm {
+    alg,
+    [](const std::any& instance) {
+      return std::any_cast<const host_init_event_list::host_init_event_list_t&>(instance).name();
+    },
+    [](
+      const std::any& instance,
+      std::any arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) {
+      std::any_cast<const host_init_event_list::host_init_event_list_t&>(instance).set_arguments_size(
+        std::any_cast<ArgumentReferences<host_init_event_list::Parameters>>(arguments), runtime_options, constants, host_buffers);
+    }};
+}

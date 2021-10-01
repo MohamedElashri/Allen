@@ -98,7 +98,8 @@ void Stream::print_configured_sequence() { scheduler.print_sequence(); }
  */
 extern "C" bool contains_validator_algorithm()
 {
-  return Sch::ContainsAlgorithmType<ValidationAlgorithm, configured_sequence_t>::value;
+  return true;
+  // return Sch::ContainsAlgorithmType<ValidationAlgorithm, configured_sequence_t>::value;
 }
 
 /**

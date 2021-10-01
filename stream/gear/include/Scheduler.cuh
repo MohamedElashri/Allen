@@ -27,15 +27,16 @@ using device_memory_manager_t = MemoryManager<memory_manager_details::Device, me
 
 namespace details {
 
-  template<auto I, typename Callable, typename... Tuples>
-  constexpr auto invoke_row_at(Callable&& f, Tuples&&... tuples)
+  template<auto I, typename Callable, typename Sequence, typename... Tuples>
+  constexpr auto invoke_row_at(Callable&& f, Sequence&& sequence, Tuples&&... tuples)
   {
-    return std::invoke(std::forward<Callable>(f), std::get<I>(std::forward<Tuples>(tuples))...);
+    return std::invoke(std::forward<Callable>(f), sequence[I], std::get<I>(std::forward<Tuples>(tuples))...);
   }
-  template<typename Callable, typename... Tuples, std::size_t... Is>
-  constexpr void invoke_for_each_row_impl(std::index_sequence<Is...>, Callable&& f, Tuples&&... tuples)
+
+  template<typename Callable, typename Sequence, typename... Tuples, std::size_t... Is>
+  constexpr void invoke_for_each_row_impl(std::index_sequence<Is...>, Sequence&& sequence, Callable&& f, Tuples&&... tuples)
   {
-    (invoke_row_at<Is>(f, std::forward<Tuples>(tuples)...), ...);
+    (invoke_row_at<Is>(f, sequence, std::forward<Tuples>(tuples)...), ...);
   }
 
   /*
@@ -43,13 +44,14 @@ namespace details {
    * invoke an N-ary callable on the thus-obtained N arguments
    * or to put it another way: 'zip tuples, followed by for_each'
    */
-  template<typename Callable, typename Tuple, typename... Tuples>
-  constexpr void invoke_for_each_row(Callable&& f, Tuple&& tuple, Tuples&&... tuples)
+  template<typename Callable, typename Sequence, typename Tuple, typename... Tuples>
+  constexpr void invoke_for_each_row(Callable&& f, Sequence&& sequence, Tuple&& tuple, Tuples&&... tuples)
   {
     constexpr auto N = std::tuple_size_v<std::remove_reference_t<Tuple>>;
     static_assert(((N == std::tuple_size_v<std::remove_reference_t<Tuples>>) &&...));
     invoke_for_each_row_impl(
       std::make_index_sequence<N> {},
+      std::forward<Sequence>(sequence),
       std::forward<Callable>(f),
       std::forward<Tuple>(tuple),
       std::forward<Tuples>(tuples)...);
@@ -72,26 +74,26 @@ namespace details {
     using type = std::tuple<Traits<ConfiguredSequenceArgs, InDeps, OutDeps>...>;
   };
 
-  template<typename ConfiguredSequenceArgs>
+  template<typename ConfiguredSequenceArgs, typename InDeps, typename OutDeps>
   using Traits_for = typename TraitsList<
     ConfiguredSequenceArgs,
-    typename Sch::InDependencies<ConfiguredSequenceArgs>::t,
-    typename Sch::OutDependencies<ConfiguredSequenceArgs>::t>::type;
+    InDeps,
+    OutDeps>::type;
 
 } // namespace details
 
-template<size_t BufferSize, size_t N, typename ConfiguredArguments, typename ConfiguredSequenceArguments>
+template<size_t N, typename ConfiguredArguments, typename ConfiguredSequenceArguments, typename InDeps, typename OutDeps, typename TypeErasedSequence>
 class Scheduler {
 
   struct VTable {
-    void* algorithm = nullptr;
+    Allen::TypeErasedAlgorithm* algorithm = nullptr;
     void (*configure)(void* self, const std::map<std::string, std::map<std::string, std::string>>& config) = nullptr;
     void (*get_configuration)(const void* self, std::map<std::string, std::map<std::string, std::string>>& config) =
       nullptr;
-    std::string (*name)(const void* self) = nullptr;
+    std::function<std::string()> name = nullptr;
     std::string (*type)() = nullptr;
     void (*run)(
-      void* self,
+      Allen::TypeErasedAlgorithm* self,
       host_memory_manager_t&,
       device_memory_manager_t&,
       ArgumentManager<ConfiguredArguments>&,
@@ -103,43 +105,39 @@ class Scheduler {
 
     VTable() = default;
 
-    template<typename Alg, typename Traits>
-    VTable(Alg& alg, Traits) :
-      algorithm {&alg}, configure {configure_<Alg>}, get_configuration {get_configuration_<Alg>},
-      name {[](const void* self) { return static_cast<const Alg*>(self)->name(); }},
-      type {[] { return demangle<Alg>(); }}, run {run_<Alg, Traits>}
+    template<typename Traits>
+    VTable(Allen::TypeErasedAlgorithm& alg, Traits) :
+      algorithm {&alg},
+      // configure {configure_<Allen::TypeErasedAlgorithm>},
+      // get_configuration {get_configuration_<Allen::TypeErasedAlgorithm>},
+      // name {[](const void* self) { return static_cast<const Allen::TypeErasedAlgorithm*>(self)->name(); }},
+      // type {[] { return demangle<Allen::TypeErasedAlgorithm>(); }},
+      run {run_<Traits>},
+      name {[this]() { return this->algorithm->name(this->algorithm->instance); }}
     {}
   };
 
-  // Configured sequence
-  std::aligned_storage_t<BufferSize> sequence_storage;
   std::array<VTable, N> vtbls;
-
   host_memory_manager_t host_memory_manager {"Host memory manager"};
   device_memory_manager_t device_memory_manager {"Device memory manager"};
+  TypeErasedSequence m_type_erased_sequence;
 
   bool do_print = false;
 
 public:
   ArgumentManager<ConfiguredArguments> argument_manager; // TOOD: GR: type erase me
 
-  template<typename ConfiguredSequence, typename Names>
-  constexpr Scheduler(ConfiguredSequence, Names&& names)
+  constexpr Scheduler(TypeErasedSequence type_erased_sequence) : m_type_erased_sequence(type_erased_sequence)
   {
-    static_assert(sizeof(ConfiguredSequence) == BufferSize);
-    static_assert(N == std::tuple_size_v<ConfiguredSequence>);
-
-    new (&sequence_storage) ConfiguredSequence {};
-    auto& sequence_tuple = *std::launder(reinterpret_cast<ConfiguredSequence*>(&sequence_storage));
+    // static_assert(sizeof(ConfiguredSequence) == BufferSize);
+    // static_assert(N == std::tuple_size_v<ConfiguredSequence>);
 
     details::invoke_for_each_row(
-      [](auto& alg, auto&& name, auto traits, VTable& vtbl) {
-        alg.set_name(std::forward<decltype(name)>(name));
+      [](auto& alg, auto traits, VTable& vtbl) {
         vtbl = VTable {alg, traits};
       },
-      sequence_tuple,
-      std::forward<Names>(names),
-      details::Traits_for<ConfiguredSequenceArguments> {},
+      m_type_erased_sequence,
+      details::Traits_for<ConfiguredSequenceArguments, InDeps, OutDeps> {},
       vtbls);
   }
   Scheduler(const Scheduler&) = delete;
@@ -173,7 +171,9 @@ public:
   void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
   {
     std::for_each(
-      vtbls.begin(), vtbls.end(), [&config](auto& vtbl) { std::invoke(vtbl.configure, vtbl.algorithm, config); });
+      vtbls.begin(), vtbls.end(), [&config](auto& vtbl) {
+        // std::invoke(vtbl.configure, vtbl.algorithm, config);
+      });
   }
 
   // Return constants for algorithms in the sequence
@@ -181,23 +181,23 @@ public:
   {
     std::map<std::string, std::map<std::string, std::string>> config;
     std::for_each(vtbls.begin(), vtbls.end(), [&config](auto& vtbl) {
-      std::invoke(vtbl.get_configuration, vtbl.algorithm, config);
+      // std::invoke(vtbl.get_configuration, vtbl.algorithm, config);
     });
     return config;
   }
 
   void print_sequence() const
   {
-    info_cout << "\nSequence:\n";
-    std::for_each(vtbls.begin(), vtbls.end(), [](auto& vtbl) {
-      auto t = vtbl.type();
-      auto n = t.find("::");
-      if (n != std::string::npos) {
-        t = t.substr(n + 2);
-      }
-      info_cout << t << "/" << vtbl.name(vtbl.algorithm) << "\n";
-    });
-    info_cout << "\n";
+    // info_cout << "\nSequence:\n";
+    // std::for_each(vtbls.begin(), vtbls.end(), [](auto& vtbl) {
+    //   auto t = vtbl.type();
+    //   auto n = t.find("::");
+    //   if (n != std::string::npos) {
+    //     t = t.substr(n + 2);
+    //   }
+    //   info_cout << t << "/" << vtbl.name(vtbl.algorithm) << "\n";
+    // });
+    // info_cout << "\n";
   }
 
   //  Runs a sequence of algorithms.
@@ -223,63 +223,63 @@ public:
   }
 
 private:
-  template<typename Alg>
-  static void configure_(void* self, const std::map<std::string, std::map<std::string, std::string>>& config)
-  {
-    auto* algorithm = static_cast<Alg*>(self);
-    auto c = config.find(algorithm->name());
-    if (c != config.end()) algorithm->set_properties(c->second);
-    // * Invoke void initialize() const, iff it exists
-    if constexpr (Allen::has_init_member_fn<Alg>::value) {
-      algorithm->init();
-    };
-  }
+  // template<typename Alg>
+  // static void configure_(void* self, const std::map<std::string, std::map<std::string, std::string>>& config)
+  // {
+  //   auto* algorithm = static_cast<Alg*>(self);
+  //   auto c = config.find(algorithm->name());
+  //   if (c != config.end()) algorithm->set_properties(c->second);
+  //   // * Invoke void initialize() const, iff it exists
+  //   if constexpr (Allen::has_init_member_fn<Alg>::value) {
+  //     algorithm->init();
+  //   };
+  // }
 
-  template<typename Alg>
-  static void get_configuration_(const void* self, std::map<std::string, std::map<std::string, std::string>>& config)
-  {
-    auto* algorithm = static_cast<const Alg*>(self);
-    config.emplace(algorithm->name(), algorithm->get_properties());
-  }
+  // template<typename Alg>
+  // static void get_configuration_(const void* self, std::map<std::string, std::map<std::string, std::string>>& config)
+  // {
+  //   auto* algorithm = static_cast<const Alg*>(self);
+  //   config.emplace(algorithm->name(), algorithm->get_properties());
+  // }
 
-  template<typename out_arguments_t, typename in_arguments_t, typename Alg, typename argument_manager_t>
-  static void setup_(
-    Alg* algorithm,
-    host_memory_manager_t& host_memory_manager,
-    device_memory_manager_t& device_memory_manager,
-    argument_manager_t& argument_manager,
-    bool do_print)
-  {
-    /**
-     * @brief Runs a step of the scheduler and determines
-     *        the offset for each argument.
-     *
-     *        The sequence is asserted at compile time to run the
-     *        expected iteration and reserve the expected types.
-     *
-     *        This function should always be invoked, even when it is
-     *        known there are no tags to reserve or free on this step.
-     */
-    if (do_print) {
-      info_cout << "Sequence step \"" << algorithm->name() << "\":\n";
-    }
+  // template<typename out_arguments_t, typename in_arguments_t, typename Alg, typename argument_manager_t>
+  // static void setup_(
+  //   Alg* algorithm,
+  //   host_memory_manager_t& host_memory_manager,
+  //   device_memory_manager_t& device_memory_manager,
+  //   argument_manager_t& argument_manager,
+  //   bool do_print)
+  // {
+  //   /**
+  //    * @brief Runs a step of the scheduler and determines
+  //    *        the offset for each argument.
+  //    *
+  //    *        The sequence is asserted at compile time to run the
+  //    *        expected iteration and reserve the expected types.
+  //    *
+  //    *        This function should always be invoked, even when it is
+  //    *        known there are no tags to reserve or free on this step.
+  //    */
+  //   if (do_print) {
+  //     info_cout << "Sequence step \"" << algorithm->name() << "\":\n";
+  //   }
 
-    // Free all arguments in OutDependencies
-    MemoryManagerHelper<out_arguments_t>::free(host_memory_manager, device_memory_manager, argument_manager);
+  //   // Free all arguments in OutDependencies
+  //   MemoryManagerHelper<out_arguments_t>::free(host_memory_manager, device_memory_manager, argument_manager);
 
-    // Reserve all arguments in InDependencies
-    MemoryManagerHelper<in_arguments_t>::reserve(host_memory_manager, device_memory_manager, argument_manager);
+  //   // Reserve all arguments in InDependencies
+  //   MemoryManagerHelper<in_arguments_t>::reserve(host_memory_manager, device_memory_manager, argument_manager);
 
-    // Print memory manager state
-    if (do_print) {
-      host_memory_manager.print();
-      device_memory_manager.print();
-    }
-  }
+  //   // Print memory manager state
+  //   if (do_print) {
+  //     host_memory_manager.print();
+  //     device_memory_manager.print();
+  //   }
+  // }
 
-  template<typename Alg, typename Traits>
+  template<typename Traits>
   static void run_(
-    void* self,
+    Allen::TypeErasedAlgorithm* algorithm,
     host_memory_manager_t& host_memory_manager,
     device_memory_manager_t& device_memory_manager,
     ArgumentManager<ConfiguredArguments>& argument_manager,
@@ -289,67 +289,71 @@ private:
     const Allen::Context& context,
     bool do_print)
   {
-    using configured_arguments_t = typename Traits::ConfiguredSequenceArgument;
-    // in dependencies: Dependencies to be reserved
-    using in_arguments_t = typename Traits::InputDependencies;
-    // out dependencies: Dependencies to be free'd
-    using out_arguments_t = typename Traits::OutputDependencies;
-    auto* algorithm = static_cast<Alg*>(self);
-    auto arguments_tuple = Sch::ProduceArgumentsTuple<ConfiguredArguments, Alg, configured_arguments_t>::produce(
-      argument_manager.argument_database());
+    std::cout << "Alg name: " << algorithm->name(algorithm->instance) << "\n";
 
-    // Get pre and postconditions -- conditional on `contracts_enabled`
-    // Starting at -O1, gcc will entirely remove the contracts code when not enabled, see
-    // https://godbolt.org/z/67jxx7
-    using algorithm_contracts = Sch::AlgorithmContracts<typename Alg::contracts>;
-    auto preconditions =
-      std::conditional_t<contracts_enabled, typename algorithm_contracts::preconditions, std::tuple<>> {};
-    auto postconditions =
-      std::conditional_t<contracts_enabled, typename algorithm_contracts::postconditions, std::tuple<>> {};
+    // using configured_arguments_t = typename Traits::ConfiguredSequenceArgument;
+    // // in dependencies: Dependencies to be reserved
+    // using in_arguments_t = typename Traits::InputDependencies;
+    // // out dependencies: Dependencies to be free'd
+    // using out_arguments_t = typename Traits::OutputDependencies;
+    // auto* algorithm = static_cast<Alg*>(self);
+    // auto arguments_tuple = Sch::ProduceArgumentsTuple<ConfiguredArguments, Alg, configured_arguments_t>::produce(
+    //   argument_manager.argument_database());
 
-    // Set location
-    const auto location = algorithm->name();
-    std::apply(
-      [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-      preconditions);
-    std::apply(
-      [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-      postconditions);
+    // // Get pre and postconditions -- conditional on `contracts_enabled`
+    // // Starting at -O1, gcc will entirely remove the contracts code when not enabled, see
+    // // https://godbolt.org/z/67jxx7
+    // using algorithm_contracts = Sch::AlgorithmContracts<typename Alg::contracts>;
+    // auto preconditions =
+    //   std::conditional_t<contracts_enabled, typename algorithm_contracts::preconditions, std::tuple<>> {};
+    // auto postconditions =
+    //   std::conditional_t<contracts_enabled, typename algorithm_contracts::postconditions, std::tuple<>> {};
 
-    // Sets the arguments sizes
-    algorithm->set_arguments_size(arguments_tuple, runtime_options, constants, host_buffers);
+    // // Set location
+    // const auto location = algorithm->name();
+    // std::apply(
+    //   [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
+    //   preconditions);
+    // std::apply(
+    //   [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
+    //   postconditions);
 
-    // Setup algorithm, reserving / freeing memory buffers
-    setup_<out_arguments_t, in_arguments_t>(
-      algorithm, host_memory_manager, device_memory_manager, argument_manager, do_print);
+    // // Sets the arguments sizes
+    // algorithm->set_arguments_size(arguments_tuple, runtime_options, constants, host_buffers);
 
-    // Run preconditions
-    std::apply(
-      [&](const auto&... contract) {
-        (std::invoke(contract, arguments_tuple, runtime_options, constants, context), ...);
-      },
-      preconditions);
+    // // Setup algorithm, reserving / freeing memory buffers
+    // setup_<out_arguments_t, in_arguments_t>(
+    //   algorithm, host_memory_manager, device_memory_manager, argument_manager, do_print);
 
-    try {
-      // Invoke the algorithm
-      std::invoke(*algorithm, arguments_tuple, runtime_options, constants, host_buffers, context);
-    } catch (std::invalid_argument& e) {
-      fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm->name().c_str());
-      throw e;
-    }
+    // // Run preconditions
+    // std::apply(
+    //   [&](const auto&... contract) {
+    //     (std::invoke(contract, arguments_tuple, runtime_options, constants, context), ...);
+    //   },
+    //   preconditions);
 
-    // Run postconditions
-    std::apply(
-      [&](const auto&... contract) {
-        (std::invoke(contract, arguments_tuple, runtime_options, constants, context), ...);
-      },
-      postconditions);
+    // try {
+    //   // Invoke the algorithm
+    //   std::invoke(*algorithm, arguments_tuple, runtime_options, constants, host_buffers, context);
+    // } catch (std::invalid_argument& e) {
+    //   fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm->name().c_str());
+    //   throw e;
+    // }
+
+    // // Run postconditions
+    // std::apply(
+    //   [&](const auto&... contract) {
+    //     (std::invoke(contract, arguments_tuple, runtime_options, constants, context), ...);
+    //   },
+    //   postconditions);
   }
 };
 
-template<typename configured_sequence_t, typename configured_arguments_t, typename configured_sequence_arguments_t>
+template<typename configured_arguments_t, typename configured_sequence_arguments_t, typename in_deps_t, typename out_deps_t, typename type_erased_sequence_t>
 using SchedulerFor_t = Scheduler<
-  sizeof(configured_sequence_t),
-  std::tuple_size_v<configured_sequence_t>,
+  std::tuple_size_v<configured_sequence_arguments_t>,
   configured_arguments_t,
-  configured_sequence_arguments_t>;
+  configured_sequence_arguments_t,
+  in_deps_t,
+  out_deps_t,
+  type_erased_sequence_t>;

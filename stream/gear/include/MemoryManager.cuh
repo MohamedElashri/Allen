@@ -90,7 +90,7 @@ public:
     static_assert(std::is_base_of_v<typename Target::datatype, Argument>);
     // Tag and requested size
     const auto tag = argument_manager.template name<Argument>();
-    size_t requested_size = argument_manager.template size<Argument>() * sizeof(typename Argument::type);
+    size_t requested_size = argument_manager.template sizebytes<Argument>();
 
     // Size requested should be greater than zero
     if (requested_size == 0) {
@@ -260,7 +260,7 @@ public:
   {
     // Tag and requested size
     const auto tag = argument_manager.template name<Argument>();
-    size_t requested_size = argument_manager.template size<Argument>() * sizeof(typename Argument::type);
+    size_t requested_size = argument_manager.template sizebytes<Argument>();
 
     // Verify the pointer didn't exist in the memory segments map
     const auto it = m_memory_segments.find(tag);

@@ -10,7 +10,37 @@
 #include "Argument.cuh"
 #include "Contract.h"
 
+#include "RuntimeOptions.h"
+#include "Constants.cuh"
+#include "HostBuffers.cuh"
+#include <any>
+
 namespace Allen {
+  // Type-erased algorithm
+  struct TypeErasedAlgorithm {
+    std::any instance;
+    std::function<std::string(const std::any&)> name = nullptr;
+    std::function<void(
+      const std::any&,
+      std::any,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&)> set_arguments_size = nullptr;
+
+    TypeErasedAlgorithm() = default;
+    TypeErasedAlgorithm(const TypeErasedAlgorithm&) = default;
+  };
+
+  // Tool to instantiate algorithms
+  template<typename T>
+  TypeErasedAlgorithm instantiate_algorithm_impl(T*, const std::string&);
+
+  template<typename T>
+  TypeErasedAlgorithm instantiate_algorithm(const std::string& name) {
+    T* t = nullptr;
+    return instantiate_algorithm_impl(t, name);
+  }
+
   // Forward declare to use in Algorithm
   template<typename V>
   class Property;

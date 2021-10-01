@@ -44,3 +44,27 @@ void host_data_provider::host_data_provider_t::operator()(
   auto version = std::get<3>(bno);
   ::memcpy(data<host_raw_bank_version_t>(arguments), &version, sizeof(version));
 }
+
+template<>
+Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(
+  host_data_provider::host_data_provider_t*,
+  const std::string& name)
+{
+  auto alg = host_data_provider::host_data_provider_t {};
+  alg.set_name(name);
+
+  return TypeErasedAlgorithm {
+    alg,
+    [](const std::any& instance) {
+      return std::any_cast<host_data_provider::host_data_provider_t>(instance).name();
+    },
+    [](
+      const std::any& instance,
+      std::any arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) {
+      std::any_cast<host_data_provider::host_data_provider_t>(instance).set_arguments_size(
+        std::any_cast<ArgumentReferences<host_data_provider::Parameters>>(arguments), runtime_options, constants, host_buffers);
+    }};
+}

@@ -21,14 +21,17 @@ struct ArgumentData {
 private:
   char* m_pointer = nullptr;
   size_t m_size = 0;
+  size_t m_type_size = 0;
   std::string m_name = "";
 
 public:
   virtual char* pointer() const { return m_pointer; }
   virtual size_t size() const { return m_size; }
+  virtual size_t sizebytes() const { return m_size * m_type_size; }
   virtual std::string name() const { return m_name; }
   virtual void set_pointer(char* pointer) { m_pointer = pointer; }
   virtual void set_size(size_t size) { m_size = size; }
+  virtual void set_type_size(size_t type_size) { m_type_size = type_size; }
   virtual void set_name(const std::string& name) { m_name = name; }
   virtual ~ArgumentData() {}
 };
@@ -76,6 +79,23 @@ public:
     constexpr auto index_of_T = index_of_v<T, Tuple>;
     static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
     m_tuple_to_argument_data[index_of_T].set_size(size);
+  }
+
+  template<typename T>
+  size_t sizebytes() const
+  {
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    return m_tuple_to_argument_data[index_of_T].sizebytes();
+  }
+
+  template<typename T>
+  void set_type_size(const size_t size)
+  {
+    static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "set_size can only be used on output datatypes");
+    constexpr auto index_of_T = index_of_v<T, Tuple>;
+    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
+    m_tuple_to_argument_data[index_of_T].set_type_size(size);
   }
 
   template<typename T>
@@ -164,6 +184,7 @@ public:
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
     m_tuple_to_argument_data[index_of_T].get().set_size(size);
+    m_tuple_to_argument_data[index_of_T].get().set_type_size(sizeof(typename T::type));
   }
 
   /**
