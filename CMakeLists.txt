@@ -66,7 +66,7 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # --------------------
 
 # Sequences to build, SEQUENCE argument overrides SEQUENCES for now
-set(SEQUENCES "hlt1_pp_(default|no_gec)" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
+set(SEQUENCES "hlt1_pp_default" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
 if (DEFINED SEQUENCE)
   message(STATUS "The SEQUENCE argument is deprecated, please use SEQUENCES instead")
   set(SEQUENCES "${SEQUENCE}")
