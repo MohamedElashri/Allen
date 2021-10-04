@@ -55,16 +55,48 @@ Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(
 
   return TypeErasedAlgorithm {
     alg,
-    [](const std::any& instance) {
-      return std::any_cast<host_data_provider::host_data_provider_t>(instance).name();
-    },
+    [](const std::any& instance) { return std::any_cast<host_data_provider::host_data_provider_t>(instance).name(); },
     [](
       const std::any& instance,
-      std::any arguments,
+      std::any arguments_array,
+      std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) {
-      std::any_cast<host_data_provider::host_data_provider_t>(instance).set_arguments_size(
-        std::any_cast<ArgumentReferences<host_data_provider::Parameters>>(arguments), runtime_options, constants, host_buffers);
+      // Create args array
+      auto store = std::any_cast<ArgumentReferences<host_data_provider::Parameters>::store_t>(
+        arguments_array); // std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
+      // Create input aggregate t
+      auto input_agg_store =
+        ArgumentReferences<host_data_provider::Parameters>::input_aggregates_t {Allen::gen_input_aggregates_tuple(
+          input_aggregates,
+          std::make_index_sequence<
+            std::tuple_size_v<ArgumentReferences<host_data_provider::Parameters>::input_aggregates_t>> {})};
+      // Create ArgumentRefManager
+      auto arg_ref_manager = ArgumentReferences<host_data_provider::Parameters> {store, input_agg_store};
+      std::any_cast<const host_data_provider::host_data_provider_t&>(instance).set_arguments_size(
+        arg_ref_manager, runtime_options, constants, host_buffers);
+    },
+    [](
+      const std::any& instance,
+      std::any arguments_array,
+      std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      const Allen::Context& context) {
+      // Create args array
+      auto store = std::any_cast<ArgumentReferences<host_data_provider::Parameters>::store_t>(
+        arguments_array); // std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>
+      // Create input aggregate t
+      auto input_agg_store =
+        ArgumentReferences<host_data_provider::Parameters>::input_aggregates_t {Allen::gen_input_aggregates_tuple(
+          input_aggregates,
+          std::make_index_sequence<
+            std::tuple_size_v<ArgumentReferences<host_data_provider::Parameters>::input_aggregates_t>> {})};
+      // Create ArgumentRefManager
+      auto arg_ref_manager = ArgumentReferences<host_data_provider::Parameters> {store, input_agg_store};
+      std::any_cast<const host_data_provider::host_data_provider_t&>(instance)(
+        arg_ref_manager, runtime_options, constants, host_buffers, context);
     }};
 }

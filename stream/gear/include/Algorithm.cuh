@@ -23,9 +23,18 @@ namespace Allen {
     std::function<void(
       const std::any&,
       std::any,
+      std::vector<std::vector<std::reference_wrapper<ArgumentData>>>,
       const RuntimeOptions&,
       const Constants&,
       const HostBuffers&)> set_arguments_size = nullptr;
+    std::function<void(
+      const std::any&,
+      std::any,
+      std::vector<std::vector<std::reference_wrapper<ArgumentData>>>,
+      const RuntimeOptions&,
+      const Constants&,
+      HostBuffers&,
+      const Allen::Context&)> invoke = nullptr;
 
     TypeErasedAlgorithm() = default;
     TypeErasedAlgorithm(const TypeErasedAlgorithm&) = default;

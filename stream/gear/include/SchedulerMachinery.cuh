@@ -183,71 +183,56 @@ namespace Sch {
       typename ConfiguredTraits<std::tuple<ConfiguredArguments...>>::configured_input_aggregates_tuple;
   };
 
-  template<typename ArgumentsTuple, typename InputAggregate, typename Parameters>
+  template<typename ArgumentsTuple, typename Parameters>
   struct ProduceInputAggregate;
 
-  template<typename ArgumentsTuple, typename InputAggregate, typename... Parameters>
-  struct ProduceInputAggregate<ArgumentsTuple, InputAggregate, std::tuple<Parameters...>> {
+  template<typename ArgumentsTuple, typename... Parameters>
+  struct ProduceInputAggregate<ArgumentsTuple, std::tuple<Parameters...>> {
     constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array)
     {
-      static_assert((std::is_same_v<typename Parameters::type, typename InputAggregate::type::type> && ...));
-      return InputAggregate(std::tie(arguments_array[index_of_v<Parameters, ArgumentsTuple>]...));
+      return std::vector<std::reference_wrapper<ArgumentData>> {
+        arguments_array[index_of_v<Parameters, ArgumentsTuple>]...};
     }
   };
 
-  template<typename ArgumentsTuple, typename InputAggregate, typename Parameters>
+  template<typename ArgumentsTuple, typename Parameters>
   struct ProduceInputAggregates;
 
-  template<typename ArgumentsTuple, typename... InputAggregates, typename... Parameters>
-  struct ProduceInputAggregates<ArgumentsTuple, std::tuple<InputAggregates...>, std::tuple<Parameters...>> {
-    constexpr static std::tuple<InputAggregates...> produce(
-      std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array)
+  template<typename ArgumentsTuple, typename... Parameters>
+  struct ProduceInputAggregates<ArgumentsTuple, std::tuple<Parameters...>> {
+    constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array)
     {
-      return {ProduceInputAggregate<ArgumentsTuple, InputAggregates, Parameters>::produce(arguments_array)...};
+      return std::vector<std::vector<std::reference_wrapper<ArgumentData>>> {
+        ProduceInputAggregate<ArgumentsTuple, Parameters>::produce(arguments_array)...};
     }
   };
 
   /**
    * @brief Produces a list of argument references.
    */
-  template<
-    typename ArgumentsTuple,
-    typename ArgumentRefManager,
-    typename ConfiguredParameters,
-    typename ConfiguredInputAggregates>
+  template<typename ArgumentsTuple, typename ConfiguredParameters, typename ConfiguredInputAggregates>
   struct ProduceArgumentsTupleHelper;
 
-  template<
-    typename ArgumentsTuple,
-    typename ArgumentRefManager,
-    typename... ConfiguredParameters,
-    typename ConfiguredInputAggregates>
-  struct ProduceArgumentsTupleHelper<
-    ArgumentsTuple,
-    ArgumentRefManager,
-    std::tuple<ConfiguredParameters...>,
-    ConfiguredInputAggregates> {
+  template<typename ArgumentsTuple, typename... ConfiguredParameters, typename ConfiguredInputAggregates>
+  struct ProduceArgumentsTupleHelper<ArgumentsTuple, std::tuple<ConfiguredParameters...>, ConfiguredInputAggregates> {
     constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_array)
     {
-      return ArgumentRefManager {std::array<std::reference_wrapper<ArgumentData>, sizeof...(ConfiguredParameters)> {
-                                   arguments_array[index_of_v<ConfiguredParameters, ArgumentsTuple>]...},
-                                 ProduceInputAggregates<
-                                   ArgumentsTuple,
-                                   typename ArgumentRefManager::input_aggregates_t,
-                                   ConfiguredInputAggregates>::produce(arguments_array)};
+      return std::pair {
+        std::array<std::reference_wrapper<ArgumentData>, sizeof...(ConfiguredParameters)> {
+          arguments_array[index_of_v<ConfiguredParameters, ArgumentsTuple>]...},
+        ProduceInputAggregates<ArgumentsTuple, ConfiguredInputAggregates>::produce(arguments_array)};
     }
   };
 
   /**
    * @brief Produces a single algorithm with references to arguments.
    */
-  template<typename ArgumentsTuple, typename Algorithm, typename ConfiguredArguments>
+  template<typename ArgumentsTuple, typename ConfiguredArguments>
   struct ProduceArgumentsTuple {
     constexpr static auto produce(std::array<ArgumentData, std::tuple_size_v<ArgumentsTuple>>& arguments_database)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
-        typename AlgorithmTraits<Algorithm>::ArgumentRefManagerType,
         typename ConfiguredTraits<ConfiguredArguments>::configured_arguments_tuple,
         typename ConfiguredTraits<ConfiguredArguments>::configured_input_aggregates_tuple>::produce(arguments_database);
     }

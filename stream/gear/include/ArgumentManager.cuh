@@ -351,3 +351,13 @@ using ArgumentReferences = ArgumentRefManager<
   typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_tuple_t,
   T,
   typename WrappedTuple<decltype(struct_to_tuple(T {}))>::aggregates_tuple_t>;
+
+namespace Allen {
+  template<size_t... Is>
+  auto gen_input_aggregates_tuple(
+    const std::vector<std::vector<std::reference_wrapper<ArgumentData>>>& input_aggregates,
+    std::index_sequence<Is...>)
+  {
+    return std::make_tuple(input_aggregates[Is]...);
+  }
+}

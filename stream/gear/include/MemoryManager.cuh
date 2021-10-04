@@ -92,6 +92,8 @@ public:
     const auto tag = argument_manager.template name<Argument>();
     size_t requested_size = argument_manager.template sizebytes<Argument>();
 
+    std::cout << "Requested size (mem manager): " << requested_size << "\n";
+
     // Size requested should be greater than zero
     if (requested_size == 0) {
       verbose_cout << "MemoryManager: Requested to reserve zero bytes for argument " << tag
