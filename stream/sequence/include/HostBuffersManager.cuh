@@ -37,6 +37,7 @@ struct HostBuffersManager {
     gsl::span<bool>,
     gsl::span<uint32_t>,
     gsl::span<uint32_t>,
+    gsl::span<uint32_t>,
     gsl::span<unsigned>,
     gsl::span<uint32_t>,
     gsl::span<unsigned>>

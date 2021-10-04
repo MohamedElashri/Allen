@@ -71,7 +71,7 @@ def make_routingbits_writer(lines):
         host_number_of_active_lines_t=gather_selections.host_number_of_active_lines_t,
         host_names_of_active_lines_t=gather_selections.host_names_of_active_lines_t,
         dev_number_of_active_lines_t=gather_selections.dev_number_of_active_lines_t,
-        host_routingbits_associatedlines_t=routingbits_configuration.host_routingbits_associatedlines_t,
+        dev_routingbits_associatedlines_t=routingbits_configuration.dev_routingbits_associatedlines_t,
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t)
 
 

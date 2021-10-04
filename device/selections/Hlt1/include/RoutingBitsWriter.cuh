@@ -12,7 +12,7 @@ namespace routingbits_writer {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_INPUT(host_names_of_active_lines_t, char) host_names_of_active_lines;
-    HOST_INPUT(host_routingbits_associatedlines_t, RoutingBitsConfiguration::AssociatedLines) host_routingbits_associatedlines;
+    DEVICE_INPUT(dev_routingbits_associatedlines_t, RoutingBitsConfiguration::AssociatedLines) dev_routingbits_associatedlines;
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_OUTPUT(dev_routingbits_t, unsigned) dev_routingbits;
@@ -43,7 +43,5 @@ namespace routingbits_writer {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    //Property<tck_t> m_tck {this, 0};
-    //Property<task_id_t> m_taskID {this, 1};
   };
 } // namespace routingbits_writer

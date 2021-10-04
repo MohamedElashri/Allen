@@ -14,9 +14,9 @@ void routingbits_writer::routingbits_writer_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_routingbits_t>(
-    arguments, (  2*first<host_number_of_events_t>(arguments))); // I don't understand why I need the factor x 2
+    arguments, (  first<host_number_of_events_t>(arguments))); 
   set_size<host_routingbits_t>(
-    arguments, (  2*first<host_number_of_events_t>(arguments))); // I don't understand why I need the factor x 2
+    arguments, (  first<host_number_of_events_t>(arguments))); 
 }
 
 void routingbits_writer::routingbits_writer_t::operator()(
@@ -43,7 +43,7 @@ __global__ void routingbits_writer::routingbits_writer(
 {
   const auto number_of_events = gridDim.x;
 
-  const RoutingBitsConfiguration::AssociatedLines* associated_lines = parameters.host_routingbits_associatedlines;
+  const RoutingBitsConfiguration::AssociatedLines* associated_lines = parameters.dev_routingbits_associatedlines;
   for (unsigned event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_events; event_index += blockDim.x * gridDim.x) {
 
        uint32_t* event_routingbits = parameters.dev_routingbits + event_index;
@@ -56,7 +56,7 @@ __global__ void routingbits_writer::routingbits_writer(
          const auto bit = dev_routingbits_conf->bits[bit_index];
          int result = 0;
          
-         auto associated_lines_forbit = associated_lines[bit-32];
+         auto associated_lines_forbit = associated_lines[bit-dev_routingbits_conf->bits_size];
          const auto n_associated_lines = associated_lines_forbit.n_lines;
          
          for (unsigned line_index = 0; line_index < n_associated_lines; line_index ++) {
@@ -70,8 +70,8 @@ __global__ void routingbits_writer::routingbits_writer(
          }
          int word = bit/32;
          if ( result ) bits |= ( 0x01UL << ( bit - 32 * word ) );   
-         event_routingbits[event_index] = bits;
        }    
-       //printf("In routingbits_writer: Event: %d , Routing bits:   %d\n", event_index, event_routingbits[event_index]);
+       event_routingbits[0] = bits;
+       //printf("In routingbits_writer: Event: %d , Routing bits:   %d\n", event_index, event_routingbits[0]);
   }
 }

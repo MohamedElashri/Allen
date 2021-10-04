@@ -25,6 +25,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const start_event,
   gsl::span<bool const> const selected_events_bool,
   gsl::span<uint32_t const> const dec_reports,
+  gsl::span<uint32_t const> const routing_bits,
   gsl::span<uint32_t const> const sel_reports,
   gsl::span<unsigned const> const sel_report_offsets,
   gsl::span<uint32_t const> const lumi_summaries,
@@ -35,6 +36,8 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   const int bank_header_size = 4 * sizeof(short);
   // size of the DecReport RawBank
   const unsigned dec_report_size = (m_nlines + 2) * sizeof(uint32_t);
+  // size of the RoutingBits RawBank
+  const unsigned routing_bits_size = sizeof(uint32_t);
 
   std::vector<unsigned> selected_events;
   selected_events.reserve(selected_events_bool.size());
@@ -98,7 +101,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
-      size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size;
+      size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size + bank_header_size + routing_bits_size;
       if (sel_report_size > 0) {
         event_size += bank_header_size + sel_report_size;
       }
@@ -135,7 +138,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
-      size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size;
+      size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size + bank_header_size + routing_bits_size;
       if (sel_report_size > 0) {
         event_size += bank_header_size + sel_report_size;
       }
@@ -184,6 +187,15 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
          static_cast<events_size>(dec_report_size)},
         event_span.data() + header_size + event_sizes[i]);
 
+      // add the routing bits
+      Allen::add_raw_bank(
+        LHCb::RawBank::HltRoutingBits,
+        0u,
+        1 << 13,
+        {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
+         static_cast<events_size>(routing_bits_size)},
+        buffer_span.data() + header_size + event_sizes[i] + bank_header_size + dec_report_size);
+
       // add the sel report
       if (sel_report_size > 0) {
         Allen::add_raw_bank(
@@ -192,7 +204,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
           1 << 13,
           {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
            static_cast<events_size>(sel_report_size)},
-          event_span.data() + header_size + event_sizes[i] + bank_header_size + dec_report_size);
+          event_span.data() + header_size + event_sizes[i] + 2 * bank_header_size + dec_report_size + routing_bits_size );
       }
 
       // add the lumi summary if one exists
@@ -203,7 +215,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
           1 << 13,
           {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offsets[event_number] * sizeof(uint32_t),
            static_cast<events_size>(lumi_summary_size)},
-          event_span.data() + header_size + event_sizes[i] + 2 * bank_header_size + dec_report_size + sel_report_size);
+          event_span.data() + header_size + event_sizes[i] + 3 * bank_header_size + dec_report_size + sel_report_size);
       }
 
       if (m_checksum) {

@@ -426,6 +426,7 @@ def setup_hlt1_node(withMCChecking=False,
             lines,
             make_global_decision(lines=line_algorithms),
             make_routingbits_writer(lines=line_algorithms),
+            routingbits_validation(lines=line_algorithms)
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["long_track_particles"],

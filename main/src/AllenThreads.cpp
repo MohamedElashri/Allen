@@ -130,6 +130,7 @@ void run_output(
             first_evt,
             passing_event_list,
             dec_reports,
+            routing_bits,
             sel_reports,
             sel_report_offsets,
             lumi_summaries,

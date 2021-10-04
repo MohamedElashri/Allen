@@ -22,32 +22,14 @@ void host_routingbits_configuration::host_routingbits_configuration_t::operator(
   HostBuffers&,
   const Allen::Context& context) const
 {
-#if defined(TARGET_DEVICE_CPU)
-  // Copy directly data to the output buffer
-  //Allen::copy<dev_output_buffer_t, dev_input_buffer_t>(arguments, context);
-  host_routingbits_conf_impl(
-    first<host_number_of_active_lines_t>(arguments),
-    data<host_names_of_active_lines_t>(arguments),
-    data<host_routingbits_associatedlines_t>(arguments),
-    constants.host_routingbits_conf);
 
-  //for (unsigned i = 0 ; i < 32; i++) { std::cout << i << "    " << data<host_routingbits_associatedlines_t>(arguments)[i].n_lines << std::endl;}
-  // Ensure host_routingbits_associatedlines and dev_routingbits_associatedlines contain the same
-  //Allen::copy<host_routingbits_associatedlines_t, dev_routingbits_associatedlines_t>(arguments, context);
-  //for (unsigned i = 0 ; i < 32; i++) { std::cout << i << "    " << data<host_routingbits_associatedlines_t>(arguments)[i].n_lines << std::endl;}
-#else
-  // Copy data over to the host
-  //Allen::copy<host_output_buffer_t, dev_input_buffer_t>(arguments, context);
-
-  // Perform the prefix sum in the host
   host_routingbits_conf_impl(
     first<host_number_of_active_lines_t>(arguments),
     data<host_names_of_active_lines_t>(arguments),
     data<host_routingbits_associatedlines_t>(arguments),
     constants.host_routingbits_conf);
   // Copy routing bit info to the device
-  Allen::copy_async<dev_routingbits_associatedlines_t, host_routingbits_associatedlines_t>(arguments, context);
-#endif
+  Allen::copy<dev_routingbits_associatedlines_t, host_routingbits_associatedlines_t>(arguments, context);
 }
 
 void host_routingbits_configuration::host_routingbits_conf_impl(
@@ -77,6 +59,6 @@ void host_routingbits_configuration::host_routingbits_conf_impl(
           cnt_lines++;
       }
       associated_lines.n_lines = cnt_lines;  
-      routingbits_associatedlines[bit-32] = associated_lines;
+      routingbits_associatedlines[bit-dev_routingbits_conf->bits_size] = associated_lines;
   } 
 }

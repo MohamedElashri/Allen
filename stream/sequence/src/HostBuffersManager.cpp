@@ -103,6 +103,7 @@ std::tuple<
   gsl::span<bool>,
   gsl::span<uint32_t>,
   gsl::span<uint32_t>,
+  gsl::span<uint32_t>,
   gsl::span<unsigned>,
   gsl::span<uint32_t>,
   gsl::span<unsigned>>
@@ -113,6 +114,7 @@ HostBuffersManager::getBufferOutputData(size_t b)
   HostBuffers* buf = host_buffers.at(b);
   return {buf->host_passing_event_list,
           buf->host_dec_reports,
+          buf->host_routingbits,
           buf->host_sel_reports,
           buf->host_sel_report_offsets,
           buf->host_lumi_summaries,
