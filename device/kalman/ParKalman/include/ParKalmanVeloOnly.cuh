@@ -91,9 +91,7 @@ namespace kalman_velo_only {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
-    DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
+    DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
     DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
@@ -108,7 +106,7 @@ namespace kalman_velo_only {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void kalman_velo_only(Parameters, const char* dev_scifi_geometry);
+  __global__ void kalman_velo_only(Parameters parameters);
 
   __global__ void kalman_pv_ipchi2(Parameters parameters);
 
@@ -122,7 +120,7 @@ namespace kalman_velo_only {
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
-      const Constants& constants,
+      const Constants&,
       HostBuffers& host_buffers,
       const Allen::Context& context) const;
 

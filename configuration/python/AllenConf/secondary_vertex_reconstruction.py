@@ -39,13 +39,11 @@ def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
-        dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_scifi_tracks_view_t=forward_tracks["dev_scifi_tracks_view"],
         dev_offsets_all_velo_tracks_t=velo_tracks[
             "dev_offsets_all_velo_tracks"],
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
-        dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
         dev_offsets_forward_tracks_t=forward_tracks[
             "dev_offsets_forward_tracks"],
         dev_offsets_scifi_track_hit_number_t=forward_tracks[

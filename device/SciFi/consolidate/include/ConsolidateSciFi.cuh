@@ -18,6 +18,7 @@ namespace scifi_consolidate_tracks {
     host_accumulated_number_of_hits_in_scifi_tracks;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
@@ -43,6 +44,7 @@ namespace scifi_consolidate_tracks {
       Allen::Views::SciFi::Consolidated::Track,
       dev_scifi_hits_view_t,
       dev_ut_tracks_view_t,
+      dev_velo_tracks_view_t,
       dev_scifi_qop_t,
       dev_scifi_track_hits_t,
       dev_offsets_forward_tracks_t,
@@ -52,8 +54,9 @@ namespace scifi_consolidate_tracks {
       dev_scifi_tracks_view_t,
       Allen::Views::SciFi::Consolidated::Tracks,
       dev_scifi_hits_view_t,
-      dev_scifi_tracks_view_t,
+      dev_scifi_track_view_t,
       dev_ut_tracks_view_t,
+      dev_velo_tracks_view_t,
       dev_scifi_qop_t,
       dev_scifi_track_hits_t,
       dev_offsets_forward_tracks_t,
@@ -66,6 +69,7 @@ namespace scifi_consolidate_tracks {
       dev_scifi_track_view_t,
       dev_scifi_tracks_view_t,
       dev_ut_tracks_view_t,
+      dev_velo_tracks_view_t,
       dev_scifi_qop_t,
       dev_scifi_track_hits_t,
       dev_offsets_forward_tracks_t,

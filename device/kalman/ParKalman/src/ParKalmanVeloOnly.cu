@@ -18,13 +18,13 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
 
 void kalman_velo_only::kalman_velo_only_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
+  const RuntimeOptions&,
+  const Constants&,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_scifi_geometry);
+    arguments);
 
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
@@ -506,25 +506,14 @@ __device__ void simplified_fit(
 }
 
 __global__ void kalman_velo_only::kalman_velo_only(
-  kalman_velo_only::Parameters parameters,
-  const char* dev_scifi_geometry)
+  kalman_velo_only::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
-  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
-
-  // Create SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
-                                                 parameters.dev_scifi_track_hit_number,
-                                                 parameters.dev_scifi_qop,
-                                                 parameters.dev_scifi_states,
-                                                 parameters.dev_scifi_track_ut_indices,
-                                                 event_number,
-                                                 number_of_events};
-
-  const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
+  // Forward tracks.
+  const auto scifi_tracks_view = parameters.dev_scifi_tracks_view[event_number];
+  //const auto scifi_track_view = parameters.dev_scifi_track_view + parameters.dev_atomics_scifi[event_number];
 
   // Velo track <-> PV table.
   // TODO: Rework the association event model to get rid of the need for these old VELO tracks.
@@ -534,19 +523,18 @@ __global__ void kalman_velo_only::kalman_velo_only(
   const auto pv_table = velo_pv_ip.event_table(velo_pv_tracks, event_number);
 
   // Loop over SciFi tracks and get associated UT and VELO tracks.
-  const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
+  const unsigned n_scifi_tracks = scifi_tracks_view.size();
   for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
-    // Prepare fit input.
-    const int i_ut_track = scifi_tracks.ut_track(i_scifi_track);
-    const auto ut_track = ut_tracks_view.track(i_ut_track);
-    const auto velo_track = ut_track.velo_track();
-    const int i_velo_track = ut_track.velo_track_index();
-    const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop(i_scifi_track);
+    const auto scifi_track = scifi_tracks_view.track(i_scifi_track);
+    const auto velo_track = scifi_track.velo_track();
+    const int i_velo_track = scifi_track.ut_track().velo_track_index();
+    const KalmanFloat init_qop = (KalmanFloat) scifi_track.qop();
+    
     simplified_fit(
       velo_track,
       init_qop,
-      parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
-    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track].ip =
+      parameters.dev_kf_tracks[scifi_tracks_view.offset() + i_scifi_track]);
+    parameters.dev_kf_tracks[scifi_tracks_view.offset() + i_scifi_track].ip =
       pv_table.value(i_velo_track);
   }
 }

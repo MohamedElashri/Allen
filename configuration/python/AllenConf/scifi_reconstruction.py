@@ -207,6 +207,7 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
         dev_scifi_lf_parametrization_consolidate_t=lf_quality_filter.
         dev_scifi_lf_parametrization_consolidate_t,
         dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"])
 
@@ -226,7 +227,9 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
         "dev_offsets_forward_tracks":
         prefix_sum_forward_tracks.dev_output_buffer_t,
         "dev_offsets_scifi_track_hit_number":
-        prefix_sum_scifi_track_hit_number.dev_output_buffer_t
+        prefix_sum_scifi_track_hit_number.dev_output_buffer_t,
+        "dev_scifi_tracks_view":
+        scifi_consolidate_tracks.dev_scifi_tracks_view_t
     }
 
 
