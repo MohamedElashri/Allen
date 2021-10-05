@@ -27,9 +27,10 @@ void calc_selrep_size::calc_selrep_size_t::operator()(
 __global__ void calc_selrep_size::calc_size(calc_selrep_size::Parameters parameters, const unsigned number_of_events)
 {
   const unsigned header_size = 10;
-  const unsigned objtyp_size = 4;
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
+    const unsigned objtyp_size =
+      parameters.dev_rb_objtyp_offsets[event_number + 1] - parameters.dev_rb_objtyp_offsets[event_number];
     const unsigned hits_size =
       parameters.dev_rb_hits_offsets[event_number + 1] - parameters.dev_rb_hits_offsets[event_number];
     const unsigned substr_size =
@@ -38,7 +39,7 @@ __global__ void calc_selrep_size::calc_size(calc_selrep_size::Parameters paramet
       parameters.dev_rb_stdinfo_offsets[event_number + 1] - parameters.dev_rb_stdinfo_offsets[event_number];
 
     // Size of (empty) extraInfo sub-bank depends on the number of objects
-    const unsigned objtyp_offset = objtyp_size * event_number;
+    const unsigned objtyp_offset = parameters.dev_rb_objtyp_offsets[event_number];
     const unsigned* event_rb_objtyp = parameters.dev_rb_objtyp + objtyp_offset;
     const unsigned short n_objtyp = event_rb_objtyp[0] & 0xFFFFL;
     const unsigned n_obj = event_rb_objtyp[n_objtyp] & 0xFFFFL;

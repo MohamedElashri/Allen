@@ -31,15 +31,15 @@ void make_selrep::make_selrep_t::operator()(
 __global__ void make_selrep::make_selrep_bank(make_selrep::Parameters parameters, const unsigned number_of_events)
 {
   const unsigned header_size = 10;
-  const unsigned objtyp_size = 4;
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
     const unsigned bank_offset = parameters.dev_selrep_offsets[event_number];
+    const unsigned objtyp_offset = parameters.dev_rb_objtyp_offsets[event_number];
     const unsigned hits_offset = parameters.dev_rb_hits_offsets[event_number];
     const unsigned substr_offset = parameters.dev_rb_substr_offsets[event_number];
     const unsigned stdinfo_offset = parameters.dev_rb_stdinfo_offsets[event_number];
-    const unsigned objtyp_offset = objtyp_size * event_number;
     const unsigned bank_size = parameters.dev_selrep_offsets[event_number + 1] - bank_offset;
+    const unsigned objtyp_size = parameters.dev_rb_objtyp_offsets[event_number + 1] - objtyp_offset;
     const unsigned hits_size = parameters.dev_rb_hits_offsets[event_number + 1] - hits_offset;
     const unsigned substr_size = parameters.dev_rb_substr_offsets[event_number + 1] - substr_offset;
     const unsigned stdinfo_size = parameters.dev_rb_stdinfo_offsets[event_number + 1] - stdinfo_offset;

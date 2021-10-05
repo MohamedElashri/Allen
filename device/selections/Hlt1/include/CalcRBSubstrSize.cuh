@@ -27,6 +27,7 @@ namespace calc_rb_substr_size {
     DEVICE_OUTPUT(dev_substr_sel_size_t, unsigned) dev_substr_sel_size;
     DEVICE_OUTPUT(dev_substr_bank_size_t, unsigned) dev_substr_bank_size;
     DEVICE_OUTPUT(dev_stdinfo_bank_size_t, unsigned) dev_stdinfo_bank_size;
+    DEVICE_OUTPUT(dev_objtyp_bank_size_t, unsigned) dev_objtyp_bank_size;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
