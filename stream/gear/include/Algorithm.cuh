@@ -20,21 +20,15 @@ namespace Allen {
   struct TypeErasedAlgorithm {
     std::any instance;
     std::function<std::string(const std::any&)> name = nullptr;
-    std::function<void(
-      const std::any&,
-      std::any,
-      std::vector<std::vector<std::reference_wrapper<ArgumentData>>>,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&)> set_arguments_size = nullptr;
-    std::function<void(
-      const std::any&,
-      std::any,
-      std::vector<std::vector<std::reference_wrapper<ArgumentData>>>,
-      const RuntimeOptions&,
-      const Constants&,
-      HostBuffers&,
-      const Allen::Context&)> invoke = nullptr;
+    std::function<std::any(std::any, std::vector<std::vector<std::reference_wrapper<ArgumentData>>>)>
+      create_arg_ref_manager = nullptr;
+    std::function<void(const std::any&, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&)>
+      set_arguments_size = nullptr;
+    std::function<
+      void(const std::any&, std::any&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&)>
+      invoke = nullptr;
+    std::function<void(std::any&)> init = nullptr;
+    std::function<void(std::any&, const std::map<std::string, std::string>&)> set_properties = nullptr;
 
     TypeErasedAlgorithm() = default;
     TypeErasedAlgorithm(const TypeErasedAlgorithm&) = default;
@@ -45,7 +39,8 @@ namespace Allen {
   TypeErasedAlgorithm instantiate_algorithm_impl(T*, const std::string&);
 
   template<typename T>
-  TypeErasedAlgorithm instantiate_algorithm(const std::string& name) {
+  TypeErasedAlgorithm instantiate_algorithm(const std::string& name)
+  {
     T* t = nullptr;
     return instantiate_algorithm_impl(t, name);
   }
@@ -67,6 +62,8 @@ namespace Allen {
     template<typename T>
     using Property = Allen::Property<T>;
 
+    void init() {}
+
     void set_properties(const std::map<std::string, std::string>& algo_config) override
     {
       for (auto kv : algo_config) {
@@ -78,7 +75,14 @@ namespace Allen {
           throw std::runtime_error {error_message};
         }
         else {
-          it->second->from_string(kv.second);
+          std::cout << kv.second << "\n";
+          auto asdf = it->second;
+          if (asdf == nullptr) {
+            std::cout << "Pointer is nullptr\n";
+          }
+          else {
+            it->second->from_string(kv.second);
+          }
         }
       }
     }

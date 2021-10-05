@@ -91,7 +91,7 @@ class Scheduler {
 
   struct VTable {
     Allen::TypeErasedAlgorithm* algorithm = nullptr;
-    void (*configure)(void* self, const std::map<std::string, std::map<std::string, std::string>>& config) = nullptr;
+    std::function<void(Allen::TypeErasedAlgorithm*, const std::map<std::string, std::map<std::string, std::string>>&)> configure = nullptr;
     void (*get_configuration)(const void* self, std::map<std::string, std::map<std::string, std::string>>& config) =
       nullptr;
     std::function<std::string()> name = nullptr;
@@ -112,7 +112,7 @@ class Scheduler {
     template<typename Traits>
     VTable(Allen::TypeErasedAlgorithm& alg, Traits) :
       algorithm {&alg},
-      // configure {configure_<Allen::TypeErasedAlgorithm>},
+      configure {configure_},
       // get_configuration {get_configuration_<Allen::TypeErasedAlgorithm>},
       // type {[] { return demangle<Allen::TypeErasedAlgorithm>(); }},
       run {run_<Traits>}, name {[this]() { return this->algorithm->name(this->algorithm->instance); }}
@@ -170,7 +170,7 @@ public:
   void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
   {
     std::for_each(vtbls.begin(), vtbls.end(), [&config](auto& vtbl) {
-      // std::invoke(vtbl.configure, vtbl.algorithm, config);
+      std::invoke(vtbl.configure, vtbl.algorithm, config);
     });
   }
 
@@ -221,17 +221,13 @@ public:
   }
 
 private:
-  // template<typename Alg>
-  // static void configure_(void* self, const std::map<std::string, std::map<std::string, std::string>>& config)
-  // {
-  //   auto* algorithm = static_cast<Alg*>(self);
-  //   auto c = config.find(algorithm->name());
-  //   if (c != config.end()) algorithm->set_properties(c->second);
-  //   // * Invoke void initialize() const, iff it exists
-  //   if constexpr (Allen::has_init_member_fn<Alg>::value) {
-  //     algorithm->init();
-  //   };
-  // }
+  static void configure_(Allen::TypeErasedAlgorithm* algorithm, const std::map<std::string, std::map<std::string, std::string>>& config)
+  {
+    auto c = config.find(algorithm->name(algorithm->instance));
+    if (c != config.end()) algorithm->set_properties(algorithm->instance, c->second);
+    // * Invoke void initialize() const, iff it exists
+    algorithm->init(algorithm->instance);
+  }
 
   // template<typename Alg>
   // static void get_configuration_(const void* self, std::map<std::string, std::map<std::string, std::string>>& config)
@@ -295,6 +291,7 @@ private:
 
     auto arguments_tuple = Sch::ProduceArgumentsTuple<ConfiguredArguments, configured_arguments_t>::produce(
       argument_manager.argument_database());
+    auto arg_ref_manager = algorithm->create_arg_ref_manager(arguments_tuple.first, arguments_tuple.second);
 
     // // Get pre and postconditions -- conditional on `contracts_enabled`
     // // Starting at -O1, gcc will entirely remove the contracts code when not enabled, see
@@ -316,7 +313,7 @@ private:
 
     // Sets the arguments sizes
     algorithm->set_arguments_size(
-      algorithm->instance, arguments_tuple.first, arguments_tuple.second, runtime_options, constants, host_buffers);
+      algorithm->instance, arg_ref_manager, runtime_options, constants, host_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
     setup_<out_arguments_t, in_arguments_t>(
@@ -331,7 +328,7 @@ private:
 
     try {
       // Invoke the algorithm
-      algorithm->invoke(algorithm->instance, arguments_tuple.first, arguments_tuple.second, runtime_options, constants, host_buffers, context);
+      algorithm->invoke(algorithm->instance, arg_ref_manager, runtime_options, constants, host_buffers, context);
     } catch (std::invalid_argument& e) {
       fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm->name(algorithm->instance).c_str());
       throw e;
