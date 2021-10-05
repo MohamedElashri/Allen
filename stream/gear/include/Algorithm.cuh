@@ -75,14 +75,7 @@ namespace Allen {
           throw std::runtime_error {error_message};
         }
         else {
-          std::cout << kv.second << "\n";
-          auto asdf = it->second;
-          if (asdf == nullptr) {
-            std::cout << "Pointer is nullptr\n";
-          }
-          else {
-            it->second->from_string(kv.second);
-          }
+          it->second->from_string(kv.second);
         }
       }
     }
