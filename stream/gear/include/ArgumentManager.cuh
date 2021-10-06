@@ -7,6 +7,7 @@
 #include <gsl/gsl>
 #include <vector>
 #include <cstring>
+#include <unordered_map>
 #include "BackendCommon.h"
 #include "Logger.h"
 #include "AllenTypeTraits.cuh"
@@ -19,8 +20,8 @@
  */
 struct ArgumentData {
 private:
-  std::string m_scope = "";
   std::string m_name = "";
+  std::string m_scope = "";
   char* m_pointer = nullptr;
   size_t m_size = 0;
   size_t m_type_size = 0;
@@ -28,7 +29,8 @@ private:
 public:
   ArgumentData() = default;
   ArgumentData(const ArgumentData&) = default;
-  ArgumentData(const std::string& scope, const std::string& name) : m_scope(scope), m_name(name) {}
+  ArgumentData(const std::string& name) : m_name(name) {}
+  ArgumentData(const std::string& name, const std::string& scope) : m_name(name), m_scope(scope) {}
 
   virtual char* pointer() const { return m_pointer; }
   virtual size_t size() const { return m_size; }
@@ -44,81 +46,27 @@ public:
 };
 
 /**
- * @brief Holds a database of arguments, and provides accessors for their pointers and size.
+ * @brief Allen argument manager
  */
-template<typename Tuple>
-struct ArgumentManager {
-private:
-  std::array<ArgumentData, std::tuple_size_v<Tuple>> m_tuple_to_argument_data;
+class UnorderedStore {
+  std::unordered_map<std::string, ArgumentData> m_store;
 
 public:
-  std::array<ArgumentData, std::tuple_size_v<Tuple>>& argument_database() { return m_tuple_to_argument_data; }
-
-  template<typename T>
-  typename T::type* pointer() const
+  ArgumentData& at(std::string&& k)
   {
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    auto pointer = m_tuple_to_argument_data[index_of_T].pointer();
-    return reinterpret_cast<typename T::type*>(pointer);
+    auto i = m_store.at(std::forward<std::string>(k));
+    if (i == m_store.end()) {
+      throw std::runtime_error("store entry not found");
+    }
+    return i->second;
   }
 
-  template<typename T>
-  void set_pointer(char* pointer)
+  void emplace(std::string&& k, ArgumentData&& t)
   {
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].set_pointer(pointer);
-  }
-
-  template<typename T>
-  size_t size() const
-  {
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].size();
-  }
-
-  template<typename T>
-  void set_size(const size_t size)
-  {
-    static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "set_size can only be used on output datatypes");
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].set_size(size);
-  }
-
-  template<typename T>
-  size_t sizebytes() const
-  {
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].sizebytes();
-  }
-
-  template<typename T>
-  void set_type_size(const size_t size)
-  {
-    static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "set_size can only be used on output datatypes");
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].set_type_size(size);
-  }
-
-  template<typename T>
-  std::string name() const
-  {
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].name();
-  }
-
-  template<typename T>
-  void set_name(const std::string& name)
-  {
-    constexpr auto index_of_T = index_of_v<T, Tuple>;
-    static_assert(index_of_T < std::tuple_size_v<Tuple> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].set_name(name);
+    const auto& [ret, ok] = m_store.try_emplace(std::forward<std::string>(k), std::forward<ArgumentData>(t));
+    if (!ok) {
+      throw std::runtime_error("store emplace failed, entry already exists");
+    }
   }
 };
 
@@ -136,20 +84,19 @@ public:
   using parameters_tuple_t = ParameterTuple;
   using parameters_struct_t = ParameterStruct;
   using input_aggregates_t = InputAggregatesTuple;
-  using store_t = std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>;
+  using store_ref_t = std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>;
 
 private:
-  mutable store_t m_tuple_to_argument_data;
+  mutable store_ref_t m_store_ref;
   input_aggregates_t m_input_aggregates;
 
 public:
-  ArgumentRefManager(store_t tuple_to_argument_data, input_aggregates_t input_aggregates) :
-    m_tuple_to_argument_data(tuple_to_argument_data), m_input_aggregates(input_aggregates)
+  ArgumentRefManager(store_ref_t store_ref, input_aggregates_t input_aggregates) :
+    m_store_ref(store_ref), m_input_aggregates(input_aggregates)
   {}
 
-  ArgumentRefManager(
-    std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>> tuple_to_argument_data) :
-    m_tuple_to_argument_data(tuple_to_argument_data)
+  ArgumentRefManager(store_ref_t store_ref) :
+    m_store_ref(store_ref)
   {}
 
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
@@ -157,7 +104,7 @@ public:
   {
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    auto pointer = m_tuple_to_argument_data[index_of_T].get().pointer();
+    auto pointer = m_store_ref[index_of_T].get().pointer();
     return reinterpret_cast<typename T::type*>(pointer);
   }
 
@@ -178,7 +125,7 @@ public:
   {
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].get().size();
+    return m_store_ref[index_of_T].get().size();
   }
 
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
@@ -187,8 +134,8 @@ public:
     static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "set_size can only be used on output datatypes");
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    m_tuple_to_argument_data[index_of_T].get().set_size(size);
-    m_tuple_to_argument_data[index_of_T].get().set_type_size(sizeof(typename T::type));
+    m_store_ref[index_of_T].get().set_size(size);
+    m_store_ref[index_of_T].get().set_type_size(sizeof(typename T::type));
   }
 
   /**
@@ -202,8 +149,8 @@ public:
       !Allen::isDerivedFrom<input_datatype, T>::value && "reduce_size can only be used on output datatypes");
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    assert(size <= m_tuple_to_argument_data[index_of_T].get().size());
-    m_tuple_to_argument_data[index_of_T].get().set_size(size);
+    assert(size <= m_store_ref[index_of_T].get().size());
+    m_store_ref[index_of_T].get().set_size(size);
   }
 
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
@@ -211,7 +158,7 @@ public:
   {
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-    return m_tuple_to_argument_data[index_of_T].get().name();
+    return m_store_ref[index_of_T].get().name();
   }
 
   template<typename T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>, bool> = true>

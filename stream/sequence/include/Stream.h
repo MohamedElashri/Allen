@@ -32,10 +32,8 @@ class Timer;
 
 struct Stream : virtual public Allen::IStream {
 private:
-  using scheduler_t = SchedulerFor_t<configured_arguments_t, configured_sequence_arguments_t, in_deps_t, out_deps_t, decltype(instantiate_configured_algorithms())>;
-
   // Dynamic scheduler
-  scheduler_t scheduler {instantiate_configured_algorithms()};
+  Scheduler scheduler {get_configured_algorithms(), get_configured_arguments(), get_configured_sequence_arguments()};
 
   // Context
   Allen::Context m_context {};

@@ -7,16 +7,17 @@
 #include <algorithm>
 #include "Common.h"
 #include "Logger.h"
+#include "ArgumentManager.cuh"
 
 namespace memory_manager_details {
   // Distinguish between Host and Device memory managers
   struct Host {
-    using datatype = host_datatype;
+    constexpr auto scope = "host";
     static void free(void* ptr) { Allen::free_host(ptr); }
     static void malloc(void** ptr, size_t s) { Allen::malloc_host(ptr, s); }
   };
   struct Device {
-    using datatype = device_datatype;
+    constexpr auto scope = "device";
     static void free(void* ptr) { Allen::free(ptr); }
     static void malloc(void** ptr, size_t s) { Allen::malloc(ptr, s); }
   };
@@ -84,13 +85,11 @@ public:
    *        If there are no available segments of the requested size,
    *        it throws an exception.
    */
-  template<typename Argument, typename ArgumentManagerType>
-  void reserve(ArgumentManagerType& argument_manager)
+  void reserve(ArgumentData& argument)
   {
-    static_assert(std::is_base_of_v<typename Target::datatype, Argument>);
     // Tag and requested size
-    const auto tag = argument_manager.template name<Argument>();
-    size_t requested_size = argument_manager.template sizebytes<Argument>();
+    const auto tag = argument.name();
+    size_t requested_size = argument.sizebytes();
 
     // Size requested should be greater than zero
     if (requested_size == 0) {
@@ -123,7 +122,7 @@ public:
 
     // Start of allocation
     const auto start = it->start;
-    argument_manager.template set_pointer<Argument>(m_base_pointer + start);
+    argument.set_pointer(m_base_pointer + start);
 
     // Update current segment
     it->start += aligned_request;
@@ -145,12 +144,9 @@ public:
   /**
    * @brief Recursive free, implementation for Argument.
    */
-  template<typename Argument, typename ArgumentManagerType>
-  void free(ArgumentManagerType& argument_manager)
+  void free(ArgumentData& argument)
   {
-    static_assert(std::is_base_of_v<typename Target::datatype, Argument>);
-
-    const auto tag = argument_manager.template name<Argument>();
+    const auto tag = argument.name();
 
     if (logger::verbosity() >= 5) {
       verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
@@ -255,12 +251,11 @@ public:
   /**
    * @brief Allocates a segment of the requested size.
    */
-  template<typename Argument, typename ArgumentManagerType>
-  void reserve(ArgumentManagerType& argument_manager)
+  void reserve(ArgumentData& argument)
   {
     // Tag and requested size
-    const auto tag = argument_manager.template name<Argument>();
-    size_t requested_size = argument_manager.template sizebytes<Argument>();
+    const auto tag = argument.name();
+    size_t requested_size = argument.sizebytes();
 
     // Verify the pointer didn't exist in the memory segments map
     const auto it = m_memory_segments.find(tag);
@@ -281,7 +276,7 @@ public:
 
     Target::malloc(reinterpret_cast<void**>(&memory_pointer), requested_size);
 
-    argument_manager.template set_pointer<Argument>(memory_pointer);
+    argument.set_pointer(memory_pointer);
 
     // Add the pointer to the memory segments map
     m_memory_segments[tag] = MemorySegment {memory_pointer, requested_size};
@@ -292,10 +287,8 @@ public:
   /**
    * @brief Frees the requested argument.
    */
-  template<typename Argument, typename ArgumentManagerType>
-  void free(ArgumentManagerType& argument_manager)
-  {
-    const auto tag = argument_manager.template name<Argument>();
+  void free(ArgumentData& argument) {
+    const auto tag = argument.name();
 
     // Verify the pointer existed in the memory segments map
     const auto it = m_memory_segments.find(tag);
@@ -309,7 +302,7 @@ public:
       verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
     }
 
-    Target::free(argument_manager.template pointer<Argument>());
+    Target::free(argument.pointer());
 
     m_total_memory_required -= it->second.size * sizeof(typename Argument::type);
 
@@ -344,67 +337,40 @@ public:
   }
 };
 
-/**
- * @brief  Helper struct to iterate in compile time over the
- *         arguments to reserve/free. Using `if constexpr` to choose at compile time
- *         whether to reserve/free on the host or device memory.
- */
-
-namespace memory_manager_details {
-  template<typename Argument, typename MemoryManager, typename ArgumentManagerType>
-  constexpr void reserve(MemoryManager& memory_manager, ArgumentManagerType& argument_manager)
-  {
-    static_assert(std::is_base_of_v<typename MemoryManager::datatype, Argument>);
-    memory_manager.template reserve<Argument>(argument_manager);
-  }
-  template<typename Argument, typename MemoryManager, typename ArgumentManagerType>
-  constexpr void free(MemoryManager& memory_manager, ArgumentManagerType& argument_manager)
-  {
-    static_assert(std::is_base_of_v<typename MemoryManager::datatype, Argument>);
-    // Host memory manager does not free any memory.
-    if constexpr (!std::is_base_of_v<Host, MemoryManager>) {
-      memory_manager.template free<Argument>(argument_manager);
-    }
-  }
-  template<typename Argument, typename HostMemoryManager, typename DeviceMemoryManager>
-  constexpr auto& select_manager_for(HostMemoryManager& host, DeviceMemoryManager& device)
-  {
-    if constexpr (std::is_base_of_v<typename DeviceMemoryManager::datatype, Argument>) {
-      return device;
-    }
-    if constexpr (std::is_base_of_v<typename HostMemoryManager::datatype, Argument>) {
-      return host;
-    }
-  }
-} // namespace memory_manager_details
-
-template<typename ArgumentTuple>
-struct MemoryManagerHelper;
-
-template<typename... Arguments>
-struct MemoryManagerHelper<std::tuple<Arguments...>> {
-
-  template<typename HostMemoryManager, typename DeviceMemoryManager, typename ArgumentManagerType>
-  constexpr static void reserve(
+struct MemoryManagerHelper {
+  static void reserve(
     HostMemoryManager& host_memory_manager,
     DeviceMemoryManager& device_memory_manager,
-    ArgumentManagerType& argument_manager)
+    UnorderedStore& store,
+    const Dependencies& in_dependencies)
   {
-    (memory_manager_details::reserve<Arguments>(
-       memory_manager_details::select_manager_for<Arguments>(host_memory_manager, device_memory_manager),
-       argument_manager),
-     ...);
+    for (const auto& arg_name : in_dependencies.arguments) {
+      auto& arg = store.at(arg_name);
+      if (arg.scope == host_memory_manager.scope) {
+        host_memory_manager.reserve(arg);
+      } else if (arg.scope == device_memory_manager.scope) {
+        device_memory_manager.reserve(arg);
+      } else {
+        throw std::runtime_error("argument scope not recognized");
+      }
+    }
   }
 
-  template<typename HostMemoryManager, typename DeviceMemoryManager, typename ArgumentManagerType>
-  constexpr static void free(
+  static void free(
     HostMemoryManager& host_memory_manager,
     DeviceMemoryManager& device_memory_manager,
-    ArgumentManagerType& argument_manager)
+    UnorderedStore& store,
+    const Dependencies& out_dependencies)
   {
-    (memory_manager_details::free<Arguments>(
-       memory_manager_details::select_manager_for<Arguments>(host_memory_manager, device_memory_manager),
-       argument_manager),
-     ...);
+    for (const auto& arg_name : out_dependencies.arguments) {
+      auto& arg = store.at(arg_name);
+      if (arg.scope == host_memory_manager.scope) {
+        host_memory_manager.free(arg);
+      } else if (arg.scope == device_memory_manager.scope) {
+        device_memory_manager.free(arg);
+      } else {
+        throw std::runtime_error("argument scope not recognized");
+      }
+    }
   }
 };

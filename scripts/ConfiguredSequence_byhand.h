@@ -14,13 +14,13 @@ public:
   const char* what() const noexcept override { return m_exception_text.c_str(); }
 };
 
-struct ScopeNotSupportedException : public std::exception {
+struct ArgumentScopeNotSupportedException : public std::exception {
 private:
   std::string m_exception_text;
 
 public:
-  ScopeNotSupportedException(const std::string& scope) :
-    m_exception_text("Requested argument scope not found: " + scope)
+  ArgumentScopeNotSupportedException(const std::string& scope) :
+    m_exception_text("Requested argument scope not supported: " + scope)
   {}
   const char* what() const noexcept override { return m_exception_text.c_str(); }
 };
@@ -37,7 +37,12 @@ struct ConfiguredArgument {
 
 struct ConfiguredAlgorithmArguments {
   std::vector<std::string> arguments;
+  std::vector<std::vector<std::string>> input_aggregates;
   std::vector<std::string> dependencies;
+};
+
+struct Dependencies {
+  std::vector<std::string> arguments;
 };
 
 // ArgumentData creator
@@ -45,8 +50,66 @@ ArgumentData create_allen_argument(const ConfiguredArgument& alg) {
   if (alg.scope == "host" || alg.scope == "device") {
     return ArgumentData{alg.scope, alg.name};
   } else {
-    throw ScopeNotSupportedException{alg.scope};
+    throw ArgumentScopeNotSupportedException{alg.scope};
   }
+}
+
+// Get in and out dependencies
+std::tuple<std::vector<Dependencies>, std::vector<Dependencies>> calculate_dependencies(const std::vector<ConfiguredAlgorithmArguments>& sequence_arguments) {
+  std::vector<Dependencies> in_deps;
+  std::vector<Dependencies> out_deps;
+  std::vector<std::string> temp_arguments;
+
+  const auto argument_in = [] (const std::string& arg, const std::vector<std::string>& args) {
+    return std::find(std::begin(args), std::end(args), arg) != std::end(args);
+  };
+
+  for (unsigned i = 0; i < sequence_arguments.size(); ++i) {
+    // Calculate out_dep for this algorithm
+    Dependencies out_dep;
+    std::vector<std::string> next_temp_arguments;
+    for (const auto& arg : temp_arguments) {
+      bool arg_can_be_freed = true;
+
+      for (unsigned j = i; j < sequence_arguments.size(); ++j) {
+        const auto& alg = sequence_arguments[j];
+        if (argument_in(arg, alg.arguments) || argument_in(arg, alg.dependencies)) {
+          arg_can_be_freed = false;
+          break;
+        }
+
+        // input aggregates
+        for (const auto& input_aggregate : alg.input_aggregates) {
+          if (argument_in(arg, input_aggregate)) {
+            arg_can_be_freed = false;
+            break;
+          }
+        }
+      }
+
+      if (arg_can_be_freed) {
+        out_dep.arguments.push_back(arg);
+      } else {
+        next_temp_arguments.push_back(arg);
+      }
+    }
+    out_deps.emplace_back(out_dep);
+
+    // Update temp_arguments
+    temp_arguments = next_temp_arguments;
+
+    // Calculate in_dep for this algorithm
+    Dependencies in_dep;
+    for (const auto& arg : sequence_arguments[i].arguments) {
+      if (!argument_in(arg, temp_arguments)) {
+        temp_arguments.push_back(arg);
+        in_dep.arguments.push_back(arg);
+      }
+    }
+    in_deps.emplace_back(in_dep);
+  }
+
+  return {in_deps, out_deps};
 }
 
 // -------------
@@ -95,61 +158,7 @@ std::vector<ConfiguredArgument> get_configured_arguments() {
 
 std::vector<ConfiguredAlgorithmArguments> get_configured_sequence_arguments() {
   return {
-    {{"initialize_event_lists__host_event_list_output_t", "initialize_event_lists__dev_event_list_output_t"}, {}},
-    {{"host_scifi_banks__host_raw_banks_t", "host_scifi_banks__host_raw_offsets_t", "host_scifi_banks__host_raw_bank_version_t"}, {}}
+    {{"initialize_event_lists__host_event_list_output_t", "initialize_event_lists__dev_event_list_output_t"}, {}, {}},
+    {{"host_scifi_banks__host_raw_banks_t", "host_scifi_banks__host_raw_offsets_t", "host_scifi_banks__host_raw_bank_version_t"}, {}, {}}
   };
-}
-
-struct Dependencies {
-  std::vector<std::string> arguments;
-};
-
-// Get in and out dependencies
-std::pair<std::vector<Dependencies>, std::vector<Dependencies>> calculate_dependencies(const std::vector<ConfiguredAlgorithmArguments>& sequence_arguments) {
-  std::vector<Dependencies> in_deps;
-  std::vector<Dependencies> out_deps;
-  std::vector<std::string> temp_arguments;
-
-  const auto argument_in = [] (const std::string& arg, const std::vector<std::string>& args) {
-    return std::find(std::begin(args), std::end(args), arg) != std::end(args);
-  };
-
-  for (unsigned i = 0; i < sequence_arguments.size(); ++i) {
-    // Calculate out_dep for this algorithm
-    Dependencies out_dep;
-    std::vector<std::string> next_temp_arguments;
-    for (const auto& arg : temp_arguments) {
-      bool arg_can_be_freed = true;
-
-      for (unsigned j = i; j < sequence_arguments.size(); ++j) {
-        const auto& alg = sequence_arguments[j];
-        if (argument_in(arg, alg.arguments) || argument_in(arg, alg.dependencies)) {
-          arg_can_be_freed = false;
-          break;
-        }
-      }
-
-      if (arg_can_be_freed) {
-        out_dep.arguments.push_back(arg);
-      } else {
-        next_temp_arguments.push_back(arg);
-      }
-    }
-    out_deps.emplace_back(out_dep);
-
-    // Update temp_arguments
-    temp_arguments = next_temp_arguments;
-
-    // Calculate in_dep for this algorithm
-    Dependencies in_dep;
-    for (const auto& arg : sequence_arguments[i].arguments) {
-      if (!argument_in(arg, temp_arguments)) {
-        temp_arguments.push_back(arg);
-        in_dep.arguments.push_back(arg);
-      }
-    }
-    in_deps.emplace_back(in_dep);
-  }
-
-  return {in_deps, out_deps};
 }
