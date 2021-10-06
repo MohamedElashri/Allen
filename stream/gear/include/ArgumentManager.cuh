@@ -19,20 +19,27 @@
  */
 struct ArgumentData {
 private:
+  std::string m_scope = "";
+  std::string m_name = "";
   char* m_pointer = nullptr;
   size_t m_size = 0;
   size_t m_type_size = 0;
-  std::string m_name = "";
 
 public:
+  ArgumentData() = default;
+  ArgumentData(const ArgumentData&) = default;
+  ArgumentData(const std::string& scope, const std::string& name) : m_scope(scope), m_name(name) {}
+
   virtual char* pointer() const { return m_pointer; }
   virtual size_t size() const { return m_size; }
   virtual size_t sizebytes() const { return m_size * m_type_size; }
   virtual std::string name() const { return m_name; }
+  virtual std::string scope() const { return m_scope; }
   virtual void set_pointer(char* pointer) { m_pointer = pointer; }
   virtual void set_size(size_t size) { m_size = size; }
   virtual void set_type_size(size_t type_size) { m_type_size = type_size; }
   virtual void set_name(const std::string& name) { m_name = name; }
+  virtual void set_scope(const std::string& scope) { m_scope = scope; }
   virtual ~ArgumentData() {}
 };
 
@@ -136,11 +143,8 @@ private:
   input_aggregates_t m_input_aggregates;
 
 public:
-  ArgumentRefManager(
-    store_t tuple_to_argument_data,
-    input_aggregates_t input_aggregates) :
-    m_tuple_to_argument_data(tuple_to_argument_data),
-    m_input_aggregates(input_aggregates)
+  ArgumentRefManager(store_t tuple_to_argument_data, input_aggregates_t input_aggregates) :
+    m_tuple_to_argument_data(tuple_to_argument_data), m_input_aggregates(input_aggregates)
   {}
 
   ArgumentRefManager(
@@ -360,4 +364,4 @@ namespace Allen {
   {
     return std::make_tuple(input_aggregates[Is]...);
   }
-}
+} // namespace Allen
