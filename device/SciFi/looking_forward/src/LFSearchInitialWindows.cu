@@ -7,6 +7,8 @@
 #include "LookingForwardTools.cuh"
 #include "BinarySearch.cuh"
 
+INSTANTIATE_ALGORITHM(lf_search_initial_windows::lf_search_initial_windows_t)
+
 void lf_search_initial_windows::lf_search_initial_windows_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

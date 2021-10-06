@@ -5,6 +5,8 @@
 #include <SciFiRawBankDecoderV4.cuh>
 #include <assert.h>
 
+INSTANTIATE_ALGORITHM(scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_t)
+
 // Merge of PrStoreFTHit and RawBankDecoder.
 __device__ void make_cluster_v4(
   const int hit_index,

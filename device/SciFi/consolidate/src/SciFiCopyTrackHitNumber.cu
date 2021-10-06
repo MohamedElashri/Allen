@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "SciFiCopyTrackHitNumber.cuh"
 
+INSTANTIATE_ALGORITHM(scifi_copy_track_hit_number::scifi_copy_track_hit_number_t)
+
 void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

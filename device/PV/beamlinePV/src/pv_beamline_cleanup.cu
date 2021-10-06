@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "pv_beamline_cleanup.cuh"
 
+INSTANTIATE_ALGORITHM(pv_beamline_cleanup::pv_beamline_cleanup_t)
+
 void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

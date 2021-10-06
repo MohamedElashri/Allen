@@ -4,6 +4,8 @@
 #include "ParKalmanVeloOnly.cuh"
 #include "PackageMFTracks.cuh"
 
+INSTANTIATE_ALGORITHM(package_mf_tracks::package_mf_tracks_t)
+
 void package_mf_tracks::package_mf_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

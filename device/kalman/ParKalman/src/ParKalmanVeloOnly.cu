@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "ParKalmanVeloOnly.cuh"
 
+INSTANTIATE_ALGORITHM(kalman_velo_only::kalman_velo_only_t)
+
 void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

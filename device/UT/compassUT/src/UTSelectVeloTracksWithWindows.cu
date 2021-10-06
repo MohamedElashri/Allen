@@ -4,6 +4,8 @@
 #include "UTSelectVeloTracksWithWindows.cuh"
 #include <tuple>
 
+INSTANTIATE_ALGORITHM(ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t)
+
 void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

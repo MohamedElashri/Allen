@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "VeloConsolidateTracks.cuh"
 
+INSTANTIATE_ALGORITHM(velo_consolidate_tracks::velo_consolidate_tracks_t)
+
 /**
  * @brief Creates VELO views for hits, track, tracks and multieventtracks.
  */

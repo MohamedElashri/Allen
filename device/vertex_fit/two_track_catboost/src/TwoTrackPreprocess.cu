@@ -10,6 +10,8 @@
 \*****************************************************************************/
 #include "TwoTrackPreprocess.cuh"
 
+INSTANTIATE_ALGORITHM(two_track_preprocess::two_track_preprocess_t)
+
 void two_track_preprocess::two_track_preprocess_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

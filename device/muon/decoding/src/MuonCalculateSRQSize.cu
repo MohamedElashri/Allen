@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <MuonCalculateSRQSize.cuh>
 
+INSTANTIATE_ALGORITHM(muon_calculate_srq_size::muon_calculate_srq_size_t)
+
 __device__ void calculate_srq_size(
   Muon::MuonRawToHits const* muon_raw_to_hits,
   int const batch_index,

@@ -92,10 +92,9 @@ class Scheduler {
   struct VTable {
     Allen::TypeErasedAlgorithm* algorithm = nullptr;
     std::function<void(Allen::TypeErasedAlgorithm*, const std::map<std::string, std::map<std::string, std::string>>&)> configure = nullptr;
-    void (*get_configuration)(const void* self, std::map<std::string, std::map<std::string, std::string>>& config) =
+    std::function<void(const Allen::TypeErasedAlgorithm* algorithm, std::map<std::string, std::map<std::string, std::string>>& config)> get_configuration =
       nullptr;
     std::function<std::string()> name = nullptr;
-    std::string (*type)() = nullptr;
     void (*run)(
       Allen::TypeErasedAlgorithm* self,
       host_memory_manager_t&,
@@ -113,9 +112,9 @@ class Scheduler {
     VTable(Allen::TypeErasedAlgorithm& alg, Traits) :
       algorithm {&alg},
       configure {configure_},
-      // get_configuration {get_configuration_<Allen::TypeErasedAlgorithm>},
-      // type {[] { return demangle<Allen::TypeErasedAlgorithm>(); }},
-      run {run_<Traits>}, name {[this]() { return this->algorithm->name(this->algorithm->instance); }}
+      get_configuration {get_configuration_},
+      name {[this]() { return this->algorithm->name(this->algorithm->instance); }},
+      run {run_<Traits>}
     {}
   };
 
@@ -179,7 +178,7 @@ public:
   {
     std::map<std::string, std::map<std::string, std::string>> config;
     std::for_each(vtbls.begin(), vtbls.end(), [&config](auto& vtbl) {
-      // std::invoke(vtbl.get_configuration, vtbl.algorithm, config);
+      std::invoke(vtbl.get_configuration, vtbl.algorithm, config);
     });
     return config;
   }
@@ -229,12 +228,11 @@ private:
     algorithm->init(algorithm->instance);
   }
 
-  // template<typename Alg>
-  // static void get_configuration_(const void* self, std::map<std::string, std::map<std::string, std::string>>& config)
-  // {
-  //   auto* algorithm = static_cast<const Alg*>(self);
-  //   config.emplace(algorithm->name(), algorithm->get_properties());
-  // }
+  static void get_configuration_(const Allen::TypeErasedAlgorithm*, std::map<std::string, std::map<std::string, std::string>>&)
+  {
+    // TODO: get_properties is currently segfaulting
+    // config.emplace(algorithm->name(algorithm->instance), algorithm->get_properties(algorithm->instance));
+  }
 
   template<typename out_arguments_t, typename in_arguments_t, typename argument_manager_t>
   static void setup_(

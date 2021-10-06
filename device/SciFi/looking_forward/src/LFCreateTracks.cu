@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "LFCreateTracks.cuh"
 
+INSTANTIATE_ALGORITHM(lf_create_tracks::lf_create_tracks_t)
+
 void lf_create_tracks::lf_create_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MuonCatboostEvaluator.cuh"
 
+INSTANTIATE_ALGORITHM(muon_catboost_evaluator::muon_catboost_evaluator_t)
+
 void muon_catboost_evaluator::muon_catboost_evaluator_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

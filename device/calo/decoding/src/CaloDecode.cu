@@ -97,6 +97,8 @@ __global__ void calo_decode_dispatch(calo_decode::Parameters parameters, const c
     ecal_geometry);
 }
 
+INSTANTIATE_ALGORITHM(calo_decode::calo_decode_t)
+
 void calo_decode::calo_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

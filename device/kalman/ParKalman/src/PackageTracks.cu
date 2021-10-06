@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "ParKalmanVeloOnly.cuh"
 
+INSTANTIATE_ALGORITHM(package_kalman_tracks::package_kalman_tracks_t)
+
 void package_kalman_tracks::package_kalman_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

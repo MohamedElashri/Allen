@@ -5,6 +5,8 @@
 #include <MaskedVeloClustering.cuh>
 #include <VeloTools.cuh>
 
+INSTANTIATE_ALGORITHM(velo_masked_clustering::velo_masked_clustering_t)
+
 /**
  * @brief Makes a 8-connectivity mask
  * @details For a pixel x, constructs its 8-connectivity mask +:

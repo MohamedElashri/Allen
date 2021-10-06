@@ -5,6 +5,8 @@
 #include "SciFiPreDecodeV4.cuh"
 #include <cassert>
 
+INSTANTIATE_ALGORITHM(scifi_pre_decode_v4::scifi_pre_decode_v4_t)
+
 __device__ void store_sorted_cluster_reference_v4(
   SciFi::ConstHitCount& hit_count,
   const uint32_t uniqueMat,

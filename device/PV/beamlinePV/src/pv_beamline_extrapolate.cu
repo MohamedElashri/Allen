@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "pv_beamline_extrapolate.cuh"
 
+INSTANTIATE_ALGORITHM(pv_beamline_extrapolate::pv_beamline_extrapolate_t)
+
 void pv_beamline_extrapolate::pv_beamline_extrapolate_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

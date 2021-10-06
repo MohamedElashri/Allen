@@ -11,6 +11,8 @@
 #include <MEPTools.h>
 #include <CaloCountDigits.cuh>
 
+INSTANTIATE_ALGORITHM(calo_count_digits::calo_count_digits_t)
+
 __device__ void
 offsets(mask_t const* event_list, unsigned const n_events, unsigned* number_of_digits, CaloGeometry const& geometry)
 {

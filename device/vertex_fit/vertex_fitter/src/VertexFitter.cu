@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "VertexFitter.cuh"
 
+INSTANTIATE_ALGORITHM(VertexFit::fit_secondary_vertices_t)
+
 void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

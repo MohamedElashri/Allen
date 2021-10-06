@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "VeloCopyTrackHitNumber.cuh"
 
+INSTANTIATE_ALGORITHM(velo_copy_track_hit_number::velo_copy_track_hit_number_t)
+
 void velo_copy_track_hit_number::velo_copy_track_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

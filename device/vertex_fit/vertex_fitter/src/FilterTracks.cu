@@ -6,6 +6,8 @@
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
 
+INSTANTIATE_ALGORITHM(FilterTracks::filter_tracks_t)
+
 void FilterTracks::filter_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

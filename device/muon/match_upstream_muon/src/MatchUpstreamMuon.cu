@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MatchUpstreamMuon.cuh"
 
+INSTANTIATE_ALGORITHM(MatchUpstreamMuon::match_upstream_muon_t)
+
 void MatchUpstreamMuon::match_upstream_muon_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

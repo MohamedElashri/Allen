@@ -4,6 +4,8 @@
 #include "MuonFeaturesExtraction.cuh"
 #include "MuonEventModel.cuh"
 
+INSTANTIATE_ALGORITHM(muon_catboost_features_extraction::muon_catboost_features_extraction_t)
+
 void muon_catboost_features_extraction::muon_catboost_features_extraction_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

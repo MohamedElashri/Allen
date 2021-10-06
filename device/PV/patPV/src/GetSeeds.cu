@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "GetSeeds.cuh"
 
+INSTANTIATE_ALGORITHM(pv_get_seeds::pv_get_seeds_t)
+
 static constexpr unsigned get_seeds_max_velo_tracks_constant = 2048;
 
 void pv_get_seeds::pv_get_seeds_t::set_arguments_size(

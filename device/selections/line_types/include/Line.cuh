@@ -17,7 +17,8 @@
     const RuntimeOptions&,                          \
     const Constants&,                               \
     HostBuffers&,                                   \
-    const Allen::Context&) const;
+    const Allen::Context&) const;                   \
+  INSTANTIATE_ALGORITHM(LINE)
 
 // "Enum of types" to determine dispatch to global_function
 namespace LineIteration {

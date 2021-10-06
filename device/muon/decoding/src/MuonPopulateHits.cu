@@ -4,6 +4,8 @@
 #include "MuonPopulateHits.cuh"
 #include "FindPermutation.cuh"
 
+INSTANTIATE_ALGORITHM(muon_populate_hits::muon_populate_hits_t)
+
 void muon_populate_hits::muon_populate_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

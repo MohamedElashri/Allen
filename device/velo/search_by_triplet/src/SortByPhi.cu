@@ -8,6 +8,8 @@
 #include <numeric>
 #include <algorithm>
 
+INSTANTIATE_ALGORITHM(velo_sort_by_phi::velo_sort_by_phi_t)
+
 using namespace Allen::device;
 
 void velo_sort_by_phi::velo_sort_by_phi_t::set_arguments_size(

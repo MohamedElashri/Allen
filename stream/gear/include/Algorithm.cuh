@@ -15,6 +15,79 @@
 #include "HostBuffers.cuh"
 #include <any>
 
+namespace {
+  // Get the ArgumentRefManagerType from the function operator()
+  template<typename Function>
+  struct FunctionTraits;
+
+  template<typename Function, typename... Ts, typename... OtherArguments>
+  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<Ts...>&, OtherArguments...) const> {
+    using ArgumentRefManagerType = ArgumentRefManager<Ts...>;
+  };
+
+  template<typename Algorithm>
+  struct AlgorithmTraits {
+    using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
+  };
+} // namespace
+
+#define INSTANTIATE_ALGORITHM(ALGORITHM)                                                                              \
+  template<>                                                                                                          \
+  Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(ALGORITHM*, const std::string& name)                   \
+  {                                                                                                                   \
+    auto alg = ALGORITHM {};                                                                                          \
+    alg.set_name(name);                                                                                               \
+                                                                                                                      \
+    return TypeErasedAlgorithm {                                                                                      \
+      alg,                                                                                                            \
+      [](const std::any& instance) { return std::any_cast<ALGORITHM>(instance).name(); },                             \
+      [](std::any arguments_array, std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) { \
+        auto store = std::any_cast<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::store_t>(arguments_array);     \
+        auto input_agg_store =                                                                                        \
+          AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::input_aggregates_t {Allen::gen_input_aggregates_tuple(  \
+            input_aggregates,                                                                                         \
+            std::make_index_sequence<                                                                                 \
+              std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::input_aggregates_t>> {})};        \
+        auto arg_ref_manager = AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType {store, input_agg_store};           \
+        return std::any {arg_ref_manager};                                                                            \
+      },                                                                                                              \
+      [](                                                                                                             \
+        const std::any& instance,                                                                                     \
+        std::any& arg_ref_manager,                                                                                    \
+        const RuntimeOptions& runtime_options,                                                                        \
+        const Constants& constants,                                                                                   \
+        const HostBuffers& host_buffers) {                                                                            \
+        std::any_cast<const ALGORITHM&>(instance).set_arguments_size(                                                 \
+          std::any_cast<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType&>(arg_ref_manager),                        \
+          runtime_options,                                                                                            \
+          constants,                                                                                                  \
+          host_buffers);                                                                                              \
+      },                                                                                                              \
+      [](                                                                                                             \
+        const std::any& instance,                                                                                     \
+        std::any& arg_ref_manager,                                                                                    \
+        const RuntimeOptions& runtime_options,                                                                        \
+        const Constants& constants,                                                                                   \
+        HostBuffers& host_buffers,                                                                                    \
+        const Allen::Context& context) {                                                                              \
+        std::any_cast<const ALGORITHM&>(instance)(                                                                    \
+          std::any_cast<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType&>(arg_ref_manager),                        \
+          runtime_options,                                                                                            \
+          constants,                                                                                                  \
+          host_buffers,                                                                                               \
+          context);                                                                                                   \
+      },                                                                                                              \
+      [](std::any& instance) {                                                                                        \
+        if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {                                                  \
+          initialize_algorithm(std::any_cast<ALGORITHM&>(instance));                                                  \
+        }                                                                                                             \
+      },                                                                                                              \
+      [](std::any& instance, const std::map<std::string, std::string>& algo_config) {                                 \
+        std::any_cast<ALGORITHM&>(instance).set_properties(algo_config);                                              \
+      },                                                                                                              \
+      [](const std::any& instance) { return std::any_cast<const ALGORITHM&>(instance).get_properties(); }};           \
+  }
+
 namespace Allen {
   // Type-erased algorithm
   struct TypeErasedAlgorithm {
@@ -29,6 +102,7 @@ namespace Allen {
       invoke = nullptr;
     std::function<void(std::any&)> init = nullptr;
     std::function<void(std::any&, const std::map<std::string, std::string>&)> set_properties = nullptr;
+    std::function<std::map<std::string, std::string>(const std::any&)> get_properties = nullptr;
 
     TypeErasedAlgorithm() = default;
     TypeErasedAlgorithm(const TypeErasedAlgorithm&) = default;
@@ -61,8 +135,6 @@ namespace Allen {
 
     template<typename T>
     using Property = Allen::Property<T>;
-
-    void init() {}
 
     void set_properties(const std::map<std::string, std::string>& algo_config) override
     {
