@@ -10,6 +10,8 @@
 \*****************************************************************************/
 #include "EventListInversion.cuh"
 
+INSTANTIATE_ALGORITHM(event_list_inversion::event_list_inversion_t)
+
 void event_list_inversion::event_list_inversion_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,

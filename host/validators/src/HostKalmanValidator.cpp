@@ -5,6 +5,8 @@
 #include "PrepareKalmanTracks.h"
 #include "KalmanChecker.h"
 
+INSTANTIATE_ALGORITHM(host_kalman_validator::host_kalman_validator_t)
+
 void host_kalman_validator::host_kalman_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,

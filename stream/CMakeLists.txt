@@ -83,12 +83,6 @@ allen_add_host_library(Stream STATIC ${stream_src})
 
 include(GenerateConfiguration)
 
-# TODO: In the future a single wrapper script can take care of
-# generating the sequence on the fly (using eg. the parsed agorithms pickle)
-foreach(sequence ${BUILD_SEQUENCES})
-  generate_sequence(${sequence})
-endforeach()
-
 target_include_directories(Stream PRIVATE "${PROJECT_BINARY_DIR}/code_generation/sequences/include")
 target_link_libraries(Stream PRIVATE
   Associate
@@ -129,3 +123,12 @@ if (ROOT_FOUND)
 endif()
 
 add_dependencies(Stream algorithm_db)
+
+# TODO: In the future a single wrapper script can take care of
+# generating the sequence on the fly (using eg. the parsed agorithms pickle)
+foreach(sequence ${BUILD_SEQUENCES})
+  generate_sequence(${sequence})
+  
+  # Note this dependency is there only to trigger the .json generation
+  add_dependencies(Stream sequence_${sequence})
+endforeach()

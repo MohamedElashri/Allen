@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "LayoutProvider.h"
 
+INSTANTIATE_ALGORITHM(layout_provider::layout_provider_t)
+
 void layout_provider::layout_provider_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

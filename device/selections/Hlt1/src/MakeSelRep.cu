@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MakeSelRep.cuh"
 
+INSTANTIATE_ALGORITHM(make_selrep::make_selrep_t)
+
 void make_selrep::make_selrep_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

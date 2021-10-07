@@ -7,6 +7,8 @@
 #include "HltDecReport.cuh"
 #include "VertexDefinitions.cuh"
 
+INSTANTIATE_ALGORITHM(calc_rb_hits_size::calc_rb_hits_size_t)
+
 void calc_rb_hits_size::calc_rb_hits_size_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

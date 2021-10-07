@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "HostGlobalEventCut.h"
 
+INSTANTIATE_ALGORITHM(host_global_event_cut::host_global_event_cut_t)
+
 void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,

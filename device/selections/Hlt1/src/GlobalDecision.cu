@@ -4,6 +4,8 @@
 #include "GlobalDecision.cuh"
 #include "HltDecReport.cuh"
 
+INSTANTIATE_ALGORITHM(global_decision::global_decision_t)
+
 void global_decision::global_decision_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

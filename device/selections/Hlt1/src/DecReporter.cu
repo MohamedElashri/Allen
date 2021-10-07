@@ -5,6 +5,8 @@
 #include "HltDecReport.cuh"
 #include "SelectionsEventModel.cuh"
 
+INSTANTIATE_ALGORITHM(dec_reporter::dec_reporter_t)
+
 void dec_reporter::dec_reporter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

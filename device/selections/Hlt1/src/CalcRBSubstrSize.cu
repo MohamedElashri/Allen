@@ -4,6 +4,8 @@
 #include "CalcRBSubstrSize.cuh"
 #include "HltDecReport.cuh"
 
+INSTANTIATE_ALGORITHM(calc_rb_substr_size::calc_rb_substr_size_t)
+
 void calc_rb_substr_size::calc_rb_substr_size_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

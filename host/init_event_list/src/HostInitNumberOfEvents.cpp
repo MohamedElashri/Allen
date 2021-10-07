@@ -10,6 +10,8 @@
 \*****************************************************************************/
 #include "HostInitNumberOfEvents.h"
 
+INSTANTIATE_ALGORITHM(host_init_number_of_events::host_init_number_of_events_t)
+
 void host_init_number_of_events::host_init_number_of_events_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

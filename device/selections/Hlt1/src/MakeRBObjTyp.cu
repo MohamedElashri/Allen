@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MakeRBObjTyp.cuh"
 
+INSTANTIATE_ALGORITHM(make_rb_objtyp::make_rb_objtyp_t)
+
 void make_rb_objtyp::make_rb_objtyp_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

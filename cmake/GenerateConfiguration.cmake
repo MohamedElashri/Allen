@@ -131,6 +131,9 @@ else()
 endif()
 
 function(generate_sequence sequence)
+  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
+  file(MAKE_DIRECTORY ${sequence_dir})
+
   if(NOT STANDALONE)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
@@ -148,6 +151,7 @@ function(generate_sequence sequence)
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core checkout_gaudi_dirs
       WORKING_DIRECTORY ${sequence_dir})
   endif()
+  add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
 
   install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
 endfunction()
