@@ -34,10 +34,6 @@ class Scheduler {
   std::vector<LifetimeDependencies> m_out_dependencies;
   host_memory_manager_t host_memory_manager {"Host memory manager"};
   device_memory_manager_t device_memory_manager {"Device memory manager"};
-
-  std::vector<ConfiguredAlgorithm> m_configured_algorithms;
-  std::vector<ConfiguredArgument> m_configured_arguments;
-  std::vector<ConfiguredAlgorithmArguments> m_sequence_arguments;
   bool do_print = false;
 
 public:

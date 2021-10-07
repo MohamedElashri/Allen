@@ -57,39 +57,6 @@
 #include "CPUID.h"
 #include <tuple>
 
-// TODO: Remove this
-std::vector<ConfiguredAlgorithm> get_configured_algorithms()
-{
-  return {
-    {"host_init_event_list::host_init_event_list_t", "initialize_event_lists"},
-    {"host_data_provider::host_data_provider_t", "host_scifi_banks"}};
-}
-
-std::vector<ConfiguredArgument> get_configured_arguments()
-{
-  return {
-    {"host", "initialize_event_lists__host_event_list_output_t"},
-    {"device", "initialize_event_lists__dev_event_list_output_t"},
-    {"host", "host_scifi_banks__host_raw_banks_t"},
-    {"host", "host_scifi_banks__host_raw_offsets_t"},
-    {"host", "host_scifi_banks__host_raw_bank_version_t"}};
-}
-
-std::vector<ConfiguredAlgorithmArguments> get_configured_sequence_arguments()
-{
-  return {
-    {{"initialize_event_lists__host_event_list_output_t", "initialize_event_lists__dev_event_list_output_t"}, {}},
-    {{"host_scifi_banks__host_raw_banks_t",
-      "host_scifi_banks__host_raw_offsets_t",
-      "host_scifi_banks__host_raw_bank_version_t"},
-     {}}};
-}
-
-ArgumentDependencies get_argument_dependencies()
-{
-  return {{"host_scifi_banks__host_raw_banks_t", {"initialize_event_lists__host_event_list_output_t"}}};
-}
-
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
   using namespace zmq;
@@ -507,19 +474,11 @@ int allen(
     Allen::print_device_memory_consumption();
   }
 
-  // TODO: Read runtime configuration from JSON
-  // Use ConfigurationReader
-  ConfiguredSequence runtime_configuration {
-    get_configured_algorithms(),
-    get_configured_arguments(),
-    get_configured_sequence_arguments(),
-    get_argument_dependencies()};
-
   // Create all the streams
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
     auto& sequence = streams.emplace_back(new Stream {
-      runtime_configuration,
+      configuration_reader->configured_sequence(),
       print_memory_usage,
       reserve_mb,
       reserve_host_mb,
