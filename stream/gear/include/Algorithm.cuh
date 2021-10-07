@@ -124,9 +124,6 @@ namespace Allen {
     std::function<void(std::any&)> init = nullptr;
     std::function<void(std::any&, const std::map<std::string, std::string>&)> set_properties = nullptr;
     std::function<std::map<std::string, std::string>(const std::any&)> get_properties = nullptr;
-
-    TypeErasedAlgorithm() = default;
-    TypeErasedAlgorithm(const TypeErasedAlgorithm&) = default;
   };
 
   // Tool to instantiate algorithms
@@ -156,6 +153,12 @@ namespace Allen {
 
     template<typename T>
     using Property = Allen::Property<T>;
+
+    Algorithm() = default;
+    Algorithm(const Algorithm&) = default;
+    Algorithm& operator=(const Algorithm&) = delete;
+    Algorithm(Algorithm&&) = delete;
+    Algorithm& operator=(Algorithm&&) = delete;
 
     void set_properties(const std::map<std::string, std::string>& algo_config) override
     {
