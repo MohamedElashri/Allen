@@ -15,25 +15,18 @@
 #include "Timer.h"
 #include "Tools.h"
 #include "Constants.cuh"
-#include "VeloEventModel.cuh"
-#include "UTDefinitions.cuh"
 #include "RuntimeOptions.h"
-#include "EstimateInputSize.cuh"
-#include "HostBuffers.cuh"
-#include "HostBuffersManager.cuh"
-#include "SchedulerMachinery.cuh"
-#include "Scheduler.cuh"
 #include "CheckerInvoker.h"
-#include "IStream.h"
+#include "Configuration.cuh"
 
-#include "ConfiguredSequence.h"
+struct HostBuffers;
+struct HostBuffersManager;
+class Scheduler;
 
-class Timer;
-
-struct Stream : virtual public Allen::IStream {
+struct Stream {
 private:
   // Dynamic scheduler
-  Scheduler scheduler {get_configured_algorithms(), get_configured_arguments(), get_configured_sequence_arguments()};
+  Scheduler* scheduler;
 
   // Context
   Allen::Context m_context {};
@@ -53,6 +46,7 @@ private:
 
 public:
   Stream(
+    const ConfiguredSequence& configuration,
     const bool param_print_memory_usage,
     const size_t param_reserve_mb,
     const size_t reserve_host_mb,
@@ -60,27 +54,11 @@ public:
     const Constants& param_constants,
     HostBuffersManager* buffers_manager);
 
-  Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options) override;
+  Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
-  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config) override
-  {
-    scheduler.configure_algorithms(config);
-  }
+  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config);
 
-  void print_configured_sequence() override;
+  void print_configured_sequence();
 
-  std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration() const override
-  {
-    return scheduler.get_algorithm_configuration();
-  }
+  std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration() const;
 };
-
-extern "C" bool contains_validator_algorithm();
-
-extern "C" Allen::IStream* create_stream(
-  const bool param_print_memory_usage,
-  const size_t param_reserve_mb,
-  const size_t reserve_host_mb,
-  const unsigned required_memory_alignment,
-  const Constants& constants,
-  HostBuffersManager* buffers_manager);

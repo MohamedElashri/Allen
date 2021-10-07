@@ -50,13 +50,37 @@
 #include "MonitorManager.h"
 #include "FileWriter.h"
 #include "ZMQOutputSender.h"
-#include "IStream.h"
-#include "StreamLoader.h"
+#include "Stream.h"
 #include "AllenThreads.h"
 #include "Allen.h"
 #include "RegisterConsumers.h"
 #include "CPUID.h"
 #include <tuple>
+
+// TODO: Remove this
+std::vector<ConfiguredAlgorithm> get_configured_algorithms() {
+  return {
+    {"host_init_event_list::host_init_event_list_t", "initialize_event_lists"},
+    {"host_data_provider::host_data_provider_t", "host_scifi_banks"}
+  };
+}
+
+std::vector<ConfiguredArgument> get_configured_arguments() {
+  return {
+    {"host", "initialize_event_lists__host_event_list_output_t"},
+    {"device", "initialize_event_lists__dev_event_list_output_t"},
+    {"host", "host_scifi_banks__host_raw_banks_t"},
+    {"host", "host_scifi_banks__host_raw_offsets_t"},
+    {"host", "host_scifi_banks__host_raw_bank_version_t"}
+  };
+}
+
+std::vector<ConfiguredAlgorithmArguments> get_configured_sequence_arguments() {
+  return {
+    {{"initialize_event_lists__host_event_list_output_t", "initialize_event_lists__dev_event_list_output_t"}, {}, {}},
+    {{"host_scifi_banks__host_raw_banks_t", "host_scifi_banks__host_raw_offsets_t", "host_scifi_banks__host_raw_bank_version_t"}, {}, {}}
+  };
+}
 
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
@@ -98,6 +122,10 @@ int allen(
   bool non_stop = false;
   bool write_config = false;
   // do_check will be true when a MC validator algorithm was configured
+  
+  // TODO: Implement this
+  bool do_check = false;
+
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
   // MPI options
@@ -434,14 +462,6 @@ int allen(
     }
   }
 
-  // Load stream factory
-  auto [stream_factory, do_check] = Allen::load_stream(sequence);
-  if (!stream_factory) {
-    error_cout << "Failed to load sequence " << sequence << "\n";
-    exit(1);
-  }
-  std::vector<std::unique_ptr<Allen::IStream>> streams;
-
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
     std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, do_check, error_line);
@@ -474,30 +494,39 @@ int allen(
     Allen::print_device_memory_consumption();
   }
 
+  // TODO: Read runtime configuration from JSON
+  // Use ConfigurationReader
+  ConfiguredSequence runtime_configuration {get_configured_algorithms(), get_configured_arguments(), get_configured_sequence_arguments()};
+
   // Create all the streams
+  std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
-    auto& sequence = streams.emplace_back((*stream_factory)(
-      print_memory_usage, reserve_mb, reserve_host_mb, device_memory_alignment, constants, buffers_manager.get()));
+    auto& sequence = streams.emplace_back(new Stream{
+      runtime_configuration, print_memory_usage, reserve_mb, reserve_host_mb, device_memory_alignment, constants, buffers_manager.get()
+    });
     sequence->configure_algorithms(configuration);
   }
 
   // Print configured sequence
   streams.front()->print_configured_sequence();
 
-  auto algo_config = streams.front()->get_algorithm_configuration();
-  if (print_config) {
-    info_cout << "Algorithm configuration\n";
-    for (auto kv : algo_config) {
-      for (auto kv2 : kv.second) {
-        info_cout << " " << kv.first << ":" << kv2.first << " = " << kv2.second << "\n";
+  // TODO: Test this
+  if (print_config || write_config) {
+    auto algo_config = streams.front()->get_algorithm_configuration();
+    if (print_config) {
+      info_cout << "Algorithm configuration\n";
+      for (auto kv : algo_config) {
+        for (auto kv2 : kv.second) {
+          info_cout << " " << kv.first << ":" << kv2.first << " = " << kv2.second << "\n";
+        }
       }
     }
-  }
-  if (write_config) {
-    info_cout << "Write full configuration\n";
-    ConfigurationReader saveToJson(algo_config);
-    saveToJson.save("config.json");
-    return 0;
+    if (write_config) {
+      info_cout << "Write full configuration\n";
+      ConfigurationReader saveToJson(algo_config);
+      saveToJson.save("config.json");
+      return 0;
+    }
   }
 
   auto checker_invoker = std::make_unique<CheckerInvoker>();

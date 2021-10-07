@@ -77,9 +77,55 @@ if (NOT GaudiProject_FOUND)
   add_compile_definitions(ODIN_WITHOUT_GAUDI)
 endif()
 
-allen_add_host_library(StreamUtils STATIC
-  sequence/src/Constants.cpp
-  sequence/src/HostBuffers.cpp
-  sequence/src/HostBuffersManager.cpp)
+file(GLOB stream_src "sequence/src/*cpp")
 
-add_subdirectory(sequence ${CMAKE_BINARY_DIR}/sequences)
+allen_add_host_library(Stream STATIC ${stream_src})
+
+include(GenerateConfiguration)
+
+# TODO: In the future a single wrapper script can take care of
+# generating the sequence on the fly (using eg. the parsed agorithms pickle)
+foreach(sequence ${BUILD_SEQUENCES})
+  generate_sequence(${sequence})
+endforeach()
+
+target_include_directories(Stream PRIVATE "${PROJECT_BINARY_DIR}/code_generation/sequences/include")
+target_link_libraries(Stream PRIVATE
+  Associate
+  Velo
+  AllenPatPV
+  PV_beamline
+  HostClustering
+  HostPrefixSum
+  UT
+  Kalman
+  VertexFitter
+  Selections
+  SciFi
+  HostGEC
+  Calo
+  Muon
+  Utils
+  Examples
+  HostDataProvider
+  HostInitEventList
+  Backend
+  Validators
+  AllenCommon)
+
+# FIXME: this hack will not be needed once all upstream projects are migrated to new cmake configuration
+if (TARGET Gaudi::GaudiKernel)
+  target_link_libraries(Stream PRIVATE Gaudi::GaudiKernel)
+endif()
+if (TARGET LHCb::DAQEventLib)
+  target_link_libraries(Stream PRIVATE LHCb::DAQEventLib)
+endif()
+
+if (ROOT_FOUND)
+  target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(Stream SYSTEM BEFORE PRIVATE
+    ${ROOT_INCLUDE_DIRS}
+  )
+endif()
+
+add_dependencies(Stream algorithm_db)

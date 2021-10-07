@@ -689,7 +689,7 @@ file(GLOB common_sources "main/src/*.cpp")
 set(allen_lib_sources)
 
 #Remove main.cpp from common_sources
-foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend StreamLoader RegisterConsumers)
+foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend RegisterConsumers Stream)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -748,7 +748,7 @@ if (TARGET_DEVICE STREQUAL "CUDA")
 endif()
 
 target_link_libraries(AllenLib PUBLIC
-  StreamUtils
+  Stream
   AllenCommon
   TrackChecking
   PVChecking

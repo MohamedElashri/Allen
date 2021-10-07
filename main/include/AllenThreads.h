@@ -13,9 +13,7 @@ struct HostBuffersManager;
 struct MonitorManager;
 struct IInputProvider;
 struct ROOTService;
-namespace Allen {
-  struct IStream;
-}
+struct Stream;
 
 std::string connection(const size_t id, std::string suffix = "");
 
@@ -31,7 +29,7 @@ void run_stream(
   size_t const thread_id,
   size_t const stream_id,
   int device_id,
-  Allen::IStream* stream,
+  Stream* stream,
   std::shared_ptr<IInputProvider> input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,

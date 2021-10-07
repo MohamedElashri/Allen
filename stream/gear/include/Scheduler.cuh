@@ -6,10 +6,10 @@
 #include "MemoryManager.cuh"
 #include "ArgumentManager.cuh"
 #include "Configuration.cuh"
-#include "ConfiguredSequence.h"
 #include "Logger.h"
 #include <utility>
 #include <type_traits>
+#include <AlgorithmDB.h>
 
 // use constexpr flag to enable/disable contracts
 #ifdef ENABLE_CONTRACTS
@@ -41,13 +41,13 @@ class Scheduler {
   bool do_print = false;
 
 public:
-  Scheduler(std::vector<ConfiguredAlgorithm> configured_algorithms,
-    std::vector<ConfiguredArgument> configured_arguments,
-    std::vector<ConfiguredAlgorithmArguments> sequence_arguments) :
-    m_configured_algorithms(configured_algorithms),
-    m_configured_arguments(configured_arguments),
-    m_sequence_arguments(sequence_arguments)
+  Scheduler(const ConfiguredSequence& configuration,
+    const bool param_do_print,
+    const size_t device_requested_mb,
+    const size_t host_requested_mb,
+    const unsigned required_memory_alignment)
   {
+    auto& [configured_algorithms, configured_arguments, sequence_arguments] = configuration;
     assert(configured_algorithms.size() == sequence_arguments.size());
 
     // Generate type erased sequence
@@ -70,7 +70,14 @@ public:
     assert(configured_algorithms.size() == m_sequence_argument_ref_managers.size());
     assert(configured_algorithms.size() == m_in_dependencies.size());
     assert(configured_algorithms.size() == m_out_dependencies.size());
+
+    do_print = param_do_print;
+
+    // Reserve memory in managers
+    host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
+    device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
   }
+  
   Scheduler(const Scheduler&) = delete;
   Scheduler& operator=(const Scheduler&) = delete;
   Scheduler(Scheduler&&) = delete;
@@ -115,19 +122,6 @@ public:
     }
 
     return {store_ref, input_aggregates};
-  }
-
-  void initialize(
-    const bool param_do_print,
-    const size_t device_requested_mb,
-    const size_t host_requested_mb,
-    const unsigned required_memory_alignment)
-  {
-    do_print = param_do_print;
-
-    // Reserve memory in managers
-    host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
-    device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
   }
 
   /**

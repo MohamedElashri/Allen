@@ -8,6 +8,7 @@
 set(CODE_GENERATION_DIR ${CMAKE_BINARY_DIR}/code_generation)
 set(PROJECT_SEQUENCE_DIR ${CODE_GENERATION_DIR}/sequences)
 set(SEQUENCE_DEFINITION_DIR ${PROJECT_SEQUENCE_DIR}/AllenConf)
+set(ALLEN_ALGORITHMDB_DIR ${PROJECT_SEQUENCE_DIR}/include)
 set(ALLEN_CORE_DIR ${PROJECT_SEQUENCE_DIR}/AllenCore)
 set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
@@ -19,6 +20,7 @@ include_guard(GLOBAL)
 file(MAKE_DIRECTORY ${CODE_GENERATION_DIR})
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
+file(MAKE_DIRECTORY ${ALLEN_ALGORITHMDB_DIR})
 
 # We need a Python 3 interpreter
 find_package(Python3 REQUIRED)
@@ -83,6 +85,17 @@ add_custom_command(
 
 add_custom_target(copy_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
+# Generate Allen AlgorithmDB
+add_custom_command(
+  OUTPUT "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h"
+  COMMENT "Generate AlgorithmDB"
+  COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate db --filename "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
+  WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
+  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+
+add_custom_target(algorithm_db DEPENDS "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h")
+
+
 if(NOT STANDALONE)
   # We need to get the list of algorithms at configuration time in order to
   # know the list of files that will be required of this build
@@ -118,24 +131,19 @@ else()
 endif()
 
 function(generate_sequence sequence)
-  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence}/include)
-  file(MAKE_DIRECTORY ${sequence_dir})
-
   if(NOT STANDALONE)
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
       COMMAND
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" "${CMAKE_SOURCE_DIR}/scripts/run_with_pythonpath.sh" "${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
-        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core
       WORKING_DIRECTORY ${sequence_dir})
   else()
     add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json" "${sequence_dir}/ConfiguredSequence.h"
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
       COMMAND
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
-        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.h" "${sequence_dir}/ConfiguredSequence.h" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core checkout_gaudi_dirs
       WORKING_DIRECTORY ${sequence_dir})

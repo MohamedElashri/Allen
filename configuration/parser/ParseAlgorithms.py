@@ -606,6 +606,25 @@ class AlgorithmCategory(Enum):\n\
         with open(output_filename, "w") as f:
             f.write(s)
 
+    @staticmethod
+    def write_algorithms_db(algorithms, filename):
+        code = "\n".join(("#pragma once", "", "#include <Configuration.cuh>", "\n"))
+        for alg in algorithms:
+            code += f"namespace {alg.namespace} {{ struct {alg.name}; }}\n"
+        code += "\nAllen::TypeErasedAlgorithm instantiate_allen_algorithm(const ConfiguredAlgorithm& alg) {\n"
+        for i, alg in enumerate(algorithms):
+            if i == 0:
+                code += f"  if (alg.id == \"{alg.namespace}::{alg.name}\") {{\n"
+            else:
+                code += f"  }} else if (alg.id == \"{alg.namespace}::{alg.name}\") {{\n"
+            code += f"    return Allen::instantiate_algorithm<{alg.namespace}::{alg.name}>(alg.name);\n"
+        code += "\n".join(("  } else {",
+            "    throw AlgorithmNotExportedException{alg.id};",
+            "  }",
+            "}"))
+        with open(filename, "w") as f:
+            f.write(code)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -642,7 +661,7 @@ if __name__ == '__main__':
         nargs="?",
         type=str,
         default="views",
-        choices=["parsed_algorithms", "views", "wrapperlist", "wrappers"],
+        choices=["parsed_algorithms", "views", "wrapperlist", "wrappers", "db"],
         help=
         "action that will be performed")
 
@@ -676,3 +695,6 @@ if __name__ == '__main__':
             # Write Gaudi wrappers on top of all algorithms
             AllenCore.write_gaudi_algorithms(parsed_algorithms,
                                              args.algorithm_wrappers_folder)
+        elif args.generate == "db":
+            # Generate Allen algorithms DB
+            AllenCore.write_algorithms_db(parsed_algorithms, args.filename)
