@@ -57,7 +57,7 @@ namespace {
           std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::store_ref_t> ==                      \
           vector_store_ref.size());                                                                                  \
         auto store_ref = create_store_ref(                                                                           \
-          vector_store,                                                                                              \
+          vector_store_ref,                                                                                          \
           std::make_index_sequence<                                                                                  \
             std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::store_ref_t>> {});                 \
         auto input_agg_store =                                                                                       \

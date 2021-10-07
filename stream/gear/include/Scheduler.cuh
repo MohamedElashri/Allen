@@ -5,6 +5,8 @@
 
 #include "MemoryManager.cuh"
 #include "ArgumentManager.cuh"
+#include "Configuration.cuh"
+#include "ConfiguredSequence.h"
 #include "Logger.h"
 #include <utility>
 #include <type_traits>
@@ -25,7 +27,7 @@ using device_memory_manager_t = MemoryManager<memory_manager_details::Device, me
 #endif
 
 class Scheduler {
-  std::vector<TypeErasedAlgorithm> m_sequence;
+  std::vector<Allen::TypeErasedAlgorithm> m_sequence;
   UnorderedStore m_store;
   std::vector<std::any> m_sequence_argument_ref_managers;
   std::vector<Dependencies> m_in_dependencies;
@@ -39,14 +41,13 @@ class Scheduler {
   bool do_print = false;
 
 public:
-  constexpr Scheduler(std::vector<ConfiguredAlgorithm> configured_algorithms,
+  Scheduler(std::vector<ConfiguredAlgorithm> configured_algorithms,
     std::vector<ConfiguredArgument> configured_arguments,
     std::vector<ConfiguredAlgorithmArguments> sequence_arguments) :
     m_configured_algorithms(configured_algorithms),
     m_configured_arguments(configured_arguments),
     m_sequence_arguments(sequence_arguments)
   {
-    assert(configured_algorithms.size() == configured_arguments.size());
     assert(configured_algorithms.size() == sequence_arguments.size());
 
     // Generate type erased sequence
@@ -56,7 +57,7 @@ public:
     initialize_argument_manager(configured_arguments);
 
     // Calculate in and out dependencies of defined sequence
-    [m_in_dependencies, m_out_dependencies] = calculate_dependencies(sequence_arguments);
+    std::tie(m_in_dependencies, m_out_dependencies) = calculate_dependencies(sequence_arguments);
 
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
@@ -105,9 +106,9 @@ public:
       store_ref.push_back(m_store.at(argument));
     }
 
-    for (const auto& input_aggregate : configured_alg_arguments.input_aggregates) {
+    for (const auto& conf_input_aggregate : configured_alg_arguments.input_aggregates) {
       std::vector<std::reference_wrapper<ArgumentData>> input_aggregate;
-      for (const auto& argument : input_aggregate) {
+      for (const auto& argument : conf_input_aggregate) {
         input_aggregate.push_back(m_store.at(argument));
       }
       input_aggregates.emplace_back(input_aggregate);
@@ -202,7 +203,7 @@ private:
     algorithm.init(algorithm.instance);
   }
 
-  static void get_configuration(const Allen::TypeErasedAlgorithm& algorithm, std::map<std::string, std::map<std::string, std::string>>&)
+  static void get_configuration(const Allen::TypeErasedAlgorithm&, std::map<std::string, std::map<std::string, std::string>>&)
   {
     // TODO: get_properties is currently segfaulting
     // config.emplace(algorithm.name(algorithm.instance), algorithm.get_properties(algorithm.instance));
@@ -235,7 +236,7 @@ private:
     MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, argument_manager, store, in_dependencies);
+    MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);
 
     // Print memory manager state
     if (do_print) {
@@ -252,7 +253,6 @@ private:
     host_memory_manager_t& host_memory_manager,
     device_memory_manager_t& device_memory_manager,
     UnorderedStore& store,
-    ArgumentManager<ConfiguredArguments>& argument_manager,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

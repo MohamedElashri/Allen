@@ -52,18 +52,14 @@ class UnorderedStore {
   std::unordered_map<std::string, ArgumentData> m_store;
 
 public:
-  ArgumentData& at(std::string&& k)
+  ArgumentData& at(const std::string& k)
   {
-    auto i = m_store.at(std::forward<std::string>(k));
-    if (i == m_store.end()) {
-      throw std::runtime_error("store entry not found");
-    }
-    return i->second;
+    return m_store.at(k);
   }
 
-  void emplace(std::string&& k, ArgumentData&& t)
+  void emplace(const std::string& k, ArgumentData&& t)
   {
-    const auto& [ret, ok] = m_store.try_emplace(std::forward<std::string>(k), std::forward<ArgumentData>(t));
+    const auto& [ret, ok] = m_store.try_emplace(k, std::forward<ArgumentData>(t));
     if (!ok) {
       throw std::runtime_error("store emplace failed, entry already exists");
     }

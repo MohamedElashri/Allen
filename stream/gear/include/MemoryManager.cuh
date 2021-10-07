@@ -7,17 +7,17 @@
 #include <algorithm>
 #include "Common.h"
 #include "Logger.h"
-#include "ArgumentManager.cuh"
+#include "Configuration.cuh"
 
 namespace memory_manager_details {
   // Distinguish between Host and Device memory managers
   struct Host {
-    constexpr auto scope = "host";
+    constexpr static auto scope = "host";
     static void free(void* ptr) { Allen::free_host(ptr); }
     static void malloc(void** ptr, size_t s) { Allen::malloc_host(ptr, s); }
   };
   struct Device {
-    constexpr auto scope = "device";
+    constexpr static auto scope = "device";
     static void free(void* ptr) { Allen::free(ptr); }
     static void malloc(void** ptr, size_t s) { Allen::malloc(ptr, s); }
   };
@@ -304,7 +304,7 @@ public:
 
     Target::free(argument.pointer());
 
-    m_total_memory_required -= it->second.size * sizeof(typename Argument::type);
+    m_total_memory_required -= it->second.size;
 
     m_memory_segments.erase(tag);
   }
@@ -338,6 +338,7 @@ public:
 };
 
 struct MemoryManagerHelper {
+  template<typename HostMemoryManager, typename DeviceMemoryManager>
   static void reserve(
     HostMemoryManager& host_memory_manager,
     DeviceMemoryManager& device_memory_manager,
@@ -346,9 +347,9 @@ struct MemoryManagerHelper {
   {
     for (const auto& arg_name : in_dependencies.arguments) {
       auto& arg = store.at(arg_name);
-      if (arg.scope == host_memory_manager.scope) {
+      if (arg.scope() == host_memory_manager.scope) {
         host_memory_manager.reserve(arg);
-      } else if (arg.scope == device_memory_manager.scope) {
+      } else if (arg.scope() == device_memory_manager.scope) {
         device_memory_manager.reserve(arg);
       } else {
         throw std::runtime_error("argument scope not recognized");
@@ -356,6 +357,7 @@ struct MemoryManagerHelper {
     }
   }
 
+  template<typename HostMemoryManager, typename DeviceMemoryManager>
   static void free(
     HostMemoryManager& host_memory_manager,
     DeviceMemoryManager& device_memory_manager,
@@ -364,9 +366,9 @@ struct MemoryManagerHelper {
   {
     for (const auto& arg_name : out_dependencies.arguments) {
       auto& arg = store.at(arg_name);
-      if (arg.scope == host_memory_manager.scope) {
+      if (arg.scope() == host_memory_manager.scope) {
         host_memory_manager.free(arg);
-      } else if (arg.scope == device_memory_manager.scope) {
+      } else if (arg.scope() == device_memory_manager.scope) {
         device_memory_manager.free(arg);
       } else {
         throw std::runtime_error("argument scope not recognized");

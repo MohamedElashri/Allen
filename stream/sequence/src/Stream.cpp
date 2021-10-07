@@ -29,9 +29,6 @@ Stream::Stream(
 
   // Prepare scheduler
   scheduler.initialize(do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment);
-
-  // Populate names of parameters in the sequence
-  populate_sequence_argument_names(scheduler.argument_manager);
 }
 
 Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_options)
