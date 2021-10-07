@@ -16,6 +16,15 @@ def clean_prefix(s):
     return cleaned_s
 
 
+def parameter_scope(s):
+    if s.startswith("host_"):
+        return "host"
+    elif s.startswith("dev_"):
+        return "device"
+    else:
+        raise "Parameter scope (host/device) cannot be guessed from parameter name"
+
+
 def generate_sequence(algorithms, sequence_filename, prefix_includes):
     """Generates a valid Allen sequence file."""
 
@@ -174,13 +183,83 @@ def generate_json_configuration(algorithms, filename):
             sequence_json[algorithm.name] = {}
             for k, v in algorithm.properties.items():
                 sequence_json[algorithm.name][str(k)] = str(v)
-    # Add configured lines
-    configured_lines = []
+    
+    # Generate list of configured algorithms
+    configured_algorithms = [[f"{algorithm.type.namespace()}::{algorithm.typename}", algorithm.name] for algorithm in algorithms]
+
+    # All output arguments
+    configured_arguments = []
     for algorithm in algorithms:
-        if algorithm.type.category(
-        ) == AlgorithmCategory.SelectionAlgorithm:
-            configured_lines.append(algorithm.name)
-    sequence_json["configured_lines"] = configured_lines
+        configured_arguments += [[parameter_scope(a[0]), clean_prefix(a[1].location)] for a in list(algorithm.outputs.items())]
+
+    configured_sequence_arguments = []
+    for algorithm in algorithms:
+        arguments = []
+        input_aggregates = []
+
+        gaudi_data_handles = [p for p in algorithm.type.getDefaultProperties(
+        ).items() if isinstance(p[1], GaudiDataHandle)]
+        for (
+                parameter_name,
+                parameter,
+        ) in gaudi_data_handles:
+            # Deal with input aggregates separately
+            if parameter_name in algorithm.inputs and type(
+                    algorithm.inputs[parameter_name]) == list:
+                input_aggregate = []
+                for single_param_i, single_parameter in enumerate(algorithm.inputs[
+                        parameter_name]):
+                    parameter_full_name = clean_prefix(
+                        single_parameter.location)
+                    input_aggregate.append(f"{parameter_full_name}")
+                input_aggregates.append(input_aggregate)
+            else:
+                # It can be either an input or an output
+                if parameter_name in algorithm.inputs:
+                    parameter_location = algorithm.inputs[
+                        parameter_name].location
+                elif parameter_name in algorithm.outputs:
+                    parameter_location = algorithm.outputs[
+                        parameter_name].location
+                else:
+                    raise "Parameter should either be an input or an output"
+                parameter_full_name = clean_prefix(
+                    parameter_location)
+                arguments.append(f"{parameter_full_name}")
+
+        configured_sequence_arguments.append([arguments, input_aggregates])
+
+    argument_dependencies = {}
+
+    # "sequence": {
+    #   "configured_algorithms": [
+    #     ["host_init_event_list::host_init_event_list_t", "initialize_event_lists"],
+    #     ["host_data_provider::host_data_provider_t", "host_scifi_banks"],
+    #   ],
+    #   "configured_arguments": [
+    #     ["host", "initialize_event_lists__host_event_list_output_t"],
+    #     ["device", "initialize_event_lists__dev_event_list_output_t"],
+    #     ["host", "host_scifi_banks__host_raw_banks_t"],
+    #     ["host", "host_scifi_banks__host_raw_offsets_t"],
+    #     ["host", "host_scifi_banks__host_raw_bank_version_t"]
+    #   ],
+    #   "configured_sequence_arguments": [
+    #     [["initialize_event_lists__host_event_list_output_t", "initialize_event_lists__dev_event_list_output_t"], []],
+    #     [["host_scifi_banks__host_raw_banks_t",
+    #     "host_scifi_banks__host_raw_offsets_t",
+    #     "host_scifi_banks__host_raw_bank_version_t"], []]
+    #   ],
+    #   "argument_dependencies": {
+    #     "host_scifi_banks__host_raw_banks_t": ["initialize_event_lists__host_event_list_output_t"]
+    #   }
+    # }
+
+    sequence_json["sequence"] = {
+        "configured_algorithms": configured_algorithms,
+        "configured_arguments": configured_arguments,
+        "configured_sequence_arguments": configured_sequence_arguments,
+        "argument_dependencies": argument_dependencies
+    }
     with open(filename, 'w') as outfile:
         dump(sequence_json, outfile)
 
@@ -204,10 +283,10 @@ def generate_allen_sequence(
     """
     print("Generating sequence files...")
 
-    generate_sequence(algorithms, sequence_filename, prefix_includes)
+    # generate_sequence(algorithms, sequence_filename, prefix_includes)
 
     generate_json_configuration(algorithms, json_configuration_filename)
 
     print(
-        f"Generated sequence files {sequence_filename} and {json_configuration_filename}"
+        f"Generated runtime sequence file {json_configuration_filename}"
     )

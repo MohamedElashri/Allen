@@ -30,8 +30,8 @@ class Scheduler {
   std::vector<Allen::TypeErasedAlgorithm> m_sequence;
   UnorderedStore m_store;
   std::vector<std::any> m_sequence_argument_ref_managers;
-  std::vector<Dependencies> m_in_dependencies;
-  std::vector<Dependencies> m_out_dependencies;
+  std::vector<LifetimeDependencies> m_in_dependencies;
+  std::vector<LifetimeDependencies> m_out_dependencies;
   host_memory_manager_t host_memory_manager {"Host memory manager"};
   device_memory_manager_t device_memory_manager {"Device memory manager"};
 
@@ -47,17 +47,17 @@ public:
     const size_t host_requested_mb,
     const unsigned required_memory_alignment)
   {
-    auto& [configured_algorithms, configured_arguments, sequence_arguments] = configuration;
+    auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
     assert(configured_algorithms.size() == sequence_arguments.size());
 
     // Generate type erased sequence
     instantiate_sequence(configured_algorithms);
 
     // Create and populate store
-    initialize_argument_manager(configured_arguments);
+    initialize_store(configured_arguments);
 
     // Calculate in and out dependencies of defined sequence
-    std::tie(m_in_dependencies, m_out_dependencies) = calculate_dependencies(sequence_arguments);
+    std::tie(m_in_dependencies, m_out_dependencies) = calculate_lifetime_dependencies(sequence_arguments, arg_deps);
 
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
@@ -95,7 +95,7 @@ public:
   /**
    * @brief Initializes the store with the configured arguments
    */
-  void initialize_argument_manager(const std::vector<ConfiguredArgument>& configured_arguments) {
+  void initialize_store(const std::vector<ConfiguredArgument>& configured_arguments) {
     for (const auto& arg : configured_arguments) {
       m_store.emplace(arg.name, create_allen_argument(arg));
     }
@@ -205,8 +205,8 @@ private:
 
   static void setup(
     Allen::TypeErasedAlgorithm& algorithm,
-    const Dependencies& in_dependencies,
-    const Dependencies& out_dependencies,
+    const LifetimeDependencies& in_dependencies,
+    const LifetimeDependencies& out_dependencies,
     host_memory_manager_t& host_memory_manager,
     device_memory_manager_t& device_memory_manager,
     UnorderedStore& store,
@@ -242,8 +242,8 @@ private:
   static void run(
     Allen::TypeErasedAlgorithm& algorithm,
     std::any& argument_ref_manager,
-    const Dependencies& in_dependencies,
-    const Dependencies& out_dependencies,
+    const LifetimeDependencies& in_dependencies,
+    const LifetimeDependencies& out_dependencies,
     host_memory_manager_t& host_memory_manager,
     device_memory_manager_t& device_memory_manager,
     UnorderedStore& store,

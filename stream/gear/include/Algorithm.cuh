@@ -53,9 +53,11 @@ namespace {
       [](                                                                                                            \
         std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,                                          \
         std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {                           \
-        assert(                                                                                                      \
-          std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::store_ref_t> ==                      \
-          vector_store_ref.size());                                                                                  \
+        if (                                                                                                         \
+          std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::store_ref_t> !=                      \
+          vector_store_ref.size()) {                                                                                 \
+          throw std::runtime_error("unexpected number of arguments");                                                \
+        }                                                                                                            \
         auto store_ref = create_store_ref(                                                                           \
           vector_store_ref,                                                                                          \
           std::make_index_sequence<                                                                                  \

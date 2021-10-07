@@ -343,7 +343,7 @@ struct MemoryManagerHelper {
     HostMemoryManager& host_memory_manager,
     DeviceMemoryManager& device_memory_manager,
     UnorderedStore& store,
-    const Dependencies& in_dependencies)
+    const LifetimeDependencies& in_dependencies)
   {
     for (const auto& arg_name : in_dependencies.arguments) {
       auto& arg = store.at(arg_name);
@@ -362,7 +362,7 @@ struct MemoryManagerHelper {
     HostMemoryManager& host_memory_manager,
     DeviceMemoryManager& device_memory_manager,
     UnorderedStore& store,
-    const Dependencies& out_dependencies)
+    const LifetimeDependencies& out_dependencies)
   {
     for (const auto& arg_name : out_dependencies.arguments) {
       auto& arg = store.at(arg_name);
