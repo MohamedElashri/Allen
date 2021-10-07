@@ -44,12 +44,9 @@ namespace {
   template<>                                                                                                         \
   Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(ALGORITHM*, const std::string& name)                  \
   {                                                                                                                  \
-    auto alg = ALGORITHM {};                                                                                         \
-    alg.set_name(name);                                                                                              \
-                                                                                                                     \
     return TypeErasedAlgorithm {                                                                                     \
-      alg,                                                                                                           \
-      [](const std::any& instance) { return std::any_cast<ALGORITHM>(instance).name(); },                            \
+      ALGORITHM {},                                                                                                  \
+      [name](const std::any&) { return name; },                                                                      \
       [](                                                                                                            \
         std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,                                          \
         std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {                           \
@@ -155,7 +152,7 @@ namespace Allen {
     using Property = Allen::Property<T>;
 
     Algorithm() = default;
-    Algorithm(const Algorithm&) = default;
+    Algorithm(const Algorithm&) { throw std::runtime_error("copying algorithm"); }
     Algorithm& operator=(const Algorithm&) = delete;
     Algorithm(Algorithm&&) = delete;
     Algorithm& operator=(Algorithm&&) = delete;

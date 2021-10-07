@@ -46,6 +46,9 @@ public:
     auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
     assert(configured_algorithms.size() == sequence_arguments.size());
 
+    // Reserve the size of the sequence to avoid calls to the copy constructor when emplacing to this vector
+    m_sequence.reserve(configured_algorithms.size());
+
     // Generate type erased sequence
     instantiate_sequence(configured_algorithms);
 
