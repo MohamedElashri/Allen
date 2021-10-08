@@ -152,16 +152,11 @@ public:
 
   void print_sequence() const
   {
-    // info_cout << "\nSequence:\n";
-    // std::for_each(vtbls.begin(), vtbls.end(), [](auto& vtbl) {
-    //   auto t = vtbl.type();
-    //   auto n = t.find("::");
-    //   if (n != std::string::npos) {
-    //     t = t.substr(n + 2);
-    //   }
-    //   info_cout << t << "/" << vtbl.name(vtbl.algorithm) << "\n";
-    // });
-    // info_cout << "\n";
+    info_cout << "\nSequence:\n";
+    for (const auto& alg : m_sequence) {
+      info_cout << "  " << alg.name() << "\n";
+    }
+    info_cout << "\n";
   }
 
   //  Runs a sequence of algorithms.
@@ -190,16 +185,15 @@ public:
 private:
   static void configure(Allen::TypeErasedAlgorithm& algorithm, const std::map<std::string, std::map<std::string, std::string>>& config)
   {
-    auto c = config.find(algorithm.name(algorithm.instance));
-    if (c != config.end()) algorithm.set_properties(algorithm.instance, c->second);
+    auto c = config.find(algorithm.name());
+    if (c != config.end()) algorithm.set_properties(c->second);
     // * Invoke void initialize() const, iff it exists
-    algorithm.init(algorithm.instance);
+    algorithm.init();
   }
 
-  static void get_configuration(const Allen::TypeErasedAlgorithm&, std::map<std::string, std::map<std::string, std::string>>&)
+  static void get_configuration(const Allen::TypeErasedAlgorithm& algorithm, std::map<std::string, std::map<std::string, std::string>>& config)
   {
-    // TODO: get_properties is currently segfaulting
-    // config.emplace(algorithm.name(algorithm.instance), algorithm.get_properties(algorithm.instance));
+    config.emplace(algorithm.name(), algorithm.get_properties());
   }
 
   static void setup(
@@ -222,7 +216,7 @@ private:
      *        known there are no tags to reserve or free on this step.
      */
     if (do_print) {
-      info_cout << "Sequence step \"" << algorithm.name(algorithm.instance) << "\":\n";
+      info_cout << "Sequence step \"" << algorithm.name() << "\":\n";
     }
 
     // Free all arguments in OutDependencies
@@ -272,7 +266,7 @@ private:
 
     // Sets the arguments sizes
     algorithm.set_arguments_size(
-      algorithm.instance, argument_ref_manager, runtime_options, constants, host_buffers);
+      argument_ref_manager, runtime_options, constants, host_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
     setup(
@@ -287,9 +281,9 @@ private:
 
     try {
       // Invoke the algorithm
-      algorithm.invoke(algorithm.instance, argument_ref_manager, runtime_options, constants, host_buffers, context);
+      algorithm.invoke(argument_ref_manager, runtime_options, constants, host_buffers, context);
     } catch (std::invalid_argument& e) {
-      fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm.name(algorithm.instance).c_str());
+      fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm.name().c_str());
       throw e;
     }
 

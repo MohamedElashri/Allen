@@ -121,11 +121,6 @@ namespace Allen {
   } // namespace device
 } // namespace Allen
 
-/**
- * @brief Macro to avoid warnings on Release builds with variables used by asserts.
- */
-#define _unused(x) ((void) (x))
-
 // Helper structure to deal with constness of T
 template<typename T, typename U>
 struct ForwardType {

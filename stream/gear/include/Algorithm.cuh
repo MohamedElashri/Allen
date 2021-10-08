@@ -44,9 +44,12 @@ namespace {
   template<>                                                                                                         \
   Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(ALGORITHM*, const std::string& name)                  \
   {                                                                                                                  \
+    ALGORITHM* alg = new ALGORITHM {};                                                                               \
+    alg->set_name(name);                                                                                             \
+                                                                                                                     \
     return TypeErasedAlgorithm {                                                                                     \
-      ALGORITHM {},                                                                                                  \
-      [name](const std::any&) { return name; },                                                                      \
+      static_cast<void*>(alg),                                                                                       \
+      [alg]() { return alg->name(); },                                                                               \
       [](                                                                                                            \
         std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,                                          \
         std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {                           \
@@ -67,60 +70,58 @@ namespace {
         auto arg_ref_manager = AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType {store_ref, input_agg_store};      \
         return std::any {arg_ref_manager};                                                                           \
       },                                                                                                             \
-      [](                                                                                                            \
-        const std::any& instance,                                                                                    \
+      [alg](                                                                                                         \
         std::any& arg_ref_manager,                                                                                   \
         const RuntimeOptions& runtime_options,                                                                       \
         const Constants& constants,                                                                                  \
         const HostBuffers& host_buffers) {                                                                           \
-        std::any_cast<const ALGORITHM&>(instance).set_arguments_size(                                                \
+        alg->set_arguments_size(                                                                                     \
           std::any_cast<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType&>(arg_ref_manager),                       \
           runtime_options,                                                                                           \
           constants,                                                                                                 \
           host_buffers);                                                                                             \
       },                                                                                                             \
-      [](                                                                                                            \
-        const std::any& instance,                                                                                    \
+      [alg](                                                                                                         \
         std::any& arg_ref_manager,                                                                                   \
         const RuntimeOptions& runtime_options,                                                                       \
         const Constants& constants,                                                                                  \
         HostBuffers& host_buffers,                                                                                   \
         const Allen::Context& context) {                                                                             \
-        std::any_cast<const ALGORITHM&>(instance)(                                                                   \
+        alg->operator()(                                                                                             \
           std::any_cast<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType&>(arg_ref_manager),                       \
           runtime_options,                                                                                           \
           constants,                                                                                                 \
           host_buffers,                                                                                              \
           context);                                                                                                  \
       },                                                                                                             \
-      [](std::any& instance) {                                                                                       \
+      [alg]() {                                                                                                      \
         if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {                                                 \
-          initialize_algorithm(std::any_cast<ALGORITHM&>(instance));                                                 \
+          initialize_algorithm(*alg);                                                                                \
+        }                                                                                                            \
+        else {                                                                                                       \
+          _unused(alg);                                                                                              \
         }                                                                                                            \
       },                                                                                                             \
-      [](std::any& instance, const std::map<std::string, std::string>& algo_config) {                                \
-        std::any_cast<ALGORITHM&>(instance).set_properties(algo_config);                                             \
-      },                                                                                                             \
-      [](const std::any& instance) { return std::any_cast<const ALGORITHM&>(instance).get_properties(); }};          \
+      [alg](const std::map<std::string, std::string>& algo_config) { alg->set_properties(algo_config); },            \
+      [alg]() { return alg->get_properties(); }};                                                                    \
   }
 
 namespace Allen {
   // Type-erased algorithm
   struct TypeErasedAlgorithm {
-    std::any instance;
-    std::function<std::string(const std::any&)> name = nullptr;
+    void* instance;
+    std::function<std::string()> name = nullptr;
     std::function<std::any(
       std::vector<std::reference_wrapper<ArgumentData>>,
       std::vector<std::vector<std::reference_wrapper<ArgumentData>>>)>
       create_arg_ref_manager = nullptr;
-    std::function<void(const std::any&, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&)>
-      set_arguments_size = nullptr;
-    std::function<
-      void(const std::any&, std::any&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&)>
+    std::function<void(std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&)> set_arguments_size =
+      nullptr;
+    std::function<void(std::any&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&)>
       invoke = nullptr;
-    std::function<void(std::any&)> init = nullptr;
-    std::function<void(std::any&, const std::map<std::string, std::string>&)> set_properties = nullptr;
-    std::function<std::map<std::string, std::string>(const std::any&)> get_properties = nullptr;
+    std::function<void()> init = nullptr;
+    std::function<void(const std::map<std::string, std::string>&)> set_properties = nullptr;
+    std::function<std::map<std::string, std::string>()> get_properties = nullptr;
   };
 
   // Tool to instantiate algorithms
@@ -152,7 +153,7 @@ namespace Allen {
     using Property = Allen::Property<T>;
 
     Algorithm() = default;
-    Algorithm(const Algorithm&) { throw std::runtime_error("copying algorithm"); }
+    Algorithm(const Algorithm&) = delete;
     Algorithm& operator=(const Algorithm&) = delete;
     Algorithm(Algorithm&&) = delete;
     Algorithm& operator=(Algorithm&&) = delete;
