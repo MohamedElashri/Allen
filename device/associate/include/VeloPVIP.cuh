@@ -8,7 +8,7 @@
 #include "PV_Definitions.cuh"
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
 
 namespace velo_pv_ip {

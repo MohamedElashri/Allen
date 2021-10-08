@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "ODINLine.cuh"
 
 namespace beam_crossing_line {

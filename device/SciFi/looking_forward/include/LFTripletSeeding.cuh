@@ -7,7 +7,7 @@
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 

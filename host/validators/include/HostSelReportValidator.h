@@ -11,7 +11,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "ValidationAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace host_sel_report_validator {
   struct Parameters {

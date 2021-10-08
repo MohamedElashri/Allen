@@ -12,7 +12,7 @@
 #include "VeloConsolidated.cuh"
 #include "AssociateConsolidated.cuh"
 #include "States.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace FilterTracks {
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Common.h"
-#include "ValidationAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "InputProvider.h"
 #include "MCEvent.h"
 #include "MCRaw.h"

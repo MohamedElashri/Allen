@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
 
 namespace displaced_di_muon_line {

@@ -6,7 +6,7 @@
 #include "Common.h"
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace host_global_event_cut {
   struct Parameters {

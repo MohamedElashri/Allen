@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "EventLine.cuh"
 
 namespace passthrough_line {

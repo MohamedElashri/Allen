@@ -5,7 +5,7 @@
 
 #include "UTEventModel.cuh"
 #include "UTDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace ut_find_permutation {
   struct Parameters {

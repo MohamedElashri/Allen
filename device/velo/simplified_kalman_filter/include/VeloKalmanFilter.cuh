@@ -7,7 +7,7 @@
 #include "VeloEventModel.cuh"
 #include "States.cuh"
 #include "Common.h"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
 #include "patPV_Definitions.cuh"
 

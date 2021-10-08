@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace event_list_intersection {
   struct Parameters {

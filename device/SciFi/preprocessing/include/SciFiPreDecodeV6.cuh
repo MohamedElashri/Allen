@@ -5,7 +5,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace scifi_pre_decode_v6 {
   struct Parameters {

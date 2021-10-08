@@ -117,7 +117,7 @@ The full file is under `device/example/include/SAXPY_example.cuh`. Let's take a 
 #pragma once
 
 #include "VeloConsolidated.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 ```
 
 The Velo include is only required if Velo objects are used in the algorithm. `DeviceAlgorithm.cuh` defines class `DeviceAlgorithm` and some other handy resources.

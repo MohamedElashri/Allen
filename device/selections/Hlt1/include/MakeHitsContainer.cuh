@@ -14,7 +14,7 @@
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace make_hits_container {
   struct Parameters {

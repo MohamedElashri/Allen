@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "OneTrackLine.cuh"
 
 namespace low_pt_muon_line {

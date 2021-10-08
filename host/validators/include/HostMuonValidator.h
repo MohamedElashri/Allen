@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "ValidationAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "States.cuh"
 
 namespace host_muon_validator {

@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 //#include "ConfiguredInputAggregates.h"
 #include "CandidateTable.cuh"
 

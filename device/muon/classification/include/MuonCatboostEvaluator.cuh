@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "MuonDefinitions.cuh"
 
 namespace muon_catboost_evaluator {

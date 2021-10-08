@@ -8,7 +8,7 @@
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "States.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace package_mf_tracks {
   struct Parameters {

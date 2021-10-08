@@ -14,4 +14,17 @@
 #include "Argument.cuh"
 
 struct DeviceAlgorithm : public Allen::Algorithm {
+  constexpr static auto algorithm_scope = "DeviceAlgorithm";
+};
+
+struct HostAlgorithm : public Allen::Algorithm {
+  constexpr static auto algorithm_scope = "HostAlgorithm";
+};
+
+struct SelectionAlgorithm : public Allen::Algorithm {
+  constexpr static auto algorithm_scope = "SelectionAlgorithm";
+};
+
+struct ValidationAlgorithm : public Allen::Algorithm {
+  constexpr static auto algorithm_scope = "ValidationAlgorithm";
 };

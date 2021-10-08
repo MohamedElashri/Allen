@@ -7,7 +7,7 @@
 #include "LookingForwardTools.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace lf_quality_filter_length {
   struct Parameters {

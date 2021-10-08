@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHits.cuh"
 #include "MuonEventModel.cuh"

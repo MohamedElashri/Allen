@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace host_rate_validator {
   struct Parameters {

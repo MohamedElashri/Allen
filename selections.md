@@ -179,7 +179,7 @@ header.
 ```c++
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "OneTrackLine.cuh"
 
 namespace example_one_track_line {
@@ -256,7 +256,7 @@ secondary vertices with no postscale. This lines inherit from `TwoTrackLine`. We
 ```c++
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
 
 namespace example_two_track_line {
@@ -342,7 +342,7 @@ The header `technical/include/VeloMicroBiasLine.cuh` is as follows:
 ```c++
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "EventLine.cuh"
 #include "VeloConsolidated.cuh"
 
@@ -431,7 +431,7 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
 ```c++
 #pragma once
 
-#include "SelectionAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "Line.cuh"
 #include "VeloConsolidated.cuh"
 

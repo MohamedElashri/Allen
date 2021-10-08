@@ -6,7 +6,7 @@
 #include "UTDefinitions.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "CompassUTDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace ut_search_windows {
   struct Parameters {

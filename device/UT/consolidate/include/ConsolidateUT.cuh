@@ -6,7 +6,7 @@
 #include "UTDefinitions.cuh"
 #include "UTEventModel.cuh"
 #include "UTConsolidated.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace ut_consolidate_tracks {
   struct Parameters {

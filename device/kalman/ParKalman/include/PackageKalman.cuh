@@ -12,7 +12,7 @@
 #include "VeloConsolidated.cuh"
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace package_kalman_tracks {
   struct Parameters {

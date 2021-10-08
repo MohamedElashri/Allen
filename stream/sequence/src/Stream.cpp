@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "Stream.h"
-#include "ValidationAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "Scheduler.cuh"
 #include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"

@@ -103,7 +103,8 @@ namespace {
         }                                                                                                            \
       },                                                                                                             \
       [alg](const std::map<std::string, std::string>& algo_config) { alg->set_properties(algo_config); },            \
-      [alg]() { return alg->get_properties(); }};                                                                    \
+      [alg]() { return alg->get_properties(); },                                                                     \
+      []() { return ALGORITHM::algorithm_scope; }};                                                                  \
   }
 
 namespace Allen {
@@ -122,6 +123,7 @@ namespace Allen {
     std::function<void()> init = nullptr;
     std::function<void(const std::map<std::string, std::string>&)> set_properties = nullptr;
     std::function<std::map<std::string, std::string>()> get_properties = nullptr;
+    std::function<std::string()> scope = nullptr;
   };
 
   // Tool to instantiate algorithms

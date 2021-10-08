@@ -99,7 +99,7 @@ int allen(
   // do_check will be true when a MC validator algorithm was configured
 
   // TODO: Implement this
-  bool do_check = false;
+  bool do_check = true;
 
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;

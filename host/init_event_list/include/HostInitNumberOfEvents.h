@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace host_init_number_of_events {
   struct Parameters {

@@ -14,7 +14,7 @@
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 //#include "Argument.cuh"
 
 namespace count_long_track_hits {

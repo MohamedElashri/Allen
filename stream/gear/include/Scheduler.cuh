@@ -199,7 +199,7 @@ private:
   static void setup(
     Allen::TypeErasedAlgorithm& algorithm,
     const LifetimeDependencies& in_dependencies,
-    const LifetimeDependencies& out_dependencies,
+    const LifetimeDependencies&,
     host_memory_manager_t& host_memory_manager,
     device_memory_manager_t& device_memory_manager,
     UnorderedStore& store,
@@ -220,7 +220,8 @@ private:
     }
 
     // Free all arguments in OutDependencies
-    MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
+    // TODO: Uncomment this line when the argument dependencies are correctly populated in json config files
+    // MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
 
     // Reserve all arguments in InDependencies
     MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);

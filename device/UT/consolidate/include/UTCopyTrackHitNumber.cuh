@@ -7,7 +7,7 @@
 #include "UTDefinitions.cuh"
 #include "UTEventModel.cuh"
 #include "UTConsolidated.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace ut_copy_track_hit_number {
   struct Parameters {

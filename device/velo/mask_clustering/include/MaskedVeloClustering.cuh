@@ -7,7 +7,7 @@
 #include <cassert>
 #include "ClusteringDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloTools.cuh"
 
 namespace velo_masked_clustering {

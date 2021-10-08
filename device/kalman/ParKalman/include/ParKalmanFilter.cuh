@@ -15,7 +15,7 @@
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace ParKalmanFilter {
 

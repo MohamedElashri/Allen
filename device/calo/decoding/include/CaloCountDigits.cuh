@@ -11,7 +11,7 @@
 #pragma once
 
 #include "CaloGeometry.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace calo_count_digits {
   struct Parameters {

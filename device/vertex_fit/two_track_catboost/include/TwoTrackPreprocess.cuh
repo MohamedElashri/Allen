@@ -11,7 +11,7 @@
 #pragma once
 
 #include "VeloConsolidated.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "States.cuh"
 #include "VertexDefinitions.cuh"
 #include <cmath>

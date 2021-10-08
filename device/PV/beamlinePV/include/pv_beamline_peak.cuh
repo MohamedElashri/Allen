@@ -5,7 +5,7 @@
 
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "TrackBeamLineVertexFinder.cuh"
 #include "VeloConsolidated.cuh"
 #include "VeloDefinitions.cuh"

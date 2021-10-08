@@ -9,7 +9,7 @@
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "States.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace FilterMFTracks {
   struct Parameters {

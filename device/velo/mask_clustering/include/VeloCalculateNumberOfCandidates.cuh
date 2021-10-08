@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "ClusteringDefinitions.cuh"
 
 namespace velo_calculate_number_of_candidates {

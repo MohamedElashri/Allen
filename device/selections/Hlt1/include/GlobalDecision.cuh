@@ -4,7 +4,7 @@
 #pragma once
 
 #include "HltDecReport.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace global_decision {
   struct Parameters {
