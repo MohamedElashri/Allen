@@ -20,7 +20,7 @@ namespace Selections {
     unsigned* m_candidate_inserts;
 
   public:
-    __host__ __device__ CandidateTable() = default;
+    CandidateTable() = default;
 
     __host__ __device__
     CandidateTable(unsigned candidate_count, unsigned* candidate_indices_base, unsigned* candidate_inserts_base) :
