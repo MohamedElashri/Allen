@@ -133,9 +133,9 @@ class AlgorithmTraversal():
 
     # Arguments to pass to compiler, as function of file extension.
     __compile_flags = {
-        "cuh": ["-x", "cuda", "-std=c++17", "-nostdinc++"],
-        "hpp": ["-std=c++17"],
-        "h": ["-std=c++17"]
+        "cuh": ["-x", "c++", "-std=c++17", "-nostdinc++"],
+        "hpp": ["-std=c++17", "-nostdinc++"],
+        "h": ["-std=c++17", "-nostdinc++"]
     }
 
     # Clang index
@@ -334,6 +334,7 @@ class AlgorithmTraversal():
         try:
             clang_args = AlgorithmTraversal.__compile_flags[extension]
             clang_args.append("-I" + project_location + "/stream/gear/include")
+            clang_args.append("-I" + project_location + "/backend/include")
             tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
             if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
                 return make_parsed_algorithms(
