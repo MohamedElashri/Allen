@@ -40,102 +40,131 @@ namespace {
   }
 } // namespace
 
-#define INSTANTIATE_ALGORITHM(ALGORITHM)                                                                             \
-  template<>                                                                                                         \
-  Allen::TypeErasedAlgorithm Allen::instantiate_algorithm_impl(ALGORITHM*, const std::string& name)                  \
-  {                                                                                                                  \
-    ALGORITHM* alg = new ALGORITHM {};                                                                               \
-    alg->set_name(name);                                                                                             \
-                                                                                                                     \
-    return TypeErasedAlgorithm {                                                                                     \
-      static_cast<void*>(alg),                                                                                       \
-      [alg]() { return alg->name(); },                                                                               \
-      [](                                                                                                            \
-        std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,                                          \
-        std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {                           \
-        if (                                                                                                         \
-          std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::store_ref_t> !=                      \
-          vector_store_ref.size()) {                                                                                 \
-          throw std::runtime_error("unexpected number of arguments");                                                \
-        }                                                                                                            \
-        auto store_ref = create_store_ref(                                                                           \
-          vector_store_ref,                                                                                          \
-          std::make_index_sequence<                                                                                  \
-            std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::store_ref_t>> {});                 \
-        auto input_agg_store =                                                                                       \
-          AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::input_aggregates_t {Allen::gen_input_aggregates_tuple( \
-            input_aggregates,                                                                                        \
-            std::make_index_sequence<                                                                                \
-              std::tuple_size_v<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType::input_aggregates_t>> {})};       \
-        auto arg_ref_manager = AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType {store_ref, input_agg_store};      \
-        return std::any {arg_ref_manager};                                                                           \
-      },                                                                                                             \
-      [alg](                                                                                                         \
-        std::any& arg_ref_manager,                                                                                   \
-        const RuntimeOptions& runtime_options,                                                                       \
-        const Constants& constants,                                                                                  \
-        const HostBuffers& host_buffers) {                                                                           \
-        alg->set_arguments_size(                                                                                     \
-          std::any_cast<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType&>(arg_ref_manager),                       \
-          runtime_options,                                                                                           \
-          constants,                                                                                                 \
-          host_buffers);                                                                                             \
-      },                                                                                                             \
-      [alg](                                                                                                         \
-        std::any& arg_ref_manager,                                                                                   \
-        const RuntimeOptions& runtime_options,                                                                       \
-        const Constants& constants,                                                                                  \
-        HostBuffers& host_buffers,                                                                                   \
-        const Allen::Context& context) {                                                                             \
-        alg->operator()(                                                                                             \
-          std::any_cast<AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType&>(arg_ref_manager),                       \
-          runtime_options,                                                                                           \
-          constants,                                                                                                 \
-          host_buffers,                                                                                              \
-          context);                                                                                                  \
-      },                                                                                                             \
-      [alg]() {                                                                                                      \
-        if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {                                                 \
-          initialize_algorithm(*alg);                                                                                \
-        }                                                                                                            \
-        else {                                                                                                       \
-          _unused(alg);                                                                                              \
-        }                                                                                                            \
-      },                                                                                                             \
-      [alg](const std::map<std::string, std::string>& algo_config) { alg->set_properties(algo_config); },            \
-      [alg]() { return alg->get_properties(); },                                                                     \
-      []() { return ALGORITHM::algorithm_scope; }};                                                                  \
-  }
 
 namespace Allen {
   // Type-erased algorithm
-  struct TypeErasedAlgorithm {
-    void* instance;
-    std::function<std::string()> name = nullptr;
-    std::function<std::any(
-      std::vector<std::reference_wrapper<ArgumentData>>,
-      std::vector<std::vector<std::reference_wrapper<ArgumentData>>>)>
-      create_arg_ref_manager = nullptr;
-    std::function<void(std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&)> set_arguments_size =
-      nullptr;
-    std::function<void(std::any&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&)>
-      invoke = nullptr;
-    std::function<void()> init = nullptr;
-    std::function<void(const std::map<std::string, std::string>&)> set_properties = nullptr;
-    std::function<std::map<std::string, std::string>()> get_properties = nullptr;
-    std::function<std::string()> scope = nullptr;
+  class TypeErasedAlgorithm {
+
+    struct vtable {
+      std::string(* name)(void const*) = nullptr;
+      std::any(*create_arg_ref_manager)(
+        std::vector<std::reference_wrapper<ArgumentData>>,
+        std::vector<std::vector<std::reference_wrapper<ArgumentData>>>) = nullptr;
+      void(*set_arguments_size)( void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) = nullptr;
+      void(*invoke)(void const*, std::any&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&) = nullptr;
+      void(*init)(void*) = nullptr;
+      void(*set_properties)(void*,const std::map<std::string, std::string>&) = nullptr;
+      std::map<std::string, std::string>(*get_properties)(void const*) = nullptr;
+      std::string(*scope)()  = nullptr;
+      void(*dtor)(void*) = nullptr;
+    };
+
+    template <typename ALGORITHM>
+    constexpr static auto vtable_for = vtable{
+        [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
+        []( std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
+            std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {
+
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
+          using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
+          if (
+            std::tuple_size_v<store_ref_t> !=
+            vector_store_ref.size()) {
+            throw std::runtime_error("unexpected number of arguments");
+          }
+          auto store_ref = create_store_ref( vector_store_ref, std::make_index_sequence< std::tuple_size_v<store_ref_t>> {});
+          auto input_agg_store = input_aggregates_t {Allen::gen_input_aggregates_tuple(
+              input_aggregates,
+              std::make_index_sequence<
+                std::tuple_size_v<input_aggregates_t>> {})};
+          return std::any{ arg_ref_mgr_t {store_ref, input_agg_store} };
+        },
+        [](void* p,
+          std::any& arg_ref_manager,
+          const RuntimeOptions& runtime_options,
+          const Constants& constants,
+          const HostBuffers& host_buffers) {
+            using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          static_cast<ALGORITHM*>(p)->set_arguments_size(
+            std::any_cast<arg_ref_mgr_t&>(arg_ref_manager),
+            runtime_options,
+            constants,
+            host_buffers);
+        },
+        [](  const void* p,
+          std::any& arg_ref_manager,
+          const RuntimeOptions& runtime_options,
+          const Constants& constants,
+          HostBuffers& host_buffers,
+          const Allen::Context& context) {
+            using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          static_cast<ALGORITHM const*>(p)->operator()(
+            std::any_cast<arg_ref_mgr_t&>(arg_ref_manager),
+            runtime_options,
+            constants,
+            host_buffers,
+            context);
+        },
+        [](void* p) {
+          if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
+            initialize_algorithm(*static_cast<ALGORITHM*>(p));
+          }
+          else {
+            _unused(p);
+          }
+        },
+        [](void *p, const std::map<std::string, std::string>& algo_config) { static_cast<ALGORITHM*>(p)->set_properties(algo_config); },
+        [](void const* p) { return static_cast<ALGORITHM const*>(p)->get_properties(); },
+        []() -> std::string { return ALGORITHM::algorithm_scope; },
+        [](void *p) { delete static_cast<ALGORITHM*>(p); }
+    };
+
+    void* instance = nullptr;
+    vtable const* table = nullptr;
+   public:
+    template <typename ALGORITHM>
+    TypeErasedAlgorithm( std::in_place_type_t<ALGORITHM>, const std::string& name ) : table{ &vtable_for<ALGORITHM> } {
+        auto p = new ALGORITHM{};
+        p->set_name(name);
+        instance = p;
+    }
+    ~TypeErasedAlgorithm() { (*table->dtor)(instance); }
+    TypeErasedAlgorithm(const TypeErasedAlgorithm&) = delete;
+    TypeErasedAlgorithm(TypeErasedAlgorithm&& arg) : instance{ std::exchange( arg.instance, nullptr ) }, table{ arg.table }{}
+    TypeErasedAlgorithm& operator=(const TypeErasedAlgorithm&) = delete;
+    TypeErasedAlgorithm& operator=(TypeErasedAlgorithm&&) = delete;
+
+    std::string name() const {
+        return (*table->name)(instance); }
+    std::any create_arg_ref_manager( std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
+                                      std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates)  {
+        return (*table->create_arg_ref_manager)( std::move(vector_store_ref), std::move(input_aggregates) );
+    }
+    void set_arguments_size( std::any& arg_ref_manager, const RuntimeOptions& runtime_options, const Constants& constants, const HostBuffers& host_buffers) {
+        (*table->set_arguments_size)(instance,arg_ref_manager, runtime_options, constants, host_buffers );
+    }
+    void invoke( std::any& arg_ref_manager, const RuntimeOptions& runtime_options, const Constants& constants, HostBuffers& host_buffers, const Allen::Context& context) {
+        (*table->invoke)(instance, arg_ref_manager,runtime_options,constants,host_buffers,context);
+    }
+    void init() { (*table->init)(instance); }
+    void set_properties(const std::map<std::string, std::string>& algo_config) {
+        (*table->set_properties)(instance,algo_config);
+    }
+    std::map<std::string, std::string> get_properties() const { return (*table->get_properties)(instance); }
+    std::string scope() const { return (*table->scope)(); }
+
   };
 
   // Tool to instantiate algorithms
   template<typename T>
-  TypeErasedAlgorithm instantiate_algorithm_impl(T*, const std::string&);
+  TypeErasedAlgorithm instantiate_algorithm(const std::string& name);
 
-  template<typename T>
-  TypeErasedAlgorithm instantiate_algorithm(const std::string& name)
-  {
-    T* t = nullptr;
-    return instantiate_algorithm_impl(t, name);
-  }
+#define INSTANTIATE_ALGORITHM(TYPE) \
+template<> Allen::TypeErasedAlgorithm Allen::instantiate_algorithm<TYPE>(const std::string& name) { \
+    return TypeErasedAlgorithm{ std::in_place_type<TYPE>, name }; \
+}
+
 
   // Forward declare to use in Algorithm
   template<typename V>
