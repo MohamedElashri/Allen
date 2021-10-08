@@ -195,9 +195,9 @@ namespace Allen {
 
           __host__ __device__ unsigned offset() const { return m_offset; }
 
-          __host__ __device__ unsigned number_of_id_sequences() const override { return size(); }
+          __host__ __device__ unsigned number_of_id_structures() const override { return size(); }
 
-          __host__ __device__ const ILHCbIDSequence& id_sequence(const unsigned container_number) const override
+          __host__ __device__ const ILHCbIDSequence& id_structure(const unsigned container_number) const override
           {
             return track(container_number);
           }

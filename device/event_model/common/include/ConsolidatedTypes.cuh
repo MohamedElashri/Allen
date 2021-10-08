@@ -32,9 +32,6 @@ namespace Allen {
 
   struct ILHCbIDStructure {
     virtual __host__ __device__ unsigned number_of_substructures() const = 0;
-    virtual __host__ __device__ const ILHCbIDStructure& substructure(const unsigned) = 0;
-    virtual __host__ __device__ unsigned number_of_ids() const = 0;
-    virtual __host__ __device__ unsigned id(const unsigned) const = 0;
     virtual __host__ __device__ ~ILHCbIDStructure() {}
   };
 
@@ -50,7 +47,7 @@ namespace Allen {
       return m_number_of_substructures; 
     }
 
-    __host__ __device__ const ILHCbIDStructure& substructure(const unsigned substructure_index)
+    __host__ __device__ const ILHCbIDStructure& substructure(const unsigned substructure_index) const
     {
       assert(substructure_index < m_number_of_substructures);
       return *(m_substructures[m_total_number_of_composites * substructure_index + m_index]);
@@ -59,6 +56,8 @@ namespace Allen {
 
   struct ILHCbIDSequence : ILHCbIDStructure {
     __host__ __device__ unsigned number_of_substructures() const override { return 1; }
+    virtual __host__ __device__ unsigned number_of_ids() const = 0;
+    virtual __host__ __device__ unsigned id(const unsigned) const = 0;
   };
 
   struct ILHCbIDContainer {
@@ -224,6 +223,109 @@ namespace Allen {
       }
     };
 
+    struct SecondaryVertex {
+      // 3 elements for position + 3 elements for momentum
+      constexpr static unsigned nb_elements_vrt = 7;
+      // Just the 3x3 position covariance + chi2 + ndof?
+      constexpr static unsigned nb_elements_cov = 8;
+
+    private:
+      const float* m_base_pointer = nullptr;
+      unsigned m_index = 0;
+      unsigned m_total_number_of_vrts = 0;
+
+    public:
+      __host__ __device__
+      SecondaryVertex(const char* base_pointer, const unsigned index, const unsigned total_number_of_vrts) :
+        m_base_pointer(reinterpret_cast<const float*>(base_pointer)),
+        m_index(index),
+        m_total_number_of_vrts(total_number_of_vrts)
+      {}
+
+      __host__ __device__ float x() const { return m_base_pointer[nb_elements_vrt * m_index]; }
+
+      __host__ __device__ float y() const { return m_base_pointer[nb_elements_vrt * m_index + 1]; }
+
+      __host__ __device__ float z() const { return m_base_pointer[nb_elements_vrt * m_index + 2]; }
+
+      __host__ __device__ float px() const { return m_base_pointer[nb_elements_vrt * m_index + 3]; }
+
+      __host__ __device__ float py() const { return m_base_pointer[nb_elements_vrt * m_index + 4]; }
+
+      __host__ __device__ float pz() const { return m_base_pointer[nb_elements_vrt * m_index + 5]; }
+      
+      __host__ __device__ float c00() const 
+      {
+        return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index];
+      }
+
+      __host__ __device__ float c11() const 
+      {
+        return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 1];
+      }
+
+      __host__ __device__ float c10() const 
+      {
+        return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 2];
+      }
+
+      __host__ __device__ float c22() const 
+      {
+        return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 3];
+      }
+
+      __host__ __device__ float c21() const 
+      {
+        return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 4];
+      }
+
+      __host__ __device__ float c20() const 
+      {
+        return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 5];
+      }
+      
+      __host__ __device__ float chi2() const
+      {
+        return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 6];
+      }
+
+      __host__ __device__ unsigned ndof() const
+      {
+        return reinterpret_cast<const unsigned*>(m_base_pointer)[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 7];
+      }
+
+    };
+
+    struct SecondaryVertices {
+    private:
+      const char* m_base_pointer = nullptr;
+      unsigned m_offset = 0;
+      unsigned m_size = 0;
+      unsigned m_total_number_of_vrts = 0;
+
+    public:
+      __host__ __device__ SecondaryVertices(
+        const char* base_pointer,
+        const unsigned* offset_svs,
+        const unsigned event_number,
+        const unsigned number_of_events) :
+        m_base_pointer(base_pointer),
+        m_offset(offset_svs[event_number]),
+        m_size(offset_svs[event_number + 1] - offset_svs[event_number]),
+        m_total_number_of_vrts(offset_svs[number_of_events])
+      {}
+
+      __host__ __device__ unsigned size() const { return m_size; }
+
+      __host__ __device__ unsigned offset() const { return m_offset; }
+
+      __host__ __device__ const SecondaryVertex vertex(const unsigned sv_index) const
+      {
+        assert(sv_index < m_size);
+        return SecondaryVertex {m_base_pointer, m_offset + sv_index, m_total_number_of_vrts};
+      }
+    };
+
     // Is it necessary for BasicParticle to inherit from an ILHCbIDStructure to
     // work with aggregates in the SelReport writer?
     struct BasicParticle : ILHCbIDSequence {
@@ -247,14 +349,18 @@ namespace Allen {
         const unsigned index) :
         m_track(track), m_state(state), m_pv(pv), 
         m_muon_id(muon_id), m_calo_id(calo_id), m_index(index)
-      {}
+      {
+        // Make sure this isn't a composite ID structure.
+        // TODO: Is this sensible at all?
+        assert(m_track->number_of_substructures()==1);
+      }
 
       __host__ __device__ unsigned number_of_ids() const override
       {
         return m_track->number_of_ids();
       }
 
-      __host__ __device__ unsigned id(const unsigned index)
+      __host__ __device__ unsigned id(const unsigned index) const override
       {
         return m_track->id(index);
       }
@@ -405,12 +511,12 @@ namespace Allen {
 
       __host__ __device__ unsigned size() const { return m_size; }
 
-      __host__ __device__ const BasicParticle& particle(const unsigned index) const
+      __host__ __device__ const BasicParticle particle(const unsigned index) const
       {
         return BasicParticle {
-          m_track_container->id_sequence(index),
+          dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index)),
           m_states + index,
-          m_pv + index,
+          m_pvs + index,
           m_muon_id,
           m_calo_id,
           index};
@@ -420,10 +526,11 @@ namespace Allen {
 
     };
 
-    struct CompositeParticle : ILHCbIDComposite {
-    private:
-      
-    };
+    // struct CompositeParticle : ILHCbIDComposite {
+    // private:
+    //   const SV::Vertex* m_vertex;
+    //   const PV::Vertex* m_pv;
+    // };
 
     // struct CompositParticle2Track {
     // private:
