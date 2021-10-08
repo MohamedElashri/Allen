@@ -166,7 +166,7 @@ namespace Allen {
         auto it = m_properties.find(kv.first);
 
         if (it == m_properties.end()) {
-          error_cout << "could not set " << kv.first << "=" << kv.second << "\n";
+          std::cerr << "could not set " << kv.first << "=" << kv.second << "\n";
           const std::string error_message = "property " + kv.first + " does not exist";
           throw std::runtime_error {error_message};
         }
