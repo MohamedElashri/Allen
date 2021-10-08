@@ -421,6 +421,7 @@ namespace Allen {
     };
 
     struct CompositeParticle : ILHCbIDComposite {
+    private:
       
     };
 
