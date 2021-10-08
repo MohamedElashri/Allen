@@ -17,6 +17,7 @@
 #include "AlgorithmTypes.cuh"
 #include "PackageKalman.cuh"
 #include "PV_Definitions.cuh"
+#include "ParticleTypes.cuh"
 
 typedef Vector<10> Vector10;
 typedef Vector<2> Vector2;
