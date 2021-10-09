@@ -10,7 +10,7 @@ void HostBuffersManager::init(size_t nBuffers)
   host_buffers.reserve(nBuffers);
   for (size_t i = 0; i < nBuffers; ++i) {
     host_buffers.push_back(new HostBuffers());
-    host_buffers.back()->reserve(max_events, n_lines, check);
+    host_buffers.back()->reserve(max_events, n_lines);
     buffer_statuses.push_back(BufferStatus::Empty);
     empty_buffers.push(i);
   }
@@ -24,7 +24,7 @@ size_t HostBuffersManager::assignBufferToFill()
     warning_cout << "No empty buffers available" << std::endl;
     warning_cout << "Adding new buffers" << std::endl;
     host_buffers.push_back(new HostBuffers());
-    host_buffers.back()->reserve(max_events, n_lines, check);
+    host_buffers.back()->reserve(max_events, n_lines);
     buffer_statuses.push_back(BufferStatus::Filling);
     return host_buffers.size() - 1;
   }

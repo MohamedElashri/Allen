@@ -17,7 +17,7 @@
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
 
-void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_lines, const bool do_check)
+void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_lines)
 {
   constexpr unsigned host_buffers_max_velo_tracks = 4000;
 
@@ -106,74 +106,70 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
   Allen::malloc_host((void**) &host_sv_offsets, sv_offsets_size);
   ::memset(host_sv_offsets, 0, sv_offsets_size);
 
-  if (do_check) {
-    // Datatypes to be reserved only if checking is on
-    // Note: These datatypes in principle do not require to be pinned
-    host_atomics_velo =
-      reinterpret_cast<decltype(host_atomics_velo)>(malloc((2 * max_number_of_events + 1) * sizeof(int)));
-    host_velo_track_hit_number = reinterpret_cast<decltype(host_velo_track_hit_number)>(
-      malloc(max_number_of_events * host_buffers_max_velo_tracks * sizeof(unsigned)));
-    host_velo_track_hits = reinterpret_cast<decltype(host_velo_track_hits)>(malloc(
-      max_number_of_events * host_buffers_max_velo_tracks * Velo::Constants::max_track_size * sizeof(Velo::Hit)));
-    host_velo_kalman_beamline_states = reinterpret_cast<decltype(host_velo_kalman_beamline_states)>(
-      malloc(max_number_of_events * host_buffers_max_velo_tracks * Velo::Consolidated::States::size));
-    host_velo_kalman_endvelo_states = reinterpret_cast<decltype(host_velo_kalman_endvelo_states)>(
-      malloc(max_number_of_events * host_buffers_max_velo_tracks * Velo::Consolidated::States::size));
+  // Datatypes to be reserved only if checking is on
+  // Note: These datatypes in principle do not require to be pinned
+  host_atomics_velo =
+    reinterpret_cast<decltype(host_atomics_velo)>(malloc((2 * max_number_of_events + 1) * sizeof(int)));
+  host_velo_track_hit_number = reinterpret_cast<decltype(host_velo_track_hit_number)>(
+    malloc(max_number_of_events * host_buffers_max_velo_tracks * sizeof(unsigned)));
+  host_velo_track_hits = reinterpret_cast<decltype(host_velo_track_hits)>(
+    malloc(max_number_of_events * host_buffers_max_velo_tracks * Velo::Constants::max_track_size * sizeof(Velo::Hit)));
+  host_velo_kalman_beamline_states = reinterpret_cast<decltype(host_velo_kalman_beamline_states)>(
+    malloc(max_number_of_events * host_buffers_max_velo_tracks * Velo::Consolidated::States::size));
+  host_velo_kalman_endvelo_states = reinterpret_cast<decltype(host_velo_kalman_endvelo_states)>(
+    malloc(max_number_of_events * host_buffers_max_velo_tracks * Velo::Consolidated::States::size));
 
-    host_atomics_ut =
-      reinterpret_cast<decltype(host_atomics_ut)>(malloc(UT::num_atomics * (max_number_of_events + 1) * sizeof(int)));
-    host_ut_tracks = reinterpret_cast<decltype(host_ut_tracks)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(UT::TrackHits)));
-    host_ut_track_hit_number = reinterpret_cast<decltype(host_ut_track_hit_number)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(unsigned)));
-    host_ut_track_hits = reinterpret_cast<decltype(host_ut_track_hits)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * UT::Constants::max_track_size * sizeof(UT::Hit)));
-    host_ut_qop = reinterpret_cast<decltype(host_ut_qop)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
-    host_ut_track_velo_indices = reinterpret_cast<decltype(host_ut_track_velo_indices)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
-    host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
-      sizeof(SciFi::TrackHits)));
-    host_scifi_track_hit_number = reinterpret_cast<decltype(host_scifi_track_hit_number)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
-      sizeof(unsigned)));
-    host_scifi_track_hits = reinterpret_cast<decltype(host_scifi_track_hits)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
-      SciFi::Constants::max_track_size * sizeof(SciFi::Hit)));
-    host_scifi_qop = reinterpret_cast<decltype(host_scifi_qop)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
-      sizeof(float)));
-    host_scifi_states = reinterpret_cast<decltype(host_scifi_states)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
-      sizeof(MiniState)));
-    host_scifi_track_ut_indices = reinterpret_cast<decltype(host_scifi_track_ut_indices)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
-      sizeof(unsigned)));
+  host_atomics_ut =
+    reinterpret_cast<decltype(host_atomics_ut)>(malloc(UT::num_atomics * (max_number_of_events + 1) * sizeof(int)));
+  host_ut_tracks = reinterpret_cast<decltype(host_ut_tracks)>(
+    malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(UT::TrackHits)));
+  host_ut_track_hit_number = reinterpret_cast<decltype(host_ut_track_hit_number)>(
+    malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(unsigned)));
+  host_ut_track_hits = reinterpret_cast<decltype(host_ut_track_hits)>(
+    malloc(max_number_of_events * UT::Constants::max_num_tracks * UT::Constants::max_track_size * sizeof(UT::Hit)));
+  host_ut_qop = reinterpret_cast<decltype(host_ut_qop)>(
+    malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
+  host_ut_track_velo_indices = reinterpret_cast<decltype(host_ut_track_velo_indices)>(
+    malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
+  host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
+    max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+    sizeof(SciFi::TrackHits)));
+  host_scifi_track_hit_number = reinterpret_cast<decltype(host_scifi_track_hit_number)>(malloc(
+    max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+    sizeof(unsigned)));
+  host_scifi_track_hits = reinterpret_cast<decltype(host_scifi_track_hits)>(malloc(
+    max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+    SciFi::Constants::max_track_size * sizeof(SciFi::Hit)));
+  host_scifi_qop = reinterpret_cast<decltype(host_scifi_qop)>(malloc(
+    max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+    sizeof(float)));
+  host_scifi_states = reinterpret_cast<decltype(host_scifi_states)>(malloc(
+    max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+    sizeof(MiniState)));
+  host_scifi_track_ut_indices = reinterpret_cast<decltype(host_scifi_track_ut_indices)>(malloc(
+    max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+    sizeof(unsigned)));
 
-    host_reconstructed_pvs = reinterpret_cast<decltype(host_reconstructed_pvs)>(
-      malloc(max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
-    host_number_of_vertex =
-      reinterpret_cast<decltype(host_number_of_vertex)>(malloc(max_number_of_events * sizeof(int)));
-    host_number_of_seeds = reinterpret_cast<decltype(host_number_of_seeds)>(malloc(max_number_of_events * sizeof(int)));
-    host_zhisto = reinterpret_cast<decltype(host_zhisto)>(malloc(
-      max_number_of_events * sizeof(float) * (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) /
-      BeamlinePVConstants::Common::dz));
-    host_peaks =
-      reinterpret_cast<decltype(host_peaks)>(malloc(max_number_of_events * sizeof(float) * PV::max_number_vertices));
-    host_number_of_peaks =
-      reinterpret_cast<decltype(host_number_of_peaks)>(malloc(max_number_of_events * sizeof(unsigned)));
+  host_reconstructed_pvs = reinterpret_cast<decltype(host_reconstructed_pvs)>(
+    malloc(max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
+  host_number_of_vertex = reinterpret_cast<decltype(host_number_of_vertex)>(malloc(max_number_of_events * sizeof(int)));
+  host_number_of_seeds = reinterpret_cast<decltype(host_number_of_seeds)>(malloc(max_number_of_events * sizeof(int)));
+  host_zhisto = reinterpret_cast<decltype(host_zhisto)>(malloc(
+    max_number_of_events * sizeof(float) * (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) /
+    BeamlinePVConstants::Common::dz));
+  host_peaks =
+    reinterpret_cast<decltype(host_peaks)>(malloc(max_number_of_events * sizeof(float) * PV::max_number_vertices));
+  host_number_of_peaks =
+    reinterpret_cast<decltype(host_number_of_peaks)>(malloc(max_number_of_events * sizeof(unsigned)));
 
-    host_muon_catboost_output = reinterpret_cast<decltype(host_muon_catboost_output)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
-    host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-    host_event_list_mf =
-      reinterpret_cast<decltype(host_event_list_mf)>(malloc(max_number_of_events * sizeof(unsigned)));
-    host_match_upstream_muon = reinterpret_cast<decltype(host_match_upstream_muon)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(bool)));
+  host_muon_catboost_output = reinterpret_cast<decltype(host_muon_catboost_output)>(
+    malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
+  host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
+    malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
+  host_event_list_mf = reinterpret_cast<decltype(host_event_list_mf)>(malloc(max_number_of_events * sizeof(unsigned)));
+  host_match_upstream_muon = reinterpret_cast<decltype(host_match_upstream_muon)>(
+    malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(bool)));
 
-    host_sv_atomics =
-      reinterpret_cast<decltype(host_sv_atomics)>(malloc((2 * max_number_of_events + 1) * sizeof(unsigned)));
-  }
+  host_sv_atomics =
+    reinterpret_cast<decltype(host_sv_atomics)>(malloc((2 * max_number_of_events + 1) * sizeof(unsigned)));
 }

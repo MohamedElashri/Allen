@@ -103,3 +103,7 @@ std::map<std::string, std::map<std::string, std::string>> Stream::get_algorithm_
 {
   return scheduler->get_algorithm_configuration();
 }
+
+bool Stream::contains_validation_algorithms() const {
+  return scheduler->contains_validation_algorithms();
+}

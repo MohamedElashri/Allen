@@ -61,4 +61,6 @@ public:
   void print_configured_sequence();
 
   std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration() const;
+
+  bool contains_validation_algorithms() const;
 };

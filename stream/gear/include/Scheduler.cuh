@@ -159,6 +159,15 @@ public:
     info_cout << "\n";
   }
 
+  bool contains_validation_algorithms() const {
+    for (const auto& alg : m_sequence) {
+      if (alg.scope() == "ValidationAlgorithm") {
+        return true;
+      }
+    }
+    return false;
+  }
+
   //  Runs a sequence of algorithms.
   void run(
     const RuntimeOptions& runtime_options,

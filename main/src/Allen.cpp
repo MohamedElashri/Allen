@@ -96,11 +96,6 @@ int allen(
   bool print_memory_usage = false;
   bool non_stop = false;
   bool write_config = false;
-  // do_check will be true when a MC validator algorithm was configured
-
-  // TODO: Implement this
-  bool do_check = true;
-
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
   // MPI options
@@ -444,7 +439,7 @@ int allen(
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, do_check, error_line);
+    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, error_line);
 
   if (print_status) {
     buffers_manager->printStatus();
@@ -490,6 +485,9 @@ int allen(
 
   // Print configured sequence
   streams.front()->print_configured_sequence();
+
+  // Interrogate stream configured sequence for validation algorithms
+  const auto sequence_contains_validation_algorithms = streams.front()->contains_validation_algorithms();
 
   // TODO: Test this
   if (print_config || write_config) {
@@ -857,7 +855,7 @@ int allen(
             auto n_filled = zmqSvc->receive<size_t>(socket);
 
             // Check once that raw banks with MC information are available if MC check is requested
-            if (n_events_read == 0 && do_check) {
+            if (n_events_read == 0 && sequence_contains_validation_algorithms) {
               auto bno_pvs = input_provider->banks(BankTypes::OTError, *slice_index);
               auto bno_tracks = input_provider->banks(BankTypes::OTRaw, *slice_index);
               if (std::get<2>(bno_pvs).size() == 1 || std::get<2>(bno_tracks).size() == 1) {
