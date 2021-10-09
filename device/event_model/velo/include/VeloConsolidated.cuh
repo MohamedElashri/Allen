@@ -367,9 +367,9 @@ namespace Velo {
       const unsigned m_offset;
 
     public:
-      constexpr static unsigned size = 11 * sizeof(uint32_t);
-      constexpr static unsigned nb_elements_state = 5;
-      constexpr static unsigned nb_elements_cov = 6;
+      constexpr static unsigned size = 14 * sizeof(uint32_t);
+      constexpr static unsigned nb_elements_state = 6;
+      constexpr static unsigned nb_elements_cov = 8;
 
       __host__ __device__ States_t(T* base_pointer, const unsigned total_number_of_tracks, const unsigned offset = 0) :
         m_base_pointer(reinterpret_cast<Allen::forward_type_t<T, float>*>(base_pointer)),
@@ -439,6 +439,18 @@ namespace Velo {
       {
         assert(m_offset + index < m_total_number_of_tracks);
         return m_base_pointer[nb_elements_state * (m_offset + index) + 4];
+      }
+
+      __host__ __device__ float qop(const unsigned index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 5];
+      }
+
+      __host__ __device__ float& qop(const unsigned index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 5];
       }
 
       __host__ __device__ float c00(const unsigned index) const
@@ -511,6 +523,30 @@ namespace Velo {
       {
         assert(m_offset + index < m_total_number_of_tracks);
         return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 5];
+      }
+
+      __host__ __device__ float chi2(const unsigned index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 6];
+      }
+
+      __host__ __device__ float& chi2(const unsigned index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 6];
+      }
+
+      __host__ __device__ unsigned ndof(const unsigned index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return reinterpret_cast<const unsigned*>(m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
+      }
+
+      __host__ __device__ unsigned& ndof(const unsigned index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return reinterpret_cast<unsigned*>(m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
       }
 
       __host__ __device__ void set(const unsigned track_number, const KalmanVeloState& state)
