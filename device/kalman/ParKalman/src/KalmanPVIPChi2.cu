@@ -78,6 +78,8 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
   // The total track-PV association table.
   Associate::Consolidated::Table kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
                                                    total_number_of_scifi_tracks};
+  parameters.dev_kalman_pv_tables[event_number] = Allen::Views::Associate::PVTable {
+    parameters.dev_kalman_pv_ipchi2, scifi_tracks_view.offset(), total_number_of_scifi_tracks, scifi_tracks_view.size()};
 
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + scifi_tracks_view.offset();

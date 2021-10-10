@@ -16,6 +16,7 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
   set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
   set_size<dev_kalman_fit_results_t>(arguments, n_scifi_tracks * Velo::Consolidated::States::size);
   set_size<dev_kalman_states_view_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_kalman_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void kalman_velo_only::kalman_velo_only_t::operator()(
