@@ -90,15 +90,8 @@ namespace kalman_velo_only {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
-    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
-    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_velo_pv_ip_t, char) dev_velo_pv_ip;
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;

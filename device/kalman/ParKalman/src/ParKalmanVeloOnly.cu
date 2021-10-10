@@ -25,7 +25,6 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  printf("Launching Kalman filter kernels");
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
