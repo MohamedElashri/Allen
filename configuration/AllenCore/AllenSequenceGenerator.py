@@ -16,15 +16,6 @@ def clean_prefix(s):
     return cleaned_s
 
 
-def parameter_scope(s):
-    if s.startswith("host_"):
-        return "host"
-    elif s.startswith("dev_"):
-        return "device"
-    else:
-        raise "Parameter scope (host/device) cannot be guessed from parameter name"
-
-
 def generate_sequence(algorithms, sequence_filename, prefix_includes):
     """Generates a valid Allen sequence file."""
 
@@ -190,7 +181,7 @@ def generate_json_configuration(algorithms, filename):
     # All output arguments
     configured_arguments = []
     for algorithm in algorithms:
-        configured_arguments += [[parameter_scope(a[0]), clean_prefix(a[1].location)] for a in list(algorithm.outputs.items())]
+        configured_arguments += [[algorithm.type.__slots__[a[0]].Scope, clean_prefix(a[1].location)] for a in list(algorithm.outputs.items())]
 
     configured_sequence_arguments = []
     for algorithm in algorithms:

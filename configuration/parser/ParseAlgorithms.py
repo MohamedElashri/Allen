@@ -94,15 +94,9 @@ class AllenCore():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        s = "from PyConf.dataflow import GaudiDataHandle\n\
-from AllenCore.AllenKernel import AllenAlgorithm\n\
+        s = "from AllenCore.AllenKernel import AllenAlgorithm, AllenDataHandle\n\
 from collections import OrderedDict\n\
 from enum import Enum\n\n\n\
-def algorithm_dict(*algorithms):\n\
-    d = OrderedDict([])\n\
-    for alg in algorithms:\n\
-        d[alg.name] = alg\n\
-    return d\n\n\n\
 class AlgorithmCategory(Enum):\n\
     HostAlgorithm = 0\n\
     DeviceAlgorithm = 1\n\
@@ -132,7 +126,7 @@ class AlgorithmCategory(Enum):\n\
         s += AllenCore.prefix(i) + "__slots__ = OrderedDict(\n"
         i += 1
         for param in algorithm.parameters:
-            s += AllenCore.prefix(i) + param.typename + " = GaudiDataHandle(\"" + param.typename + "\", \"" \
+            s += AllenCore.prefix(i) + param.typename + " = AllenDataHandle(\"" + param.scope + "\", \"" + param.typename + "\", \"" \
                 + AllenCore.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
         for prop in algorithm.properties:
             s += AllenCore.prefix(i) + prop.name[1:-1] + " = \"\",\n"

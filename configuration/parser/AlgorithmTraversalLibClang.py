@@ -57,14 +57,18 @@ class Parameter():
         self.typedef = typedef
         self.aggregate = aggregate
         self.optional = optional
-        if datatype == "host_datatype" and is_input:
-            self.kind = "HostInput"
-        elif datatype == "host_datatype" and not is_input:
-            self.kind = "HostOutput"
-        elif datatype == "device_datatype" and is_input:
-            self.kind = "DeviceInput"
-        elif datatype == "device_datatype" and not is_input:
-            self.kind = "DeviceOutput"
+        if datatype == "host_datatype":
+            self.scope = "host"
+            if is_input:
+                self.kind = "HostInput"
+            else:
+                self.kind = "HostOutput"
+        elif datatype == "device_datatype":
+            self.scope = "device"
+            if is_input:
+                self.kind = "DeviceInput"
+            else:
+                self.kind = "DeviceOutput"
         else:
             raise
 
