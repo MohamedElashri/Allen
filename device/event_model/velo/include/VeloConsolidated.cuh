@@ -92,10 +92,11 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
+        // TODO: Just replace this with Allen::Views::Physics::KalmanState.
         struct State {
         private:
-          constexpr static unsigned nb_elements_state = 5;
-          constexpr static unsigned nb_elements_cov = 6;
+          constexpr static unsigned nb_elements_state = 6;
+          constexpr static unsigned nb_elements_cov = 8;
 
           const float* m_base_pointer = nullptr;
           unsigned m_index = 0;

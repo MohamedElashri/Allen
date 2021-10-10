@@ -14,6 +14,8 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
   auto n_scifi_tracks = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
   set_size<dev_kf_tracks_t>(arguments, n_scifi_tracks);
   set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
+  set_size<dev_kalman_fit_results_t>(arguments, n_scifi_tracks * Velo::Consolidated::States::size);
+  set_size<dev_kalman_states_view_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void kalman_velo_only::kalman_velo_only_t::operator()(
@@ -23,6 +25,7 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
+  printf("Launching Kalman filter kernels");
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
