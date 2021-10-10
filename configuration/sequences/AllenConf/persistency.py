@@ -215,6 +215,11 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         name="prefix_sum_candidate_count",
         dev_input_buffer_t=calc_rb_hits_size.dev_candidate_count_t)
 
+    prefix_sum_objtyp_size = make_algorithm(
+        host_prefix_sum_t,
+        name='prefix_sum_objtyp_size',
+        dev_input_buffer_t=calc_rb_substr_size.dev_objtyp_bank_size_t)
+
     make_rb_hits = make_algorithm(
         make_rb_hits_t,
         name="make_rb_hits",
@@ -273,14 +278,17 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         make_rb_objtyp_t,
         name="make_rb_objtyp",
         host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_objtyp_banks_size_t=prefix_sum_objtyp_size.host_total_sum_holder_t,
         dev_sel_count_t=calc_rb_substr_size.dev_sel_count_t,
         dev_sel_sv_count_t=calc_rb_hits_size.dev_sel_sv_count_t,
-        dev_sel_track_count_t=calc_rb_hits_size.dev_sel_track_count_t)
+        dev_sel_track_count_t=calc_rb_hits_size.dev_sel_track_count_t,
+        dev_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t)
 
     calc_selrep_size = make_algorithm(
         calc_selrep_size_t,
         name="calc_selrep_size",
         host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
         dev_rb_hits_offsets_t=prefix_sum_hits_size.dev_output_buffer_t,
         dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
         dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t,
@@ -297,6 +305,7 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_selrep_size_t=prefix_sum_selrep_size.host_total_sum_holder_t,
         dev_selrep_offsets_t=prefix_sum_selrep_size.dev_output_buffer_t,
+        dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
         dev_rb_hits_offsets_t=prefix_sum_hits_size.dev_output_buffer_t,
         dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
         dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t,
