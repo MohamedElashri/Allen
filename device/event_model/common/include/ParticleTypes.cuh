@@ -4,6 +4,7 @@
 #include "BackendCommon.h"
 #include "Common.h"
 #include "ConsolidatedTypes.cuh"
+#include "States.cuh"
 
 #include "PV_Definitions.cuh"
 
@@ -114,6 +115,13 @@ namespace Allen {
         }
 
         __host__ __device__ float eta() const { return atanhf(pz() / p()); }
+
+        __host__ __device__ operator MiniState() const { return MiniState {x(), y(), z(), tx(), ty()}; }
+
+        __host__ __device__ operator KalmanVeloState() const
+        {
+          return KalmanVeloState {x(), y(), z(), tx(), ty(), c00(), c20(), c22(), c11(), c31(), c33()};
+        }
 
       };
 

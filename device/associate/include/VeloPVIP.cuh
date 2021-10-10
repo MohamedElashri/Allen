@@ -19,7 +19,7 @@ namespace velo_pv_ip {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
-    DEVICE_INPUT(dev_velo_kalman_beamline_states_view_t, Allen::Views::Velo::Consolidated::States)
+    DEVICE_INPUT(dev_velo_kalman_beamline_states_view_t, Allen::Views::Physics::KalmanStates)
     dev_velo_kalman_beamline_states_view;
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;

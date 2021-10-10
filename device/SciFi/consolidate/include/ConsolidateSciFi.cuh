@@ -17,7 +17,7 @@ namespace scifi_consolidate_tracks {
     HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned)
     host_accumulated_number_of_hits_in_scifi_tracks;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;

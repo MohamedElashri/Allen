@@ -76,7 +76,7 @@ namespace Distance {
 } // namespace Distance
 
 __device__ void associate(
-  const Allen::Views::Velo::Consolidated::States& velo_kalman_states,
+  const Allen::Views::Physics::KalmanStates& velo_kalman_states,
   Allen::device::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table)
 {

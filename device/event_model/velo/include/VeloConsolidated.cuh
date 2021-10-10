@@ -8,6 +8,7 @@
 #include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidatedTypes.cuh"
+#include "ParticleTypes.cuh"
 #include "BackendCommon.h"
 
 namespace Allen {
@@ -230,7 +231,10 @@ namespace Allen {
             return m_hits->hit(m_offset + index);
           }
 
-          __host__ __device__ State state(const States& states_view) const { return states_view.state(m_track_index); }
+          __host__ __device__ Allen::Views::Physics::KalmanState state(const Allen::Views::Physics::KalmanStates& states_view) const 
+          { 
+            return states_view.state(m_track_index); 
+          }
 
           __host__ __device__ unsigned number_of_ids() const override { return number_of_hits(); }
 
@@ -353,10 +357,11 @@ namespace Velo {
 
     typedef const Tracks ConstTracks;
 
+    // TODO: Use the same states for Kalman filter and VELO.
     /**
      * @brief States data structure.
      * @detail An SOA of two AOS is used:
-     *         SOA{AOS{x, y, tx, ty, z}, AOS{c00, c20, c22, c11, c31, c33}}
+     *         SOA{AOS{x, y, z, tx, ty, qop}, AOS{c00, c20, c22, c11, c31, c33, chi2, ndof}}
      *
      * @tparam T
      */

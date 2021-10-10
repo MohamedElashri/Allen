@@ -9,6 +9,8 @@
 #include "Common.h"
 #include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
+#include "ParticleTypes.cuh"
+#include "patPV_Definitions.cuh"
 
 namespace velo_kalman_filter {
   /**
@@ -160,13 +162,25 @@ namespace velo_kalman_filter {
     DEVICE_OUTPUT(dev_velo_kalman_endvelo_states_t, char) dev_velo_kalman_endvelo_states;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_kalman_beamline_states_view_t,
+<<<<<<< HEAD
       DEPENDENCIES(dev_velo_kalman_beamline_states_t, dev_offsets_all_velo_tracks_t),
       Allen::Views::Velo::Consolidated::States)
+=======
+      Allen::Views::Physics::KalmanStates,
+      dev_velo_kalman_beamline_states_t,
+      dev_offsets_all_velo_tracks_t)
+>>>>>>> c79d72be5 (Use KalmanStates everywhere)
     dev_velo_kalman_beamline_states_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_kalman_endvelo_states_view_t,
+<<<<<<< HEAD
       DEPENDENCIES(dev_velo_kalman_endvelo_states_t, dev_offsets_all_velo_tracks_t),
       Allen::Views::Velo::Consolidated::States)
+=======
+      Allen::Views::Physics::KalmanStates,
+      dev_velo_kalman_endvelo_states_t,
+      dev_offsets_all_velo_tracks_t)
+>>>>>>> c79d72be5 (Use KalmanStates everywhere)
     dev_velo_kalman_endvelo_states_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
