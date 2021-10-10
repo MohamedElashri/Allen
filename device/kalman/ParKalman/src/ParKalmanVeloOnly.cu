@@ -540,11 +540,12 @@ __global__ void kalman_velo_only::kalman_velo_only(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Forward tracks.
-  const unsigned total_number_of_tracks = parameters.dev_atomics_scifi[event_number];
+  const unsigned total_number_of_tracks = parameters.dev_atomics_scifi[number_of_events];
   const auto scifi_tracks_view = parameters.dev_scifi_tracks_view[event_number];
 
   parameters.dev_kalman_states_view[event_number] = Allen::Views::Physics::KalmanStates {
     parameters.dev_kalman_fit_results, parameters.dev_atomics_scifi, event_number, number_of_events};
+  // TODO: It'd be nice not to need the total number of tracks here.
   Velo::Consolidated::States kalman_states {parameters.dev_kalman_fit_results, total_number_of_tracks};
 
   // Loop over SciFi tracks and get associated UT and VELO tracks.
