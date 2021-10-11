@@ -100,7 +100,6 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
     parameters.dev_multi_final_vertices,
     parameters.dev_kalman_pv_tables,
     parameters.dev_is_muon,
-    nullptr,
     parameters.dev_atomics_scifi,
     event_number * PV::max_number_vertices,
     event_number};

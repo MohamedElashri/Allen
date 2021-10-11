@@ -12,6 +12,8 @@ namespace Allen {
   namespace Views {
     namespace Physics {
 
+      // TODO: Should really put this in AssociateConsolidated.cuh, but this was
+      // just easier.
       struct PVTable {
       private:
         const unsigned* m_base_pointer = nullptr;
@@ -302,7 +304,6 @@ namespace Allen {
         // Could store muon and calo PID in a single array, but they're created by
         // different algorithms and might not always exist.
         const bool* m_muon_id = nullptr;
-        const unsigned* m_calo_id = nullptr;
         unsigned m_index = 0;
 
 
@@ -312,10 +313,9 @@ namespace Allen {
           const KalmanStates* states,
           const PV::Vertex* pv,
           const bool* muon_id,
-          const unsigned* calo_id,
           const unsigned index) :
           m_track(track), m_states(states), m_pv(pv), 
-          m_muon_id(muon_id), m_calo_id(calo_id), m_index(index)
+          m_muon_id(muon_id), m_index(index)
         {
           // Make sure this isn't a composite ID structure.
           // TODO: Is this sensible at all?
@@ -336,6 +336,8 @@ namespace Allen {
         {
           return m_states->state(m_index);
         }
+
+        __host__ __device__ const PV::Vertex* pv() const { return m_pv; }
 
         __host__ __device__ float px() const 
         { 
@@ -384,12 +386,9 @@ namespace Allen {
           return m_muon_id[m_index]; 
         }
 
-        // TODO: Not sure if this is how the electron ID works.
-        __host__ __device__ bool is_electron() const 
-        { 
-          assert(m_electron_id = nullptr);
-          return m_calo_id[m_index]; 
-        }
+        __host__ __device__ float chi2() const { return state().chi2(); }
+
+        __host__ __device__ unsigned ndof() const { return state().ndof(); }
 
         __host__ __device__ float ip_chi2() const 
         {
@@ -448,7 +447,6 @@ namespace Allen {
         const PV::Vertex* m_pvs = nullptr;
         const PVTable* m_pv_table = nullptr;
         const bool* m_muon_id = nullptr;
-        const unsigned* m_calo_id = nullptr;
         unsigned m_offset = 0;
         unsigned m_size = 0;
 
@@ -459,7 +457,6 @@ namespace Allen {
           const PV::Vertex* pvs,
           const PVTable* pv_table,
           const bool* muon_id,
-          const unsigned* calo_id,
           const unsigned* track_offsets, 
           const unsigned pv_offset,
           const unsigned event_number) :
@@ -469,7 +466,6 @@ namespace Allen {
           m_pvs(pvs + pv_offset),
           m_pv_table(pv_table + event_number),
           m_muon_id(muon_id + track_offsets[event_number]),
-          m_calo_id(calo_id + track_offsets[event_number]),
           m_offset(track_offsets[event_number]),
           m_size(track_offsets[event_number + 1] - track_offsets[event_number])
         {}
@@ -488,12 +484,15 @@ namespace Allen {
 
         __host__ __device__ const BasicParticle particle(const unsigned index) const
         {
+          printf("%u\n", m_muon_id[m_offset + index]);
+          printf("%f\n", m_pvs[m_pv_table->pv(index)].chi2);
+          printf("%f\n", m_states->state(index).pt());
+          printf("%u\n", dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index))->number_of_ids());
           return BasicParticle {
             dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index)),
             m_states,
             m_pvs + m_pv_table->pv(index),
             m_muon_id,
-            m_calo_id,
             index};
         }
 
