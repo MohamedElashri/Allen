@@ -52,11 +52,12 @@ class Property():
 
 
 class Parameter():
-    def __init__(self, typename, datatype, is_input, typedef, aggregate, optional):
+    def __init__(self, typename, datatype, is_input, typedef, aggregate, optional, dependencies):
         self.typename = typename
         self.typedef = typedef
         self.aggregate = aggregate
         self.optional = optional
+        self.dependencies = dependencies
         if datatype == "host_datatype":
             self.scope = "host"
             if is_input:
@@ -197,6 +198,7 @@ class AlgorithmTraversal():
             typedef = None
             aggregate = False
             optional = False
+            dependencies = []
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER and child.type.spelling in AlgorithmTraversal.__parameter_io_datatypes:
                     kind = child.type.spelling
@@ -209,11 +211,14 @@ class AlgorithmTraversal():
                     # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
                     typedef = [a.type.spelling
                                for a in child.get_children()][0]
-            if typedef == "" or typedef == "int" or aggregate: # TODO: Change this aggregate ugliness to something else
+                    if child.result_type.get_num_template_arguments() > 1:
+                        for i in range(1, child.result_type.get_num_template_arguments()):
+                            dependencies.append(child.result_type.get_template_argument_type(i).spelling)
+            if typedef == "" or typedef == "int" or aggregate:
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
             if kind and typedef and io != None:
-                return ("Parameter", typename, kind, io, typedef, aggregate, optional)
+                return ("Parameter", typename, kind, io, typedef, aggregate, optional, dependencies)
         elif is_property:
             # - There is a function (property) which captures:
             #   * f.type.spelling: The type (restricted to POD types)

@@ -52,10 +52,7 @@ class UnorderedStore {
   std::unordered_map<std::string, ArgumentData> m_store;
 
 public:
-  ArgumentData& at(const std::string& k)
-  {
-    return m_store.at(k);
-  }
+  ArgumentData& at(const std::string& k) { return m_store.at(k); }
 
   void emplace(const std::string& k, ArgumentData&& t)
   {
@@ -91,9 +88,7 @@ public:
     m_store_ref(store_ref), m_input_aggregates(input_aggregates)
   {}
 
-  ArgumentRefManager(store_ref_t store_ref) :
-    m_store_ref(store_ref)
-  {}
+  ArgumentRefManager(store_ref_t store_ref) : m_store_ref(store_ref) {}
 
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
   typename T::type* pointer() const
@@ -225,8 +220,7 @@ static auto makeInputAggregate(std::tuple<Ts&...> tp)
 #define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                             \
   struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                    \
     using type = InputAggregate<__VA_ARGS__>;                                                        \
-    void parameter(__VA_ARGS__) const {}                                                             \
-    using deps = std::tuple<>;                                                                       \
+    void parameter(__VA_ARGS__) const;                                                               \
     ARGUMENT_NAME() = default;                                                                       \
     ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                         \
     template<typename... Ts>                                                                         \

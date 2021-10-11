@@ -54,7 +54,8 @@ class Parser():
     @staticmethod
     def get_all_filenames(prefix_project_folder):
         return Parser.__get_filenames(prefix_project_folder + Parser.__device_folder, Parser.__sought_extensions_compiled) + \
-            Parser.__get_filenames(prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
+            Parser.__get_filenames(
+                prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
     def parse_all(prefix_project_folder, algorithm_parser=AlgorithmTraversal()):
@@ -126,8 +127,13 @@ class AlgorithmCategory(Enum):\n\
         s += AllenCore.prefix(i) + "__slots__ = OrderedDict(\n"
         i += 1
         for param in algorithm.parameters:
-            s += AllenCore.prefix(i) + param.typename + " = AllenDataHandle(\"" + param.scope + "\", \"" + param.typename + "\", \"" \
-                + AllenCore.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
+            dependencies = [
+                "\"" + dep.replace(algorithm.namespace + "::Parameters::", "") + "\"" for dep in param.dependencies]
+            dependencies = "[" + \
+                ", ".join(dependencies) + "]" if dependencies else "[]"
+            s += AllenCore.prefix(i) + param.typename + " = AllenDataHandle(\"" + param.scope + "\", " + dependencies + ", \"" + param.typename + "\", \"" \
+                + AllenCore.create_var_type(param.kind) + \
+                "\", \"" + str(param.typedef) + "\"),\n"
         for prop in algorithm.properties:
             s += AllenCore.prefix(i) + prop.name[1:-1] + " = \"\",\n"
         s = s[:-2]
@@ -194,17 +200,15 @@ class AlgorithmCategory(Enum):\n\
             for p, init in zip(algorithm.properties, properties_initialization)
         ]
         properties += [
-          # a property indicating that it contains optionals
-          'Gaudi::Property<bool> m_hasOptionals{this, "hasOptionals", true};'
+            # a property indicating that it contains optionals
+            'Gaudi::Property<bool> m_hasOptionals{this, "hasOptionals", true};'
         ]
-
 
         # split into aggregates and normal inputs
         inputs = [
             parameter for parameter in algorithm.parameters
             if "input" in parameter.kind.lower() and not parameter.aggregate
         ]
-
 
         aggregates = [
             parameter for parameter in algorithm.parameters
@@ -216,7 +220,7 @@ class AlgorithmCategory(Enum):\n\
         ]
 
         aggregate_handles = [
-            f"std::vector<DataObjectReadHandle<Allen::parameter_vector<{typ}>>> m_{agg.typename};" for agg,typ in zip(aggregates, aggregate_types)
+            f"std::vector<DataObjectReadHandle<Allen::parameter_vector<{typ}>>> m_{agg.typename};" for agg, typ in zip(aggregates, aggregate_types)
         ]
         aggregate_input_vectors = ["\n".join([
             f"Gaudi::Property<std::vector<std::string>> m_{agg.typename}_locations",
@@ -235,8 +239,8 @@ class AlgorithmCategory(Enum):\n\
             for p in inputs
         ]
 
-        input_handles =[
-            f"DataObjectReadHandle<{typ}> m_{inp.typename} {{this, \"{inp.typename}\", \"\"}};" for inp,typ in zip(inputs, input_types)
+        input_handles = [
+            f"DataObjectReadHandle<{typ}> m_{inp.typename} {{this, \"{inp.typename}\", \"\"}};" for inp, typ in zip(inputs, input_types)
         ] + [
             "DataObjectReadHandle<RuntimeOptions> m_runtime_options {this, \"runtime_options_t\", \"\"};",
             "DataObjectReadHandle<Constants const*> m_constants {this, \"constants_t\", \"\"};",
@@ -252,7 +256,7 @@ class AlgorithmCategory(Enum):\n\
             for p in outputs
         ]
         output_handles = [
-            f"DataObjectWriteHandle<{typ}> m_{out.typename} {{this, \"{out.typename}\", \"\"}};" for out,typ in zip(outputs, output_types)
+            f"DataObjectWriteHandle<{typ}> m_{out.typename} {{this, \"{out.typename}\", \"\"}};" for out, typ in zip(outputs, output_types)
         ]
 
         code = "\n".join((
@@ -277,7 +281,8 @@ class AlgorithmCategory(Enum):\n\
             f"{algorithm.namespace}::{algorithm.name} m_algorithm{{}};\n",
         ))
 
-        code += "\n" + "\n".join(input_handles + output_handles + aggregate_handles + aggregate_input_vectors)
+        code += "\n" + "\n".join(input_handles + output_handles +
+                                 aggregate_handles + aggregate_input_vectors)
         code += "\n" + "\n".join(properties)
         code += "\n" + "\n".join((
             "public:",
@@ -296,11 +301,11 @@ class AlgorithmCategory(Enum):\n\
             f"auto const& {inp.typename} = {inp.typename}_ptr ? *{inp.typename}_ptr : decltype(*{inp.typename}_ptr){{{{}},{{}}}};"
             for inp in inputs if inp.optional
         ))
-            # we need decltype(*{inp.typename}_ptr){{{{}},{{}}}} to initialize a vector with 2 elements (most often ints), such that
-            # the typical access pattern of [event_number], [event_number + 1] for offsets works. Initializing explicitly with 0s fails
-            # if more complicated types are to be initialized.
-            # keep in mind that we only have single events in mind here, so that event_number == 0 is always true.
-            # for gaudi this is a reasonable assumption as it only runs single events at a time.
+        # we need decltype(*{inp.typename}_ptr){{{{}},{{}}}} to initialize a vector with 2 elements (most often ints), such that
+        # the typical access pattern of [event_number], [event_number + 1] for offsets works. Initializing explicitly with 0s fails
+        # if more complicated types are to be initialized.
+        # keep in mind that we only have single events in mind here, so that event_number == 0 is always true.
+        # for gaudi this is a reasonable assumption as it only runs single events at a time.
 
         code += "\n"
         code += "auto const& runtime_options = *m_runtime_options.get();\n"
@@ -329,13 +334,16 @@ class AlgorithmCategory(Enum):\n\
         arg_data_agg_typenames = [
             f"arg_data_{agg.typename}" for agg in aggregates
         ]
-        code += "std::tuple<" + ",".join(aggregate_types_no_type) + "> input_aggregates_tuple {" + ",".join(arg_data_agg_typenames) + "};"
+        code += "std::tuple<" + ",".join(aggregate_types_no_type) + \
+            "> input_aggregates_tuple {" + \
+                ",".join(arg_data_agg_typenames) + "};"
 
         tes_wrappers_list = []
         tes_wrappers_reference_initialization_list = []
         output_container_element = 0
 
-        parameters_non_aggregate = [p for p in algorithm.parameters if not p.aggregate]
+        parameters_non_aggregate = [
+            p for p in algorithm.parameters if not p.aggregate]
 
         for i, p in enumerate(parameters_non_aggregate):
             # Fetch the type of the TES wrapper for parameter p
@@ -362,7 +370,6 @@ class AlgorithmCategory(Enum):\n\
             tes_wrappers_reference_initialization_list)
         tes_wrappers_reference = f"std::array<std::reference_wrapper<ArgumentData>, {len(parameters_non_aggregate)}> tes_wrappers_references {{{tes_wrappers_reference_initialization}}};"
 
-
         # lets call m_algorithm with our newly defined inputs
         # make teswrappers
         code += "\n".join((
@@ -386,7 +393,7 @@ class AlgorithmCategory(Enum):\n\
             index_of_mask_t = [out.typedef for out in outputs].index("mask_t")
             code += f"\nconst auto decision = std::get<{index_of_mask_t}>(output_container).size() ? FilterDecision::PASSED : FilterDecision::FAILED;\n"
         else:
-            #always return passed if its not a filter
+            # always return passed if its not a filter
             code += "\nconst auto decision = FilterDecision::PASSED;\n"
 
         # take return values
@@ -416,8 +423,8 @@ class AlgorithmCategory(Enum):\n\
             for p, init in zip(algorithm.properties, properties_initialization)
         ]
         properties += [
-          # a property indicating that it does not contain optionals
-          'Gaudi::Property<bool> m_hasOptionals{this, "hasOptionals", false};'
+            # a property indicating that it does not contain optionals
+            'Gaudi::Property<bool> m_hasOptionals{this, "hasOptionals", false};'
         ]
 
         inputs = [
@@ -452,9 +459,11 @@ class AlgorithmCategory(Enum):\n\
             if is_filter:
                 base_type = "MultiTransformerFilter"
                 output_type = "std::tuple<" + ",".join(output_types) + ">"
-                operator_output_type = "std::tuple<bool, " + ",".join(output_types) + ">"
+                operator_output_type = "std::tuple<bool, " + \
+                    ",".join(output_types) + ">"
                 output_container = "output_t output_container{};"
-                index_of_mask_t = [out.typedef for out in outputs].index("mask_t")
+                index_of_mask_t = [
+                    out.typedef for out in outputs].index("mask_t")
                 return_statement = f"return std::tuple_cat(std::tuple<bool>{{std::get<{index_of_mask_t}>(output_container).size()}}, output_container);"
             else:
                 base_type = "MultiTransformer"
@@ -477,10 +486,12 @@ class AlgorithmCategory(Enum):\n\
             ("constants_t", "Constants const * const &", "constants")
         ]
 
-        inputs_tuple = ", ".join(input_types + [a[1] for a in additional_inputs])
+        inputs_tuple = ", ".join(
+            input_types + [a[1] for a in additional_inputs])
         operator_inputs = ", ".join(
             [t + " " + i.typename + "_arg" for t, i in zip(input_types, inputs)] +
-            [t + " " + name for t, name in zip([a[1] for a in additional_inputs], [a[2] for a in additional_inputs])]
+            [t + " " + name for t, name in zip([a[1] for a in additional_inputs], [
+                                               a[2] for a in additional_inputs])]
         )
 
         input_keyvals = ", ".join([f'KeyValue("{p.typename}", {{""}})' for p in inputs] + [f"KeyValue(\"{p}\", {{\"\"}})" for p in [a[0] for a in additional_inputs]])
@@ -602,7 +613,8 @@ class AlgorithmCategory(Enum):\n\
 
     @staticmethod
     def write_algorithms_db(algorithms, filename):
-        code = "\n".join(("#pragma once", "", "#include <Configuration.cuh>", "\n"))
+        code = "\n".join(
+            ("#pragma once", "", "#include <Configuration.cuh>", "\n"))
         for alg in algorithms:
             code += f"namespace {alg.namespace} {{ struct {alg.name}; }}\n"
         code += "\nAllen::TypeErasedAlgorithm instantiate_allen_algorithm(const ConfiguredAlgorithm& alg) {\n"
@@ -613,17 +625,16 @@ class AlgorithmCategory(Enum):\n\
                 code += f"  }} else if (alg.id == \"{alg.namespace}::{alg.name}\") {{\n"
             code += f"    return Allen::instantiate_algorithm<{alg.namespace}::{alg.name}>(alg.name);\n"
         code += "\n".join(("  } else {",
-            "    throw AlgorithmNotExportedException{alg.id};",
-            "  }",
-            "}"))
+                           "    throw AlgorithmNotExportedException{alg.id};",
+                           "  }",
+                           "}"))
         with open(filename, "w") as f:
             f.write(code)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description=
-        'Parse the Allen codebase and generate a python representation of all algorithms.'
+        description='Parse the Allen codebase and generate a python representation of all algorithms.'
     )
 
     parser.add_argument(
@@ -655,9 +666,9 @@ if __name__ == '__main__':
         nargs="?",
         type=str,
         default="views",
-        choices=["parsed_algorithms", "views", "wrapperlist", "wrappers", "db"],
-        help=
-        "action that will be performed")
+        choices=["parsed_algorithms", "views",
+                 "wrapperlist", "wrappers", "db"],
+        help="action that will be performed")
 
     args = parser.parse_args()
     if args.generate == "parsed_algorithms":

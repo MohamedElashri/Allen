@@ -5,12 +5,10 @@
 
 #include <array>
 
-// Traits to get type and dependencies
+// Struct to hold the types of the dependencies (libClang)
 namespace {
-  template<typename T, typename... Dependencies>
-  struct parameter_traits {
-    using internal_type = T;
-    using dependencies = std::tuple<Dependencies...>;
+  template<typename... T>
+  struct dependencies {
   };
 } // namespace
 
@@ -47,56 +45,60 @@ protected:
 };
 
 // Input datatypes have read-only accessors.
-template<typename... internal_and_deps_t>
-struct input_datatype : datatype<typename parameter_traits<internal_and_deps_t...>::internal_type> {
-  using type = typename datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>::type;
+template<typename T>
+struct input_datatype : datatype<T> {
+  using type = typename datatype<T>::type;
   __host__ __device__ input_datatype() {}
-  __host__ __device__ input_datatype(type* value) :
-    datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>(value)
-  {}
+  __host__ __device__ input_datatype(type* value) : datatype<T>(value) {}
   __host__ __device__ operator const type*() const { return const_cast<const type*>(this->m_value); }
   __host__ __device__ const type* get() const { return const_cast<const type*>(this->m_value); }
 };
 
 // Output datatypes return pointers that can be modified.
-template<typename... internal_and_deps_t>
-struct output_datatype : datatype<typename parameter_traits<internal_and_deps_t...>::internal_type> {
-  using type = typename datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>::type;
+template<typename T>
+struct output_datatype : datatype<T> {
+  using type = typename datatype<T>::type;
   __host__ __device__ output_datatype() {}
-  __host__ __device__ output_datatype(type* value) :
-    datatype<typename parameter_traits<internal_and_deps_t...>::internal_type>(value)
-  {}
+  __host__ __device__ output_datatype(type* value) : datatype<T>(value) {}
   __host__ __device__ operator type*() const { return this->m_value; }
   __host__ __device__ type* get() const { return this->m_value; }
 };
 
-// Inputs / outputs have an additional parameter method to be able to parse it with libclang.
+// Inputs / outputs have an additional parsable method required for libclang parsing.
 #define DEVICE_INPUT(ARGUMENT_NAME, ...)                                       \
   struct ARGUMENT_NAME : public device_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                         \
-    void parameter(__VA_ARGS__) const {}                                       \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;         \
-  }
-
-#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                       \
-  struct ARGUMENT_NAME : public device_datatype, output_datatype<__VA_ARGS__> { \
-    using output_datatype<__VA_ARGS__>::output_datatype;                        \
-    void parameter(__VA_ARGS__) {}                                              \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;          \
+    void parameter(__VA_ARGS__) const;                                         \
   }
 
 #define HOST_INPUT(ARGUMENT_NAME, ...)                                       \
   struct ARGUMENT_NAME : public host_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                       \
-    void parameter(__VA_ARGS__) const {}                                     \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;       \
+    void parameter(__VA_ARGS__) const;                                       \
+  }
+
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                       \
+  struct ARGUMENT_NAME : public device_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                        \
+    void parameter(__VA_ARGS__);                                                \
   }
 
 #define HOST_OUTPUT(ARGUMENT_NAME, ...)                                       \
   struct ARGUMENT_NAME : public host_datatype, output_datatype<__VA_ARGS__> { \
     using output_datatype<__VA_ARGS__>::output_datatype;                      \
-    void parameter(__VA_ARGS__) {}                                            \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;        \
+    void parameter(__VA_ARGS__);                                              \
+  }
+
+#define DEVICE_OUTPUT_WITH_DEPENDENCIES(ARGUMENT_NAME, DEPS, ...)               \
+  struct ARGUMENT_NAME : public device_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                        \
+    DEPS parameter(__VA_ARGS__);                                                \
+  }
+
+#define HOST_OUTPUT_WITH_DEPENDENCIES(ARGUMENT_NAME, DEPS, ...)               \
+  struct ARGUMENT_NAME : public host_datatype, output_datatype<__VA_ARGS__> { \
+    using output_datatype<__VA_ARGS__>::output_datatype;                      \
+    DEPS parameter(__VA_ARGS__);                                              \
   }
 
 // Support for masks
@@ -112,31 +114,29 @@ struct mask_t {
 #define MASK_INPUT(ARGUMENT_NAME)                                         \
   struct ARGUMENT_NAME : public device_datatype, input_datatype<mask_t> { \
     using input_datatype<mask_t>::input_datatype;                         \
-    void parameter(mask_t) const {}                                       \
-    using deps = std::tuple<>;                                            \
+    void parameter(mask_t) const;                                         \
   }
 
 #define MASK_OUTPUT(ARGUMENT_NAME)                                         \
   struct ARGUMENT_NAME : public device_datatype, output_datatype<mask_t> { \
     using output_datatype<mask_t>::output_datatype;                        \
-    void parameter(mask_t) {}                                              \
-    using deps = std::tuple<>;                                             \
+    void parameter(mask_t);                                                \
   }
 
 // Support for optional input aggregates
 #define DEVICE_INPUT_OPTIONAL(ARGUMENT_NAME, ...)                                                 \
   struct ARGUMENT_NAME : public device_datatype, optional_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                                            \
-    void parameter(__VA_ARGS__) const {}                                                          \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                            \
+    void parameter(__VA_ARGS__) const;                                                            \
   }
 
 #define HOST_INPUT_OPTIONAL(ARGUMENT_NAME, ...)                                                 \
   struct ARGUMENT_NAME : public host_datatype, optional_datatype, input_datatype<__VA_ARGS__> { \
     using input_datatype<__VA_ARGS__>::input_datatype;                                          \
-    void parameter(__VA_ARGS__) const {}                                                        \
-    using deps = typename parameter_traits<__VA_ARGS__>::dependencies;                          \
+    void parameter(__VA_ARGS__) const;                                                          \
   }
+
+#define DEPENDENCIES(...) dependencies<__VA_ARGS__>
 
 using DeviceDimensions = std::array<unsigned, 3>;
 

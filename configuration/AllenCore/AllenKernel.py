@@ -25,6 +25,7 @@ class AllenAlgorithm(object):
 
 
 class AllenDataHandle(GaudiDataHandle):
-    def __init__(self, scope, *args, **kwargs):
+    def __init__(self, scope, dependencies, *args, **kwargs):
         super(AllenDataHandle, self).__init__(*args, **kwargs)
         self.Scope = scope
+        self.Dependencies = dependencies

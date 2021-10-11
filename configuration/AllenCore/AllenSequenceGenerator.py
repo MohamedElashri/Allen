@@ -184,9 +184,12 @@ def generate_json_configuration(algorithms, filename):
         configured_arguments += [[algorithm.type.__slots__[a[0]].Scope, clean_prefix(a[1].location)] for a in list(algorithm.outputs.items())]
 
     configured_sequence_arguments = []
+    argument_dependencies = {}
     for algorithm in algorithms:
         arguments = []
         input_aggregates = []
+        # Temporary map of parameter_name to parameter_full_name
+        param_name_to_full_name = {}
 
         gaudi_data_handles = [p for p in algorithm.type.getDefaultProperties(
         ).items() if isinstance(p[1], GaudiDataHandle)]
@@ -209,41 +212,34 @@ def generate_json_configuration(algorithms, filename):
                 if parameter_name in algorithm.inputs:
                     parameter_location = algorithm.inputs[
                         parameter_name].location
+                    parameter_full_name = clean_prefix(parameter_location)
                 elif parameter_name in algorithm.outputs:
                     parameter_location = algorithm.outputs[
                         parameter_name].location
+                    parameter_full_name = clean_prefix(parameter_location)
+                    # If it is an output, check dependencies
+                    dependencies = algorithm.type.__slots__[parameter_name].Dependencies
+                    if dependencies:
+                        argument_dependencies[parameter_full_name] = []
+                        for dep in dependencies:
+                            argument_dependencies[parameter_full_name].append(param_name_to_full_name[dep])
                 else:
                     raise "Parameter should either be an input or an output"
-                parameter_full_name = clean_prefix(
-                    parameter_location)
-                arguments.append(f"{parameter_full_name}")
+                arguments.append(parameter_full_name)
+                param_name_to_full_name[parameter_name] = parameter_full_name
 
         configured_sequence_arguments.append([arguments, input_aggregates])
 
-    argument_dependencies = {}
-
-    # "sequence": {
-    #   "configured_algorithms": [
-    #     ["host_init_event_list::host_init_event_list_t", "initialize_event_lists"],
-    #     ["host_data_provider::host_data_provider_t", "host_scifi_banks"],
-    #   ],
-    #   "configured_arguments": [
-    #     ["host", "initialize_event_lists__host_event_list_output_t"],
-    #     ["device", "initialize_event_lists__dev_event_list_output_t"],
-    #     ["host", "host_scifi_banks__host_raw_banks_t"],
-    #     ["host", "host_scifi_banks__host_raw_offsets_t"],
-    #     ["host", "host_scifi_banks__host_raw_bank_version_t"]
-    #   ],
-    #   "configured_sequence_arguments": [
-    #     [["initialize_event_lists__host_event_list_output_t", "initialize_event_lists__dev_event_list_output_t"], []],
-    #     [["host_scifi_banks__host_raw_banks_t",
-    #     "host_scifi_banks__host_raw_offsets_t",
-    #     "host_scifi_banks__host_raw_bank_version_t"], []]
-    #   ],
-    #   "argument_dependencies": {
-    #     "host_scifi_banks__host_raw_banks_t": ["initialize_event_lists__host_event_list_output_t"]
-    #   }
-    # }
+    for algorithm in algorithms:
+        gaudi_data_handles = [p for p in algorithm.type.getDefaultProperties(
+        ).items() if isinstance(p[1], GaudiDataHandle)]
+        for (
+                parameter_name,
+                parameter,
+        ) in gaudi_data_handles:
+            dependencies = algorithm.type.__slots__[parameter_name].Dependencies
+            if parameter_name in algorithm.outputs and dependencies:
+                print(parameter_name, dependencies)
 
     sequence_json["sequence"] = {
         "configured_algorithms": configured_algorithms,
