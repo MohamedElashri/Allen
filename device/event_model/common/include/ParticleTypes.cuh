@@ -4,6 +4,7 @@
 #include "BackendCommon.h"
 #include "Common.h"
 #include "ConsolidatedTypes.cuh"
+#include "AssociateConsolidated.cuh"
 #include "States.cuh"
 
 #include "PV_Definitions.cuh"
@@ -406,6 +407,7 @@ namespace Allen {
         const ILHCbIDContainer* m_track_container = nullptr;
         const KalmanState* m_states = nullptr;
         const PV::Vertex* m_pvs = nullptr;
+        const Allen::Views::Associate:PVTable* pv_table = m_nullptr;
         const unsigned* m_muon_id = nullptr;
         const unsigned* m_calo_id = nullptr;
         unsigned m_offset = 0;
@@ -416,15 +418,17 @@ namespace Allen {
           const ILHCbIDContainer* track_container, 
           const KalmanState* states,
           const PV::Vertex* pvs,
+          const Allen::Views::Associate::PVTable* pv_table,
           const unsigned* muon_id,
           const unsigned* calo_id,
           const unsigned* track_offsets, 
-          const unsigned* pv_offsets,
+          const unsigned pv_offset,
           const unsigned event_number) :
           m_track_container(track_container),
           m_states(states + track_offsets[event_number]),
           // Need PVs and the association table. This doesn't make any sense without them.
-          m_pvs(pvs + pv_offsets[event_number]),
+          m_pvs(pvs + pv_offset),
+          m_pv_table(pv_table + event_number),
           m_muon_id(muon_id + track_offsets[event_number]),
           m_calo_id(calo_id + track_offsets[event_number]),
           m_offset(track_offsets[event_number]),

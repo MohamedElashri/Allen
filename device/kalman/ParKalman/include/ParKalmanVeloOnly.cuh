@@ -109,6 +109,15 @@ namespace kalman_velo_only {
       Allen::Views::Associate::PVTable,
       dev_kalman_pv_ipchi2_t)
     dev_kalman_pv_tables;
+    DEVICE_OUTPUT(
+      dev_long_track_particles_t,
+      Allen::Views::Physics::BasicParticles,
+      dev_scifi_tracks_view_t,
+      dev_kalman_states_view_t,
+      dev_multi_final_vertices_t,
+      dev_kalman_pv_tables_t,
+      dev_is_muon_t)
+    dev_long_track_particles;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

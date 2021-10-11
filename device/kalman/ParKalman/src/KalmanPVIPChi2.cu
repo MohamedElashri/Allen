@@ -93,4 +93,15 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
 
   // Perform the association for this event.
   associate_and_muon_id(event_tracks, kalman_states_view, event_is_muon, vertices, pv_table);
+
+  parameters.dev_long_track_particles[event_number] = Allen::Views::Physics::BasicParticle {
+    &scifi_tracks_view,
+    &kalman_states_view,
+    parameters.dev_multi_final_vertices,
+    parameters.dev_kalman_pv_tables,
+    parameters.dev_is_muon,
+    nullptr,
+    parameters.dev_atomics_scifi,
+    event_number * PV::max_number_of_vertices,
+    event_number}
 }
