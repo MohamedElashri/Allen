@@ -106,7 +106,7 @@ namespace kalman_velo_only {
     dev_kalman_states_view;
     DEVICE_OUTPUT(
       dev_kalman_pv_tables_t,
-      Allen::Views::Associate::PVTable,
+      Allen::Views::Physics::PVTable,
       dev_kalman_pv_ipchi2_t)
     dev_kalman_pv_tables;
     DEVICE_OUTPUT(

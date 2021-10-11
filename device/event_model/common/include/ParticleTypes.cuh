@@ -4,7 +4,6 @@
 #include "BackendCommon.h"
 #include "Common.h"
 #include "ConsolidatedTypes.cuh"
-#include "AssociateConsolidated.cuh"
 #include "States.cuh"
 
 #include "PV_Definitions.cuh"
@@ -12,6 +11,40 @@
 namespace Allen {
   namespace Views {
     namespace Physics {
+
+      struct PVTable {
+      private:
+        const unsigned* m_base_pointer = nullptr;
+        unsigned m_offset = 0;
+        unsigned m_total_number = 0;
+        unsigned m_size = 0;
+
+      public:
+        __host__ __device__ PVTable (
+          const char* base_pointer,
+          const unsigned offset,
+          const unsigned total_number,
+          const unsigned size) :
+          m_base_pointer(reinterpret_cast<const unsigned*>(base_pointer)),
+          m_offset(offset),
+          m_total_number(total_number),
+          m_size(size)
+        {}
+
+        __host__ __device__ unsigned total_number() const { return m_total_number; }
+
+        __host__ __device__ unsigned pv(const unsigned index) const
+        {
+          return *(m_base_pointer + 2 + m_offset + index);
+        }
+
+        __host__ __device__ float value(const unsigned index) const
+        {
+          return *reinterpret_cast<const float*>(m_base_pointer + 2 + m_offset + m_total_number + index);
+        }
+
+        __host__ __device__ unsigned size() { return m_size; }
+      };
 
       struct KalmanState {
       private:
@@ -264,23 +297,24 @@ namespace Allen {
       struct BasicParticle : ILHCbIDSequence {
       private:
         const ILHCbIDSequence* m_track = nullptr;
-        const KalmanState* m_state = nullptr;
+        const KalmanStates* m_states = nullptr;
         const PV::Vertex* m_pv = nullptr; // PV event model should be rebuilt too.
         // Could store muon and calo PID in a single array, but they're created by
         // different algorithms and might not always exist.
-        const unsigned* m_muon_id = nullptr;
+        const bool* m_muon_id = nullptr;
         const unsigned* m_calo_id = nullptr;
-        const unsigned m_index = 0;
+        unsigned m_index = 0;
+
 
       public:
         __host__ __device__ BasicParticle(
           const ILHCbIDSequence* track,
-          const KalmanState* state,
+          const KalmanStates* states,
           const PV::Vertex* pv,
-          const unsigned* muon_id,
+          const bool* muon_id,
           const unsigned* calo_id,
           const unsigned index) :
-          m_track(track), m_state(state), m_pv(pv), 
+          m_track(track), m_states(states), m_pv(pv), 
           m_muon_id(muon_id), m_calo_id(calo_id), m_index(index)
         {
           // Make sure this isn't a composite ID structure.
@@ -298,46 +332,51 @@ namespace Allen {
           return m_track->id(index);
         }
 
+        __host__ __device__ KalmanState state() const
+        {
+          return m_states->state(m_index);
+        }
+
         __host__ __device__ float px() const 
         { 
           assert(m_state != nullptr);
-          return m_state->px(); 
+          return state().px(); 
         }
 
         __host__ __device__ float py() const 
         { 
           assert(m_state != nullptr);
-          return m_state->py(); 
+          return state().py(); 
         }
 
         __host__ __device__ float pz() const 
         { 
           assert(m_state != nullptr);
-          return m_state->pz(); 
+          return state().pz(); 
         }
 
         __host__ __device__ float p() const 
         { 
           assert(m_state != nullptr);
-          return m_state->p(); 
+          return state().p(); 
         }
 
         __host__ __device__ float e(const float mass) const 
         {
           assert(m_state != nullptr);
-          return m_state->e(mass); 
+          return state().e(mass); 
         }
 
         __host__ __device__ float pt() const 
         { 
           assert(m_state != nullptr);
-          return m_state->pt(); 
+          return state().pt(); 
         }
 
         __host__ __device__ float eta() const 
         { 
           assert(m_state != nullptr);
-          return m_state->eta(); 
+          return state().eta(); 
         }
 
         __host__ __device__ bool is_muon() const {
@@ -358,21 +397,21 @@ namespace Allen {
           assert(m_state != nullptr);
 
           // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
-          const float tx = m_state->tx();
-          const float ty = m_state->ty();
-          const float dz = m_pv->position.z - m_state->z();
-          const float dx = m_state->x() + dz * tx - m_pv->position.x;
-          const float dy = m_state->y() + dz * ty - m_pv->position.y;
+          const float tx = state().tx();
+          const float ty = state().ty();
+          const float dz = m_pv->position.z - state().z();
+          const float dx = state().x() + dz * tx - m_pv->position.x;
+          const float dy = state().y() + dz * ty - m_pv->position.y;
 
           // compute the covariance matrix. first only the trivial parts:
-          float cov00 = m_pv->cov00 + m_state->c00();
+          float cov00 = m_pv->cov00 + state().c00();
           float cov10 = m_pv->cov10; // state c10 is 0.f
-          float cov11 = m_pv->cov11 + m_state->c11();
+          float cov11 = m_pv->cov11 + state().c11();
 
           // add the contribution from the extrapolation
-          cov00 += dz * dz * m_state->c22() + 2 * dz * m_state->c20();
+          cov00 += dz * dz * state().c22() + 2 * dz * state().c20();
           // cov10 is unchanged: state c32 = c30 = c21 = 0.f
-          cov11 += dz * dz * m_state->c33() + 2 * dz * m_state->c31();
+          cov11 += dz * dz * state().c33() + 2 * dz * state().c31();
 
           // add the contribution from pv z
           cov00 += tx * tx * m_pv->cov22 - 2 * tx * m_pv->cov20;
@@ -393,11 +432,11 @@ namespace Allen {
         __host__ __device__ float ip() const
         {
           assert(m_pv != nullptr);
-          const float tx = m_state->tx();
-          const float ty = m_state->ty();
-          const float dz = m_pv->position.z - m_state->z();
-          const float dx = m_state->x() + dz * tx - m_pv->position.x;
-          const float dy = m_state->y() + dz * ty - m_pv->position.y;
+          const float tx = state().tx();
+          const float ty = state().ty();
+          const float dz = m_pv->position.z - state().z();
+          const float dx = state().x() + dz * tx - m_pv->position.x;
+          const float dy = state().y() + dz * ty - m_pv->position.y;
           return sqrtf((dx * dx + dy * dy)/(1.0f + tx * tx + ty * ty));
         }
       };
@@ -405,10 +444,10 @@ namespace Allen {
       struct BasicParticles : ILHCbIDContainer {
       private:
         const ILHCbIDContainer* m_track_container = nullptr;
-        const KalmanState* m_states = nullptr;
+        const KalmanStates* m_states = nullptr;
         const PV::Vertex* m_pvs = nullptr;
-        const Allen::Views::Associate:PVTable* pv_table = m_nullptr;
-        const unsigned* m_muon_id = nullptr;
+        const PVTable* m_pv_table = nullptr;
+        const bool* m_muon_id = nullptr;
         const unsigned* m_calo_id = nullptr;
         unsigned m_offset = 0;
         unsigned m_size = 0;
@@ -416,10 +455,10 @@ namespace Allen {
       public:
         __host__ __device__ BasicParticles(
           const ILHCbIDContainer* track_container, 
-          const KalmanState* states,
+          const KalmanStates* states,
           const PV::Vertex* pvs,
-          const Allen::Views::Associate::PVTable* pv_table,
-          const unsigned* muon_id,
+          const PVTable* pv_table,
+          const bool* muon_id,
           const unsigned* calo_id,
           const unsigned* track_offsets, 
           const unsigned pv_offset,
@@ -451,8 +490,8 @@ namespace Allen {
         {
           return BasicParticle {
             dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index)),
-            m_states + index,
-            m_pvs + index,
+            m_states,
+            m_pvs + m_pv_table->pv(index),
             m_muon_id,
             m_calo_id,
             index};
