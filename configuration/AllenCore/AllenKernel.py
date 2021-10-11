@@ -28,21 +28,3 @@ class AllenDataHandle(GaudiDataHandle):
     def __init__(self, scope, *args, **kwargs):
         super(AllenDataHandle, self).__init__(*args, **kwargs)
         self.Scope = scope
-
-    def __getstate__(self):
-        return super(AllenDataHandle, self).__getstate__()
-
-    def __setstate__(self, state):
-        return super(AllenDataHandle, self).__setstate__(state)
-
-    def __eq__(self, other):
-        return super(AllenDataHandle, self).__eq__(other)
-
-    def __ne__(self, other):
-        return super(AllenDataHandle, self).__ne__(other)
-
-    def __str__(self):
-        return super(AllenDataHandle, self).__str__()
-
-    def __repr__(self):
-        return super(AllenDataHandle, self).__repr__()
