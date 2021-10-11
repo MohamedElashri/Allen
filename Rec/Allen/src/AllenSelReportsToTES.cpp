@@ -27,9 +27,6 @@ public:
   // Standard constructor
   AllenSelReportsToTES(const std::string& name, ISvcLocator* pSvcLocator);
 
-  // initialization
-  StatusCode initialize() override;
-
   // Algorithm execution
   LHCb::RawEvent operator()(const HostBuffers&) const override;
 
@@ -50,26 +47,15 @@ AllenSelReportsToTES::AllenSelReportsToTES(const std::string& name, ISvcLocator*
     {KeyValue {"OutputSelReports", "Allen/Out/RawSelReports"}})
 {}
 
-StatusCode AllenSelReportsToTES::initialize()
-{
-  auto sc = Transformer::initialize();
-
-  if (sc.isFailure()) return sc;
-  if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
-
-  return StatusCode::SUCCESS;
-}
-
 LHCb::RawEvent AllenSelReportsToTES::operator()(const HostBuffers& host_buffers) const
 {
 
-  std::vector<unsigned int> sel_report;
-  unsigned selrep_size = host_buffers.host_sel_reports[0];
-  for (unsigned i = 0; i < selrep_size; i++) {
-    sel_report.push_back(host_buffers.host_sel_reports[i]);
-  }
   LHCb::RawEvent raw_event;
-  raw_event.addBank(int(1 << 13), LHCb::RawBank::HltSelReports, 9u, sel_report);
+  // TODO: get these hard coded numbers from somewhere else... should be defined in one location only!
+  constexpr auto hlt1SourceID = (1u << 13);
+  constexpr auto sel_rep_version = 9u, dec_rep_version = 2u;
+  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltSelReports, sel_rep_version, host_buffers.host_sel_reports);
+  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltDecReports, dec_rep_version, host_buffers.host_dec_reports);
 
   return raw_event;
 }
