@@ -121,7 +121,7 @@ namespace Allen {
 
         __host__ __device__ float px() const 
         {
-          return (ty() / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty());
+          return (tx() / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty());
         }
 
         __host__ __device__ float py() const 
@@ -461,7 +461,7 @@ namespace Allen {
           const unsigned pv_offset,
           const unsigned event_number) :
           m_track_container(track_container),
-          m_states(states + track_offsets[event_number]),
+          m_states(states),
           // Need PVs and the association table. This doesn't make any sense without them.
           m_pvs(pvs + pv_offset),
           m_pv_table(pv_table + event_number),
@@ -484,10 +484,6 @@ namespace Allen {
 
         __host__ __device__ const BasicParticle particle(const unsigned index) const
         {
-          printf("%u\n", m_muon_id[m_offset + index]);
-          printf("%f\n", m_pvs[m_pv_table->pv(index)].chi2);
-          printf("%f\n", m_states->state(index).pt());
-          printf("%u\n", dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index))->number_of_ids());
           return BasicParticle {
             dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index)),
             m_states,

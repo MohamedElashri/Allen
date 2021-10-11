@@ -114,6 +114,7 @@ namespace kalman_velo_only {
       Allen::Views::Physics::BasicParticles,
       dev_scifi_tracks_view_t,
       dev_kalman_states_view_t,
+      dev_kalman_fit_results_t,
       dev_multi_final_vertices_t,
       dev_kalman_pv_tables_t,
       dev_is_muon_t)

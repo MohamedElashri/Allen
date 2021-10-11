@@ -94,13 +94,26 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
   // Perform the association for this event.
   associate_and_muon_id(event_tracks, kalman_states_view, event_is_muon, vertices, pv_table);
 
-  parameters.dev_long_track_particles[event_number] = Allen::Views::Physics::BasicParticles {
-    &scifi_tracks_view,
-    &kalman_states_view,
-    parameters.dev_multi_final_vertices,
-    parameters.dev_kalman_pv_tables,
-    parameters.dev_is_muon,
-    parameters.dev_atomics_scifi,
-    event_number * PV::max_number_vertices,
-    event_number};
+  if (threadIdx.x == 0) {
+    new (parameters.dev_long_track_particles + event_number) 
+      Allen::Views::Physics::BasicParticles {
+        parameters.dev_scifi_tracks_view + event_number,
+        parameters.dev_kalman_states_view + event_number,
+        parameters.dev_multi_final_vertices,
+        parameters.dev_kalman_pv_tables,
+        parameters.dev_is_muon,
+        parameters.dev_atomics_scifi,
+        event_number * PV::max_number_vertices,
+        event_number};
+  }
+
+  __syncthreads();
+
+  // TODO: This can be removed once BasicParticles are used in selections.
+  const auto particles = parameters.dev_long_track_particles[event_number];
+  for (uint i = 0; i < particles.size(); i++) {
+    const auto particle = particles.particle(i);
+    event_tracks[i].ip = particle.ip();
+  }
+
 }
