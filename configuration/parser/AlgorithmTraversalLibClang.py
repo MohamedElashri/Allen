@@ -208,12 +208,10 @@ class AlgorithmTraversal():
                     optional = True
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
-                    # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
                     typedef = [a.type.spelling
                                for a in child.get_children()][0]
-                    if child.result_type.get_num_template_arguments() > 1:
-                        for i in range(1, child.result_type.get_num_template_arguments()):
-                            dependencies.append(child.result_type.get_template_argument_type(i).spelling)
+                    for i in range(child.result_type.get_num_template_arguments()):
+                        dependencies.append(child.result_type.get_template_argument_type(i).spelling)
             if typedef == "" or typedef == "int" or aggregate:
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
