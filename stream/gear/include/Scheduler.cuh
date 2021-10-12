@@ -255,24 +255,6 @@ private:
     const Allen::Context& context,
     bool do_print)
   {
-    // // Get pre and postconditions -- conditional on `contracts_enabled`
-    // // Starting at -O1, gcc will entirely remove the contracts code when not enabled, see
-    // // https://godbolt.org/z/67jxx7
-    // using algorithm_contracts = Sch::AlgorithmContracts<typename Alg::contracts>;
-    // auto preconditions =
-    //   std::conditional_t<contracts_enabled, typename algorithm_contracts::preconditions, std::tuple<>> {};
-    // auto postconditions =
-    //   std::conditional_t<contracts_enabled, typename algorithm_contracts::postconditions, std::tuple<>> {};
-
-    // // Set location
-    // const auto location = algorithm->name();
-    // std::apply(
-    //   [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-    //   preconditions);
-    // std::apply(
-    //   [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-    //   postconditions);
-
     // Sets the arguments sizes
     algorithm.set_arguments_size(
       argument_ref_manager, runtime_options, constants, host_buffers);
@@ -281,12 +263,8 @@ private:
     setup(
       algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
 
-    // // Run preconditions
-    // std::apply(
-    //   [&](const auto&... contract) {
-    //     (std::invoke(contract, arguments_tuple, runtime_options, constants, context), ...);
-    //   },
-    //   preconditions);
+    // Run preconditions
+    algorithm.run_preconditions(argument_ref_manager, runtime_options, constants, context);
 
     try {
       // Invoke the algorithm
@@ -296,11 +274,7 @@ private:
       throw e;
     }
 
-    // // Run postconditions
-    // std::apply(
-    //   [&](const auto&... contract) {
-    //     (std::invoke(contract, arguments_tuple, runtime_options, constants, context), ...);
-    //   },
-    //   postconditions);
+    // Run postconditions
+    algorithm.run_postconditions(argument_ref_manager, runtime_options, constants, context);
   }
 };

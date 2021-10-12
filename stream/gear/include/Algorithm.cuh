@@ -16,6 +16,13 @@
 #include <any>
 
 namespace {
+  // use constexpr flag to enable/disable contracts
+#ifdef ENABLE_CONTRACTS
+  constexpr bool contracts_enabled = true;
+#else
+  constexpr bool contracts_enabled = false;
+#endif
+
   // Get the ArgumentRefManagerType from the function operator()
   template<typename Function>
   struct FunctionTraits;
@@ -41,6 +48,33 @@ namespace {
 } // namespace
 
 namespace Allen {
+  template<typename ContractsTuple, typename Enabled = void>
+  struct AlgorithmContracts;
+
+  template<>
+  struct AlgorithmContracts<std::tuple<>, void> {
+    using preconditions = std::tuple<>;
+    using postconditions = std::tuple<>;
+  };
+
+  template<typename A, typename... T>
+  struct AlgorithmContracts<
+    std::tuple<A, T...>,
+    std::enable_if_t<std::is_base_of_v<Allen::contract::Precondition, A>>> {
+    using recursive_contracts = AlgorithmContracts<std::tuple<T...>>;
+    using preconditions = append_to_tuple_t<typename recursive_contracts::preconditions, A>;
+    using postconditions = typename recursive_contracts::postconditions;
+  };
+
+  template<typename A, typename... T>
+  struct AlgorithmContracts<
+    std::tuple<A, T...>,
+    std::enable_if_t<std::is_base_of_v<Allen::contract::Postcondition, A>>> {
+    using recursive_contracts = AlgorithmContracts<std::tuple<T...>>;
+    using preconditions = typename recursive_contracts::preconditions;
+    using postconditions = append_to_tuple_t<typename recursive_contracts::postconditions, A>;
+  };
+
   // Type-erased algorithm
   class TypeErasedAlgorithm {
 
@@ -59,6 +93,18 @@ namespace Allen {
       std::map<std::string, std::string> (*get_properties)(void const*) = nullptr;
       std::string (*scope)() = nullptr;
       void (*dtor)(void*) = nullptr;
+      void (*run_preconditions)(
+        void* p,
+        std::any& arg_ref_manager,
+        const RuntimeOptions& runtime_options,
+        const Constants& constants,
+        const Allen::Context& context) = nullptr;
+      void (*run_postconditions)(
+        void* p,
+        std::any& arg_ref_manager,
+        const RuntimeOptions& runtime_options,
+        const Constants& constants,
+        const Allen::Context& context) = nullptr;
     };
 
     template<typename ALGORITHM>
@@ -113,7 +159,56 @@ namespace Allen {
       },
       [](void const* p) { return static_cast<ALGORITHM const*>(p)->get_properties(); },
       []() -> std::string { return ALGORITHM::algorithm_scope; },
-      [](void* p) { delete static_cast<ALGORITHM*>(p); }};
+      [](void* p) { delete static_cast<ALGORITHM*>(p); },
+      [](
+        void* p,
+        std::any& arg_ref_manager,
+        const RuntimeOptions& runtime_options,
+        const Constants& constants,
+        const Allen::Context& context) {
+        using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+        using contracts = AlgorithmContracts<typename ALGORITHM::contracts>;
+        using preconditions_t = std::conditional_t<contracts_enabled, typename contracts::preconditions, std::tuple<>>;
+        if constexpr (std::tuple_size_v<preconditions_t> > 0) {
+          auto preconditions = preconditions_t {};
+          const auto location = static_cast<ALGORITHM const*>(p)->name();
+          std::apply(
+            [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
+            preconditions);
+          std::apply(
+            [&](const auto&... contract) {
+              (std::invoke(
+                 contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
+               ...);
+            },
+            preconditions);
+        }
+      },
+      [](
+        void* p,
+        std::any& arg_ref_manager,
+        const RuntimeOptions& runtime_options,
+        const Constants& constants,
+        const Allen::Context& context) {
+        using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+        using contracts = AlgorithmContracts<typename ALGORITHM::contracts>;
+        using postconditions_t =
+          std::conditional_t<contracts_enabled, typename contracts::postconditions, std::tuple<>>;
+        if constexpr (std::tuple_size_v<postconditions_t> > 0) {
+          auto postconditions = postconditions_t {};
+          const auto location = static_cast<ALGORITHM const*>(p)->name();
+          std::apply(
+            [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
+            postconditions);
+          std::apply(
+            [&](const auto&... contract) {
+              (std::invoke(
+                 contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
+               ...);
+            },
+            postconditions);
+        }
+      }};
 
     void* instance = nullptr;
     vtable const* table = nullptr;
@@ -164,6 +259,22 @@ namespace Allen {
     }
     std::map<std::string, std::string> get_properties() const { return (*table->get_properties)(instance); }
     std::string scope() const { return (*table->scope)(); }
+    void run_preconditions(
+      std::any& arg_ref_manager,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const Allen::Context& context)
+    {
+      return (*table->run_preconditions)(instance, arg_ref_manager, runtime_options, constants, context);
+    }
+    void run_postconditions(
+      std::any& arg_ref_manager,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const Allen::Context& context)
+    {
+      return (*table->run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
+    }
   };
 
   // Tool to instantiate algorithms
