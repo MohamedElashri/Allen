@@ -357,6 +357,11 @@ struct MemoryManagerHelper {
     }
   }
 
+  /**
+   * @brief Frees memory buffers specified by out_dependencies.
+   *        Host memory buffers are NOT freed, which is required by the
+   *        current Allen memory model.
+   */
   template<typename HostMemoryManager, typename DeviceMemoryManager>
   static void free(
     HostMemoryManager& host_memory_manager,
@@ -366,11 +371,9 @@ struct MemoryManagerHelper {
   {
     for (const auto& arg_name : out_dependencies.arguments) {
       auto& arg = store.at(arg_name);
-      if (arg.scope() == host_memory_manager.scope) {
-        host_memory_manager.free(arg);
-      } else if (arg.scope() == device_memory_manager.scope) {
+      if (arg.scope() == device_memory_manager.scope) {
         device_memory_manager.free(arg);
-      } else {
+      } else if (arg.scope() != host_memory_manager.scope) {
         throw std::runtime_error("argument scope not recognized");
       }
     }
