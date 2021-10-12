@@ -16,13 +16,6 @@
 #include <any>
 
 namespace {
-  // use constexpr flag to enable/disable contracts
-#ifdef ENABLE_CONTRACTS
-  constexpr bool contracts_enabled = true;
-#else
-  constexpr bool contracts_enabled = false;
-#endif
-
   // Get the ArgumentRefManagerType from the function operator()
   template<typename Function>
   struct FunctionTraits;
@@ -167,8 +160,7 @@ namespace Allen {
         const Constants& constants,
         const Allen::Context& context) {
         using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
-        using contracts = AlgorithmContracts<typename ALGORITHM::contracts>;
-        using preconditions_t = std::conditional_t<contracts_enabled, typename contracts::preconditions, std::tuple<>>;
+        using preconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::preconditions;
         if constexpr (std::tuple_size_v<preconditions_t> > 0) {
           auto preconditions = preconditions_t {};
           const auto location = static_cast<ALGORITHM const*>(p)->name();
@@ -191,9 +183,7 @@ namespace Allen {
         const Constants& constants,
         const Allen::Context& context) {
         using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
-        using contracts = AlgorithmContracts<typename ALGORITHM::contracts>;
-        using postconditions_t =
-          std::conditional_t<contracts_enabled, typename contracts::postconditions, std::tuple<>>;
+        using postconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::postconditions;
         if constexpr (std::tuple_size_v<postconditions_t> > 0) {
           auto postconditions = postconditions_t {};
           const auto location = static_cast<ALGORITHM const*>(p)->name();

@@ -264,7 +264,9 @@ private:
       algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
 
     // Run preconditions
-    algorithm.run_preconditions(argument_ref_manager, runtime_options, constants, context);
+    if constexpr (contracts_enabled) {
+      algorithm.run_preconditions(argument_ref_manager, runtime_options, constants, context);
+    }
 
     try {
       // Invoke the algorithm
@@ -275,6 +277,8 @@ private:
     }
 
     // Run postconditions
-    algorithm.run_postconditions(argument_ref_manager, runtime_options, constants, context);
+    if constexpr (contracts_enabled) {
+      algorithm.run_postconditions(argument_ref_manager, runtime_options, constants, context);
+    }
   }
 };
