@@ -13,24 +13,84 @@
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "AssociateConsolidated.cuh"
+#include "ParticleTypes.cuh"
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 
 namespace VertexFit {
+  __device__ inline bool poca(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
+    float& x,
+    float& y,
+    float& z);
+
+  __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
+
+  __device__ inline float addToDerivatives(
+    const Allen::Views::Physics::BasicParticle& track,
+    const float& x,
+    const float& y,
+    const float& z,
+    float& halfDChi2_0,
+    float& halfDChi2_1,
+    float& halfDChi2_2,
+    float& halfD2Chi2_00,
+    float& halfD2Chi2_11,
+    float& halfD2Chi2_20,
+    float& halfD2Chi2_21,
+    float& halfD2Chi2_22);
+
+  __device__ inline float solve(
+    float& x,
+    float& y,
+    float& z,
+    float& cov00,
+    float& cov11,
+    float& cov20,
+    float& cov21,
+    float& cov22,
+    const float& halfDChi2_0,
+    const float& halfDChi2_1,
+    const float& halfDChi2_2,
+    const float& halfD2Chi2_00,
+    const float& halfD2Chi2_11,
+    const float& halfD2Chi2_20,
+    const float& halfD2Chi2_21,
+    const float& halfD2Chi2_22);
+
+  __device__ inline bool doFit(
+    const Allen::Views::Physics::BasicParticle& trackA, 
+    const Allen::Views::Physics::BasicParticle& trackB, 
+    TrackMVAVertex& vertex);
+
+  __device__ inline void fill_extra_info(
+    TrackMVAVertex& sv,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB);
+
+  __device__ inline void fill_extra_pv_info(
+    TrackMVAVertex& sv,
+    const PV::Vertex& pv,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
+    const float max_assoc_ipchi2);
+
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
-    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
-    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
-    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
-    DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::BasicParticles) dev_long_track_particles;
+    // DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    // DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
+    // DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
+    // DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
+    // DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
+    // DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+    // DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
+    // DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
+    // DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;
     DEVICE_INPUT(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;

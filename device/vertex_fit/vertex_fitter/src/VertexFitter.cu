@@ -35,7 +35,6 @@ void VertexFit::fit_secondary_vertices_t::operator()(
 __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const unsigned sv_offset = parameters.dev_sv_offsets[event_number];
   const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
@@ -44,28 +43,8 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
   const float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
 
-  // Consolidated SciFi tracks.
-  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
-                                                 parameters.dev_scifi_track_hit_number,
-                                                 parameters.dev_scifi_qop,
-                                                 parameters.dev_scifi_states,
-                                                 parameters.dev_scifi_track_ut_indices,
-                                                 event_number,
-                                                 number_of_events};
-  const unsigned event_tracks_offset = scifi_tracks.tracks_offset(event_number);
-
-  // Track-PV association table.
-  // Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
-  //                                                       scifi_tracks.total_number_of_tracks()};
-  // const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
-
-  // Kalman fitted tracks.
-  const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
-
-  // Primary vertices.
-  const unsigned n_pvs_event = *(parameters.dev_number_of_multi_final_vertices + event_number);
-  Allen::device::span<PV::Vertex const> vertices {
-    parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices, n_pvs_event};
+  // Tracks.
+  const auto long_track_particles = parameters.dev_long_track_particles[event_number];
 
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_consolidated_svs + sv_offset;
@@ -80,8 +59,8 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     tmp_sv.minipchi2 = 0;
     auto i_track = event_svs_trk1_idx[i_sv];
     auto j_track = event_svs_trk2_idx[i_sv];
-    const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
-    const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
+    const auto trackA = long_track_particles.particle(i_track);
+    const auto trackB = long_track_particles.particle(j_track);
 
     // Do the fit.
     // TODO: In case doFit returns false, what should happen?
@@ -89,10 +68,17 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     tmp_sv.trk1 = i_track;
     tmp_sv.trk2 = j_track;
 
-    // Fill extra info.
-    fill_extra_info(tmp_sv, trackA, trackB);
-    if (n_pvs_event > 0) {
-      fill_extra_pv_info(tmp_sv, vertices, trackA, trackB, parameters.max_assoc_ipchi2);
+      // Fill extra info.
+      fill_extra_info(event_secondary_vertices[i_sv], trackA, trackB);
+      // Handle events with no PV.
+      if (trackA.pv() != nullptr) {
+        const auto pv = trackA.ip_chi2() < trackB.ip_chi2() ? *trackA.pv() : *trackB.pv();
+        fill_extra_pv_info(event_secondary_vertices[i_sv], pv, trackA, trackB, parameters.max_assoc_ipchi2);
+      }
+      else {
+        // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
+        event_secondary_vertices[i_sv].minipchi2 = 0;
+      }
     }
     else {
       // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
