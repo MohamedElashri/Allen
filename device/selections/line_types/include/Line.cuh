@@ -160,16 +160,17 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
 
   // ODIN data
-  const unsigned int* odin =
-    *parameters.dev_mep_layout ?
-      odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-      odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
+  const LHCb::ODIN odin {
+    {*parameters.dev_mep_layout ?
+       odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+       odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
+     10}};
 
-  const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
-  const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
-  const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
-  const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
-  const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
+  const uint32_t run_no = odin.runNumber();
+  const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
+  const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
+  const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
+  const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
 
   // Pre-scaler
   if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
@@ -206,16 +207,17 @@ __global__ void process_line_iterate_events(
     const auto event_number = parameters.dev_event_list[i];
 
     // ODIN data
-    const unsigned int* odin =
-      *parameters.dev_mep_layout ?
-        odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-        odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
+    const LHCb::ODIN odin {
+      {*parameters.dev_mep_layout ?
+         odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+         odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
+       10}};
 
-    const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
-    const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
-    const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
-    const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
-    const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
+    const uint32_t run_no = odin.runNumber();
+    const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
+    const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
+    const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
+    const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
 
     if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
       auto input = Derived::get_input(parameters, event_number);

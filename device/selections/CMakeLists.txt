@@ -38,6 +38,16 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CPPGSL_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
+if (NOT GaudiProject_FOUND)
+  # add local copy of headers for standalone build (downloaded in subdir mdf)
+  include_directories(${PROJECT_BINARY_DIR}/imported_include)
+else()
+  # Get Event/ODIN.h from LHCb if not STANDALONE
+  include_directories(${LHCB_PREFIX_DIR}/include)
+endif()
+
+add_compile_definitions(ODIN_WITHOUT_GAUDI)
+
 file(GLOB selections_src "Hlt1/src/*cu")
 file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/inclusive_hadron/src/*cpp" "lines/muon/src/*cu" "lines/electron/src/*cu" "lines/monitoring/src/*cu")
 

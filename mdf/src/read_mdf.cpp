@@ -370,38 +370,17 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     if (!test_checksum(bptr, chkSize)) {
       return {false, true, {}};
     }
-    return {false,
-            false,
-            {buffer.data(), static_cast<span_size_t<char>>(bnkSize + static_cast<unsigned int>(readSize))}};
+    return {
+      false, false, {buffer.data(), static_cast<span_size_t<char>>(bnkSize + static_cast<unsigned int>(readSize))}};
   }
 }
 
 // Decode the ODIN bank
-LHCb::ODIN MDF::decode_odin(unsigned int version, unsigned int const* odinData)
+LHCb::ODIN MDF::decode_odin(unsigned int /* version */, unsigned int const* odinData)
 {
-  LHCb::ODIN odin;
-  unsigned long long temp64 {0};
-  unsigned int temp32 {0};
-
-  // Fill the ODIN object
-  odin.setVersion(version);
-  odin.setRunNumber(odinData[LHCb::ODIN::Data::RunNumber]);
-  odin.setOrbitNumber(odinData[LHCb::ODIN::Data::OrbitNumber]);
-
-  temp64 = odinData[LHCb::ODIN::Data::L0EventIDHi];
-  odin.setEventNumber((temp64 << 32) + odinData[LHCb::ODIN::Data::L0EventIDLo]);
-
-  temp64 = odinData[LHCb::ODIN::Data::GPSTimeHi];
-  odin.setGpsTime((temp64 << 32) + odinData[LHCb::ODIN::Data::GPSTimeLo]);
-
-  temp32 = odinData[LHCb::ODIN::Data::EventType];
-  odin.setEventType(
-    (temp32 & LHCb::ODIN::EventTypeMasks::EventTypeMask) >> LHCb::ODIN::EventTypeBitsEnum::EventTypeBits);
-  odin.setCalibrationStep(
-    (temp32 & LHCb::ODIN::EventTypeMasks::CalibrationStepMask) >> LHCb::ODIN::EventTypeBitsEnum::CalibrationStepBits);
-
-  odin.setTriggerConfigurationKey(odinData[LHCb::ODIN::Data::TriggerConfigurationKey]);
-  return odin;
+  // we just assume the buffer has the right size and cross fingers.
+  // note that we only support the default bank version in Allen
+  return LHCb::ODIN({odinData, 10});
 }
 
 void MDF::dump_hex(const char* start, int size)

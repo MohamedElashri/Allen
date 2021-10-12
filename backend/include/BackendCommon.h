@@ -17,6 +17,7 @@
 #include <tuple>
 #include <string>
 #include <cassert>
+#include <array>
 #include "AllenTypeTraits.cuh"
 #include "BackendCommonInterface.h"
 
@@ -101,10 +102,21 @@ namespace Allen {
       T* __ptr;
       size_t __size;
 
-      __device__ __host__ T* data() const { return __ptr; }
-      __device__ __host__ size_t size() const { return __size; }
-      __device__ __host__ T& operator[](int i) { return __ptr[i]; }
-      __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
+      constexpr __device__ __host__ span(T* ptr, size_t size) : __ptr(ptr), __size(size) {}
+
+      template<size_t N>
+      constexpr __device__ __host__ span(std::array<T, N>& a) : __ptr(std::data(a)), __size(N)
+      {}
+
+      template<size_t N>
+      constexpr __device__ __host__ span(const std::array<std::remove_const_t<T>, N>& a) :
+        __ptr(std::data(a)), __size(N)
+      {}
+
+      constexpr __device__ __host__ T* data() const { return __ptr; }
+      constexpr __device__ __host__ size_t size() const { return __size; }
+      constexpr __device__ __host__ T& operator[](int i) { return __ptr[i]; }
+      constexpr __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
     };
   } // namespace device
 } // namespace Allen

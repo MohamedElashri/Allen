@@ -24,15 +24,16 @@ namespace gather_selections {
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-    const unsigned int* odin = *dev_mep_layout ?
-                                 odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-                                 odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number);
+    const LHCb::ODIN odin {{*dev_mep_layout ?
+                              odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                              odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
+                            10}};
 
-    const uint32_t run_no = odin[LHCb::ODIN::Data::RunNumber];
-    const uint32_t evt_hi = odin[LHCb::ODIN::Data::L0EventIDHi];
-    const uint32_t evt_lo = odin[LHCb::ODIN::Data::L0EventIDLo];
-    const uint32_t gps_hi = odin[LHCb::ODIN::Data::GPSTimeHi];
-    const uint32_t gps_lo = odin[LHCb::ODIN::Data::GPSTimeLo];
+    const uint32_t run_no = odin.runNumber();
+    const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
+    const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
+    const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
+    const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
 
     for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
       auto span = sels.get_span(i, event_number);

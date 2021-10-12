@@ -7,7 +7,8 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <gsl/gsl>
+// this implicitly defines LHCb::span in standalone builds
+#include <Event/ODIN.h>
 
 /** @class LHCb::RawBank RawBank.h
  *
@@ -33,8 +34,6 @@
  *
  */
 namespace LHCb {
-  template<typename T>
-  using span = gsl::span<T>;
 
   class RawBankSubClass;
 
