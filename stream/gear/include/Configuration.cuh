@@ -83,8 +83,10 @@ public:
 // ArgumentData creator
 inline ArgumentData create_allen_argument(const ConfiguredArgument& alg)
 {
-  if (alg.scope == "host" || alg.scope == "device") {
-    return ArgumentData {alg.name, alg.scope};
+  if (alg.scope == "host") {
+    return ArgumentData {alg.name, ArgumentScope::Host};
+  } else if (alg.scope == "device") {
+    return ArgumentData {alg.name, ArgumentScope::Device};
   }
   else {
     throw ArgumentScopeNotSupportedException {alg.scope};

@@ -12,12 +12,12 @@
 namespace memory_manager_details {
   // Distinguish between Host and Device memory managers
   struct Host {
-    constexpr static auto scope = "host";
+    constexpr static auto scope = ArgumentScope::Host;
     static void free(void* ptr) { Allen::free_host(ptr); }
     static void malloc(void** ptr, size_t s) { Allen::malloc_host(ptr, s); }
   };
   struct Device {
-    constexpr static auto scope = "device";
+    constexpr static auto scope = ArgumentScope::Device;
     static void free(void* ptr) { Allen::free(ptr); }
     static void malloc(void** ptr, size_t s) { Allen::malloc(ptr, s); }
   };
