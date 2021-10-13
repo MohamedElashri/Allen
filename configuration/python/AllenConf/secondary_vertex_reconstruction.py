@@ -82,6 +82,7 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only):
         host_number_of_svs_t=prefix_sum_secondary_vertices.
         host_total_sum_holder_t,
         dev_long_track_particles_t=kalman_velo_only["dev_long_track_particles"],
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t,
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t,
         dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t,

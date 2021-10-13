@@ -70,7 +70,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 
       // Same PV cut for non-muons.
       if (
-        trackA.pv() != trackB.pv() && trackA.ip_chi2() < parameters.max_assoc_ipchi2 &&
+        trackA.get_pv() != trackB.get_pv() && trackA.ip_chi2() < parameters.max_assoc_ipchi2 &&
         trackB.ip_chi2() < parameters.max_assoc_ipchi2 && (!trackA.is_muon() || !trackB.is_muon())) {
         continue;
       }

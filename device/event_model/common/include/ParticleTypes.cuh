@@ -322,6 +322,13 @@ namespace Allen {
           assert(m_track->number_of_substructures()==1);
         }
 
+        // Accessors to allow copying. Is there a better way to handle this?
+        __host__ __device__ const ILHCbIDSequence* get_track() const { return m_track; }
+        __host__ __device__ const KalmanStates* get_states() const { return m_states; }
+        __host__ __device__ const PV::Vertex* get_pv() const { return m_pv; }
+        __host__ __device__ const bool* get_muon_id() const { return m_muon_id; }
+        __host__ __device__ unsigned get_index() const { return m_index; }
+
         __host__ __device__ unsigned number_of_ids() const override
         {
           return m_track->number_of_ids();
@@ -337,7 +344,7 @@ namespace Allen {
           return m_states->state(m_index);
         }
 
-        __host__ __device__ const PV::Vertex* pv() const { return m_pv; }
+        __host__ __device__ const PV::Vertex pv() const { return *m_pv; }
 
         __host__ __device__ float px() const 
         { 
@@ -492,8 +499,89 @@ namespace Allen {
             index};
         }
 
+        __host__ __device__ const PVTable& pv_table() const
+        {
+          return *m_pv_table;
+        }
+
         __host__ __device__ unsigned offset() const { return m_offset; }
 
+      };
+
+      struct CompositeParticle : ILHCbIDComposite {
+      private:
+        const SecondaryVertices* m_vertices = nullptr;
+        const PV::Vertex* m_pv = nullptr;
+
+      public:
+        __host__ __device__ CompositeParticle(
+          const ILHCbIDStructure* children,
+          const SecondaryVertices* vertices,
+          const PV::Vertex* pv,
+          unsigned number_of_children,
+          unsigned total_number_of_composites,
+          unsigned index) :
+          ILHCbIDComposite {children,
+                            number_of_children,
+                            index,
+                            total_number_of_composites},
+          m_vertices(vertices),
+          m_pv(pv)
+        {}
+
+        __host__ __device__ const PV::Vertex* get_pv() const
+        {
+          return m_pv;
+        }
+
+        __host__ __device__ const SecondaryVertices* get_vertices() const
+        {
+          return m_vertices;
+        }
+      };
+
+      struct CompositeParticles {
+      private:
+        const ILHCbIDStructure* m_children = nullptr;
+        const SecondaryVertices* m_vertices = nullptr;
+        const PV::Vertex* m_pvs = nullptr;
+        const PVTable* m_pv_table = nullptr;
+        unsigned m_offset = 0;
+        unsigned m_size = 0;
+        unsigned m_number_of_children = 0;
+
+      public:
+        __host__ __device__ CompositeParticles (
+          const ILHCbIDStructure* children,
+          const SecondaryVertices* vertices,
+          const PV::Vertex* pvs,
+          const PVTable* pv_table,
+          const unsigned* offsets,
+          unsigned number_of_children,
+          unsigned event_number) :
+          m_children(children + offsets[event_number] * number_of_children),
+          m_vertices(vertices),
+          m_pvs(pvs),
+          m_pv_table(pv_table),
+          m_offset(offsets[event_number]),
+          m_size(offsets[event_number + 1] - offsets[event_number]),
+          m_number_of_children(number_of_children)
+        {}
+
+        __host__ __device__ const CompositeParticle particle(unsigned particle_index) const
+        {
+          return CompositeParticle {
+            m_children,
+            m_vertices,
+            m_pvs + m_pv_table->pv(particle_index),
+            m_number_of_children,
+            m_size,
+            particle_index};
+        }
+
+        __host__ __device__ unsigned size() const { return m_size; }
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
       };
     }
   }
