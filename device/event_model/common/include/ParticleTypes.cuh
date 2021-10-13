@@ -494,7 +494,7 @@ namespace Allen {
           return BasicParticle {
             dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index)),
             m_states,
-            m_pvs + m_pv_table->pv(index),
+            m_pvs != nullptr ? m_pvs + m_pv_table->pv(index) : nullptr,
             m_muon_id,
             index};
         }

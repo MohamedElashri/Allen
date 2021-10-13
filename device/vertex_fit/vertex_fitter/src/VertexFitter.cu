@@ -35,7 +35,6 @@ void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_sv_fit_results_t>(arguments, 14 * sizeof(uint32_t) * first<host_number_of_svs_t>(arguments));
   set_size<dev_consolidated_svs_t>(arguments, first<host_number_of_svs_t>(arguments));
   set_size<dev_two_track_svs_tracks_t>(arguments, 2 * first<host_number_of_svs_t>(arguments));
   set_size<dev_two_track_svs_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -43,6 +42,7 @@ void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   set_size<dev_sv_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
   // TODO: Clean this up.
   set_size<dev_sv_fit_results_view_t>(arguments, 2 * first<host_number_of_events_t>(arguments));
+  set_size<dev_sv_fit_results_t>(arguments, 14 * sizeof(uint32_t) * first<host_number_of_svs_t>(arguments));
 }
 
 void VertexFit::fit_secondary_vertices_t::operator()(
@@ -158,15 +158,16 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
       // Fill extra info.
       fill_extra_info(sv, trackA, trackB);
       if (trackA.get_pv() != nullptr && trackB.get_pv() != nullptr) {
-        // Get the PV and calculate extra info.
-        const PV::Vertex pv = trackA.ip_chi2() < trackB.ip_chi2() ? trackA.pv() : trackB.pv();
-        fill_extra_pv_info(sv, pv, trackA, trackB, parameters.max_assoc_ipchi2);
-
-        // Get the PV index to fill the SV -> PV table.
-        const unsigned i_pv = trackA.ip_chi2() < trackB.ip_chi2() ? 
+        // Was getting a segfault if I didn't cache the ipchi2 values. Might
+        // cause issues on the GPU if the calculation is using too much memory.
+        const float ipchi2A = trackA.ip_chi2();
+        const float ipchi2B = trackB.ip_chi2();
+        const unsigned i_pv = ipchi2A < ipchi2B ?
           long_track_particles.pv_table().pv(i_track) : long_track_particles.pv_table().pv(j_track);
         pv_table.pv(i_sv) = i_pv;
-        
+
+        const PV::Vertex pv = ipchi2A < ipchi2B ? trackA.pv() : trackB.pv();
+        fill_extra_pv_info(sv, pv, trackA, trackB, parameters.max_assoc_ipchi2);
       }
       // Handle events with no PV.
       else {

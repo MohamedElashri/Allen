@@ -333,7 +333,7 @@ namespace VertexFit {
     sv.ip2 = trackB.ip;
 
     // Minimum IP of constituent tracks.
-    sv.minip = trackA.ip() < trackB.ip() ? trackA.ip() : trackB.ip();
+    //sv.minip = trackA.ip() < trackB.ip() ? trackA.ip() : trackB.ip();
 
     // Dimuon mass.
     if (sv.is_dimuon) {
@@ -405,10 +405,8 @@ namespace VertexFit {
     sv.mcor = sqrtf(mvis2 + pperp2) + sqrtf(pperp2);
 
     // Minimum IP chi2 of constituent tracks.
-    //sv.minipchi2 = trackA.ip_chi2() < trackB.ip_chi2() ? trackA.ip_chi2() : trackB.ip_chi2();
-    const float ipchi2A = trackA.ip_chi2();
-    const float ipchi2B = trackB.ip_chi2();
-    sv.minipchi2 = ipchi2A < ipchi2B ? ipchi2A :ipchi2B;
+    sv.minipchi2 = min(trackA.ip_chi2(), trackB.ip_chi2());
+    sv.minip = min(trackA.ip(), trackB.ip());
 
     // cos DIRA.
     const float p = sqrtf(sv.px * sv.px + sv.py * sv.py + sv.pz * sv.pz);
