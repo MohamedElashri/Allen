@@ -36,7 +36,7 @@ namespace Allen {
   };
 
   struct ILHCbIDComposite : ILHCbIDStructure {
-  private:
+  protected:
     const ILHCbIDStructure* m_substructures = nullptr;
     unsigned m_number_of_substructures = 0;
     unsigned m_index = 0;
