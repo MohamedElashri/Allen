@@ -29,7 +29,7 @@ def make_single_high_pt_muon_line(
         post_scaler_hash_string=post_scaler_hash_string,
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=kalman_velo_only["dev_kf_tracks"],
+        dev_tracks_t=kalman_velo_only["dev_long_track_particles"],
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"])
 
 
@@ -52,7 +52,7 @@ def make_low_pt_muon_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string,
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=kalman_velo_only["dev_kf_tracks"],
+        dev_tracks_t=kalman_velo_only["dev_long_track_particles"],
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"])
 
 
@@ -154,7 +154,7 @@ def make_track_muon_mva_line(
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=kalman_velo_only["dev_kf_tracks"],
+        dev_tracks_t=kalman_velo_only["dev_long_track_particles"],
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)

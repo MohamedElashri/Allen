@@ -13,11 +13,11 @@
  * It assumes an inheriting class will have the following inputs:
  *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
  *  HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
- *  DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
+ *  DEVICE_INPUT(dev_tracks_t, Allen::Views::Physics::BasicParticles) dev_tracks;
  *  DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
  *
  * It also assumes the OneTrackLine will be defined as:
- *  __device__ bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input) const;
+ *  __device__ bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input) const;
  */
 template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
@@ -35,12 +35,11 @@ struct OneTrackLine : public Line<Derived, Parameters> {
     return parameters.dev_track_offsets[event_number];
   }
 
-  __device__ static std::tuple<const ParKalmanFilter::FittedTrack&>
+  __device__ static std::tuple<const Allen::Views::Physics::BasicParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
-    const ParKalmanFilter::FittedTrack* event_tracks =
-      parameters.dev_tracks + parameters.dev_track_offsets[event_number];
-    const auto& track = event_tracks[i];
+    const auto tracks = parameters.dev_tracks[event_number];
+    const auto track = tracks.particle(i);
     return std::forward_as_tuple(track);
   }
 };

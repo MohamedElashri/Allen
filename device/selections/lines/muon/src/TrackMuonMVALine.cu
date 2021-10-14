@@ -8,10 +8,10 @@ INSTANTIATE_LINE(track_muon_mva_line::track_muon_mva_line_t, track_muon_mva_line
 
 __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto& track = std::get<0>(input);
-  if (!track.is_muon) {
+  if (!track.is_muon()) {
     return false;
   }
 
@@ -20,10 +20,11 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
   const auto minPt_GeV = parameters.minPt / Gaudi::Units::GeV;
 
   const bool decision =
-    track.chi2 / track.ndof < parameters.maxChi2Ndof &&
-    ((ptShift > maxPt_GeV && track.ipChi2 > parameters.minIPChi2) ||
-     (ptShift > minPt_GeV && ptShift < maxPt_GeV &&
-      logf(track.ipChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
-                             parameters.param3 / maxPt_GeV * (maxPt_GeV - ptShift) + logf(parameters.minIPChi2)));
+    track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
+    ((ptShift > parameters.maxPt && track.ip_chi2() > parameters.minIPChi2) ||
+     (ptShift > parameters.minPt && ptShift < parameters.maxPt &&
+      logf(track.ip_chi2()) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
+                             parameters.param3 / parameters.maxPt * (parameters.maxPt - ptShift) +
+                             logf(parameters.minIPChi2)));
   return decision;
 }
