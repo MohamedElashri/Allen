@@ -17,6 +17,7 @@
 
 // LHCb
 #include "Event/RawEvent.h"
+#include "Kernel/STLExtensions.h"
 
 // Allen
 #include "HostBuffers.cuh"
@@ -54,8 +55,10 @@ LHCb::RawEvent AllenSelReportsToTES::operator()(const HostBuffers& host_buffers)
   // TODO: get these hard coded numbers from somewhere else... should be defined in one location only!
   constexpr auto hlt1SourceID = (1u << 13);
   constexpr auto sel_rep_version = 9u, dec_rep_version = 2u;
+  auto dec_reports = LHCb::make_span(
+    &host_buffers.host_dec_reports[0], &host_buffers.host_dec_reports[host_buffers.host_number_of_lines + 1] + 1);
   raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltSelReports, sel_rep_version, host_buffers.host_sel_reports);
-  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltDecReports, dec_rep_version, host_buffers.host_dec_reports);
+  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltDecReports, dec_rep_version, dec_reports);
 
   return raw_event;
 }
