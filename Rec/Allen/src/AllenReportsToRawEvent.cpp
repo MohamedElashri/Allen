@@ -8,8 +8,8 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
-#ifndef ALLENSELREPORTSTOTES_H
-#define ALLENSELREPORTSTOTES_H
+#ifndef ALLENREPORTSTORAWEVENT_H
+#define ALLENREPORTSTORAWEVENT_H
 
 // Gaudi
 #include "GaudiAlg/Transformer.h"
@@ -23,10 +23,10 @@
 #include "HostBuffers.cuh"
 #include "Logger.h"
 
-class AllenSelReportsToTES final : public Gaudi::Functional::Transformer<LHCb::RawEvent(const HostBuffers&)> {
+class AllenReportsToRawEvent final : public Gaudi::Functional::Transformer<LHCb::RawEvent(const HostBuffers&)> {
 public:
   // Standard constructor
-  AllenSelReportsToTES(const std::string& name, ISvcLocator* pSvcLocator);
+  AllenReportsToRawEvent(const std::string& name, ISvcLocator* pSvcLocator);
 
   // Algorithm execution
   LHCb::RawEvent operator()(const HostBuffers&) const override;
@@ -36,19 +36,19 @@ private:
 
 #endif
 
-DECLARE_COMPONENT(AllenSelReportsToTES)
+DECLARE_COMPONENT(AllenReportsToRawEvent)
 
-AllenSelReportsToTES::AllenSelReportsToTES(const std::string& name, ISvcLocator* pSvcLocator) :
+AllenReportsToRawEvent::AllenReportsToRawEvent(const std::string& name, ISvcLocator* pSvcLocator) :
   Transformer(
     name,
     pSvcLocator,
     // Inputs
     {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
     // Outputs
-    {KeyValue {"OutputSelReports", "Allen/Out/RawSelReports"}})
+    {KeyValue {"OutputReports", "Allen/Out/RawReports"}})
 {}
 
-LHCb::RawEvent AllenSelReportsToTES::operator()(const HostBuffers& host_buffers) const
+LHCb::RawEvent AllenReportsToRawEvent::operator()(const HostBuffers& host_buffers) const
 {
 
   LHCb::RawEvent raw_event;
