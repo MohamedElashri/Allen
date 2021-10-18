@@ -13,6 +13,7 @@
 #include "RunAllen.h"
 #include "ROOTService.h"
 #include <StreamLoader.h>
+#include "HltDecReport.cuh"
 
 DECLARE_COMPONENT(RunAllen)
 
@@ -37,7 +38,7 @@ RunAllen::RunAllen(const std::string& name, ISvcLocator* pSvcLocator) :
     // Inputs
     {KeyValue {"AllenRawInput", "Allen/Raw/Input"}, KeyValue {"ODINLocation", LHCb::ODINLocation::Default}},
     // Outputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}, KeyValue {"DecReportsLocation", "Allen/Out/DecReports"}})
+    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}})
 {}
 
 StatusCode RunAllen::initialize()
@@ -191,7 +192,7 @@ StatusCode RunAllen::initialize()
 
 /** Calls Allen for one event
  */
-std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
+std::tuple<bool, HostBuffers> RunAllen::operator()(
   const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
   const LHCb::ODIN&) const
 {
@@ -232,25 +233,21 @@ std::tuple<bool, HostBuffers, LHCb::HltDecReports> RunAllen::operator()(
   else if (m_filter_hlt1.value()) {
     filter = buffer->host_passing_event_list[0];
   }
-  // Get line decisions from DecReports
+  // Get line decisions from DecReports for rate monitoring
   // First two words contain the TCK and taskID, then one word per HLT1 line
-  LHCb::HltDecReports reports {};
-  reports.setConfiguredTCK(m_tck);
-  reports.reserve(buffer->host_number_of_lines);
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
+  uint32_t id_mask = HltDecReport::decReportMasks::intDecisionIDMask;
   for (unsigned int i = 0; i < buffer->host_number_of_lines; i++) {
     const uint32_t line_report = buffer->host_dec_reports[2 + i];
     const bool dec = line_report & dec_mask;
-    const std::string modified_name = m_line_names[i] + "Decision";
     m_hlt1_line_rates[i].buffer() += int(dec);
-    // Note: the line index in a DecReport cannot be zero -> start at 1
-    const int dec_rep_index = i + 1;
     if (msgLevel(MSG::VERBOSE)) {
-      verbose() << "Adding Allen line " << dec_rep_index << " with name " << modified_name
-                << " to HltDecReport with decision " << int(dec) << endmsg;
+      const std::string modified_name = m_line_names[i] + "Decision";
+      const int dec_rep_index = line_report & id_mask;
+      verbose() << "Allen line " << dec_rep_index << " with name " << modified_name << " has decision " << int(dec)
+                << endmsg;
     }
-    reports.insert(modified_name, {dec, 0, 0, 0, dec_rep_index}).ignore(/* AUTOMATICALLY ADDED FOR gaudi/Gaudi!763 */);
   }
   if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << unsigned(filter) << endmsg;
-  return std::make_tuple(filter, *buffer, reports);
+  return std::make_tuple(filter, *buffer);
 }

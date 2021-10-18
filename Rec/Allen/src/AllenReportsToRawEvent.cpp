@@ -45,7 +45,7 @@ AllenReportsToRawEvent::AllenReportsToRawEvent(const std::string& name, ISvcLoca
     // Inputs
     {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
     // Outputs
-    {KeyValue {"OutputReports", "Allen/Out/RawReports"}})
+    {KeyValue {"OutputRawReports", "Allen/Out/RawReports"}})
 {}
 
 LHCb::RawEvent AllenReportsToRawEvent::operator()(const HostBuffers& host_buffers) const
