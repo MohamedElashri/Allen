@@ -100,8 +100,9 @@ int main(int argc, char* argv[])
       auto const allen_type = bank_ids[lhcb_type];
 
       // Copy blocks and calculate block offsets
-      for (auto& [ids, at] : {std::tuple {std::ref(scifi_block_ids), BankTypes::FT},
-                              std::tuple {std::ref(ut_block_ids), BankTypes::UT}}) {
+      for (auto& [ids, at] :
+           {std::tuple {std::ref(scifi_block_ids), BankTypes::FT},
+            std::tuple {std::ref(ut_block_ids), BankTypes::UT}}) {
         if (allen_type == to_integral(at)) {
           auto& [spans, offset, offsets, offsets_size] = slices[allen_type][0];
           ids.get().emplace_back(i_block);
@@ -137,14 +138,15 @@ int main(int argc, char* argv[])
     auto slice_to_banks = [&slices](int slice_index, BankTypes bank_type) {
       auto bt = to_integral(bank_type);
       auto const& [data, data_size, offsets, offsets_size] = slices[bt][slice_index];
-      BanksAndOffsets bno;
+      std::tuple<std::vector<Allen::device::span<const char>>, size_t, Allen::device::span<const unsigned int>, int>
+        bno;
       auto& spans = std::get<0>(bno);
       spans.reserve(data.size());
       for (auto s : data) {
-        spans.emplace_back(s);
+        spans.emplace_back(Allen::device::span<const char>{s.data(), s.size()});
       }
       std::get<1>(bno) = data_size;
-      std::get<2>(bno) = offsets;
+      std::get<2>(bno) = Allen::device::span<const unsigned int>{offsets.data(), offsets.size()};
       return bno;
     };
 
@@ -157,18 +159,19 @@ int main(int argc, char* argv[])
     unsigned dev_number_of_events = 0;
     unsigned number_of_selected_events = 0;
 
-    host_global_event_cut::Parameters pars {std::get<0>(ut_banks).data(),
-                                            &std::get<2>(ut_banks),
-                                            &std::get<3>(ut_banks),
-                                            std::get<0>(scifi_banks).data(),
-                                            &std::get<2>(scifi_banks),
-                                            host_event_list.data(),
-                                            host_total_number_of_events.data(),
-                                            &number_of_selected_events,
-                                            &dev_number_of_events,
-                                            event_list.data(),
-                                            0,
-                                            9750};
+    host_global_event_cut::Parameters pars {
+      std::get<0>(ut_banks).data(),
+      &std::get<2>(ut_banks),
+      &std::get<3>(ut_banks),
+      std::get<0>(scifi_banks).data(),
+      &std::get<2>(scifi_banks),
+      host_event_list.data(),
+      host_total_number_of_events.data(),
+      &number_of_selected_events,
+      &dev_number_of_events,
+      event_list.data(),
+      0,
+      9750};
 
     host_global_event_cut::host_global_event_cut<true>(pars);
 

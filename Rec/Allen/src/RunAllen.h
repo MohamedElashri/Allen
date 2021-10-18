@@ -25,8 +25,7 @@
 #include "HostBuffersManager.cuh"
 #include "RuntimeOptions.h"
 #include "BankTypes.h"
-#include "IStream.h"
-#include "StreamLoader.h"
+#include "Stream.h"
 #include "Logger.h"
 #include "TESProvider.h"
 
@@ -54,8 +53,7 @@ private:
   const unsigned m_n_buffers = 1;
   const bool m_do_check = true;
 
-  Allen::StreamFactory m_stream_factory;
-  std::unique_ptr<Allen::IStream> m_stream;
+  std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
   std::shared_ptr<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>
     m_tes_input_provider;

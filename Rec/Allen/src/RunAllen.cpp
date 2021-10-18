@@ -12,7 +12,6 @@
 
 #include "RunAllen.h"
 #include "ROOTService.h"
-#include <StreamLoader.h>
 #include "HltDecReport.cuh"
 
 DECLARE_COMPONENT(RunAllen)
@@ -147,27 +146,25 @@ StatusCode RunAllen::initialize()
   });
   auto const error_line = std::distance(m_line_names.begin(), it);
 
-  // Load the algorithm sequence factory
-  bool validation_sequence = false;
-  std::tie(m_stream_factory, validation_sequence) = Allen::load_stream(m_sequence.value());
-  if (!m_stream_factory) {
-    error() << "Failed to load sequence " << m_sequence.value() << endmsg;
-    return StatusCode::FAILURE;
-  }
-  else if (validation_sequence) {
+  // Initialize host buffers (where Allen output is stored)
+  m_host_buffers_manager.reset(new HostBuffersManager{m_n_buffers, 2, m_line_names.size(), static_cast<unsigned>(error_line)});
+
+  // Instantiate the sequence
+  m_stream = std::make_unique<Stream>(
+      configuration_reader.configured_sequence(),
+      print_memory_usage,
+      reserve_mb,
+      reserve_mb,
+      required_memory_alignment,
+      m_constants,
+      m_host_buffers_manager.get());
+
+  const auto sequence_contains_validation_algorithms = m_stream->contains_validation_algorithms();
+  if (sequence_contains_validation_algorithms) {
     error() << "A validation sequence cannot be used with the RunAllen wrapper." << endmsg;
     return StatusCode::FAILURE;
   }
-  else {
-    info() << "Loaded sequence: " << m_sequence.value() << endmsg;
-  }
 
-  // Initialize host buffers (where Allen output is stored)
-  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_line_names.size(), m_do_check, error_line));
-
-  // Instantiate the sequence
-  m_stream = (*m_stream_factory)(
-    print_memory_usage, reserve_mb, reserve_mb, required_memory_alignment, m_constants, m_host_buffers_manager.get());
   m_stream->configure_algorithms(configuration_reader.params());
 
   // Initialize input provider

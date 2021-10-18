@@ -51,13 +51,13 @@ namespace Allen {
 
     void set_name(const std::string& name) override final { m_name = name; }
 
-    char* pointer() const override final
+    void* pointer() const override final
     {
-      return const_cast<char*>(reinterpret_cast<forward_type_t<VECTOR, char>*>(m_data.data()));
+      return const_cast<void*>(reinterpret_cast<forward_type_t<VECTOR, void>*>(m_data.data()));
     }
 
     // set_pointer should never used, since vectors are allocated directly with set_size
-    void set_pointer(char*) override final { throw; }
+    void set_pointer(void*) override final { throw; }
 
     size_t size() const override final { return m_data.size(); }
 
@@ -73,6 +73,14 @@ namespace Allen {
         throw;
       }
     }
+
+    size_t sizebytes() const override final
+    {
+      return size() * sizeof(typename VECTOR::value_type);
+    }
+
+    void set_type_size(size_t) override final
+    {}
   };
 
   // Shortcuts for input / output wrappers
