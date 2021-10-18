@@ -28,6 +28,12 @@ struct CaloGeometry {
   float* calo_planes = nullptr;
   float module_size = 0.f;
   uint32_t* digits_ranges = nullptr;
+  uint32_t vec_sourceids_size = 0;
+  uint32_t* vec_sourceids = nullptr;
+  uint32_t vec_febs_size = 0;
+  uint32_t* vec_febs = nullptr;
+  uint32_t vec_febIndices_size = 0;
+  uint32_t* vec_febIndices = nullptr;
 
   __device__ __host__ CaloGeometry(const char* raw_geometry)
   {
@@ -66,10 +72,28 @@ struct CaloGeometry {
     p += sizeof(float) * calo_planes_size; // Skip calo_planes
     module_size = *((float*) p);
     p += sizeof(float); // Skip module_size
-    // const uint32_t digits_ranges_size = *((uint32_t*) p);
+    const uint32_t digits_ranges_size = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip digits_ranges_size
     digits_ranges = (uint32_t*) p;
-    // p += sizeof(float) * digits_ranges_size; // Skip digits_ranges
+    p += sizeof(float) * digits_ranges_size; // Skip digits_ranges
+    vec_febs_size = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip vec_febs_size
+    vec_febs = (uint32_t*) p;
+    p += sizeof(uint32_t) * vec_febs_size; // Skip vec_febs
+    vec_febIndices_size = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip vec_febIndices_size
+    vec_febIndices = (uint32_t*) p;
+    //    p += sizeof(uint32_t) * vec_febIndices_size; // Skip vec_febs
+  }
+
+  __device__ __host__ inline uint32_t getFEB(uint32_t source_id, int nFeb) const
+  {
+    return vec_febs[3 * (source_id & 0x7ff) + nFeb];
+  }
+
+  __device__ __host__ inline uint32_t getFEBindex(uint32_t source_id, int nFeb) const
+  {
+    return vec_febIndices[3 * (source_id & 0x7ff) + nFeb];
   }
 
   __device__ __host__ inline float getX(uint16_t cellid) const { return xy[2 * cellid]; }

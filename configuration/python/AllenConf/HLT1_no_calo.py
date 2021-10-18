@@ -7,7 +7,7 @@ from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
-from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
+from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_calo_digits_minADC_line
 from AllenConf.hlt1_smog2_lines import make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line, make_SMOG2_ditrack_line, make_SMOG2_singletrack_line
 
 from AllenConf.validators import rate_validation

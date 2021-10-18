@@ -97,11 +97,24 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   // start at this index. Using the num we can further index these 32 channels.
   // Wasted space: 32 * 16 bits per missing card code
 
-  std::vector<int> cards {};
-  // Get all card indices for every source ID.
-  for (int i = 0; i < det.nTell1s(); i++) {
-    auto tell1Cards = det.tell1ToCards(i);
-    cards.insert(cards.end(), tell1Cards.begin(), tell1Cards.end());
+  typedef std::map<int, std::vector<int>> MapType;
+  MapType map = det.getSourceIDsMap();
+  std::vector<uint32_t> vec_febs(750, 0);
+  std::vector<uint32_t> vec_febIndices(750, -1);
+  uint32_t iFEB = 0;
+  for (MapType::iterator itr = map.begin(); itr != map.end(); ++itr) {
+    uint16_t source_id = itr->first;
+    // source_id is 15b word, bit 15:11 correspond  to ecal/hcal (1011/1100) --> consider only bits 10:1
+    for (int k = 0; k < itr->second.size(); k++) {
+      vec_febs[3 * (source_id & 0x7ff) + k] = det.cardArea(itr->second.at(k)) < 3 ? itr->second.at(k) : 0;
+      if (det.cardArea(itr->second.at(k)) < 3 && det.cardArea(itr->second.at(k)) >= 0) {
+        vec_febIndices[3 * (source_id & 0x7ff) + k] = iFEB;
+        ++iFEB;
+      }
+      else {
+        vec_febIndices[3 * (source_id & 0x7ff) + k] = 9999;
+      }
+    }
   }
 
   // Determine offset and size of the global dense index;
@@ -118,12 +131,14 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   }
 
   // Determine Minimum and maximum card Codes.
-  int min = det.cardCode(cards.at(0)); // Initialize to any value within possibilities.
+  int min = 0;
   int max = 0;
   size_t max_channels = 0;
   int curCode = 0;
-  for (int card : cards) {
-    curCode = det.cardCode(card);
+  for (int card : vec_febs) {
+    if (card == 0) continue;
+    curCode = det.getFEBindex(card);
+    // get FEB numbers from TELL40Link map
     min = std::min(curCode, min);
     max = std::max(curCode, max);
     max_channels = std::max(det.cardChannels(card).size(), max_channels);
@@ -133,8 +148,9 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   std::vector<uint16_t> allChannels(max_channels * (max - min + 1), 0);
 
   // For every card: index based on code and store all 32 channel CellIDs at that index.
-  for (int card : cards) {
-    int code = det.cardCode(card);
+  int code = 0;
+  for (int card : vec_febs) {
+    if (card == 0) continue;
     int index = (code - min) * max_channels;
     auto channels = det.cardChannels(card);
     for (size_t i = 0; i < channels.size(); i++) {
@@ -146,6 +162,7 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
         allChannels[index + i] = static_cast<uint16_t>(indexSize);
       }
     }
+    ++code;
   }
 
   // Check if 'E'cal or 'H'cal
@@ -234,6 +251,10 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   output.write(module_size);
   output.write(static_cast<uint32_t>(digits_ranges.size()));
   output.write(digits_ranges);
+  output.write(static_cast<uint32_t>(vec_febs.size()));
+  output.write(vec_febs);
+  output.write(static_cast<uint32_t>(vec_febIndices.size()));
+  output.write(vec_febIndices);
 
   auto id = ids.find(det.caloName());
   if (id == ids.end()) {

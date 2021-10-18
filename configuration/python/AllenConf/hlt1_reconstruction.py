@@ -47,6 +47,7 @@ def hlt1_reconstruction(add_electron_id=True):
     return {
         "velo_tracks": velo_tracks,
         "velo_states": velo_states,
+        "decoded_calo": decoded_calo,
         "pvs": pvs,
         "ut_tracks": ut_tracks,
         "forward_tracks": forward_tracks,

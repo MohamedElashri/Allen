@@ -8,6 +8,7 @@
 #include "Line.cuh"
 #include "CaloGeometry.cuh"
 #include "CaloDigit.cuh"
+#include "ODINBank.cuh"
 
 namespace calo_digits_minADC {
   struct Parameters {
@@ -16,6 +17,7 @@ namespace calo_digits_minADC {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
+    DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
 
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
@@ -61,6 +63,6 @@ namespace calo_digits_minADC {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minADC_t> m_minADC {this, 10}; // MeV
+    Property<minADC_t> m_minADC {this, 500}; // MeV
   };
 } // namespace calo_digits_minADC
