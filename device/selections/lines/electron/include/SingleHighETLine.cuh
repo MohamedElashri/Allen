@@ -12,6 +12,9 @@ namespace single_high_et_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
+    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
+    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
+    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
