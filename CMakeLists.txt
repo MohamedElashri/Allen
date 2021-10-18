@@ -204,24 +204,16 @@ macro(allen_project)
 #the host compiler
       set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     endif()
-
-    find_package(cppgsl REQUIRED)
   else()
     project(Allen C CXX)
     if (BUILD_TESTS)
       enable_testing()
     endif()
-
-    find_package(cppgsl QUIET)
-    if (cppgsl_FOUND)
-      message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIR})
-    else()
-      set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
-      message(STATUS "Using internal gsl-lite")
-    endif()
   endif()
+
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
+  find_package(cppgsl REQUIRED)
 endmacro()
 
 # Detect CUDA architecture
@@ -319,6 +311,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     add_library(${ARGV})
 
     install(TARGETS ${ARGV0} LIBRARY DESTINATION lib OPTIONAL)
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
   endfunction()
 

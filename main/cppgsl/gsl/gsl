@@ -1,6 +1,0 @@
-#ifndef GSL_GSL_H
-#define GSL_GSL_H
-
-#include "gsl-lite.hpp"
-
-#endif
