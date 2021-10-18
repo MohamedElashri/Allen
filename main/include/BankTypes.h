@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <vector>
 #include <cassert>
-#include <gsl/gsl>
+#include <gsl>
 
 namespace {
   using gsl::span;

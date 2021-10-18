@@ -8,6 +8,7 @@
 #include <BankTypes.h>
 #include <Timer.h>
 #include <zmq/zmq.hpp>
+#include <gsl/span>
 
 struct IInputProvider;
 

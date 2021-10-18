@@ -4,7 +4,7 @@
 #pragma once
 
 #include "ParKalmanDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace momentum_brem_correction {
   struct Parameters {

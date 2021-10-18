@@ -11,10 +11,10 @@
 
 namespace mc_data_provider {
   struct Parameters {
-    HOST_INPUT(host_mc_particle_banks_t, gsl::span<char const>) mc_particle_banks;
-    HOST_INPUT(host_mc_particle_offsets_t, gsl::span<unsigned int const>) mc_particle_offsets;
-    HOST_INPUT(host_mc_pv_banks_t, gsl::span<char const>) mc_pv_banks;
-    HOST_INPUT(host_mc_pv_offsets_t, gsl::span<unsigned int const>) mc_pv_offsets;
+    HOST_INPUT(host_mc_particle_banks_t, Allen::device::span<char const>) mc_particle_banks;
+    HOST_INPUT(host_mc_particle_offsets_t, Allen::device::span<unsigned int const>) mc_particle_offsets;
+    HOST_INPUT(host_mc_pv_banks_t, Allen::device::span<char const>) mc_pv_banks;
+    HOST_INPUT(host_mc_pv_offsets_t, Allen::device::span<unsigned int const>) mc_pv_offsets;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_mc_events_t, const MCEvents*) host_mc_events;
   };

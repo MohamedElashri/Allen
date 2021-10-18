@@ -4,6 +4,8 @@
 #include "BremRecovery.cuh"
 #include "EcalScan.cuh"
 
+INSTANTIATE_ALGORITHM(brem_recovery::brem_recovery_t)
+
 void brem_recovery::brem_recovery_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

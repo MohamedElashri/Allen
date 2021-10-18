@@ -6,7 +6,7 @@ from AllenConf.algorithms import (
     displaced_dielectron_line_t, displaced_leptons_line_t,
     single_high_et_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
 
