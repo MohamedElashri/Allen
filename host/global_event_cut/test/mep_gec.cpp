@@ -138,15 +138,14 @@ int main(int argc, char* argv[])
     auto slice_to_banks = [&slices](int slice_index, BankTypes bank_type) {
       auto bt = to_integral(bank_type);
       auto const& [data, data_size, offsets, offsets_size] = slices[bt][slice_index];
-      std::tuple<std::vector<Allen::device::span<const char>>, size_t, Allen::device::span<const unsigned int>, int>
-        bno;
+      BanksAndOffsets bno;
       auto& spans = std::get<0>(bno);
       spans.reserve(data.size());
       for (auto s : data) {
-        spans.emplace_back(Allen::device::span<const char>{s.data(), s.size()});
+        spans.emplace_back(s);
       }
       std::get<1>(bno) = data_size;
-      std::get<2>(bno) = Allen::device::span<const unsigned int>{offsets.data(), offsets.size()};
+      std::get<2>(bno) = offsets;
       return bno;
     };
 

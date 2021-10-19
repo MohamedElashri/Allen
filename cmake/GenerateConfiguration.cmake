@@ -58,6 +58,7 @@ message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
 # TODO: Parsing should depend on ALL algorithm headers and ALL algorithm sources
 add_custom_command(
   OUTPUT "${PARSED_ALGORITHMS_OUTPUTFILE}"
+  COMMENT "Parsing Allen algorithms"
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/parser" "${ALLEN_PARSER_DIR}" &&
     ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/scripts/clang" "${ALLEN_PARSER_DIR}/clang" &&
@@ -88,7 +89,7 @@ add_custom_target(copy_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_C
 # Generate Allen AlgorithmDB
 add_custom_command(
   OUTPUT "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h"
-  COMMENT "Generate AlgorithmDB"
+  COMMENT "Generating AlgorithmDB"
   COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate db --filename "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")

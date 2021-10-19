@@ -6,7 +6,6 @@
 #include "Common.h"
 #include "AlgorithmTypes.cuh"
 #include "InputProvider.h"
-#include <gsl/gsl>
 
 namespace data_provider {
   struct Parameters {

@@ -7,14 +7,15 @@
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
 #include "AlgorithmTypes.cuh"
+#include <gsl/span>
 
 namespace host_global_event_cut {
   struct Parameters {
-    HOST_INPUT(host_ut_raw_banks_t, Allen::device::span<char const>) ut_banks;
-    HOST_INPUT(host_ut_raw_offsets_t, Allen::device::span<unsigned int const>) ut_offsets;
+    HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>) ut_banks;
+    HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>) ut_offsets;
     HOST_INPUT(host_ut_raw_bank_version_t, int) ut_raw_bank_version;
-    HOST_INPUT(host_scifi_raw_banks_t, Allen::device::span<char const>) scifi_banks;
-    HOST_INPUT(host_scifi_raw_offsets_t, Allen::device::span<unsigned int const>) scifi_offsets;
+    HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
+    HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
     HOST_OUTPUT(host_event_list_output_t, unsigned) host_event_list;
     HOST_OUTPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;

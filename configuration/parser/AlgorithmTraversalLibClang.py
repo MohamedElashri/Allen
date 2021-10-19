@@ -138,9 +138,9 @@ class AlgorithmTraversal():
 
     # Arguments to pass to compiler, as function of file extension.
     __compile_flags = {
-        "cuh": ["-x", "c++", "-std=c++17", "-nostdinc++"],
-        "hpp": ["-std=c++17", "-nostdinc++"],
-        "h": ["-std=c++17", "-nostdinc++"]
+        "cuh": ["-x", "c++", "-std=c++17"],
+        "hpp": ["-std=c++17"],
+        "h": ["-std=c++17"]
     }
 
     # Clang index
