@@ -1119,7 +1119,7 @@ loop_error:
   monitor_manager->saveHistograms(mon_filename);
 
   // Print checker reports
-  checker_invoker->report(n_events_processed);
+  checker_invoker->report(n_events_processed * number_of_repetitions);
   checker_invoker.reset();
 
   // Print throughput measurement result
