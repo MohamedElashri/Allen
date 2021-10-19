@@ -20,6 +20,6 @@ void host_rate_validator::host_rate_validator_t::operator()(
     checker.accumulate(
       static_cast<char const*>(parameters.host_names_of_lines),
       parameters.host_dec_reports,
-      parameters.host_number_of_events[0]);
+      parameters.host_number_of_events[0] * runtime_options.number_of_repetitions);
   })(arguments);
 }

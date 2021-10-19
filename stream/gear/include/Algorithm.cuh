@@ -9,7 +9,6 @@
 #include "TargetFunction.cuh"
 #include "Argument.cuh"
 #include "Contract.h"
-
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
@@ -100,130 +99,128 @@ namespace Allen {
         const Allen::Context& context) = nullptr;
     };
 
-    template<typename ALGORITHM>
-    constexpr static auto vtable_for = vtable {
-      [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
-      [](
-        std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
-        std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {
-        using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
-        using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
-        using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
-        if (std::tuple_size_v<store_ref_t> != vector_store_ref.size()) {
-          throw std::runtime_error("unexpected number of arguments");
-        }
-        auto store_ref =
-          create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<store_ref_t>> {});
-        auto input_agg_store = input_aggregates_t {Allen::gen_input_aggregates_tuple(
-          input_aggregates, std::make_index_sequence<std::tuple_size_v<input_aggregates_t>> {})};
-        return std::any {arg_ref_mgr_t {store_ref, input_agg_store}};
-      },
-      [](
-        void* p,
-        std::any& arg_ref_manager,
-        const RuntimeOptions& runtime_options,
-        const Constants& constants,
-        const HostBuffers& host_buffers) {
-        using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
-        static_cast<ALGORITHM*>(p)->set_arguments_size(
-          std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers);
-      },
-      [](
-        const void* p,
-        std::any& arg_ref_manager,
-        const RuntimeOptions& runtime_options,
-        const Constants& constants,
-        HostBuffers& host_buffers,
-        const Allen::Context& context) {
-        using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
-        static_cast<ALGORITHM const*>(p)->operator()(
-          std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers, context);
-      },
-      [](void* p) {
-        if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
-          initialize_algorithm(*static_cast<ALGORITHM*>(p));
-        }
-        else {
-          _unused(p);
-        }
-      },
-      [](void* p, const std::map<std::string, std::string>& algo_config) {
-        static_cast<ALGORITHM*>(p)->set_properties(algo_config);
-      },
-      [](void const* p) { return static_cast<ALGORITHM const*>(p)->get_properties(); },
-      []() -> std::string { return ALGORITHM::algorithm_scope; },
-      [](void* p) { delete static_cast<ALGORITHM*>(p); },
-      [](
-        void* p,
-        std::any& arg_ref_manager,
-        const RuntimeOptions& runtime_options,
-        const Constants& constants,
-        const Allen::Context& context) {
-        using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
-        using preconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::preconditions;
-        if constexpr (std::tuple_size_v<preconditions_t> > 0) {
-          auto preconditions = preconditions_t {};
-          const auto location = static_cast<ALGORITHM const*>(p)->name();
-          std::apply(
-            [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-            preconditions);
-          std::apply(
-            [&](const auto&... contract) {
-              (std::invoke(
-                 contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
-               ...);
-            },
-            preconditions);
-        }
-      },
-      [](
-        void* p,
-        std::any& arg_ref_manager,
-        const RuntimeOptions& runtime_options,
-        const Constants& constants,
-        const Allen::Context& context) {
-        using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
-        using postconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::postconditions;
-        if constexpr (std::tuple_size_v<postconditions_t> > 0) {
-          auto postconditions = postconditions_t {};
-          const auto location = static_cast<ALGORITHM const*>(p)->name();
-          std::apply(
-            [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
-            postconditions);
-          std::apply(
-            [&](const auto&... contract) {
-              (std::invoke(
-                 contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
-               ...);
-            },
-            postconditions);
-        }
-      }};
-
     void* instance = nullptr;
-    vtable const* table = nullptr;
+    vtable table = {};
 
   public:
     template<typename ALGORITHM>
-    TypeErasedAlgorithm(std::in_place_type_t<ALGORITHM>, const std::string& name) : table {&vtable_for<ALGORITHM>}
+    TypeErasedAlgorithm(std::in_place_type_t<ALGORITHM>, const std::string& name)
     {
       auto p = new ALGORITHM {};
       p->set_name(name);
       instance = p;
+      table = vtable {
+        [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
+        [](
+          std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
+          std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
+          using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
+          if (std::tuple_size_v<store_ref_t> != vector_store_ref.size()) {
+            throw std::runtime_error("unexpected number of arguments");
+          }
+          auto store_ref =
+            create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<store_ref_t>> {});
+          auto input_agg_store = input_aggregates_t {Allen::gen_input_aggregates_tuple(
+            input_aggregates, std::make_index_sequence<std::tuple_size_v<input_aggregates_t>> {})};
+          return std::any {arg_ref_mgr_t {store_ref, input_agg_store}};
+        },
+        [](
+          void* p,
+          std::any& arg_ref_manager,
+          const RuntimeOptions& runtime_options,
+          const Constants& constants,
+          const HostBuffers& host_buffers) {
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          static_cast<ALGORITHM*>(p)->set_arguments_size(
+            std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers);
+        },
+        [](
+          const void* p,
+          std::any& arg_ref_manager,
+          const RuntimeOptions& runtime_options,
+          const Constants& constants,
+          HostBuffers& host_buffers,
+          const Allen::Context& context) {
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          static_cast<ALGORITHM const*>(p)->operator()(
+            std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers, context);
+        },
+        [](void* p) {
+          if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
+            initialize_algorithm(*static_cast<ALGORITHM*>(p));
+          }
+          else {
+            _unused(p);
+          }
+        },
+        [](void* p, const std::map<std::string, std::string>& algo_config) {
+          static_cast<ALGORITHM*>(p)->set_properties(algo_config);
+        },
+        [](void const* p) { return static_cast<ALGORITHM const*>(p)->get_properties(); },
+        []() -> std::string { return ALGORITHM::algorithm_scope; },
+        [](void* p) { delete static_cast<ALGORITHM*>(p); },
+        [](
+          void* p,
+          std::any& arg_ref_manager,
+          const RuntimeOptions& runtime_options,
+          const Constants& constants,
+          const Allen::Context& context) {
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using preconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::preconditions;
+          if constexpr (std::tuple_size_v < preconditions_t >> 0) {
+            auto preconditions = preconditions_t {};
+            const auto location = static_cast<ALGORITHM const*>(p)->name();
+            std::apply(
+              [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
+              preconditions);
+            std::apply(
+              [&](const auto&... contract) {
+                (std::invoke(
+                   contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
+                 ...);
+              },
+              preconditions);
+          }
+        },
+        [](
+          void* p,
+          std::any& arg_ref_manager,
+          const RuntimeOptions& runtime_options,
+          const Constants& constants,
+          const Allen::Context& context) {
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using postconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::postconditions;
+          if constexpr (std::tuple_size_v < postconditions_t >> 0) {
+            auto postconditions = postconditions_t {};
+            const auto location = static_cast<ALGORITHM const*>(p)->name();
+            std::apply(
+              [&](auto&... contract) { (contract.set_location(location, demangle<decltype(contract)>()), ...); },
+              postconditions);
+            std::apply(
+              [&](const auto&... contract) {
+                (std::invoke(
+                   contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
+                 ...);
+              },
+              postconditions);
+          }
+        }};
     }
-    ~TypeErasedAlgorithm() { (*table->dtor)(instance); }
+    ~TypeErasedAlgorithm() { (table.dtor)(instance); }
     TypeErasedAlgorithm(const TypeErasedAlgorithm&) = delete;
     TypeErasedAlgorithm(TypeErasedAlgorithm&& arg) : instance {std::exchange(arg.instance, nullptr)}, table {arg.table}
     {}
     TypeErasedAlgorithm& operator=(const TypeErasedAlgorithm&) = delete;
     TypeErasedAlgorithm& operator=(TypeErasedAlgorithm&&) = delete;
 
-    std::string name() const { return (*table->name)(instance); }
+    std::string name() const { return (table.name) (instance); }
     std::any create_arg_ref_manager(
       std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
       std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates)
     {
-      return (*table->create_arg_ref_manager)(std::move(vector_store_ref), std::move(input_aggregates));
+      return (table.create_arg_ref_manager) (std::move(vector_store_ref), std::move(input_aggregates));
     }
     void set_arguments_size(
       std::any& arg_ref_manager,
@@ -231,7 +228,7 @@ namespace Allen {
       const Constants& constants,
       const HostBuffers& host_buffers)
     {
-      (*table->set_arguments_size)(instance, arg_ref_manager, runtime_options, constants, host_buffers);
+      (table.set_arguments_size)(instance, arg_ref_manager, runtime_options, constants, host_buffers);
     }
     void invoke(
       std::any& arg_ref_manager,
@@ -240,22 +237,22 @@ namespace Allen {
       HostBuffers& host_buffers,
       const Allen::Context& context)
     {
-      (*table->invoke)(instance, arg_ref_manager, runtime_options, constants, host_buffers, context);
+      (table.invoke)(instance, arg_ref_manager, runtime_options, constants, host_buffers, context);
     }
-    void init() { (*table->init)(instance); }
+    void init() { (table.init)(instance); }
     void set_properties(const std::map<std::string, std::string>& algo_config)
     {
-      (*table->set_properties)(instance, algo_config);
+      (table.set_properties)(instance, algo_config);
     }
-    std::map<std::string, std::string> get_properties() const { return (*table->get_properties)(instance); }
-    std::string scope() const { return (*table->scope)(); }
+    std::map<std::string, std::string> get_properties() const { return (table.get_properties) (instance); }
+    std::string scope() const { return (table.scope) (); }
     void run_preconditions(
       std::any& arg_ref_manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const Allen::Context& context)
     {
-      return (*table->run_preconditions)(instance, arg_ref_manager, runtime_options, constants, context);
+      return (table.run_preconditions) (instance, arg_ref_manager, runtime_options, constants, context);
     }
     void run_postconditions(
       std::any& arg_ref_manager,
@@ -263,7 +260,7 @@ namespace Allen {
       const Constants& constants,
       const Allen::Context& context)
     {
-      return (*table->run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
+      return (table.run_postconditions) (instance, arg_ref_manager, runtime_options, constants, context);
     }
   };
 
