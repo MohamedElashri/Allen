@@ -18,7 +18,6 @@ set(ALGORITHMS_GENERATION_SCRIPT ${ALLEN_PARSER_DIR}/ParseAlgorithms.py)
 include_guard(GLOBAL)
 
 file(MAKE_DIRECTORY ${CODE_GENERATION_DIR})
-file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
 file(MAKE_DIRECTORY ${ALLEN_ALGORITHMDB_DIR})
 
@@ -31,21 +30,20 @@ find_package(LibClang QUIET)
 set(MINIMUM_REQUIRED_LIBCLANG_VERSION 9)
 if(LIBCLANG_FOUND AND "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
   message(STATUS "libClang version found (${LIBCLANG_VERSION}) does not meet minimum version requirement (${MINIMUM_REQUIRED_LIBCLANG_VERSION})")
-  set(LIBCLANG_MINIMUM_VERSION_FOUND FALSE)
-else()
-  set(LIBCLANG_MINIMUM_VERSION_FOUND TRUE)
 endif()
 
-if(NOT LIBCLANG_MINIMUM_VERSION_FOUND)
+if(NOT LIBCLANG_FOUND OR "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # In macOS, libClang typically exists even if llvm-config does not exist.
     # Attempt default directory
     set(LIBCLANG_LIBDIR /Library/Developer/CommandLineTools/usr/lib)
     set(LIBCLANG_ALTERNATIVE_FOUND ON)
+    message(STATUS "Using predefined macos libclang directory")
   elseif(EXISTS /cvmfs/sft.cern.ch)
     # As a last resource, try a hard-coded directory in cvmfs
     set(LIBCLANG_LIBDIR /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib)
     set(LIBCLANG_ALTERNATIVE_FOUND ON)
+    message(STATUS "Using predefined CVMFS libclang directory")
   else()
     message(FATAL_ERROR "No suitable libClang installation found. "
                         "You may provide a custom path to llvm-config by setting LLVM_CONFIG manually")
@@ -75,16 +73,16 @@ add_custom_command(
 
 add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
 
-# Copy Allen build directories
+# Symlink Allen build directories
 add_custom_command(
   OUTPUT "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}"
-  COMMENT "Copying sequence definitions and configuration utilities"
+  COMMENT "Making symlink of sequence definitions and configuration utilities"
   COMMAND
-    ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
-    ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}"
+    ${CMAKE_COMMAND} -E create_symlink "${CMAKE_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
+    ${CMAKE_COMMAND} -E create_symlink "${CMAKE_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}"
   DEPENDS "${CMAKE_SOURCE_DIR}/configuration/python/AllenConf" "${CMAKE_SOURCE_DIR}/configuration/AllenCore")
 
-add_custom_target(copy_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
+add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
 # Generate Allen AlgorithmDB
 add_custom_command(
@@ -141,7 +139,7 @@ function(generate_sequence sequence)
       COMMAND
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" "${CMAKE_SOURCE_DIR}/scripts/run_with_pythonpath.sh" "${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view generate_conf_core
       WORKING_DIRECTORY ${sequence_dir})
   else()
     add_custom_command(
@@ -149,7 +147,7 @@ function(generate_sequence sequence)
       COMMAND
         ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view copy_conf_core checkout_gaudi_dirs
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view generate_conf_core checkout_gaudi_dirs
       WORKING_DIRECTORY ${sequence_dir})
   endif()
   add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")

@@ -116,6 +116,7 @@ int allen(
   uint mon_save_period = 0;
   std::string mon_filename;
   bool disable_run_changes = 0;
+  bool run_from_json = false;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -187,6 +188,9 @@ int allen(
     else if (flag_in({"sequence"})) {
       sequence = arg;
     }
+    else if (flag_in({"run-from-json"})) {
+      run_from_json = atoi(arg.c_str());
+    }
     else if (flag_in({"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
     }
@@ -242,10 +246,6 @@ int allen(
     }
   }
 
-  if (json_constants_configuration_file.empty()) {
-    json_constants_configuration_file = sequence + ".json";
-  }
-
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);
   logger::setVerbosity(verbosity);
@@ -265,6 +265,20 @@ int allen(
 
   // Show call options
   print_call_options(options, device_name);
+
+  // Determine configuration
+  if (run_from_json) {
+    if (json_constants_configuration_file.empty()) {
+      json_constants_configuration_file = sequence + ".json";
+    }
+  } else {
+    int error = system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py").c_str());
+    if (error) {
+      throw std::runtime_error("sequence generation failed");
+    }
+    info_cout << "\n";
+    json_constants_configuration_file = "Sequence.json";
+  }
 
   // Determine wether to run with async I/O.
   bool enable_async_io = true;
@@ -483,8 +497,10 @@ int allen(
     sequence->configure_algorithms(configuration);
   }
 
-  // Print configured sequence
-  streams.front()->print_configured_sequence();
+  if (run_from_json) {
+    // Print configured sequence
+    streams.front()->print_configured_sequence();
+  }
 
   // Interrogate stream configured sequence for validation algorithms
   const auto sequence_contains_validation_algorithms = streams.front()->contains_validation_algorithms();

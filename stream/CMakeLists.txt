@@ -124,6 +124,12 @@ endif()
 
 add_dependencies(Stream algorithm_db)
 
+# In STANDALONE, the following dependencies will make runtime sequence generation work
+# even if SEQUENCES was empty.
+if(STANDALONE)
+  add_dependencies(Stream generate_conf_core checkout_gaudi_dirs generate_algorithms_view)
+endif()
+
 # TODO: In the future a single wrapper script can take care of
 # generating the sequence on the fly (using eg. the parsed agorithms pickle)
 foreach(sequence ${BUILD_SEQUENCES})

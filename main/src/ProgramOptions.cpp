@@ -55,6 +55,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"v", "verbosity"}, "verbosity [0-5]", "3", "info"},
           {{"p", "print-memory"}, "print memory usage", "0"},
           {{"sequence"}, "sequence to run", ""},
+          {{"run-from-json"}, "run from json configuration file", "0"},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
           {{"output-file"}, "Write selected event to output file", ""},
           {{"device"}, "select device to use", "0"},

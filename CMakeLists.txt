@@ -66,10 +66,9 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # --------------------
 
 # Sequences to build, SEQUENCE argument overrides SEQUENCES for now
-set(SEQUENCES "hlt1_pp_default" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
-if (DEFINED SEQUENCE)
-  message(STATUS "The SEQUENCE argument is deprecated, please use SEQUENCES instead")
-  set(SEQUENCES "${SEQUENCE}")
+set(SEQUENCES "" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
+if(NOT STANDALONE)
+  set(SEQUENCES "hlt1_pp_default")
 endif()
 
 # Configured CPU architecture
@@ -604,10 +603,6 @@ foreach(sequence_filename ${available_sequences})
     list(APPEND BUILD_SEQUENCES ${sequence})
   endif()
 endforeach()
-
-if(NOT BUILD_SEQUENCES)
-  message(FATAL_ERROR "No sequences selected to be built with pattern ${SEQUENCES}.")
-endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
 include_directories(checker/tracking/include)
