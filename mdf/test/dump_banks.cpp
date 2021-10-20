@@ -69,7 +69,8 @@ int main(int argc, char* argv[])
     }
   }
 
-  unordered_set<BankTypes> types = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+  unordered_set<BankTypes> types = {
+    BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
 
   size_t n_read = 0;
   Allen::buffer_map buffers;

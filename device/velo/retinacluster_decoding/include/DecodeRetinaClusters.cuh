@@ -7,7 +7,7 @@
 #include <cassert>
 #include "ClusteringDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloTools.cuh"
 
 namespace decode_retinaclusters {
@@ -22,13 +22,14 @@ namespace decode_retinaclusters {
     DEVICE_OUTPUT(dev_module_cluster_num_t, unsigned) dev_module_pair_cluster_num;
     DEVICE_OUTPUT(dev_offsets_module_pair_cluster_t, unsigned) dev_offsets_module_pair_cluster;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
-    DEVICE_OUTPUT(
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_clusters_t,
-      Velo::Clusters,
-      dev_velo_cluster_container_t,
-      dev_module_cluster_num_t,
-      dev_number_of_events_t,
-      dev_offsets_module_pair_cluster_t)
+      DEPENDENCIES(
+        dev_velo_cluster_container_t,
+        dev_module_cluster_num_t,
+        dev_number_of_events_t,
+        dev_offsets_module_pair_cluster_t),
+      Velo::Clusters)
     dev_velo_clusters;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim_prop;
   };

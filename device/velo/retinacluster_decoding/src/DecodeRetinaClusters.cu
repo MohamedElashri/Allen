@@ -6,6 +6,8 @@
 #include <VeloTools.cuh>
 #include <BinarySearch.cuh>
 
+INSTANTIATE_ALGORITHM(decode_retinaclusters::decode_retinaclusters_t)
+
 __global__ void populate_module_pair_offsets_and_sizes(
   decode_retinaclusters::Parameters parameters,
   const unsigned module_pair_cluster_num_size)

@@ -225,7 +225,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   auto filename = s_config.mdf_files[0];
 
   std::unordered_set<BankTypes> allen_types {
-    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+    BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
 
   auto [success, banks_count, odins, split_event, alloc_size, max_events, total_size] =
     mdf_read_sizes(filename, allen_types, s_config.n_events);
@@ -261,7 +261,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   std::cout << alloc_size << " " << split_event << " " << max_events << "\n";
 
   auto size_fun = [as = alloc_size, n_events = max_events](BankTypes) -> std::tuple<size_t, size_t> {
-    return {as, n_events + 1};
+//     return {as, n_events + 1};
   };
 
   auto slices = allocate_slices(s_config.n_slices, allen_types, size_fun);

@@ -88,7 +88,9 @@ int main(int argc, char* argv[])
       auto size_fun = [pf](BankTypes) -> std::tuple<size_t, size_t> {
         return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
       };
-      slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_meps, size_fun);
+      slices =
+        allocate_slices<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(
+          n_meps, size_fun);
       blocks.resize(mep_header.n_blocks);
     }
 
@@ -140,7 +142,8 @@ int main(int argc, char* argv[])
       auto& [buffer, mep_header, mep_span, blocks, source_offsets] = mep_buffers[i];
       for (size_t rep = 0; rep < n_reps; ++rep) {
         // Reset the slice
-        reset_slice<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(slices, i, event_ids[i]);
+        reset_slice<BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(
+          slices, i, event_ids[i]);
         auto [success, transpose_full, n_transposed] = MEP::transpose_events(
           slices,
           i,

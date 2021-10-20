@@ -248,6 +248,32 @@ void compare<BankTypes::VP>(
 }
 
 template<>
+void compare<BankTypes::VPRetinaCluster>(
+  const int,
+  gsl::span<char const> mep_fragments,
+  gsl::span<unsigned const> mep_offsets,
+  gsl::span<char const> allen_banks,
+  gsl::span<unsigned const> allen_offsets,
+  size_t const i_event)
+{
+  auto const mep_n_banks = mep_offsets[0];
+
+  const auto allen_raw_event = Velo::VeloRawEvent(allen_banks.data() + allen_offsets[i_event]);
+  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
+
+  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+    // Read raw bank
+    auto const mep_bank = MEP::raw_bank<Velo::VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const allen_bank = allen_raw_event.raw_bank(bank);
+    REQUIRE(mep_bank.sensor_index == allen_bank.sensor_index);
+    REQUIRE(mep_bank.count == allen_bank.count);
+    for (size_t j = 0; j < allen_bank.count; ++j) {
+      REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
+    }
+  }
+}
+
+template<>
 void compare<BankTypes::UT>(
   const int version,
   gsl::span<char const> mep_fragments,
@@ -393,6 +419,7 @@ struct BTTag {
 };
 
 using VeloTag = BTTag<BankTypes::VP>;
+using VeloClusterTag = BTTag<BankTypes::VPRetinaCluster>;
 using SciFiTag = BTTag<BankTypes::FT>;
 using UTTag = BTTag<BankTypes::UT>;
 using MuonTag = BTTag<BankTypes::MUON>;

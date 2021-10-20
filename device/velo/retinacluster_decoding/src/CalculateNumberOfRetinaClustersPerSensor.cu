@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <CalculateNumberOfRetinaClustersPerSensor.cuh>
 
+INSTANTIATE_ALGORITHM(calculate_number_of_retinaclusters_each_sensor::calculate_number_of_retinaclusters_each_sensor_t)
+
 template<bool mep_layout>
 __global__ void calculate_number_of_retinaclusters_each_sensor_kernel(
   calculate_number_of_retinaclusters_each_sensor::Parameters parameters)

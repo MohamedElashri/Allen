@@ -52,6 +52,7 @@ namespace {
   EventIDs events_mep;
   std::vector<int> ids;
   std::unordered_set<BankTypes> const types {BankTypes::VP,
+                                             BankTypes::VPRetinaCluster,
                                              BankTypes::UT,
                                              BankTypes::FT,
                                              BankTypes::MUON,
