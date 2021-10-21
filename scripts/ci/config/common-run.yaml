@@ -22,17 +22,17 @@
   parallel:
     matrix:
       # run throughput, no_gec
-      - TEST_NAME: "run_throughput"
-        BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_no_gec"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_1k"]
+      # - TEST_NAME: "run_throughput"
+      #   BUILD_TYPE: ["RelWithDebInfo"]
+      #   SEQUENCE: ["hlt1_pp_no_gec"]
+      #   DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
+      #   #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_1k"]
 
-      # run throughput, default, SMOG2_pppHe
-      - TEST_NAME: "run_throughput"
-        BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["SMOG2_pppHe_1k"]
+      # # run throughput, default, SMOG2_pppHe
+      # - TEST_NAME: "run_throughput"
+      #   BUILD_TYPE: ["RelWithDebInfo"]
+      #   SEQUENCE: ["hlt1_pp_default"]
+      #   DATA_TAG: ["SMOG2_pppHe_1k"]
 
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
@@ -56,20 +56,20 @@
       #   DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
 
       - TEST_NAME: "run_built_tests"
-        BUILD_TYPE: [RelWithDebInfo, Debug]
+        BUILD_TYPE: Debug #[RelWithDebInfo, Debug]
         OPTIONS: [BUILD_TESTS+ENABLE_CONTRACTS]
         SEQUENCE: ["hlt1_pp_default"]
 
       # run physics efficiency, complex_validation
-      - TEST_NAME: "run_physics_efficiency"
-        BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_complex_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
+      # - TEST_NAME: "run_physics_efficiency"
+      #   BUILD_TYPE: ["RelWithDebInfo"]
+      #   SEQUENCE: ["hlt1_complex_validation"]
+      #   DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
 
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_scifi_v6"]
-        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01"]
-        GEOMETRY: ["sim10_up08_md"]
+      # - TEST_NAME: "run_throughput"
+      #   SEQUENCE: ["hlt1_pp_scifi_v6"]
+      #   DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01"]
+      #   GEOMETRY: ["sim10_up08_md"]
   
 
 .run_jobs:
