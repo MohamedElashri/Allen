@@ -82,7 +82,7 @@ int allen(
   // Folder containing detector configuration and mva models
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string folder_parameters = "../input/parameters/";
-  std::string json_constants_configuration_file;
+  std::string json_configuration_file = "Sequence.json";
   // Sequence to run
   std::string sequence;
 
@@ -140,9 +140,6 @@ int allen(
     }
     else if (flag_in({"mep"})) {
       mep_input = arg;
-    }
-    else if (flag_in({"configuration"})) {
-      json_constants_configuration_file = arg;
     }
     else if (flag_in({"transpose-mep"})) {
       mep_layout = !atoi(arg.c_str());
@@ -268,16 +265,13 @@ int allen(
 
   // Determine configuration
   if (run_from_json) {
-    if (json_constants_configuration_file.empty()) {
-      json_constants_configuration_file = sequence + ".json";
-    }
+    json_configuration_file = sequence + ".json";
   } else {
     int error = system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py").c_str());
     if (error) {
       throw std::runtime_error("sequence generation failed");
     }
     info_cout << "\n";
-    json_constants_configuration_file = "Sequence.json";
   }
 
   // Determine wether to run with async I/O.
@@ -384,7 +378,7 @@ int allen(
   }
 
   // Load constant parameters from JSON
-  configuration_reader = std::make_unique<ConfigurationReader>(json_constants_configuration_file);
+  configuration_reader = std::make_unique<ConfigurationReader>(json_configuration_file);
 
   // Read the Muon catboost model
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_parameters + "muon_catboost_model.json");
