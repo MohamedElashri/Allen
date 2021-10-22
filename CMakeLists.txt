@@ -67,9 +67,6 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 
 # Sequences to build, SEQUENCE argument overrides SEQUENCES for now
 set(SEQUENCES "" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
-if(NOT STANDALONE)
-  set(SEQUENCES "hlt1_pp_default")
-endif()
 
 # Configured CPU architecture
 set(CPU_ARCH native CACHE STRING "Target CPU architecture")
