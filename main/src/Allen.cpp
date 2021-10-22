@@ -342,13 +342,9 @@ int allen(
                               !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
 
-    input_provider = std::make_shared<MEPProvider<
-      BankTypes::VP,
-      BankTypes::UT,
-      BankTypes::FT,
-      BankTypes::MUON,
-      BankTypes::ODIN,
-      BankTypes::ECal>>(number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
+    input_provider = std::make_shared<
+      MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal>>(
+      number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;

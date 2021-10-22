@@ -278,7 +278,8 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         make_rb_objtyp_t,
         name="make_rb_objtyp",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_objtyp_banks_size_t=prefix_sum_objtyp_size.host_total_sum_holder_t,
+        host_objtyp_banks_size_t=prefix_sum_objtyp_size.
+        host_total_sum_holder_t,
         dev_sel_count_t=calc_rb_substr_size.dev_sel_count_t,
         dev_sel_sv_count_t=calc_rb_hits_size.dev_sel_sv_count_t,
         dev_sel_track_count_t=calc_rb_hits_size.dev_sel_track_count_t,
