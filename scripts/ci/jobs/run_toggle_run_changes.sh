@@ -7,7 +7,7 @@ set -euxo pipefail
 
 check_build_exists
 
-RUN_OPTIONS="-n 1000 -m 700"
+RUN_OPTIONS="-n 1000 -m 700 --run-from-json 1"
 JOB="./Allen --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} ${RUN_OPTIONS}"
 
 if [ "$RUN_CHANGES" = "OFF" ]; then

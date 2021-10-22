@@ -16,7 +16,7 @@ if [ ! -z ${GEOMETRY+x} ]; then
   RUN_OPTIONS="$RUN_OPTIONS -g ../input/detector_configuration/${GEOMETRY}"
 fi
 
-RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} ${RUN_OPTIONS}"
+RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 ${RUN_OPTIONS}"
 
 set -euxo pipefail
 OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}/${DEVICE_ID}"
