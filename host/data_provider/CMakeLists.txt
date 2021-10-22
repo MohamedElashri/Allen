@@ -7,6 +7,6 @@ allen_add_host_library(HostDataProvider STATIC
   ${host_data_provider}
 )
 
-target_link_libraries(HostDataProvider PRIVATE HostEventModel EventModel Gear Common Backend mdf)
+target_link_libraries(HostDataProvider PRIVATE HostEventModel EventModel Gear AllenCommon Backend)
 
 target_include_directories(HostDataProvider PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)

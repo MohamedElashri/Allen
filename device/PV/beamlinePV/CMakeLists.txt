@@ -6,7 +6,11 @@ file(GLOB blPV "src/*.cu")
 allen_add_device_library(PV_beamline STATIC
   ${blPV})
 
-target_link_libraries(PV_beamline PRIVATE Common Backend HostEventModel EventModel Utils)
+add_library(PVCommon INTERFACE)
+target_include_directories(PVCommon INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+install(TARGETS PVCommon EXPORT Allen)
+
+target_link_libraries(PV_beamline PRIVATE PVCommon AllenCommon Backend HostEventModel EventModel Utils)
 
 target_include_directories(PV_beamline PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
@@ -19,7 +23,7 @@ if(USE_ROOT AND ROOT_FOUND)
   target_include_directories(PV_monitoring SYSTEM BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS})
 
-  target_link_libraries(PV_monitoring PRIVATE Common)
+  target_link_libraries(PV_monitoring PRIVATE PVCommon AllenCommon)
 
   target_link_libraries(PV_beamline PRIVATE PV_monitoring)
 endif()

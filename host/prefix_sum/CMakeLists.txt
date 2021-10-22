@@ -7,6 +7,6 @@ allen_add_host_library(HostPrefixSum STATIC
   ${host_prefix_sum}
 )
 
-target_link_libraries(HostPrefixSum PUBLIC HostEventModel EventModel Gear Common Backend)
+target_link_libraries(HostPrefixSum PUBLIC HostEventModel EventModel Gear AllenCommon Backend)
 
 target_include_directories(HostPrefixSum PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)

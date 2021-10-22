@@ -14,7 +14,7 @@ if (NOT STANDALONE)
     ${ALLEN_ROOT_LIBRARIES}
     PRIVATE
     EventModel
-    Common)
+    AllenCommon)
   target_compile_definitions(ZMQSvc PUBLIC ${ALLEN_ROOT_DEFINITIONS})
 
   add_library(AllenZMQ INTERFACE)
@@ -42,7 +42,7 @@ function(zmq_program)
     ${CMAKE_SOURCE_DIR}/mdf/include)
 
   find_package(Threads REQUIRED)
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf AllenFS Threads::Threads LHCbEvent EventModel Common)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf AllenFS Threads::Threads LHCbEvent EventModel AllenCommon)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
     target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)

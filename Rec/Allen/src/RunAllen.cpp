@@ -176,7 +176,7 @@ StatusCode RunAllen::initialize()
   const size_t events_per_slice = 1;
   const size_t n_events = 1;
   m_tes_input_provider.reset(
-    new TESProvider(number_of_slices, events_per_slice, m_bankTypes, n_events));
+    new TESProvider(number_of_slices, events_per_slice, n_events));
 
   for (unsigned i = 0; i < m_line_names.size(); ++i) {
     const std::string name = m_line_names[i] + "Decision";

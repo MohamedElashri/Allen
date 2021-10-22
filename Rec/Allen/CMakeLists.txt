@@ -5,10 +5,11 @@
 Rec/Allen
 ------------------
 Utility algorithms to run the Allen
-sequence as part of an Gaudi/LHCb
+sequence as part of a Gaudi/LHCb
 application
 #]========================================]
 
+# FIXME:
 # set(ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 # _make_relocatable(ALLEN_INSTALL_DIR MAPPINGS "${CMAKE_SOURCE_DIR}" "\${ALLEN_PROJECT_ROOT}")
 # message(STATUS "Setting Allen install dir env variable to ${ALLEN_INSTALL_DIR}")

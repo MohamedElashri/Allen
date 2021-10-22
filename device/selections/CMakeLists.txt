@@ -9,7 +9,7 @@ allen_add_device_library(Selections STATIC
 )
 
 target_link_libraries(Selections PRIVATE
-  Common
+  AllenCommon
   Backend
   HostEventModel
   EventModel
@@ -17,8 +17,6 @@ target_link_libraries(Selections PRIVATE
   LHCbEvent
   Kalman
   VertexFitter)
-
-add_dependencies(Selections configured_sequence)
 
 if(USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(Selections PRIVATE WITH_ROOT)
@@ -37,4 +35,5 @@ target_include_directories(Selections PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/charm/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/inclusive_hadron/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/muon/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/electron/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/line_types/include>)

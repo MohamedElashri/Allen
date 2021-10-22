@@ -1,6 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+# Gear interface library
+add_library(Gear INTERFACE)
+target_include_directories(Gear INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gear/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sequence/include>)
+install(TARGETS Gear EXPORT Allen)
 
 file(GLOB stream_src "sequence/src/*cpp")
 
@@ -31,17 +37,6 @@ target_link_libraries(Stream PRIVATE
   Backend
   Validators
   AllenCommon)
-
-if (NOT STANDALONE)
-  target_link_libraries(Stream PRIVATE Gaudi::GaudiKernel LHCb::DAQEventLib)
-endif()
-
-if (USE_ROOT AND ROOT_FOUND)
-  target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(Stream SYSTEM BEFORE PRIVATE
-    ${ROOT_INCLUDE_DIRS}
-  )
-endif()
 
 add_dependencies(Stream algorithm_db)
 

@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "AlgorithmTypes.cuh"
 
 namespace momentum_brem_correction {

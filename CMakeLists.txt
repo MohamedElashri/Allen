@@ -299,7 +299,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_executable(${ARGV})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 
@@ -327,7 +327,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     add_library(${ARGV})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION lib)
@@ -410,7 +410,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     add_library(${ARGV})
 
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -527,9 +527,7 @@ target_include_directories(AllenCommon
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
-target_include_directories(AllenCommon INTERFACE SYSTEM
-  ${CPPGSL_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
-target_link_libraries(AllenCommon INTERFACE AllenRuntime)
+target_include_directories(AllenCommon SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
 
 set(AllenHeaders)
 foreach(header
@@ -578,9 +576,16 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 # Add host library
 allen_add_host_library(HostCommon STATIC ${common_sources})
 
-target_link_libraries(HostCommon PRIVATE AllenCommon AllenFS nlohmann_json::nlohmann_json
-  EventModel Gear Backend mdf NonEventData LHCbEvent cppgsl::cppgsl)
-target_link_libraries(AllenCommon PUBLIC mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
+target_link_libraries(AllenCommon INTERFACE
+  mdf AllenFS nlohmann_json::nlohmann_json)
+target_link_libraries(HostCommon PRIVATE
+  EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent)
+
+if (NOT STANDALONE)
+  target_link_libraries(AllenCommon INTERFACE cppgsl::cppgsl)
+else()
+  target_include_directories(AllenCommon SYSTEM INTERFACE ${CPPGSL_INCLUDE_DIR})
+endif()
 
 allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
 

@@ -20,7 +20,7 @@ install(TARGETS Vectorization EXPORT Allen)
 
 # Backend library
 allen_add_host_library(Backend STATIC ${backend_sources})
-target_link_libraries(Backend PUBLIC Vectorization Gear Common)
+target_link_libraries(Backend PUBLIC Vectorization Gear AllenCommon)
 target_link_libraries(Backend PRIVATE HostCommon)
 target_include_directories(Backend PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

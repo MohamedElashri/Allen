@@ -14,5 +14,5 @@ allen_add_host_library(HostCombiners STATIC
   ${host_combiners}
 )
 
-target_link_libraries(HostCombiners PRIVATE HostEventModel EventModel Gear Common Backend)
+target_link_libraries(HostCombiners PRIVATE HostEventModel EventModel Gear AllenCommon Backend)
 target_include_directories(HostCombiners PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)

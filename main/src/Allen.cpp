@@ -90,7 +90,6 @@ int allen(
 
   unsigned n_slices = 0;
   unsigned number_of_buffers = 0;
-  unsigned events_per_slice = input_provider->events_per_slice();
   unsigned number_of_threads = 1;
   unsigned n_repetitions = 1;
   unsigned verbosity = 3;
@@ -326,7 +325,7 @@ int allen(
   }
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
+  std::unique_ptr<HostBuffersManager> buffers_manager = std::make_unique<HostBuffersManager>(
     number_of_buffers, input_provider->events_per_slice(), n_lines, error_line);
 
   if (print_status) {
@@ -953,7 +952,7 @@ int allen(
     // Check if we're done
     if (stream_ready.count() == number_of_threads && io_cond) {
       if (
-        buffer_manager->buffersEmpty() &&
+        buffers_manager->buffersEmpty() &&
         (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
         info_cout << "Processing complete\n";
         if (allen_control && stop) {

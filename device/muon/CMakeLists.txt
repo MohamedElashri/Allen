@@ -17,11 +17,17 @@ allen_add_device_library(Muon STATIC
   ${muon_filter}
 )
 
-target_link_libraries(Muon PRIVATE Common Backend HostEventModel EventModel Utils)
+add_library(MuonCommon INTERFACE)
+target_include_directories(MuonCommon INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
+)
+install(TARGETS MuonCommon EXPORT Allen)
+
+target_link_libraries(Muon PRIVATE AllenCommon Backend HostEventModel EventModel Utils)
+target_link_libraries(Muon PUBLIC MuonCommon)
 
 target_include_directories(Muon PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/preprocessing/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/is_muon/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/match_upstream_muon/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/muon_filter/include>

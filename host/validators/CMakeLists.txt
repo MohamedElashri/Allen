@@ -14,7 +14,7 @@ target_link_libraries(Validators PRIVATE
   HostEventModel
   EventModel
   Gear
-  Common
+  AllenCommon
   Backend)
 
 target_include_directories(Validators PUBLIC

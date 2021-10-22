@@ -21,4 +21,7 @@ target_include_directories(EventModel INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/UT/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/velo/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/kalman/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vertex_fit/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/PV/include>)
+
+target_link_libraries(EventModel INTERFACE AllenCommon)
