@@ -16,6 +16,7 @@ sed -i 's/^DOCKER_ENV_CI_SERVER_TLS_CA_FILE=/DOCKER_ENV_CI_SERVER_TLS_CA_FILE="/
 sed -i "s/^-----END CERTIFICATE-----/-----END_CERTIFICATE-----\"/g" $ENV_FILE
 sed -i "s/^-----BEGIN CERTIFICATE-----/-----BEGIN_CERTIFICATE-----\"/g" $ENV_FILE
 
-
+# remove all lines but the first one from commit message, docker does not like multiple lines in environment variables
+sed -i '/^CI_COMMIT_MESSAGE/,/^DOCKER_PORT/{/^CI_COMMIT_MESSAGE/!{/^DOCKER_PORT/!d}}' env.ci
 
 cat $ENV_FILE
