@@ -147,17 +147,18 @@ StatusCode RunAllen::initialize()
   auto const error_line = std::distance(m_line_names.begin(), it);
 
   // Initialize host buffers (where Allen output is stored)
-  m_host_buffers_manager.reset(new HostBuffersManager{m_n_buffers, 2, m_line_names.size(), static_cast<unsigned>(error_line)});
+  m_host_buffers_manager.reset(
+    new HostBuffersManager {m_n_buffers, 2, m_line_names.size(), static_cast<unsigned>(error_line)});
 
   // Instantiate the sequence
   m_stream = std::make_unique<Stream>(
-      configuration_reader.configured_sequence(),
-      print_memory_usage,
-      reserve_mb,
-      reserve_mb,
-      required_memory_alignment,
-      m_constants,
-      m_host_buffers_manager.get());
+    configuration_reader.configured_sequence(),
+    print_memory_usage,
+    reserve_mb,
+    reserve_mb,
+    required_memory_alignment,
+    m_constants,
+    m_host_buffers_manager.get());
 
   const auto sequence_contains_validation_algorithms = m_stream->contains_validation_algorithms();
   if (sequence_contains_validation_algorithms) {

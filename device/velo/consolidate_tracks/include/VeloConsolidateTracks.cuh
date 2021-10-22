@@ -31,36 +31,37 @@ namespace velo_consolidate_tracks {
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_hits_view_t,
-      DEPENDENCIES(dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t),
+      DEPENDENCIES(dev_velo_track_hits_t, dev_offsets_all_velo_tracks_t, dev_offsets_velo_track_hit_number_t),
       Allen::Views::Velo::Consolidated::Hits)
     dev_velo_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_track_view_t,
-      DEPENDENCIES(dev_velo_hits_view_t,
-      dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t),
+      DEPENDENCIES(
+        dev_velo_hits_view_t,
+        dev_velo_track_hits_t,
+        dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t),
       Allen::Views::Velo::Consolidated::Track)
     dev_velo_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_tracks_view_t,
-      DEPENDENCIES(dev_velo_hits_view_t,
-      dev_velo_track_view_t,
-      dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t),
+      DEPENDENCIES(
+        dev_velo_hits_view_t,
+        dev_velo_track_view_t,
+        dev_velo_track_hits_t,
+        dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t),
       Allen::Views::Velo::Consolidated::Tracks)
     dev_velo_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_multi_event_tracks_view_t,
-      DEPENDENCIES(dev_velo_hits_view_t,
-      dev_velo_track_view_t,
-      dev_velo_tracks_view_t,
-      dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t),
+      DEPENDENCIES(
+        dev_velo_hits_view_t,
+        dev_velo_track_view_t,
+        dev_velo_tracks_view_t,
+        dev_velo_track_hits_t,
+        dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t),
       Allen::Views::Velo::Consolidated::MultiEventTracks)
     dev_velo_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

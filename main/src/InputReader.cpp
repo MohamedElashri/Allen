@@ -188,13 +188,21 @@ ConfigurationReader::ConfigurationReader(const std::string& file_name)
     if (component == "sequence") {
       for (auto& el2 : el.value().items()) {
         if (el2.key() == "configured_algorithms") {
-          m_configured_sequence.configured_algorithms = ParsedSequence::to_configured<ConfiguredAlgorithm>(el2.value().get<ParsedSequence::configured_algorithm_parse_t>());
-        } else if (el2.key() == "configured_arguments") {
-          m_configured_sequence.configured_arguments = ParsedSequence::to_configured<ConfiguredArgument>(el2.value().get<ParsedSequence::configured_argument_parse_t>());
-        } else if (el2.key() == "configured_sequence_arguments") {
-          m_configured_sequence.configured_algorithm_arguments = ParsedSequence::to_configured<ConfiguredAlgorithmArguments>(el2.value().get<ParsedSequence::configured_algorithm_argument_parse_t>());
-        } else if (el2.key() == "argument_dependencies") {
-          m_configured_sequence.argument_dependencies = el2.value().get<ParsedSequence::argument_dependencies_parse_t>();
+          m_configured_sequence.configured_algorithms = ParsedSequence::to_configured<ConfiguredAlgorithm>(
+            el2.value().get<ParsedSequence::configured_algorithm_parse_t>());
+        }
+        else if (el2.key() == "configured_arguments") {
+          m_configured_sequence.configured_arguments = ParsedSequence::to_configured<ConfiguredArgument>(
+            el2.value().get<ParsedSequence::configured_argument_parse_t>());
+        }
+        else if (el2.key() == "configured_sequence_arguments") {
+          m_configured_sequence.configured_algorithm_arguments =
+            ParsedSequence::to_configured<ConfiguredAlgorithmArguments>(
+              el2.value().get<ParsedSequence::configured_algorithm_argument_parse_t>());
+        }
+        else if (el2.key() == "argument_dependencies") {
+          m_configured_sequence.argument_dependencies =
+            el2.value().get<ParsedSequence::argument_dependencies_parse_t>();
         }
       }
     }

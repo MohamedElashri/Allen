@@ -40,9 +40,7 @@ namespace calc_rb_hits_size {
     DEVICE_OUTPUT(dev_sel_track_inserts_t, unsigned) dev_sel_track_inserts;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_sel_track_tables_t,
-      DEPENDENCIES(dev_sel_track_count_t,
-      dev_sel_track_indices_t,
-      dev_sel_track_inserts_t),
+      DEPENDENCIES(dev_sel_track_count_t, dev_sel_track_indices_t, dev_sel_track_inserts_t),
       Selections::CandidateTable)
     dev_sel_track_tables;
     DEVICE_OUTPUT(dev_sv_tags_t, unsigned) dev_sv_tags;
@@ -51,9 +49,7 @@ namespace calc_rb_hits_size {
     DEVICE_OUTPUT(dev_sel_sv_inserts_t, unsigned) dev_sel_sv_inserts;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_sel_sv_tables_t,
-      DEPENDENCIES(dev_sel_sv_count_t,
-      dev_sel_sv_indices_t,
-      dev_sel_sv_inserts_t),
+      DEPENDENCIES(dev_sel_sv_count_t, dev_sel_sv_indices_t, dev_sel_sv_inserts_t),
       Selections::CandidateTable)
     dev_sel_sv_tables;
     DEVICE_OUTPUT(dev_tag_hits_counts_t, unsigned) dev_tag_hits_counts;

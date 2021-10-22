@@ -14,11 +14,7 @@
 #include "Argument.cuh"
 #include "StructToTuple.cuh"
 
-enum class ArgumentScope {
-  Host,
-  Device,
-  Invalid
-};
+enum class ArgumentScope { Host, Device, Invalid };
 
 /**
  * @brief Contains the data of an argument, namely its name, data pointer and size.

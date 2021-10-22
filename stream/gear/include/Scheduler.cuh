@@ -37,7 +37,8 @@ class Scheduler {
   bool do_print = false;
 
 public:
-  Scheduler(const ConfiguredSequence& configuration,
+  Scheduler(
+    const ConfiguredSequence& configuration,
     const bool param_do_print,
     const size_t device_requested_mb,
     const size_t host_requested_mb,
@@ -62,7 +63,8 @@ public:
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       // Generate store references for each algorithm's configured arguments
       auto [alg_store_ref, alg_input_aggregates] = generate_algorithm_store_ref(sequence_arguments[i]);
-      m_sequence_argument_ref_managers.emplace_back(m_sequence[i].create_arg_ref_manager(alg_store_ref, alg_input_aggregates));
+      m_sequence_argument_ref_managers.emplace_back(
+        m_sequence[i].create_arg_ref_manager(alg_store_ref, alg_input_aggregates));
     }
 
     assert(configured_algorithms.size() == m_sequence.size());
@@ -76,7 +78,7 @@ public:
     host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
     device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
   }
-  
+
   Scheduler(const Scheduler&) = delete;
   Scheduler& operator=(const Scheduler&) = delete;
   Scheduler(Scheduler&&) = delete;
@@ -85,7 +87,8 @@ public:
   /**
    * @brief Instantiates all algorithms in the configured sequence
    */
-  void instantiate_sequence(const std::vector<ConfiguredAlgorithm>& configured_algorithms) {
+  void instantiate_sequence(const std::vector<ConfiguredAlgorithm>& configured_algorithms)
+  {
     for (const auto& alg : configured_algorithms) {
       m_sequence.emplace_back(instantiate_allen_algorithm(alg));
     }
@@ -94,7 +97,8 @@ public:
   /**
    * @brief Initializes the store with the configured arguments
    */
-  void initialize_store(const std::vector<ConfiguredArgument>& configured_arguments) {
+  void initialize_store(const std::vector<ConfiguredArgument>& configured_arguments)
+  {
     for (const auto& arg : configured_arguments) {
       m_store.emplace(arg.name, create_allen_argument(arg));
     }
@@ -103,8 +107,11 @@ public:
   /**
    * @brief Generate the store ref of an algorithm
    */
-  std::tuple<std::vector<std::reference_wrapper<ArgumentData>>, std::vector<std::vector<std::reference_wrapper<ArgumentData>>>> generate_algorithm_store_ref(
-    const ConfiguredAlgorithmArguments& configured_alg_arguments) {
+  std::tuple<
+    std::vector<std::reference_wrapper<ArgumentData>>,
+    std::vector<std::vector<std::reference_wrapper<ArgumentData>>>>
+  generate_algorithm_store_ref(const ConfiguredAlgorithmArguments& configured_alg_arguments)
+  {
     std::vector<std::reference_wrapper<ArgumentData>> store_ref;
     std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates;
 
@@ -159,7 +166,8 @@ public:
     info_cout << "\n";
   }
 
-  bool contains_validation_algorithms() const {
+  bool contains_validation_algorithms() const
+  {
     for (const auto& alg : m_sequence) {
       if (alg.scope() == "ValidationAlgorithm") {
         return true;
@@ -176,7 +184,8 @@ public:
     const Allen::Context& context)
   {
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
-      run(m_sequence[i],
+      run(
+        m_sequence[i],
         m_sequence_argument_ref_managers[i],
         m_in_dependencies[i],
         m_out_dependencies[i],
@@ -192,7 +201,9 @@ public:
   }
 
 private:
-  static void configure(Allen::TypeErasedAlgorithm& algorithm, const std::map<std::string, std::map<std::string, std::string>>& config)
+  static void configure(
+    Allen::TypeErasedAlgorithm& algorithm,
+    const std::map<std::string, std::map<std::string, std::string>>& config)
   {
     auto c = config.find(algorithm.name());
     if (c != config.end()) algorithm.set_properties(c->second);
@@ -200,7 +211,9 @@ private:
     algorithm.init();
   }
 
-  static void get_configuration(const Allen::TypeErasedAlgorithm& algorithm, std::map<std::string, std::map<std::string, std::string>>& config)
+  static void get_configuration(
+    const Allen::TypeErasedAlgorithm& algorithm,
+    std::map<std::string, std::map<std::string, std::string>>& config)
   {
     config.emplace(algorithm.name(), algorithm.get_properties());
   }
@@ -256,12 +269,10 @@ private:
     bool do_print)
   {
     // Sets the arguments sizes
-    algorithm.set_arguments_size(
-      argument_ref_manager, runtime_options, constants, host_buffers);
+    algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, host_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
-    setup(
-      algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
+    setup(algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
 
     // Run preconditions
     if constexpr (contracts_enabled) {

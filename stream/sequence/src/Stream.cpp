@@ -27,9 +27,8 @@ Stream::Stream(
   do_print_memory_manager {param_do_print_memory_manager},
   host_buffers_manager {buffers_manager}, constants {param_constants}
 {
-  scheduler = new Scheduler{
-    configuration, do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment
-  };
+  scheduler =
+    new Scheduler {configuration, do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment};
 
   // Initialize context
   m_context.initialize();
@@ -104,6 +103,4 @@ std::map<std::string, std::map<std::string, std::string>> Stream::get_algorithm_
   return scheduler->get_algorithm_configuration();
 }
 
-bool Stream::contains_validation_algorithms() const {
-  return scheduler->contains_validation_algorithms();
-}
+bool Stream::contains_validation_algorithms() const { return scheduler->contains_validation_algorithms(); }

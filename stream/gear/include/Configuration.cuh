@@ -33,8 +33,12 @@ struct ConfiguredAlgorithmArguments {
   std::vector<std::string> arguments;
   std::vector<std::vector<std::string>> input_aggregates;
 
-  ConfiguredAlgorithmArguments(const std::vector<std::string>& arguments, const std::vector<std::vector<std::string>>& input_aggregates) :
-    arguments(arguments), input_aggregates(input_aggregates) {}
+  ConfiguredAlgorithmArguments(
+    const std::vector<std::string>& arguments,
+    const std::vector<std::vector<std::string>>& input_aggregates) :
+    arguments(arguments),
+    input_aggregates(input_aggregates)
+  {}
 };
 
 using ArgumentDependencies = std::map<std::string, std::vector<std::string>>;
@@ -95,7 +99,8 @@ inline ArgumentData create_allen_argument(const ConfiguredArgument& alg)
 {
   if (alg.scope == "host") {
     return ArgumentData {alg.name, ArgumentScope::Host};
-  } else if (alg.scope == "device") {
+  }
+  else if (alg.scope == "device") {
     return ArgumentData {alg.name, ArgumentScope::Device};
   }
   else {

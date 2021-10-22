@@ -11,7 +11,7 @@
  * @brief Macro to avoid warnings on Release builds with variables used by asserts.
  */
 #define _unused(x) ((void) (x))
- 
+
 /**
  * @brief Checks if a tuple contains type T, and obtains index.
  *        index will be the length of the tuple if the type was not found.

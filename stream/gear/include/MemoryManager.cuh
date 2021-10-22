@@ -287,7 +287,8 @@ public:
   /**
    * @brief Frees the requested argument.
    */
-  void free(ArgumentData& argument) {
+  void free(ArgumentData& argument)
+  {
     const auto tag = argument.name();
 
     // Verify the pointer existed in the memory segments map
@@ -349,9 +350,11 @@ struct MemoryManagerHelper {
       auto& arg = store.at(arg_name);
       if (arg.scope() == host_memory_manager.scope) {
         host_memory_manager.reserve(arg);
-      } else if (arg.scope() == device_memory_manager.scope) {
+      }
+      else if (arg.scope() == device_memory_manager.scope) {
         device_memory_manager.reserve(arg);
-      } else {
+      }
+      else {
         throw std::runtime_error("argument scope not recognized");
       }
     }
@@ -373,7 +376,8 @@ struct MemoryManagerHelper {
       auto& arg = store.at(arg_name);
       if (arg.scope() == device_memory_manager.scope) {
         device_memory_manager.free(arg);
-      } else if (arg.scope() != host_memory_manager.scope) {
+      }
+      else if (arg.scope() != host_memory_manager.scope) {
         throw std::runtime_error("argument scope not recognized");
       }
     }

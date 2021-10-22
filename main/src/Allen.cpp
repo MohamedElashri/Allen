@@ -266,8 +266,11 @@ int allen(
   // Determine configuration
   if (run_from_json) {
     json_configuration_file = sequence + ".json";
-  } else {
-    int error = system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py").c_str());
+  }
+  else {
+    int error =
+      system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py")
+               .c_str());
     if (error) {
       throw std::runtime_error("sequence generation failed");
     }
@@ -338,34 +341,28 @@ int allen(
   // Create the InputProvider, either MDF or MEP
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
   if (!mep_input.empty() || with_mpi) {
-    MEPProviderConfig config {
-      false,                // verify MEP checksums
-      10,                   // number of read buffers
-      mep_layout ? 1u : 4u, // number of transpose threads
-      mpi_window_size,      // MPI sliding window size
-      with_mpi,             // Receive from MPI or read files
-      non_stop,             // Run the application non-stop
-      !mep_layout,          // MEPs should be transposed to Allen layout
-      !disable_run_changes, // Whether to split slices by run number
-      receivers};           // Map of receiver to MPI rank to receive from
-    input_provider = std::make_shared<MEPProvider<
-      BankTypes::VP,
-      BankTypes::UT,
-      BankTypes::FT,
-      BankTypes::MUON,
-      BankTypes::ODIN,
-      BankTypes::ECal>>(number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
+    MEPProviderConfig config {false,                // verify MEP checksums
+                              10,                   // number of read buffers
+                              mep_layout ? 1u : 4u, // number of transpose threads
+                              mpi_window_size,      // MPI sliding window size
+                              with_mpi,             // Receive from MPI or read files
+                              non_stop,             // Run the application non-stop
+                              !mep_layout,          // MEPs should be transposed to Allen layout
+                              !disable_run_changes, // Whether to split slices by run number
+                              receivers};           // Map of receiver to MPI rank to receive from
+    input_provider = std::make_shared<
+      MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal>>(
+      number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
-    MDFProviderConfig config {
-      false,                     // verify MDF checksums
-      10,                        // number of read buffers
-      4,                         // number of transpose threads
-      events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
-      events_per_slice,          // number of events per read buffer
-      n_io_reps,                 // number of loops over the input files
-      !disable_run_changes};     // Whether to split slices by run number
+    MDFProviderConfig config {false,                     // verify MDF checksums
+                              10,                        // number of read buffers
+                              4,                         // number of transpose threads
+                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
+                              events_per_slice,          // number of events per read buffer
+                              n_io_reps,                 // number of loops over the input files
+                              !disable_run_changes};     // Whether to split slices by run number
     input_provider = std::make_shared<MDFProvider<
       BankTypes::VP,
       BankTypes::UT,
@@ -480,14 +477,13 @@ int allen(
   // Create all the streams
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
-    auto& sequence = streams.emplace_back(new Stream {
-      configuration_reader->configured_sequence(),
-      print_memory_usage,
-      reserve_mb,
-      reserve_host_mb,
-      device_memory_alignment,
-      constants,
-      buffers_manager.get()});
+    auto& sequence = streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
+                                                      print_memory_usage,
+                                                      reserve_mb,
+                                                      reserve_host_mb,
+                                                      device_memory_alignment,
+                                                      constants,
+                                                      buffers_manager.get()});
     sequence->configure_algorithms(configuration);
   }
 
@@ -523,20 +519,19 @@ int allen(
 
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
-    return std::thread {
-      run_stream,
-      thread_id,
-      stream_id,
-      device_id,
-      streams[stream_id].get(),
-      input_provider,
-      zmqSvc,
-      checker_invoker.get(),
-      root_service.get(),
-      number_of_repetitions,
-      cpu_offload,
-      mep_layout,
-      inject_mem_fail};
+    return std::thread {run_stream,
+                        thread_id,
+                        stream_id,
+                        device_id,
+                        streams[stream_id].get(),
+                        input_provider,
+                        zmqSvc,
+                        checker_invoker.get(),
+                        root_service.get(),
+                        number_of_repetitions,
+                        cpu_offload,
+                        mep_layout,
+                        inject_mem_fail};
   };
 
   // Lambda with the execution of the input thread that polls the
@@ -595,31 +590,26 @@ int allen(
 
   // Start all workers and check if the threads are ready
   size_t thread_id = 0;
-  for (auto& [workers, start, n, type, handle] :
-       {std::tuple {
-          &stream_threads,
-          start_thread {stream_thread},
-          number_of_threads,
-          std::string("GPU"),
-          handle_ready {handle_stream_ready}},
-        std::tuple {
-          &io_workers,
-          start_thread {slice_thread},
-          static_cast<unsigned>(n_input),
-          std::string("Slices"),
-          handle_ready {handle_default_ready}},
-        std::tuple {
-          &io_workers,
-          start_thread {output_thread},
-          static_cast<unsigned>(n_write),
-          std::string("Output"),
-          handle_ready {handle_default_ready}},
-        std::tuple {
-          &mon_workers,
-          start_thread {mon_thread},
-          static_cast<unsigned>(n_mon),
-          std::string("Mon"),
-          handle_ready {handle_default_ready}}}) {
+  for (auto& [workers, start, n, type, handle] : {std::tuple {&stream_threads,
+                                                              start_thread {stream_thread},
+                                                              number_of_threads,
+                                                              std::string("GPU"),
+                                                              handle_ready {handle_stream_ready}},
+                                                  std::tuple {&io_workers,
+                                                              start_thread {slice_thread},
+                                                              static_cast<unsigned>(n_input),
+                                                              std::string("Slices"),
+                                                              handle_ready {handle_default_ready}},
+                                                  std::tuple {&io_workers,
+                                                              start_thread {output_thread},
+                                                              static_cast<unsigned>(n_write),
+                                                              std::string("Output"),
+                                                              handle_ready {handle_default_ready}},
+                                                  std::tuple {&mon_workers,
+                                                              start_thread {mon_thread},
+                                                              static_cast<unsigned>(n_mon),
+                                                              std::string("Mon"),
+                                                              handle_ready {handle_default_ready}}}) {
     size_t n_ready = 0;
     for (unsigned i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc->socket(zmq::PAIR);

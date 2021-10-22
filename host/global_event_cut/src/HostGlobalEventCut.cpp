@@ -36,8 +36,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
 
   // Do the host global event cut
-  host_function(runtime_options.mep_layout ? host_global_event_cut<true> : host_global_event_cut<false>)(
-    arguments);
+  host_function(runtime_options.mep_layout ? host_global_event_cut<true> : host_global_event_cut<false>)(arguments);
 
   // Reduce the size of the event lists to the selected events
   reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));

@@ -74,13 +74,9 @@ namespace Allen {
       }
     }
 
-    size_t sizebytes() const override final
-    {
-      return size() * sizeof(typename VECTOR::value_type);
-    }
+    size_t sizebytes() const override final { return size() * sizeof(typename VECTOR::value_type); }
 
-    void set_type_size(size_t) override final
-    {}
+    void set_type_size(size_t) override final {}
   };
 
   // Shortcuts for input / output wrappers
