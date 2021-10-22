@@ -1,22 +1,10 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-.build_test:
-  parallel:
-    matrix:
-      - TARGET: [CPU]
-        LCG_ARCHITECTURE:
-          - x86_64-centos7-clang10-opt
-        BUILD_TYPE:
-          - RelWithDebInfo
-        SEQUENCE:
-          - hlt1_pp_default
-          - hlt1_pp_validation
-          
 .build_job_minimal_matrix:
   parallel:
     matrix:
-      - TARGET: [CUDA, HIP]
+      - TARGET: [CPU, CUDA, HIP]
         LCG_ARCHITECTURE:
           - x86_64-centos7-clang10-opt
         BUILD_TYPE:
@@ -31,7 +19,7 @@
     matrix:
       # build jobs (with tests)
       - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
-        BUILD_TYPE: Debug #[RelWithDebInfo, Debug]
+        BUILD_TYPE: [RelWithDebInfo, Debug]
         SEQUENCE: hlt1_pp_default
         OPTIONS:
           - BUILD_TESTS+ENABLE_CONTRACTS
@@ -44,33 +32,33 @@
           # - x86_64-centos7-gcc10-opt
         BUILD_TYPE: Debug
         OPTIONS:
-          #- BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT
+          - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT
           - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
         SEQUENCE: hlt1_pp_default
 
-      # - LCG_ARCHITECTURE: [x86_64-centos7-clang10-opt]
-      #   OPTIONS: ["USE_ROOT"]
-      #   BUILD_TYPE: Debug
-      #   SEQUENCE: [hlt1_pp_validation]
+      - LCG_ARCHITECTURE: [x86_64-centos7-clang10-opt]
+        OPTIONS: ["USE_ROOT"]
+        BUILD_TYPE: Debug
+        SEQUENCE: [hlt1_pp_validation]
 
-      # # build job with sequence generation disabled
-      # - LCG_ARCHITECTURE:
-      #     - x86_64-centos7-clang10-opt
-      #   BUILD_TYPE: Debug
-      #   OPTIONS:
-      #     - "BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+SEQUENCE_GENERATION=OFF"
-      #   SEQUENCE: hlt1_pp_default
+      # build job with sequence generation disabled
+      - LCG_ARCHITECTURE:
+          - x86_64-centos7-clang10-opt
+        BUILD_TYPE: Debug
+        OPTIONS:
+          - "BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+SEQUENCE_GENERATION=OFF"
+        SEQUENCE: hlt1_pp_default
 
 
       # no_gec, scifiv6 and other builds
       - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
         BUILD_TYPE: RelWithDebInfo
         SEQUENCE:
-          #- hlt1_pp_no_gec
-          #- hlt1_pp_no_gec_validation
+          - hlt1_pp_no_gec
+          - hlt1_pp_no_gec_validation
           - hlt1_pp_scifi_v6
           - hlt1_pp_scifi_v6_validation
-          #- hlt1_complex_validation
+          - hlt1_complex_validation
 
 
 .build_job:
@@ -91,35 +79,7 @@
       - build*/test/unit_tests/unit_tests
       - build*/test/unit_tests/*cmake
   tags:
-    - docker-privileged-xl
-
-  image: docker:19.03.1
-  services:
-  # To obtain a Docker daemon, request a Docker-in-Docker service
-  - docker:19.03.1-dind
-  variables:
-      TEST_NAME: "build"
-      # As of GitLab 12.5, privileged runners at CERN mount a /certs/client docker volume that enables use of TLS to
-      # communicate with the docker daemon. This avoids a warning about the docker service possibly not starting
-      # successfully.
-      # See https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
-      DOCKER_TLS_CERTDIR: "/certs"
-      # Note that we do not need to set DOCKER_HOST when using the official docker client image: it automatically
-      # defaults to tcp://docker:2376 upon seeing the TLS certificate directory.
-      #DOCKER_HOST: tcp://docker:2376/
-  script:
-    - docker info
-    # Use the CVMFS automounter image from https://gitlab.cern.ch/vcs/cvmfs-automounter.
-    # This is possible because (as of GitLab 12.5), privileged runners at CERN mount a /shared-mounts volume
-    # that allows sharing mount points between containers.
-    # Important! This will not automount CVMFS on the current docker container where this CI is running, but
-    # new containers can be started that will have access to CVMFS from the /shared-mounts volume.
-    - docker run -d --name cvmfs --pid=host --user 0 --privileged --restart always -v /shared-mounts:/cvmfsmounts:rshared gitlab-registry.cern.ch/vcs/cvmfs-automounter:master
-    #write environment varibales in file ci.env
-    - source scripts/ci/write-ci-env.sh
-    # Now automount CVMFS on a new docker container by adding volume /shared-mounts/cvmfs:/cvmfs:rslave
-    #first expose the docker to the environment variables then build Allen
-    - docker run --env-file ci.env --rm -v `pwd`:/app -w /app -v /shared-mounts/cvmfs:/cvmfs:rslave gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build-cvmfs:latest bash -c "source scripts/ci/common.sh && source scripts/ci/jobs/${TEST_NAME}.sh"     
+    - cvmfs
   retry: 2
   allow_failure:
     exit_codes: 54
