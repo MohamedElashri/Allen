@@ -1,0 +1,2 @@
+#!/usr/bin/bash
+PYTHONPATH=${PYTHONPATH}:@PROJECT_SEQUENCE_DIR@ @Python3_EXECUTABLE@ @sequence@.py
