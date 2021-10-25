@@ -42,7 +42,7 @@ parser.add_argument(
     "--params",
     dest="param_folder",
     default=os.path.join(allen_dir, "input", "parameters"))
-parser.add_argument("-n", dest="n_events", default=0)
+parser.add_argument("-n", dest="n_events", default=-1)
 parser.add_argument("-t", dest="threads", default=1)
 parser.add_argument("-r", dest="repetitions", default=1)
 parser.add_argument("-m", dest="reserve", default=1024)
@@ -60,6 +60,10 @@ parser.add_argument(
     dest="mdf",
     default=os.path.join(allen_dir, "input", "minbias", "mdf",
                          "upgrade_mc_minbias_scifi_v5.mdf"))
+parser.add_argument(
+    "--mep",
+    dest="mep",
+    default=None)
 parser.add_argument(
     "--reuse-meps",
     action="store_true",
@@ -140,7 +144,7 @@ if args.mep is not None:
     mep_provider = MEPProvider()
     mep_provider.NSlices = args.slices
     mep_provider.EventsPerSlice = args.events_per_slice
-    mep_provider.OutputLevel = 3
+    mep_provider.OutputLevel = 2
     # Number of MEP buffers and number of transpose/offset threads
     mep_provider.BufferConfig = (10, 8)
     mep_provider.TransposeMEPs = False
