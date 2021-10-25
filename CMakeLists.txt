@@ -261,10 +261,11 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_library(${ARGV})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib)
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
   endfunction()
 
   function(allen_add_device_library)
