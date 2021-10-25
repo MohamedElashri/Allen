@@ -11,7 +11,6 @@
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
-#include <Event/HltDecReports.h>
 
 // Rec includes
 #include "Event/Track.h"
@@ -30,10 +29,9 @@
 #include "StreamLoader.h"
 #include "Logger.h"
 #include "TESProvider.h"
-#include "HltDecReport.cuh"
 
 class RunAllen final
-  : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers, LHCb::HltDecReports>(
+  : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
       const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
       const LHCb::ODIN& odin)> {
 public:
@@ -44,7 +42,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::tuple<bool, HostBuffers, LHCb::HltDecReports> operator()(
+  std::tuple<bool, HostBuffers> operator()(
     const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
@@ -69,7 +67,6 @@ private:
     m_tes_input_provider;
 
   Gaudi::Property<std::string> m_sequence {this, "Sequence", "hlt1_pp_default"};
-  Gaudi::Property<unsigned> m_tck {this, "TCK", 0};
 
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 
