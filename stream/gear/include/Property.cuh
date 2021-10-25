@@ -128,7 +128,7 @@ namespace Allen {
       try {
         holder = ConvertorFromString<typename T::t>::convert(value);
       } catch (const std::exception&) {
-        warning_cout << "Could not parse JSON string from value \"" << value << "\"\n";
+        std::cerr << "Could not parse JSON string from value \"" << value << "\"\n";
         return false;
       }
 

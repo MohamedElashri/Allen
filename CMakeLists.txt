@@ -487,7 +487,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments -fbracket-depth=512")
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments")
 endif()
 
 if(STANDALONE)
