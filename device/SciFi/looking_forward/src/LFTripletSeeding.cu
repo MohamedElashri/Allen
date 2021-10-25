@@ -55,18 +55,13 @@ __global__
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const auto velo_states_view = parameters.dev_velo_states_view[event_number];
+  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
 
-  // UT consolidated tracks
-  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                   parameters.dev_ut_track_hit_number,
-                                                   parameters.dev_ut_qop,
-                                                   parameters.dev_ut_track_velo_indices,
-                                                   event_number,
-                                                   number_of_events};
-
-  const auto ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
-  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
-  const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
+  const auto ut_event_number_of_tracks = ut_tracks_view.size();
+  const auto ut_event_tracks_offset = ut_tracks_view.offset();
+  // TODO: Don't do this. Will be replaced when SciFi EM is updated.
+  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
+                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
 
   // SciFi hits
   const unsigned total_number_of_hits =
@@ -80,11 +75,13 @@ __global__
     const auto current_ut_track_index = ut_event_tracks_offset + ut_track_number;
 
     if (parameters.dev_scifi_lf_process_track[current_ut_track_index]) {
-      const auto velo_track_index = ut_tracks.velo_track(ut_track_number);
-      const auto qop = ut_tracks.qop(ut_track_number);
+      const auto ut_track = ut_tracks_view.track(ut_track_number);
+      const auto qop = ut_track.qop();
+
       const int* initial_windows = parameters.dev_scifi_lf_initial_windows + current_ut_track_index;
 
-      const auto velo_state = velo_states_view.state(velo_track_index);
+      const auto velo_track = ut_track.velo_track();
+      const auto velo_state = velo_track.state(velo_states_view);
       const auto x_at_z_magnet = velo_state.x() + (LookingForward::z_magnet - velo_state.z()) * velo_state.tx();
 
       for (unsigned triplet_seed = threadIdx.y; triplet_seed < LookingForward::n_triplet_seeds;

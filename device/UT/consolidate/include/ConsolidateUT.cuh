@@ -21,17 +21,67 @@ namespace ut_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
+    DEVICE_OUTPUT(dev_ut_track_params_t, float) dev_ut_track_params;
     DEVICE_OUTPUT(dev_ut_qop_t, float) dev_ut_qop;
-    DEVICE_OUTPUT(dev_ut_x_t, float) dev_ut_x;
-    DEVICE_OUTPUT(dev_ut_tx_t, float) dev_ut_tx;
-    DEVICE_OUTPUT(dev_ut_z_t, float) dev_ut_z;
     DEVICE_OUTPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
+    DEVICE_OUTPUT(
+      dev_ut_hits_view_t,
+      Allen::Views::UT::Consolidated::Hits,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
+    dev_ut_hits_view;
+    DEVICE_OUTPUT(
+      dev_ut_track_view_t,
+      Allen::Views::UT::Consolidated::Track,
+      dev_ut_hits_view_t,
+      dev_velo_tracks_view_t,
+      dev_ut_track_velo_indices_t,
+      dev_ut_track_params_t,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
+    dev_ut_track_view;
+    DEVICE_OUTPUT(
+      dev_ut_tracks_view_t,
+      Allen::Views::UT::Consolidated::Tracks,
+      dev_ut_hits_view_t,
+      dev_ut_track_view_t,
+      dev_velo_tracks_view_t,
+      dev_ut_track_velo_indices_t,
+      dev_ut_track_params_t,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
+    dev_ut_tracks_view;
+    DEVICE_OUTPUT(
+      dev_ut_multi_event_tracks_view_t,
+      Allen::Views::UT::Consolidated::MultiEventTracks,
+      dev_ut_hits_view_t,
+      dev_ut_track_view_t,
+      dev_ut_tracks_view_t,
+      dev_velo_tracks_view_t,
+      dev_ut_track_velo_indices_t,
+      dev_ut_track_params_t,
+      dev_ut_track_hits_t,
+      dev_offsets_ut_tracks_t,
+      dev_offsets_ut_track_hit_number_t)
+    dev_ut_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void ut_consolidate_tracks(Parameters, const unsigned* dev_unique_x_sector_layer_offsets);
+
+  struct lhcb_id_container_checks : public Allen::contract::Postcondition {
+    void operator()(
+      const ArgumentReferences<Parameters>&,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context&) const;
+  };
 
   struct ut_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(

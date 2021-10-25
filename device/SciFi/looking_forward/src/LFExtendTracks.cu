@@ -11,12 +11,12 @@ __global__ void lf_create_tracks::lf_extend_tracks(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // UT consolidated tracks
-  UT::Consolidated::ConstTracks ut_tracks {
-    parameters.dev_atomics_ut, parameters.dev_ut_track_hit_number, event_number, number_of_events};
-
-  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
-  const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
+  // UT tracks
+  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
+  const auto ut_event_tracks_offset = ut_tracks_view.offset();
+  // TODO: Don't do this. Needs changes to the SciFi EM.
+  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
+                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
 
   // SciFi hits
   const unsigned total_number_of_hits =

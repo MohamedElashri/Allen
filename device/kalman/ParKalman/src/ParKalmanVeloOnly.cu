@@ -280,22 +280,24 @@ __device__ void propagate_to_beamline(FittedTrack& track)
 }
 
 __device__ void simplified_fit(
-  Velo::Consolidated::ConstHits& velo_hits,
-  const unsigned n_velo_hits,
+  const Allen::Views::Velo::Consolidated::Track& velo_track,
   const KalmanFloat init_qop,
   FittedTrack& track)
 {
-  int firsthit = 0;
-  int lasthit = n_velo_hits - 1;
+  const auto n_velo_hits = velo_track.number_of_hits();
+  int first_hit_number = 0;
+  int last_hit_number = n_velo_hits - 1;
   int dhit = 1;
 
   // Initialize the state.
-  KalmanFloat x = velo_hits.x(firsthit);
-  KalmanFloat y = velo_hits.y(firsthit);
-  KalmanFloat tx = ((velo_hits.x(firsthit) - velo_hits.x(lasthit)) / (velo_hits.z(firsthit) - velo_hits.z(lasthit)));
-  KalmanFloat ty = ((velo_hits.y(firsthit) - velo_hits.y(lasthit)) / (velo_hits.z(firsthit) - velo_hits.z(lasthit)));
+  const auto first_hit = velo_track.hit(first_hit_number);
+  const auto last_hit = velo_track.hit(last_hit_number);
+  KalmanFloat x = first_hit.x();
+  KalmanFloat y = first_hit.y();
+  KalmanFloat tx = ((first_hit.x() - last_hit.x()) / (first_hit.z() - last_hit.z()));
+  KalmanFloat ty = ((first_hit.y() - last_hit.y()) / (first_hit.z() - last_hit.z()));
   KalmanFloat qop = init_qop;
-  KalmanFloat z = velo_hits.z(firsthit);
+  KalmanFloat z = first_hit.z();
 
   // Initialize the covariance.
   KalmanFloat cXX = 100.0;
@@ -313,11 +315,11 @@ __device__ void simplified_fit(
   const KalmanFloat wy = wx;
 
   // Fit loop.
-  for (int i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
-    int hitindex = i;
-    const auto hit_x = velo_hits.x(hitindex);
-    const auto hit_y = velo_hits.y(hitindex);
-    const auto hit_z = velo_hits.z(hitindex);
+  for (int i = first_hit_number + dhit; i != last_hit_number + dhit; i += dhit) {
+    const auto hit = velo_track.hit(i);
+    const auto hit_x = hit.x();
+    const auto hit_y = hit.y();
+    const auto hit_z = hit.z();
     simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
     simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
     z = hit_z;
@@ -364,17 +366,8 @@ __global__ void kalman_velo_only::kalman_velo_only(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Create velo tracks.
-  Velo::Consolidated::Tracks const velo_tracks {
-    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
-  // Create UT tracks.
-  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                   parameters.dev_ut_track_hit_number,
-                                                   parameters.dev_ut_qop,
-                                                   parameters.dev_ut_track_velo_indices,
-                                                   event_number,
-                                                   number_of_events};
+  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
+  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
 
   // Create SciFi tracks.
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
@@ -388,23 +381,23 @@ __global__ void kalman_velo_only::kalman_velo_only(
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
 
   // Velo track <-> PV table.
-  Associate::Consolidated::ConstTable velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
-  const auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
+  // TODO: Rework the association event model to get rid of the need for these old VELO tracks.
+  Velo::Consolidated::Tracks const velo_pv_tracks {
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  Associate::Consolidated::ConstTable velo_pv_ip {parameters.dev_velo_pv_ip, velo_pv_tracks.total_number_of_tracks()};
+  const auto pv_table = velo_pv_ip.event_table(velo_pv_tracks, event_number);
 
   // Loop over SciFi tracks and get associated UT and VELO tracks.
   const unsigned n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
   for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
     // Prepare fit input.
     const int i_ut_track = scifi_tracks.ut_track(i_scifi_track);
-    const int i_velo_track = ut_tracks.velo_track(i_ut_track);
-    Velo::Consolidated::ConstHits velo_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i_velo_track);
-    const unsigned n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
+    const auto ut_track = ut_tracks_view.track(i_ut_track);
+    const auto velo_track = ut_track.velo_track();
+    const int i_velo_track = ut_track.velo_track_index();
     const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop(i_scifi_track);
     simplified_fit(
-      velo_hits,
-      n_velo_hits,
-      init_qop,
-      parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
+      velo_track, init_qop, parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
     parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track].ip =
       pv_table.value(i_velo_track);
   }

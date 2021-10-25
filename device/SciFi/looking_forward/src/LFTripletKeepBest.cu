@@ -15,13 +15,13 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // UT consolidated tracks
-  UT::Consolidated::ConstTracks ut_tracks {
-    parameters.dev_atomics_ut, parameters.dev_ut_track_hit_number, event_number, number_of_events};
-
-  const auto ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
-  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
-  const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
+  // UT tracks view.
+  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
+  const auto ut_event_number_of_tracks = ut_tracks_view.size();
+  const auto ut_event_tracks_offset = ut_tracks_view.offset();
+  // TODO: Don't do this. Will be replaced when SciFi EM is updated.
+  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
+                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
 
   for (unsigned i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;

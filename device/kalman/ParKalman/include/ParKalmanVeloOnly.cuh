@@ -71,8 +71,7 @@ __device__ void velo_only_fit(
   FittedTrack& track);
 
 __device__ void simplified_fit(
-  const Velo::Consolidated::Hits& velo_hits,
-  const unsigned n_velo_hits,
+  const Allen::Views::Velo::Consolidated::Track& velo_track,
   const KalmanFloat init_qop,
   FittedTrack& track);
 
@@ -87,10 +86,8 @@ namespace kalman_velo_only {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
-    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
-    DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
-    DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
+    DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
     DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;

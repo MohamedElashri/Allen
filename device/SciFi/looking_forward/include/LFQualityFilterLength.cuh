@@ -15,8 +15,7 @@ namespace lf_quality_filter_length {
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, unsigned) host_number_of_reconstructed_ut_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
-    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
+    DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
     DEVICE_INPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
     DEVICE_INPUT(dev_scifi_lf_atomics_t, unsigned) dev_scifi_lf_atomics;
     DEVICE_INPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;

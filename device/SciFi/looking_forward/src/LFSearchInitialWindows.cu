@@ -46,19 +46,15 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
+  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
   const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
   const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
-  // UT consolidated tracks
-  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                   parameters.dev_ut_track_hit_number,
-                                                   parameters.dev_ut_qop,
-                                                   parameters.dev_ut_track_velo_indices,
-                                                   event_number,
-                                                   number_of_events};
-
-  const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
-  const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
+  const int ut_event_number_of_tracks = ut_tracks_view.size();
+  const int ut_event_tracks_offset = ut_tracks_view.offset();
+  // TODO: Don't do this. Will be replaced when SciFi EM is updated.
+  const unsigned total_number_of_ut_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
+                                             parameters.dev_ut_tracks_view[number_of_events - 1].size();
 
   // SciFi hits
   const unsigned total_number_of_hits =
@@ -71,17 +67,14 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   MiniState* ut_states = parameters.dev_ut_states + ut_event_tracks_offset;
 
   for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    const int velo_track_index = ut_tracks.velo_track(i);
-    const int ut_track_index = ut_event_tracks_offset + i;
-    const float ut_qop = ut_tracks.qop(i);
+    const unsigned ut_track_index = ut_tracks_view.offset() + i;
+    const auto ut_track = ut_tracks_view.track(i);
+    const float ut_qop = ut_track.qop();
+    const float ut_x = ut_track.x();
+    const float ut_tx = ut_track.tx();
+    const float ut_z = ut_track.z();
 
-    // Note: These data should be accessed like
-    //       the previous ut_tracks.qop[i] in the future
-    const float ut_x = parameters.dev_ut_x[ut_track_index];
-    const float ut_tx = parameters.dev_ut_tx[ut_track_index];
-    const float ut_z = parameters.dev_ut_z[ut_track_index];
-
-    const auto velo_track = velo_tracks_view.track(velo_track_index);
+    const auto velo_track = ut_track.velo_track();
     const auto velo_state = velo_track.state(velo_states_view);
 
     // extrapolate velo y & ty to z of UT x and tx
@@ -105,7 +98,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
       ut_qop,
       y_projection >= 0.f,
       parameters.dev_scifi_lf_initial_windows + ut_event_tracks_offset + i,
-      ut_tracks.total_number_of_tracks(),
+      total_number_of_ut_tracks,
       event_offset,
       parameters.dev_scifi_lf_process_track,
       ut_track_index,

@@ -19,8 +19,7 @@ namespace lf_quality_filter {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_count;
-    DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
-    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
+    DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
     DEVICE_INPUT(dev_scifi_lf_length_filtered_tracks_t, SciFi::TrackHits) dev_scifi_lf_length_filtered_tracks;
     DEVICE_INPUT(dev_scifi_lf_length_filtered_atomics_t, unsigned) dev_scifi_lf_length_filtered_atomics;
     DEVICE_INPUT(dev_scifi_lf_parametrization_length_filter_t, float) dev_scifi_lf_parametrization_length_filter;

@@ -202,7 +202,8 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t,
         dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
         dev_output_buffer_t,
-        dev_ut_tracks_t=compass_ut.dev_ut_tracks_t)
+        dev_ut_tracks_t=compass_ut.dev_ut_tracks_t,
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"])
 
     return {
         "velo_tracks":
@@ -217,16 +218,12 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         prefix_sum_ut_track_hit_number.dev_output_buffer_t,
         "dev_ut_track_hits":
         ut_consolidate_tracks.dev_ut_track_hits_t,
-        "dev_ut_x":
-        ut_consolidate_tracks.dev_ut_x_t,
-        "dev_ut_tx":
-        ut_consolidate_tracks.dev_ut_tx_t,
-        "dev_ut_z":
-        ut_consolidate_tracks.dev_ut_z_t,
         "dev_ut_qop":
         ut_consolidate_tracks.dev_ut_qop_t,
         "dev_ut_track_velo_indices":
-        ut_consolidate_tracks.dev_ut_track_velo_indices_t
+        ut_consolidate_tracks.dev_ut_track_velo_indices_t,
+        "dev_ut_tracks_view":
+        ut_consolidate_tracks.dev_ut_tracks_view_t
     }
 
 
