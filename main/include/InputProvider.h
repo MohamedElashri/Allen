@@ -8,6 +8,7 @@
 #include <vector>
 #include <cmath>
 #include <mutex>
+#include <optional>
 
 #include <gsl/gsl>
 #include "Logger.h"
