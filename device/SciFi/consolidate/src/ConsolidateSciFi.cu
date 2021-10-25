@@ -138,15 +138,13 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // UT consolidated tracks
-  UT::Consolidated::ConstTracks ut_tracks {
-    parameters.dev_atomics_ut, parameters.dev_ut_track_hit_number, event_number, number_of_events};
+  // UT consolidated tracks
+  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
+  const auto ut_event_tracks_offset = ut_tracks_view.offset();
+  // TODO: Don't do this.
+  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
+                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
 
-  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
-  const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
-
-  // const SciFi::TrackHits* event_scifi_tracks =
-  //   parameters.dev_scifi_tracks + ut_event_tracks_offset *
-  //   LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter;
   const SciFi::TrackHits* event_scifi_tracks =
     parameters.dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
 
@@ -167,21 +165,14 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
                                             event_number,
                                             number_of_events};
 
-  UT::Consolidated::ConstExtendedTracks ut_extendedtracks {parameters.dev_atomics_ut,
-                                                           parameters.dev_ut_track_hit_number,
-                                                           parameters.dev_ut_qop,
-                                                           parameters.dev_ut_track_velo_indices,
-                                                           event_number,
-                                                           number_of_events};
-
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const unsigned event_offset = scifi_hit_count.event_offset();
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
-
-    const int velo_track_index = ut_extendedtracks.velo_track(event_scifi_tracks[i].ut_track_index);
-    const auto velo_state = velo_states_view.state(velo_track_index);
+    const auto ut_track = ut_tracks_view.track(event_scifi_tracks[i].ut_track_index);
+    const auto velo_track = ut_track.velo_track();
+    const auto velo_state = velo_track.state(velo_states_view);
 
     scifi_tracks.ut_track(i) = event_scifi_tracks[i].ut_track_index;
     const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;

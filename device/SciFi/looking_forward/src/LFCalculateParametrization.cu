@@ -10,19 +10,13 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
+  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
   const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
-  // UT consolidated tracks
-  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
-                                                   parameters.dev_ut_track_hit_number,
-                                                   parameters.dev_ut_qop,
-                                                   parameters.dev_ut_track_velo_indices,
-                                                   event_number,
-                                                   number_of_events};
-
-  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
-  const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
+  const auto ut_event_tracks_offset = ut_tracks_view.offset();
+  // TODO: Don't do this. Needs changes to the SciFi EM.
+  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
+                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
 
   // SciFi hits
   const unsigned total_number_of_hits =
@@ -38,9 +32,9 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
-    const auto velo_track_index = ut_tracks.velo_track(track.ut_track_index);
 
-    const auto velo_track = velo_tracks_view.track(velo_track_index);
+    const auto ut_track = ut_tracks_view.track(track.ut_track_index);
+    const auto velo_track = ut_track.velo_track();
     const auto velo_state = velo_track.state(velo_states_view);
 
     // Note: The notation 1, 2, 3 is used here (instead of h0, h1, h2)
