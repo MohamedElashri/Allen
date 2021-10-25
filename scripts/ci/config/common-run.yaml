@@ -76,6 +76,8 @@
   extends:
     - .base_job
     - .default_rules
+  
+  tags: ['$DEVICE_ID']
 
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
@@ -100,6 +102,7 @@
   extends:
     - .run_jobs
     - .run_matrix_jobs_minimal
+  stage: "run"
 
 .run_jobs_full:
   extends:

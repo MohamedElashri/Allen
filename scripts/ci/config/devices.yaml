@@ -7,46 +7,39 @@
   variables:
     DEVICE_ID: "geforcertx3090"
     TARGET: "CUDA"
-  tags: [geforcertx3090]
 
 
 .geforcertx2080ti:
   variables:
     DEVICE_ID: "geforcertx2080ti"
     TARGET: "CUDA"
-  tags: [geforcertx2080ti]
 
 
 .a6000:
   variables:
     DEVICE_ID: "a6000"
     TARGET: "CUDA"
-  tags: [a6000]
 
 
 .a5000:
   variables:
     DEVICE_ID: "a5000"
     TARGET: "CUDA"
-  tags: [a5000]
 
 
 .mi100:
   variables:
     DEVICE_ID: "mi100"
     TARGET: "HIP"
-  tags: [mi100]
 
 
 .x862630v4:
   variables:
     DEVICE_ID: "x862630v4"
     TARGET: "CPU"
-  tags: [x862630v4]
 
 .epyc7502:
   variables:
     DEVICE_ID: "epyc7502"
     TARGET: "CPU"
-  tags: [epyc7502]
 
