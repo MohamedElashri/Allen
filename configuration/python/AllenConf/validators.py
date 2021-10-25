@@ -142,6 +142,7 @@ def rate_validation(lines, name="rate_validator"):
         host_number_of_active_lines_t,
         host_dec_reports_t=dec_reporter.host_dec_reports_t)
 
+
 def routingbits_validation(lines, name="routingbits_validator"):
     number_of_events = initialize_number_of_events()
     dec_reporter = make_dec_reporter(lines)
@@ -157,6 +158,7 @@ def routingbits_validation(lines, name="routingbits_validator"):
         host_number_of_active_lines_t,
         host_dec_reports_t=dec_reporter.host_dec_reports_t,
         host_routingbits_t=routingbits_writer.host_routingbits_t)
+
 
 def kalman_validation(kalman_velo_only, name="kalman_validator"):
     number_of_events = initialize_number_of_events()

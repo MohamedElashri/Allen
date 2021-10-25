@@ -12,7 +12,8 @@ namespace routingbits_writer {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_INPUT(host_names_of_active_lines_t, char) host_names_of_active_lines;
-    DEVICE_INPUT(dev_routingbits_associatedlines_t, RoutingBitsConfiguration::AssociatedLines) dev_routingbits_associatedlines;
+    DEVICE_INPUT(dev_routingbits_associatedlines_t, RoutingBitsConfiguration::AssociatedLines)
+    dev_routingbits_associatedlines;
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_OUTPUT(dev_routingbits_t, unsigned) dev_routingbits;
@@ -20,12 +21,9 @@ namespace routingbits_writer {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void routingbits_writer(
-    Parameters,
-    const RoutingBitsConfiguration::RoutingBits* dev_routingbits_conf);
+  __global__ void routingbits_writer(Parameters, const RoutingBitsConfiguration::RoutingBits* dev_routingbits_conf);
 
-  __host__ void get_line_names(
-    Parameters);
+  __host__ void get_line_names(Parameters);
 
   struct routingbits_writer_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(

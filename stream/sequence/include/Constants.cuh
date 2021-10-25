@@ -127,10 +127,10 @@ struct Constants {
 
   // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
- 
+
   // Routing bits
-  RoutingBitsConfiguration::RoutingBits* host_routingbits_conf = nullptr; 
-  RoutingBitsConfiguration::RoutingBits* dev_routingbits_conf = nullptr; 
+  RoutingBitsConfiguration::RoutingBits* host_routingbits_conf = nullptr;
+  RoutingBitsConfiguration::RoutingBits* dev_routingbits_conf = nullptr;
 
   /**
    * @brief Reserves and initializes constants.

@@ -9,7 +9,6 @@
 #include "BackendCommon.h"
 #include <mutex>
 
-
 class RoutingBitsChecker : public Checker::BaseChecker {
 
 private:
@@ -22,7 +21,11 @@ private:
 public:
   RoutingBitsChecker(CheckerInvoker const*, std::string const&, std::string const&) { m_tot = 0; }
 
-  void accumulate(const char* names_of_lines, const unsigned* dec_reports, const uint32_t* routing_bits, const unsigned number_of_events);
+  void accumulate(
+    const char* names_of_lines,
+    const unsigned* dec_reports,
+    const uint32_t* routing_bits,
+    const unsigned number_of_events);
 
   void report(const size_t requested_events) const override;
 };
