@@ -134,7 +134,4 @@ endif()
 # generating the sequence on the fly (using eg. the parsed agorithms pickle)
 foreach(sequence ${BUILD_SEQUENCES})
   generate_sequence(${sequence})
-  
-  # Note this dependency is there only to trigger the .json generation
-  add_dependencies(Stream sequence_${sequence})
 endforeach()

@@ -130,18 +130,11 @@ else()
 endif()
 
 function(generate_sequence sequence)
-  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
-  file(MAKE_DIRECTORY ${sequence_dir})
-
   if(NOT STANDALONE)
-    add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
-      COMMAND
-        ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "${env_cmd}" --xml "${env_xml}" "${CMAKE_SOURCE_DIR}/scripts/run_with_pythonpath.sh" "${PROJECT_SEQUENCE_DIR}" "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" &&
-        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view
-      WORKING_DIRECTORY ${sequence_dir})
+    install(FILES "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${sequence}.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
   else()
+    set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
+    file(MAKE_DIRECTORY ${sequence_dir})
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
       COMMAND
@@ -149,8 +142,7 @@ function(generate_sequence sequence)
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view checkout_gaudi_dirs
       WORKING_DIRECTORY ${sequence_dir})
+    add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
+    add_dependencies(Stream sequence_${sequence})
   endif()
-  add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
-
-  install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
 endfunction()
