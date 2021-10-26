@@ -129,12 +129,6 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
     malloc(max_number_of_events * UT::Constants::max_num_tracks * UT::Constants::max_track_size * sizeof(UT::Hit)));
   host_ut_qop = reinterpret_cast<decltype(host_ut_qop)>(
     malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
-  host_ut_x =
-    reinterpret_cast<decltype(host_ut_x)>(malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
-  host_ut_tx = reinterpret_cast<decltype(host_ut_tx)>(
-    malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
-  host_ut_z =
-    reinterpret_cast<decltype(host_ut_z)>(malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
   host_ut_track_velo_indices = reinterpret_cast<decltype(host_ut_track_velo_indices)>(
     malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
   host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
