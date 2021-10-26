@@ -51,7 +51,7 @@ public:
    *
    * @return     event ids
    */
-  virtual EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+  virtual EventIDs event_ids(size_t slice_index, std::optional<size_t> first = std::nullopt, std::optional<size_t> last = std::nullopt)
     const = 0;
 
   /**
@@ -68,7 +68,7 @@ public:
    *
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
-  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> timeout = {}) = 0;
+  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> timeout = std::nullopt) = 0;
 
   /**
    * @brief      Get banks and offsets of a given type
@@ -154,7 +154,7 @@ protected:
   }
 
   template<typename MSG>
-  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const
+  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = std::nullopt) const
   {
     if (logger::verbosity() >= logger::debug) {
       std::unique_lock<std::mutex> lock {m_output_mut};
@@ -173,7 +173,7 @@ private:
   size_t m_events_per_slice = 0;
 
   // Optional total number of events to be provided
-  std::optional<size_t> m_nevents;
+  std::optional<size_t> m_nevents = std::nullopt;
 
   // BankTypes provided by this provider
   std::unordered_set<BankTypes> m_types;
