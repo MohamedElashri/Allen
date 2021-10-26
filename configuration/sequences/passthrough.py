@@ -8,6 +8,7 @@ from AllenConf.persistency import make_global_decision
 from AllenConf.odin import decode_odin
 from AllenConf.algorithms import data_provider_t
 from AllenConf.HLT1 import line_maker
+from AllenConf.validators import rate_validation
 
 bank_providers = [decode_odin()['dev_odin_raw_input'].producer]
 
@@ -25,7 +26,9 @@ passthrough_line = line_maker(
         post_scaler_hash_string="passthrough_line_post"),
     enableGEC=False)
 
-global_decision = make_global_decision(lines=[passthrough_line[0]])
+line_algorithms = [passthrough_line[0]] 
+
+global_decision = make_global_decision(lines=line_algorithms)
 
 providers = CompositeNode(
     "Providers", bank_providers, NodeLogic.NONLAZY_AND, force_order=False)
@@ -34,8 +37,12 @@ lines = CompositeNode(
     "AllLines", [passthrough_line[1]], NodeLogic.NONLAZY_OR, force_order=False)
 
 passthrough_sequence = CompositeNode(
-    "Passthrough", [lines, global_decision],
-    NodeLogic.LAZY_AND,
-    force_order=True)
+        "Passthrough", [
+            lines,
+            global_decision,
+            rate_validation(lines=line_algorithms)
+        ],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
 
 generate(passthrough_sequence)
