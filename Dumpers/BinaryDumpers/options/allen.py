@@ -22,7 +22,7 @@ interpreter.Declare("#include <{}>".format(header_path))
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
-                                'constants', 'hlt1_pp_default.json')
+                                'constants', 'hlt1_pp_default')
 
 # Handle commandline arguments
 parser = argparse.ArgumentParser()

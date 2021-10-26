@@ -41,7 +41,7 @@ if(NOT LIBCLANG_FOUND OR "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIB
     message(STATUS "Using predefined macos libclang directory")
   elseif(EXISTS /cvmfs/sft.cern.ch)
     # As a last resource, try a hard-coded directory in cvmfs
-    set(LIBCLANG_LIBDIR /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib)
+    set(LIBCLANG_LIBDIR /cvmfs/sft.cern.ch/lcg/releases/clang/11.1.0-b24ba/x86_64-centos7/lib)
     set(LIBCLANG_ALTERNATIVE_FOUND ON)
     message(STATUS "Using predefined CVMFS libclang directory")
   else()
