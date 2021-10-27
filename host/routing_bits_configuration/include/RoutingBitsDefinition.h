@@ -1,4 +1,4 @@
-/*****************************************************************************\
+/*g***************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #pragma once
@@ -6,19 +6,7 @@
 #include <cstdint>
 
 namespace RoutingBitsDefinition {
-  // std::map<unsigned, std::string> routingbit_map = { { 33 , "Hlt1ODINNoBias" }
-  //              // RB 35 Beam-Gas for Velo alignment
-  //              , {34 , "Hlt1GECPassthrough"}
-  //              // RB 36 EXPRESS stream (bypasses Hlt2)
-  //              , {35 , "Hlt1LowPtMuon"}
-  //              // RB 37 Beam-Beam collisions for Velo alignment
-  //              , {36 , "Hlt1Passthrough"}
-  //              // RB 40 Velo (closing) monitoring
-  //              , {47 , "Hlt1KsToPiPi"}
-  //              // RB 46 HLT1 physics for monitoring and alignment
-  //              , {48 , "Hlt1GECPassthrough|Hlt1Passthrough"}
-  //              };
-  std::map<int, std::string> routingbit_map = {
+  const std::map<int, std::string> default_routingbit_map = {
     {33, "Hlt1ODINLumi"}
     // RB 35 Beam-Gas for Velo alignment
     ,
@@ -44,9 +32,6 @@ namespace RoutingBitsDefinition {
     // RB 50 Passthrough for tests
     ,
     {50, "Hlt1Passthrough"}
-    // RB 50 Passthrough for tests
-    ,
-    {18, "Hlt1Passthrough"}
     // RB 53 Tracker alignment
     ,
     {53, "Hlt1CalibTrackingKPiDetached|Hlt1CalibTrackingKPiDetachedHighPTLowMultTrks"}

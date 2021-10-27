@@ -6,6 +6,7 @@
 #include "BackendCommon.h"
 #include "HostAlgorithm.cuh"
 #include "GenericContainerContracts.h"
+#include "RoutingBitsDefinition.h"
 
 namespace host_routingbits_writer {
   struct Parameters {
@@ -14,6 +15,8 @@ namespace host_routingbits_writer {
     HOST_INPUT(host_names_of_active_lines_t, char) host_names_of_active_lines;
     HOST_INPUT(host_dec_reports_t, unsigned) host_dec_reports;
     HOST_OUTPUT(host_routingbits_t, unsigned) host_routingbits;
+    PROPERTY(routingbit_map_t, "routingbit_map", "mapping of expressions to routing bits", std::map<int, std::string>)
+    routingbit_map;
   };
 
   /**
@@ -24,7 +27,8 @@ namespace host_routingbits_writer {
     unsigned number_of_active_lines,
     char* names_of_active_lines,
     unsigned* host_dec_reports,
-    unsigned* host_routing_bits);
+    unsigned* host_routing_bits,
+    const std::map<int, std::string>& routingbit_map);
 
   struct host_routingbits_writer_t : public HostAlgorithm, Parameters {
 
@@ -40,5 +44,8 @@ namespace host_routingbits_writer {
       const Constants&,
       HostBuffers& host_buffers,
       const Allen::Context&) const;
+
+  private:
+    Property<routingbit_map_t> m_routingbit_map {this, RoutingBitsDefinition::default_routingbit_map};
   };
 } // namespace host_routingbits_writer
