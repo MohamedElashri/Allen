@@ -4,7 +4,9 @@
 
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
-install(TARGETS LHCbEvent EXPORT Allen)
+set_target_properties(LHCbEvent PROPERTIES PUBLIC_HEADER "include/write_mdf.hpp")
+install(TARGETS LHCbEvent EXPORT Allen
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 

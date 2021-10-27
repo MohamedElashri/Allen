@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 
       if (b->type() < LHCb::RawBank::LastType) {
         ++bank_counts[b->type()];
-        cout << "bank: " << b->type() << " " << b->sourceID() << "\n";
+        cout << "bank: " << b->type() << " " << b->sourceID() << " " << b->totalSize() << "\n";
       }
       else {
         ++bank_counts[LHCb::RawBank::LastType];
