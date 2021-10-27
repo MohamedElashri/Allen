@@ -148,10 +148,15 @@ include(AllenDependencies)
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
 if (NOT STANDALONE)
+  set(BUILD_TESTING ON)
+
   lhcb_add_subdirectories(
     Rec/Allen
     Dumpers/BinaryDumpers
     Dumpers/RootDumpers)
+
+  lhcb_env(
+    SET ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 endif()
 
 # Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.

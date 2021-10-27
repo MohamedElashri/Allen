@@ -116,6 +116,12 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
+                                     'constants', args.sequence + '.json')
+if args.configuration is None:
+    args.configuration = default_configuration
+
+
 runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
@@ -151,10 +157,13 @@ if args.mep is not None:
     mep_provider.SplitByRun = False
     mep_provider.Source = "Files"
     mep_dir = args.mep
-    mep_provider.Connections = sorted([
-        os.path.join(mep_dir, mep_file) for mep_file in os.listdir(mep_dir)
-        if mep_file.endswith(".mep")
-    ])
+    if os.path.isdir(mep_dir):
+        mep_provider.Connections = sorted([
+            os.path.join(mep_dir, mep_file) for mep_file in os.listdir(mep_dir)
+            if mep_file.endswith(".mep")
+        ])
+    else:
+        mep_provider.Connections = mep_dir.split(',')
     mep_provider.LoopOnMEPs = False
     mep_provider.Preload = args.reuse_meps
     mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
