@@ -25,6 +25,7 @@ def make_transposed_raw_banks(make_raw=default_raw_event):
         ["ODIN", "Muon", "FTCluster", "UT", "VP", "EcalPacked", "HcalPacked"]
     ]).AllenRawInput
 
+
 def get_runtime_options():
     return ProvideRuntimeOptions(
         AllenBanksLocation=make_transposed_raw_banks())
