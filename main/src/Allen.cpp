@@ -699,7 +699,7 @@ int allen(
   while (error_count == 0) {
 
     // Wait for messages to come in from the I/O, monitoring or stream threads
-    zmqSvc->poll(&items[0], items.size(), -1);
+    zmqSvc->poll(&items[0], items.size(), stop ? 100 : -1);
 
     // If we have a pending run change we must do that before receiving further input from the I/O threads
     if (run_change) {
@@ -965,9 +965,9 @@ int allen(
           break;
         }
       }
-      else if (allen_control && stop && t_stop && static_cast<float>(t_stop->get()) > stop_timeout) {
-        if (output_handler) output_handler->cancel();
-      }
+    }
+    else if (allen_control && stop && t_stop && static_cast<float>(t_stop->get()) > stop_timeout) {
+      if (output_handler) output_handler->cancel();
     }
   }
 
