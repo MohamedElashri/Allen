@@ -20,8 +20,10 @@ from GaudiKernel.DataHandle import DataHandle
 
 # Additional algorithms required by every Gaudi-Allen sequence
 def make_transposed_raw_banks(make_raw=default_raw_event):
-    return TransposeRawBanks(RawEventLocations=[make_raw()]).AllenRawInput
-
+    return TransposeRawBanks(RawEventLocations=[
+        make_raw(bank_types=[k]) for k in
+        ["ODIN", "Muon", "FTCluster", "UT", "VP", "EcalPacked", "HcalPacked"]
+    ]).AllenRawInput
 
 def get_runtime_options():
     return ProvideRuntimeOptions(
