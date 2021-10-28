@@ -67,9 +67,14 @@ namespace Allen {
     using postconditions = append_to_tuple_t<typename recursive_contracts::postconditions, A>;
   };
 
+#if __GNUC__ == 11
+// Deal with spurious -Wnonnull from GCC 11 dbg builds
+// Perhaps https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96003
+#pragma GCC diagnostic ignored "-Wnonnull"
+#endif
+
   // Type-erased algorithm
   class TypeErasedAlgorithm {
-
     struct vtable {
       std::string (*name)(void const*) = nullptr;
       std::any (*create_arg_ref_manager)(
@@ -263,6 +268,10 @@ namespace Allen {
       return (table.run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
     }
   };
+
+#if __GNUC__ == 11
+#pragma GCC diagnostic pop
+#endif
 
   // Tool to instantiate algorithms
   template<typename T>
