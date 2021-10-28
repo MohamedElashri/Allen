@@ -71,11 +71,8 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
     // MDFHeader::setSize adds the header size internally, so pass
     // only the payload size here
     header->setSize(buffer_size - header_size);
-    // No checksumming
-    // FIXME: make configurable
     header->setChecksum(0);
-    // No compression
-    // FIXME: make configurable
+    // No compression here, handled at write time
     header->setCompression(0);
     header->setSubheaderLength(header_size - sizeof(LHCb::MDFHeader));
     header->setDataType(LHCb::MDFHeader::BODY_TYPE_BANKS);

@@ -57,6 +57,9 @@ int main(int argc, char* argv[])
 
     array<size_t, LHCb::RawBank::LastType + 1> bank_counts {0};
 
+    unsigned header_size = header.size();
+
+    unsigned bank_total_size = 0;
     // Put the banks in the event-local buffers
     char const* bank = bank_span.data();
     char const* end = bank_span.data() + bank_span.size();
@@ -77,9 +80,13 @@ int main(int argc, char* argv[])
 
       // Move to next raw bank
       bank += b->totalSize();
+      if (b->type() != LHCb::RawBank::DAQ) {
+        bank_total_size += b->totalSize();
+      }
     }
 
-    cout << "Event " << std::setw(7) << i_event << "\n";
+    cout << "Event " << std::setw(7) << i_event << "; header size: "
+         << header_size << "; bank total size: " << bank_total_size << "\n";
     cout << "Type | #Banks\n";
     for (size_t i = 0; i < bank_counts.size(); ++i) {
       if (bank_counts[i] != 0) {
