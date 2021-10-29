@@ -43,8 +43,8 @@ ZMQOutputSender::ZMQOutputSender(
   size_t const n_lines,
   IZeroMQSvc* zmqSvc,
   bool const checksum) :
-  OutputHandler {input_provider, receiver_connection, n_lines},
-  m_zmq {zmqSvc}, m_checksum {checksum}
+  OutputHandler {input_provider, receiver_connection, n_lines, checksum},
+  m_zmq {zmqSvc}
 {
   auto const pos = receiver_connection.rfind(":");
   auto const receiver = receiver_connection.substr(0, pos);
@@ -110,14 +110,6 @@ std::tuple<size_t, gsl::span<char>> ZMQOutputSender::buffer(size_t buffer_size)
 
 bool ZMQOutputSender::write_buffer(size_t)
 {
-  if (m_checksum) {
-    char* data = static_cast<char*>(m_buffer.data());
-    auto* header = reinterpret_cast<LHCb::MDFHeader*>(data);
-    auto const skip = 4 * sizeof(int);
-    auto c = LHCb::hash32Checksum(data + skip, m_buffer.size() - skip);
-    header->setChecksum(c);
-  }
-
   if (m_connected) {
     m_zmq->send(*m_socket, "EVENT", send_flags::sndmore);
     m_zmq->send(*m_socket, m_buffer);

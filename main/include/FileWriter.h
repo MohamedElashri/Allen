@@ -4,13 +4,12 @@
 #pragma once
 
 #include <read_mdf.hpp>
-#include "raw_helpers.hpp"
 #include <OutputHandler.h>
 
 class FileWriter final : public OutputHandler {
 public:
   FileWriter(IInputProvider const* input_provider, std::string filename, size_t const n_lines, bool checksum = true) :
-    OutputHandler {input_provider, filename, n_lines}, m_filename {std::move(filename)}, m_checksum {checksum}
+    OutputHandler {input_provider, filename, n_lines, checksum}, m_filename {std::move(filename)}
   {
     m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (!m_output.good) {
@@ -34,24 +33,14 @@ protected:
 
   virtual bool write_buffer(size_t) override
   {
-    if (m_checksum) {
-      auto* header = reinterpret_cast<LHCb::MDFHeader*>(&m_buffer[0]);
-      auto const skip = 4 * sizeof(int);
-      auto c = LHCb::hash32Checksum(m_buffer.data() + skip, m_buffer.size() - skip);
-      header->setChecksum(c);
-    }
-
     return m_output.write(m_buffer.data(), m_buffer.size());
   }
 
 private:
   // Output filename
   std::string const m_filename;
-
-  // do checksum on write
-  bool const m_checksum;
-
   // Storage for the currently open output file
+
   Allen::IO m_output;
 
   // data buffer

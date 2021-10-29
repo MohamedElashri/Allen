@@ -14,9 +14,9 @@
 
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider, std::string connection, size_t n_lines) :
+  OutputHandler(IInputProvider const* input_provider, std::string connection, size_t n_lines, bool checksum) :
     m_input_provider {input_provider}, m_connection {std::move(connection)},
-    m_sizes(input_provider->events_per_slice()), m_nlines {n_lines}
+    m_sizes(input_provider->events_per_slice()), m_nlines {n_lines}, m_checksum(checksum)
   {}
 
   virtual ~OutputHandler() {}
@@ -41,6 +41,8 @@ public:
 
   virtual void cancel() {}
 
+  bool do_checksum() const { return m_checksum; }
+
 protected:
   virtual std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) = 0;
 
@@ -50,5 +52,6 @@ protected:
   std::string m_connection;
   std::vector<size_t> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
-  size_t m_nlines;
+  size_t m_nlines = 0;
+  bool m_checksum = false;
 };

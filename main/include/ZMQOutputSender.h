@@ -45,9 +45,6 @@ private:
   // request socket
   std::optional<zmq::socket_t> m_request;
 
-  // do checksum on write
-  bool const m_checksum = false;
-
   // Buffer message
   zmq::message_t m_buffer;
 };
