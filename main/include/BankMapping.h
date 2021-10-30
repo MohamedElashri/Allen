@@ -19,4 +19,12 @@ namespace Allen {
     {LHCb::RawBank::EcalPacked, BankTypes::ECal},
     {LHCb::RawBank::OTError, BankTypes::OTError}, // used for PV MC info
     {LHCb::RawBank::OTRaw, BankTypes::OTRaw}};    // used for track MC info
+
+  const int NSubDetectors = 3;
+  const std::unordered_map<std::string, BankTypes> subdetector_allen_bank_types = {
+    {"ODIN", BankTypes::ODIN},
+    {"ECAL", BankTypes::ECal},
+    {"HCAL", BankTypes::HCal},
+  };
+  
 }

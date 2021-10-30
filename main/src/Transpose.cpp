@@ -10,9 +10,36 @@ std::vector<int> Allen::bank_ids()
   ids.resize(std::size(LHCb::RawBank::types()));
   for (auto bt : LHCb::RawBank::types()) {
     auto it = Allen::bank_types.find(bt);
-    ids[bt] = (it != Allen::bank_types.end() ? to_integral(it->second) : -1);
+    ids[bt] = (it != Allen::bank_types.end() ? to_integral(it->second) : -1); 
   }
   return ids;
+}
+
+int Allen::subdetector_id(const std::string subdetector)
+{
+  // Get the mapping of subdetector obtained from sourceID to Allen::BankType
+  auto it = Allen::subdetector_allen_bank_types.find(subdetector);
+  return (it != Allen::subdetector_allen_bank_types.end() ? to_integral(it->second) : -1); 
+}
+
+int Allen::subdetector_index_from_bank_type(BankTypes bt)
+{
+  // Get the index within the subdetector map
+  for (auto it = Allen::subdetector_allen_bank_types.begin(); it != Allen::subdetector_allen_bank_types.end(); ++it) {
+    if (it->second == bt)
+      return std::distance(Allen::subdetector_allen_bank_types.begin(), it);
+  }
+  return -1;
+}
+
+int Allen::subdetector_index(const std::string subdetector)
+{
+  // Get the index within the subdetector map
+  auto it = Allen::subdetector_allen_bank_types.find(subdetector);
+  if (it != Allen::subdetector_allen_bank_types.end() )
+    return std::distance(Allen::subdetector_allen_bank_types.begin(), it);
+  else
+    return -1;
 }
 
 /**
