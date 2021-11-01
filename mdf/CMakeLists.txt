@@ -25,34 +25,31 @@ endif()
 
 allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-if (NOT GaudiProject_FOUND)
+if (STANDALONE)
   # Make sure we have a local copy of ODIN.h if building in standalone mode
-  if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_include/Event/ODIN.h")
-    file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/b78bb03fa44490ffb471f16971734798c5c80d9e/Event/DAQEvent/include/Event/ODIN.h"
-      "${PROJECT_BINARY_DIR}/imported_include/Event/ODIN.h"
-      STATUS ODIN_DOWNLOAD_STATUS)
-    list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
-    if(ODIN_DOWNLOAD_STATUS_CODE)
-      message(FATAL_ERROR "Failed to get ODIN.h copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
+  set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
+  foreach(odin_file ${odin_files})
+    if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
+      file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/529de2de27556999faf632d491b18af0178afc98/Event/DAQEvent/${odin_file}"
+        "${PROJECT_BINARY_DIR}/imported_${odin_file}"
+        STATUS ODIN_DOWNLOAD_STATUS)
+      list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
+      if(ODIN_DOWNLOAD_STATUS_CODE)
+        message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
+      endif()
     endif()
-  endif()
-  target_include_directories(mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lhcb ${PROJECT_BINARY_DIR}/imported_include)
+  endforeach()
+  list(APPEND mdf_sources ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
+  target_sources(mdf PRIVATE ${mdf_sources})
+  target_include_directories(mdf PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/lhcb
+    ${PROJECT_BINARY_DIR}/sequences/Gaudi/GaudiKernel/include
+    ${PROJECT_BINARY_DIR}/imported_include)
   target_compile_definitions(mdf PUBLIC ODIN_WITHOUT_GAUDI)
 else()
   find_package(Boost COMPONENTS filesystem thread regex)
   target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
-  target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
-
-  if (TARGET Gaudi::GaudiKernel)
-    target_link_libraries(mdf PUBLIC Gaudi::GaudiKernel)
-  else()
-    target_link_libraries(mdf PUBLIC GaudiKernel)
-  endif()
-  if (TARGET LHCb::DAQEventLib)
-    target_link_libraries(mdf PUBLIC LHCb::DAQEventLib)
-  else()
-    target_link_libraries(mdf PUBLIC DAQEventLib)
-  endif()
+  target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex Gaudi::GaudiKernel LHCb::DAQEventLib)
 endif()
 
 if (ROOT_FOUND AND USE_ROOT)

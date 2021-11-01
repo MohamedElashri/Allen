@@ -83,3 +83,5 @@ include_directories(${Boost_INCLUDE_DIRS})
 allen_add_host_library(HostDataProvider STATIC
   ${host_data_provider}
 )
+
+target_link_libraries(HostDataProvider PRIVATE mdf)

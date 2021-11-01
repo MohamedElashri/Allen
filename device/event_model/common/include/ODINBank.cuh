@@ -19,7 +19,10 @@ struct ODINRawBank {
   }
 
   /// Constructor from MEP layout
-  __device__ __host__ ODINRawBank(const uint32_t, const char* fragment) { data = (uint32_t*) fragment; }
+  __device__ __host__ ODINRawBank(const uint32_t, const char* fragment)
+  {
+    data = reinterpret_cast<uint32_t const*>(fragment);
+  }
 };
 
 struct odin_data_t {
