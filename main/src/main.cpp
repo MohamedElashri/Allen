@@ -112,6 +112,13 @@ int main(int argc, char* argv[])
         initialized = true;
       }
     }
+
+    if (po.options[0] == "sequence" && !initialized) {
+      error_cout << "--sequence option must be set. See usage below.\n";
+      print_usage(argv, program_options);
+      return -1;
+    }
+
     if (!initialized && po.default_value != "") {
       allen_options[po.options[0]] = po.default_value;
     }

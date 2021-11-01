@@ -54,7 +54,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"host-memory"}, "memory to reserve on the host per thread / stream (megabytes)", "200"},
           {{"v", "verbosity"}, "verbosity [0-5]", "3", "info"},
           {{"p", "print-memory"}, "print memory usage", "0"},
-          {{"sequence"}, "sequence to run", "hlt1_pp_default"},
+          {{"sequence"}, "sequence to run", ""},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
           {{"output-file"}, "Write selected event to output file", ""},
           {{"device"}, "select device to use", "0"},
