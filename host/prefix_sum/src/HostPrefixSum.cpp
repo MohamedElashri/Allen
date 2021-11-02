@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "HostPrefixSum.h"
 
+INSTANTIATE_ALGORITHM(host_prefix_sum::host_prefix_sum_t)
+
 void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

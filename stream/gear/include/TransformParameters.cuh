@@ -24,6 +24,27 @@ namespace Allen {
 template<typename ArgMan, typename T, typename Enabled = void>
 struct ProduceSingleParameter;
 
+/**
+ * @brief Produces device or host datatypes.
+ */
+template<typename ArgMan, typename T>
+struct ProduceSingleParameter<
+  ArgMan,
+  T,
+  std::enable_if_t<(std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>) &&!std::
+                     is_base_of_v<aggregate_datatype, T>>> {
+  constexpr static auto produce(
+    const ArgMan& arguments,
+    const std::map<std::string, Allen::BaseProperty*>&,
+    const Allen::KernelInvocationConfiguration&)
+  {
+    return data<T>(arguments);
+  }
+};
+
+/**
+ * @brief Produces aggregate datatypes.
+ */
 template<typename ArgMan, typename T>
 struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
   constexpr static auto produce(
@@ -32,25 +53,6 @@ struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<aggr
     const Allen::KernelInvocationConfiguration&)
   {
     return input_aggregate<T>(arguments);
-  }
-};
-
-/**
- * @brief Produces device or host datatypes.
- */
-template<typename ArgMan, typename T>
-struct ProduceSingleParameter<
-  ArgMan,
-  T,
-  std::enable_if_t<
-    !std::is_base_of_v<aggregate_datatype, T> &&
-    (std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>)>> {
-  constexpr static auto produce(
-    const ArgMan& arguments,
-    const std::map<std::string, Allen::BaseProperty*>&,
-    const Allen::KernelInvocationConfiguration&)
-  {
-    return data<T>(arguments);
   }
 };
 

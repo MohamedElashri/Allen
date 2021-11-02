@@ -7,6 +7,8 @@
 #include "LHCbIDContainer.cuh"
 #include "VertexDefinitions.cuh"
 
+INSTANTIATE_ALGORITHM(make_rb_substr::make_rb_substr_t)
+
 void make_rb_substr::make_rb_substr_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

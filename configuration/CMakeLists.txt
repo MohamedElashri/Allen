@@ -11,4 +11,5 @@
 if (NOT STANDALONE)
     gaudi_add_test(pytest
       COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_configuration.sh ${CMAKE_CURRENT_SOURCE_DIR})
+    gaudi_install_python_modules()
 endif()

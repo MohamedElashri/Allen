@@ -11,6 +11,8 @@
 #include "HostSelReportValidator.h"
 #include "SelReportChecker.h"
 
+INSTANTIATE_ALGORITHM(host_sel_report_validator::host_sel_report_validator_t)
+
 void host_sel_report_validator::host_sel_report_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,

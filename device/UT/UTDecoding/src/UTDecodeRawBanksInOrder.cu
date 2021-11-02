@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <UTDecodeRawBanksInOrder.cuh>
 
+INSTANTIATE_ALGORITHM(ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t)
+
 void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

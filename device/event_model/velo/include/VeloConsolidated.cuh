@@ -23,6 +23,8 @@ namespace Allen {
           unsigned m_total_number_of_hits = 0;
 
         public:
+          Hit() = default;
+
           __host__ __device__
           Hit(const half_t* base_pointer, const unsigned index, const unsigned total_number_of_hits) :
             m_base_pointer(base_pointer),
@@ -59,6 +61,8 @@ namespace Allen {
           unsigned m_total_number_of_hits = 0;
 
         public:
+          Hits() = default;
+
           __host__ __device__ Hits(
             const char* base_pointer,
             const unsigned* offset_tracks,
@@ -98,6 +102,8 @@ namespace Allen {
           unsigned m_total_number_of_tracks = 0;
 
         public:
+          State() = default;
+
           __host__ __device__
           State(const char* base_pointer, const unsigned index, const unsigned total_number_of_tracks) :
             m_base_pointer(reinterpret_cast<const float*>(base_pointer)),
@@ -160,6 +166,8 @@ namespace Allen {
           unsigned m_total_number_of_tracks = 0;
 
         public:
+          States() = default;
+
           __host__ __device__ States(
             const char* base_pointer,
             const unsigned* offset_tracks,
@@ -194,6 +202,8 @@ namespace Allen {
           unsigned m_number_of_hits = 0;
 
         public:
+          Track() = default;
+
           __host__ __device__ Track(
             const Hits* hits,
             const unsigned* offset_tracks,
@@ -233,6 +243,8 @@ namespace Allen {
           unsigned m_size = 0;
 
         public:
+          Tracks() = default;
+
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
             m_track(track + offset_tracks[event_number]), m_offset(offset_tracks[event_number]),
             m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])

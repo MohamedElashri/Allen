@@ -4,6 +4,8 @@
 #include "TrackDigitSelectiveMatching.cuh"
 #include "EcalScan.cuh"
 
+INSTANTIATE_ALGORITHM(track_digit_selective_matching::track_digit_selective_matching_t)
+
 void track_digit_selective_matching::track_digit_selective_matching_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

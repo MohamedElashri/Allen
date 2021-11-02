@@ -8,7 +8,7 @@
 #include "BackendCommon.h"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloTools.cuh"
 
 namespace velo_sort_by_phi {

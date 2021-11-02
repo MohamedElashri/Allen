@@ -4,10 +4,11 @@
 #pragma once
 
 #include "Common.h"
-#include "ValidationAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "InputProvider.h"
 #include "MCEvent.h"
 #include "MCRaw.h"
+#include <gsl/span>
 
 namespace mc_data_provider {
   struct Parameters {

@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "LFLeastMeanSquareFit.cuh"
 
+INSTANTIATE_ALGORITHM(lf_least_mean_square_fit::lf_least_mean_square_fit_t)
+
 void lf_least_mean_square_fit::lf_least_mean_square_fit_t::set_arguments_size(
   ArgumentReferences<Parameters>,
   const RuntimeOptions&,

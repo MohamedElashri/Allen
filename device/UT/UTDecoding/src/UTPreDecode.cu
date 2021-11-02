@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <UTPreDecode.cuh>
 
+INSTANTIATE_ALGORITHM(ut_pre_decode::ut_pre_decode_t)
+
 void ut_pre_decode::ut_pre_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

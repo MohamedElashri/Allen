@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "DataProvider.h"
 
+INSTANTIATE_ALGORITHM(data_provider::data_provider_t)
+
 void data_provider::data_provider_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,

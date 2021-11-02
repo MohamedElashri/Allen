@@ -13,7 +13,7 @@
 # Prepare tests in a separate dir
 TEST_DIR=$(mktemp -d)
 cp -r ${1}/tests ${TEST_DIR}/
-cp -r ${1}/sequences/AllenConf ${TEST_DIR}/tests/
+cp -r ${1}/python/AllenConf ${TEST_DIR}/tests/
 cp ${1}/tests/test_algorithms.py ${TEST_DIR}/tests/AllenConf/algorithms.py
 cp -r ${1}/AllenCore ${TEST_DIR}/tests/
 rm ${TEST_DIR}/tests/test_algorithms.py ${TEST_DIR}/tests/test_configuration.sh
@@ -23,5 +23,5 @@ pytest -s ${TEST_DIR}/tests
 
 # Cleanup and exit
 exit_code=$?
-rm -rf ${TEST_DIR}
+#rm -rf ${TEST_DIR}
 exit $exit_code

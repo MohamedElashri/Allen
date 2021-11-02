@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <VeloCalculateNumberOfCandidates.cuh>
 
+INSTANTIATE_ALGORITHM(velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t)
+
 template<bool mep_layout>
 __global__ void velo_calculate_number_of_candidates_kernel(
   velo_calculate_number_of_candidates::Parameters parameters,

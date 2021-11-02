@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "ConsolidateSciFi.cuh"
 
+INSTANTIATE_ALGORITHM(scifi_consolidate_tracks::scifi_consolidate_tracks_t)
+
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

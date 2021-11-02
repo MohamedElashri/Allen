@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <UTCalculateNumberOfHits.cuh>
 
+INSTANTIATE_ALGORITHM(ut_calculate_number_of_hits::ut_calculate_number_of_hits_t)
+
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

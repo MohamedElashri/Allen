@@ -10,7 +10,7 @@ fi
 check_build_exists
 
 
-RUN_OPTIONS="-n 1000 -m 1000"
+RUN_OPTIONS="-n 1000 -m 1000 --run-from-json 1"
 
 # Configure the input files (--mdf) and geometry (-g)
 

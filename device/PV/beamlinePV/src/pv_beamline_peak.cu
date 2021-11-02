@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "pv_beamline_peak.cuh"
 
+INSTANTIATE_ALGORITHM(pv_beamline_peak::pv_beamline_peak_t)
+
 void pv_beamline_peak::pv_beamline_peak_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

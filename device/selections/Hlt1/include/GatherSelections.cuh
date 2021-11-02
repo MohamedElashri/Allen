@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include <string>
 
 namespace gather_selections {

@@ -10,6 +10,8 @@
 \*****************************************************************************/
 #include "TwoTrackEvaluator.cuh"
 
+INSTANTIATE_ALGORITHM(two_track_evaluator::two_track_evaluator_t)
+
 void two_track_evaluator::two_track_evaluator_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

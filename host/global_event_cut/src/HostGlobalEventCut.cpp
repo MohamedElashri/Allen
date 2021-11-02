@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "HostGlobalEventCut.h"
 
+INSTANTIATE_ALGORITHM(host_global_event_cut::host_global_event_cut_t)
+
 void host_global_event_cut::host_global_event_cut_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
@@ -34,12 +36,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
 
   // Do the host global event cut
-  if (runtime_options.mep_layout) {
-    host_function(host_global_event_cut<true>)(arguments);
-  }
-  else {
-    host_function(host_global_event_cut<false>)(arguments);
-  }
+  host_function(runtime_options.mep_layout ? host_global_event_cut<true> : host_global_event_cut<false>)(arguments);
 
   // Reduce the size of the event lists to the selected events
   reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
@@ -49,8 +46,10 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   Allen::copy_async<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
   Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
-  host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);
-  for (unsigned i = 0; i < size<host_event_list_output_t>(arguments); ++i) {
-    host_buffers.host_event_list[i] = event_start + data<host_event_list_output_t>(arguments)[i];
+  if (runtime_options.fill_extra_host_buffers) {
+    host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);
+    for (unsigned i = 0; i < size<host_event_list_output_t>(arguments); ++i) {
+      host_buffers.host_event_list[i] = event_start + data<host_event_list_output_t>(arguments)[i];
+    }
   }
 }

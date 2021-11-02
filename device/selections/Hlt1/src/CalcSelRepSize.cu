@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "CalcSelRepSize.cuh"
 
+INSTANTIATE_ALGORITHM(calc_selrep_size::calc_selrep_size_t)
+
 void calc_selrep_size::calc_selrep_size_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

@@ -8,6 +8,8 @@
 #include <AssociateConstants.cuh>
 #include <VeloPVIP.cuh>
 
+INSTANTIATE_ALGORITHM(velo_pv_ip::velo_pv_ip_t)
+
 void velo_pv_ip::velo_pv_ip_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

@@ -7,7 +7,7 @@
 #include "VertexDefinitions.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace MFVertexFit {
   struct Parameters {

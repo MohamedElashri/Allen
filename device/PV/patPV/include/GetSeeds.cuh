@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "VeloEventModel.cuh"
 #include "Common.h"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
 
 namespace pv_get_seeds {

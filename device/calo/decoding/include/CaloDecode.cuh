@@ -8,7 +8,7 @@
 #include "CaloRawBanks.cuh"
 #include "CaloGeometry.cuh"
 #include "CaloDigit.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace calo_decode {
   struct Parameters {

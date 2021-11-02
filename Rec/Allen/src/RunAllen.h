@@ -25,8 +25,7 @@
 #include "HostBuffersManager.cuh"
 #include "RuntimeOptions.h"
 #include "BankTypes.h"
-#include "IStream.h"
-#include "StreamLoader.h"
+#include "Stream.h"
 #include "Logger.h"
 #include "TESProvider.h"
 
@@ -48,22 +47,15 @@ public:
 
 private:
   Constants m_constants;
-  std::set<LHCb::RawBank::BankType> m_bankTypes = {LHCb::RawBank::ODIN,
-                                                   LHCb::RawBank::VP,
-                                                   LHCb::RawBank::UT,
-                                                   LHCb::RawBank::FTCluster,
-                                                   LHCb::RawBank::Muon,
-                                                   LHCb::RawBank::EcalPacked};
   std::vector<std::string> m_line_names;
   const unsigned m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
   const unsigned m_n_buffers = 1;
   const bool m_do_check = true;
 
-  Allen::StreamFactory m_stream_factory;
-  std::unique_ptr<Allen::IStream> m_stream;
+  std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
-  std::unique_ptr<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>
+  std::shared_ptr<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>
     m_tes_input_provider;
 
   Gaudi::Property<std::string> m_sequence {this, "Sequence", "hlt1_pp_default"};

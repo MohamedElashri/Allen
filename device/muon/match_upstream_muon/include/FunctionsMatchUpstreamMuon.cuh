@@ -11,7 +11,7 @@
 #include <string>
 
 /// Get the first estimation of the magnet focal plane position from "tx2".
-__device__ MatchUpstreamMuon::Hit magnetFocalPlaneFromTx2(const KalmanVeloState& state)
+__device__ inline MatchUpstreamMuon::Hit magnetFocalPlaneFromTx2(const KalmanVeloState& state)
 {
   const auto z = MatchUpstreamMuon::za + MatchUpstreamMuon::zb * state.tx * state.tx;
   const MatchUpstreamMuon::Hit hit {state, z};
@@ -19,9 +19,15 @@ __device__ MatchUpstreamMuon::Hit magnetFocalPlaneFromTx2(const KalmanVeloState&
 }
 
 /// Get the momentum given the slope in "x"
-__device__ float momentum(float dtx) { return MatchUpstreamMuon::kickScale / fabsf(dtx) + MatchUpstreamMuon::kickOffset; }
+__device__ inline float momentum(float dtx)
+{
+  return MatchUpstreamMuon::kickScale / fabsf(dtx) + MatchUpstreamMuon::kickOffset;
+}
 
-__device__ float dtx(const float& qop) { return MatchUpstreamMuon::kickScale / (fabsf(1.f / qop) - MatchUpstreamMuon::kickOffset); }
+__device__ inline float dtx(const float& qop)
+{
+  return MatchUpstreamMuon::kickScale / (fabsf(1.f / qop) - MatchUpstreamMuon::kickOffset);
+}
 
 /// Return the track type associated to a given momentum
 __device__ inline int trackTypeFromMomentum(float p)
@@ -91,7 +97,7 @@ chi2X(const int* indices, Muon::ConstHits& muon_hits_event, const int no_points,
  *  Not to be applied in the first station.
  *  Returns "xmin", "xmax", "ymin", "ymax".
  */
-__device__ std::tuple<float, float, float, float> stationWindow(
+__device__ inline std::tuple<float, float, float, float> stationWindow(
   const KalmanVeloState& state,
   const unsigned& i_station,
   const MatchUpstreamMuon::Hit& magnet_hit,
@@ -121,7 +127,7 @@ __device__ std::tuple<float, float, float, float> stationWindow(
 /** Calculate the window to search in the first station.
  *  Returns "xmin", "xmax", "ymin", "ymax".
  */
-__device__ std::tuple<float, float, float, float> firstStationWindow(
+__device__ inline std::tuple<float, float, float, float> firstStationWindow(
   const float& qop,
   const KalmanVeloState& state,
   const unsigned& i_station,
@@ -155,7 +161,7 @@ __device__ std::tuple<float, float, float, float> firstStationWindow(
   return {xMin, xMax, y.first, y.second};
 }
 
-__device__ int findHit(
+__device__ inline int findHit(
   const unsigned& i_station,
   const KalmanVeloState& state,
   const MatchUpstreamMuon::Hit& magnet_hit,
@@ -214,7 +220,7 @@ __device__ int findHit(
   return closest;
 }
 
-__device__ std::pair<float, float> fit_linearX(
+__device__ inline std::pair<float, float> fit_linearX(
   const MatchUpstreamMuon::Hit magnet_hit,
   const int* indices, // indices of the points to fit
   Muon::ConstHits& muon_hits_event,
@@ -264,7 +270,7 @@ __device__ std::pair<float, float> fit_linearX(
   return {chisqX, no_points + 1 - 2};
 }
 
-__device__ bool match(
+__device__ inline bool match(
   const float& qop,
   const KalmanVeloState& state,
   const unsigned* station_ocurrences_offset,
@@ -318,7 +324,8 @@ __device__ bool match(
 
       for (int i = MuCh.afterKickOffsets[tt - 1]; i < MuCh.afterKickOffsets[tt]; i++) {
         // auto& much = muchs[i];
-        int hit_index = findHit(MuCh.afterKick[i], state, magnet_hit, station_ocurrences_offset, muon_hits_event, slope, Windows);
+        int hit_index =
+          findHit(MuCh.afterKick[i], state, magnet_hit, station_ocurrences_offset, muon_hits_event, slope, Windows);
 
         if (hit_index > 0) {
           hit_indexes[matching_hits_len] = hit_index;

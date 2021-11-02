@@ -8,6 +8,8 @@
 #include "ODINBank.cuh"
 #include <algorithm>
 
+INSTANTIATE_ALGORITHM(gather_selections::gather_selections_t)
+
 namespace gather_selections {
   __global__ void postscaler(
     bool* dev_selections,

@@ -3,9 +3,11 @@
 \*****************************************************************************/
 #include <memory>
 
-#include "IStream.h"
 #include "Stream.h"
-#include "ValidationAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
+#include "Scheduler.cuh"
+#include "HostBuffers.cuh"
+#include "HostBuffersManager.cuh"
 
 #ifdef CALLGRIND_PROFILE
 #include <valgrind/callgrind.h>
@@ -15,6 +17,7 @@
  * @brief Sets up the chain that will be executed later.
  */
 Stream::Stream(
+  const ConfiguredSequence& configuration,
   const bool param_do_print_memory_manager,
   const size_t reserve_mb,
   const size_t reserve_host_mb,
@@ -24,14 +27,11 @@ Stream::Stream(
   do_print_memory_manager {param_do_print_memory_manager},
   host_buffers_manager {buffers_manager}, constants {param_constants}
 {
+  scheduler =
+    new Scheduler {configuration, do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment};
+
   // Initialize context
   m_context.initialize();
-
-  // Prepare scheduler
-  scheduler.initialize(do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment);
-
-  // Populate names of parameters in the sequence
-  populate_sequence_argument_names(scheduler.argument_manager);
 }
 
 Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_options)
@@ -52,11 +52,11 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
       host_buffers->host_number_of_events = event_end - event_start;
 
       // Reset scheduler
-      scheduler.reset();
+      scheduler->reset();
 
       try {
         // Visit all algorithms in configured sequence
-        scheduler.run(runtime_options, constants, host_buffers, m_context);
+        scheduler->run(runtime_options, constants, host_buffers, m_context);
 
         // deterministic injection of ~random memory failures
         if (runtime_options.inject_mem_fail > 0) {
@@ -91,27 +91,16 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
 /**
  * @brief Print the type and name of the algorithms in the sequence
  */
-void Stream::print_configured_sequence() { scheduler.print_sequence(); }
+void Stream::print_configured_sequence() { scheduler->print_sequence(); }
 
-/**
- * @brief Checks whether the sequence contains any validator algorithms.
- */
-extern "C" bool contains_validator_algorithm()
+void Stream::configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
 {
-  return Sch::ContainsAlgorithmType<ValidationAlgorithm, configured_sequence_t>::value;
+  scheduler->configure_algorithms(config);
 }
 
-/**
- * @brief Create an instance of a sequence to be run inside a stream
- */
-extern "C" Allen::IStream* create_stream(
-  const bool param_print_memory_usage,
-  const size_t param_reserve_mb,
-  const size_t reserve_host_mb,
-  const unsigned required_memory_alignment,
-  const Constants& constants,
-  HostBuffersManager* buffers_manager)
+std::map<std::string, std::map<std::string, std::string>> Stream::get_algorithm_configuration() const
 {
-  return new Stream {
-    param_print_memory_usage, param_reserve_mb, reserve_host_mb, required_memory_alignment, constants, buffers_manager};
+  return scheduler->get_algorithm_configuration();
 }
+
+bool Stream::contains_validation_algorithms() const { return scheduler->contains_validation_algorithms(); }

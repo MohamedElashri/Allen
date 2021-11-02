@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "CandidateTable.cuh"
 
 namespace make_rb_substr {

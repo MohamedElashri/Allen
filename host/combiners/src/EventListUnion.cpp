@@ -10,6 +10,8 @@
 \*****************************************************************************/
 #include "EventListUnion.cuh"
 
+INSTANTIATE_ALGORITHM(event_list_union::event_list_union_t)
+
 void event_list_union::event_list_union_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

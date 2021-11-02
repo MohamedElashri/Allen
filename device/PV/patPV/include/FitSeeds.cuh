@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 #include "Common.h"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "patPV_Definitions.cuh"
 #include "VeloEventModel.cuh"
 #include "VeloConsolidated.cuh"

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace ut_calculate_number_of_hits {
   struct Parameters {

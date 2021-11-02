@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MuonFilter.cuh"
 
+INSTANTIATE_ALGORITHM(MuonFilter::muon_filter_t)
+
 void MuonFilter::muon_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

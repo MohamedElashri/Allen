@@ -6,7 +6,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "UTConsolidated.cuh"
 
 namespace lf_least_mean_square_fit {

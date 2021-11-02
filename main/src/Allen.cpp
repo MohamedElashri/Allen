@@ -50,8 +50,7 @@
 #include "MonitorManager.h"
 #include "FileWriter.h"
 #include "ZMQOutputSender.h"
-#include "IStream.h"
-#include "StreamLoader.h"
+#include "Stream.h"
 #include "AllenThreads.h"
 #include "Allen.h"
 #include "RegisterConsumers.h"
@@ -83,7 +82,7 @@ int allen(
   // Folder containing detector configuration and mva models
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string folder_parameters = "../input/parameters/";
-  std::string json_constants_configuration_file;
+  std::string json_configuration_file = "Sequence.json";
   // Sequence to run
   std::string sequence;
 
@@ -97,7 +96,6 @@ int allen(
   bool print_memory_usage = false;
   bool non_stop = false;
   bool write_config = false;
-  // do_check will be true when a MC validator algorithm was configured
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
   // MPI options
@@ -118,6 +116,7 @@ int allen(
   uint mon_save_period = 0;
   std::string mon_filename;
   bool disable_run_changes = 0;
+  bool run_from_json = false;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -141,9 +140,6 @@ int allen(
     }
     else if (flag_in({"mep"})) {
       mep_input = arg;
-    }
-    else if (flag_in({"configuration"})) {
-      json_constants_configuration_file = arg;
     }
     else if (flag_in({"transpose-mep"})) {
       mep_layout = !atoi(arg.c_str());
@@ -188,6 +184,9 @@ int allen(
     }
     else if (flag_in({"sequence"})) {
       sequence = arg;
+    }
+    else if (flag_in({"run-from-json"})) {
+      run_from_json = atoi(arg.c_str());
     }
     else if (flag_in({"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
@@ -244,10 +243,6 @@ int allen(
     }
   }
 
-  if (json_constants_configuration_file.empty()) {
-    json_constants_configuration_file = sequence + ".json";
-  }
-
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);
   logger::setVerbosity(verbosity);
@@ -267,6 +262,20 @@ int allen(
 
   // Show call options
   print_call_options(options, device_name);
+
+  // Determine configuration
+  if (run_from_json) {
+    json_configuration_file = sequence + ".json";
+  }
+  else {
+    int error =
+      system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py")
+               .c_str());
+    if (error) {
+      throw std::runtime_error("sequence generation failed");
+    }
+    info_cout << "\n";
+  }
 
   // Determine wether to run with async I/O.
   bool enable_async_io = true;
@@ -307,7 +316,7 @@ int allen(
 
   std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
 
-  std::unique_ptr<IInputProvider> input_provider;
+  std::shared_ptr<IInputProvider> input_provider;
 
   // Number of requested events as an optional
   boost::optional<size_t> n_events = boost::make_optional(false, size_t {});
@@ -341,7 +350,7 @@ int allen(
                               !mep_layout,          // MEPs should be transposed to Allen layout
                               !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
-    input_provider = std::make_unique<
+    input_provider = std::make_shared<
       MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal>>(
       number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
@@ -354,7 +363,7 @@ int allen(
                               events_per_slice,          // number of events per read buffer
                               n_io_reps,                 // number of loops over the input files
                               !disable_run_changes};     // Whether to split slices by run number
-    input_provider = std::make_unique<MDFProvider<
+    input_provider = std::make_shared<MDFProvider<
       BankTypes::VP,
       BankTypes::UT,
       BankTypes::FT,
@@ -366,7 +375,7 @@ int allen(
   }
 
   // Load constant parameters from JSON
-  configuration_reader = std::make_unique<ConfigurationReader>(json_constants_configuration_file);
+  configuration_reader = std::make_unique<ConfigurationReader>(json_configuration_file);
 
   // Read the Muon catboost model
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_parameters + "muon_catboost_model.json");
@@ -433,17 +442,9 @@ int allen(
     }
   }
 
-  // Load stream factory
-  auto [stream_factory, do_check] = Allen::load_stream(sequence);
-  if (!stream_factory) {
-    error_cout << "Failed to load sequence " << sequence << "\n";
-    exit(1);
-  }
-  std::vector<std::unique_ptr<Allen::IStream>> streams;
-
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, do_check, error_line);
+    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, error_line);
 
   if (print_status) {
     buffers_manager->printStatus();
@@ -474,29 +475,43 @@ int allen(
   }
 
   // Create all the streams
+  std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
-    auto& sequence = streams.emplace_back((*stream_factory)(
-      print_memory_usage, reserve_mb, reserve_host_mb, device_memory_alignment, constants, buffers_manager.get()));
+    auto& sequence = streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
+                                                      print_memory_usage,
+                                                      reserve_mb,
+                                                      reserve_host_mb,
+                                                      device_memory_alignment,
+                                                      constants,
+                                                      buffers_manager.get()});
     sequence->configure_algorithms(configuration);
   }
 
-  // Print configured sequence
-  streams.front()->print_configured_sequence();
+  if (run_from_json) {
+    // Print configured sequence
+    streams.front()->print_configured_sequence();
+  }
 
-  auto algo_config = streams.front()->get_algorithm_configuration();
-  if (print_config) {
-    info_cout << "Algorithm configuration\n";
-    for (auto kv : algo_config) {
-      for (auto kv2 : kv.second) {
-        info_cout << " " << kv.first << ":" << kv2.first << " = " << kv2.second << "\n";
+  // Interrogate stream configured sequence for validation algorithms
+  const auto sequence_contains_validation_algorithms = streams.front()->contains_validation_algorithms();
+
+  // TODO: Test this
+  if (print_config || write_config) {
+    auto algo_config = streams.front()->get_algorithm_configuration();
+    if (print_config) {
+      info_cout << "Algorithm configuration\n";
+      for (auto kv : algo_config) {
+        for (auto kv2 : kv.second) {
+          info_cout << " " << kv.first << ":" << kv2.first << " = " << kv2.second << "\n";
+        }
       }
     }
-  }
-  if (write_config) {
-    info_cout << "Write full configuration\n";
-    ConfigurationReader saveToJson(algo_config);
-    saveToJson.save("config.json");
-    return 0;
+    if (write_config) {
+      info_cout << "Write full configuration\n";
+      ConfigurationReader saveToJson(algo_config);
+      saveToJson.save("config.json");
+      return 0;
+    }
   }
 
   auto checker_invoker = std::make_unique<CheckerInvoker>();
@@ -509,7 +524,7 @@ int allen(
                         stream_id,
                         device_id,
                         streams[stream_id].get(),
-                        input_provider.get(),
+                        input_provider,
                         zmqSvc,
                         checker_invoker.get(),
                         root_service.get(),
@@ -840,7 +855,7 @@ int allen(
             auto n_filled = zmqSvc->receive<size_t>(socket);
 
             // Check once that raw banks with MC information are available if MC check is requested
-            if (n_events_read == 0 && do_check) {
+            if (n_events_read == 0 && sequence_contains_validation_algorithms) {
               auto bno_pvs = input_provider->banks(BankTypes::OTError, *slice_index);
               auto bno_tracks = input_provider->banks(BankTypes::OTRaw, *slice_index);
               if (std::get<2>(bno_pvs).size() == 1 || std::get<2>(bno_tracks).size() == 1) {
@@ -1104,7 +1119,7 @@ loop_error:
   monitor_manager->saveHistograms(mon_filename);
 
   // Print checker reports
-  checker_invoker->report(n_events_processed);
+  checker_invoker->report(n_events_processed * number_of_repetitions);
   checker_invoker.reset();
 
   // Print throughput measurement result

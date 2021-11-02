@@ -8,7 +8,7 @@
 #include "ClusteringDefinitions.cuh"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "GenericContainerContracts.h"
 
 namespace velo_search_by_triplet {

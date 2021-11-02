@@ -27,7 +27,7 @@ template<BankTypes... Banks>
 class TESProvider final : public InputProvider<TESProvider<Banks...>> {
 public:
   TESProvider(size_t n_slices, size_t events_per_slice, boost::optional<size_t> n_events) :
-    InputProvider<TESProvider<Banks...>> {n_slices, events_per_slice, n_events}
+    InputProvider<TESProvider<Banks...>> {n_slices, events_per_slice, n_events}, m_bank_ids_mapping(bank_ids())
   {}
 
   /**
@@ -36,21 +36,19 @@ public:
    * @param      Array with raw bank content
    * @param      Set with bank types to be used as input for Allen
    */
-  int set_banks(
-    const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& transposed_banks,
-    std::set<LHCb::RawBank::BankType> bankTypes)
+  int set_banks(const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& transposed_banks)
   {
-    // get mapping of LHCb::RawBank::BankType to Allen::BankType
-    const std::vector<int> bank_ids_mapping = bank_ids();
-
     // store banks and offsets as BanksAndOffsets object
-    for (const auto& bank : bankTypes) {
-      if (bank >= bank_ids_mapping.size()) {
+    for (size_t i = 0; i < transposed_banks.size(); ++i) {
+      if (std::get<0>(transposed_banks[i]).empty()) continue;
+
+      if (i >= m_bank_ids_mapping.size()) {
         std::cout << "ERROR: LHCb::RawBank index out of scope from conversion between Allen and LHCb raw bank types"
                   << std::endl;
         return 1;
       }
-      const auto allen_bank_index = bank_ids_mapping[bank];
+      auto bank = static_cast<LHCb::RawBank::BankType>(i);
+      const auto allen_bank_index = m_bank_ids_mapping[bank];
       if (allen_bank_index < 0) {
         std::cout << "ERROR: dumped bank type does not exist in Allen" << std::endl;
         return 1;
@@ -92,6 +90,9 @@ public:
   void copy_banks(size_t const, unsigned int const, gsl::span<char>) const override {}
 
 private:
+  // Mapping of LHCb::RawBank::BankType to Allen::BankType
+  const std::vector<int> m_bank_ids_mapping;
+
   std::array<BanksAndOffsets, NBankTypes> m_banks_and_offsets;
   std::array<std::array<unsigned int, 2>, NBankTypes> m_offsets;
 };

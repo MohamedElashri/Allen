@@ -7,7 +7,7 @@
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
 #include "States.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "LookingForwardConstants.cuh"
 
 namespace scifi_copy_track_hit_number {

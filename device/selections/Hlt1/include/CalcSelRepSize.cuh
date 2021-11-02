@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace calc_selrep_size {
   struct Parameters {

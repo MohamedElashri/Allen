@@ -20,7 +20,6 @@ variables:
 stages:
   - check            # Ensures the CI environment is valid
   - build docker
-  - test build       # Test one build before launching other jobs
   - build
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software

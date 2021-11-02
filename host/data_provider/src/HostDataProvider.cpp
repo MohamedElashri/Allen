@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "HostDataProvider.h"
 
+INSTANTIATE_ALGORITHM(host_data_provider::host_data_provider_t)
+
 void host_data_provider::host_data_provider_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,

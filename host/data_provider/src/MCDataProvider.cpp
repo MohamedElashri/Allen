@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MCDataProvider.h"
 
+INSTANTIATE_ALGORITHM(mc_data_provider::mc_data_provider_t)
+
 void mc_data_provider::mc_data_provider_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

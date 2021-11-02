@@ -4,7 +4,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "UTEventModel.cuh"
 
 namespace ut_pre_decode {

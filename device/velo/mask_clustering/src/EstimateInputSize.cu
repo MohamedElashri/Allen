@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <EstimateInputSize.cuh>
 
+INSTANTIATE_ALGORITHM(velo_estimate_input_size::velo_estimate_input_size_t)
+
 __device__ void estimate_raw_bank_size(
   unsigned* estimated_input_size,
   uint32_t* cluster_candidates,

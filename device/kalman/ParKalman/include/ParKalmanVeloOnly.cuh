@@ -13,7 +13,7 @@
 #include "AssociateConsolidated.cuh"
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "PackageKalman.cuh"
 #include "PV_Definitions.cuh"
 

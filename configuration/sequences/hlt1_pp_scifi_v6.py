@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.HLT1 import setup_hlt1_node
 from AllenConf.scifi_reconstruction import decode_scifi
-from AllenCore.event_list_utils import generate
+from AllenCore.generator import generate
 
 with decode_scifi.bind(raw_bank_version="v6"):
     hlt1_node = setup_hlt1_node()

@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "ConsolidateUT.cuh"
 
+INSTANTIATE_ALGORITHM(ut_consolidate_tracks::ut_consolidate_tracks_t)
+
 __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];

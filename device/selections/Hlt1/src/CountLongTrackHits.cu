@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "CountLongTrackHits.cuh"
 
+INSTANTIATE_ALGORITHM(count_long_track_hits::count_long_track_hits_t)
+
 void count_long_track_hits::count_long_track_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

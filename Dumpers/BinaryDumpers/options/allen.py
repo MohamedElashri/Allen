@@ -21,8 +21,8 @@ header_path = os.path.join(allen_dir, 'main', 'include', 'Allen.h')
 interpreter.Declare("#include <{}>".format(header_path))
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
-default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
-                                     'constants', 'hlt1_pp_default.json')
+sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
+                                'hlt1_pp_default')
 
 # Handle commandline arguments
 parser = argparse.ArgumentParser()
@@ -38,12 +38,11 @@ parser.add_argument("-n", dest="n_events", default="0")
 parser.add_argument("-o", dest="event_offset", default="0")
 parser.add_argument("-t", dest="threads", default="1")
 parser.add_argument("-r", dest="repetitions", default="1")
-parser.add_argument("-c", dest="check", default="1")
 parser.add_argument("-m", dest="reserve", default="1024")
 parser.add_argument("-v", dest="verbosity", default="3")
 parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
-parser.add_argument("--sequence", dest="sequence", default="hlt1_pp_default")
+parser.add_argument("--sequence", dest="sequence", default=sequence_default)
 parser.add_argument(
     "--mdf",
     dest="mdf",
@@ -61,8 +60,6 @@ parser.add_argument(
     "--disable-run-changes", dest="disable_run_changes", default="0")
 parser.add_argument(
     "--events-per-slice", dest="events_per_slice", default="1000")
-parser.add_argument(
-    "--configuration", dest="configuration", default=default_configuration)
 parser.add_argument("--device", dest="device", default="0")
 
 args = parser.parse_args()
@@ -99,24 +96,21 @@ for flag, value in (("g", args.det_folder), ("params", args.param_folder),
                     ("n", args.n_events), ("o",
                                            args.event_offset), ("t",
                                                                 args.threads),
-                    ("r",
-                     args.repetitions), ("configuration",
-                                         args.configuration), ("c",
-                                                               args.check),
-                    ("m", args.reserve), ("v",
-                                          args.verbosity), ("p",
-                                                            args.print_memory),
-                    ("i", args.import_fwd), ("sequence",
-                                             args.sequence), ("mdf", args.mdf),
-                    ("cpu-offload",
-                     args.cpu_offload), ("disable-run-changes",
-                                         args.disable_run_changes),
-                    ("monitoring-save-period",
-                     args.mon_save_period), ("monitoring-filename",
-                                             args.mon_filename),
-                    ("events-per-slice",
-                     args.events_per_slice), ("device",
-                                              args.device), ("mep", args.mep)):
+                    ("r", args.repetitions), ("m",
+                                              args.reserve), ("v",
+                                                              args.verbosity),
+                    ("p", args.print_memory), ("i", args.import_fwd),
+                    ("sequence",
+                     args.sequence), ("mdf", args.mdf), ("cpu-offload",
+                                                         args.cpu_offload),
+                    ("disable-run-changes",
+                     args.disable_run_changes), ("monitoring-save-period",
+                                                 args.mon_save_period),
+                    ("monitoring-filename",
+                     args.mon_filename), ("events-per-slice",
+                                          args.events_per_slice),
+                    ("device",
+                     args.device), ("mep", args.mep), ("run-from-json", "1")):
     options[flag] = value
 
 con = gbl.std.string("")

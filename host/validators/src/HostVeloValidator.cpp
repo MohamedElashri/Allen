@@ -4,6 +4,8 @@
 #include "HostVeloValidator.h"
 #include "PrepareTracks.h"
 
+INSTANTIATE_ALGORITHM(host_velo_validator::host_velo_validator_t)
+
 void host_velo_validator::host_velo_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,

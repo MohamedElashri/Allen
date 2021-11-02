@@ -42,27 +42,34 @@ class ParsedAlgorithm():
 
 
 class Property():
-    def __init__(self, typename, typedef, name, description):
+    def __init__(self, typename, typedef, name, description, default_value, scope = "algorithm"):
         self.typename = typename
         self.typedef = typedef
         self.name = name
         self.description = description
+        self.default_value = default_value
+        self.scope = scope
 
 
 class Parameter():
-    def __init__(self, typename, datatype, is_input, typedef, aggregate, optional):
+    def __init__(self, typename, datatype, is_input, typedef, aggregate, optional, dependencies):
         self.typename = typename
         self.typedef = typedef
         self.aggregate = aggregate
         self.optional = optional
-        if datatype == "host_datatype" and is_input:
-            self.kind = "HostInput"
-        elif datatype == "host_datatype" and not is_input:
-            self.kind = "HostOutput"
-        elif datatype == "device_datatype" and is_input:
-            self.kind = "DeviceInput"
-        elif datatype == "device_datatype" and not is_input:
-            self.kind = "DeviceOutput"
+        self.dependencies = dependencies
+        if datatype == "host_datatype":
+            self.scope = "host"
+            if is_input:
+                self.kind = "HostInput"
+            else:
+                self.kind = "HostOutput"
+        elif datatype == "device_datatype":
+            self.scope = "device"
+            if is_input:
+                self.kind = "DeviceInput"
+            else:
+                self.kind = "DeviceOutput"
         else:
             raise
 
@@ -71,7 +78,7 @@ class Parameter():
 def make_default_algorithm_properties():
     return [
         Property("verbosity_t", "int", "\"verbosity\"",
-                 "\"verbosity of algorithm\"")
+                 "\"verbosity of algorithm\"", 3, "baseclass")
     ]
 
 
@@ -131,9 +138,9 @@ class AlgorithmTraversal():
 
     # Arguments to pass to compiler, as function of file extension.
     __compile_flags = {
-        "cuh": ["-x", "cuda", "-std=c++17", "-nostdinc++"],
-        "hpp": ["-std=c++17"],
-        "h": ["-std=c++17"]
+        "cuh": ["-x", "c++", "-std=c++17", "-nostdinc++"],
+        "hpp": ["-std=c++17", "-nostdinc++"],
+        "h": ["-std=c++17", "-nostdinc++"]
     }
 
     # Clang index
@@ -191,6 +198,7 @@ class AlgorithmTraversal():
             typedef = None
             aggregate = False
             optional = False
+            dependencies = []
             for child in c.get_children():
                 if child.kind == cindex.CursorKind.CXX_BASE_SPECIFIER and child.type.spelling in AlgorithmTraversal.__parameter_io_datatypes:
                     kind = child.type.spelling
@@ -200,14 +208,15 @@ class AlgorithmTraversal():
                     optional = True
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
-                    # child.type.spelling is like "void (unsigned) const", or "void (unsigned)"
                     typedef = [a.type.spelling
                                for a in child.get_children()][0]
-            if typedef == "" or typedef == "int" or aggregate: # TODO: Change this aggregate ugliness to something else
+                    for i in range(child.result_type.get_num_template_arguments()):
+                        dependencies.append(child.result_type.get_template_argument_type(i).spelling)
+            if typedef == "" or typedef == "int" or aggregate:
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
             if kind and typedef and io != None:
-                return ("Parameter", typename, kind, io, typedef, aggregate, optional)
+                return ("Parameter", typename, kind, io, typedef, aggregate, optional, dependencies)
         elif is_property:
             # - There is a function (property) which captures:
             #   * f.type.spelling: The type (restricted to POD types)
@@ -217,13 +226,16 @@ class AlgorithmTraversal():
                     typedef = [a.type.spelling
                                for a in child.get_children()][0]
             if typedef == "" or typedef == "int":
-                typedef = "unknown_t"
+                # If the type is empty or int, it is not to be trusted and instead the tag is employed here
+                typedef = AlgorithmTraversal.__properties[typename]["property_type"]
             # Unfortunately, for properties we need to rely on tokens found in the
             # namespace to get the literals.
             name = AlgorithmTraversal.__properties[typename]["name"]
             description = AlgorithmTraversal.__properties[typename][
                 "description"]
-            return ("Property", typename, typedef, name, description)
+            default_value = AlgorithmTraversal.__properties[typename][
+                "default_value"]
+            return ("Property", typename, typedef, name, description, default_value)
         return None
 
     @staticmethod
@@ -295,12 +307,24 @@ class AlgorithmTraversal():
                             typename = ts[last_found + 2]
                             name = ts[last_found + 4]
                             description = ts[last_found + 6]
+                            closing_parenthesis = ts.index(")", last_found + 8)
+                            property_type = "".join(ts[last_found + 8:closing_parenthesis])
                             AlgorithmTraversal.__properties[typename] = {
                                 "name": name,
-                                "description": description
+                                "description": description,
+                                "property_type": property_type
                             }
                         except ValueError:
-                            break
+                            # Traverse the "Property"s to find out the default values
+                            try:
+                                last_found = ts.index("Property", last_found + 1)
+                                typename = ts[last_found + 2]
+                                comma_position = ts.index(",", last_found)
+                                semicolon_position = ts.index(";", last_found)
+                                default_value = "".join(ts[comma_position+1:semicolon_position-1])
+                                AlgorithmTraversal.__properties[typename]["default_value"] = default_value
+                            except ValueError:
+                                break
                     return (c.kind, c.spelling,
                             AlgorithmTraversal.traverse_children(
                                 c, AlgorithmTraversal.algorithm))
@@ -317,6 +341,7 @@ class AlgorithmTraversal():
         try:
             clang_args = AlgorithmTraversal.__compile_flags[extension]
             clang_args.append("-I" + project_location + "/stream/gear/include")
+            clang_args.append("-I" + project_location + "/backend/include")
             tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
             if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
                 return make_parsed_algorithms(

@@ -4,6 +4,8 @@
 #include "SciFiCalculateClusterCountV6.cuh"
 #include <MEPTools.h>
 
+INSTANTIATE_ALGORITHM(scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_v6_t)
+
 template<bool mep_layout>
 __global__ void scifi_calculate_cluster_count_v6_kernel(
   scifi_calculate_cluster_count_v6::Parameters parameters,

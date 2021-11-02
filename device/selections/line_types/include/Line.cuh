@@ -17,7 +17,8 @@
     const RuntimeOptions&,                          \
     const Constants&,                               \
     HostBuffers&,                                   \
-    const Allen::Context&) const;
+    const Allen::Context&) const;                   \
+  INSTANTIATE_ALGORITHM(LINE)
 
 // "Enum of types" to determine dispatch to global_function
 namespace LineIteration {
@@ -33,6 +34,9 @@ namespace LineIteration {
  *
  *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
  *  MASK_INPUT(dev_event_list_t) dev_event_list;
+ *  MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
+ *  HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
+ *  DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
  *  DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
  *  DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
  *  DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -100,9 +104,13 @@ public:
     set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
+    set_size<typename Parameters::dev_selected_events_t>(
+      arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
     set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
+    set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
+    set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
   }
 
   void operator()(
@@ -155,9 +163,15 @@ public:
 template<typename Derived, typename Parameters>
 __global__ void process_line(Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
 {
+  __shared__ int event_decision;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  // const unsigned event_number_plus_one = parameters.dev_event_list[blockIdx.x+1];
   const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
+
+  if (threadIdx.x == 0) {
+    event_decision = 0;
+  }
+
+  __syncthreads();
 
   // ODIN data
   const LHCb::ODIN odin {
@@ -172,6 +186,7 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
   const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
 
+  bool thread_local_event_decision = false;
   // Pre-scaler
   if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
     // Do selection
@@ -181,6 +196,7 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
       unsigned index = Derived::offset(parameters, event_number) + i;
       parameters.dev_decisions[index] = sel;
       Derived::monitor(parameters, input, index, sel);
+      thread_local_event_decision |= sel;
     }
   }
 
@@ -189,6 +205,17 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
       parameters.dev_decisions_offsets[i] = Derived::offset(parameters, i);
     }
+  }
+
+  // Note: This could be done more efficiently with warp intrinsics
+  atomicOr(&event_decision, thread_local_event_decision);
+
+  // Synchronize the event_decision
+  __syncthreads();
+
+  if (threadIdx.x == 0 && event_decision) {
+    const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
+    parameters.dev_selected_events[index] = mask_t {event_number};
   }
 }
 
@@ -219,12 +246,17 @@ __global__ void process_line_iterate_events(
     const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
     const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
 
+    bool decision = false;
     if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
       auto input = Derived::get_input(parameters, event_number);
-      bool decision = Derived::select(parameters, input);
+      decision = Derived::select(parameters, input);
       parameters.dev_decisions[event_number] = decision;
-
       Derived::monitor(parameters, input, event_number, decision);
+    }
+
+    if (decision) {
+      const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
+      parameters.dev_selected_events[index] = mask_t {event_number};
     }
   }
 
@@ -280,6 +312,7 @@ void Line<Derived, Parameters>::operator()(
 {
   initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
+  initialize<typename Parameters::dev_selected_events_size_t>(arguments, 0, context);
 
   // Populate container with tag.
   data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);
@@ -297,6 +330,11 @@ void Line<Derived, Parameters>::operator()(
   // Dispatch the executing global function.
   LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
     arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
+
+  Allen::copy<typename Parameters::host_selected_events_size_t, typename Parameters::dev_selected_events_size_t>(
+    arguments, context);
+  reduce_size<typename Parameters::dev_selected_events_t>(
+    arguments, first<typename Parameters::host_selected_events_size_t>(arguments));
 
   derived_instance->output_monitor(arguments, runtime_options, context);
 }

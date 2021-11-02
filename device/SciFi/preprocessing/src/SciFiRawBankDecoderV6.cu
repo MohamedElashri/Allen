@@ -5,6 +5,8 @@
 #include <MEPTools.h>
 #include "assert.h"
 
+INSTANTIATE_ALGORITHM(scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t)
+
 // Merge of PrStoreFTHit and RawBankDecoder.
 __device__ void make_cluster_v6(
   const int hit_index,

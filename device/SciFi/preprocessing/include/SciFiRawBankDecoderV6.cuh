@@ -5,7 +5,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace scifi_raw_bank_decoder_v6 {
   struct Parameters {

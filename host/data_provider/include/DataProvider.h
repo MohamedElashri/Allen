@@ -4,9 +4,8 @@
 #pragma once
 
 #include "Common.h"
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "InputProvider.h"
-#include <gsl/gsl>
 
 namespace data_provider {
   struct Parameters {

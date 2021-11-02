@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "ValidationAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace host_pv_validator {
   struct Parameters {

@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "pv_beamline_multi_fitter.cuh"
 
+INSTANTIATE_ALGORITHM(pv_beamline_multi_fitter::pv_beamline_multi_fitter_t)
+
 void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

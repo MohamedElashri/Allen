@@ -99,8 +99,10 @@ namespace Allen {
   namespace device {
     template<class T>
     struct span {
-      T* __ptr;
-      size_t __size;
+      T* __ptr = nullptr;
+      size_t __size = 0;
+
+      constexpr span() = default;
 
       constexpr __device__ __host__ span(T* ptr, size_t size) : __ptr(ptr), __size(size) {}
 
@@ -115,16 +117,12 @@ namespace Allen {
 
       constexpr __device__ __host__ T* data() const { return __ptr; }
       constexpr __device__ __host__ size_t size() const { return __size; }
+      constexpr __device__ __host__ size_t size_bytes() const { return __size * sizeof(T); }
       constexpr __device__ __host__ T& operator[](int i) { return __ptr[i]; }
       constexpr __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
     };
   } // namespace device
 } // namespace Allen
-
-/**
- * @brief Macro to avoid warnings on Release builds with variables used by asserts.
- */
-#define _unused(x) ((void) (x))
 
 // Helper structure to deal with constness of T
 template<typename T, typename U>

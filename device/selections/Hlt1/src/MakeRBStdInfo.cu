@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MakeRBStdInfo.cuh"
 
+INSTANTIATE_ALGORITHM(make_rb_stdinfo::make_rb_stdinfo_t)
+
 void make_rb_stdinfo::make_rb_stdinfo_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

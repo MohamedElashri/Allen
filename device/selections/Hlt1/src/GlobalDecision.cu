@@ -4,6 +4,8 @@
 #include "GlobalDecision.cuh"
 #include "HltDecReport.cuh"
 
+INSTANTIATE_ALGORITHM(global_decision::global_decision_t)
+
 void global_decision::global_decision_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -15,7 +17,7 @@ void global_decision::global_decision_t::set_arguments_size(
 
 void global_decision::global_decision_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
+  const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
@@ -26,7 +28,8 @@ void global_decision::global_decision_t::operator()(
 
   global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
 
-  assign_to_host_buffer<dev_global_decision_t>(host_buffers.host_passing_event_list, arguments, context);
+  if (runtime_options.fill_extra_host_buffers)
+    assign_to_host_buffer<dev_global_decision_t>(host_buffers.host_passing_event_list, arguments, context);
 }
 
 __global__ void global_decision::global_decision(global_decision::Parameters parameters)

@@ -4,6 +4,8 @@
 #include "IsMuon.cuh"
 #include "SystemOfUnits.h"
 
+INSTANTIATE_ALGORITHM(is_muon::is_muon_t)
+
 void is_muon::is_muon_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

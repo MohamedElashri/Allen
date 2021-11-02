@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "FilterMFTracks.cuh"
 
+INSTANTIATE_ALGORITHM(FilterMFTracks::filter_mf_tracks_t)
+
 void FilterMFTracks::filter_mf_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

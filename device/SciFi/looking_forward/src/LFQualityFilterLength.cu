@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "LFQualityFilterLength.cuh"
 
+INSTANTIATE_ALGORITHM(lf_quality_filter_length::lf_quality_filter_length_t)
+
 void lf_quality_filter_length::lf_quality_filter_length_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

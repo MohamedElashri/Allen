@@ -4,6 +4,8 @@
 #include "HostPVValidator.h"
 #include "PrimaryVertexChecker.h"
 
+INSTANTIATE_ALGORITHM(host_pv_validator::host_pv_validator_t)
+
 void host_pv_validator::host_pv_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,

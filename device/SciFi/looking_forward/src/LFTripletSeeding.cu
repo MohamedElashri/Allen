@@ -6,6 +6,8 @@
 #include "LookingForwardTools.cuh"
 #include "BinarySearch.cuh"
 
+INSTANTIATE_ALGORITHM(lf_triplet_seeding::lf_triplet_seeding_t)
+
 void lf_triplet_seeding::lf_triplet_seeding_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

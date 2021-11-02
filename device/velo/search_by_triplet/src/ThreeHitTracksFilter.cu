@@ -4,6 +4,8 @@
 #include "ThreeHitTracksFilter.cuh"
 #include "VeloTools.cuh"
 
+INSTANTIATE_ALGORITHM(velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t)
+
 void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

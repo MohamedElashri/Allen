@@ -66,10 +66,9 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # --------------------
 
 # Sequences to build, SEQUENCE argument overrides SEQUENCES for now
-set(SEQUENCES "hlt1_pp_default" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
-if (DEFINED SEQUENCE)
-  message(STATUS "The SEQUENCE argument is deprecated, please use SEQUENCES instead")
-  set(SEQUENCES "${SEQUENCE}")
+set(SEQUENCES "" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
+if(NOT STANDALONE)
+  set(SEQUENCES "hlt1_pp_default")
 endif()
 
 # Configured CPU architecture
@@ -204,24 +203,16 @@ macro(allen_project)
 #the host compiler
       set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     endif()
-
-    find_package(cppgsl REQUIRED)
   else()
     project(Allen C CXX)
     if (BUILD_TESTS)
       enable_testing()
     endif()
-
-    find_package(cppgsl QUIET)
-    if (cppgsl_FOUND)
-      message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIR})
-    else()
-      set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
-      message(STATUS "Using internal gsl-lite")
-    endif()
   endif()
+
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
+  find_package(cppgsl REQUIRED)
 endmacro()
 
 # Detect CUDA architecture
@@ -319,6 +310,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     add_library(${ARGV})
 
     install(TARGETS ${ARGV0} LIBRARY DESTINATION lib OPTIONAL)
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
   endfunction()
 
@@ -498,7 +490,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments -fbracket-depth=512")
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments")
 endif()
 
 if(STANDALONE)
@@ -612,10 +604,6 @@ foreach(sequence_filename ${available_sequences})
   endif()
 endforeach()
 
-if(NOT BUILD_SEQUENCES)
-  message(FATAL_ERROR "No sequences selected to be built with pattern ${SEQUENCES}.")
-endif()
-
 include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
 include_directories(checker/tracking/include)
 include_directories(device/PV/beamlinePV/include)
@@ -633,7 +621,6 @@ add_subdirectory(host)
 add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
-add_subdirectory(configuration)
 
 add_subdirectory(stream)
 
@@ -697,7 +684,7 @@ file(GLOB common_sources "main/src/*.cpp")
 set(allen_lib_sources)
 
 #Remove main.cpp from common_sources
-foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend StreamLoader RegisterConsumers)
+foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend RegisterConsumers Stream)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -756,7 +743,7 @@ if (TARGET_DEVICE STREQUAL "CUDA")
 endif()
 
 target_link_libraries(AllenLib PUBLIC
-  StreamUtils
+  Stream
   AllenCommon
   TrackChecking
   PVChecking

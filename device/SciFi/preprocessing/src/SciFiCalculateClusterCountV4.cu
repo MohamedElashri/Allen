@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <SciFiCalculateClusterCountV4.cuh>
 
+INSTANTIATE_ALGORITHM(scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_v4_t)
+
 /**
  * @brief This function calculates the amount of clusters in all mats.
  * @details More details about the SciFi format:

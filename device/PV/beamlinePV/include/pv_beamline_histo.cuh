@@ -11,7 +11,7 @@
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "patPV_Definitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "FloatOperations.cuh"
 
 namespace pv_beamline_histo {

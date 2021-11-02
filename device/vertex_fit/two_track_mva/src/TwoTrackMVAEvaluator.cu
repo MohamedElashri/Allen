@@ -11,6 +11,8 @@
 #include "TwoTrackMVAEvaluator.cuh"
 #include <cmath>
 
+INSTANTIATE_ALGORITHM(two_track_mva_evaluator::two_track_mva_evaluator_t)
+
 namespace {
   __device__ void groupsort2(float* x, int x_size)
   {

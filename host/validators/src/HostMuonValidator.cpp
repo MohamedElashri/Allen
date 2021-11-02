@@ -5,6 +5,8 @@
 #include "PrepareTracks.h"
 #include <ROOTHeaders.h>
 
+INSTANTIATE_ALGORITHM(host_muon_validator::host_muon_validator_t)
+
 void host_muon_validator::host_muon_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,

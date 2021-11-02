@@ -4,7 +4,7 @@
 #pragma once
 
 #include "VertexDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace consolidate_svs {
   struct Parameters {

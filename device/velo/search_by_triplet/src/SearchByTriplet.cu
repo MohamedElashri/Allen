@@ -10,6 +10,8 @@
 #include <array>
 #include <algorithm>
 
+INSTANTIATE_ALGORITHM(velo_search_by_triplet::velo_search_by_triplet_t)
+
 using namespace Velo::Tracking;
 using namespace Allen::device;
 

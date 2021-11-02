@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "SAXPY_example.cuh"
 
+INSTANTIATE_ALGORITHM(saxpy::saxpy_t)
+
 void saxpy::saxpy_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

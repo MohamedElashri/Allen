@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "ConsolidateSVs.cuh"
 
+INSTANTIATE_ALGORITHM(consolidate_svs::consolidate_svs_t)
+
 void consolidate_svs::consolidate_svs_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MuonAddCoordsCrossingMaps.cuh"
 
+INSTANTIATE_ALGORITHM(muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t)
+
 void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

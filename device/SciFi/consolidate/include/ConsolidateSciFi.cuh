@@ -8,7 +8,7 @@
 #include "SciFiDefinitions.cuh"
 #include "UTConsolidated.cuh"
 #include "States.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "LookingForwardConstants.cuh"
 
 namespace scifi_consolidate_tracks {

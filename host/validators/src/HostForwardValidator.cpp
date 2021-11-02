@@ -4,6 +4,8 @@
 #include "HostForwardValidator.h"
 #include "PrepareTracks.h"
 
+INSTANTIATE_ALGORITHM(host_forward_validator::host_forward_validator_t)
+
 void host_forward_validator::host_forward_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,

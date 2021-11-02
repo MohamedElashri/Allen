@@ -7,7 +7,7 @@
 #include "VeloConsolidated.cuh"
 #include "States.cuh"
 #include "Common.h"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include <cstdint>
 
 namespace velo_consolidate_tracks {
@@ -29,39 +29,40 @@ namespace velo_consolidate_tracks {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_OUTPUT(
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_hits_view_t,
-      Allen::Views::Velo::Consolidated::Hits,
-      dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t)
+      DEPENDENCIES(dev_velo_track_hits_t, dev_offsets_all_velo_tracks_t, dev_offsets_velo_track_hit_number_t),
+      Allen::Views::Velo::Consolidated::Hits)
     dev_velo_hits_view;
-    DEVICE_OUTPUT(
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_track_view_t,
-      Allen::Views::Velo::Consolidated::Track,
-      dev_velo_hits_view_t,
-      dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t)
+      DEPENDENCIES(
+        dev_velo_hits_view_t,
+        dev_velo_track_hits_t,
+        dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t),
+      Allen::Views::Velo::Consolidated::Track)
     dev_velo_track_view;
-    DEVICE_OUTPUT(
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_tracks_view_t,
-      Allen::Views::Velo::Consolidated::Tracks,
-      dev_velo_hits_view_t,
-      dev_velo_track_view_t,
-      dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t)
+      DEPENDENCIES(
+        dev_velo_hits_view_t,
+        dev_velo_track_view_t,
+        dev_velo_track_hits_t,
+        dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t),
+      Allen::Views::Velo::Consolidated::Tracks)
     dev_velo_tracks_view;
-    DEVICE_OUTPUT(
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_multi_event_tracks_view_t,
-      Allen::Views::Velo::Consolidated::MultiEventTracks,
-      dev_velo_hits_view_t,
-      dev_velo_track_view_t,
-      dev_velo_tracks_view_t,
-      dev_velo_track_hits_t,
-      dev_offsets_all_velo_tracks_t,
-      dev_offsets_velo_track_hit_number_t)
+      DEPENDENCIES(
+        dev_velo_hits_view_t,
+        dev_velo_track_view_t,
+        dev_velo_tracks_view_t,
+        dev_velo_track_hits_t,
+        dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t),
+      Allen::Views::Velo::Consolidated::MultiEventTracks)
     dev_velo_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

@@ -4,9 +4,9 @@
 #pragma once
 
 #include "Common.h"
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "InputProvider.h"
-#include <gsl/gsl>
+#include <gsl/span>
 
 namespace host_data_provider {
   struct Parameters {

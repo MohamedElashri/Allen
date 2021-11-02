@@ -4,6 +4,8 @@
 #include "CalcRBSubstrSize.cuh"
 #include "HltDecReport.cuh"
 
+INSTANTIATE_ALGORITHM(calc_rb_substr_size::calc_rb_substr_size_t)
+
 void calc_rb_substr_size::calc_rb_substr_size_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -71,10 +73,9 @@ __global__ void calc_rb_substr_size::calc_size(calc_rb_substr_size::Parameters p
 
     // Get the size of the ObjTyp bank. The ObjTyp bank has 1 word defining the
     // bank structure and 1 word for each object type stored.
-    parameters.dev_objtyp_bank_size[event_number] =
-      1 + (parameters.dev_sel_count[event_number] > 0) +
-      (parameters.dev_sel_track_count[event_number] > 0) +
-      (parameters.dev_sel_sv_count[event_number] > 0);
+    parameters.dev_objtyp_bank_size[event_number] = 1 + (parameters.dev_sel_count[event_number] > 0) +
+                                                    (parameters.dev_sel_track_count[event_number] > 0) +
+                                                    (parameters.dev_sel_sv_count[event_number] > 0);
 
     // Convert from number of shorts to number of words. Add 2 shorts for bank size info.
     if (parameters.dev_substr_bank_size[event_number] > 0) {

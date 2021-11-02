@@ -6,6 +6,8 @@
 #include "BinarySearch.cuh"
 #include <tuple>
 
+INSTANTIATE_ALGORITHM(ut_search_windows::ut_search_windows_t)
+
 void ut_search_windows::ut_search_windows_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

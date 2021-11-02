@@ -4,7 +4,7 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "HostAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "GenericContainerContracts.h"
 
 namespace host_prefix_sum {

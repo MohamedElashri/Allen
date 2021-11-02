@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "ParKalmanVeloOnly.cuh"
 
+INSTANTIATE_ALGORITHM(kalman_velo_only::kalman_velo_only_t)
+
 void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -16,7 +18,7 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
 
 void kalman_velo_only::kalman_velo_only_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
+  const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
@@ -27,7 +29,9 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
+  if (runtime_options.fill_extra_host_buffers) {
+    assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
+  }
 }
 
 __device__ void simplified_step(

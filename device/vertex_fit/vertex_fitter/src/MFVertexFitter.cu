@@ -6,6 +6,8 @@
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
 
+INSTANTIATE_ALGORITHM(MFVertexFit::fit_mf_vertices_t)
+
 void MFVertexFit::fit_mf_vertices_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

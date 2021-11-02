@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MakeHitsContainer.cuh"
 
+INSTANTIATE_ALGORITHM(make_hits_container::make_hits_container_t)
+
 void make_hits_container::make_hits_container_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

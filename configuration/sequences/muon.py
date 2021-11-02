@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.utils import gec
 from AllenConf.muon_reconstruction import muon_id
-from AllenCore.event_list_utils import generate
+from AllenCore.generator import generate
 from PyConf.control_flow import NodeLogic, CompositeNode
 
 muon_id_sequence = CompositeNode(

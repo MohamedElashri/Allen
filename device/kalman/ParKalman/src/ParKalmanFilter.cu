@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "ParKalmanFilter.cuh"
 
+INSTANTIATE_ALGORITHM(kalman_filter::kalman_filter_t)
+
 void kalman_filter::kalman_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

@@ -4,6 +4,8 @@
 #include <MEPTools.h>
 #include <MuonPopulateTileAndTDC.cuh>
 
+INSTANTIATE_ALGORITHM(muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t)
+
 __device__ void decode_muon_bank(
   Muon::MuonRawToHits const* muon_raw_to_hits,
   int const batch_index,

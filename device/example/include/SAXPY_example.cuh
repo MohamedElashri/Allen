@@ -4,7 +4,7 @@
 #pragma once
 
 #include "VeloConsolidated.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace saxpy {
   struct Parameters {

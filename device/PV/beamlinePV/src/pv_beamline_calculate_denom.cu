@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "pv_beamline_calculate_denom.cuh"
 
+INSTANTIATE_ALGORITHM(pv_beamline_calculate_denom::pv_beamline_calculate_denom_t)
+
 void pv_beamline_calculate_denom::pv_beamline_calculate_denom_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

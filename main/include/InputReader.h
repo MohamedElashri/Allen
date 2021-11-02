@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <gsl/gsl>
 #include "nlohmann/json.hpp"
+#include <Configuration.cuh>
 
 struct Reader {
   std::string folder_name;
@@ -160,11 +161,13 @@ struct ConfigurationReader {
     return (m_params.count(key) > 0 ? m_params.at(key) : std::map<std::string, std::string>());
   }
   std::map<std::string, std::map<std::string, std::string>> params() const { return m_params; }
+  ConfiguredSequence configured_sequence() const { return m_configured_sequence; }
 
   void save(std::string file_name);
 
 private:
   std::map<std::string, std::map<std::string, std::string>> m_params;
+  ConfiguredSequence m_configured_sequence;
 };
 
 #endif

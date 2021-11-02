@@ -7,7 +7,7 @@
 #include "VeloEventModel.cuh"
 #include "States.cuh"
 #include "Common.h"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
 #include "patPV_Definitions.cuh"
 
@@ -159,17 +159,15 @@ namespace velo_kalman_filter {
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
     DEVICE_OUTPUT(dev_velo_kalman_endvelo_states_t, char) dev_velo_kalman_endvelo_states;
-    DEVICE_OUTPUT(
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_kalman_beamline_states_view_t,
-      Allen::Views::Velo::Consolidated::States,
-      dev_velo_kalman_beamline_states_t,
-      dev_offsets_all_velo_tracks_t)
+      DEPENDENCIES(dev_velo_kalman_beamline_states_t, dev_offsets_all_velo_tracks_t),
+      Allen::Views::Velo::Consolidated::States)
     dev_velo_kalman_beamline_states_view;
-    DEVICE_OUTPUT(
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_kalman_endvelo_states_view_t,
-      Allen::Views::Velo::Consolidated::States,
-      dev_velo_kalman_endvelo_states_t,
-      dev_offsets_all_velo_tracks_t)
+      DEPENDENCIES(dev_velo_kalman_endvelo_states_t, dev_offsets_all_velo_tracks_t),
+      Allen::Views::Velo::Consolidated::States)
     dev_velo_kalman_endvelo_states_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

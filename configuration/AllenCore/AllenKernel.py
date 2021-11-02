@@ -2,6 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from collections import OrderedDict
+from PyConf.dataflow import GaudiDataHandle
 
 
 class AllenAlgorithm(object):
@@ -21,3 +22,10 @@ class AllenAlgorithm(object):
     @classmethod
     def getDefaultProperties(cls):
         return cls.__slots__
+
+
+class AllenDataHandle(GaudiDataHandle):
+    def __init__(self, scope, dependencies, *args, **kwargs):
+        super(AllenDataHandle, self).__init__(*args, **kwargs)
+        self.Scope = scope
+        self.Dependencies = dependencies

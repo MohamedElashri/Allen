@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "FitSeeds.cuh"
 
+INSTANTIATE_ALGORITHM(fit_seeds::pv_fit_seeds_t)
+
 static constexpr unsigned fit_seeds_max_velo_tracks_constant = 2048;
 
 void fit_seeds::pv_fit_seeds_t::set_arguments_size(

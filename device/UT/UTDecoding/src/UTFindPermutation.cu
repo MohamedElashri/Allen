@@ -5,6 +5,8 @@
 #include "FindPermutation.cuh"
 #include <cstdio>
 
+INSTANTIATE_ALGORITHM(ut_find_permutation::ut_find_permutation_t)
+
 void ut_find_permutation::ut_find_permutation_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

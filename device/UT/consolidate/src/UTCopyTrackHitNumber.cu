@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "UTCopyTrackHitNumber.cuh"
 
+INSTANTIATE_ALGORITHM(ut_copy_track_hit_number::ut_copy_track_hit_number_t)
+
 void ut_copy_track_hit_number::ut_copy_track_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

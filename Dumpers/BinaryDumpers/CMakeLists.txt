@@ -21,8 +21,7 @@ gaudi_depends_on_subdirs(Det/FTDet
 
 find_package(Boost REQUIRED)
 find_package(Rangev3 REQUIRED)
-find_package(ROOT COMPONENTS Core)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${ROOT_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS})
 
 gaudi_install_headers(Dumpers)
 

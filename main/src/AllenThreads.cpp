@@ -15,7 +15,7 @@
 #include <ROOTService.h>
 #include <MCRaw.h>
 #include <InputProvider.h>
-#include <IStream.h>
+#include <Stream.h>
 #include <Tools.h>
 
 namespace {
@@ -207,8 +207,8 @@ void run_stream(
   size_t const thread_id,
   size_t const stream_id,
   int device_id,
-  Allen::IStream* stream,
-  IInputProvider const* input_provider,
+  Stream* stream,
+  std::shared_ptr<IInputProvider> input_provider,
   IZeroMQSvc* zmqSvc,
   CheckerInvoker* checker_invoker,
   ROOTService* root_service,

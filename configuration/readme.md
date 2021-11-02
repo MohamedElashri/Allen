@@ -82,7 +82,7 @@ from AllenConf.algorithms import saxpy_t
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
 from AllenConf.utils import initialize_number_of_events
 from PyConf.control_flow import CompositeNode
-from AllenCore.event_list_utils import generate, make_algorithm
+from AllenCore.generator import generate, make_algorithm
 
 number_of_events = initialize_number_of_events()
 decoded_velo = decode_velo()
@@ -137,7 +137,7 @@ from AllenConf.algorithms import saxpy_t
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
 from AllenConf.utils import initialize_number_of_events
 from PyConf.control_flow import CompositeNode
-from AllenCore.event_list_utils import generate, make_algorithm
+from AllenCore.generator import generate, make_algorithm
 
 number_of_events = initialize_number_of_events()
 decoded_velo = decode_velo()
@@ -187,7 +187,7 @@ Generated sequence represented as algorithms with execution masks:
   host_prefix_sum_t/prefix_sum_offsets_velo_track_hit_number
   saxpy_t/saxpy
 Generating sequence files...
-Generated sequence files Sequence.h and Sequence.json
+Generated sequence files Sequence.h, ConfiguredInputAggregates.h and Sequence.json
 ```
 
 To find out how to write a trigger line in Allen and how to add it to the sequence, follow the instructions [here](../selections.md).

@@ -7,7 +7,7 @@
 #include "UTDefinitions.cuh"
 #include "VeloDefinitions.cuh"
 #include "CompassUTDefinitions.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "UTEventModel.cuh"
 
 //=========================================================================

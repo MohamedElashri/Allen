@@ -12,7 +12,7 @@ from AllenConf.validators import (
     pv_validation, rate_validation, kalman_validation)
 
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenCore.event_list_utils import generate
+from AllenCore.generator import generate
 
 # Reconstructed objects
 with make_ut_tracks.bind(restricted=False):

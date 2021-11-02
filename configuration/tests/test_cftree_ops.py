@@ -2,6 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 
+# import pytest
 from collections import OrderedDict
 from functools import lru_cache
 from PyConf.components import Algorithm

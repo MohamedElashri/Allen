@@ -6,7 +6,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "LookingForwardTools.cuh"

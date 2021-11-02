@@ -5,7 +5,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 
 namespace scifi_calculate_cluster_count_v4 {
   struct Parameters {

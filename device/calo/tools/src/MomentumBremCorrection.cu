@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MomentumBremCorrection.cuh"
 
+INSTANTIATE_ALGORITHM(momentum_brem_correction::momentum_brem_correction_t)
+
 void momentum_brem_correction::momentum_brem_correction_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

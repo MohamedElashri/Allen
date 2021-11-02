@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "VeloKalmanFilter.cuh"
 
+INSTANTIATE_ALGORITHM(velo_kalman_filter::velo_kalman_filter_t)
+
 void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

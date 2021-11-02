@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #include "MakeRBObjTyp.cuh"
 
+INSTANTIATE_ALGORITHM(make_rb_objtyp::make_rb_objtyp_t)
+
 void make_rb_objtyp::make_rb_objtyp_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -27,7 +29,7 @@ void make_rb_objtyp::make_rb_objtyp_t::operator()(
 
 __global__ void make_rb_objtyp::make_objtyp_bank(make_rb_objtyp::Parameters parameters, const unsigned number_of_events)
 {
-  
+
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
 

@@ -10,6 +10,8 @@
 \*****************************************************************************/
 #include "EventListIntersection.cuh"
 
+INSTANTIATE_ALGORITHM(event_list_intersection::event_list_intersection_t)
+
 void event_list_intersection::event_list_intersection_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,

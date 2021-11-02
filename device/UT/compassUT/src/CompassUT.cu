@@ -6,6 +6,8 @@
 #include "BinarySearch.cuh"
 #include "UTFastFitter.cuh"
 
+INSTANTIATE_ALGORITHM(compass_ut::compass_ut_t)
+
 void compass_ut::compass_ut_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
