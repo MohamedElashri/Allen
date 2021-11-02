@@ -18,18 +18,7 @@ namespace scifi_raw_bank_decoder_v4 {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    PROPERTY(
-      raw_bank_decoder_block_dim_t,
-      "raw_bank_decoder_block_dim",
-      "block dimensions of raw bank decoder kernel",
-      DeviceDimensions)
-    raw_bank_decoder_block_dim;
-    PROPERTY(
-      direct_decoder_block_dim_t,
-      "direct_decoder_block_dim",
-      "block dimensions of direct decoder",
-      DeviceDimensions)
-    direct_decoder_block_dim;
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct scifi_raw_bank_decoder_v4_t : public DeviceAlgorithm, Parameters {
@@ -47,7 +36,6 @@ namespace scifi_raw_bank_decoder_v4 {
       const Allen::Context& context) const;
 
   private:
-    Property<raw_bank_decoder_block_dim_t> m_raw_bank_decoder_block_dim {this, {{256, 1, 1}}};
-    Property<direct_decoder_block_dim_t> m_direct_decoder_block_dim {this, {{2, 16, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace scifi_raw_bank_decoder_v4
