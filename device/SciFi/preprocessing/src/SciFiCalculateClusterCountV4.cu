@@ -10,6 +10,7 @@
  *          https://cds.cern.ch/record/2630154/files/LHCb-INT-2018-024.pdf
  *
  * Kernel for decoding from MEP layout
+ * Original v4 code was modified to use v6 approach
  */
 template<bool mep_layout>
 __global__ void scifi_calculate_cluster_count_v4_kernel(
@@ -23,25 +24,11 @@ __global__ void scifi_calculate_cluster_count_v4_kernel(
   const SciFi::SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
-  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
+  // NO version checking of the decoding - to be improved later
+  for (unsigned i = threadIdx.x; i < scifi_raw_event.number_of_raw_banks(); i += blockDim.x) {
     const unsigned current_raw_bank = SciFi::getRawBankIndexOrderedByX(i);
+    uint32_t* hits_module;
     const auto rawbank = scifi_raw_event.raw_bank(current_raw_bank);
-    uint16_t* it = rawbank.data + 2;
-    uint16_t* last = rawbank.last;
-
-    if (*(last - 1) == 0) --last; // Remove padding at the end
-    const unsigned number_of_clusters = last - it;
-
-    if (last > it) {
-      hit_count.set_mat_offsets(i, number_of_clusters);
-    }
-  }
-
-  const unsigned mats_difference = 3 * SciFi::Constants::n_consecutive_raw_banks;
-  for (unsigned i = SciFi::Constants::n_consecutive_raw_banks + threadIdx.x; i < scifi_raw_event.number_of_raw_banks();
-       i += blockDim.x) {
-    uint32_t* hits_mat;
-    const auto rawbank = scifi_raw_event.raw_bank(i);
     uint16_t* it = rawbank.data + 2;
     uint16_t* last = rawbank.last;
 
@@ -50,8 +37,18 @@ __global__ void scifi_calculate_cluster_count_v4_kernel(
     for (; it < last; ++it) {     // loop over the clusters
       uint16_t c = *it;
       uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
-      hits_mat = hit_count.mat_offsets_p(SciFi::SciFiChannelID(ch).correctedUniqueMat() - mats_difference);
-      atomicAdd(hits_mat, 1);
+
+      const auto chid = SciFi::SciFiChannelID(ch);
+      const uint32_t uniqueMat = chid.correctedUniqueMat();
+      unsigned uniqueGroupOrMat;
+      if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
+        uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
+      else
+        uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
+
+      // v4 code does not use a special format for a large clusters, then can be added directly
+      hits_module = hit_count.mat_offsets_p(uniqueGroupOrMat);
+      atomicAdd(hits_module, 1);
     }
   }
 }

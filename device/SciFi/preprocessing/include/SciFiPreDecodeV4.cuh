@@ -14,7 +14,7 @@ namespace scifi_pre_decode_v4 {
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned) dev_scifi_raw_input_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_OUTPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
   };
 
