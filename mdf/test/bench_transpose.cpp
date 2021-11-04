@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
   // Transposed slices
   std::unordered_set<BankTypes> bank_types {
-    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+    BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
   auto size_fun = [buffer_size, n_events](BankTypes) -> std::tuple<size_t, size_t> { return {buffer_size, n_events}; };
   Allen::Slices slices = allocate_slices(n_slices, bank_types, size_fun);
 
