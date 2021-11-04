@@ -30,7 +30,7 @@ if (STANDALONE)
   set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
   foreach(odin_file ${odin_files})
     if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
-      file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/529de2de27556999faf632d491b18af0178afc98/Event/DAQEvent/${odin_file}"
+      file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/02cea26da21d546e9e4d22758f317d45b38e88ba/Event/DAQEvent/${odin_file}"
         "${PROJECT_BINARY_DIR}/imported_${odin_file}"
         STATUS ODIN_DOWNLOAD_STATUS)
       list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
