@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.HLT1 import setup_hlt1_node
 from AllenConf.velo_reconstruction import decode_velo
-from AllenCore.event_list_utils import generate
+from AllenCore.generator import generate
 
 with decode_velo.bind(retina_decoding="True"):
     hlt1_node = setup_hlt1_node(withMCChecking=True)
