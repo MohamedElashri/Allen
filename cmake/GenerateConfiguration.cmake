@@ -99,7 +99,7 @@ add_custom_target(algorithm_db DEPENDS "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h")
 add_custom_command(
   OUTPUT "${CODE_GENERATION_DIR}/StructToTuple.cuh"
   COMMAND
-    ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate struct_to_tuple --filename "${PROJECT_BINARY_DIR}/code_generation/StructToTuple.cuh" --prefix_project_folder "${CMAKE_SOURCE_DIR}"
+    ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python3_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate struct_to_tuple --filename "${CODE_GENERATION_DIR}/StructToTuple.cuh" --prefix_project_folder "${CMAKE_SOURCE_DIR}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 

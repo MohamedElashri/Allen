@@ -39,7 +39,7 @@ target_link_libraries(Stream
     Utils
     Selections)
 
-add_dependencies(Stream algorithm_db struct_to_tuple)
+add_dependencies(Stream algorithm_db)
 
 # In STANDALONE, the following dependencies will make runtime sequence generation work
 # even if SEQUENCES was empty.
