@@ -45,7 +45,7 @@ DECLARE_COMPONENT(AllenVeloToV2Tracks)
 void setFlagsAndPt(LHCb::Event::v2::Track& outtrack, float ptVelo)
 {
   outtrack.setType(LHCb::Event::v2::Track::Type::Velo); // CHECKME!!!
-  outtrack.setHistory(LHCb::Event::v2::Track::History::PatFastVelo);
+  outtrack.setHistory(LHCb::Event::v2::Track::History::PrPixel);
   outtrack.setPatRecStatus(LHCb::Event::v2::Track::PatRecStatus::PatRecIDs);
   const int firstRow = outtrack.lhcbIDs()[0].channelID();
   const int charge = (firstRow % 2 == 0 ? -1 : 1);

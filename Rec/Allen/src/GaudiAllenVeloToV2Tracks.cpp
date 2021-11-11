@@ -76,7 +76,7 @@ std::vector<LHCb::Event::v2::Track> GaudiAllenVeloToV2Tracks::operator()(
     newTrack.addToStates(closesttobeam_state);
 
     newTrack.setType(LHCb::Event::v2::Track::Type::Velo); // CHECKME!!!
-    newTrack.setHistory(LHCb::Event::v2::Track::History::PatFastVelo);
+    newTrack.setHistory(LHCb::Event::v2::Track::History::PrPixel);
     newTrack.setPatRecStatus(LHCb::Event::v2::Track::PatRecStatus::PatRecIDs);
     const int firstRow = newTrack.lhcbIDs()[0].channelID();
     const int charge = (firstRow % 2 == 0 ? -1 : 1);
