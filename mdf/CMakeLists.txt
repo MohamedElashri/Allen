@@ -4,9 +4,6 @@
 
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
-set_target_properties(LHCbEvent PROPERTIES PUBLIC_HEADER "include/write_mdf.hpp")
-install(TARGETS LHCbEvent EXPORT Allen
-        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
 
 include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
 
@@ -25,6 +22,9 @@ target_include_directories (mdf PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>)
 target_link_libraries(mdf PUBLIC LHCbEvent)
 
+set(lhcb_public_headers include/write_mdf.hpp daq40/sourceid.h)
+target_include_directories(LHCbEvent INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/daq40>)
+
 if (STANDALONE)
   # Make sure we have a local copy of ODIN.{h,cpp} if building in standalone mode
   set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
@@ -41,8 +41,8 @@ if (STANDALONE)
   endforeach()
   list(APPEND mdf_sources ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
   target_sources(mdf PRIVATE ${mdf_sources})
-  target_include_directories(LHCbEvent INTERFACE lhcb)
   target_include_directories(LHCbEvent INTERFACE
+    lhcb
     ${PROJECT_BINARY_DIR}/imported_include
     ${PROJECT_BINARY_DIR}/sequences/Gaudi/GaudiKernel/include)
   target_compile_definitions(LHCbEvent INTERFACE ODIN_WITHOUT_GAUDI)
@@ -50,6 +50,10 @@ else()
   target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
   target_link_libraries(LHCbEvent INTERFACE Gaudi::GaudiKernel LHCb::DAQEventLib)
 endif()
+
+set_property(TARGET LHCbEvent PROPERTY PUBLIC_HEADER ${lhcb_public_headers})
+install(TARGETS LHCbEvent EXPORT Allen
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
 
 target_link_libraries(
   mdf PRIVATE Gear Backend AllenCommon LHCbEvent)

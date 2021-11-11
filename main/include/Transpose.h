@@ -23,6 +23,7 @@
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
+#include <sourceid.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Event/RawBank.h>
@@ -30,7 +31,27 @@
 
 #include "TransposeTypes.h"
 
-//
+/**
+ * @brief      Get the (Allen) subdetector from the 5
+ *             most-significant bits of a source ID
+ *
+ * @param      raw bank
+ *
+ * @return     Allen subdetector
+ */
+BankTypes sd_from_sourceID(LHCb::RawBank const* raw_bank);
+
+/**
+ * @brief      Check if any of the soruce IDs have a non-zero value
+ *             in the 5 most-significant bits
+ *
+ * @param      span with banks in MDF layout
+ *
+ * @return     true if any of the sourceIDs has a non-zero value in
+ *             its 5 most-significant bits
+ */
+bool check_sourceIDs(gsl::span<char const> bank_data);
+
 /**
  * @brief      read events from input file into prefetch buffer
  *
@@ -64,7 +85,9 @@ std::tuple<bool, bool, bool, size_t> read_events(
  *
  * @return     (success, number of banks per bank type; 0 if the bank is not needed)
  */
-std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::span<char const> bank_data);
+std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
+  gsl::span<char const> bank_data,
+  Allen::sd_from_raw_bank const& sd_from_raw_bank);
 
 /**
  * @brief      Transpose events to Allen layout
@@ -81,11 +104,12 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
 std::tuple<bool, bool, bool> transpose_event(
   Allen::Slices& slices,
   int const slice_index,
-  std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
-  std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  Allen::sd_from_raw_bank const& sd_from_raw_bank,
+  std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
+  std::vector<char>& event_mask,
   const gsl::span<char const> bank_data,
   bool split_by_run);
 
@@ -107,10 +131,11 @@ std::tuple<bool, bool, size_t> transpose_events(
   const Allen::ReadBuffer& read_buffer,
   Allen::Slices& slices,
   int const slice_index,
-  std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
-  std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  Allen::sd_from_raw_bank const& sd_from_raw_bank,
+  std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
+  std::vector<char>& event_mask,
   size_t n_events,
   bool split_by_run = false);

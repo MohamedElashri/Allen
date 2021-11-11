@@ -23,6 +23,7 @@
 #include <Logger.h>
 #include <InputProvider.h>
 #include <mdf_header.hpp>
+#include <sourceid.h>
 #include <read_mdf.hpp>
 #include <write_mdf.hpp>
 #include <Event/RawBank.h>
@@ -34,6 +35,8 @@
 
 namespace {
   using namespace Allen::Units;
+
+  using namespace std::string_literals;
 } // namespace
 
 /**
@@ -97,7 +100,7 @@ public:
     MDFProviderConfig config = MDFProviderConfig {}) :
     InputProvider {n_slices, events_per_slice, bank_types, IInputProvider::Layout::Allen, n_events},
     m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true),
-    m_banks_count {0}, m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    m_mfp_count {0}, m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
@@ -119,8 +122,6 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
-    m_bank_ids = Allen::bank_ids();
-
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
@@ -129,6 +130,11 @@ public:
     {
       // aquire lock
       std::unique_lock<std::mutex> lock {m_prefetch_mut};
+
+      m_masks.resize(n_slices);
+      for (auto& mask : m_masks) {
+        mask.resize(events_per_slice, 0);
+      }
 
       // start prefetch thread
       m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
@@ -142,12 +148,20 @@ public:
         // Offsets are to the start of the event, which includes the header
         auto i_read = m_prefetched.front();
         auto& [n_filled, event_offsets, buffer, transpose_start] = m_buffers[i_read];
-        std::tie(count_success, m_banks_count) = fill_counts({buffer.data(), event_offsets[1]});
+        std::tie(count_success, m_mfp_count) = fill_counts({buffer.data(), event_offsets[1]}, m_sd_from_raw);
+
+        for (auto allen_type : types()) {
+          if (m_mfp_count[to_integral(allen_type)] == 0) {
+            error_cout << "Banks for " << bank_name(allen_type) << " are not present in the file\n";
+            m_read_error = true;
+          }
+        }
+
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
           m_read_error = true;
         }
-        else {
+        else if (!m_read_error) {
           m_sizes_known = true;
 
           // Allocate slice memory that will contain transposed banks ready
@@ -161,16 +175,6 @@ public:
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
 
-            // Lookup LHCb bank type corresponding to Allen bank type
-            auto type_it =
-              std::find_if(Allen::bank_types.begin(), Allen::bank_types.end(), [bank_type](const auto& entry) {
-                return entry.second == bank_type;
-              });
-            if (type_it == Allen::bank_types.end()) {
-              throw std::out_of_range {std::string {"Failed to lookup LHCb type for bank type "} + std::to_string(ib)};
-            }
-            auto lhcb_type = to_integral<LHCb::RawBank::BankType>(type_it->first);
-
             // When events are transposed from the read buffer into
             // the per-rawbank-type slices, a check is made each time
             // to see if there is enough space available in a slice.
@@ -180,7 +184,7 @@ public:
             // problems for banks with very low average size like the
             // ODIN bank - 0.1 kB, a fixed amount is also added.
             auto n_bytes = std::lround(
-              ((1 + m_banks_count[lhcb_type]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
+              ((1 + m_mfp_count[ib]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
                 bank_size_fudge_factor +
               2 * MB);
             return {n_bytes, events_per_slice};
@@ -385,6 +389,7 @@ public:
     // contains the MDF header as bank payload; it does not belong to
     // the original event and should be skipped
     auto const* daq_bank = reinterpret_cast<LHCb::RawBank const*>(event_buffer.data() + event_offset);
+    assert(daq_bank->type() == LHCb::RawBank::DAQ);
     auto const daq_bank_size = daq_bank->totalSize();
 
     auto const* banks_start = event_buffer.data() + event_offset + daq_bank_size;
@@ -500,11 +505,12 @@ private:
         m_buffers[i_read],
         m_slices,
         *slice_index,
-        m_bank_ids,
         this->types(),
-        m_banks_count,
+        m_sd_from_raw,
+        m_mfp_count,
         m_banks_version,
         m_event_ids[*slice_index],
+        m_masks[*slice_index],
         this->events_per_slice(),
         m_config.split_by_run);
 
@@ -557,7 +563,7 @@ private:
   /**
    * @brief      Open an input file; called from the prefetch thread
    *
-   * @return     success
+   * @return     (success, is_mc)
    */
   bool open_file() const
   {
@@ -658,6 +664,22 @@ private:
         size_t to_prefetch = to_read ? std::min(eps, *to_read + read) : eps;
         std::tie(eof, error, buffer_full, bytes_read) =
           read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
+
+        auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
+        if (!m_is_mc) {
+          m_is_mc = is_mc;
+          if (is_mc) {
+            m_sd_from_raw = [this] (const LHCb::RawBank* rb) { return sd_from_bank_type(rb); };
+          }
+          else {
+            m_sd_from_raw = sd_from_sourceID;
+          }
+        }
+        else if (*m_is_mc != is_mc) {
+          throw std::out_of_range {"The next batch of events is different from the previous events"s
+              + (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
+        }
+
         size_t n_read = std::get<0>(read_buffer) - read;
         if (to_read) {
           *to_read -= std::min(*to_read, n_read);
@@ -724,6 +746,12 @@ private:
     m_prefetch_cond.notify_one();
   }
 
+  BankTypes sd_from_bank_type(LHCb::RawBank const* raw_bank)
+  {
+    auto const bt = m_bank_ids[raw_bank->type()];
+    return bt == -1 ? BankTypes::Unknown : static_cast<BankTypes>(bt);
+  }
+
   // Memory buffers to read binary data into from the file
   mutable Allen::ReadBuffers m_buffers;
 
@@ -747,10 +775,12 @@ private:
   mutable LHCb::MDFHeader m_header;
 
   // Allen IDs of LHCb raw banks
-  std::vector<int> m_bank_ids;
+  std::vector<int> m_bank_ids = Allen::bank_ids();
 
   // Memory slices, N for each raw bank type
   Allen::Slices m_slices;
+  std::vector<std::vector<char>> m_masks;
+
   struct SliceToBuffer {
     int buffer_index;
     size_t buffer_event_start;
@@ -773,9 +803,13 @@ private:
   // Threads transposing data
   std::vector<std::thread> m_transpose_threads;
 
-  // Array to store the number of banks per bank type
-  mutable std::array<unsigned int, LHCb::NBankTypes> m_banks_count;
+  // Array to store the number of banks per subdetector
+  mutable std::array<unsigned int, NBankTypes> m_mfp_count;
   mutable bool m_sizes_known = false;
+
+  std::optional<bool> m_is_mc = std::nullopt;
+
+  Allen::sd_from_raw_bank m_sd_from_raw;
 
   // Run and event numbers present in each slice
   std::vector<EventIDs> m_event_ids;

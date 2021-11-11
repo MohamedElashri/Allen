@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <array>
+#include <functional>
 
 #include <Event/RawBank.h>
 
@@ -39,5 +40,7 @@ namespace Allen {
   int subdetector_id(const std::string subdetector);
   int subdetector_index(const std::string subdetector);
   int subdetector_index_from_bank_type(BankTypes bt);
+
+  using sd_from_raw_bank = std::function<BankTypes(LHCb::RawBank const* raw_bank)>;
 
 } // namespace Allen

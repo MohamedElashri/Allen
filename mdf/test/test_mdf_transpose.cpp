@@ -18,8 +18,20 @@
 #include <TransposeTypes.h>
 #include <Transpose.h>
 
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+#else
+#include <filesystem>
+#endif
+
 #define CATCH_CONFIG_RUNNER
 #include <catch.hpp>
+
+#ifdef USE_BOOST_FILESYSTEM
+  namespace fs = boost::filesystem;
+#else
+  namespace fs = std::filesystem;
+#endif
 
 using namespace std;
 using namespace std::string_literals;
@@ -35,9 +47,30 @@ namespace {
   Config s_config;
 } // namespace
 
+
+std::tuple<bool, Allen::sd_from_raw_bank>
+file_type(gsl::span<char const> bank_data, std::vector<int> const& bank_ids)
+{
+  auto sd_from_bank_type = [bank_ids](LHCb::RawBank const* raw_bank) {
+    auto const bt = bank_ids[raw_bank->type()];
+    return bt == -1 ? BankTypes::Unknown : static_cast<BankTypes>(bt);
+  };
+
+  auto is_mc = check_sourceIDs(bank_data);
+  Allen::sd_from_raw_bank sd_from_raw;
+  if (is_mc) {
+    sd_from_raw = sd_from_bank_type;
+  }
+  else {
+    sd_from_raw = sd_from_sourceID;
+  }
+  return {is_mc, sd_from_raw};
+}
+
+
 std::tuple<
   bool,
-  std::array<unsigned, LHCb::RawBank::types().size()>,
+  std::array<unsigned, NBankTypes>,
   std::vector<LHCb::ODIN>,
   size_t,
   size_t,
@@ -46,16 +79,16 @@ std::tuple<
 mdf_read_sizes(
   std::string filename,
   std::vector<int> const& bank_ids,
-  std::unordered_set<LHCb::RawBank::BankType> const& bank_types,
+  std::unordered_set<BankTypes> const& bank_types,
   size_t min_events)
 {
   // Storage for the sizes
-  std::array<std::vector<size_t>, LHCb::RawBank::types().size()> sizes;
+  std::array<std::vector<size_t>, NBankTypes> sizes;
   for (auto bt : bank_types) {
-    sizes[bt].push_back(0);
+    sizes[to_integral(bt)].push_back(0);
   }
 
-  std::array<unsigned, LHCb::RawBank::types().size()> banks_count;
+  std::array<unsigned, NBankTypes> banks_count;
   banks_count.fill(0);
 
   // Some storage for reading the events into
@@ -84,15 +117,22 @@ mdf_read_sizes(
 
   size_t i_event = 0;
 
-  std::array<unsigned, LHCb::RawBank::types().size()> bank_sizes;
+  std::array<unsigned, NBankTypes> bank_sizes;
 
   size_t alloc_size = 0, split_event = 0;
 
+  bool is_mc = false, first = true;
+  Allen::sd_from_raw_bank sd_from_raw;
+
   while (true) {
 
-    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, true);
+    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, false);
     if (eof || error) {
       return {false, banks_count, odins, 0, 0, i_event, total_size};
+    }
+    else if (first) {
+      first = false;
+      std::tie(is_mc, sd_from_raw) = file_type(bank_span, bank_ids);
     }
 
     bank_sizes.fill(0);
@@ -111,14 +151,17 @@ mdf_read_sizes(
         goto error;
       }
 
-      if (b->type() < LHCb::RawBank::LastType && bank_types.count(b->type())) {
-        bank_sizes[b->type()] += b->size();
+      auto const allen_type = sd_from_raw(b);
+      if (bank_types.count(allen_type)) {
+        auto const at = to_integral(allen_type);
+        auto const padded_size = b->totalSize() - b->hdrSize();
+        bank_sizes[at] += padded_size;
         if (i_event == 0) {
-          ++banks_count[b->type()];
+          ++banks_count[at];
         }
       }
 
-      if (b->type() == LHCb::RawBank::ODIN) {
+      if (allen_type == BankTypes::ODIN) {
         odins.emplace_back(MDF::decode_odin(b->version(), b->data()));
       }
 
@@ -126,20 +169,20 @@ mdf_read_sizes(
       bank += b->totalSize();
     }
 
-    for (auto bt : bank_types) {
-      auto lhcb_type = bank_ids[to_integral(bt)];
+    for (auto bank_type : bank_types) {
+      auto const bt = to_integral(bank_type);
       // Count words in Allen layout so extra word for number of
       // banks, then n_banks + 1 for bank offsets, then each bank has
       // an extra word containing the source ID.
-      auto offsets_size = (2 + 2 * banks_count[lhcb_type]) * sizeof(uint32_t);
-      sizes[bt].push_back(sizes[bt][i_event] + offsets_size + bank_sizes[bt]);
+      auto extra_size = (2 + 2 * banks_count[bt]) * sizeof(uint32_t);
+      sizes[bt].push_back(sizes[bt][i_event] + extra_size + bank_sizes[bt]);
       max_size = std::max(sizes[bt].back() + bank_span.size(), max_size);
     }
 
     if (i_event == min_events) {
       alloc_size = max_size + 1;
       for (auto bt : bank_types) {
-        sizes[bt][i_event + 1] = 0;
+        sizes[to_integral(bt)][i_event + 1] = 0;
       }
       max_size = 0;
       split_event = i_event;
@@ -182,21 +225,17 @@ int main(int argc, char* argv[])
 
   s_config.run = !directory.empty();
 
-  for (auto file : s_config.mdf_files) {
-    std::cout << " File name = " << file << std::endl;
-  }
-
   if (!directory.empty()) {
-    for (auto& file : s_config.mdf_files) {
-      const auto filename = directory + "/mdf/" + file;
-      if (std::filesystem::exists(filename)) {
-        file = filename;
-      }
-      else {
-        return 1;
+    auto dir = fs::path{directory};
+    for(auto const& entry : fs::directory_iterator{dir}) {
+      auto const p = entry.path().string();
+      if (fs::is_regular_file(entry) && p.rfind(".mdf") == p.size() - 4) {
+        s_config.mdf_files.push_back(p);
       }
     }
   }
+
+  std::sort(s_config.mdf_files.begin(), s_config.mdf_files.end());
 
   return session.run();
 }
@@ -210,23 +249,12 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   auto filename = s_config.mdf_files[0];
 
   auto ids = Allen::bank_ids();
-  std::unordered_map<BankTypes, unsigned> allen_to_lhcb;
-  for (unsigned lhcb_type = 0; lhcb_type < ids.size(); ++lhcb_type) {
-    auto allen_type = ids[lhcb_type];
-    if (allen_type != -1) {
-      allen_to_lhcb.emplace(BankTypes {allen_type}, lhcb_type);
-    }
-  }
 
-  std::unordered_set<LHCb::RawBank::BankType> bank_types;
-  for (auto bt : {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN}) {
-    auto it = allen_to_lhcb.find(bt);
-    REQUIRE(it != allen_to_lhcb.end());
-    bank_types.insert(static_cast<LHCb::RawBank::BankType>(it->second));
-  }
+  std::unordered_set<BankTypes> allen_types {
+    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
 
   auto [success, banks_count, odins, split_event, alloc_size, max_events, total_size] =
-    mdf_read_sizes(filename, ids, bank_types, s_config.n_events);
+    mdf_read_sizes(filename, ids, allen_types, s_config.n_events);
   REQUIRE(success == true);
 
   Allen::ReadBuffer read_buffer =
@@ -235,7 +263,8 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   std::vector<char> decompress_buffer;
 
   LHCb::MDFHeader header;
-  std::vector<EventIDs> event_ids(s_config.n_slices);
+  EventIDs event_ids;
+  vector<char> event_mask(max_events, 0);
 
   auto input = MDF::open(filename.c_str(), O_RDONLY);
   REQUIRE(input.good);
@@ -251,6 +280,8 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   REQUIRE(!buffer_full);
   REQUIRE(max_events == std::get<0>(read_buffer));
 
+  auto [is_mc, sd_from_raw] = file_type({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]}, ids);
+
   input.close();
 
   std::cout << alloc_size << " " << split_event << " " << max_events << "\n";
@@ -259,8 +290,6 @@ TEST_CASE("MDF slice full", "[MDF slice]")
     return {as, n_events + 1};
   };
 
-  std::unordered_set<BankTypes> allen_types {
-    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
   auto slices = allocate_slices(s_config.n_slices, allen_types, size_fun);
 
   bool good = false, transpose_full = false;
@@ -270,7 +299,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   for (auto [slice_index, check_full] : {std::tuple {0u, true}, std::tuple {1u, false}}) {
     std::tie(good, transpose_full, n_transposed) = transpose_events(
-      read_buffer, slices, slice_index, ids, allen_types, banks_count, banks_version, event_ids[0], max_events, false);
+      read_buffer, slices, slice_index, allen_types, sd_from_raw, banks_count, banks_version, event_ids, event_mask, max_events, false);
     std::cout << "transposed: " << n_transposed << " " << transpose_full << "\n";
     REQUIRE(good);
     REQUIRE(transpose_full == check_full);
@@ -281,12 +310,13 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   // Check that all events that were read have been transposed by
   // comparing event and run numbers from ODIN
   size_t i = 0;
-  for (auto const& [banks, _, event_offsets, n_offsets] : slices[to_integral(BankTypes::ODIN)]) {
+  auto oi = to_integral(BankTypes::ODIN);
+  for (auto const& [banks, _, event_offsets, n_offsets] : slices[oi]) {
     for (size_t j = 0; j < n_offsets - 1; ++j) {
       auto const& read_odin = odins[i];
       auto const* odin_data =
         reinterpret_cast<unsigned const*>(banks[0].data() + event_offsets[j] + 4 * sizeof(uint32_t));
-      auto transposed_odin = MDF::decode_odin(0, odin_data);
+      auto transposed_odin = MDF::decode_odin(banks_version[oi], odin_data);
       REQUIRE(read_odin.runNumber() == transposed_odin.runNumber());
       REQUIRE(read_odin.eventNumber() == transposed_odin.eventNumber());
       ++i;

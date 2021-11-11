@@ -119,12 +119,32 @@ int main(int argc, char* argv[])
   // Count the number of banks of each type
   auto& [n_filled, event_offsets, read_buffer, transpose_start] = read_buffers[0];
   bool count_success = false;
-  std::array<unsigned int, LHCb::NBankTypes> banks_count {};
-  std::tie(count_success, banks_count) = fill_counts({read_buffer.data(), event_offsets[1]});
+  std::array<unsigned int, NBankTypes> banks_count {};
+
+  auto sd_from_bank_type = [bank_ids](LHCb::RawBank const* raw_bank) {
+    return static_cast<BankTypes>(bank_ids[raw_bank->type()]);
+  };
+
+  gsl::span<char const> bank_data{read_buffer.data(), event_offsets[1]};
+  auto is_mc = check_sourceIDs(bank_data);
+  Allen::sd_from_raw_bank sd_from_raw;
+  if (is_mc) {
+    sd_from_raw = sd_from_bank_type;
+  }
+  else {
+    sd_from_raw = sd_from_sourceID;
+  }
+
+  std::tie(count_success, banks_count) = fill_counts(bank_data, sd_from_raw);
   std::array<int, NBankTypes> banks_version {};
 
   // Allocate space for event ids
   std::vector<EventIDs> event_ids(n_slices);
+  std::vector<vector<char>> event_masks(n_slices);
+  for (auto& mask : event_masks) {
+    mask.resize(n_events, 0);
+  }
+
   for (auto& ids : event_ids) {
     ids.reserve(n_events);
   }
@@ -138,7 +158,7 @@ int main(int argc, char* argv[])
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
     threads.emplace_back(thread {
-      [i, n_reps, n_events, &read_buffers, &slices, &bank_types, &bank_ids, &banks_count, &banks_version, &event_ids] {
+        [i, n_reps, n_events, &sd_from_raw, &read_buffers, &slices, &bank_types, &banks_count, &banks_version, &event_ids, &event_masks] {
         auto& read_buffer = read_buffers[i];
         for (size_t rep = 0; rep < n_reps; ++rep) {
 
@@ -150,11 +170,12 @@ int main(int argc, char* argv[])
             read_buffer,
             slices,
             i,
-            bank_ids,
             {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
+            sd_from_raw,
             banks_count,
             banks_version,
             event_ids[i],
+            event_masks[i],
             n_events);
           info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
         }

@@ -422,8 +422,6 @@ int allen(
     return thread_id;
   };
 
-  info_cout << "ALLEN PROCESSING STARTING " << std::endl;
-
   // processing stream status
   std::bitset<max_stream_threads> stream_ready(false);
   size_t error_count = 0;
