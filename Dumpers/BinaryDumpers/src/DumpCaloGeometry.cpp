@@ -57,13 +57,13 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   unsigned indexOffset = 0, indexSize = 0;
   namespace IndexDetails = LHCb::Calo::DenseIndex::details;
   unsigned int hcalOuterOffset =
-    IndexDetails::Constants<CaloCellCode::CaloIndex::HcalCalo, IndexDetails::Area::Outer>::global_offset;
+    IndexDetails::Constants<LHCb::Calo::CellCode::Index::HcalCalo, IndexDetails::Area::Outer>::global_offset;
   if (det.caloName()[0] == 'E') {
     indexSize = hcalOuterOffset;
   }
   else {
     indexOffset = hcalOuterOffset;
-    indexSize = LHCb::CaloIndex::max() - indexOffset;
+    indexSize = LHCb::Calo::Index::max() - indexOffset;
   }
 
   // Determine Minimum and maximum card Codes.
@@ -87,7 +87,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     int index = (code - min) * max_channels;
     auto channels = det.cardChannels(card);
     for (size_t i = 0; i < channels.size(); i++) {
-      LHCb::CaloIndex const caloIndex {channels.at(i)};
+      LHCb::Calo::Index const caloIndex {channels.at(i)};
       if (caloIndex) {
         allChannels[index + i] = static_cast<uint16_t>(caloIndex - indexOffset);
       }
@@ -103,7 +103,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   std::vector<float> gain(indexSize, 0.f);
   // Create neighbours per cellID.
   for (auto const& param : det.cellParams()) {
-    auto const caloIndex = LHCb::CaloIndex {param.cellID()};
+    auto const caloIndex = LHCb::Calo::Index {param.cellID()};
     if (!caloIndex) {
       continue;
     }
@@ -111,7 +111,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     auto const& ns = param.neighbors();
     for (size_t i = 0; i < ns.size(); i++) {
       // Use 4D indexing based on Area, row, column and neighbor index.
-      LHCb::CaloIndex const neighborIndex {ns.at(i)};
+      LHCb::Calo::Index const neighborIndex {ns.at(i)};
       if (neighborIndex) {
         neighbors[idx * max_neighbors + i] = static_cast<uint16_t>(neighborIndex - indexOffset);
       }
@@ -147,14 +147,14 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   if (det.caloName()[0] == 'E') {
     digits_ranges = {
       indexOffset,
-      IndexDetails::Constants<CaloCellCode::CaloIndex::EcalCalo, IndexDetails::Area::Middle>::global_offset,
-      IndexDetails::Constants<CaloCellCode::CaloIndex::EcalCalo, IndexDetails::Area::Inner>::global_offset,
+      IndexDetails::Constants<LHCb::Calo::CellCode::Index::EcalCalo, IndexDetails::Area::Middle>::global_offset,
+      IndexDetails::Constants<LHCb::Calo::CellCode::Index::EcalCalo, IndexDetails::Area::Inner>::global_offset,
       indexOffset + indexSize};
   }
   else {
     digits_ranges = {
       indexOffset,
-      IndexDetails::Constants<CaloCellCode::CaloIndex::HcalCalo, IndexDetails::Area::Inner>::global_offset,
+      IndexDetails::Constants<LHCb::Calo::CellCode::Index::HcalCalo, IndexDetails::Area::Inner>::global_offset,
       indexOffset + indexSize};
   }
 
