@@ -64,16 +64,16 @@ namespace two_ks_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 20.f};
-    Property<minComboPt_Ks_t> m_minComboPt_Ks {this, 2500.f / Gaudi::Units::MeV};
+    Property<minComboPt_Ks_t> m_minComboPt_Ks {this, 1500.f / Gaudi::Units::MeV};
     Property<minCosDira_t> m_minCosDira {this, 0.99f};
     Property<minEta_Ks_t> m_minEta_Ks {this, 2.f};
     Property<maxEta_Ks_t> m_maxEta_Ks {this, 4.2f};
     Property<minTrackPt_piKs_t> m_minTrackPt_piKs {this, 470.f / Gaudi::Units::MeV};
-    Property<minTrackP_piKs_t> m_minTrackP_piKs {this, 5000.f / Gaudi::Units::MeV};
-    Property<minTrackIPChi2_Ks_t> m_minTrackIPChi2_Ks {this, 50.f};
+    Property<minTrackP_piKs_t> m_minTrackP_piKs {this, 2500.f / Gaudi::Units::MeV};
+    Property<minTrackIPChi2_Ks_t> m_minTrackIPChi2_Ks {this, 15.f};
     Property<minM_Ks_t> m_minM_Ks {this, 455.0f / Gaudi::Units::MeV};
     Property<maxM_Ks_t> m_maxM_Ks {this, 545.0f / Gaudi::Units::MeV};
     Property<minCosOpening_t> m_minCosOpening {this, 0.99f};
-    Property<min_combip_t> m_min_combip {this, 0.72f / Gaudi::Units::mm};
+    Property<min_combip_t> m_min_combip {this, 0.4f / Gaudi::Units::mm};
   };
 } // namespace two_ks_line
