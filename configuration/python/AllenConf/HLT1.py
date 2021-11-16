@@ -52,6 +52,11 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
                                            secondary_vertices)))
     lines.append(
         line_maker(
+            "Hlt1TwoTrackKs",
+            make_two_track_line_ks(forward_tracks, secondary_vertices),
+            enableGEC=True))
+    lines.append(
+        line_maker(
             "Hlt1TwoTrackCatBoost",
             make_two_track_catboost_line(forward_tracks, secondary_vertices)))
     lines.append(
