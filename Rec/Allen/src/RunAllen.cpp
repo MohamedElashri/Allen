@@ -176,7 +176,6 @@ StatusCode RunAllen::initialize()
     new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
       number_of_slices, events_per_slice, n_events));
 
-  m_hlt1_line_rates.reserve(m_line_names.size());
   for (unsigned i = 0; i < m_line_names.size(); ++i) {
     const std::string name = m_line_names[i] + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
