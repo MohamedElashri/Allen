@@ -99,12 +99,12 @@ void Checker::TrackEffReport::operator()(
       ++m_nclones;
     }
     // update purity
-    m_hitpur *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
-    m_hitpur += track.m_w / float(m_nfound + m_nclones);
+    m_hitpur *= static_cast<double>(m_nfound + m_nclones - 1) / static_cast<double>(m_nfound + m_nclones);
+    m_hitpur += static_cast<double>(track.m_w) / static_cast<double>(m_nfound + m_nclones);
     // update hit efficiency
-    auto hiteff = track.m_counter_subdetector / float(get_num_hits_subdetector(mcp));
-    m_hiteff *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
-    m_hiteff += hiteff / float(m_nfound + m_nclones);
+    auto hiteff = track.m_counter_subdetector / static_cast<double>(get_num_hits_subdetector(mcp));
+    m_hiteff *= static_cast<double>(m_nfound + m_nclones - 1) / static_cast<double>(m_nfound + m_nclones);
+    m_hiteff += hiteff / static_cast<double>(m_nfound + m_nclones);
   }
 }
 
@@ -128,7 +128,7 @@ void Checker::TrackEffReport::report() const
       100 * static_cast<double>(eff_per_event),
       m_nclones,
       100 * static_cast<double>(clonerate),
-      100 * static_cast<double>(m_hitpur),
-      100 * static_cast<double>(m_hiteff));
+      100 * m_hitpur,
+      100 * m_hiteff);
   }
 }
