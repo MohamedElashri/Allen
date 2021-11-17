@@ -56,16 +56,6 @@ teslav100:
     - .teslav100
     - .run_job
 
-a40:
-  extends:
-    - .a40
-    - .run_job
-
-a10:
-  extends:
-    - .a10
-    - .run_job
-
 a6000:
   extends:
     - .a6000
