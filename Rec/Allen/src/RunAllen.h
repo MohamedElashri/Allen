@@ -29,6 +29,9 @@
 #include "Logger.h"
 #include "TESProvider.h"
 
+// STL includes
+#include <deque>
+
 class RunAllen final
   : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
       const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
@@ -71,7 +74,7 @@ private:
   Gaudi::Property<bool> m_filterGEC {this, "FilterGEC", false};
 
   // Counters for HLT1 selection rates
-  mutable std::vector<Gaudi::Accumulators::BinomialCounter<>> m_hlt1_line_rates {};
+  mutable std::deque<Gaudi::Accumulators::BinomialCounter<>> m_hlt1_line_rates {};
 };
 
 #endif
