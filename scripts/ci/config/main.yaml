@@ -93,8 +93,6 @@ epyc7502:
     - mi100
     - a6000
     - a5000
-    - a40
-    - a10
     - teslav100
     - quadrortx6000
     - geforcertx2080ti
@@ -273,20 +271,6 @@ teslav100-full:
     - .cuda_run_job
 
 
-a40-full:
-  extends:
-    - .a40
-    - .run_jobs_full
-    - .cuda_run_job
-
-
-a10-full:
-  extends:
-    - .a10
-    - .run_jobs_full
-    - .cuda_run_job
-
-
 a6000-full:
   extends:
     - .a6000
@@ -331,8 +315,6 @@ mi100-full:
     - geforcertx3080-full
     - geforcertx2080ti-full
     - quadrortx6000-full
-    - a40-full
-    - a10-full
     - a6000-full
     - a5000-full
     - teslav100-full
