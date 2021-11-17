@@ -99,13 +99,13 @@ namespace Checker {
     std::size_t m_nclones = 0;
     std::size_t m_nevents = 0;
     float m_effperevt = 0.f;
-    double m_hitpur = 0.0;
-    double m_hiteff = 0.0;
     std::size_t m_naccept_per_event = 0;
     std::size_t m_nfound_per_event = 0;
     std::size_t m_nclones_per_event = 0;
     float m_eff_per_event = 0.f;
     float m_number_of_events = 0.f;
+    std::vector<double> m_hitpurs = {};
+    std::vector<double> m_hiteffs = {};
 
     /// no default construction
     TrackEffReport() = delete;

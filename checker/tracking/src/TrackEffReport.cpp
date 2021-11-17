@@ -99,12 +99,10 @@ void Checker::TrackEffReport::operator()(
       ++m_nclones;
     }
     // update purity
-    m_hitpur *= static_cast<double>(m_nfound + m_nclones - 1) / static_cast<double>(m_nfound + m_nclones);
-    m_hitpur += static_cast<double>(track.m_w) / static_cast<double>(m_nfound + m_nclones);
+    m_hitpurs.push_back(static_cast<double>(track.m_w));
     // update hit efficiency
     auto hiteff = track.m_counter_subdetector / static_cast<double>(get_num_hits_subdetector(mcp));
-    m_hiteff *= static_cast<double>(m_nfound + m_nclones - 1) / static_cast<double>(m_nfound + m_nclones);
-    m_hiteff += hiteff / static_cast<double>(m_nfound + m_nclones);
+    m_hiteffs.push_back(hiteff);
   }
 }
 
@@ -118,6 +116,8 @@ void Checker::TrackEffReport::report() const
   if (m_number_of_events) eff_per_event = ((float) m_eff_per_event) / ((float) m_number_of_events);
 
   if (m_naccept > 0) {
+    auto hitpur = std::accumulate(std::begin(m_hitpurs), std::end(m_hitpurs), 0.0) / (m_nfound + m_nclones);
+    auto hiteff = std::accumulate(std::begin(m_hiteffs), std::end(m_hiteffs), 0.0) / (m_nfound + m_nclones);
     std::printf(
       "%-50s: %9lu/%9lu %6.2f%% (%6.2f%%), "
       "%9lu (%6.2f%%) clones, pur %6.2f%%, hit eff %6.2f%%\n",
@@ -128,7 +128,7 @@ void Checker::TrackEffReport::report() const
       100 * static_cast<double>(eff_per_event),
       m_nclones,
       100 * static_cast<double>(clonerate),
-      100 * m_hitpur,
-      100 * m_hiteff);
+      100 * hitpur,
+      100 * hiteff);
   }
 }
