@@ -87,7 +87,7 @@ Hlt1GECPassthrough:      845/  1000, (25350.00 +/-   343.33) kHz
 Hlt1NoBeam:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BothBeams:             2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
@@ -115,15 +115,15 @@ Hlt1GECPassthrough:      845           0
 Hlt1NoBeam:                0           0
 Hlt1BeamOne:               0           0
 Hlt1BeamTwo:               0           0
-Hlt1BothBeams:             0           0
+Hlt1BothBeams:             2           0
 Hlt1VeloMicroBias:         0           0
 Hlt1ODINLumi:              0           0
 Hlt1ODINNoBias:            0           0
 Hlt1Passthrough:        1000           0
 
-Total decisions: 3136
+Total decisions: 3138
 Total tracks:    1779
 Total SVs:       1404
 Total hits:      44008
-Total stdinfo:   22984
+Total stdinfo:   22986
 
