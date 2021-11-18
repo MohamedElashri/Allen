@@ -7,7 +7,7 @@ variables:
   TARGET_BRANCH: master
 
   ALLEN_DATA: "/scratch/allen_data"
-  LCG_VERSION: "LCG_99"
+  LCG_VERSION: "LCG_101"
 
   PROFILE_DEVICE: "a5000"
   RUN_THROUGHPUT_OPTIONS_CUDAPROF: "-n 500 -m 500 -r 1 -t 1"

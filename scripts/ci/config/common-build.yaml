@@ -6,7 +6,7 @@
     matrix:
       - TARGET: [CPU, CUDA, HIP]
         LCG_ARCHITECTURE:
-          - x86_64-centos7-clang10-opt
+          - x86_64-centos7-clang12-opt
         BUILD_TYPE:
           - RelWithDebInfo
 
@@ -15,14 +15,14 @@
   parallel:
     matrix:
       # build jobs (with tests)
-      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
+      - LCG_ARCHITECTURE: x86_64-centos7-clang12-opt
         BUILD_TYPE: [RelWithDebInfo, Debug]
         OPTIONS:
           - BUILD_TESTS+ENABLE_CONTRACTS
 
       # debug builds with GCC, Clang with various additional cmake options
       - LCG_ARCHITECTURE:
-          - x86_64-centos7-clang10-opt
+          - x86_64-centos7-clang12-opt
           # TODO: The CI builders run out of memory for the gcc-10 builds
           # They should be reintroduced once the sequence is type-erased.
           # - x86_64-centos7-gcc10-opt
@@ -31,7 +31,7 @@
           - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT
           - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
 
-      - LCG_ARCHITECTURE: [x86_64-centos7-clang10-opt]
+      - LCG_ARCHITECTURE: [x86_64-centos7-clang12-opt]
         OPTIONS: ["USE_ROOT"]
         BUILD_TYPE: Debug
 

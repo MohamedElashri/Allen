@@ -31,21 +31,21 @@ we show a proposed development setup with CVMFS and CentOS 7:
 * CPU target: Any modern compiler can be used:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
     ```
 
 * CUDA target: The latest supported compilers are gcc-10 and clang-10. CUDA is
   available in cvmfs as well:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
-    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.2/x86_64-centos7/setup.sh
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
+    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.4/x86_64-centos7/setup.sh
     ```
 
 * HIP target: Either a local installation of ROCm or CVMFS are required:
 
     ```console
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_99 x86_64-centos7-clang10-opt
+    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
     source /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
     ```
 
