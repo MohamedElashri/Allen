@@ -49,10 +49,10 @@ with sequence.bind(json="/path/to/custom/config.json"):
     run_allen(options)
 ```
 
-To obtain a JSON file that contains all configurable parameters, the
+To obtain a JSON file that contains all configurable parameters, using Allen standalone build, the
 following can be used:
 ```console
-./Moore/run Allen --write-configuration 1
+./Allen --sequence='hlt1_pp_ecal' --write-configuration 1
 ```
 This will write a file `config.json` in the current working
 directory, which can be used to rerun with a different set of cuts
