@@ -44,7 +44,6 @@ function check_build_exists() {
         echo "     TARGET: ${TARGET}"
         echo "     LCG_ARCHITECTURE: ${LCG_ARCHITECTURE}"
         echo "     BUILD_TYPE: ${BUILD_TYPE}"
-        echo "     SEQUENCE: ${SEQUENCE}"
         echo "     OPTIONS: ${OPTIONS}"
         echo ""
         echo "   ==> Please add this build and try again (see: scripts/ci/config/common-build.yaml)."
@@ -52,6 +51,8 @@ function check_build_exists() {
         exit 1
     fi 
 }
+
+export BUILD_SEQUENCES="all"
 
 TOPLEVEL=${PWD}
 PREVIOUS_IFS=${IFS}
@@ -66,7 +67,7 @@ else
 export GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
 fi
 
-BUILD_FOLDER="build_${LCG_ARCHITECTURE}_${TARGET}_${BUILD_TYPE}_${SEQUENCE}_${OPTIONS}"
+BUILD_FOLDER="build_${LCG_ARCHITECTURE}_${TARGET}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
 
 ls -la
 
