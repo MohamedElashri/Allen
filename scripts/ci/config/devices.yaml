@@ -10,32 +10,11 @@
   tags: [geforcertx3090]
 
 
-.geforcertx3080:
-  variables:
-    DEVICE_ID: "geforcertx3080"
-    TARGET: "CUDA"
-  tags: [geforcertx3080]
-
-
 .geforcertx2080ti:
   variables:
     DEVICE_ID: "geforcertx2080ti"
     TARGET: "CUDA"
   tags: [geforcertx2080ti]
-
-
-.quadrortx6000:
-  variables:
-    DEVICE_ID: "quadrortx6000"
-    TARGET: "CUDA"
-  tags: [quadrortx6000]
-
-
-.teslav100:
-  variables:
-    DEVICE_ID: "teslav100"
-    TARGET: "CUDA"
-  tags: [teslav100]
 
 
 .a6000:
