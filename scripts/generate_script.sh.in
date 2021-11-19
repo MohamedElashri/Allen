@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-PYTHONPATH=${PYTHONPATH}:@PROJECT_SEQUENCE_DIR@ @Python3_EXECUTABLE@ @CMAKE_SOURCE_DIR@/configuration/sequences/@sequence@.py
+PYTHONPATH=@PROJECT_SEQUENCE_DIR@:${PYTHONPATH} @Python3_EXECUTABLE@ @CMAKE_SOURCE_DIR@/configuration/sequences/@sequence@.py

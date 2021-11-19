@@ -2,10 +2,9 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenCore.event_list_utils import generate
+from AllenCore.generator import generate, make_algorithm
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
 from AllenConf.persistency import make_global_decision
-from AllenCore.event_list_utils import make_algorithm
 from AllenConf.odin import decode_odin
 from AllenConf.algorithms import data_provider_t
 from AllenConf.HLT1 import line_maker

@@ -96,6 +96,12 @@ find_package(cppgsl REQUIRED)
 find_package(Filesystem REQUIRED)
 
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
+  # We need a Python 3 interpreter
+  find_package(Python3 REQUIRED)
+
+  # Find libClang, required for parsing the Allen codebase
+  find_package(LibClang QUIET)
+
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
   find_package(Threads REQUIRED)
@@ -106,6 +112,7 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
 
   find_package(PkgConfig)
   pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)  # for ZeroMQ
+
 endif()
 
 # ROOT
