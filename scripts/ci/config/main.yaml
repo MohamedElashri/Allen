@@ -31,11 +31,6 @@ geforcertx3090:
     - .geforcertx3090
     - .run_job
 
-geforcertx3080:
-  extends:
-    - .geforcertx3080
-    - .run_job
-
 geforcertx2080ti:
   extends:
     - .geforcertx2080ti
@@ -45,16 +40,6 @@ geforcertx2080ti-run-changes:
     - .geforcertx2080ti
     - .run_toggle_run_changes
   stage: run
-
-quadrortx6000:
-  extends:
-    - .quadrortx6000
-    - .run_job
-
-teslav100:
-  extends:
-    - .teslav100
-    - .run_job
 
 a6000:
   extends:
@@ -93,10 +78,7 @@ epyc7502:
     - mi100
     - a6000
     - a5000
-    - teslav100
-    - quadrortx6000
     - geforcertx2080ti
-    - geforcertx3080
     - geforcertx3090
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -236,13 +218,6 @@ geforcertx3090-full:
     - .cuda_run_job
 
 
-geforcertx3080-full:
-  extends:
-    - .geforcertx3080
-    - .run_jobs_full
-    - .cuda_run_job
-
-
 geforcertx2080ti-full-run-changes:
   extends:
     - .geforcertx2080ti
@@ -253,20 +228,6 @@ geforcertx2080ti-full-run-changes:
 geforcertx2080ti-full:
   extends:
     - .geforcertx2080ti
-    - .run_jobs_full
-    - .cuda_run_job
-
-
-quadrortx6000-full:
-  extends:
-    - .quadrortx6000
-    - .run_jobs_full
-    - .cuda_run_job
-
-
-teslav100-full:
-  extends:
-    - .teslav100
     - .run_jobs_full
     - .cuda_run_job
 
@@ -312,12 +273,9 @@ mi100-full:
 
     # CUDA 
     - geforcertx3090-full
-    - geforcertx3080-full
     - geforcertx2080ti-full
-    - quadrortx6000-full
     - a6000-full
     - a5000-full
-    - teslav100-full
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
