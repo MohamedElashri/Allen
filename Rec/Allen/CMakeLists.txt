@@ -21,6 +21,9 @@ gaudi_add_module(AllenWrapper
                    src/AllenVeloToV2Tracks.cpp
                    src/RunAllen.cpp
                    src/TestAllenCaloDigits.cpp
+                   src/TestUTHits.cpp
+                   src/ProvideConstants.cpp
+                   src/ProvideRuntimeOptions.cpp
                  LINK
                    AllenLib
                    EventModel

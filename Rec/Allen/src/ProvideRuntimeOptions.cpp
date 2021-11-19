@@ -17,6 +17,7 @@
 
 // Allen
 #include <TESProvider.h>
+#include <ROOTService.h>
 #include <Constants.cuh>
 #include <Logger.h>
 
@@ -67,14 +68,7 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
   const size_t events_per_slice = 1;
   const unsigned event_start = 0;
   const unsigned event_end = 1;
-  auto tes_provider = std::make_shared<TESProvider<
-    BankTypes::VP,
-    BankTypes::UT,
-    BankTypes::FT,
-    BankTypes::MUON,
-    BankTypes::ODIN,
-    BankTypes::ECal,
-    BankTypes::HCal>>(n_slices, events_per_slice, event_end - event_start);
+  auto tes_provider = std::make_shared<TESProvider>(n_slices, events_per_slice, event_end - event_start);
   tes_provider->set_banks(allen_banks);
 
   // initialize RuntimeOptions

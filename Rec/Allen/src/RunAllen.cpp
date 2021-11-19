@@ -171,13 +171,7 @@ StatusCode RunAllen::initialize()
 
   m_stream->configure_algorithms(configuration_reader.params());
 
-  // Initialize input provider
-  const size_t number_of_slices = 1;
-  const size_t events_per_slice = 1;
-  const size_t n_events = 1;
-  m_tes_input_provider.reset(
-    new TESProvider(number_of_slices, events_per_slice, n_events));
-
+  m_hlt1_line_rates.reserve(m_line_names.size());
   for (unsigned i = 0; i < m_line_names.size(); ++i) {
     const std::string name = m_line_names[i] + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
@@ -202,6 +196,12 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
   const LHCb::ODIN&) const
 {
+  // Initialize input provider
+  const size_t number_of_slices = 1;
+  const size_t events_per_slice = 1;
+  const size_t n_events = 1;
+  auto provider = std::make_shared<TESProvider>(number_of_slices, events_per_slice, n_events);
+
   int rv = m_tes_input_provider->set_banks(allen_banks);
   if (rv > 0) {
     error() << "Error in reading dumped raw banks" << endmsg;
