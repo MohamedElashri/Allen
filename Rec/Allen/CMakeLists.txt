@@ -13,7 +13,7 @@ include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
                  SOURCES
-                   src/AllenDecReportsToTES.cpp
+                   src/AllenReportsToRawEvent.cpp
                    src/AllenForwardToV2Tracks.cpp
                    src/AllenPVsToRecVertexV2.cpp
                    src/TestVeloClusters.cpp
@@ -42,6 +42,8 @@ gaudi_add_module(AllenAlgorithms
                  LINK
                    AllenLib
                    EventModel
+				   MuonCommon
+				   WrapperInterface
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib

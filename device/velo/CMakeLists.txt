@@ -25,3 +25,6 @@ target_include_directories(Velo PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/search_by_triplet/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/simplified_kalman_filter/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate_tracks/include>)
+
+target_include_directories(WrapperInterface INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>)

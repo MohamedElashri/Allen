@@ -44,7 +44,7 @@ struct Config {
 namespace {
   Config s_config;
 
-  std::unique_ptr<IInputProvider> mdf;
+  std::shared_ptr<IInputProvider> mdf;
   IInputProvider* mep;
 
   size_t slice_mdf = 0, slice_mep = 0;

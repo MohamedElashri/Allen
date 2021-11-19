@@ -76,7 +76,7 @@ namespace {
 int allen(
   std::map<std::string, std::string> options,
   Allen::NonEventData::IUpdater* updater,
-  IInputProvider* input_provider,
+  std::shared_ptr<IInputProvider> input_provider,
   OutputHandler* output_handler,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
@@ -195,8 +195,6 @@ int allen(
       disable_run_changes = atoi(arg.c_str());
     }
   }
-
-  auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
 
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);
@@ -405,7 +403,7 @@ int allen(
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_slices, thread_id, zmqSvc, input_provider};
+    return std::thread {run_slices, thread_id, zmqSvc, input_provider.get()};
   };
 
   // Lambda with the execution of the output thread
@@ -1007,7 +1005,7 @@ loop_error:
   }
 
   // Print checker reports
-  checker_invoker->report(n_events_processed * number_of_repetitions);
+  checker_invoker->report(n_events_processed * io_conf.number_of_repetitions);
   checker_invoker.reset();
 
   // Print throughput measurement result

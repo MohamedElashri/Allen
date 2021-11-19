@@ -18,3 +18,6 @@ target_include_directories(UT PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/UTDecoding/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compassUT/include>)
+
+target_include_directories(WrapperInterface INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>)

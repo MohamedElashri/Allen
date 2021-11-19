@@ -48,7 +48,7 @@ Allen::IOConf Allen::io_configuration(
   return io_conf;
 }
 
-std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::string> const& options)
+std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::string> const& options)
 {
 
   unsigned number_of_slices = 0;
@@ -135,7 +135,7 @@ std::unique_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
                               events_per_slice,          // number of events per read buffer
                               io_conf.n_io_reps,         // number of loops over the input files
                               !disable_run_changes};     // Whether to split slices by run number
-    return std::make_unique<MDFProvider>(
+    return std::make_shared<MDFProvider>(
       io_conf.number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
   }
   return {};

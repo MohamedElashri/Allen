@@ -15,28 +15,30 @@ allen_add_host_library(Stream STATIC ${stream_src})
 include(GenerateConfiguration)
 
 target_include_directories(Stream PRIVATE "${PROJECT_BINARY_DIR}/code_generation/sequences/include")
-target_link_libraries(Stream PRIVATE
-  Associate
-  Velo
-  AllenPatPV
-  PV_beamline
-  HostClustering
-  HostPrefixSum
-  UT
-  Kalman
-  VertexFitter
-  Selections
-  SciFi
-  HostGEC
-  Calo
-  Muon
-  Utils
-  Examples
-  HostDataProvider
-  HostInitEventList
-  Backend
-  Validators
-  AllenCommon)
+target_link_libraries(Stream
+  PRIVATE
+    Associate
+    Velo
+    AllenPatPV
+    PV_beamline
+    HostClustering
+    HostPrefixSum
+    UT
+    Kalman
+    VertexFitter
+    SciFi
+    HostGEC
+    Calo
+    Muon
+    Examples
+    HostDataProvider
+    HostInitEventList
+    Backend
+    Validators
+    AllenCommon
+  PUBLIC
+    Utils
+    Selections)
 
 add_dependencies(Stream algorithm_db)
 

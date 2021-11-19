@@ -92,6 +92,9 @@ endif()
 
 find_package(cppgsl REQUIRED)
 
+# std::filesytem detection
+find_package(Filesystem REQUIRED)
+
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
@@ -103,9 +106,6 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
 
   find_package(PkgConfig)
   pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)  # for ZeroMQ
-
-  # std::filesytem detection
-  find_package(Filesystem)
 endif()
 
 # ROOT

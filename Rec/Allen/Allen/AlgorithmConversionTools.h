@@ -15,7 +15,7 @@
 #include <Argument.cuh>
 #include <ArgumentManager.cuh>
 #include <BankTypes.h>
-#include <AllenTypeTraits.cuh>
+#include <AllenTypeTraits.h>
 #include <GaudiKernel/StatusCode.h>
 #include <GaudiKernel/ParsersFactory.h>
 #include <GaudiKernel/StdArrayAsProperty.h>
