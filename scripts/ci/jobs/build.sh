@@ -41,7 +41,7 @@ if [ "${TARGET}" = "HIP" ]; then
   source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
   cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCES=all -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ${SOURCE_FOLDER}
 elif [ "${TARGET}" = "CUDA" ]; then
-  source_quietly /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.2/x86_64-centos7/setup.sh
+  source_quietly /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.4/x86_64-centos7/setup.sh
   cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
         -DSEQUENCES=all -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} \
         -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${SOURCE_FOLDER}
