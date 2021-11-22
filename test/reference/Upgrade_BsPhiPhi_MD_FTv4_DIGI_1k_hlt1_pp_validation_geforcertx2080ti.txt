@@ -123,7 +123,7 @@ Hlt1ODINLumi:              0           0
 Hlt1ODINNoBias:            0           0
 Hlt1Passthrough:        1000           0
 RICH1Line:                 4           5
-RICH1Line:                 1           1
+RICH2Line:                 1           1
 
 Total decisions: 3139
 Total tracks:    1773
