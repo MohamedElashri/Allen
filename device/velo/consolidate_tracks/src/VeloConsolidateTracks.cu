@@ -191,7 +191,7 @@ void velo_consolidate_tracks::lhcb_id_container_checks::operator()(
     const auto event_tracks_offset = dev_offsets_all_velo_tracks[event_number];
     const auto event_number_of_tracks = dev_offsets_all_velo_tracks[event_number + 1] - event_tracks_offset;
 
-    for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
+    for (unsigned track_index = 0; track_index < event_number_of_tracks; ++track_index) {
       velo_track_view.emplace_back(
         Allen::Views::Velo::Consolidated::Track {velo_hits_view.data(),
                                                  dev_offsets_all_velo_tracks.data(),
