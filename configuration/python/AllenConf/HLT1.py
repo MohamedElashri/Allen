@@ -5,7 +5,7 @@ from AllenConf.utils import initialize_number_of_events, mep_layout, gec
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_two_track_catboost_line, make_kstopipi_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
-from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line
+from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
 
@@ -195,6 +195,11 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "rich 1 line",
             make_rich_1_line(hlt1_reconstruction()),
+            enableGEC=False))
+    lines.append(
+        line_maker(
+            "rich 2 line",
+            make_rich_2_line(hlt1_reconstruction()),
             enableGEC=False))
 
     return lines
