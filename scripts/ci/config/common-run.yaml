@@ -9,13 +9,13 @@
       # run_throughput tests
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_1k"]
-
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster"]
+ 
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster"]
 
 
 .run_matrix_jobs_full:
@@ -33,59 +33,53 @@
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_no_gec"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_1k"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster"]
 
       # run throughput, default, SMOG2_pppHe
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["SMOG2_pppHe_1k"]
+        DATA_TAG: ["SMOG2_pppHe_retinacluster"]
         GEOMETRY: ["smog"]
 
       # retina clustering jobs
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_retina_cluster_scifi_v6"]
-        DATA_TAG: ["minbias_2019_retinacluster_mdf"]
-        GEOMETRY: ["scifi_v6"]
-        
-      - TEST_NAME: "run_throughput"
-        BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_scifi_v6"]
-        DATA_TAG: ["minbias_2019_retinacluster_mdf"]
-        GEOMETRY: ["scifi_v6"]
-        
-      - TEST_NAME: "run_throughput"
-        BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_scifi_v6"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMU_1k"]
+        SEQUENCE:
+          - hlt1_pp_retina_cluster_scifi_v6
+          - hlt1_pp_scifi_v6
+          - hlt1_pp_veloSP_scifi_v6
+
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMU_retinacluster"]
         GEOMETRY: ["scifi_v6"]
 
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_validation_retina_cluster_scifi_v6"]
-        DATA_TAG: ["bsphiphi_2019_retinacluster_mdf"]
+        SEQUENCE:
+          - hlt1_pp_validation_retina_cluster_scifi_v6
+          - hlt1_pp_veloSP_scifi_v6_validation
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster"]
         GEOMETRY: ["scifi_v6"]
 
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_1k"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster"]
         GEOMETRY: ["scifi_v6"]
 
       # run physics efficiency, scifi_v6
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster"]
         GEOMETRY: ["scifi_v6"]
 
       # efficiency tests, SMOG2 pHe
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: ["SMOG2_pHe_5k"]
+        DATA_TAG: ["SMOG2_pHe_5k_retinacluster"]
         GEOMETRY: ["smog"]
 
       # FIXME
@@ -93,7 +87,7 @@
       #   BUILD_TYPE: ["Debug"]
       #   OPTIONS: ["USE_ROOT"]
       #   SEQUENCE: ["hlt1_pp_validation"]
-      #   DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
+      #   DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster"]
 
       - TEST_NAME: "run_built_tests"
         BUILD_TYPE: [RelWithDebInfo, Debug]
@@ -104,11 +98,11 @@
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_complex_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster"]
 
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01"]
+        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster"]
         GEOMETRY: ["sim10_up08_md"]
 
 
@@ -160,7 +154,7 @@
     matrix:
       - TEST_NAME: "run_toggle_run_changes"
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_1k"
+        DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster"
         RUN_CHANGES: ["ON", "OFF"]
   artifacts:
     expire_in: 1 day

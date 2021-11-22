@@ -7,9 +7,9 @@ variables:
   TARGET_BRANCH: master
 
   ALLEN_DATA: "/scratch/allen_data"
-  LCG_VERSION: "LCG_99"
+  LCG_VERSION: "LCG_101"
 
-  PROFILE_DEVICE: "a40"
+  PROFILE_DEVICE: "a5000"
   RUN_THROUGHPUT_OPTIONS_CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
   RUN_THROUGHPUT_OPTIONS_CUDA: "-n 500 -m 500 -r 1000 -t 16"
   RUN_THROUGHPUT_OPTIONS_HIP: "-n 5000 --events-per-slice 5000 -m 3000 -t 10 -r 1000"
@@ -20,7 +20,6 @@ variables:
 stages:
   - check            # Ensures the CI environment is valid
   - build docker
-  - test build       # Test one build before launching other jobs
   - build
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software

@@ -38,28 +38,6 @@
       - LCG_ARCHITECTURE: [x86_64-centos7-clang12-opt]
         OPTIONS: ["USE_ROOT"]
         BUILD_TYPE: Debug
-        SEQUENCE: [hlt1_pp_validation]
-
-      # build job with sequence generation disabled
-      - LCG_ARCHITECTURE:
-          - x86_64-centos7-clang10-opt
-        BUILD_TYPE: Debug
-        OPTIONS:
-          - "BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+SEQUENCE_GENERATION=OFF"
-        SEQUENCE: hlt1_pp_default
-
-
-      # no_gec, scifiv6 and other builds
-      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
-        BUILD_TYPE: RelWithDebInfo
-        SEQUENCE:
-          - hlt1_pp_no_gec
-          - hlt1_pp_no_gec_validation
-          - hlt1_pp_scifi_v6
-          - hlt1_pp_scifi_v6_validation
-          - hlt1_complex_validation
-          - hlt1_pp_retina_cluster_scifi_v6
-          - hlt1_pp_validation_retina_cluster_scifi_v6
 
 .build_job:
   extends: .base_job

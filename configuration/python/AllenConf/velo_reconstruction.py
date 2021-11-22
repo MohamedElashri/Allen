@@ -14,7 +14,7 @@ from PyConf.tonic import configurable
 
 
 @configurable
-def decode_velo(retina_decoding=False):
+def decode_velo(retina_decoding=True):
     number_of_events = initialize_number_of_events()
     if retina_decoding:
         velo_retina_banks = make_algorithm(
