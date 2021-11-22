@@ -2,7 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import (d2kpi_line_t, passthrough_line_t,
-                                  rich_1_line_t)
+                                  rich_1_line_t, rich_2_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -79,5 +79,14 @@ def make_rich_1_line(reconstructed_objects,
                      post_scaler_hash_string="rich_1_line_post",
                      name="Hlt1RICH1Alignment"):
     return make_rich_line(rich_1_line_t, reconstructed_objects,
+                          pre_scaler_hash_string, post_scaler_hash_string,
+                          name)
+
+
+def make_rich_2_line(reconstructed_objects,
+                     pre_scaler_hash_string="rich_2_line_pre",
+                     post_scaler_hash_string="rich_2_line_post",
+                     name="RICH1Line"):
+    return make_rich_line(rich_2_line_t, reconstructed_objects,
                           pre_scaler_hash_string, post_scaler_hash_string,
                           name)
