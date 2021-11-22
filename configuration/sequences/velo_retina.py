@@ -4,7 +4,7 @@
 from AllenConf.velo_reconstruction import velo_tracking
 from AllenConf.utils import gec
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenCore.event_list_utils import generate
+from AllenCore.generator import generate
 from AllenConf.velo_reconstruction import decode_velo
 
 with decode_velo.bind(retina_decoding="True"):
