@@ -17,12 +17,14 @@
 #ifndef ALLENSVSTORECVERTEXV2_H
 #define ALLENSVSTORECVERTEXV2_H
 
+#include <sstream>
+
 // Gaudi
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
 
 // LHCb
-#include "Event/Track.h"
+#include "Event/Track_v2.h"
 #include "Event/RecVertex_v2.h"
 
 // Allen
@@ -54,7 +56,7 @@ AllenSVsToRecVertexV2::AllenSVsToRecVertexV2(const std::string& name, ISvcLocato
     name,
     pSvcLocator,
     // Inputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}, KeyValue {"OutputTracks", "Allen/Out/ForwardTracks"}},
+    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}, KeyValue {"InputTracks", "Allen/Out/ForwardTracks"}},
     // Outputs
     {KeyValue {"OutputSVs", "Allen/Out/RecVertex"}})
 {}
@@ -69,14 +71,32 @@ LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
   const HostBuffers& host_buffers,
   const std::vector<LHCb::Event::v2::Track>& tracks) const
 {
+  // Check number of tracks
   const unsigned i_event = 0;
-  const unsigned n_svs = host_buffers.host_number_of_svs[i_event];
+  const unsigned ev_n_trk = host_buffers.host_atomics_scifi[i_event + 1] - host_buffers.host_atomics_scifi[i_event];
+  if (ev_n_trk != tracks.size()) {
+    std::ostringstream oss;
+    oss << "Mismatch in number of input tracks, needed " << ev_n_trk << " but the provided track container has "
+        << tracks.size() << "\n";
+    oss << "Check the data passsed to  InputTracks";
+    throw GaudiException(oss.str(), this->name(), StatusCode::FAILURE);
+  }
+
+  const unsigned sv_offset = host_buffers.host_sv_offsets[i_event];
+  const unsigned n_svs = host_buffers.host_sv_offsets[i_event + 1] - sv_offset;
+  VertexFit::TrackMVAVertex* event_svs = host_buffers.host_secondary_vertices + sv_offset;
+
+  if (msgLevel(MSG::DEBUG)) {
+    debug() << "Number of SVs to convert = " << n_svs << endmsg;
+    debug() << "Number of input tracks = " << tracks.size() << endmsg;
+  }
 
   LHCb::Event::v2::RecVertices sv_container;
   sv_container.reserve(n_svs);
 
   for (unsigned int i = 0; i < n_svs; i++) {
-    const VertexFit::TrackMVAVertex& sv = host_buffers.host_secondary_vertices[i];
+    if (msgLevel(MSG::DEBUG)) debug() << "  Processing SV " << i << endmsg;
+    const VertexFit::TrackMVAVertex& sv = event_svs[i];
     Gaudi::SymMatrix3x3 poscov;
     poscov(0, 0) = sv.cov00;
     poscov(1, 0) = sv.cov10;
@@ -88,6 +108,7 @@ LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
     auto& new_sv = sv_container.emplace_back(position, poscov, LHCb::Event::v2::Track::Chi2PerDoF {sv.chi2 / 2, 2});
     const unsigned i_trackA = sv.trk1;
     const unsigned i_trackB = sv.trk2;
+    if (msgLevel(MSG::DEBUG)) debug() << "    Track indexes " << i_trackA << ", " << i_trackB << endmsg;
     new_sv.addToTracks(&tracks[i_trackA], 0.f);
     new_sv.addToTracks(&tracks[i_trackB], 0.f);
   }
