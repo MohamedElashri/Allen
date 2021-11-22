@@ -95,9 +95,13 @@ if(ALWAYS_DISPATCH_TO_DEFAULT)
   add_compile_definitions(ALWAYS_DISPATCH_TO_DEFAULT)
 endif()
 
+
 # General CMAKE CXX FLAGS option
 if(TREAT_WARNINGS_AS_ERRORS)
   message(STATUS "Treating compiler warnings as errors")
+  if (TARGET_DEVICE STREQUAL "CUDA")
+    string(APPEND CMAKE_CUDA_FLAGS " -Xcompiler=-Werror")
+  endif()
   string(APPEND CMAKE_CXX_FLAGS " -Werror")
 endif()
 
