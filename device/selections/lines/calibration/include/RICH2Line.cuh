@@ -79,6 +79,7 @@ namespace rich_2_line {
   // SelectionAlgorithm definition
   struct rich_2_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<rich_2_line_t, Parameters> {
 
+    __device__ static __host__ KalmanFloat trackPhi(const ParKalmanFilter::FittedTrack& track) {return atan2f(track.py(), track.px());}
     // Selection helper
     __device__ static bool passes(const ParKalmanFilter::FittedTrack& track, const Parameters& parameters);
 

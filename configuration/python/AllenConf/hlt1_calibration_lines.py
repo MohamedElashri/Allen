@@ -86,7 +86,7 @@ def make_rich_1_line(reconstructed_objects,
 def make_rich_2_line(reconstructed_objects,
                      pre_scaler_hash_string="rich_2_line_pre",
                      post_scaler_hash_string="rich_2_line_post",
-                     name="RICH1Line"):
+                     name="RICH2Line"):
     return make_rich_line(rich_2_line_t, reconstructed_objects,
                           pre_scaler_hash_string, post_scaler_hash_string,
                           name)
