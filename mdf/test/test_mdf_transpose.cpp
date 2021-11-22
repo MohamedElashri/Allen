@@ -128,7 +128,10 @@ mdf_read_sizes(
 
     for (auto bt : bank_types) {
       auto lhcb_type = bank_ids[to_integral(bt)];
-      auto offsets_size = (1 + banks_count[lhcb_type]) * sizeof(uint32_t);
+      // Count words in Allen layout so extra word for number of
+      // banks, then n_banks + 1 for bank offsets, then each bank has
+      // an extra word containing the source ID.
+      auto offsets_size = (2 + 2 * banks_count[lhcb_type]) * sizeof(uint32_t);
       sizes[bt].push_back(sizes[bt][i_event] + offsets_size + bank_sizes[bt]);
       max_size = std::max(sizes[bt].back() + bank_span.size(), max_size);
     }
