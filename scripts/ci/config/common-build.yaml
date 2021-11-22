@@ -42,7 +42,7 @@
 
       # build job with sequence generation disabled
       - LCG_ARCHITECTURE:
-          - x86_64-centos7-clang10-opt
+          - x86_64-centos7-clang12-opt
         BUILD_TYPE: Debug
         OPTIONS:
           - "BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+SEQUENCE_GENERATION=OFF"
@@ -50,7 +50,7 @@
 
 
       # no_gec, scifiv6 and other builds
-      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
+      - LCG_ARCHITECTURE: x86_64-centos7-clang12-opt
         BUILD_TYPE: RelWithDebInfo
         SEQUENCE:
           - hlt1_pp_no_gec
