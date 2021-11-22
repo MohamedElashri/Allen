@@ -13,14 +13,6 @@
 #include <ROOTService.h>
 #include <random>
 
-/*
- * Azimuthal angle phi of a track
- */
-__device__ __host__ KalmanFloat trackPhi(const ParKalmanFilter::FittedTrack& track)
-{
-  return atan2f(track.py(), track.px());
-}
-
 // Explicit instantiation of the line
 INSTANTIATE_LINE(rich_2_line::rich_2_line_t, rich_2_line::Parameters)
 
