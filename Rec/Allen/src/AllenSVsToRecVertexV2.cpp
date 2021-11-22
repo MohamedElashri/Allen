@@ -97,20 +97,25 @@ LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
   for (unsigned int i = 0; i < n_svs; i++) {
     if (msgLevel(MSG::DEBUG)) debug() << "  Processing SV " << i << endmsg;
     const VertexFit::TrackMVAVertex& sv = event_svs[i];
-    Gaudi::SymMatrix3x3 poscov;
-    poscov(0, 0) = sv.cov00;
-    poscov(1, 0) = sv.cov10;
-    poscov(1, 1) = sv.cov11;
-    poscov(2, 0) = sv.cov20;
-    poscov(2, 1) = sv.cov21;
-    poscov(2, 2) = sv.cov22;
-    Gaudi::XYZPoint position {sv.x, sv.y, sv.z};
-    auto& new_sv = sv_container.emplace_back(position, poscov, LHCb::Event::v2::Track::Chi2PerDoF {sv.chi2 / 2, 2});
-    const unsigned i_trackA = sv.trk1;
-    const unsigned i_trackB = sv.trk2;
-    if (msgLevel(MSG::DEBUG)) debug() << "    Track indexes " << i_trackA << ", " << i_trackB << endmsg;
-    new_sv.addToTracks(&tracks[i_trackA], 0.f);
-    new_sv.addToTracks(&tracks[i_trackB], 0.f);
+    if (sv.chi2 > 0) { // Check successful vertex fit
+      Gaudi::SymMatrix3x3 poscov;
+      poscov(0, 0) = sv.cov00;
+      poscov(1, 0) = sv.cov10;
+      poscov(1, 1) = sv.cov11;
+      poscov(2, 0) = sv.cov20;
+      poscov(2, 1) = sv.cov21;
+      poscov(2, 2) = sv.cov22;
+      Gaudi::XYZPoint position {sv.x, sv.y, sv.z};
+      auto& new_sv = sv_container.emplace_back(position, poscov, LHCb::Event::v2::Track::Chi2PerDoF {sv.chi2 / 2, 2});
+      const unsigned i_trackA = sv.trk1;
+      const unsigned i_trackB = sv.trk2;
+      if (msgLevel(MSG::DEBUG)) debug() << "    Track indexes " << i_trackA << ", " << i_trackB << endmsg;
+      new_sv.addToTracks(&tracks[i_trackA], 0.f);
+      new_sv.addToTracks(&tracks[i_trackB], 0.f);
+    }
+    else if (msgLevel(MSG::DEBUG)) {
+      debug() << "    Skipping, invalid chi2 = " << sv.chi2 << endmsg;
+    }
   }
 
   return sv_container;
