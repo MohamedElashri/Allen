@@ -94,6 +94,7 @@ Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:        4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1RICH2Alignment:        1/  1000, (   30.00 +/-    59.88) kHz
 Inclusive:              1000/  1000, (30000.00 +/-     0.00) kHz
 
 
@@ -124,9 +125,10 @@ Hlt1ODINLumi:              0           0
 Hlt1ODINNoBias:            0           0
 Hlt1Passthrough:        1000           0
 Hlt1RICH1Alignment:        4           5
+Hlt1RICH2Alignment:        1           1
 
-Total decisions: 3146
-Total tracks:    1785
+Total decisions: 3147
+Total tracks:    1786
 Total SVs:       1405
-Total hits:      44128
-Total stdinfo:   23046
+Total hits:      44153
+Total stdinfo:   23055
