@@ -125,7 +125,7 @@ void rich_1_line::rich_1_line_t::output_monitor(
 
   auto handler = runtime_options.root_service->handle();
 
-  handler.file("monitor.root");
+  handler.file("rich1_align_monitor.root");
 
   auto tree = handler.ttree(name_ttree.c_str());
 
