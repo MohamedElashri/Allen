@@ -580,15 +580,9 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 allen_add_host_library(HostCommon STATIC ${common_sources})
 
 target_link_libraries(AllenCommon INTERFACE
-  mdf AllenFS nlohmann_json::nlohmann_json)
+  mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
   EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent)
-
-if (NOT STANDALONE)
-  target_link_libraries(AllenCommon INTERFACE cppgsl::cppgsl)
-else()
-  target_include_directories(AllenCommon SYSTEM INTERFACE ${CPPGSL_INCLUDE_DIR})
-endif()
 
 allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
 
