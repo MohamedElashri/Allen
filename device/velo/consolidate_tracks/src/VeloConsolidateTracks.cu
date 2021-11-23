@@ -169,7 +169,48 @@ void velo_consolidate_tracks::lhcb_id_container_checks::operator()(
   const Constants&,
   const Allen::Context&) const
 {
-  const auto velo_multi_event_tracks_view = make_vector<Parameters::dev_velo_multi_event_tracks_view_t>(arguments);
+  const unsigned number_of_events = first<Parameters::host_number_of_events_t>(arguments);
+
+  // Create velo hits views
+  const auto dev_velo_track_hits = make_vector<Parameters::dev_velo_track_hits_t>(arguments);
+  const auto dev_offsets_all_velo_tracks = make_vector<Parameters::dev_offsets_all_velo_tracks_t>(arguments);
+  const auto dev_offsets_velo_track_hit_number =
+    make_vector<Parameters::dev_offsets_velo_track_hit_number_t>(arguments);
+  std::vector<Allen::Views::Velo::Consolidated::Hits> velo_hits_view;
+  for (unsigned event_number = 0; event_number < number_of_events; ++event_number) {
+    velo_hits_view.emplace_back(Allen::Views::Velo::Consolidated::Hits {dev_velo_track_hits.data(),
+                                                                        dev_offsets_all_velo_tracks.data(),
+                                                                        dev_offsets_velo_track_hit_number.data(),
+                                                                        event_number,
+                                                                        number_of_events});
+  }
+
+  // Create velo track views
+  std::vector<Allen::Views::Velo::Consolidated::Track> velo_track_view;
+  for (unsigned event_number = 0; event_number < number_of_events; ++event_number) {
+    const auto event_tracks_offset = dev_offsets_all_velo_tracks[event_number];
+    const auto event_number_of_tracks = dev_offsets_all_velo_tracks[event_number + 1] - event_tracks_offset;
+
+    for (unsigned track_index = 0; track_index < event_number_of_tracks; ++track_index) {
+      velo_track_view.emplace_back(Allen::Views::Velo::Consolidated::Track {velo_hits_view.data(),
+                                                                            dev_offsets_all_velo_tracks.data(),
+                                                                            dev_offsets_velo_track_hit_number.data(),
+                                                                            track_index,
+                                                                            event_number});
+    }
+  }
+
+  // Create velo tracks view
+  std::vector<Allen::Views::Velo::Consolidated::Tracks> velo_tracks_view;
+  for (unsigned event_number = 0; event_number < number_of_events; ++event_number) {
+    velo_tracks_view.emplace_back(Allen::Views::Velo::Consolidated::Tracks {
+      velo_track_view.data(), dev_offsets_all_velo_tracks.data(), event_number});
+  }
+
+  // Create velo multi event tracks view
+  std::vector<Allen::Views::Velo::Consolidated::MultiEventTracks> velo_multi_event_tracks_view;
+  velo_multi_event_tracks_view.emplace_back(
+    Allen::Views::Velo::Consolidated::MultiEventTracks {velo_tracks_view.data(), number_of_events});
   const Allen::IMultiEventLHCbIDContainer* multiev_id_cont =
     reinterpret_cast<const Allen::IMultiEventLHCbIDContainer*>(velo_multi_event_tracks_view.data());
 
