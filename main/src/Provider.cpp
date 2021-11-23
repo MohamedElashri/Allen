@@ -11,6 +11,60 @@
 #include <FileWriter.h>
 #include <ZMQOutputSender.h>
 
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+#else
+#include <filesystem>
+#endif
+
+namespace {
+#ifdef USE_BOOST_FILESYSTEM
+  namespace fs = boost::filesystem;
+#else
+  namespace fs = std::filesystem;
+#endif
+} // namespace
+
+std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::string> const& options)
+{
+  std::string json_configuration_file = "Sequence.json";
+  // Sequence to run
+  std::string sequence = "hlt1_pp_default";
+
+  bool run_from_json = false;
+
+  for (auto const& entry : options) {
+    auto [flag, arg] = entry;
+    if (flag_in(flag, {"sequence"})) {
+      sequence = arg;
+    }
+    else if (flag_in(flag, {"run-from-json"})) {
+      run_from_json = atoi(arg.c_str());
+    }
+  }
+
+  // Determine configuration
+  if (run_from_json) {
+    if (fs::exists(sequence)) {
+      json_configuration_file = sequence;
+    }
+    else {
+      json_configuration_file = sequence + ".json";
+    }
+  }
+  else {
+    int error =
+      system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py")
+               .c_str());
+    if (error) {
+      throw std::runtime_error("sequence generation failed");
+    }
+    info_cout << "\n";
+  }
+
+  return {json_configuration_file, run_from_json};
+}
+
 Allen::IOConf Allen::io_configuration(
   unsigned number_of_slices,
   unsigned number_of_repetitions,
@@ -65,9 +119,6 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   unsigned n_repetitions = 1;
   unsigned number_of_threads = 1;
 
-  // Bank types
-  std::unordered_set<BankTypes> bank_types;
-
   std::string flag, arg;
 
   // Use flags to populate variables in the program
@@ -99,18 +150,6 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
     else if (flag_in(flag, {"events-per-slice"})) {
       events_per_slice = atoi(arg.c_str());
     }
-    else if (flag_in(flag, {"b", "bank-types"})) {
-      for (auto name : split_string(arg, ",")) {
-        auto const bt = bank_type(name);
-        if (bt == BankTypes::Unknown) {
-          error_cout << "Unknown bank type " << name << "requested.\n";
-          return std::unique_ptr<IInputProvider> {};
-        }
-        else {
-          bank_types.emplace(bt);
-        }
-      }
-    }
     else if (flag_in(flag, {"disable-run-changes"})) {
       disable_run_changes = atoi(arg.c_str());
     }
@@ -125,7 +164,26 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
     n_events = number_of_events_requested;
   }
 
+  auto const [json_file, run_from_json] = Allen::sequence_conf(options);
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
+
+  // Bank types
+  std::unordered_set<BankTypes> bank_types;
+  ConfigurationReader configuration_reader {json_file};
+  auto const& configuration = configuration_reader.params();
+  for (auto const& [key, props] : configuration) {
+    auto it = props.find("bank_type");
+    if (it != props.end()) {
+      auto type = it->second;
+      auto const bt = bank_type(type);
+      if (bt == BankTypes::Unknown) {
+        error_cout << "Unknown bank type " << type << "requested.\n";
+      }
+      else {
+        bank_types.emplace(bt);
+      }
+    }
+  }
 
   if (!mdf_input.empty()) {
     MDFProviderConfig config {false,                     // verify MDF checksums
@@ -147,15 +205,11 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
   std::map<std::string, std::string> const& options)
 {
   std::string output_file;
-  std::string json_file = "Sequence.json";
-  std::string flag, arg;
+  auto const [json_file, run_from_json] = Allen::sequence_conf(options);
 
   for (auto const& entry : options) {
-    std::tie(flag, arg) = entry;
-    if (flag_in(flag, {"configuration"})) {
-      json_file = arg;
-    }
-    else if (flag_in(flag, {"output-file"})) {
+    auto const [flag, arg] = entry;
+    if (flag_in(flag, {"output-file"})) {
       output_file = arg;
     }
   }

@@ -26,6 +26,8 @@ namespace Allen {
     unsigned n_io_reps = 0;
   };
 
+  std::tuple<std::string, bool> sequence_conf(std::map<std::string, std::string> const& options);
+
   std::shared_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);
 
   std::unique_ptr<OutputHandler> output_handler(

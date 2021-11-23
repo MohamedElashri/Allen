@@ -84,9 +84,6 @@ int allen(
   // Folder containing detector configuration and mva models
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string folder_parameters = "../input/parameters/";
-  std::string json_configuration_file = "Sequence.json";
-  // Sequence to run
-  std::string sequence;
 
   unsigned n_slices = 0;
   unsigned number_of_buffers = 0;
@@ -108,7 +105,6 @@ int allen(
   uint mon_save_period = 0;
   std::string mon_filename;
   bool disable_run_changes = 0;
-  bool run_from_json = false;
 
   std::string flag, arg;
 
@@ -153,12 +149,6 @@ int allen(
     else if (flag_in(flag, {"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
     }
-    else if (flag_in(flag, {"sequence"})) {
-      sequence = arg;
-    }
-    else if (flag_in(flag, {"run-from-json"})) {
-      run_from_json = atoi(arg.c_str());
-    }
     else if (flag_in(flag, {"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
     }
@@ -201,6 +191,7 @@ int allen(
   logger::setVerbosity(verbosity);
 
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
+  auto const [json_configuration_file, run_from_json] = Allen::sequence_conf(options);
 
 #ifdef TARGET_DEVICE_CUDA
   // For CUDA targets, set the maximum number of connections environment variable
@@ -217,20 +208,6 @@ int allen(
 
   // Show call options
   print_call_options(options, device_name);
-
-  // Determine configuration
-  if (run_from_json) {
-    json_configuration_file = sequence + ".json";
-  }
-  else {
-    int error =
-      system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py")
-               .c_str());
-    if (error) {
-      throw std::runtime_error("sequence generation failed");
-    }
-    info_cout << "\n";
-  }
 
   number_of_buffers = number_of_threads + n_mon + 1;
 

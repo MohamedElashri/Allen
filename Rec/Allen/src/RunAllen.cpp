@@ -171,7 +171,6 @@ StatusCode RunAllen::initialize()
 
   m_stream->configure_algorithms(configuration_reader.params());
 
-  m_hlt1_line_rates.reserve(m_line_names.size());
   for (unsigned i = 0; i < m_line_names.size(); ++i) {
     const std::string name = m_line_names[i] + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
