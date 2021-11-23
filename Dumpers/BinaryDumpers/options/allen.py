@@ -60,10 +60,7 @@ parser.add_argument(
     dest="mdf",
     default=os.path.join(allen_dir, "input", "minbias", "mdf",
                          "upgrade_mc_minbias_scifi_v5.mdf"))
-parser.add_argument(
-    "--mep",
-    dest="mep",
-    default=None)
+parser.add_argument("--mep", dest="mep", default=None)
 parser.add_argument(
     "--reuse-meps",
     action="store_true",
@@ -120,7 +117,6 @@ default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
                                      'constants', args.sequence + '.json')
 if args.configuration is None:
     args.configuration = default_configuration
-
 
 runtime_lib = None
 if args.profile == "CUDA":
@@ -181,15 +177,12 @@ updater = cast_service(gbl.Allen.NonEventData.IUpdater, svc)
 # options map
 options = gbl.std.map("std::string", "std::string")()
 for flag, value in [("g", args.det_folder), ("params", args.param_folder),
-                    ("n", args.n_events),
-                    ("t", args.threads), ("r", args.repetitions),
-                    ("output-file", args.output_file),
+                    ("n", args.n_events), ("t", args.threads),
+                    ("r", args.repetitions), ("output-file", args.output_file),
                     ("m", args.reserve), ("v", args.verbosity),
-                    ("p", args.print_memory),
-                    ("sequence", args.sequence),
+                    ("p", args.print_memory), ("sequence", args.sequence),
                     ("s", args.slices), ("mdf", args.mdf),
-                    ("b", args.bank_types),
-                    ("cpu-offload", args.cpu_offload),
+                    ("b", args.bank_types), ("cpu-offload", args.cpu_offload),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),

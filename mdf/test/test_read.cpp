@@ -85,8 +85,8 @@ int main(int argc, char* argv[])
       }
     }
 
-    cout << "Event " << std::setw(7) << i_event << "; header size: "
-         << header_size << "; bank total size: " << bank_total_size << "\n";
+    cout << "Event " << std::setw(7) << i_event << "; header size: " << header_size
+         << "; bank total size: " << bank_total_size << "\n";
     cout << "Type | #Banks\n";
     for (size_t i = 0; i < bank_counts.size(); ++i) {
       if (bank_counts[i] != 0) {

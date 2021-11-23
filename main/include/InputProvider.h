@@ -51,8 +51,10 @@ public:
    *
    * @return     event ids
    */
-  virtual EventIDs event_ids(size_t slice_index, std::optional<size_t> first = std::nullopt, std::optional<size_t> last = std::nullopt)
-    const = 0;
+  virtual EventIDs event_ids(
+    size_t slice_index,
+    std::optional<size_t> first = std::nullopt,
+    std::optional<size_t> last = std::nullopt) const = 0;
 
   /**
    * @brief      Indicate a slice is free for filling
@@ -68,7 +70,8 @@ public:
    *
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
-  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> timeout = std::nullopt) = 0;
+  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
+    std::optional<unsigned int> timeout = std::nullopt) = 0;
 
   /**
    * @brief      Get banks and offsets of a given type

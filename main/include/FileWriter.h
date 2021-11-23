@@ -31,10 +31,7 @@ protected:
     return {0, gsl::span {&m_buffer[0], static_cast<events_size>(buffer_size)}};
   }
 
-  virtual bool write_buffer(size_t) override
-  {
-    return m_output.write(m_buffer.data(), m_buffer.size());
-  }
+  virtual bool write_buffer(size_t) override { return m_output.write(m_buffer.data(), m_buffer.size()); }
 
 private:
   // Output filename

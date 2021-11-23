@@ -33,7 +33,6 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   // size of the DecReport RawBank
   const unsigned dec_report_size = (m_nlines + 2) * sizeof(uint32_t);
 
-
   // m_sizes will contain the total size of all banks in the event
   std::vector<unsigned> selected_events;
   selected_events.reserve(selected_events_bool.size());

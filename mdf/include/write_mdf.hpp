@@ -9,7 +9,8 @@ namespace Allen {
   constexpr int mdf_header_version = 3;
   constexpr unsigned bank_alignment = sizeof(unsigned);
 
-  inline size_t padded_bank_size(size_t const bank_size) {
+  inline size_t padded_bank_size(size_t const bank_size)
+  {
     return bank_size + (bank_alignment - (bank_size % bank_alignment)) % bank_alignment;
   }
 
@@ -19,4 +20,4 @@ namespace Allen {
     short const sourceID,
     gsl::span<char const> fragment,
     char* buffer);
-}
+} // namespace Allen

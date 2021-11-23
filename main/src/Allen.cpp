@@ -323,8 +323,8 @@ int allen(
   }
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffers_manager = std::make_unique<HostBuffersManager>(
-    number_of_buffers, input_provider->events_per_slice(), n_lines, error_line);
+  std::unique_ptr<HostBuffersManager> buffers_manager =
+    std::make_unique<HostBuffersManager>(number_of_buffers, input_provider->events_per_slice(), n_lines, error_line);
 
   if (print_status) {
     buffers_manager->printStatus();
@@ -408,8 +408,7 @@ int allen(
 
   // Lambda with the execution of the output thread
   const auto output_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {
-      run_output, thread_id, zmqSvc, output_handler, buffers_manager.get()};
+    return std::thread {run_output, thread_id, zmqSvc, output_handler, buffers_manager.get()};
   };
 
   // Lambda with the execution of the monitoring thread
