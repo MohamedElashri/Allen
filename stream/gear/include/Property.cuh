@@ -81,9 +81,9 @@ namespace Allen {
         if (std::distance(digits_begin, digits_end) != N) {
           throw StrException {"Failed to parse from string, array size mismatch."};
         }
-        int idx = 0;
-        for (auto i = digits_begin; i != digits_end; ++i) {
-          output[idx++] = ConvertorFromString<T>::convert(i->str());
+        auto i = digits_begin;
+        for (std::size_t idx = 0; idx < N; ++idx, ++i) {
+          output[idx] = ConvertorFromString<T>::convert(i->str());
         }
         return output;
       }
