@@ -474,7 +474,7 @@ if (USE_KALMAN_DOUBLE_PRECISION)
 endif()
 
 # Determine which sequences to generate or copy configurations for
-file(GLOB available_sequences "configuration/sequences/*.py")
+file(GLOB available_sequences "configuration/sequences/*.py" CONFIGURE_DEPENDS)
 set(BUILD_SEQUENCES "")
 foreach(sequence_filename ${available_sequences})
   get_filename_component(sequence ${sequence_filename} NAME_WE)
@@ -505,23 +505,6 @@ add_subdirectory(integration)
 add_subdirectory(zmq)
 add_subdirectory(stream)
 
-#Main Allen executable
-file(GLOB common_sources "main/src/*.cpp")
-set(allen_lib_sources)
-
-#Remove main.cpp from common_sources
-foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender Provider RegisterConsumers)
-  get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
-  list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
-endforeach()
-
-set(allen_lib_sources
-  ${Allen_cpp_path}
-  ${AllenThreads_cpp_path}
-  ${OutputHandler_cpp_path}
-  ${ZMQOutputSender_cpp_path}
-  ${Provider_cpp_path}
-  ${RegisterConsumers_cpp_path})
 
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
@@ -576,15 +559,34 @@ endif()
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
+
+
 # Add host library
-allen_add_host_library(HostCommon STATIC ${common_sources})
+allen_add_host_library(HostCommon STATIC
+  main/src/BankTypes.cpp
+  main/src/CheckVP.cpp
+  main/src/InputReader.cpp
+  main/src/InputTools.cpp
+  main/src/Logger.cpp
+  main/src/ProgramOptions.cpp
+  main/src/ROOTService.cpp
+  main/src/SliceUtils.cpp
+  main/src/Timer.cpp
+  main/src/Tools.cpp
+  main/src/Transpose.cpp)
 
 target_link_libraries(AllenCommon INTERFACE
   mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
   EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent)
 
-allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
+allen_add_host_library(AllenLib SHARED
+  main/src/Allen.cpp
+  main/src/AllenThreads.cpp
+  main/src/OutputHandler.cpp
+  main/src/Provider.cpp
+  main/src/RegisterConsumers.cpp
+  main/src/ZMQOutputSender.cpp)
 
 target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
 

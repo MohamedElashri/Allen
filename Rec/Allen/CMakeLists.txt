@@ -64,7 +64,7 @@ target_include_directories(AllenAlgorithms PRIVATE Allen)
 add_custom_target(gaudi_wrappers_of_allen_algorithms DEPENDS ${WRAPPED_ALGORITHM_SOURCES})
 add_dependencies(AllenAlgorithms gaudi_wrappers_of_allen_algorithms)
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
+if(CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()
 target_compile_definitions(AllenWrapper PRIVATE -D${TARGET_DEFINITION})
