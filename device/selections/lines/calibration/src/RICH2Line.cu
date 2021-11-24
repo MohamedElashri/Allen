@@ -28,7 +28,8 @@ void rich_2_line::rich_2_line_t::set_arguments_size(
   set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
   set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
   set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
-  set_size<typename Parameters::dev_selected_events_t>(arguments, first<typename Parameters::host_number_of_events_t>(arguments));
+  set_size<typename Parameters::dev_selected_events_t>(
+    arguments, first<typename Parameters::host_number_of_events_t>(arguments));
   set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
   set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
 
