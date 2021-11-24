@@ -17,7 +17,7 @@ void global_decision::global_decision_t::set_arguments_size(
 
 void global_decision::global_decision_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
   const Allen::Context& context) const

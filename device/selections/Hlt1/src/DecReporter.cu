@@ -21,7 +21,7 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
 
 void dec_reporter::dec_reporter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
