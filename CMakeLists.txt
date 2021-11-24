@@ -474,7 +474,7 @@ if (USE_KALMAN_DOUBLE_PRECISION)
 endif()
 
 # Determine which sequences to generate or copy configurations for
-file(GLOB available_sequences "configuration/sequences/*.py" CONFIGURE_DEPENDS)
+file(GLOB available_sequences CONFIGURE_DEPENDS "configuration/sequences/*.py")
 set(BUILD_SEQUENCES "")
 foreach(sequence_filename ${available_sequences})
   get_filename_component(sequence ${sequence_filename} NAME_WE)
@@ -513,7 +513,6 @@ target_include_directories(AllenCommon
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
-target_include_directories(AllenCommon SYSTEM INTERFACE ${Boost_INCLUDE_DIRS})
 
 set(AllenHeaders)
 foreach(header
@@ -558,8 +557,6 @@ else()
 endif()
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
-
-
 
 # Add host library
 allen_add_host_library(HostCommon STATIC
@@ -615,17 +612,16 @@ target_link_libraries(AllenLib PUBLIC
 target_link_libraries(AllenLib PRIVATE AllenFS)
 
 if (USE_ROOT AND ROOT_FOUND)
-  target_compile_definitions(AllenLib PRIVATE ${ALLEN_ROOT_DEFINITIONS})
-  target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
-  target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
+  target_compile_definitions(AllenCommon INTERFACE ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(AllenCommon SYSTEM INTERFACE ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(AllenCommon INTERFACE ${ALLEN_ROOT_LIBRARIES})
 endif()
 
 if (NOT STANDALONE)
   target_link_libraries(AllenLib PRIVATE AIDA::aida)
 endif()
 
-allen_add_executable(Allen ${main_cpp_path})
+allen_add_executable(Allen main/src/main.cpp)
 
 target_link_libraries(Allen PRIVATE AllenLib)
 

@@ -51,14 +51,6 @@ else()
   target_link_libraries(LHCbEvent INTERFACE Gaudi::GaudiKernel LHCb::DAQEventLib)
 endif()
 
-if (ROOT_FOUND AND USE_ROOT)
-  target_compile_definitions(mdf PUBLIC
-    $<BUILD_INTERFACE:${ALLEN_ROOT_DEFINITIONS}>)
-  target_include_directories(mdf SYSTEM PUBLIC
-    $<BUILD_INTERFACE:${ROOT_INCLUDE_DIRS}>)
-  target_link_libraries(mdf PUBLIC ${ALLEN_ROOT_LIBRARIES})
-endif()
-
 target_link_libraries(
   mdf PRIVATE Gear Backend AllenCommon LHCbEvent)
 

@@ -19,11 +19,7 @@ target_link_libraries(Selections PRIVATE
   VertexFitter)
 
 if(USE_ROOT AND ROOT_FOUND)
-  target_compile_definitions(Selections PRIVATE WITH_ROOT)
-  target_include_directories(Selections SYSTEM BEFORE PRIVATE
-    ${ROOT_INCLUDE_DIRS}
-  )
-  # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+  # Locally suppress float->double promotion warnings caused by ROOT TH interfaces
   string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
 endif()
 

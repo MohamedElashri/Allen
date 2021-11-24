@@ -21,9 +21,6 @@ target_include_directories(Validators PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 if(ROOT_FOUND)
-  target_compile_definitions(Validators PRIVATE ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(Validators SYSTEM BEFORE PRIVATE ${ROOT_INCLUDE_DIRS}
-    )
-  # Suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+  # Suppress float->double promotion warnings caused by ROOT TH interfaces
   set_target_properties(Validators PROPERTIES COMPILE_FLAGS " -Wno-double-promotion ")
 endif()

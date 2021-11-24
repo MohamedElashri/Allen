@@ -17,11 +17,7 @@ if (NOT STANDALONE)
   target_link_libraries(Monitoring PRIVATE Gaudi::GaudiUtilsLib)
 endif()
 
-if(ROOT_FOUND)
-  target_compile_definitions(Monitoring PRIVATE ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(Monitoring PRIVATE SYSTEM
-    ${ROOT_INCLUDE_DIRS}
-  )
-  # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+if(USE_ROOT AND ROOT_FOUND)
+  # Locally suppress float->double promotion warnings caused by ROOT TH interfaces
   string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
 endif()

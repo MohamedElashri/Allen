@@ -9,11 +9,7 @@ allen_add_host_library(PVChecking STATIC
 target_include_directories(PVChecking PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_link_libraries(PVChecking PRIVATE HostEventModel EventModel Gear Backend AllenCommon TrackChecking)
 
-if(USE_ROOT AND ROOT_FOUND)
-  target_compile_definitions(PVChecking PRIVATE WITH_ROOT)
-  target_include_directories(PVChecking SYSTEM BEFORE PRIVATE
-    ${ROOT_INCLUDE_DIRS}
-  )
-  # Locally suppress float->double promotion warnings caused by (marvellous) ROOT TH interfaces
+if (USE_ROOT AND ROOT_FOUND)
+  # Locally suppress float->double promotion warnings caused by ROOT TH interfaces
   string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
 endif()
