@@ -32,6 +32,15 @@
 #include "TransposeTypes.h"
 
 /**
+ * @brief      Get the (Allen) subdetector from the bank type
+ *
+ * @param      raw bank
+ *
+ * @return     Allen subdetector
+ */
+BankTypes sd_from_bank_type(LHCb::RawBank const* raw_bank);
+
+/**
  * @brief      Get the (Allen) subdetector from the 5
  *             most-significant bits of a source ID
  *
@@ -87,7 +96,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
  */
 std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
   gsl::span<char const> bank_data,
-  Allen::sd_from_raw_bank const& sd_from_raw_bank);
+  Allen::sd_from_raw_bank sd_from_raw_bank);
 
 /**
  * @brief      Transpose events to Allen layout
@@ -105,7 +114,7 @@ std::tuple<bool, bool, bool> transpose_event(
   Allen::Slices& slices,
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
-  Allen::sd_from_raw_bank const& sd_from_raw_bank,
+  Allen::sd_from_raw_bank sd_from_raw_bank,
   std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
@@ -132,7 +141,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   Allen::Slices& slices,
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
-  Allen::sd_from_raw_bank const& sd_from_raw_bank,
+  Allen::sd_from_raw_bank sd_from_raw_bank,
   std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,

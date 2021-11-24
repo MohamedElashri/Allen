@@ -3,11 +3,10 @@
 \*****************************************************************************/
 #include <Transpose.h>
 
-std::vector<int> Allen::bank_ids()
+std::array<int, LHCb::NBankTypes> Allen::bank_ids()
 {
   // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
-  std::vector<int> ids;
-  ids.resize(std::size(LHCb::RawBank::types()));
+  std::array<int, LHCb::NBankTypes> ids;
   for (auto bt : LHCb::RawBank::types()) {
     auto it = Allen::bank_types.find(bt);
     ids[bt] = (it != Allen::bank_types.end() ? to_integral(it->second) : -1);
@@ -41,6 +40,20 @@ bool check_sourceIDs(gsl::span<char const> bank_data)
     bank += b->totalSize();
   }
   return is_mc;
+}
+
+/**
+ * @brief      Get the (Allen) subdetector from the bank type
+ *
+ * @param      raw bank
+ *
+ * @return     Allen subdetector
+ */
+BankTypes sd_from_bank_type(LHCb::RawBank const* raw_bank)
+{
+  static auto const bank_ids = Allen::bank_ids();
+  auto const bt = bank_ids[raw_bank->type()];
+  return bt == -1 ? BankTypes::Unknown : static_cast<BankTypes>(bt);
 }
 
 /**
@@ -149,7 +162,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
  */
 std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
   gsl::span<char const> bank_data,
-  Allen::sd_from_raw_bank const& sd_from_raw_bank)
+  Allen::sd_from_raw_bank sd_from_raw_bank)
 {
 
   std::array<unsigned int, NBankTypes> mfp_count{0};
@@ -179,7 +192,7 @@ std::tuple<bool, bool, bool> transpose_event(
   Allen::Slices& slices,
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
-  Allen::sd_from_raw_bank const& sd_from_raw_bank,
+  Allen::sd_from_raw_bank sd_from_raw_bank,
   std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
@@ -362,7 +375,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   Allen::Slices& slices,
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
-  Allen::sd_from_raw_bank const& sd_from_raw_bank,
+  Allen::sd_from_raw_bank sd_from_raw_bank,
   std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,

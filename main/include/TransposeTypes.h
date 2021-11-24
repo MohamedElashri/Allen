@@ -36,7 +36,7 @@ namespace Allen {
   using BankSlices = std::vector<Slice>;
   using Slices = std::array<BankSlices, NBankTypes>;
 
-  std::vector<int> bank_ids();
+  std::array<int, LHCb::NBankTypes> bank_ids();
   int subdetector_id(const std::string subdetector);
   int subdetector_index(const std::string subdetector);
   int subdetector_index_from_bank_type(BankTypes bt);

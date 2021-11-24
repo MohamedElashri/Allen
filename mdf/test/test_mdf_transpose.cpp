@@ -49,13 +49,8 @@ namespace {
 
 
 std::tuple<bool, Allen::sd_from_raw_bank>
-file_type(gsl::span<char const> bank_data, std::vector<int> const& bank_ids)
+file_type(gsl::span<char const> bank_data)
 {
-  auto sd_from_bank_type = [bank_ids](LHCb::RawBank const* raw_bank) {
-    auto const bt = bank_ids[raw_bank->type()];
-    return bt == -1 ? BankTypes::Unknown : static_cast<BankTypes>(bt);
-  };
-
   auto is_mc = check_sourceIDs(bank_data);
   Allen::sd_from_raw_bank sd_from_raw;
   if (is_mc) {
@@ -78,7 +73,6 @@ std::tuple<
   size_t>
 mdf_read_sizes(
   std::string filename,
-  std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
   size_t min_events)
 {
@@ -132,7 +126,7 @@ mdf_read_sizes(
     }
     else if (first) {
       first = false;
-      std::tie(is_mc, sd_from_raw) = file_type(bank_span, bank_ids);
+      std::tie(is_mc, sd_from_raw) = file_type(bank_span);
     }
 
     bank_sizes.fill(0);
@@ -248,13 +242,11 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   auto filename = s_config.mdf_files[0];
 
-  auto ids = Allen::bank_ids();
-
   std::unordered_set<BankTypes> allen_types {
     BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
 
   auto [success, banks_count, odins, split_event, alloc_size, max_events, total_size] =
-    mdf_read_sizes(filename, ids, allen_types, s_config.n_events);
+    mdf_read_sizes(filename, allen_types, s_config.n_events);
   REQUIRE(success == true);
 
   Allen::ReadBuffer read_buffer =
@@ -280,7 +272,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   REQUIRE(!buffer_full);
   REQUIRE(max_events == std::get<0>(read_buffer));
 
-  auto [is_mc, sd_from_raw] = file_type({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]}, ids);
+  auto [is_mc, sd_from_raw] = file_type({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
 
   input.close();
 

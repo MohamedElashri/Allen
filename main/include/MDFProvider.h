@@ -148,7 +148,12 @@ public:
         // Offsets are to the start of the event, which includes the header
         auto i_read = m_prefetched.front();
         auto& [n_filled, event_offsets, buffer, transpose_start] = m_buffers[i_read];
-        std::tie(count_success, m_mfp_count) = fill_counts({buffer.data(), event_offsets[1]}, m_sd_from_raw);
+        gsl::span<char> const event_span = {buffer.data(), event_offsets[1]};
+
+        // Check what type of file we have: old MC or (new MC or data)
+        m_is_mc = check_sourceIDs(event_span);
+        m_sd_from_raw = m_is_mc ? sd_from_bank_type : sd_from_sourceID;
+        std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw);
 
         for (auto allen_type : types()) {
           if (m_mfp_count[to_integral(allen_type)] == 0) {
@@ -666,16 +671,7 @@ private:
           read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
 
         auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
-        if (!m_is_mc) {
-          m_is_mc = is_mc;
-          if (is_mc) {
-            m_sd_from_raw = [this] (const LHCb::RawBank* rb) { return sd_from_bank_type(rb); };
-          }
-          else {
-            m_sd_from_raw = sd_from_sourceID;
-          }
-        }
-        else if (*m_is_mc != is_mc) {
+        if (m_is_mc && *m_is_mc != is_mc) {
           throw std::out_of_range {"The next batch of events is different from the previous events"s
               + (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
         }
@@ -746,12 +742,6 @@ private:
     m_prefetch_cond.notify_one();
   }
 
-  BankTypes sd_from_bank_type(LHCb::RawBank const* raw_bank)
-  {
-    auto const bt = m_bank_ids[raw_bank->type()];
-    return bt == -1 ? BankTypes::Unknown : static_cast<BankTypes>(bt);
-  }
-
   // Memory buffers to read binary data into from the file
   mutable Allen::ReadBuffers m_buffers;
 
@@ -773,9 +763,6 @@ private:
 
   // Storage to read the header into for each event
   mutable LHCb::MDFHeader m_header;
-
-  // Allen IDs of LHCb raw banks
-  std::vector<int> m_bank_ids = Allen::bank_ids();
 
   // Memory slices, N for each raw bank type
   Allen::Slices m_slices;
