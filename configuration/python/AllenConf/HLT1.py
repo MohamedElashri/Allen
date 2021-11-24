@@ -203,7 +203,7 @@ def default_monitoring_lines(velo_tracks):
             enableGEC=False))
     lines.append(
         line_maker(
-            "rich 2 line",
+            "HLt1RICH2Alignment",
             make_rich_2_line(hlt1_reconstruction()),
             enableGEC=False))
 
