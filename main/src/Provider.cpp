@@ -168,7 +168,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
   // Bank types
-  std::unordered_set<BankTypes> bank_types;
+  std::unordered_set<BankTypes> bank_types = {BankTypes::ODIN};
   ConfigurationReader configuration_reader {json_file};
   auto const& configuration = configuration_reader.params();
   for (auto const& [key, props] : configuration) {
