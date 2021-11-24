@@ -25,7 +25,7 @@
       # run throughput, contracts enabled
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
         OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
 
 
