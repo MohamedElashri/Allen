@@ -61,6 +61,9 @@ namespace VertexFit {
     float eta = 0.0f;
     // Minimum IP chi2 of the tracks.
     float minipchi2 = 0.0f;
+    // IP of the two tracks
+    float ip1 = 0.0f;
+    float ip2 = 0.0f;
     // Minimum IP of the tracks.
     float minip = 0.0f;
     // Minimum pt of the tracks.
