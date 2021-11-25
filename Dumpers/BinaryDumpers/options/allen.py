@@ -51,11 +51,6 @@ parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
 parser.add_argument("-s", dest="slices", default=2)
 parser.add_argument(
-    "-b",
-    "--bank-types",
-    dest="bank_types",
-    default="VP,FTCluster,UT,Muon,ODIN")
-parser.add_argument(
     "--mdf",
     dest="mdf",
     default=os.path.join(allen_dir, "input", "minbias", "mdf",
@@ -162,8 +157,10 @@ if args.mep is not None:
         mep_provider.Connections = mep_dir.split(',')
     mep_provider.LoopOnMEPs = False
     mep_provider.Preload = args.reuse_meps
-    mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
-    # mep_provider.BankTypes = ['VP', 'FTCluster', 'Muon', 'ODIN', 'UT']
+    # Use this property to allocate buffers to specific NUMA domains
+    # to test the effects on performance or emulate specific memory
+    # traffic scenarios
+    # mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
     mep_provider.EvtMax = -1 if args.n_events == -1 else args.n_events
 
 # Start Gaudi and get the AllenUpdater service
@@ -182,7 +179,7 @@ for flag, value in [("g", args.det_folder), ("params", args.param_folder),
                     ("m", args.reserve), ("v", args.verbosity),
                     ("p", args.print_memory), ("sequence", args.sequence),
                     ("s", args.slices), ("mdf", args.mdf),
-                    ("b", args.bank_types), ("cpu-offload", args.cpu_offload),
+                    ("cpu-offload", args.cpu_offload),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),
