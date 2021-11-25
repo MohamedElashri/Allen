@@ -47,8 +47,8 @@ namespace track_mva_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 2.5f};
-    Property<minPt_t> m_minPt {this, 2000.0f / Gaudi::Units::GeV};
-    Property<maxPt_t> m_maxPt {this, 26000.0f / Gaudi::Units::GeV};
+    Property<minPt_t> m_minPt {this, 2000.0f * Gaudi::Units::MeV};
+    Property<maxPt_t> m_maxPt {this, 26000.0f * Gaudi::Units::MeV};
     Property<minIPChi2_t> m_minIPChi2 {this, 7.4f};
     Property<param1_t> m_param1 {this, 1.0f};
     Property<param2_t> m_param2 {this, 2.0f};
