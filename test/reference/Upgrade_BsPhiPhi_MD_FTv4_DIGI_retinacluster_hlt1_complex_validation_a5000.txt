@@ -18,12 +18,12 @@ MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
 
-All                  :  0.927 (  4513/  4866)
-Isolated             :  0.961 (  2447/  2546)
+All                  :  0.927 (  4512/  4866)
+Isolated             :  0.961 (  2446/  2546)
 Close                :  0.891 (  2066/  2320)
-False rate           :  0.013 (    60/  4573)
-Real false rate      :  0.013 (    60/  4573)
-Clones               :  0.000 (     0/  4513)
+False rate           :  0.013 (    60/  4572)
+Real false rate      :  0.013 (    60/  4572)
+Clones               :  0.000 (     0/  4512)
 
 
 restricted_veloUT_validator validation:
