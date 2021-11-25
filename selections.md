@@ -221,7 +221,7 @@ namespace example_one_track_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Line-specific properties
-    Property<minPt_t> m_minPt {this, 10000.0f / Gaudi::Units::GeV};
+    Property<minPt_t> m_minPt {this, 10000.0f * Gaudi::Units::MeV};
     Property<minIPChi2_t> m_minIPChi2 {this, 25.0f};
   };
 } // namespace example_one_track_line
@@ -299,8 +299,8 @@ namespace example_two_track_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Line-specific properties
-    Property<minComboPt_t> m_minComboPt {this, 2000.0f / Gaudi::Units::GeV};
-    Property<minTrackPt_t> m_minTrackPt {this, 500.0f / Gaudi::Units::MeV};
+    Property<minComboPt_t> m_minComboPt {this, 2000.0f * Gaudi::Units::MeV};
+    Property<minTrackPt_t> m_minTrackPt {this, 500.0f * Gaudi::Units::MeV};
     Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 25.0f};
   };
 
