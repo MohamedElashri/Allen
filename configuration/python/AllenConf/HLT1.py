@@ -198,7 +198,7 @@ def default_monitoring_lines(velo_tracks):
             "Hlt1Passthrough", make_passthrough_line(), enableGEC=False))
     lines.append(
         line_maker(
-            "rich 1 line",
+            "Hlt1RICH1Alignment",
             make_rich_1_line(hlt1_reconstruction()),
             enableGEC=False))
 

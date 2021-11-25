@@ -77,7 +77,7 @@ def make_rich_line(line_type, reconstructed_objects, pre_scaler_hash_string,
 def make_rich_1_line(reconstructed_objects,
                      pre_scaler_hash_string="rich_1_line_pre",
                      post_scaler_hash_string="rich_1_line_post",
-                     name="RICH1Line"):
+                     name="Hlt1RICH1Alignment"):
     return make_rich_line(rich_1_line_t, reconstructed_objects,
                           pre_scaler_hash_string, post_scaler_hash_string,
                           name)
