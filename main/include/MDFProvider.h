@@ -189,8 +189,7 @@ public:
             // problems for banks with very low average size like the
             // ODIN bank - 0.1 kB, a fixed amount is also added.
             auto n_bytes = std::lround(
-              ((1 + m_mfp_count[ib]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
-                bank_size_fudge_factor +
+              ((1 + m_mfp_count[ib]) * sizeof(uint32_t) + it->second * kB) * allocate_events * bank_size_fudge_factor +
               2 * MB);
             return {n_bytes, events_per_slice};
           };
@@ -672,8 +671,8 @@ private:
 
         auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
         if (m_is_mc && *m_is_mc != is_mc) {
-          throw std::out_of_range {"The next batch of events is different from the previous events"s
-              + (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
+          throw std::out_of_range {"The next batch of events is different from the previous events"s +
+                                   (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
         }
 
         size_t n_read = std::get<0>(read_buffer) - read;

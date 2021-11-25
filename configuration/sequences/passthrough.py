@@ -26,7 +26,7 @@ passthrough_line = line_maker(
         post_scaler_hash_string="passthrough_line_post"),
     enableGEC=False)
 
-line_algorithms = [passthrough_line[0]] 
+line_algorithms = [passthrough_line[0]]
 
 global_decision = make_global_decision(lines=line_algorithms)
 
@@ -37,12 +37,10 @@ lines = CompositeNode(
     "AllLines", [passthrough_line[1]], NodeLogic.NONLAZY_OR, force_order=False)
 
 passthrough_sequence = CompositeNode(
-        "Passthrough", [
-            lines,
-            global_decision,
-            rate_validation(lines=line_algorithms)
-        ],
-        NodeLogic.NONLAZY_AND,
-        force_order=True)
+    "Passthrough",
+    [lines, global_decision,
+     rate_validation(lines=line_algorithms)],
+    NodeLogic.NONLAZY_AND,
+    force_order=True)
 
 generate(passthrough_sequence)

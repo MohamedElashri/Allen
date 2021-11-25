@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
     return static_cast<BankTypes>(bank_ids[raw_bank->type()]);
   };
 
-  gsl::span<char const> bank_data{read_buffer.data(), event_offsets[1]};
+  gsl::span<char const> bank_data {read_buffer.data(), event_offsets[1]};
   auto is_mc = check_sourceIDs(bank_data);
   Allen::sd_from_raw_bank sd_from_raw;
   if (is_mc) {
@@ -157,29 +157,38 @@ int main(int argc, char* argv[])
 
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
-    threads.emplace_back(thread {
-        [i, n_reps, n_events, &sd_from_raw, &read_buffers, &slices, &bank_types, &banks_count, &banks_version, &event_ids, &event_masks] {
-        auto& read_buffer = read_buffers[i];
-        for (size_t rep = 0; rep < n_reps; ++rep) {
+    threads.emplace_back(thread {[i,
+                                  n_reps,
+                                  n_events,
+                                  &sd_from_raw,
+                                  &read_buffers,
+                                  &slices,
+                                  &bank_types,
+                                  &banks_count,
+                                  &banks_version,
+                                  &event_ids,
+                                  &event_masks] {
+      auto& read_buffer = read_buffers[i];
+      for (size_t rep = 0; rep < n_reps; ++rep) {
 
-          // Reset the slice
-          reset_slice(slices, i, bank_types, event_ids[i]);
+        // Reset the slice
+        reset_slice(slices, i, bank_types, event_ids[i]);
 
-          // Transpose events
-          auto [success, transpose_full, n_transposed] = transpose_events(
-            read_buffer,
-            slices,
-            i,
-            {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
-            sd_from_raw,
-            banks_count,
-            banks_version,
-            event_ids[i],
-            event_masks[i],
-            n_events);
-          info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
-        }
-      }});
+        // Transpose events
+        auto [success, transpose_full, n_transposed] = transpose_events(
+          read_buffer,
+          slices,
+          i,
+          {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
+          sd_from_raw,
+          banks_count,
+          banks_version,
+          event_ids[i],
+          event_masks[i],
+          n_events);
+        info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
+      }
+    }});
   }
 
   // Join transpose threads

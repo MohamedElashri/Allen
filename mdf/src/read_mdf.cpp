@@ -382,7 +382,8 @@ LHCb::ODIN MDF::decode_odin(unsigned int version, unsigned int const* odinData)
   // note that we only support the default bank version in Allen
   if (version == 6) {
     return LHCb::ODIN::from_version<6>({odinData, 10});
-  } else {
+  }
+  else {
     return LHCb::ODIN({odinData, 10});
   }
 }

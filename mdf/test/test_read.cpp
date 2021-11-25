@@ -75,14 +75,11 @@ int main(int argc, char* argv[])
       std::string det = SourceId_sysstr(source_id);
       std::string fill(7 - det.size(), ' ');
 
-
       if (b->type() < LHCb::RawBank::LastType) {
         ++bank_counts[b->type()];
-        cout << "bank: " << std::setw(16) << b->type()
-             << " sourceID: " << std::setw(6) << b->sourceID()
-             << " top5: " << std::setw(2) << SourceId_sys(source_id) << fill << " (" << det << ") "
-             << std::setw(5) << SourceId_num(source_id)
-             << " " << std::setw(5) << b->totalSize() << "\n";
+        cout << "bank: " << std::setw(16) << b->type() << " sourceID: " << std::setw(6) << b->sourceID()
+             << " top5: " << std::setw(2) << SourceId_sys(source_id) << fill << " (" << det << ") " << std::setw(5)
+             << SourceId_num(source_id) << " " << std::setw(5) << b->totalSize() << "\n";
       }
       else {
         ++bank_counts[LHCb::RawBank::LastType];

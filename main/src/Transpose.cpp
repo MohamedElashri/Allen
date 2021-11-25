@@ -165,7 +165,7 @@ std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
   Allen::sd_from_raw_bank sd_from_raw_bank)
 {
 
-  std::array<unsigned int, NBankTypes> mfp_count{0};
+  std::array<unsigned int, NBankTypes> mfp_count {0};
 
   auto const* bank = bank_data.data();
 
@@ -396,7 +396,16 @@ std::tuple<bool, bool, size_t> transpose_events(
     auto const* bank = buffer.data() + event_offsets[i_event];
     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
     std::tie(success, full, run_change) = transpose_event(
-      slices, slice_index, bank_types, sd_from_raw_bank, mfp_count, banks_version, event_ids, event_mask, {bank, bank_end}, split_by_run);
+      slices,
+      slice_index,
+      bank_types,
+      sd_from_raw_bank,
+      mfp_count,
+      banks_version,
+      event_ids,
+      event_mask,
+      {bank, bank_end},
+      split_by_run);
     // break the loop if we detect a run change or the slice is full to avoid incrementing i_event
     if (run_change || full) break;
   }

@@ -28,9 +28,9 @@
 #include <catch.hpp>
 
 #ifdef USE_BOOST_FILESYSTEM
-  namespace fs = boost::filesystem;
+namespace fs = boost::filesystem;
 #else
-  namespace fs = std::filesystem;
+namespace fs = std::filesystem;
 #endif
 
 using namespace std;
@@ -47,9 +47,7 @@ namespace {
   Config s_config;
 } // namespace
 
-
-std::tuple<bool, Allen::sd_from_raw_bank>
-file_type(gsl::span<char const> bank_data)
+std::tuple<bool, Allen::sd_from_raw_bank> file_type(gsl::span<char const> bank_data)
 {
   auto is_mc = check_sourceIDs(bank_data);
   Allen::sd_from_raw_bank sd_from_raw;
@@ -62,19 +60,8 @@ file_type(gsl::span<char const> bank_data)
   return {is_mc, sd_from_raw};
 }
 
-
-std::tuple<
-  bool,
-  std::array<unsigned, NBankTypes>,
-  std::vector<LHCb::ODIN>,
-  size_t,
-  size_t,
-  size_t,
-  size_t>
-mdf_read_sizes(
-  std::string filename,
-  std::unordered_set<BankTypes> const& bank_types,
-  size_t min_events)
+std::tuple<bool, std::array<unsigned, NBankTypes>, std::vector<LHCb::ODIN>, size_t, size_t, size_t, size_t>
+mdf_read_sizes(std::string filename, std::unordered_set<BankTypes> const& bank_types, size_t min_events)
 {
   // Storage for the sizes
   std::array<std::vector<size_t>, NBankTypes> sizes;
@@ -220,8 +207,8 @@ int main(int argc, char* argv[])
   s_config.run = !directory.empty();
 
   if (!directory.empty()) {
-    auto dir = fs::path{directory};
-    for(auto const& entry : fs::directory_iterator{dir}) {
+    auto dir = fs::path {directory};
+    for (auto const& entry : fs::directory_iterator {dir}) {
       auto const p = entry.path().string();
       if (fs::is_regular_file(entry) && p.rfind(".mdf") == p.size() - 4) {
         s_config.mdf_files.push_back(p);
@@ -291,7 +278,17 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   for (auto [slice_index, check_full] : {std::tuple {0u, true}, std::tuple {1u, false}}) {
     std::tie(good, transpose_full, n_transposed) = transpose_events(
-      read_buffer, slices, slice_index, allen_types, sd_from_raw, banks_count, banks_version, event_ids, event_mask, max_events, false);
+      read_buffer,
+      slices,
+      slice_index,
+      allen_types,
+      sd_from_raw,
+      banks_count,
+      banks_version,
+      event_ids,
+      event_mask,
+      max_events,
+      false);
     std::cout << "transposed: " << n_transposed << " " << transpose_full << "\n";
     REQUIRE(good);
     REQUIRE(transpose_full == check_full);
