@@ -45,7 +45,7 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
             if (hit_number > 0) {
               hit_phi_is_sorted &= velo_container_view.phi(hit_index) > previous_hit_phi ||
                                    (velo_container_view.phi(hit_index) == previous_hit_phi &&
-                                    velo_container_view.id(hit_index) > previous_hit_id);
+                                    velo_container_view.id(hit_index) >= previous_hit_id);
             }
             previous_hit_phi = velo_container_view.phi(hit_index);
             previous_hit_id = velo_container_view.id(hit_index);
