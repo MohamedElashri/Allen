@@ -65,8 +65,8 @@ namespace two_track_mva_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
 
     Property<minMVA_t> m_minMVA {this, 0.92385f};
-    Property<minPt_t> m_minPt {this, 200.f};
-    Property<minSVpt_t> m_minSVpt {this, 1000.f};
+    Property<minPt_t> m_minPt {this, 200.f * Gaudi::Units::MeV};
+    Property<minSVpt_t> m_minSVpt {this, 1000.f * Gaudi::Units::MeV};
     Property<minEta_t> m_minEta {this, 2.f};
     Property<maxEta_t> m_maxEta {this, 5.f};
     Property<minMcor_t> m_minMcor {this, 1000.f};
