@@ -94,7 +94,7 @@ Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:        4/  1000, (  120.00 +/-    59.88) kHz
-HLt1RICH2Alignment:        1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1RICH2Alignment:        1/  1000, (   30.00 +/-    29.98) kHz
 Inclusive:              1000/  1000, (30000.00 +/-     0.00) kHz
 
 
