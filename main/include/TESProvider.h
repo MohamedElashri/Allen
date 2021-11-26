@@ -106,7 +106,7 @@ public:
 
 private:
   // Mapping of LHCb::RawBank::BankType to Allen::BankType
-  const std::vector<int> m_bank_ids_mapping = Allen::bank_ids();
+  const std::array<int, LHCb::RawBank::types().size()> m_bank_ids_mapping = Allen::bank_ids();
 
   std::array<BanksAndOffsets, NBankTypes> m_banks_and_offsets;
   std::array<std::array<unsigned int, 2>, NBankTypes> m_offsets;
