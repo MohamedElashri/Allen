@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 
+#include "BankTypes.h"
 #include "InputProvider.h"
 #include "OutputHandler.h"
 
@@ -25,6 +26,8 @@ namespace Allen {
     unsigned number_of_repetitions = 0;
     unsigned n_io_reps = 0;
   };
+
+  std::unordered_set<BankTypes> configured_bank_types(std::string const& json_file);
 
   std::tuple<std::string, bool> sequence_conf(std::map<std::string, std::string> const& options);
 

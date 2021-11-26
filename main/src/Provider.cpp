@@ -25,6 +25,28 @@ namespace {
 #endif
 } // namespace
 
+std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& json_file)
+{
+  // Bank types
+  std::unordered_set<BankTypes> bank_types = {BankTypes::ODIN};
+  ConfigurationReader configuration_reader {json_file};
+  auto const& configuration = configuration_reader.params();
+  for (auto const& [key, props] : configuration) {
+    auto it = props.find("bank_type");
+    if (it != props.end()) {
+      auto type = it->second;
+      auto const bt = bank_type(type);
+      if (bt == BankTypes::Unknown) {
+        error_cout << "Unknown bank type " << type << "requested.\n";
+      }
+      else {
+        bank_types.emplace(bt);
+      }
+    }
+  }
+  return bank_types;
+}
+
 std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::string> const& options)
 {
   std::string json_configuration_file = "Sequence.json";
@@ -167,23 +189,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   auto const [json_file, run_from_json] = Allen::sequence_conf(options);
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
-  // Bank types
-  std::unordered_set<BankTypes> bank_types = {BankTypes::ODIN};
-  ConfigurationReader configuration_reader {json_file};
-  auto const& configuration = configuration_reader.params();
-  for (auto const& [key, props] : configuration) {
-    auto it = props.find("bank_type");
-    if (it != props.end()) {
-      auto type = it->second;
-      auto const bt = bank_type(type);
-      if (bt == BankTypes::Unknown) {
-        error_cout << "Unknown bank type " << type << "requested.\n";
-      }
-      else {
-        bank_types.emplace(bt);
-      }
-    }
-  }
+  auto const bank_types = Allen::configured_bank_types(json_file);
 
   if (!mdf_input.empty()) {
     MDFProviderConfig config {false,                     // verify MDF checksums

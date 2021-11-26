@@ -82,7 +82,6 @@ int allen(
   std::string_view control_connection)
 {
   // Folder containing detector configuration and mva models
-  std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string folder_parameters = "../input/parameters/";
 
   unsigned n_slices = 0;
@@ -111,10 +110,7 @@ int allen(
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag_in(flag, {"g", "geometry"})) {
-      folder_detector_configuration = arg + "/";
-    }
-    else if (flag_in(flag, {"params"})) {
+    if (flag_in(flag, {"params"})) {
       folder_parameters = arg + "/";
     }
     else if (flag_in(flag, {"write-configuration"})) {
