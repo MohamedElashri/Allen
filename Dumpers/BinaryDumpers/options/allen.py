@@ -42,7 +42,7 @@ parser.add_argument(
     "--params",
     dest="param_folder",
     default=os.path.join(allen_dir, "input", "parameters"))
-parser.add_argument("-n", dest="n_events", default=-1)
+parser.add_argument("-n", dest="n_events", default=0)
 parser.add_argument("-t", dest="threads", default=1)
 parser.add_argument("-r", dest="repetitions", default=1)
 parser.add_argument("-m", dest="reserve", default=1024)
@@ -120,7 +120,7 @@ app = LHCbApp(
     EvtMax=1000,
     Simulation=True,
     DDDBtag="dddb-20210617", # tags for FEST sample from 10/2021
-    CondDBtag="sim-20210617-vc-md100" 
+    CondDBtag="sim-20210617-vc-md100"
 )
 
 # Upgrade DBs
@@ -159,7 +159,7 @@ if args.mep is not None:
     # to test the effects on performance or emulate specific memory
     # traffic scenarios
     # mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
-    mep_provider.EvtMax = -1 if args.n_events == -1 else args.n_events
+    mep_provider.EvtMax = -1 if args.n_events == 0 else args.n_events
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()
