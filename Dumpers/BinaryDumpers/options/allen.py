@@ -109,9 +109,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
-                                     'constants', args.sequence + '.json')
-if args.configuration is None:
-    args.configuration = default_configuration
+                                     'constants' + args.sequence + '.json')
 
 runtime_lib = None
 if args.profile == "CUDA":
@@ -121,8 +119,8 @@ app = LHCbApp(
     DataType="Upgrade",
     EvtMax=1000,
     Simulation=True,
-    DDDBtag="dddb-20210218",
-    CondDBtag="sim-20201218-vc-md100",
+    DDDBtag="dddb-20210617", # tags for FEST sample from 10/2021
+    CondDBtag="sim-20210617-vc-md100" 
 )
 
 # Upgrade DBs
