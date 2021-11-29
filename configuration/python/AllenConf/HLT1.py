@@ -200,7 +200,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1RICH1Alignment",
             make_rich_1_line(hlt1_reconstruction()),
-            enableGEC=False))
+            enableGEC=True))
 
     return lines
 
