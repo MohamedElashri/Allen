@@ -119,8 +119,10 @@ app = LHCbApp(
     DataType="Upgrade",
     EvtMax=1000,
     Simulation=True,
-    DDDBtag="dddb-20210617",  # tags for FEST sample from 10/2021
-    CondDBtag="sim-20210617-vc-md100")
+    DDDBtag="dddb-20171122",
+    CondDBtag="sim-20180530-vc-md100")
+    # DDDBtag="dddb-20210617",  # tags for FEST sample from 10/2021
+    # CondDBtag="sim-20210617-vc-md100")
 
 # Upgrade DBs
 CondDB().Upgrade = True
