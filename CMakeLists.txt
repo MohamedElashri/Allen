@@ -18,7 +18,6 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
-set(SEQUENCE_BUILD_JOBS 1 CACHE STRING "Number of sequence build jobs"  )
 option(USE_BOOST_FILESYSTEM "Use Boost filesystem library instead of std::filesystem" OFF)
 
 # --------
@@ -144,9 +143,11 @@ include(AllenDependencies)
 
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
-if (NOT STANDALONE)
-  set(BUILD_TESTING ON)
+if (BUILD_TESTING OR NOT STANDALONE)
+  include(CTest)
+endif()
 
+if (NOT STANDALONE)
   lhcb_add_subdirectories(
     Rec/Allen
     Dumpers/BinaryDumpers

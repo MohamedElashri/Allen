@@ -16,7 +16,6 @@ if (NOT STANDALONE)
   set_property(TARGET unit_tests PROPERTY CROSSCOMPILING_EMULATOR ${CMAKE_BINARY_DIR}/run)
 endif()
 
-include(CTest)
 include(Catch)
 catch_discover_tests(unit_tests)
 
