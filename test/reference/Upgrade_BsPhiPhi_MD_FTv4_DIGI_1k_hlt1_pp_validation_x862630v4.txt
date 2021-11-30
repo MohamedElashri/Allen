@@ -93,8 +93,8 @@ Hlt1VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:        1000/  1000, (30000.00 +/-     0.00) kHz
-Hlt1RICH1Alignment:        4/  1000, (  120.00 +/-    59.88) kHz
-Hlt1RICH2Alignment:        1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1RICH1Alignment:        3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1RICH2Alignment:        0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:              1000/  1000, (30000.00 +/-     0.00) kHz
 
 
@@ -125,10 +125,10 @@ Hlt1ODINLumi:              0           0
 Hlt1ODINNoBias:            0           0
 Hlt1Passthrough:        1000           0
 Hlt1RICH1Alignment:        3           3
-Hlt1RICH2Alignment:        1           1
+Hlt1RICH2Alignment:        0           0
 
-Total decisions: 3147
-Total tracks:    1786
+Total decisions: 3145
+Total tracks:    1783
 Total SVs:       1405
-Total hits:      44153
-Total stdinfo:   23055
+Total hits:      44088
+Total stdinfo:   23029
