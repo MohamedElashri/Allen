@@ -187,12 +187,12 @@ int main(int argc, char* argv[])
 
   Catch::Session session; // There must be exactly one instance
 
-  string directory;
+  string mdf_file;
 
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
   // Use Catch's composite command line parser
-  auto cli = session.cli() | Opt(directory, string {"directory"})["--directory"]("input directory") |
+  auto cli = session.cli() | Opt(mdf_file, string {"file"})["--mdf-file"]("input file") |
              Opt(s_config.n_events, string {"#events"})["--nevents"]("number of events");
 
   // Now pass the new composite back to Catch so it uses that
@@ -204,19 +204,14 @@ int main(int argc, char* argv[])
     return returnCode;
   }
 
-  s_config.run = !directory.empty();
+  s_config.run = !mdf_file.empty();
 
-  if (!directory.empty()) {
-    auto dir = fs::path {directory};
-    for (auto const& entry : fs::directory_iterator {dir}) {
-      auto const p = entry.path().string();
-      if (fs::is_regular_file(entry) && p.rfind(".mdf") == p.size() - 4) {
-        s_config.mdf_files.push_back(p);
-      }
+  if (!mdf_file.empty()) {
+    auto const p = fs::path(mdf_file);
+    if (fs::is_regular_file(p) && mdf_file.rfind(".mdf") == mdf_file.size() - 4) {
+      s_config.mdf_files.push_back(p);
     }
   }
-
-  std::sort(s_config.mdf_files.begin(), s_config.mdf_files.end());
 
   return session.run();
 }

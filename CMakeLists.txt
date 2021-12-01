@@ -148,6 +148,9 @@ if (BUILD_TESTING OR NOT STANDALONE)
 endif()
 
 if (NOT STANDALONE)
+  set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE "VERBOSE")
+  set(LHCB_UNUSED_SOURCE_MESSAGE_TYPE "IGNORE")
+
   lhcb_add_subdirectories(
     Rec/Allen
     Dumpers/BinaryDumpers

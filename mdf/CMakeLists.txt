@@ -96,5 +96,5 @@ if (BUILD_TESTING)
     target_link_libraries(test_mep_banks PRIVATE Gaudi::GaudiKernel)
   endif()
 
-  add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --mdf-file ${CMAKE_SOURCE_DIR}/input/minbias/mdf/upgrade_mc_minbias_scifi_v5.mdf)
 endif()

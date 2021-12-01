@@ -22,7 +22,7 @@ remove_throughput = LineSkipper(regexps=[
 ])
 
 skip_options = BlockSkipper("Requested options:",
-                            "Setting number of slices to 2")
+                            "Ignore signals to update")
 
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 
