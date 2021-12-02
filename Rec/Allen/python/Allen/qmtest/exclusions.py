@@ -21,8 +21,7 @@ remove_throughput = LineSkipper(regexps=[
     r"Cannot read more data.*"
 ])
 
-skip_options = BlockSkipper("Requested options:",
-                            "Ignore signals to update")
+skip_options = BlockSkipper("Requested options:", "Ignore signals to update")
 
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 
