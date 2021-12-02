@@ -25,7 +25,7 @@ public:
   }
 
 protected:
-  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) override
+  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size, size_t) override
   {
     m_buffer.resize(buffer_size);
     return {0, gsl::span {&m_buffer[0], static_cast<events_size>(buffer_size)}};

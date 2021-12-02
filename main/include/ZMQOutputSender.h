@@ -25,7 +25,7 @@ public:
   void handle() override;
 
 protected:
-  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) override;
+  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size, size_t) override;
 
   virtual bool write_buffer(size_t) override;
 

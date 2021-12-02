@@ -1,4 +1,4 @@
-/*****************************************************************************\
+/***************************************************************************** \
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 /**
@@ -895,8 +895,6 @@ int allen(
           zmqSvc->send(socket, "START");
         }
 
-        if (output_handler) output_handler->start();
-
         // Respond to steering
         zmqSvc->send(*allen_control, "RUNNING");
       }
@@ -928,7 +926,7 @@ int allen(
         if (allen_control && stop) {
           stop = false;
           t_stop.reset();
-          if (output_handler) output_handler->stop();
+          if (output_handler) output_handler->output_done();
           zmqSvc->send(*allen_control, "READY");
         }
         if (!allen_control || (allen_control && exit_loop)) {

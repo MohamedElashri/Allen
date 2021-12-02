@@ -102,7 +102,7 @@ void ZMQOutputSender::handle()
   }
 }
 
-std::tuple<size_t, gsl::span<char>> ZMQOutputSender::buffer(size_t buffer_size)
+std::tuple<size_t, gsl::span<char>> ZMQOutputSender::buffer(size_t buffer_size, size_t)
 {
   m_buffer.rebuild(buffer_size);
   return {0, gsl::span {static_cast<char*>(m_buffer.data()), static_cast<events_size>(buffer_size)}};
