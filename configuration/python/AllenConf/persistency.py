@@ -11,6 +11,7 @@ from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
+
 def make_gather_selections(lines):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -37,6 +38,7 @@ def make_gather_selections(lines):
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         names_of_active_lines=",".join([line.name for line in lines]))
+
 
 @configurable
 def make_dec_reporter(lines, TCK="0"):
