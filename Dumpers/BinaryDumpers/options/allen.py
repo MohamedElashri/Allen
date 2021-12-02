@@ -108,8 +108,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
-                                     'constants' + args.sequence + '.json')
+# default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
+#                                      'constants' + args.sequence + '.json')
 
 runtime_lib = None
 if args.profile == "CUDA":
