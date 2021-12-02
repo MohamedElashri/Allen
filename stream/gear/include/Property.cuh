@@ -60,7 +60,7 @@ namespace Allen {
           }
           return bt;
         }
-        else if constexpr (std::is_same_v<T, std::map<int, std::string>>) {
+        else if constexpr (std::is_same_v<T, std::map<uint32_t, std::string>>) {
           auto rb = rb_map(s);
           return rb;
         }
@@ -100,7 +100,7 @@ namespace Allen {
         if constexpr (std::is_same_v<T, BankTypes>) {
           return bank_name(holder);
         }
-        else if constexpr (std::is_same_v<T, std::map<int, std::string>>) {
+        else if constexpr (std::is_same_v<T, std::map<uint32_t, std::string>>) {
           return routingbits_string(holder);
         }
         else {

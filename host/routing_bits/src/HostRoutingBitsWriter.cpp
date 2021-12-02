@@ -5,6 +5,8 @@
 #include "ProgramOptions.h"
 #include "HltDecReport.cuh"
 
+INSTANTIATE_ALGORITHM(host_routingbits_writer::host_routingbits_writer_t)
+
 void host_routingbits_writer::host_routingbits_writer_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -12,7 +14,7 @@ void host_routingbits_writer::host_routingbits_writer_t::set_arguments_size(
   const HostBuffers&) const
 {
   // Two words for the routing bits (ODIN + HLT1)
-  set_size<host_routingbits_t>(arguments, 2 * first<host_number_of_events_t>(arguments));
+  set_size<host_routingbits_t>(arguments, RoutingBitsDefinition::n_words * first<host_number_of_events_t>(arguments));
 }
 
 void host_routingbits_writer::host_routingbits_writer_t::operator()(
@@ -43,13 +45,13 @@ void host_routingbits_writer::host_routingbits_conf_impl(
   char* host_names_of_active_lines,
   unsigned* host_dec_reports,
   unsigned* host_routing_bits,
-  const std::map<int, std::string>& routingbit_map)
+  const std::map<uint32_t, std::string>& routingbit_map)
 {
   auto line_names = split_string(static_cast<char const*>(host_names_of_active_lines), ",");
 
   for (unsigned event = 0; event < host_number_of_events; ++event) {
 
-    unsigned* bits = host_routing_bits + 2 * event;
+    unsigned* bits = host_routing_bits + RoutingBitsDefinition::n_words * event;
     unsigned const* dec_reports = host_dec_reports + (2 + host_number_of_active_lines) * event;
     for (auto const& [bit, expr] : routingbit_map) {
       int result = 0;
@@ -68,7 +70,7 @@ void host_routingbits_writer::host_routingbits_conf_impl(
       int word = bit / 32;
       if (result) bits[word] |= (0x01UL << (bit - 32 * word));
     }
-    debug_cout << " HostRoutingBits: Event n. " << event << ", routing bits: " << bits[0] << "   " << bits[1]
-               << std::endl;
+    debug_cout << " HostRoutingBits: Event n. " << event << ", routing bits: " << bits[0] << "   " << bits[1] << "   "
+               << bits[2] << "   " << bits[3] << std::endl;
   }
 }

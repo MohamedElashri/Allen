@@ -21,8 +21,8 @@ void RoutingBitsChecker::accumulate(
   for (auto i = 0u; i < number_of_events; ++i) {
     bool any_line_fired = false;
     auto const* decs = dec_reports + (2 + number_of_lines) * i;
-    auto const* rbs = routing_bits + 2 * i;
-    for (auto j = 0u; j < 2; ++j) {
+    auto const* rbs = routing_bits + 4 * i;
+    for (auto j = 0u; j < 4; ++j) {
       uint32_t rb = rbs[j];
       debug_cout << "Event n. " << i << ", routing bits checker word " << j << "  " << rb << std::endl;
     }
@@ -39,4 +39,4 @@ void RoutingBitsChecker::accumulate(
   }
 }
 
-void RoutingBitsChecker::report(const size_t requested_events) const {}
+void RoutingBitsChecker::report(size_t) const {}

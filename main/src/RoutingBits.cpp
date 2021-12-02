@@ -10,7 +10,7 @@
 #include <regex>
 
 // std::map to string converter to parse routing bits as a property
-std::string routingbits_string(std::map<int, std::string> map)
+std::string routingbits_string(std::map<uint32_t, std::string> map)
 {
   std::string output = "";
   std::string convrt = "";
@@ -26,11 +26,11 @@ std::string routingbits_string(std::map<int, std::string> map)
   return result;
 }
 // regex to concert python routing bit dictionary (routing bit: exression) to std::map
-std::map<int, std::string> rb_map(std::string s)
+std::map<uint32_t, std::string> rb_map(std::string s)
 {
   std::regex e("((?:\"[^\"]*\"|[^:{,])*):((?:\"[^\"]*\"|[^,}])*)");
   std::smatch m;
-  std::map<int, std::string> rb;
+  std::map<uint32_t, std::string> rb;
   while (std::regex_search(s, m, e)) {
     rb[stoi(m[1])] = m[2];
     s = m.suffix().str();

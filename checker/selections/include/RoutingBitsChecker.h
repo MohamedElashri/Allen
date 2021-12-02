@@ -27,5 +27,5 @@ public:
     const uint32_t* routing_bits,
     const unsigned number_of_events);
 
-  void report(const size_t requested_events) const override;
+  void report(size_t) const override;
 };

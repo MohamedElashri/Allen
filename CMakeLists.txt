@@ -608,6 +608,7 @@ foreach(header
     LoggerCommon.h
     BankTypes.h
     BankMapping.h
+    RoutingBits.h
     Common.h
     AllenUnits.h
     MEPTools.h

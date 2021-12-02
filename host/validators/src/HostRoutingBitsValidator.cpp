@@ -4,6 +4,8 @@
 #include "HostRoutingBitsValidator.h"
 #include "RoutingBitsChecker.h"
 
+INSTANTIATE_ALGORITHM(host_routingbits_validator::host_routingbits_validator_t)
+
 void host_routingbits_validator::host_routingbits_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,

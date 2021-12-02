@@ -6,7 +6,7 @@
 #include <cstdint>
 
 namespace RoutingBitsDefinition {
-  const std::map<int, std::string> default_routingbit_map = {
+  const std::map<uint32_t, std::string> default_routingbit_map = {
     {33, "Hlt1ODINLumi"}
     // RB 35 Beam-Gas for Velo alignment
     ,
@@ -49,5 +49,5 @@ namespace RoutingBitsDefinition {
     {58, "Hlt1LowMultDiMuonMonitor"}};
 
   static constexpr int bits_size = 32; // 32 routing bits for HLT1
-
+  static constexpr int n_words = 4;    // 4 words  (ODIN, HLT1, HLT2, Markus)
 } // namespace RoutingBitsDefinition
