@@ -39,6 +39,7 @@ struct Config {
   size_t n_slices = 1;
   size_t n_events = 10;
   bool run = false;
+  std::string sequence;
 };
 
 namespace {
@@ -104,7 +105,9 @@ int main(int argc, char* argv[])
              Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
                ["--mep"]("MEP files") |
              Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
-               ["--nevents"]("number of events");
+               ["--nevents"]("number of events") | 
+             Opt(s_config.sequence, string {"sequence"})
+               ["--sequence"]("configured sequence");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
@@ -114,7 +117,8 @@ int main(int argc, char* argv[])
   if (returnCode != 0) {
     return returnCode;
   }
-
+  std::cout << "mdf_files = " << s_config.mdf_files << std::endl;
+  std::cout << "mep_files = " << s_config.mep_files << std::endl;
   s_config.run = !s_config.mdf_files.empty();
   if (s_config.run) {
     // Allocate providers and get slices
@@ -122,6 +126,8 @@ int main(int argc, char* argv[])
                                                   {"b", "VP,UT,FTCluster,Muon,ODIN"},
                                                   {"n", std::to_string(s_config.n_events)},
                                                   {"mdf", s_config.mdf_files},
+                                                  {"sequence", s_config.sequence},
+                                                  {"run-from-json", "1"},
                                                   {"events-per-slice", std::to_string(s_config.n_events)},
                                                   {"disable-run-changes", "1"}};
 
