@@ -147,9 +147,7 @@ include(AllenDependencies)
 
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
-if (BUILD_TESTING OR NOT STANDALONE)
-  include(CTest)
-endif()
+include(CTest)
 
 if (NOT STANDALONE)
   set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE "VERBOSE")
