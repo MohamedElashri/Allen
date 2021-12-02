@@ -90,11 +90,14 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP QUIET REQUIRED)
 
-  if(HIP_FOUND)
-    message(STATUS "Found HIP: " ${HIP_VERSION})
-  else()
-    message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable ROCM_PATH is set.")
-  endif()
+  # Do this by hand because ROCm cmake is not relocatable
+  find_library(HIP_RUNTIME_LIB amdhip64
+    HINTS
+      ${HIP_PATH}/lib
+    NO_DEFAULT_PATH)
+
+  message(STATUS "Found HIP: " ${HIP_VERSION})
+  message(STATUS "HIP runtime: ${HIP_RUNTIME_LIB}")
 endif()
 
 find_package(cppgsl REQUIRED)

@@ -44,7 +44,7 @@ endforeach()
 if(TARGET_DEVICE STREQUAL "CUDA")
   target_link_libraries(Backend PUBLIC CUDA::cudart)
 elseif(TARGET_DEVICE STREQUAL "HIP")
-  target_link_libraries(Backend PUBLIC ${HIP_HOST_INTERFACE})
+  target_link_libraries(Backend PUBLIC ${HIP_RUNTIME_LIB})
 endif()
 
 install(FILES ${BackendHeaders}
