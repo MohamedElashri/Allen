@@ -32,6 +32,10 @@ def cast_service(return_type, svc):
     return gbl.cast_service(return_type)()(svc)
 
 
+def shared_wrap(return_type, t):
+    return gbl.shared_wrap(return_type)()(t)
+
+
 # Handle commandline arguments
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -134,8 +138,12 @@ ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 
 if args.mep is not None:
-    ApplicationMgr().ExtSvc += ["MEPProvider"]
-    from Configurables import MEPProvider
+    ApplicationMgr().ExtSvc += ["AllenConfiguration", "MEPProvider"]
+    from Configurables import MEPProvider, AllenConfiguration
+
+    allen_conf = AllenConfiguration("AllenConfiguration")
+    allen_conf.JSON = args.sequence
+    allen_conf.OutputLevel = 2
 
     mep_provider = MEPProvider()
     mep_provider.NSlices = args.slices
@@ -176,7 +184,7 @@ for flag, value in [("g", args.det_folder), ("params", args.param_folder),
                     ("n", args.n_events), ("t", args.threads),
                     ("r", args.repetitions), ("output-file", args.output_file),
                     ("m", args.reserve), ("v", args.verbosity),
-                    ("p", args.print_memory), ("sequence", args.sequence),
+                    ("p", args.print_memory), ("sequence", os.path.expandvars(args.sequence)),
                     ("s", args.slices), ("mdf", args.mdf),
                     ("cpu-offload", args.cpu_offload),
                     ("disable-run-changes", int(not args.enable_run_changes)),
@@ -215,7 +223,8 @@ if args.reuse_meps:
 
 if args.profile == "CUDA":
     runtime_lib.cudaProfilerStart()
-gbl.allen(options, updater, provider, output_handler, zmqSvc, con.c_str())
+gbl.allen(options, updater, shared_wrap(gbl.IInputProvider, provider),
+          output_handler, zmqSvc, con.c_str())
 if args.profile == "CUDA":
     runtime_lib.cudaProfilerStop()
 

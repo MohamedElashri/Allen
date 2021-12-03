@@ -18,5 +18,12 @@ struct cast_service {
   TO* operator()(IService* svc) { return dynamic_cast<TO*>(svc); }
 };
 
+template<typename T>
+struct shared_wrap {
+  std::shared_ptr<T> operator()(T* t) { return {t, [](T*) {}}; }
+};
+
+
+
 // template cast_service<Allen::NonEventData::IUpdater>;
 // template cast_service<IInputProvider>(IService* svc);
