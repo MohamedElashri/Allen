@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
   if (!mdf_file.empty()) {
     auto const p = fs::path(mdf_file);
     if (fs::is_regular_file(p) && mdf_file.rfind(".mdf") == mdf_file.size() - 4) {
-      s_config.mdf_files.push_back(p);
+      s_config.mdf_files.push_back(p.string());
     }
   }
 
