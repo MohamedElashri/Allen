@@ -2,6 +2,7 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "FilterTracks.cuh"
+#include "VertexFitDeviceFunctions.cuh"
 #include "VertexDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
@@ -17,6 +18,7 @@ void FilterTracks::filter_tracks_t::set_arguments_size(
   set_size<dev_sv_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_svs_trk1_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
   set_size<dev_svs_trk2_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
+  set_size<dev_sv_poca_t>(arguments, 3 * 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
 }
 
 void FilterTracks::filter_tracks_t::operator()(
@@ -59,6 +61,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 
   // Kalman fitted tracks.
   const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
+  auto event_poca = parameters.dev_sv_poca + 3 * idx_offset;
 
   // Loop over tracks.
   for (unsigned i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
@@ -90,7 +93,18 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
         continue;
       }
 
+      // Check the POCA.
+      float x;
+      float y;
+      float z;
+      if (!VertexFit::poca(trackA, trackB, x, y, z)) {
+        continue;
+      }
+
       unsigned vertex_idx = atomicAdd(event_sv_number, 1);
+      event_poca[3 * vertex_idx] = x;
+      event_poca[3 * vertex_idx + 1] = y;
+      event_poca[3 * vertex_idx + 2] = z;
       event_svs_trk1_idx[vertex_idx] = i_track;
       event_svs_trk2_idx[vertex_idx] = j_track;
     }

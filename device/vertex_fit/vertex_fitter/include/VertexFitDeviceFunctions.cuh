@@ -1,7 +1,78 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+#pragma once
+
+#include "ParKalmanDefinitions.cuh"
+#include "ParKalmanMath.cuh"
+#include "VertexDefinitions.cuh"
+#include "PV_Definitions.cuh"
+
 namespace VertexFit {
+
+  __device__ inline bool poca(
+    const ParKalmanFilter::FittedTrack& trackA,
+    const ParKalmanFilter::FittedTrack& trackB,
+    float& x,
+    float& y,
+    float& z);
+
+  __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
+
+  __device__ inline float addToDerivatives(
+    const ParKalmanFilter::FittedTrack& track,
+    const float& x,
+    const float& y,
+    const float& z,
+    float& halfDChi2_0,
+    float& halfDChi2_1,
+    float& halfDChi2_2,
+    float& halfD2Chi2_00,
+    float& halfD2Chi2_11,
+    float& halfD2Chi2_20,
+    float& halfD2Chi2_21,
+    float& halfD2Chi2_22);
+
+  __device__ inline float solve(
+    float& x,
+    float& y,
+    float& z,
+    float& cov00,
+    float& cov10,
+    float& cov11,
+    float& cov20,
+    float& cov21,
+    float& cov22,
+    const float& halfDChi2_0,
+    const float& halfDChi2_1,
+    const float& halfDChi2_2,
+    const float& halfD2Chi2_00,
+    const float& halfD2Chi2_11,
+    const float& halfD2Chi2_20,
+    const float& halfD2Chi2_21,
+    const float& halfD2Chi2_22);
+
+  __device__ inline void
+  doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex);
+
+  __device__ inline void fill_extra_info(
+    TrackMVAVertex& sv,
+    const ParKalmanFilter::FittedTrack& trackA,
+    const ParKalmanFilter::FittedTrack& trackB);
+
+  __device__ inline void fill_extra_pv_info(
+    TrackMVAVertex& sv,
+    Allen::device::span<PV::Vertex const> pvs,
+    const ParKalmanFilter::FittedTrack& trackA,
+    const ParKalmanFilter::FittedTrack& trackB,
+    const float max_assoc_ipchi2);
 
   //----------------------------------------------------------------------
   // Point of closest approach. Reimplementation from TrackVertexUtils.
@@ -92,6 +163,7 @@ namespace VertexFit {
     float& y,
     float& z,
     float& cov00,
+    float& cov10,
     float& cov11,
     float& cov20,
     float& cov21,
@@ -110,25 +182,23 @@ namespace VertexFit {
     const float invdet = 1.f / det;
     cov00 = (halfD2Chi2_11 * halfD2Chi2_22 - halfD2Chi2_21 * halfD2Chi2_21) * invdet;
     cov11 = (halfD2Chi2_00 * halfD2Chi2_22 - halfD2Chi2_20 * halfD2Chi2_20) * invdet;
+    cov10 = halfD2Chi2_20 * halfD2Chi2_21 * invdet;
     cov20 = -halfD2Chi2_11 * halfD2Chi2_20 * invdet;
     cov21 = -halfD2Chi2_00 * halfD2Chi2_21 * invdet;
     cov22 = halfD2Chi2_00 * halfD2Chi2_11 * invdet;
-    x += halfDChi2_0 * cov00 + halfDChi2_2 * cov20;
-    y += halfDChi2_1 * cov11 + halfDChi2_2 * cov21;
+    x += halfDChi2_0 * cov00 + halfDChi2_1 * cov10 + halfDChi2_2 * cov20;
+    y += halfDChi2_0 * cov10 + halfDChi2_1 * cov11 + halfDChi2_2 * cov21;
     z += halfDChi2_0 * cov20 + halfDChi2_1 * cov21 + halfDChi2_2 * cov22;
-    return -1 * (halfDChi2_0 * (halfDChi2_0 * cov00 + halfDChi2_2 * cov20) +
-                 halfDChi2_1 * (halfDChi2_1 * cov11 + halfDChi2_2 * cov21) +
+    return -1 * (halfDChi2_0 * (halfDChi2_0 * cov00 + halfDChi2_1 * cov10 + halfDChi2_2 * cov20) +
+                 halfDChi2_1 * (halfDChi2_0 * cov10 + halfDChi2_1 * cov11 + halfDChi2_2 * cov21) +
                  halfDChi2_2 * (halfDChi2_0 * cov20 + halfDChi2_1 * cov21 + halfDChi2_2 * cov22));
   }
 
   //----------------------------------------------------------------------
   // Perform a vertex fit assuming x and y are uncorrelated.
-  __device__ bool
+  __device__ void
   doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex)
   {
-    if (!poca(trackA, trackB, vertex.x, vertex.y, vertex.z)) {
-      return false;
-    };
     float vertexweight00 = 0.f;
     float vertexweight11 = 0.f;
     float vertexweight20 = 0.f;
@@ -172,6 +242,7 @@ namespace VertexFit {
       vertex.y,
       vertex.z,
       vertex.cov00,
+      vertex.cov10,
       vertex.cov11,
       vertex.cov20,
       vertex.cov21,
@@ -184,7 +255,6 @@ namespace VertexFit {
       vertexweight20,
       vertexweight21,
       vertexweight22);
-    return true;
   }
 
   __device__ void fill_extra_info(
@@ -235,7 +305,7 @@ namespace VertexFit {
 
   __device__ void fill_extra_pv_info(
     TrackMVAVertex& sv,
-    const PV::Vertex& pv,
+    Allen::device::span<PV::Vertex const> pvs,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB,
     const float max_assoc_ipchi2)
@@ -243,26 +313,49 @@ namespace VertexFit {
     // Number of tracks with ip chi2 < 16.
     sv.ntrks16 = (trackA.ipChi2 < max_assoc_ipchi2) + (trackB.ipChi2 < max_assoc_ipchi2);
 
-    // Get PV-SV separation.
+    const unsigned n_pvs = pvs.size();
+    float minfdchi2 = -1.;
+    int pv_idx = -1;
+
+    for (unsigned ipv = 0; ipv < n_pvs; ipv++) {
+      auto pv = pvs[ipv];
+
+      // Get PV-SV separation.
+      const float dx = sv.x - pv.position.x;
+      const float dy = sv.y - pv.position.y;
+      const float dz = sv.z - pv.position.z;
+
+      // Get covariance and FD chi2.
+      const float cov00 = sv.cov00 + pv.cov00;
+      const float cov10 = sv.cov10 + pv.cov10;
+      const float cov11 = sv.cov11 + pv.cov11;
+      const float cov20 = sv.cov20 + pv.cov20;
+      const float cov21 = sv.cov21 + pv.cov21;
+      const float cov22 = sv.cov22 + pv.cov22;
+      const float invdet = 1.f / (2.f * cov10 * cov20 * cov21 - cov11 * cov20 * cov20 - cov00 * cov21 * cov21 +
+                                  cov00 * cov11 * cov22 - cov22 * cov10 * cov10);
+      const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
+      const float invcov10 = (cov20 * cov21 - cov10 * cov22) * invdet;
+      const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
+      const float invcov20 = (cov10 * cov21 - cov11 * cov20) * invdet;
+      const float invcov21 = (cov10 * cov20 - cov00 * cov21) * invdet;
+      const float invcov22 = (cov00 * cov11 - cov10 * cov10) * invdet;
+      const float fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
+                           2.f * invcov21 * dy * dz + 2.f * invcov10 * dx * dy;
+      if (fdchi2 < minfdchi2 || pv_idx < 0) {
+        minfdchi2 = fdchi2;
+        pv_idx = ipv;
+      }
+    }
+
+    if (pv_idx < 0) return;
+
+    sv.fdchi2 = minfdchi2;
+    auto pv = pvs[pv_idx];
     const float dx = sv.x - pv.position.x;
     const float dy = sv.y - pv.position.y;
     const float dz = sv.z - pv.position.z;
     const float fd = sqrtf(dx * dx + dy * dy + dz * dz);
-
-    // Get covariance and FD chi2.
-    const float cov00 = sv.cov00 + pv.cov00;
-    const float cov11 = sv.cov11 + pv.cov11;
-    const float cov20 = sv.cov20 + pv.cov20;
-    const float cov21 = sv.cov21 + pv.cov21;
-    const float cov22 = sv.cov22 + pv.cov22;
-    const float invdet = 1.f / (cov00 * cov11 * cov22 - cov00 * cov21 * cov21 - cov11 * cov20 * cov20);
-    const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
-    const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
-    const float invcov20 = -cov11 * cov20 * invdet;
-    const float invcov21 = cov00 * cov21 * invdet;
-    const float invcov22 = cov00 * cov22 * invdet;
-    sv.fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
-                2.f * invcov21 * dy * dz;
 
     // PV-SV eta.
     sv.eta = atanhf(dz / fd);
