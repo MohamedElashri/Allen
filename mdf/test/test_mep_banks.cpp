@@ -105,9 +105,8 @@ int main(int argc, char* argv[])
              Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
                ["--mep"]("MEP files") |
              Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
-               ["--nevents"]("number of events") | 
-             Opt(s_config.sequence, string {"sequence"})
-               ["--sequence"]("configured sequence");
+               ["--nevents"]("number of events") |
+             Opt(s_config.sequence, string {"sequence"})["--sequence"]("configured sequence");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);

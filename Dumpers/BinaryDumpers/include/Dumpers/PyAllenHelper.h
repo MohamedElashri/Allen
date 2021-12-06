@@ -20,10 +20,11 @@ struct cast_service {
 
 template<typename T>
 struct shared_wrap {
-  std::shared_ptr<T> operator()(T* t) { return {t, [](T*) {}}; }
+  std::shared_ptr<T> operator()(T* t)
+  {
+    return {t, [](T*) {}};
+  }
 };
-
-
 
 // template cast_service<Allen::NonEventData::IUpdater>;
 // template cast_service<IInputProvider>(IService* svc);
