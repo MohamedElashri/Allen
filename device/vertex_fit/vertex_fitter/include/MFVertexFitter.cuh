@@ -3,8 +3,8 @@
 \*****************************************************************************/
 #pragma once
 
-#include "VertexFitter.cuh"
 #include "VertexDefinitions.cuh"
+#include "VertexFitDeviceFunctions.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "AlgorithmTypes.cuh"

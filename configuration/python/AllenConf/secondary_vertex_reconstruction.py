@@ -121,7 +121,7 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only):
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t,
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t,
         dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t,
-    )
+        dev_sv_poca_t=filter_tracks.dev_sv_poca_t)
 
     return {
         "dev_consolidated_svs":
