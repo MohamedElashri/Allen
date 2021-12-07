@@ -127,10 +127,9 @@ Hlt1Passthrough:        1000           0
 Hlt1RICH1Alignment:        3           3
 Hlt1RICH2Alignment:        0           0
 
-Total decisions: 3145
-Total tracks:    1783
-Total SVs:       1405
-Total hits:      44088
-Total stdinfo:   23029
+Total decisions: 3039
+Total tracks:    1849
+Total SVs:       1461
+Total hits:      45843
 Total stdinfo:   23675
 
