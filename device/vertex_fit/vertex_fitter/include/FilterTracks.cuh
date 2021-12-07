@@ -35,6 +35,7 @@ namespace FilterTracks {
     DEVICE_OUTPUT(dev_sv_atomics_t, unsigned) dev_sv_atomics;
     DEVICE_OUTPUT(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;
     DEVICE_OUTPUT(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
+    DEVICE_OUTPUT(dev_sv_poca_t, float) dev_sv_poca;
     PROPERTY(track_min_pt_t, "track_min_pt", "minimum track pT", float) track_min_pt;
     PROPERTY(track_min_ipchi2_t, "track_min_ipchi2", "minimum track IP chi2", float) track_min_ipchi2;
     PROPERTY(track_muon_min_ipchi2_t, "track_muon_min_ipchi2", "minimum muon IP chi2", float) track_muon_min_ipchi2;
@@ -63,7 +64,7 @@ namespace FilterTracks {
 
   private:
     Property<track_min_pt_t> m_minpt {this, 200.0f};
-    Property<track_min_ipchi2_t> m_minipchi2 {this, 9.0f};
+    Property<track_min_ipchi2_t> m_minipchi2 {this, 4.0f};
     Property<track_muon_min_ipchi2_t> m_minmuipchi2 {this, 4.0f};
     Property<track_max_chi2ndof_t> m_maxchi2ndof {this, 2.5f};
     Property<track_muon_max_chi2ndof_t> m_muonmaxchi2ndof {this, 100.f};

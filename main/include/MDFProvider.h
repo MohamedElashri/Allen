@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <numeric>
 #include <condition_variable>
+#include <optional>
 
 #include <unistd.h>
 #include <sys/types.h>

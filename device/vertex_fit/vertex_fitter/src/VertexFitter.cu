@@ -42,6 +42,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   const unsigned idx_offset = 10 * VertexFit::max_svs * event_number;
   const unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
+  const float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
 
   // Consolidated SciFi tracks.
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
@@ -54,9 +55,9 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   const unsigned event_tracks_offset = scifi_tracks.tracks_offset(event_number);
 
   // Track-PV association table.
-  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
-                                                        scifi_tracks.total_number_of_tracks()};
-  const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
+  // Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
+  //                                                       scifi_tracks.total_number_of_tracks()};
+  // const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Kalman fitted tracks.
   const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
@@ -71,8 +72,12 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
 
   // Loop over svs.
   for (unsigned i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
-    event_secondary_vertices[i_sv].chi2 = -1;
-    event_secondary_vertices[i_sv].minipchi2 = 0;
+    VertexFit::TrackMVAVertex tmp_sv;
+    tmp_sv.x = event_poca[3 * i_sv];
+    tmp_sv.y = event_poca[3 * i_sv + 1];
+    tmp_sv.z = event_poca[3 * i_sv + 2];
+    tmp_sv.chi2 = -1;
+    tmp_sv.minipchi2 = 0;
     auto i_track = event_svs_trk1_idx[i_sv];
     auto j_track = event_svs_trk2_idx[i_sv];
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
@@ -80,21 +85,64 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
 
     // Do the fit.
     // TODO: In case doFit returns false, what should happen?
-    if (doFit(trackA, trackB, event_secondary_vertices[i_sv])) {
-      event_secondary_vertices[i_sv].trk1 = i_track;
-      event_secondary_vertices[i_sv].trk2 = j_track;
+    doFit(trackA, trackB, tmp_sv);
+    tmp_sv.trk1 = i_track;
+    tmp_sv.trk2 = j_track;
 
-      // Fill extra info.
-      fill_extra_info(event_secondary_vertices[i_sv], trackA, trackB);
-      if (n_pvs_event > 0) {
-        int ipv = pv_table.value(i_track) < pv_table.value(j_track) ? pv_table.pv(i_track) : pv_table.pv(j_track);
-        auto pv = vertices[ipv];
-        fill_extra_pv_info(event_secondary_vertices[i_sv], pv, trackA, trackB, parameters.max_assoc_ipchi2);
-      }
-      else {
-        // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
-        event_secondary_vertices[i_sv].minipchi2 = 0;
-      }
+    // Fill extra info.
+    fill_extra_info(tmp_sv, trackA, trackB);
+    if (n_pvs_event > 0) {
+      fill_extra_pv_info(tmp_sv, vertices, trackA, trackB, parameters.max_assoc_ipchi2);
+    }
+    else {
+      // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
+      tmp_sv.minipchi2 = 0;
+    }
+    event_secondary_vertices[i_sv] = tmp_sv;
+  }
+}
+
+void VertexFit::vertex_fit_checks::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const Allen::Context&) const
+{
+  // Conditions to check
+  bool chi2_always_positive = true;
+  bool fdchi2_always_positive = true;
+  bool ipchi2_always_positive = true;
+  bool cov_always_posdef = true;
+
+  const unsigned number_of_events = size<Parameters::dev_event_list_t>(arguments);
+  const auto sv_offsets = make_vector<Parameters::dev_sv_offsets_t>(arguments);
+  const auto event_list = make_vector<Parameters::dev_event_list_t>(arguments);
+  const auto svs = make_vector<Parameters::dev_consolidated_svs_t>(arguments);
+
+  for (unsigned event_number = 0; event_number < number_of_events; event_number++) {
+    const auto event_idx = event_list[event_number];
+    const auto sv_offset = sv_offsets[event_idx];
+    const auto n_svs = sv_offsets[event_idx + 1] - sv_offset;
+
+    for (unsigned i_sv = 0; i_sv < n_svs; i_sv++) {
+      const auto sv = svs[sv_offset + i_sv];
+      chi2_always_positive &= sv.chi2 >= 0;
+      fdchi2_always_positive &= sv.fdchi2 >= 0;
+      ipchi2_always_positive &= sv.minipchi2 >= 0;
+
+      // Check if the covariance matrix is positive definite using Sylvester's
+      // criterion: https://en.wikipedia.org/wiki/Sylvester%27s_criterion
+      const float det11 = sv.cov00;
+      const float det22 = sv.cov00 * sv.cov11 - sv.cov10 * sv.cov10;
+      const float det33 = sv.cov00 * sv.cov11 * sv.cov22 - sv.cov00 * sv.cov21 * sv.cov21 -
+                          sv.cov10 * sv.cov10 * sv.cov22 + 2 * sv.cov10 * sv.cov20 * sv.cov21 -
+                          sv.cov20 * sv.cov20 * sv.cov11;
+      cov_always_posdef &= (det11 > 0) && (det22 > 0) && (det33 > 0);
     }
   }
+
+  require(chi2_always_positive, "Require that the vertex chi2 is always >= 0");
+  require(fdchi2_always_positive, "Require that the FD chi2 is always >= 0");
+  require(ipchi2_always_positive, "Require that the IP chi2 is always >= 0");
+  require(cov_always_posdef, "Require that the SV covariance matrix is always positive definite");
 }
