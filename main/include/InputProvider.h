@@ -99,7 +99,7 @@ public:
   InputProvider(
     size_t n_slices,
     size_t events_per_slice,
-    std::unordered_set<BankTypes> types,
+    std::unordered_set<BankTypes> const& types,
     Layout layout,
     std::optional<size_t> n_events)
   {
