@@ -9,6 +9,8 @@
 #include <unordered_set>
 #include <map>
 
+#include <nlohmann/json.hpp>
+
 #include <TransposeTypes.h>
 #include <Provider.h>
 #include <ProgramOptions.h>
@@ -26,6 +28,12 @@
 #include <GaudiKernel/IStateful.h>
 #include <GaudiKernel/ISvcLocator.h>
 #include <GaudiKernel/SmartIF.h>
+
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+#else
+#include <filesystem>
+#endif
 
 #define CATCH_CONFIG_RUNNER
 #include <catch.hpp>
@@ -51,45 +59,78 @@ namespace {
   size_t slice_mdf = 0, slice_mep = 0;
   size_t filled_mdf = 0, filled_mep = 0;
 
+  #ifdef USE_BOOST_FILESYSTEM
+  namespace fs = boost::filesystem;
+  #else
+  namespace fs = std::filesystem;
+  #endif
+
+  using json = nlohmann::json;
 } // namespace
 
-IInputProvider* mep_provider()
-{
-  SmartIF<IStateful> app = Gaudi::createApplicationMgr();
-  auto prop = app.as<IProperty>();
-  bool sc = prop->setProperty("ExtSvc", "[\"MEPProvider\"]").isSuccess();
-  sc &= prop->setProperty("JobOptionsType", "\"NONE\"");
-  sc &= app->configure();
-  if (sc) {
-    auto sloc = app.as<ISvcLocator>();
-    auto provider = sloc->service<IService>("MEPProvider");
-    if (!provider) return nullptr;
-    auto provider_prop = provider.as<IProperty>();
-    sc &= provider_prop->setProperty("NSlices", "1").isSuccess();
-    sc &= provider_prop->setProperty("EventsPerSlice", std::to_string(s_config.n_events));
-    sc &= provider_prop->setProperty("EvtMax", std::to_string(s_config.n_events));
-    sc &= provider_prop->setProperty("SplitByRun", "0");
-    sc &= provider_prop->setProperty("Source", "\"Files\"");
-    sc &= provider_prop->setProperty("BufferConfig", "(1, 1)");
-    sc &= provider_prop->setProperty("OutputLevel", "2");
+fs::path write_json(std::unordered_set<BankTypes> const& bank_types) {
 
-    auto mep_files = split_string(s_config.mep_files, ",");
-    std::stringstream ss;
-    ss << "[\"" << mep_files.front();
-    mep_files.erase(mep_files.begin());
-    for (auto f : mep_files) {
-      ss << "\",\"" << f;
-    }
-    ss << "\"]";
-    sc &= provider_prop->setProperty("Connections", ss.str());
+  // Write a JSON file that can be fed to AllenConfiguration to
+  // determine the bank types.
+  json bank_types_json;
+  for (auto bt : bank_types) {
+    bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
+  }
 
-    sc &= app->initialize();
-    sc &= app->start();
-    return dynamic_cast<IInputProvider*>(provider.get());
+  auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
+  std::ofstream bt_json(bt_filename.string());
+  if (!bt_json.is_open()) {
+    std::cerr << "Failed to open json file for bank types configuration" << "\n";
+    return {};
   }
   else {
-    return nullptr;
+    bt_json << std::setw(4) << bank_types_json.dump() << "\n";
+    return bt_filename;
   }
+}
+
+IInputProvider* mep_provider(std::string json_file)
+{
+
+  SmartIF<IStateful> app = Gaudi::createApplicationMgr();
+  auto prop = app.as<IProperty>();
+  bool sc = prop->setProperty("ExtSvc", "[\"AllenConfiguration\", \"MEPProvider\"]").isSuccess();
+  sc &= prop->setProperty("JobOptionsType", "\"NONE\"");
+  sc &= app->configure();
+
+  auto sloc = app.as<ISvcLocator>();
+
+  auto allen_conf = sloc->service<IService>("AllenConfiguration");
+  if (!allen_conf) return nullptr;
+  auto allen_conf_prop = allen_conf.as<IProperty>();
+  sc &= allen_conf_prop->setProperty("JSON", json_file).isSuccess();
+
+  if (!sc) return nullptr;
+
+  auto provider = sloc->service<IService>("MEPProvider");
+  if (!provider) return nullptr;
+  auto provider_prop = provider.as<IProperty>();
+  sc &= provider_prop->setProperty("NSlices", "1").isSuccess();
+  sc &= provider_prop->setProperty("EventsPerSlice", std::to_string(s_config.n_events));
+  sc &= provider_prop->setProperty("EvtMax", std::to_string(s_config.n_events));
+  sc &= provider_prop->setProperty("SplitByRun", "0");
+  sc &= provider_prop->setProperty("Source", "\"Files\"");
+  sc &= provider_prop->setProperty("BufferConfig", "(1, 1)");
+  sc &= provider_prop->setProperty("OutputLevel", "2");
+
+  auto mep_files = split_string(s_config.mep_files, ",");
+  std::stringstream ss;
+  ss << "[\"" << mep_files.front();
+  mep_files.erase(mep_files.begin());
+  for (auto f : mep_files) {
+    ss << "\",\"" << f;
+  }
+  ss << "\"]";
+  sc &= provider_prop->setProperty("Connections", ss.str());
+
+  sc &= app->initialize();
+  sc &= app->start();
+  return dynamic_cast<IInputProvider*>(provider.get());
 }
 
 int main(int argc, char* argv[])
@@ -105,8 +146,7 @@ int main(int argc, char* argv[])
              Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
                ["--mep"]("MEP files") |
              Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
-               ["--nevents"]("number of events") |
-             Opt(s_config.sequence, string {"sequence"})["--sequence"]("configured sequence");
+               ["--nevents"]("number of events");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
@@ -120,12 +160,15 @@ int main(int argc, char* argv[])
   std::cout << "mep_files = " << s_config.mep_files << std::endl;
   s_config.run = !s_config.mdf_files.empty();
   if (s_config.run) {
+
+    std::unordered_set<BankTypes> bank_types = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ODIN, BankTypes::ECal, BankTypes::HCal, BankTypes::MUON};
+    auto json_file = write_json(bank_types);
+
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", "1"},
-                                                  {"b", "VP,UT,FTCluster,Muon,ODIN"},
                                                   {"n", std::to_string(s_config.n_events)},
                                                   {"mdf", s_config.mdf_files},
-                                                  {"sequence", s_config.sequence},
+                                                  {"sequence", json_file.string()},
                                                   {"run-from-json", "1"},
                                                   {"events-per-slice", std::to_string(s_config.n_events)},
                                                   {"disable-run-changes", "1"}};
@@ -135,12 +178,18 @@ int main(int argc, char* argv[])
     bool good = false, timed_out = false, done = false;
     uint runno = 0;
     std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
-    mep = mep_provider();
+
+
+    mep = mep_provider(json_file.string());
     if (mep == nullptr) {
       std::cerr << "Failed to obtain MEPProvider\n";
       return 1;
     }
     std::tie(good, done, timed_out, slice_mep, filled_mep, runno) = mep->get_slice();
+    if (!good) {
+      std::cerr << "Failed to obtain MEP slice\n";
+      return 1;
+    }
   }
 
   return session.run();
@@ -296,6 +345,34 @@ void compare<BankTypes::MUON>(
   }
 }
 
+template<>
+void compare<BankTypes::ECal>(
+  const int,
+  gsl::span<char const> mep_fragments,
+  gsl::span<unsigned const> mep_offsets,
+  gsl::span<char const> allen_banks,
+  gsl::span<unsigned const> allen_offsets,
+  size_t const i_event)
+{
+  auto const mep_n_banks = mep_offsets[0];
+
+  const auto allen_raw_event = CaloRawEvent(allen_banks.data(), allen_offsets.data(), i_event);
+  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+
+  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+    // Read raw bank
+    auto const mep_bank = MEP::raw_bank<CaloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const allen_bank = allen_raw_event.bank(bank);
+    auto mep_len = mep_bank.end - mep_bank.data;
+    auto allen_len = allen_bank.end - allen_bank.data;
+    REQUIRE(mep_bank.source_id == allen_bank.source_id);
+    REQUIRE(mep_len == allen_len);
+    for (long j = 0; j < mep_len; ++j) {
+      REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+    }
+  }
+}
+
 template<BankTypes BT_>
 struct BTTag {
   inline static const BankTypes BT = BT_;
@@ -343,7 +420,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 }
 
 // Main test case, multiple bank types are checked
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", VeloTag, UTTag, SciFiTag, MuonTag)
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", VeloTag, UTTag, SciFiTag, MuonTag, ECalTag)
 {
   if (!s_config.run) return;
 
