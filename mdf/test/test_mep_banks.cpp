@@ -178,7 +178,10 @@ int main(int argc, char* argv[])
     bool good = false, timed_out = false, done = false;
     uint runno = 0;
     std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
-
+    if (!good) {
+      std::cerr << "Failed to obtain MDF slice\n";
+      return 1;
+    }
 
     mep = mep_provider(json_file.string());
     if (mep == nullptr) {
@@ -230,7 +233,8 @@ void compare<BankTypes::VP>(
     // Read raw bank
     auto const mep_bank = MEP::raw_bank<Velo::VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
     auto const allen_bank = allen_raw_event.raw_bank(bank);
-    REQUIRE(mep_bank.sensor_index == allen_bank.sensor_index);
+    auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
+    REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
     REQUIRE(mep_bank.sp_count == allen_bank.sp_count);
     for (size_t j = 0; j < allen_bank.sp_count; ++j) {
       REQUIRE(allen_bank.sp_word[j] == mep_bank.sp_word[j]);
@@ -252,13 +256,16 @@ void compare<BankTypes::UT>(
   const auto allen_raw_event = UTRawEvent(allen_banks.data() + allen_offsets[i_event]);
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
 
+
+
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
     if (version == 3) {
       auto const mep_bank = MEP::raw_bank<UTRawBank<3>>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
       auto const event_offset = allen_raw_event.raw_bank_offsets[bank];
       auto const allen_bank = allen_raw_event.getUTRawBank<3>(bank);
-      REQUIRE(mep_bank.sourceID == allen_bank.sourceID);
+      auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
       REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
       for (size_t j = 0; j < ((allen_raw_event.raw_bank_offsets[bank + 1] - event_offset) >> 1) - 4; ++j) {
         REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
@@ -276,7 +283,8 @@ void compare<BankTypes::UT>(
       // skip buggy banks without content
       if (fragment_size < sizeof(uint32_t) * 6) continue;
 
-      REQUIRE(mep_bank.sourceID == allen_bank.sourceID);
+      auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
       REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
 
       // Skip the 64bit header
@@ -309,7 +317,8 @@ void compare<BankTypes::FT>(
     auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto mep_len = mep_bank.last - mep_bank.data;
     auto allen_len = allen_bank.last - allen_bank.data;
-    REQUIRE(mep_bank.sourceID == allen_bank.sourceID);
+    auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+    REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
     REQUIRE(mep_len == allen_len);
     for (long j = 0; j < mep_len; ++j) {
       REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
@@ -337,7 +346,8 @@ void compare<BankTypes::MUON>(
     auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto mep_len = mep_bank.last - mep_bank.data;
     auto allen_len = allen_bank.last - allen_bank.data;
-    REQUIRE(mep_bank.sourceID == allen_bank.sourceID);
+    auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+    REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
     REQUIRE(mep_len == allen_len);
     for (long j = 0; j < mep_len; ++j) {
       REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
@@ -365,7 +375,8 @@ void compare<BankTypes::ECal>(
     auto const allen_bank = allen_raw_event.bank(bank);
     auto mep_len = mep_bank.end - mep_bank.data;
     auto allen_len = allen_bank.end - allen_bank.data;
-    REQUIRE(mep_bank.source_id == allen_bank.source_id);
+    auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
+    REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
     REQUIRE(mep_len == allen_len);
     for (long j = 0; j < mep_len; ++j) {
       REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
