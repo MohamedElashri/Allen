@@ -34,7 +34,10 @@ bool check_sourceIDs(gsl::span<char const> bank_data)
   while (bank < bank_data.data() + bank_data.size()) {
 
     const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
-    is_mc &= (SourceId_sys(static_cast<short>(b->sourceID())) == 0);
+
+    if (b->type() != LHCb::RawBank::DAQ) {
+      is_mc &= (SourceId_sys(static_cast<short>(b->sourceID())) == 0);
+    }
 
     // Increment overall bank pointer
     bank += b->totalSize();
