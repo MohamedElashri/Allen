@@ -14,10 +14,10 @@
  *  @author Lars Funke
  *  @date   2018-09-03
  */
-class DumpFTGeometry final : public DumpGeometry<DeFTDetector> {
+class DumpFTGeometry final : public DumpGeometry<DeFT> {
 public:
   DumpFTGeometry(std::string name, ISvcLocator* loc) :
-    DumpGeometry<DeFTDetector> {std::move(name), loc, DeFTDetectorLocation::Default}
+    DumpGeometry<DeFT> {std::move(name), loc, DeFTDetectorLocation::Default}
   {}
 
 protected:
