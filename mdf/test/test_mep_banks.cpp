@@ -21,6 +21,8 @@
 #include <SciFiRaw.cuh>
 #include <UTRaw.cuh>
 #include <MuonRaw.cuh>
+#include <CaloRawEvent.cuh>
+#include <CaloRawBanks.cuh>
 
 #include <GaudiKernel/Bootstrap.h>
 #include <GaudiKernel/IProperty.h>
@@ -394,6 +396,7 @@ using VeloTag = BTTag<BankTypes::VP>;
 using SciFiTag = BTTag<BankTypes::FT>;
 using UTTag = BTTag<BankTypes::UT>;
 using MuonTag = BTTag<BankTypes::MUON>;
+using ECalTag = BTTag<BankTypes::ECal>;
 
 /**
  * @brief      Check banks
