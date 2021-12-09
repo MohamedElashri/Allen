@@ -56,11 +56,11 @@ set(CPU_STATIC_VECTOR_WIDTH OFF CACHE STRING "Define a static vector width for C
 set_property(CACHE CPU_STATIC_VECTOR_WIDTH PROPERTY STRINGS OFF scalar 128bits 256bits 512bits)
 
 # Build type (builds based on Gaudi are setting CMAKE_BUILD_TYPE in gaudi_project)
-if(STANDALONE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
+if(STANDALONE AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
-  message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 endif()
+message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
