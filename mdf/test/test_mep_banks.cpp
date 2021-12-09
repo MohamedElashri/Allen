@@ -59,16 +59,17 @@ namespace {
   size_t slice_mdf = 0, slice_mep = 0;
   size_t filled_mdf = 0, filled_mep = 0;
 
-  #ifdef USE_BOOST_FILESYSTEM
+#ifdef USE_BOOST_FILESYSTEM
   namespace fs = boost::filesystem;
-  #else
+#else
   namespace fs = std::filesystem;
-  #endif
+#endif
 
   using json = nlohmann::json;
 } // namespace
 
-fs::path write_json(std::unordered_set<BankTypes> const& bank_types) {
+fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
+{
 
   // Write a JSON file that can be fed to AllenConfiguration to
   // determine the bank types.
@@ -80,7 +81,8 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types) {
   auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
   std::ofstream bt_json(bt_filename.string());
   if (!bt_json.is_open()) {
-    std::cerr << "Failed to open json file for bank types configuration" << "\n";
+    std::cerr << "Failed to open json file for bank types configuration"
+              << "\n";
     return {};
   }
   else {
@@ -161,7 +163,8 @@ int main(int argc, char* argv[])
   s_config.run = !s_config.mdf_files.empty();
   if (s_config.run) {
 
-    std::unordered_set<BankTypes> bank_types = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ODIN, BankTypes::ECal, BankTypes::HCal, BankTypes::MUON};
+    std::unordered_set<BankTypes> bank_types = {
+      BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ODIN, BankTypes::ECal, BankTypes::HCal, BankTypes::MUON};
     auto json_file = write_json(bank_types);
 
     // Allocate providers and get slices
@@ -255,8 +258,6 @@ void compare<BankTypes::UT>(
 
   const auto allen_raw_event = UTRawEvent(allen_banks.data() + allen_offsets[i_event]);
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
-
-
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
