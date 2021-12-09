@@ -19,7 +19,7 @@ fi
 RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 ${RUN_OPTIONS}"
 
 set -euxo pipefail
-OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}/${DEVICE_ID}"
+OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}${OPTIONS}/${DEVICE_ID}"
 mkdir -p ${OUTPUT_FOLDER_REL}
 
 OUTPUT_FOLDER=$(realpath ${OUTPUT_FOLDER_REL})
@@ -120,6 +120,7 @@ echo "Throughput (kHz, 2 d.p.): ${THROUGHPUT_KHZ}"
 
 echo "${DATA_TAG}" > "${OUTPUT_FOLDER}/input_files.txt"
 echo "${SEQUENCE}" > "${OUTPUT_FOLDER}/sequence.txt"
+echo "${OPTIONS}" > "${OUTPUT_FOLDER}/buildopts.txt"
 echo "${THROUGHPUT}" > "${OUTPUT_FOLDER}/throughput.txt"
 echo "${CI_COMMIT_SHORT_SHA}" > "${OUTPUT_FOLDER}/revision.txt"
 
