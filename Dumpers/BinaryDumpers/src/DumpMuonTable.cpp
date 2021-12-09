@@ -85,8 +85,6 @@ DumpUtils::Dumps DumpMuonTable::dumpGeometry() const
     }
   }
 
-  double xp = 0.f, dx = 0.f, yp = 0.f, dy = 0.f, zp = 0.f, dz = 0.f;
-
   string padType {"pad"}, stripXType {"stripX"}, stripYType {"stripY"};
   // Pads
   auto pad = std::tie(padType, padGridX, padGridY, padSizeX, padSizeY, padOffset, padSizeOffset, padTable);
@@ -122,27 +120,29 @@ DumpUtils::Dumps DumpMuonTable::dumpGeometry() const
             quarter,
             x,
             y};
-          auto sc = det.Tile2XYZ(tile, xp, dx, yp, dy, zp, dz);
-          if (sc.isFailure()) {
+          auto pos = det.position(tile);
+          if (!pos) {
             std::stringstream e;
             e << t << " " << station << " " << region << " " << quarter << " " << gridX[gidx] << " " << gridY[gidx]
               << " " << x << " " << y << "\n";
-            throw GaudiException {e.str(), name(), sc};
+            throw GaudiException {e.str(), name(), StatusCode::FAILURE};
           }
           else {
             auto sizeIdx = MuonUtils::size_index(sizeOffset, gridX, gridY, tile);
             if (msgLevel(MSG::VERBOSE)) {
               verbose() << (info_output % t % static_cast<unsigned int>(tile) % station % region % quarter % gidx %
-                            gridX[gidx] % gridY[gidx] % x % y % index % xp % yp % zp % dx % dy % sizeIdx)
+                            gridX[gidx] % gridY[gidx] % x % y % index % pos->x() % pos->y() % pos->z() % pos->dX() %
+                            pos->dY() % sizeIdx)
                         << endmsg;
             }
 
             // positions are always indexed by station
-            table[station][index++] = {numeric_cast<float>(xp), numeric_cast<float>(yp), numeric_cast<float>(zp)};
+            table[station][index++] = {
+              numeric_cast<float>(pos->x()), numeric_cast<float>(pos->y()), numeric_cast<float>(pos->z())};
 
             // sizes are specially indexed
-            if (dx > sizeX[sizeIdx]) sizeX[sizeIdx] = dx;
-            if (dy > sizeY[sizeIdx]) sizeY[sizeIdx] = dy;
+            if (pos->dX() > sizeX[sizeIdx]) sizeX[sizeIdx] = pos->dX();
+            if (pos->dY() > sizeY[sizeIdx]) sizeY[sizeIdx] = pos->dY();
           }
         }
       }

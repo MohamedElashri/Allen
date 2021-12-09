@@ -210,19 +210,21 @@ StatusCode TestMuonTable::initialize()
 void TestMuonTable::operator()(const LHCb::MuonCoords& muonCoords) const
 {
 
-  double xp = 0., dxp = 0., yp = 0., dyp = 0., zp = 0., dzp = 0.;
   double xt = 0., dxt = 0., yt = 0., dyt = 0., zt = 0.;
 
   size_t n = 0;
 
   for (auto coord : muonCoords) {
 
-    m_det->Tile2XYZ(coord->key(), xp, dxp, yp, dyp, zp, dzp).ignore();
+    auto pos = m_det->position(coord->key());
 
     coord_position(coord->key(), m_pad, m_stripX, m_stripY, coord->uncrossed(), xt, dxt, yt, dyt, zt);
 
-    array<tuple<char const*, double, double>, 5> values {
-      {{"x ", xp, xt}, {"dx", dxp, dxt}, {"y ", yp, yt}, {"dy", dyp, dyt}, {"z ", zp, zt}}};
+    array<tuple<char const*, double, double>, 5> values {{{"x ", pos->x(), xt},
+                                                          {"dx", pos->dX(), dxt},
+                                                          {"y ", pos->y(), yt},
+                                                          {"dy", pos->dY(), dyt},
+                                                          {"z ", pos->z(), zt}}};
 
     boost::format msg {"%|4d| %|8d| %|6s| %|d| %|d| %|d| %|2d| %|2d| %|d| %|5d| %|5d|"};
 
