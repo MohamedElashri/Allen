@@ -57,7 +57,8 @@ LHCb::RawEvent AllenReportsToRawEvent::operator()(const HostBuffers& host_buffer
   constexpr auto sel_rep_version = 9u, dec_rep_version = 2u;
   auto dec_reports = LHCb::make_span(
     &host_buffers.host_dec_reports[0], &host_buffers.host_dec_reports[host_buffers.host_number_of_lines + 1] + 1);
-  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltSelReports, sel_rep_version, host_buffers.host_sel_reports);
+  auto sel_reports = LHCb::make_span(host_buffers.host_sel_reports.data(), host_buffers.host_sel_report_offsets[1]);
+  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltSelReports, sel_rep_version, sel_reports);
   raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltDecReports, dec_rep_version, dec_reports);
 
   return raw_event;

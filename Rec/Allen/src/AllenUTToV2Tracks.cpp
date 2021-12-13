@@ -85,7 +85,7 @@ std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuff
     auto& newTrack = output.emplace_back();
 
     // add UT hits
-    std::vector<uint32_t> ut_ids = ut_tracks.get_lhcbids_for_track(host_buffers.host_ut_track_hits, t);
+    std::vector<uint32_t> ut_ids = ut_tracks.get_lhcbids_for_track(host_buffers.host_ut_track_hits.data(), t);
     for (const auto id : ut_ids) {
       const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);
       newTrack.addToLhcbIDs(lhcbid);

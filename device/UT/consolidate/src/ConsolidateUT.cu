@@ -80,7 +80,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, context);
     assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, context);
-    assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, context);
+    safe_assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, context);
     assign_to_host_buffer<dev_ut_qop_t>(host_buffers.host_ut_qop, arguments, context);
     assign_to_host_buffer<dev_ut_track_velo_indices_t>(host_buffers.host_ut_track_velo_indices, arguments, context);
   }

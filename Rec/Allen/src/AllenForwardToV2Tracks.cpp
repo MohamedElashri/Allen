@@ -179,7 +179,8 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
 
     // add UT hits
     const unsigned UT_track_index = scifi_tracks.ut_track(t);
-    std::vector<uint32_t> ut_ids = ut_tracks.get_lhcbids_for_track(host_buffers.host_ut_track_hits, UT_track_index);
+    std::vector<uint32_t> ut_ids =
+      ut_tracks.get_lhcbids_for_track(host_buffers.host_ut_track_hits.data(), UT_track_index);
     for (const auto id : ut_ids) {
       const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);
       newTrack.addToLhcbIDs(lhcbid);
