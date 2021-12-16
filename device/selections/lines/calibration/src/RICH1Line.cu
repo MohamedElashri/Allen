@@ -111,8 +111,7 @@ void rich_1_line::rich_1_line_t::output_monitor(
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
 {
-  auto name_str = name();
-  std::string name_ttree = "monitor_tree" + name_str;
+  if (!property<make_tuple_t>()) return;
 
   Allen::copy<host_decision_t, dev_decision_t>(arguments, context);
   Allen::copy<host_pt_t, dev_pt_t>(arguments, context);
@@ -124,11 +123,11 @@ void rich_1_line::rich_1_line_t::output_monitor(
 
   Allen::synchronize(context);
 
-  auto handler = runtime_options.root_service->handle();
+  auto handler = runtime_options.root_service->handle(name());
 
-  handler.file("monitor.root");
+  auto root_file = handler.file("monitor.root");
 
-  auto tree = handler.ttree(name_ttree.c_str());
+  auto tree = handler.tree(root_file, "monitor_tree");
 
   bool decision {};
   float pt {};
@@ -137,16 +136,16 @@ void rich_1_line::rich_1_line_t::output_monitor(
   // float ipchi2 {};
   float eta {};
   float phi {};
-  int ev {};
+  size_t ev {};
 
-  handler.branch("decision", decision);
-  handler.branch("pt", pt);
-  handler.branch("p", p);
-  handler.branch("ev", ev);
-  handler.branch("chi2", chi2);
+  handler.branch(tree, "decision", decision);
+  handler.branch(tree, "pt", pt);
+  handler.branch(tree, "p", p);
+  handler.branch(tree, "ev", ev);
+  handler.branch(tree, "chi2", chi2);
   // handler.branch("ipchi2", ipchi2);
-  handler.branch("eta", eta);
-  handler.branch("phi", phi);
+  handler.branch(tree, "eta", eta);
+  handler.branch(tree, "phi", phi);
 
   unsigned n_svs = size<host_pt_t>(arguments);
   bool* sv_decision {nullptr};
@@ -156,7 +155,7 @@ void rich_1_line::rich_1_line_t::output_monitor(
   // float* sv_ipchi2 {nullptr};
   float* sv_eta {nullptr};
   float* sv_phi {nullptr};
-  int i0 = tree->GetEntries(); // narrowing?
+  size_t i0 = tree->GetEntries(); // narrowing?
   for (unsigned i = 0; i < n_svs; i++) {
     sv_decision = data<host_decision_t>(arguments) + i;
     sv_pt = data<host_pt_t>(arguments) + i;
@@ -177,7 +176,6 @@ void rich_1_line::rich_1_line_t::output_monitor(
     ev = i0 + i;
     tree->Fill();
   }
-  tree->Write(0, TObject::kOverwrite);
 }
 #endif
 

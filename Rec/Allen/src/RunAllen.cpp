@@ -150,6 +150,8 @@ StatusCode RunAllen::initialize()
   m_host_buffers_manager.reset(
     new HostBuffersManager {m_n_buffers, 2, m_line_names.size(), static_cast<unsigned>(error_line)});
 
+  m_root_service = std::make_unique<ROOTService>();
+
   // Instantiate the sequence
   m_stream = std::make_unique<Stream>(
     configuration_reader.configured_sequence(),
@@ -187,6 +189,13 @@ StatusCode RunAllen::initialize()
   return StatusCode::SUCCESS;
 }
 
+StatusCode RunAllen::finalize()
+{
+  m_root_service.reset();
+
+  return MultiTransformerFilter::initialize();
+}
+
 /** Calls Allen for one event
  */
 std::tuple<bool, HostBuffers> RunAllen::operator()(
@@ -204,7 +213,6 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const size_t slice_index = 0;
   const bool mep_layout = false;
   const uint inject_mem_fail = 0;
-  auto root_service = std::make_unique<ROOTService>();
   RuntimeOptions runtime_options {m_tes_input_provider,
                                   slice_index,
                                   {event_start, event_end},
@@ -214,7 +222,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
                                   mep_layout,
                                   inject_mem_fail,
                                   nullptr,
-                                  root_service.get()};
+                                  m_root_service.get()};
 
   const unsigned buf_idx = m_n_buffers - 1;
   Allen::error cuda_rv = m_stream->run(buf_idx, runtime_options);

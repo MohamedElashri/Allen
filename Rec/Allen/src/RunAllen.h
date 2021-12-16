@@ -43,6 +43,9 @@ public:
   /// initialization
   StatusCode initialize() override;
 
+  /// initialization
+  StatusCode finalize() override;
+
   /// Algorithm execution
   std::tuple<bool, HostBuffers> operator()(
     const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
@@ -60,6 +63,7 @@ private:
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
   std::shared_ptr<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>
     m_tes_input_provider;
+  std::unique_ptr<ROOTService> m_root_service;
 
   Gaudi::Property<std::string> m_sequence {this, "Sequence", "hlt1_pp_default"};
 
