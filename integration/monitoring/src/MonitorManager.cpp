@@ -74,7 +74,7 @@ void MonitorManager::init(unsigned n_mon_thread, HostBuffersManager* buffers_man
     m_monitors.back().push_back(new RateMonitor(buffers_manager, time_step, offset));
     m_monitors.back().push_back(new TrackMonitor(buffers_manager, time_step, offset));
     m_monitors.back().push_back(new PVMonitor(buffers_manager, time_step, offset));
-    m_monitors.back().push_back(new SVMonitor(buffers_manager, time_step, offset));
+    // m_monitors.back().push_back(new SVMonitor(buffers_manager, time_step, offset));
     free_monitors.push(i);
   }
 }
