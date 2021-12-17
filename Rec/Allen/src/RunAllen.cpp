@@ -193,7 +193,7 @@ StatusCode RunAllen::finalize()
 {
   m_root_service.reset();
 
-  return MultiTransformerFilter::initialize();
+  return MultiTransformerFilter::finalize();
 }
 
 /** Calls Allen for one event
