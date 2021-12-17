@@ -52,6 +52,13 @@ function check_build_exists() {
     fi 
 }
 
+# Define OPTIONS as empty, if not already defined
+if [ -z ${OPTIONS+x} ]; then
+  echo "OPTIONS is not defined - this is fine, but I will set it to empty."
+  OPTIONS=""
+fi
+
+
 export BUILD_SEQUENCES="all"
 
 TOPLEVEL=${PWD}

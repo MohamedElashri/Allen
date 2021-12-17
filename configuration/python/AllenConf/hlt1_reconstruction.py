@@ -5,7 +5,7 @@ from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_vel
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
 from AllenConf.muon_reconstruction import decode_muon, is_muon
-from AllenConf.calo_reconstruction import decode_calo, make_track_matching
+from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, fit_secondary_vertices
 from AllenConf.validators import (
@@ -31,6 +31,8 @@ def hlt1_reconstruction():
     secondary_vertices = fit_secondary_vertices(forward_tracks, pvs,
                                                 kalman_velo_only)
     decoded_calo = decode_calo()
+    ecal_clusters = make_ecal_clusters(decoded_calo)
+
     calo_matching_objects = make_track_matching(
         decoded_calo, velo_tracks, velo_states, ut_tracks, forward_tracks,
         kalman_velo_only)
@@ -43,6 +45,7 @@ def hlt1_reconstruction():
         "kalman_velo_only": kalman_velo_only,
         "secondary_vertices": secondary_vertices,
         "calo_matching_objects": calo_matching_objects,
+        "ecal_clusters": ecal_clusters
     }
 
 

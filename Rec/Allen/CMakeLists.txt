@@ -58,6 +58,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/line_types/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/calo/tools/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/calo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/backend/include)
 include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
 

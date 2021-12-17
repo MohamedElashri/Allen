@@ -9,6 +9,7 @@
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
 #include "LHCbIDContainer.cuh"
+#include "AlgorithmTypes.cuh"
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \

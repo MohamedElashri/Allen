@@ -10,6 +10,7 @@
 #include <gsl/gsl>
 
 #include <CaloDigit.cuh>
+#include <CaloCluster.cuh>
 
 #include <BackendCommon.h>
 
@@ -73,7 +74,7 @@ struct HostBuffers {
   unsigned* host_accumulated_number_of_ut_hits;
   unsigned* host_accumulated_number_of_hits_in_ut_tracks;
   unsigned* host_ut_track_hit_number;
-  char* host_ut_track_hits;
+  gsl::span<char> host_ut_track_hits;
   float* host_ut_qop;
   unsigned* host_ut_track_velo_indices;
   std::vector<unsigned> ut_hits_offsets;
@@ -106,6 +107,8 @@ struct HostBuffers {
   bool* host_match_upstream_muon;
 
   // Calo
+  gsl::span<unsigned> host_ecal_cluster_offsets = {};
+  gsl::span<CaloCluster> host_ecal_clusters = {};
   gsl::span<unsigned> host_ecal_digits_offsets = {};
   gsl::span<CaloDigit> host_ecal_digits = {};
 

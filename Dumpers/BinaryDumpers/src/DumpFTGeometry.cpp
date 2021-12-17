@@ -1,3 +1,4 @@
+// FIXME: LoH: will not work with DD4HEP as is
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
@@ -7,6 +8,7 @@
 #include <vector>
 
 #include "DumpFTGeometry.h"
+#include "Kernel/FTChannelID.h"
 
 namespace {
   using std::ios;
@@ -20,7 +22,16 @@ DECLARE_COMPONENT(DumpFTGeometry)
 
 DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
 {
-  // Detector and mat geometry
+// Detector and mat geometry
+#ifdef USE_DD4HEP
+  //  const auto& det = detector();
+  uint32_t number_of_stations = LHCb::Detector::FT::nStations;
+  uint32_t number_of_layers_per_station = LHCb::Detector::FT::nLayers;
+  uint32_t number_of_layers = number_of_stations * number_of_layers_per_station;
+  uint32_t number_of_quarters_per_layer = LHCb::Detector::FT::nQuarters;
+  uint32_t number_of_quarters = number_of_quarters_per_layer * number_of_layers;
+  vector<uint32_t> number_of_modules(number_of_quarters);
+#else
   const auto& det = detector();
   const auto& stations = det.stations();
   const auto& layersFirstStation = stations[0]->layers();
@@ -31,6 +42,7 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
   uint32_t number_of_quarters_per_layer = quartersFirstLayer.size();
   uint32_t number_of_quarters = number_of_quarters_per_layer * number_of_layers;
   vector<uint32_t> number_of_modules(det.nQuarters);
+#endif
   uint32_t number_of_mats = 0;
   uint32_t number_of_mats_per_module;
 
@@ -66,6 +78,7 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
   dzdy.resize(max_uniqueMat);
   globaldy.resize(max_uniqueMat);
 
+#ifndef USE_DD4HEP
   for (unsigned quarter = 0; quarter < det.nQuarters; quarter++) {
     const auto& modules = det.quarter(quarter)->modules();
     number_of_modules[quarter] = modules.size();
@@ -94,7 +107,7 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
       }
     }
   }
-
+#endif
   // Raw bank layout (from FTReadoutTool)
   vector<uint32_t> bank_first_channel;
   string conditionLocation = "/dd/Conditions/ReadoutConf/FT/ReadoutMap";
@@ -118,7 +131,6 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
                                                                           0u,
                                                                           0u}));
   }
-
   DumpUtils::Writer output {};
   output.write(
     number_of_stations,

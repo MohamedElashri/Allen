@@ -3,30 +3,34 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 import csv
-import subprocess
-import traceback
 from optparse import OptionParser
 from termgraph import TermGraph
 import requests
-import urllib
 
 
-def get_master_throughput(job_name,
-                          csvfile="devices_throughputs.csv",
-                          scale=1.0):
+def parse_throughput(content, scale=1.0):
+    throughput = {}
+    content_reader = csv.reader(content.splitlines())
+    for row in content_reader:
+        if row:
+            throughput[row[0]] = float(row[1]) * scale
+    return throughput
+
+
+def get_master_throughput(
+        job_name,
+        url="https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/",
+        csvfile="devices_throughputs.csv",
+        scale=1.0,
+):
     try:
         master_throughput = {}
         if job_name:
-            base_url = (
-                "https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/"
-                + csvfile)
+            base_url = url + csvfile
             r = requests.get(
                 base_url, params={"job": job_name}, allow_redirects=True)
             content = r.content.decode("utf-8")
-            content_reader = csv.reader(content.splitlines())
-            for row in content_reader:
-                if row:
-                    master_throughput[row[0]] = float(row[1]) * scale
+            master_throughput = parse_throughput(content, scale=scale)
         return master_throughput
     except Exception as e:
         print("get_master_throughput exception:", e)
@@ -46,8 +50,8 @@ def format_text(title, plot_data, unit, x_max, master_throughput={}):
         final_vals.append(val)
 
     # Plot
-    print(final_tags)
-    print(final_vals)
+    # print(final_tags)
+    # print(final_vals)
     tg = TermGraph(suffix=unit, x_max=x_max)
     output = tg.chart(final_vals, final_tags)
 
@@ -72,21 +76,17 @@ def format_text(title, plot_data, unit, x_max, master_throughput={}):
 
 
 def send_to_mattermost(text, mattermost_url):
-    subprocess.call([
-        "curl",
-        "-i",
-        "-X",
-        "POST",
-        "-H",
-        "Content-Type: application/json",
-        "-d",
-        text,
+    request_json = {"text": text}
+    response = requests.post(
         mattermost_url,
-    ])
+        json=request_json,
+        headers={"Content-Type": "application/json"})
+
+    assert response.ok, "send_to_mattermost request failed."
 
 
 def produce_plot(
-        filename,
+        plot_data,
         unit="",
         title="",
         x_max=10,
@@ -96,15 +96,6 @@ def produce_plot(
         print_text=True,
         master_throughput={},
 ):
-    plot_data = {}
-    with open(filename) as csvfile:
-        csv_reader = csv.reader(csvfile, delimiter=",")
-        for row in csv_reader:
-            try:
-                plot_data[row[0]] = float(row[1]) * scale
-            except:
-                print(traceback.format_exc())
-
     # Convert throughputs to speedups
     if normalize:
         norm = min(plot_data.values())
