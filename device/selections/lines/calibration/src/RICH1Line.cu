@@ -104,7 +104,7 @@ void rich_1_line::rich_1_line_t::output_monitor(
   const Allen::Context& context) const
 {
   auto name_str = name();
-  std::string name_ttree = "monitor_tree" + name_str;
+  std::string name_ttree = "rich1_monitor_tree" + name_str;
 
   Allen::copy<host_decision_t, dev_decision_t>(arguments, context);
   Allen::copy<host_pt_t, dev_pt_t>(arguments, context);
@@ -118,7 +118,7 @@ void rich_1_line::rich_1_line_t::output_monitor(
 
   auto handler = runtime_options.root_service->handle();
 
-  handler.file("rich1_align_monitor.root");
+  handler.file("monitor.root");
 
   auto tree = handler.ttree(name_ttree.c_str());
 
