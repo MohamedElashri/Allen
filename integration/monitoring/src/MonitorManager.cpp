@@ -45,7 +45,9 @@ void MonitorManager::fill(unsigned i_mon, unsigned i_buf, bool useWallTime)
 
 void MonitorManager::saveHistograms()
 {
+#ifdef WITH_ROOT
   [[maybe_unused]] auto handle = m_rsvc->handle("Monitors");
+#endif
   meta_mon->saveHistograms();
   for (auto& mons : m_monitors) {
     for (auto& mon : mons) {

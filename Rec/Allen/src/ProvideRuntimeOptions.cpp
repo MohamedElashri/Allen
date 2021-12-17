@@ -27,13 +27,17 @@ public:
   /// Standard constructor
   ProvideRuntimeOptions(const std::string& name, ISvcLocator* pSvcLocator);
 
+  StatusCode initialize() override;
+
   /// Algorithm execution
   RuntimeOptions operator()(
     std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const override;
 
 private:
+  Gaudi::Property<std::string> m_monitorFile {this, "MonitorFile", "allen_monitor.root"};
+
   mutable CheckerInvoker m_checker_invoker {};
-  mutable ROOTService m_root_service {};
+  std::unique_ptr<ROOTService> m_root_service {};
 };
 
 ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -45,6 +49,12 @@ ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocato
     // Output
     KeyValue {"RuntimeOptionsLocation", "Allen/Stream/RuntimeOptions"})
 {}
+
+StatusCode ProvideRuntimeOptions::initialize()
+{
+  return Transformer::initialize().andThen(
+    [&] { m_root_service = std::make_unique<ROOTService>(m_monitorFile.value()); });
+}
 
 RuntimeOptions ProvideRuntimeOptions::operator()(
   std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const
@@ -80,7 +90,7 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
           mep_layout,
           param_inject_mem_fail,
           &m_checker_invoker,
-          &m_root_service};
+          m_root_service.get()};
 }
 
 DECLARE_COMPONENT(ProvideRuntimeOptions)
