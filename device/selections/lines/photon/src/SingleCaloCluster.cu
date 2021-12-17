@@ -128,9 +128,7 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
   Allen::synchronize(context);
 
   auto handler = runtime_options.root_service->handle(name());
-  auto root_file = handler.file("monitor.root");
-
-  auto tree = handler.tree(root_file, "monitor_tree");
+  auto tree = handler.tree("monitor_tree");
 
   float Et = 0.f;
   float Eta = 0.f;

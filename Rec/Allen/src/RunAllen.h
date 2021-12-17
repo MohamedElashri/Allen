@@ -71,6 +71,7 @@ private:
 
   Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_INSTALL_DIR}/constants/hlt1_pp_default.json"};
   Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/parameters"};
+  Gaudi::Property<std::string> m_monitorFile {this, "MonitorFile", "allen_monitor.root"};
 
   // If set to false, events are only filtered by the GEC
   // If set to true, events are filtered based on an OR of the Allen selection lines

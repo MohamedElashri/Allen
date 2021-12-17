@@ -125,9 +125,7 @@ void rich_1_line::rich_1_line_t::output_monitor(
 
   auto handler = runtime_options.root_service->handle(name());
 
-  auto root_file = handler.file("monitor.root");
-
-  auto tree = handler.tree(root_file, "monitor_tree");
+  auto tree = handler.tree("monitor_tree");
 
   bool decision {};
   float pt {};

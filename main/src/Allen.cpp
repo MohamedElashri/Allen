@@ -450,9 +450,11 @@ int allen(
     buffers_manager->printStatus();
   }
 
+  auto root_service = std::make_unique<ROOTService>(mon_filename);
+
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
-    std::make_unique<MonitorManager>(n_mon, buffers_manager.get(), 30, time(0));
+    std::make_unique<MonitorManager>(n_mon, buffers_manager.get(), root_service.get(), 30, time(0));
 
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
@@ -515,7 +517,6 @@ int allen(
   }
 
   auto checker_invoker = std::make_unique<CheckerInvoker>();
-  auto root_service = std::make_unique<ROOTService>();
 
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
@@ -1027,7 +1028,7 @@ int allen(
 
     // periodically save monitoring histograms
     if (mon_save_period > 0 && t_mon.get_elapsed_time() >= mon_save_period) {
-      monitor_manager->saveHistograms(mon_filename);
+      monitor_manager->saveHistograms();
       info_cout << "Saved monitoring histograms" << std::endl;
       t_mon.restart();
     }
@@ -1116,7 +1117,7 @@ loop_error:
   if (print_status) {
     buffers_manager->printStatus();
   }
-  monitor_manager->saveHistograms(mon_filename);
+  monitor_manager->saveHistograms();
 
   // Print checker reports
   checker_invoker->report(n_events_processed * number_of_repetitions);

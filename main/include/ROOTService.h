@@ -15,13 +15,14 @@
 struct handleROOTSvc; // forward declarations
 #ifndef WITH_ROOT
 struct ROOTService {
+  ROOTService(std::string) {}
 };
 #else
 
 struct ROOTService {
 
 public:
-  ROOTService(std::string output_folder = "output") : m_output_dir {std::move(output_folder)} {}
+  ROOTService(std::string monitor_file);
   friend struct handleROOTSvc;
   handleROOTSvc handle(std::string const& name);
 
@@ -30,15 +31,15 @@ public:
 private:
   std::mutex mutable m_mutex;
 
-  struct ROOTFile {
-    std::unique_ptr<TFile> file;
-    std::unordered_map<std::string, std::tuple<TDirectory*, std::unique_ptr<TTree>>> trees;
+  struct ROOTDir {
+    TDirectory* directory = nullptr;
+    std::unordered_map<std::string, std::unique_ptr<TTree>> trees;
   };
 
-  std::unordered_map<std::string, ROOTFile> m_files;
-  std::string const m_output_dir;
+  std::unique_ptr<TFile> m_file;
+  std::unordered_map<std::string, ROOTDir> m_directories;
 
-  TDirectory* file(std::string const& file, std::string const& dir);
+  TDirectory* directory(std::string const& dir);
   TTree* tree(TDirectory* root_file, std::string const& name);
 
   void close_files();
@@ -55,8 +56,18 @@ struct handleROOTSvc {
     m_directory->cd();
   };
 
-  TDirectory* file(std::string const& file_name) { return m_rsvc->file(file_name, m_name); };
-  TTree* tree(TDirectory* root_file, std::string const& tree_name) { return m_rsvc->tree(root_file, tree_name); };
+  TDirectory* directory() { return m_rsvc->directory(m_name); }
+
+  TTree* tree(std::string const& tree_name)
+  {
+    auto dir = m_rsvc->directory(m_name);
+    if (dir != nullptr) {
+      return m_rsvc->tree(dir, tree_name);
+    }
+    else {
+      return nullptr;
+    }
+  };
 
   template<typename T>
   void branch(TTree* tree, std::string const& name, T& container)

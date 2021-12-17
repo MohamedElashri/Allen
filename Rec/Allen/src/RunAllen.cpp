@@ -150,7 +150,7 @@ StatusCode RunAllen::initialize()
   m_host_buffers_manager.reset(
     new HostBuffersManager {m_n_buffers, 2, m_line_names.size(), static_cast<unsigned>(error_line)});
 
-  m_root_service = std::make_unique<ROOTService>();
+  m_root_service = std::make_unique<ROOTService>(m_monitorFile.value());
 
   // Instantiate the sequence
   m_stream = std::make_unique<Stream>(

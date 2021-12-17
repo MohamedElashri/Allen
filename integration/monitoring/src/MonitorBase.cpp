@@ -3,44 +3,23 @@
 \*****************************************************************************/
 #include "MonitorBase.h"
 #include "ROOTHeaders.h"
+#include "MonitorManager.h"
 
 #include <ctime>
 
 #ifdef WITH_ROOT
-void MonitorBase::saveHistograms(std::string file_name, bool append) const
+void MonitorBase::saveHistograms() const
 {
-  std::string mode = "RECREATE";
-  if (append) mode = "UPDATE";
-  TFile* file = TFile::Open(file_name.c_str(), mode.c_str());
-  if (!file) return;
-  auto* dir = static_cast<TDirectory*>(file->Get(m_name.c_str()));
-  if (!dir) {
-    dir = file->mkdir(m_name.c_str());
-    dir = static_cast<TDirectory*>(file->Get(m_name.c_str()));
-  }
+  auto* dir = m_manager->directory();
 
-  for (auto& kv : m_histograms) {
-    auto h = kv.second.get();
-
-    dir->cd();
-    if (append) {
-      auto* hout = static_cast<TH1D*>(dir->Get(h->GetName()));
-      if (hout) {
-        hout->Add(h);
-        hout->Write();
-      }
-      else {
-        h->Write();
-      }
-    }
-    else {
-      h->Write();
+  if (dir != nullptr) {
+    for (auto& kv : m_histograms) {
+      auto h = kv.second.get();
+      dir->WriteTObject(h, h->GetName(), "overwrite");
     }
   }
-
-  file->Close();
 #else
-void MonitorBase::saveHistograms(std::string, bool) const
+void MonitorBase::saveHistograms() const
 {
 #endif
 }

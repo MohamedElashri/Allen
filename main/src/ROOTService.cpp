@@ -24,36 +24,48 @@ namespace {
 
 #ifdef WITH_ROOT
 
-ROOTService::~ROOTService()
+ROOTService::ROOTService(std::string filename)
 {
-  for (auto& [file_name, f] : m_files) {
-    for (auto& [tree_name, entry] : f.trees) {
-      auto& [dir, tree] = entry;
-      dir->WriteTObject(tree.get(), tree->GetName());
-      tree.reset();
+  ROOT::EnableImplicitMT();
+
+  auto output_dir = fs::path {filename}.parent_path();
+  if (!output_dir.empty()) {
+    if (fs::exists(output_dir) && !fs::is_directory(output_dir)) {
+      throw StrException {"Output directory "s + output_dir.string() + " exists, but is not a directory"};
     }
-    f.file->Close();
+    else if (!fs::exists(output_dir)) {
+      if (!fs::create_directory(output_dir)) {
+        throw StrException {"Failed to create ROOT output directory "s + output_dir.string()};
+      }
+    }
+  }
+  m_file = std::make_unique<TFile>(filename.c_str(), "RECREATE", filename.c_str());
+  if (!m_file->IsOpen() || m_file->IsZombie()) {
+    throw StrException {"Failed to open ROOT file "s + filename};
   }
 }
 
-TDirectory* ROOTService::file(std::string const& root_file, std::string const& dir_name)
+ROOTService::~ROOTService()
 {
-  fs::create_directory(m_output_dir);
-  auto full_name = m_output_dir + "/" + root_file;
-  if (root_file.find('/') != std::string::npos) {
-    throw StrException {"ROOT file name "s + root_file + " must not contain /"};
+  for (auto& [dir_name, dir] : m_directories) {
+    for (auto& [tree_name, tree] : dir.trees) {
+      dir.directory->WriteTObject(tree.get(), tree->GetName());
+      tree.reset();
+    }
   }
-  else if (dir_name.find('/') != std::string::npos) {
-    throw StrException {"ROOT directory name "s + dir_name + " must not contain /"};
-  }
+  m_file->Close();
+}
 
-  auto it = m_files.find(root_file);
+TDirectory* ROOTService::directory(std::string const& dir_name)
+{
+  if (!m_file) return nullptr;
+
+  auto it = m_directories.find(dir_name);
   bool success = false;
-  if (it == m_files.end()) {
-    std::tie(it, success) = m_files.emplace(
-      root_file, ROOTFile {std::make_unique<TFile>(full_name.c_str(), "RECREATE", root_file.c_str()), {}});
+  if (it == m_directories.end()) {
+    std::tie(it, success) = m_directories.emplace(dir_name, ROOTDir {m_file->mkdir(dir_name.c_str(), "", true), {}});
   }
-  auto* dir = it->second.file->mkdir(dir_name.c_str(), "", true);
+  auto* dir = it->second.directory;
   dir->cd();
   return dir;
 }
@@ -62,20 +74,19 @@ TTree* ROOTService::tree(TDirectory* dir, std::string const& name)
 {
   if (dir == nullptr) return nullptr;
 
-  std::string root_file = dir->GetFile()->GetTitle();
-  auto file_it = m_files.find(root_file);
-  if (file_it == m_files.end()) {
-    throw StrException {"Could not find "s + root_file + "; make sure you requested it."};
+  std::string dir_name = dir->GetName();
+  auto dir_it = m_directories.find(dir_name);
+  if (dir_it == m_directories.end()) {
+    throw StrException {"Could not find directory "s + dir_name + "; make sure you requested it."};
   }
 
-  auto& trees = file_it->second.trees;
+  auto& trees = dir_it->second.trees;
   auto tree_it = trees.find(name);
   bool success = false;
   if (tree_it == trees.end()) {
-    std::tie(tree_it, success) =
-      trees.emplace(name, std::tuple {dir, std::make_unique<TTree>(name.c_str(), name.c_str())});
+    std::tie(tree_it, success) = trees.emplace(name, std::make_unique<TTree>(name.c_str(), name.c_str()));
   }
-  return std::get<1>(tree_it->second).get();
+  return tree_it->second.get();
 }
 
 void ROOTService::enter_service() { m_mutex.lock(); }

@@ -64,9 +64,7 @@ void kstopipi_line::kstopipi_line_t::output_monitor(
   Allen::synchronize(context);
 
   auto handler = runtime_options.root_service->handle(name());
-  auto root_file = handler.file("monitor.root");
-
-  auto tree = handler.tree(root_file, "monitor_tree");
+  auto tree = handler.tree("monitor_tree");
 
   float mass;
   float pt;
