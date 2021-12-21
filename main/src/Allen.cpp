@@ -971,7 +971,7 @@ loop_error:
     buffers_manager->printStatus();
   }
   if (!mon_filename.empty()) {
-    monitor_manager->saveHistograms(mon_filename);
+    monitor_manager->saveHistograms();
   }
 
   // Print checker reports

@@ -22,4 +22,5 @@ target_link_libraries(Calo PRIVATE AllenCommon Backend HostEventModel EventModel
 
 target_include_directories(Calo PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/decoding/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/clustering/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tools/include>)
