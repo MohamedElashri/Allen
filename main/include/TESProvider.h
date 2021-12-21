@@ -7,6 +7,7 @@
 
 #include <InputProvider.h>
 #include <Event/RawBank.h>
+#include <Event/ODIN.h>
 #include <TransposeTypes.h>
 
 #include "SciFiRaw.cuh"
@@ -95,9 +96,11 @@ public:
 
   void slice_free(size_t) override {};
 
-  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> = {}) override
+  std::tuple<bool, bool, bool, size_t, size_t, std::any> get_slice(std::optional<unsigned int> = {}) override
   {
-    return {false, false, false, 0, 0, 0};
+    LHCb::ODIN odin;
+    odin.setRunNumber(0);
+    return {false, false, false, 0, 0, odin};
   }
 
   void event_sizes(size_t const, gsl::span<unsigned int const> const, std::vector<size_t>&) const override {}

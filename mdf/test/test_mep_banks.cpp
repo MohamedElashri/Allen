@@ -187,8 +187,8 @@ int main(int argc, char* argv[])
     mdf = Allen::make_provider(options);
 
     bool good = false, timed_out = false, done = false;
-    uint runno = 0;
-    std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
+    std::any odin;
+    std::tie(good, done, timed_out, slice_mdf, filled_mdf, odin) = mdf->get_slice();
     if (!good) {
       std::cerr << "Failed to obtain MDF slice\n";
       return 1;
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
       std::cerr << "Failed to obtain MEPProvider\n";
       return 1;
     }
-    std::tie(good, done, timed_out, slice_mep, filled_mep, runno) = mep->get_slice();
+    std::tie(good, done, timed_out, slice_mep, filled_mep, odin) = mep->get_slice();
     if (!good) {
       std::cerr << "Failed to obtain MEP slice\n";
       return 1;

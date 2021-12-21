@@ -1,11 +1,13 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
+#include <any>
 #include <string>
 #include <thread>
 
 #include <zmq_compat.h>
 #include <ZeroMQ/IZeroMQSvc.h>
+#include <Serialize/ODIN.h>
 #include <AllenThreads.h>
 
 #include <OutputHandler.h>
@@ -169,14 +171,15 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
 
     // Get a slice and inform the main thread that it is available
     // NOTE: the argument specifies the timeout in ms, not the number of events.
-    auto [good, done, timed_out, slice_index, n_filled, run_number] = input_provider->get_slice(1000);
+    auto [good, done, timed_out, slice_index, n_filled, a] = input_provider->get_slice(1000);
     // Report errors or good slices that contain events
     if (!timed_out && good && n_filled != 0) {
       // If run number has change then report this first
-      if (run_number != current_run_number) {
-        current_run_number = run_number;
+      auto odin = std::any_cast<LHCb::ODIN>(a);
+      if (odin.runNumber() != current_run_number) {
+        current_run_number = odin.runNumber();
         zmqSvc->send(control, "RUN", send_flags::sndmore);
-        zmqSvc->send(control, current_run_number);
+        zmqSvc->send(control, odin);
       }
       zmqSvc->send(control, "SLICE", send_flags::sndmore);
       zmqSvc->send(control, slice_index, send_flags::sndmore);

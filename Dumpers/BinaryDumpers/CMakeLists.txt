@@ -5,7 +5,6 @@
 # Package: BinaryDumpers
 ################################################################################
 
-
 gaudi_add_library(BinaryDumpers
                   SOURCES
                     src/lib/TestUTBoards.cpp
@@ -38,6 +37,7 @@ gaudi_add_module(BinaryDumpersModule
                    src/TransposeRawBanks.cpp
                  LINK
                    Rangev3::rangev3
+                   TBB::tbb
                    Gaudi::GaudiAlgLib
                    LHCb::AssociatorsBase
                    LHCb::LinkerEvent

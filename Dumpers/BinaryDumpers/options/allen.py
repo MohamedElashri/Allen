@@ -3,13 +3,23 @@
 # (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 import os
-from GaudiPython.Bindings import AppMgr, gbl
-from Configurables import LHCbApp, CondDB, ApplicationMgr
+from Configurables import ApplicationMgr
 from Allen.config import setup_allen_non_event_data_service
+from PyConf.control_flow import CompositeNode, NodeLogic
+from PyConf.application import (
+    configure,
+    setup_component,
+    ComponentConfig,
+    ApplicationOptions)
+from PyConf.Algorithms import (
+    AllenTESProducer,
+    DumpBeamline
+)
 from threading import Thread
 from time import sleep
 import ctypes
 import argparse
+from GaudiPython.Bindings import AppMgr, gbl
 
 # Load Allen entry point and helpers
 gbl.gSystem.Load("libAllenLib")
@@ -109,33 +119,31 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-# default_configuration = os.path.join(os.environ['ALLEN_INSTALL_DIR'],
-#                                      'constants' + args.sequence + '.json')
-
 runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
 
-app = LHCbApp(
-    DataType="Upgrade",
-    EvtMax=1000,
-    Simulation=True,
-    DDDBtag="dddb-20171122",
-    CondDBtag="sim-20180530-vc-md100")
-# DDDBtag="dddb-20210617",  # tags for FEST sample from 10/2021
-# CondDBtag="sim-20210617-vc-md100")
+options = ApplicationOptions(_enabled=False)
+options.simulation = True
+options.data_type = 'Upgrade'
+options.input_type = 'MDF'
+options.dddb_tag = "dddb-20171122"
+options.conddb_tag = "sim-20180530-vc-md100"
 
-# Upgrade DBs
-CondDB().Upgrade = True
+# tags for FEST sample from 10/2021
+# dddb_tag="dddb-20210617"
+# conddb_tag="sim-20210617-vc-md100")
+
+options.finalize()
+config = ComponentConfig()
 
 setup_allen_non_event_data_service()
 
 # Some extra stuff for timing table
-ApplicationMgr().EvtSel = "NONE"
-ApplicationMgr().ExtSvc += ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
+extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 
 if args.mep is not None:
-    ApplicationMgr().ExtSvc += ["AllenConfiguration", "MEPProvider"]
+    extSvc += ["AllenConfiguration", "MEPProvider"]
     from Configurables import MEPProvider, AllenConfiguration
 
     allen_conf = AllenConfiguration("AllenConfiguration")
@@ -166,6 +174,53 @@ if args.mep is not None:
     # traffic scenarios
     # mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
     mep_provider.EvtMax = -1 if args.n_events == 0 else args.n_events
+
+config.add(ApplicationMgr(EvtSel="NONE",
+                          ExtSvc=ApplicationMgr().ExtSvc + extSvc))
+
+
+# Copeid from PyConf.application.configure_input
+config.add(
+    setup_component(
+        'DDDBConf',
+        Simulation=options.simulation,
+        DataType=options.data_type))
+config.add(
+    setup_component(
+        'CondDB',
+        Upgrade=True,
+        Tags={
+            'DDDB': options.dddb_tag,
+            'SIMCOND': options.conddb_tag,
+        }))
+
+converters = [DumpBeamline()]
+producers = []
+for converter in converters:
+    converter_id = converter.type.getDefaultProperties()['ID']
+    producer = AllenTESProducer(InputID=converter.OutputID,
+                                InputData=converter.Converted,
+                                ID=converter_id)
+    producers.append(producer)
+
+
+converters_node = CompositeNode("converters",
+                                converters,
+                                combine_logic=NodeLogic.NONLAZY_OR,
+                                force_order=True)
+producers_node = CompositeNode("producers",
+                               producers,
+                               combine_logic=NodeLogic.NONLAZY_OR,
+                               force_order=True)
+
+control_flow = [converters_node, producers_node]
+cf_node = CompositeNode(
+    "non_event_data",
+    control_flow,
+    combine_logic=NodeLogic.LAZY_AND,
+    force_order=True)
+
+config.update(configure(options, cf_node))
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()

@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <Event/ODIN.h>
+
 #include "Identifiers.h"
 
 namespace Allen {
@@ -79,7 +81,7 @@ namespace Allen {
        *
        * @return     void
        */
-      virtual void update(unsigned long run) = 0;
+      virtual void update(gsl::span<unsigned const> odin_data) = 0;
 
       /**
        * @brief      Register a consumer for that will consume binary non-event

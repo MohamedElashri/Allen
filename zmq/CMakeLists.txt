@@ -5,12 +5,15 @@ if (NOT STANDALONE)
   allen_add_host_library(ZMQSvc SHARED src/svc.cpp)
   target_include_directories(ZMQSvc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compat>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/svc>)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/svc>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/serialize>)
   target_link_libraries(ZMQSvc PUBLIC
     AIDA::aida
     Boost::filesystem
     Gaudi::GaudiKernel
     LHCb::ZMQLib
+    LHCbEvent
+    ${ALLEN_ROOT_LIBRARIES}
     PRIVATE
     EventModel
     AllenCommon)
@@ -22,11 +25,12 @@ else()
   allen_add_host_library(AllenZMQ src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/serialize>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compat>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/svc>
     ${PROJECT_SOURCE_DIR}/main/include)
   target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
-  target_link_libraries(AllenZMQ PUBLIC PkgConfig::zmq PkgConfig::sodium Boost::headers)
+  target_link_libraries(AllenZMQ PUBLIC PkgConfig::zmq PkgConfig::sodium Boost::headers LHCbEvent)
 
   if (WITH_ROOT AND USE_ROOT)
     target_include_directories(AllenZMQ SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
