@@ -122,7 +122,7 @@ def main():
         if change < tput_tol:
             print(f"*** {device} Single-device throughput decrease above threshold.")
             extra_messages += f":warning: :eyes: **{device}** throughput decrease _exceeds_ {abs(float(tput_tol))} % threshold\n"
-            avg_throughput_decr = True
+            single_throughput_decr = True
 
     throughput_text = produce_plot(
         throughput,
