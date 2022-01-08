@@ -1,18 +1,43 @@
 #!/usr/bin/python3
-###############################################################################
-# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
-###############################################################################
-
-import math
-
 #######################################################################
+# MIT License
+#
+# Copyright (c) 2018 Marcus Kazmierczak
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE
+#
 # From termgraph
 # https://github.com/mkaz/termgraph/
 #######################################################################
 
+import math
+
 
 class TermGraph:
-    def __init__(self, tg_width=50, tg_format='{:<4.2f}', delim=',', tick='█', sm_tick='▌', suffix="", x_max = 50):
+    def __init__(self,
+                 tg_width=50,
+                 tg_format='{:<4.2f}',
+                 delim=',',
+                 tick='█',
+                 sm_tick='▌',
+                 suffix="",
+                 x_max=50):
         self.tg_width = tg_width
         self.tg_format = tg_format
         self.DELIM = delim
@@ -25,7 +50,7 @@ class TermGraph:
         self.small_tick = "┴"
         self.horiz = "─"
         self.label_length = 0
- 
+
     def find_max_label_length(self, labels):
         """Return the maximum length for the labels."""
         length = 0
@@ -34,7 +59,7 @@ class TermGraph:
                 length = len(labels[i])
 
         self.label_length = length
-        return length # Yes, yes, i know ...
+        return length  # Yes, yes, i know ...
 
     def getScale(self, data):
         # min_dat = find_min(data)
@@ -48,25 +73,25 @@ class TermGraph:
         #minimum -= epsilon
         rr = self.max_dat - self.min_dat
         stepCount = 10
-        roughStep = rr / (stepCount -1)
+        roughStep = rr / (stepCount - 1)
 
         goodNormalizedSteps = [1, 2, 5, 10]
         stepPower = math.pow(10, -math.floor(math.log10(abs(roughStep))))
         normalizedStep = roughStep * stepPower
-        goodNormalizedStep = list(filter(lambda x: x > normalizedStep, goodNormalizedSteps))[0]
+        goodNormalizedStep = list(
+            filter(lambda x: x > normalizedStep, goodNormalizedSteps))[0]
         self.step = int(goodNormalizedStep / stepPower)
         self.scaleMax = int(math.ceil(self.max_dat / self.step) * self.step)
-        self.scaleMin = int(math.floor(self.min_dat / self.step) * self.step) 
-        self.strlen = max(len(str(int(self.scaleMin))), len(str(int(self.scaleMax))))
-        print(self.strlen)
+        self.scaleMin = int(math.floor(self.min_dat / self.step) * self.step)
+        self.strlen = max(
+            len(str(int(self.scaleMin))), len(str(int(self.scaleMax))))
         self.nSteps = int((self.scaleMax - self.scaleMin) / self.step)
-        print(self.scaleMin, self.scaleMax, self.step, self.nSteps)
 
-        self.tick_dist = int(self.tg_width / (self.scaleMax - self.scaleMin) * self.step / 2)
-        print(self.tick_dist)
-    
+        self.tick_dist = int(
+            self.tg_width / (self.scaleMax - self.scaleMin) * self.step / 2)
+
         self.tg_width = int(self.tick_dist * 2 * self.nSteps)
-        print('Updating tg_width to: %d' % self.tg_width)
+        # print('Updating tg_width to: %d' % self.tg_width)
         return
 
     def numLen(self, num):
@@ -84,17 +109,18 @@ class TermGraph:
                 self.text += self.big_tick
 
         self.text += "\n"
-        
+
         l = self.numLen(self.scaleMin)
-        l = int(l/2)
-        self.text += " " * (self.label_length - l - self.tick_dist + 2) 
-        for i in range(self.scaleMin,  self.scaleMax + self.step, self.step):
-            self.text += '{:^{width}}'.format(str(i), width = '%d' % (self.tick_dist * 2))
+        l = int(l / 2)
+        self.text += " " * (self.label_length - l - self.tick_dist + 2)
+        for i in range(self.scaleMin, self.scaleMax + self.step, self.step):
+            self.text += '{:^{width}}'.format(
+                str(i), width='%d' % (self.tick_dist * 2))
         self.text += "\n"
 
     def normalize(self, data, width):
         """Normalize the data and return it."""
-      
+
         # We offset by the minimum if there's a negative.
         off_data = []
         if self.min_dat < 0:
@@ -106,21 +132,20 @@ class TermGraph:
         #self.max_dat += abs(self.min_dat)
 
         #if self.max_dat < self.x_max:
-            # Don't need to normalize if the max value
-            # is less than the width we allow.
-            #return off_data
+        # Don't need to normalize if the max value
+        # is less than the width we allow.
+        #return off_data
         #    self.max_dat = self.x_max
 
         # max_dat / width is the value for a single tick. norm_factor is the
         # inverse of this value
         # If you divide a number to the value of single tick, you will find how
         # many ticks it does contain basically.
-        print('width: %d, max_dat: %f' % (width, self.scaleMax))
+        # print('width: %d, max_dat: %f' % (width, self.scaleMax))
         norm_factor = width / float(self.scaleMax)
         normal_dat = []
         for dat in off_data:
             normal_dat.append(dat * norm_factor)
-
 
         return normal_dat
 
@@ -130,7 +155,8 @@ class TermGraph:
         val_min = min(data)
 
         for i in range(len(labels)):
-            label = "{:<{x}} │".format(labels[i], x=self.find_max_label_length(labels))
+            label = "{:<{x}} │".format(
+                labels[i], x=self.find_max_label_length(labels))
 
             values = data[i]
             num_blocks = normal_dat[i]
@@ -141,18 +167,19 @@ class TermGraph:
                 if j > 0:
                     len_label = len(label)
                     label = ' ' * len_label
-                tail = ' {} %s'.format(self.tg_format.format(values)) % self.suffix
+                tail = ' {} %s'.format(
+                    self.tg_format.format(values)) % self.suffix
                 color = None
                 # print(label, end="")
                 self.text += label
-                yield(values, int(num_blocks), val_min, color)
+                yield (values, int(num_blocks), val_min, color)
                 self.text += tail + '\n'
 
     # Prints a row of the horizontal graph.
 
     def print_row(self, value, num_blocks, val_min, color):
         """A method to print a row for a horizontal graphs.
-      
+
         i.e:
         1: ▇▇ 2
         2: ▇▇▇ 3
@@ -171,13 +198,13 @@ class TermGraph:
                 # print(TICK, end="")
                 self.text += self.TICK
 
-        for _ in range(max([num_blocks,1]), self.tg_width):
+        for _ in range(max([num_blocks, 1]), self.tg_width):
             self.text += ' '
 
     def chart(self, data, labels):
         # One category/Multiple series graph with same scale
         # All-together normalization
-        self.text=""
+        self.text = ""
         self.getScale(data)
         normal_dat = self.normalize(data, self.tg_width)
         for row in self.horiz_rows(labels, data, normal_dat):
@@ -203,4 +230,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
