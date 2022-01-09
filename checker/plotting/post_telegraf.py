@@ -35,9 +35,9 @@ def send_to_telegraf(throughput, device, options):
         print("Sending telegraf string: %s" % telegraf_string)
         response = session.post(options.telegraf_url, data=telegraf_string)
         print("http response: %s" % response.headers)
-    except:
+    except Exception as e:
         print("Failed to submit data string %s" % telegraf_string)
-        print(traceback.format_exc())
+        print(str(e))
 
 
 """
