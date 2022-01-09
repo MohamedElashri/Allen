@@ -47,27 +47,24 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
         -l "Throughput of [branch **\`${CI_COMMIT_REF_NAME} (${CI_COMMIT_SHORT_SHA})\`**, sequence **\`${SEQUENCE}\`** over dataset **\`${INPUT_FILES}\`** build options \`${BUILDOPTIONS_DISPLAY}\`](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" \
         -t devices_throughputs_${SEQUENCE_DATASET}.csv \
         -b run_throughput_output_${SEQUENCE_DATASET}/${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv \
-        --allowed-average-decrease "${AVG_THROUGHPUT_DECREASE_THRESHOLD}"  \
-        --allowed-single-decrease "${DEVICE_THROUGHPUT_DECREASE_THRESHOLD}" \
         || RC=$?
+
+    if [ "$RC" = "7" ]; then
+        THROUGHPUT_ALARM=1
+        THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
+FAIL: throughput decreased too much for sequence ${SEQUENCE} over dataset ${INPUT_FILES}"
+    elif [ "$RC" != "0" ]; then
+        echo "FAIL: post_combined_message.py script failed"
+        exit 1
+    fi
 
     python checker/plotting/post_telegraf.py \
         -f devices_throughputs_${SEQUENCE_DATASET}.csv . \
         -s "${SEQUENCE}" -b "${CI_COMMIT_REF_NAME}" -d "${INPUT_FILES}" -o "${BUILDOPTIONS}" \
         || echo "WARNING: failed to post to telegraf"
 
-    if [ "$RC" = "5" ]; then
-        THROUGHPUT_ALARM=1
-        THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
-FAIL: sequence ${SEQUENCE} over dataset ${INPUT_FILES} - Device-averaged throughput change is less than ${AVG_THROUGHPUT_DECREASE_THRESHOLD} %"
-    elif [ "$RC" = "6" ]; then
-        THROUGHPUT_ALARM=1
-        THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
-FAIL: sequence ${SEQUENCE} over dataset ${INPUT_FILES} - Single-device throughput change, for at least one device, is less than ${DEVICE_THROUGHPUT_DECREASE_THRESHOLD} %"
-    fi
     echo ""
     echo ""
-
 done
 
 if [ "${THROUGHPUT_ALARM}" = "1" ]; then
