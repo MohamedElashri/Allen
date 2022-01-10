@@ -15,9 +15,6 @@ variables:
   RUN_THROUGHPUT_OPTIONS_HIP: "-n 5000 --events-per-slice 5000 -m 3000 -t 10 -r 1000"
   RUN_THROUGHPUT_OPTIONS_CPU: "-n 100 -m 100 -r 200"
 
-  AVG_THROUGHPUT_DECREASE_THRESHOLD: "-2.5" # (%); fail throughput check if averaged throughput % change falls below -2.5%
-  DEVICE_THROUGHPUT_DECREASE_THRESHOLD: "-7.5" # (%); fail throughput check if single device throughput % change falls below -10.0%
-
   OVERRIDE_CUDA_ARCH_FLAG: "-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
 
 stages:
