@@ -35,15 +35,16 @@ __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
     return false;
   }
 
-  const auto ptShift = (corrected_pt - parameters.alpha) / Gaudi::Units::GeV;
-  const auto maxPt_GeV = parameters.maxPt / Gaudi::Units::GeV;
-  const auto minPt_GeV = parameters.minPt / Gaudi::Units::GeV;
+  const auto ptShift = (corrected_pt - parameters.alpha);
+  const auto maxPt = parameters.maxPt;
+  const auto minIPChi2 = parameters.minIPChi2;
+  const auto trackIPChi2 = track.ipChi2;
 
   const bool decision =
     track.chi2 / track.ndof < parameters.maxChi2Ndof &&
-    ((ptShift > maxPt_GeV && track.ipChi2 > parameters.minIPChi2) ||
-     (ptShift > minPt_GeV && ptShift < maxPt_GeV &&
-      logf(track.ipChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
-                             parameters.param3 / maxPt_GeV * (maxPt_GeV - ptShift) + logf(parameters.minIPChi2)));
+    ((ptShift > maxPt && trackIPChi2 > minIPChi2) ||
+     (ptShift > parameters.minPt && ptShift < maxPt &&
+      logf(trackIPChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
+                            (parameters.param3 / maxPt) * (maxPt - ptShift) + logf(minIPChi2)));
   return decision;
 }
