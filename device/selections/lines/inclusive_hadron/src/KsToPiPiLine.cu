@@ -57,30 +57,27 @@ void kstopipi_line::kstopipi_line_t::output_monitor(
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
 {
+  if (!property<make_tuple_t>()) return;
 
-  auto name_str = name();
-  std::string name_ttree = "monitor_tree" + name_str;
   Allen::copy<host_sv_masses_t, dev_sv_masses_t>(arguments, context);
   Allen::copy<host_pt_t, dev_pt_t>(arguments, context);
   Allen::synchronize(context);
 
-  auto handler = runtime_options.root_service->handle();
-  handler.file("monitor.root");
-
-  auto tree = handler.ttree(name_ttree.c_str());
+  auto handler = runtime_options.root_service->handle(name());
+  auto tree = handler.tree("monitor_tree");
 
   float mass;
   float pt;
-  int ev;
+  size_t ev;
 
-  handler.branch("mass", mass);
-  handler.branch("pt", pt);
-  handler.branch("ev", ev);
+  handler.branch(tree, "mass", mass);
+  handler.branch(tree, "pt", pt);
+  handler.branch(tree, "ev", ev);
 
   unsigned n_svs = size<host_sv_masses_t>(arguments);
   float* sv_mass;
   float* sv_pt;
-  int i0 = tree->GetEntries();
+  size_t i0 = tree->GetEntries();
   for (unsigned i = 0; i < n_svs; i++) {
     sv_mass = data<host_sv_masses_t>(arguments) + i;
     sv_pt = data<host_pt_t>(arguments) + i;
@@ -91,6 +88,5 @@ void kstopipi_line::kstopipi_line_t::output_monitor(
       tree->Fill();
     }
   }
-  tree->Write(0, TObject::kOverwrite);
 }
 #endif

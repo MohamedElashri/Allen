@@ -6,7 +6,9 @@
 #include "MonitorBase.h"
 
 struct BufferMonitor : public MonitorBase {
-  BufferMonitor(std::string name, int timeStep, int offset) : MonitorBase(name, timeStep, offset) {}
+  BufferMonitor(MonitorManager* manager, std::string name, int timeStep, int offset) :
+    MonitorBase(manager, name, timeStep, offset)
+  {}
 
   virtual ~BufferMonitor() = default;
 

@@ -9,13 +9,14 @@ struct HostBuffersManager;
 
 struct PVMonitor : public BufferMonitor {
 #ifdef WITH_ROOT
-  PVMonitor(HostBuffersManager* buffers_manager, int timeStep = 30, int offset = 0) :
-    BufferMonitor("fittedPVs", timeStep, offset), m_buffers_manager(buffers_manager)
+  PVMonitor(MonitorManager* manager, HostBuffersManager* buffers_manager, int timeStep = 30, int offset = 0) :
+    BufferMonitor(manager, "fittedPVs", timeStep, offset), m_buffers_manager(buffers_manager)
   {
     init();
   };
 #else
-  PVMonitor(HostBuffersManager*, int timeStep = 30, int offset = 0) : BufferMonitor("fittedPVs", timeStep, offset)
+  PVMonitor(MonitorManager* manager, HostBuffersManager*, int timeStep = 30, int offset = 0) :
+    BufferMonitor(manager, "fittedPVs", timeStep, offset)
   {
     init();
   };

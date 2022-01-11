@@ -10,6 +10,8 @@
 
 #include "ROOTHeaders.h"
 
+struct MonitorManager;
+
 struct MonitorBase {
   enum MonHistType {
     MonitoringSuccess = 0,
@@ -46,21 +48,23 @@ struct MonitorBase {
     SecondaryVertexMCor,
   };
 
-  MonitorBase(std::string name, int timeStep, int offset) : m_name(name), m_time_step(timeStep), m_offset(offset) {};
+  MonitorBase(MonitorManager* manager, std::string name, int timeStep, int offset) :
+    m_manager {manager}, m_name(name), m_time_step(timeStep), m_offset(offset) {};
 
   virtual ~MonitorBase() = default;
 
-  virtual void saveHistograms(std::string file_name, bool append) const;
+  virtual void saveHistograms() const;
 
 protected:
   unsigned getWallTimeBin();
 
+  MonitorManager* m_manager = nullptr;
   std::string m_name;
 
 #ifdef WITH_ROOT
   std::map<unsigned, std::unique_ptr<TH1>> m_histograms;
 #endif
 
-  unsigned m_time_step{};
-  unsigned m_offset{};
+  unsigned m_time_step {};
+  unsigned m_offset {};
 };
