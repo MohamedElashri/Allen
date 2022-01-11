@@ -74,6 +74,8 @@ namespace rich_2_line {
     PROPERTY(maxEta_t, "maxEta", "maximum pseudorapidity", std::array<float, 1>) maxEta;
     PROPERTY(minPhi_t, "minPhi", "minimum azi angle", std::array<float, 4>) minPhi;
     PROPERTY(maxPhi_t, "maxPhi", "maximum azi angle", std::array<float, 4>) maxPhi;
+
+    PROPERTY(make_tuple_t, "make_tuple", "Make tuple for monitoring", bool) make_tuple;
   };
 
   // SelectionAlgorithm definition
@@ -126,6 +128,9 @@ namespace rich_2_line {
     Property<maxEta_t> m_maxEta {this, {2.80}};
     Property<minPhi_t> m_minPhi {this, {-2.59, -0.65, 0.55, 2.49}};
     Property<maxPhi_t> m_maxPhi {this, {-2.49, -0.55, 0.65, 2.59}};
+
+    // Switch to create monitoring tuple
+    Property<make_tuple_t> m_make_tuple {this, false};
   };
 
 } // namespace rich_2_line
