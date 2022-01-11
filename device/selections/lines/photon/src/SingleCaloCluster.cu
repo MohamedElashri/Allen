@@ -119,8 +119,6 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
   const Allen::Context& context) const
 {
   if (!property<make_tuple_t>()) return;
-  auto name_str = name();
-  std::string name_ttree = "monitor_tree_test" + name_str;
 
   Allen::copy<host_clusters_x_t, dev_clusters_x_t>(arguments, context);
   Allen::copy<host_clusters_y_t, dev_clusters_y_t>(arguments, context);
@@ -129,42 +127,34 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
   Allen::copy<host_clusters_Phi_t, dev_clusters_Phi_t>(arguments, context);
   Allen::synchronize(context);
 
-  auto handler = runtime_options.root_service->handle();
-  handler.file("monitor.root");
+  auto handler = runtime_options.root_service->handle(name());
+  auto tree = handler.tree("monitor_tree");
 
-  auto tree = handler.ttree(name_ttree.c_str());
+  float Et = 0.f;
+  float Eta = 0.f;
+  float Phi = 0.f;
+  float x = 0.f;
+  float y = 0.f;
+  size_t ev = 0;
 
-  float Et;
-  float Eta;
-  float Phi;
-  float x;
-  float y;
-  int ev;
-
-  handler.branch("x", x);
-  handler.branch("y", y);
-  handler.branch("Et", Et);
-  handler.branch("Eta", Eta);
-  handler.branch("Phi", Phi);
-  handler.branch("ev", ev);
+  handler.branch(tree, "x", x);
+  handler.branch(tree, "y", y);
+  handler.branch(tree, "Et", Et);
+  handler.branch(tree, "Eta", Eta);
+  handler.branch(tree, "Phi", Phi);
+  handler.branch(tree, "ev", ev);
 
   unsigned n_clusters = size<host_clusters_Et_t>(arguments);
 
-  float* clusters_x;
-  float* clusters_y;
-  float* clusters_Et;
-  float* clusters_Eta;
-  float* clusters_Phi;
-
-  int i0 = tree->GetEntries();
+  size_t i0 = tree->GetEntries();
 
   for (unsigned i = 0; i < n_clusters; i++) {
 
-    clusters_x = data<host_clusters_x_t>(arguments) + i;
-    clusters_y = data<host_clusters_y_t>(arguments) + i;
-    clusters_Et = data<host_clusters_Et_t>(arguments) + i;
-    clusters_Eta = data<host_clusters_Eta_t>(arguments) + i;
-    clusters_Phi = data<host_clusters_Phi_t>(arguments) + i;
+    auto clusters_x = data<host_clusters_x_t>(arguments) + i;
+    auto clusters_y = data<host_clusters_y_t>(arguments) + i;
+    auto clusters_Et = data<host_clusters_Et_t>(arguments) + i;
+    auto clusters_Eta = data<host_clusters_Eta_t>(arguments) + i;
+    auto clusters_Phi = data<host_clusters_Phi_t>(arguments) + i;
 
     if (clusters_Et[0] > 0) {
 
@@ -178,7 +168,5 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
       tree->Fill();
     }
   }
-
-  tree->Write(0, TObject::kOverwrite);
 }
 #endif

@@ -6,6 +6,8 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <unordered_map>
+
 #include "InputTools.h"
 #include <mutex>
 #include <ROOTHeaders.h>
@@ -13,38 +15,33 @@
 struct handleROOTSvc; // forward declarations
 #ifndef WITH_ROOT
 struct ROOTService {
+  ROOTService(std::string) {}
 };
 #else
+
 struct ROOTService {
 
 public:
-  ROOTService(std::string output_folder = "output") : m_output_dir {std::move(output_folder)} {}
+  ROOTService(std::string monitor_file);
   friend struct handleROOTSvc;
-  handleROOTSvc handle();
+  handleROOTSvc handle(std::string const& name);
+
+  ~ROOTService();
 
 private:
   std::mutex mutable m_mutex;
-  std::unique_ptr<TFile> m_file = nullptr;
-  std::unique_ptr<TTree> m_tree = nullptr;
-  std::string const m_output_dir;
-  std::vector<std::string> mutable m_files;
 
-  void file(std::string const& file = std::string {});
-  TTree* ttree(std::string const& name);
+  struct ROOTDir {
+    TDirectory* directory = nullptr;
+    std::unordered_map<std::string, std::unique_ptr<TTree>> trees;
+  };
 
-  template<typename T>
-  void branch(std::string const& name, T& container)
-  {
+  std::unique_ptr<TFile> m_file;
+  std::unordered_map<std::string, ROOTDir> m_directories;
 
-    if (m_tree) {
-      if (!m_tree->GetListOfBranches()->Contains(name.c_str())) {
-        m_tree->Branch(name.c_str(), &container);
-      }
-      else {
-        m_tree->SetBranchAddress(name.c_str(), &container);
-      }
-    }
-  }
+  TDirectory* directory(std::string const& dir);
+  TTree* tree(TDirectory* root_file, std::string const& name);
+
   void close_files();
   void enter_service();
   void exit_service();
@@ -52,19 +49,42 @@ private:
 
 struct handleROOTSvc {
 
-  handleROOTSvc(ROOTService* RSvc) : m_rsvc(RSvc) { m_rsvc->enter_service(); };
-  ~handleROOTSvc() { m_rsvc->exit_service(); };
+  handleROOTSvc(ROOTService* RSvc, std::string const& name) : m_rsvc(RSvc), m_name {name} { m_rsvc->enter_service(); };
+  ~handleROOTSvc()
+  {
+    m_rsvc->exit_service();
+    m_directory->cd();
+  };
 
-  void file(std::string const& file = std::string {}) { return m_rsvc->file(file); };
-  TTree* ttree(std::string const& name) { return m_rsvc->ttree(name); };
+  TDirectory* directory() { return m_rsvc->directory(m_name); }
+
+  TTree* tree(std::string const& tree_name)
+  {
+    auto dir = m_rsvc->directory(m_name);
+    if (dir != nullptr) {
+      return m_rsvc->tree(dir, tree_name);
+    }
+    else {
+      return nullptr;
+    }
+  };
 
   template<typename T>
-  void branch(std::string const& name, T& container)
+  void branch(TTree* tree, std::string const& name, T& container)
   {
-    m_rsvc->branch<T>(name, container);
+    if (tree == nullptr) return;
+
+    if (!tree->GetListOfBranches()->Contains(name.c_str())) {
+      tree->Branch(name.c_str(), &container);
+    }
+    else {
+      tree->SetBranchAddress(name.c_str(), &container);
+    }
   }
 
 private:
-  ROOTService* m_rsvc;
+  TDirectory* m_directory = gDirectory;
+  ROOTService* m_rsvc = nullptr;
+  std::string const m_name;
 };
 #endif
