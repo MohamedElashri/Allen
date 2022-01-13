@@ -62,11 +62,11 @@ void rich_2_line::rich_2_line_t::init_monitor(
   const Allen::Context& context)
 {
   initialize<dev_decision_t>(arguments, false, context);
-  initialize<dev_pt_t>(arguments, -1, context);
-  initialize<dev_p_t>(arguments, -1, context);
-  initialize<dev_track_chi2_t>(arguments, -1, context);
-  initialize<dev_eta_t>(arguments, -1, context);
-  initialize<dev_phi_t>(arguments, -1, context);
+  initialize<dev_pt_t>(arguments, 0, context);
+  initialize<dev_p_t>(arguments, 0, context);
+  initialize<dev_track_chi2_t>(arguments, 0, context);
+  initialize<dev_eta_t>(arguments, 0, context);
+  initialize<dev_phi_t>(arguments, 0, context);
 }
 
 /*
