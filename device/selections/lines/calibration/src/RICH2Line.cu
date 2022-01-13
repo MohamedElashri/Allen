@@ -99,12 +99,12 @@ void rich_2_line::rich_2_line_t::output_monitor(
 {
   if (!property<make_tuple_t>()) return;
 
-  Allen::copy<host_decision_t, dev_decision_t>(arguments, context);
-  Allen::copy<host_pt_t, dev_pt_t>(arguments, context);
-  Allen::copy<host_p_t, dev_p_t>(arguments, context);
-  Allen::copy<host_track_chi2_t, dev_track_chi2_t>(arguments, context);
-  Allen::copy<host_eta_t, dev_eta_t>(arguments, context);
-  Allen::copy<host_phi_t, dev_phi_t>(arguments, context);
+  Allen::copy_async<host_decision_t, dev_decision_t>(arguments, context);
+  Allen::copy_async<host_pt_t, dev_pt_t>(arguments, context);
+  Allen::copy_async<host_p_t, dev_p_t>(arguments, context);
+  Allen::copy_async<host_track_chi2_t, dev_track_chi2_t>(arguments, context);
+  Allen::copy_async<host_eta_t, dev_eta_t>(arguments, context);
+  Allen::copy_async<host_phi_t, dev_phi_t>(arguments, context);
 
   Allen::synchronize(context);
 
