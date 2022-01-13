@@ -46,10 +46,6 @@ void rich_2_line::rich_2_line_t::set_arguments_size(
   set_size<typename Parameters::host_track_chi2_t>(
     arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
 
-  // set_size<typename Parameters::dev_ip_chi2_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
-  // set_size<typename Parameters::host_ip_chi2_t>(arguments,
-  // rich_2_line::rich_2_line_t::get_decisions_size(arguments));
-
   set_size<typename Parameters::dev_eta_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_eta_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
 
@@ -69,7 +65,6 @@ void rich_2_line::rich_2_line_t::init_monitor(
   initialize<dev_pt_t>(arguments, -1, context);
   initialize<dev_p_t>(arguments, -1, context);
   initialize<dev_track_chi2_t>(arguments, -1, context);
-  // initialize<dev_ip_chi2_t>(arguments, -1, context);
   initialize<dev_eta_t>(arguments, -1, context);
   initialize<dev_phi_t>(arguments, -1, context);
 }
@@ -88,7 +83,6 @@ __device__ void rich_2_line::rich_2_line_t::monitor(
   parameters.dev_pt[index] = track.pt();
   parameters.dev_p[index] = track.p();
   parameters.dev_track_chi2[index] = track.chi2 / track.ndof;
-  // parameters.dev_ip_chi2[index] = track.ipChi2;
   parameters.dev_eta[index] = track.eta();
   parameters.dev_phi[index] = trackPhi(track);
 
@@ -109,7 +103,6 @@ void rich_2_line::rich_2_line_t::output_monitor(
   Allen::copy<host_pt_t, dev_pt_t>(arguments, context);
   Allen::copy<host_p_t, dev_p_t>(arguments, context);
   Allen::copy<host_track_chi2_t, dev_track_chi2_t>(arguments, context);
-  // Allen::copy<host_ip_chi2_t, dev_ip_chi2_t>(arguments, context);
   Allen::copy<host_eta_t, dev_eta_t>(arguments, context);
   Allen::copy<host_phi_t, dev_phi_t>(arguments, context);
 
@@ -123,7 +116,6 @@ void rich_2_line::rich_2_line_t::output_monitor(
   float pt {};
   float p {};
   float chi2 {};
-  // float ipchi2 {};
   float eta {};
   float phi {};
   size_t ev {};
@@ -133,7 +125,6 @@ void rich_2_line::rich_2_line_t::output_monitor(
   handler.branch(tree, "p", p);
   handler.branch(tree, "ev", ev);
   handler.branch(tree, "chi2", chi2);
-  // handler.branch(tree, "ipchi2", ipchi2);
   handler.branch(tree, "eta", eta);
   handler.branch(tree, "phi", phi);
 
@@ -142,7 +133,6 @@ void rich_2_line::rich_2_line_t::output_monitor(
   float* sv_pt {nullptr};
   float* sv_p {nullptr};
   float* sv_chi2 {nullptr};
-  // float* sv_ipchi2 {nullptr};
   float* sv_eta {nullptr};
   float* sv_phi {nullptr};
   size_t i0 = tree->GetEntries();
@@ -151,7 +141,6 @@ void rich_2_line::rich_2_line_t::output_monitor(
     sv_pt = data<host_pt_t>(arguments) + i;
     sv_p = data<host_p_t>(arguments) + i;
     sv_chi2 = data<host_track_chi2_t>(arguments) + i;
-    // sv_ipchi2 = data<host_ip_chi2_t>(arguments) + i;
     sv_eta = data<host_eta_t>(arguments) + i;
     sv_phi = data<host_phi_t>(arguments) + i;
 
@@ -159,7 +148,6 @@ void rich_2_line::rich_2_line_t::output_monitor(
     pt = *sv_pt;
     p = *sv_p;
     chi2 = *sv_chi2;
-    // ipchi2 = *sv_ipchi2;
     eta = *sv_eta;
     phi = *sv_phi;
 
@@ -180,9 +168,6 @@ __device__ bool rich_2_line::rich_2_line_t::passes(
 
   // Cut on track Chi2 (fiducial)
   if (track.chi2 / track.ndof > parameters.maxTrChi2) return false;
-
-  // Cut on IP Chi2 (fiducial)
-  // if (track.ipChi2 > parameters.maxIPChi2) return false;
 
   // Cut on transverse momentum (fiducial)
   if (track.pt() < parameters.minPt) return false;
