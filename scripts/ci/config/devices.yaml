@@ -32,12 +32,6 @@
     DEVICE_ID: "mi100"
     TARGET: "HIP"
 
-
-.x862630v4:
-  variables:
-    DEVICE_ID: "x862630v4"
-    TARGET: "CPU"
-
 .epyc7502:
   variables:
     DEVICE_ID: "epyc7502"
