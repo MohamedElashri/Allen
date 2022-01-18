@@ -28,7 +28,10 @@ void two_track_evaluator::two_track_evaluator_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  global_function(two_track_evaluator)(dim3(first<host_number_of_svs_t>(arguments)), property<block_dim_t>(), context)(
+  const int block_dim = 64;
+  const auto grid_dim = dim3((first<host_number_of_svs_t>(arguments) + block_dim - 1) / block_dim);
+
+  global_function(two_track_evaluator)(grid_dim, dim3(block_dim), context)(
     arguments,
     constants.dev_two_track_catboost_leaf_values,
     constants.dev_two_track_catboost_leaf_offsets,
@@ -36,7 +39,8 @@ void two_track_evaluator::two_track_evaluator_t::operator()(
     constants.dev_two_track_catboost_split_features,
     constants.dev_two_track_catboost_tree_depths,
     constants.dev_two_track_catboost_tree_offsets,
-    constants.two_track_catboost_n_trees);
+    constants.two_track_catboost_n_trees,
+    first<host_number_of_svs_t>(arguments));
 }
 
 __global__ void two_track_evaluator::two_track_evaluator(
@@ -47,40 +51,25 @@ __global__ void two_track_evaluator::two_track_evaluator(
   const int* split_features,
   const int* tree_sizes,
   const int* tree_offsets,
-  const int n_trees)
+  const int n_trees,
+  const int n_objects)
 {
-  const auto object_id = blockIdx.x;
-  const auto block_size = blockDim.x;
-  int tree_id = threadIdx.x;
-  float sum = 0;
+  for (unsigned object_id=blockIdx.x*blockDim.x+threadIdx.x ; object_id<n_objects ; object_id+=blockDim.x*gridDim.x) {
+    float sum = 0;
+    const int object_offset = object_id * 4;
 
-  const int object_offset = object_id * 4;
-
-  while (tree_id < n_trees) {
-    int index = 0;
-    const int tree_offset = tree_offsets[tree_id];
-    for (int depth = 0; depth < tree_sizes[tree_id]; ++depth) {
-      const int feature_id = split_features[tree_offset + depth];
-      const float feature_value = parameters.dev_two_track_catboost_preprocess_output[object_offset + feature_id];
-      const float border = split_borders[tree_offset + depth];
-      const int bin_feature = (int) (feature_value > border);
-      index |= (bin_feature << depth);
+    for (unsigned tree_id=0; tree_id<n_trees; tree_id++) {
+      int index = 0;
+      const int tree_offset = tree_offsets[tree_id];
+      for (int depth = 0; depth < 8; ++depth) {
+        if (depth >= tree_sizes[tree_id]) break;
+        const int feature_id = split_features[tree_offset + depth];
+        const float feature_value = parameters.dev_two_track_catboost_preprocess_output[object_offset + feature_id];
+        const float border = split_borders[tree_offset + depth];
+        if (feature_value > border) index |= (1 << depth);
+      }
+      sum += leaf_values[leaf_offsets[tree_id] + index];
     }
-    sum += leaf_values[leaf_offsets[tree_id] + index];
-    tree_id += block_size;
-  }
-
-  __shared__ float values[256];
-
-  int tid = threadIdx.x;
-  values[tid] = sum;
-  __syncthreads();
-  for (int s = block_size / 2; s > 0; s >>= 1) {
-    if (tid < s) values[tid] += values[tid + s];
-    __syncthreads();
-  }
-
-  if (threadIdx.x == 0) {
-    parameters.dev_two_track_catboost_evaluation[object_id] = values[0];
+    parameters.dev_two_track_catboost_evaluation[object_id] = sum;
   }
 }
