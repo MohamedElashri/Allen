@@ -56,25 +56,19 @@ mi100:
     - .mi100
     - .run_job
 
-x862630v4:
-  extends:
-    - .x862630v4
-    - .run_job
-x862630v4-run-changes:
-  extends:
-    - .x862630v4
-    - .run_toggle_run_changes
-  stage: run
-
 epyc7502:
   extends:
     - .epyc7502
     - .run_job
-
+epyc7502-run-changes:
+  extends:
+    - .epyc7502
+    - .run_toggle_run_changes
+  stage: run
+  
 .device-jobs:
   dependencies:
     - epyc7502
-    - x862630v4
     - mi100
     - a6000
     - a5000
@@ -98,7 +92,7 @@ run-changes:
     - .test_run_changes
     - .default_rules_always_run
   dependencies:
-    - x862630v4-run-changes
+    - epyc7502-run-changes
     - geforcertx2080ti-run-changes
   # FIXME! Remove as soon as indeterminate behaviour can be fixed.
   allow_failure: 
@@ -190,24 +184,18 @@ HIP:
 
 
 # CPU
-x862630v4-full:
-  extends:
-    - .x862630v4
-    - .run_jobs_full
-    - .cpu_run_job
-x862630v4-full-run-changes:
-  extends:
-    - .x862630v4
-    - .run_toggle_run_changes
-    - .default_rules_always_run
-    - .cpu_run_job
-  stage: "run full"
-
 epyc7502-full:
   extends:
     - .epyc7502
     - .run_jobs_full
     - .cpu_run_job
+epyc7502-full-run-changes:
+  extends:
+    - .epyc7502
+    - .run_toggle_run_changes
+    - .default_rules_always_run
+    - .cpu_run_job
+  stage: "run full"
 
 
 # GPU / CUDA
@@ -265,7 +253,6 @@ mi100-full:
   # is 50. See https://docs.gitlab.com/ee/ci/yaml/#changing-the-needs-job-limit
   dependencies:
     # CPU
-    - x862630v4-full
     - epyc7502-full
 
     # HIP
@@ -300,7 +287,7 @@ run-changes-full:
     - .default_rules_always_run
   dependencies:
     # add run changes jobs here
-    - x862630v4-full-run-changes
+    - epyc7502-full-run-changes
     - geforcertx2080ti-full-run-changes
   # FIXME! Remove once the intederminate behaviour is fixed.
   allow_failure: 
