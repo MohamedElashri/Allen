@@ -400,9 +400,10 @@ __global__ void kalman_velo_only::kalman_velo_only(
     const auto velo_track = ut_track.velo_track();
     const int i_velo_track = ut_track.velo_track_index();
     const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop(i_scifi_track);
-    simplified_fit(
-      velo_track, init_qop, parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
-    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track].ip =
-      pv_table.value(i_velo_track);
+    ParKalmanFilter::FittedTrack track;
+    simplified_fit(velo_track, init_qop, track);
+    track.ip = pv_table.value(i_velo_track);
+    track.is_electron = false;
+    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track] = track;
   }
 }

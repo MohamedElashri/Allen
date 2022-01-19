@@ -227,7 +227,7 @@ def default_monitoring_lines(velo_tracks):
 
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction()
+    reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
 
     with line_maker.bind(enableGEC=EnableGEC):
         physics_lines = default_physics_lines(

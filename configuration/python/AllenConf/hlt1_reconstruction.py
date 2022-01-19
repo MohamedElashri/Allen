@@ -16,7 +16,7 @@ from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.utils import gec
 
 
-def hlt1_reconstruction():
+def hlt1_reconstruction(add_electron_id=False):
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_states = run_velo_kalman_filter(velo_tracks)
@@ -28,14 +28,25 @@ def hlt1_reconstruction():
     decoded_muon = decode_muon()
     muonID = is_muon(decoded_muon, forward_tracks)
     kalman_velo_only = make_kalman_velo_only(forward_tracks, pvs, muonID)
-    secondary_vertices = fit_secondary_vertices(forward_tracks, pvs,
-                                                kalman_velo_only)
     decoded_calo = decode_calo()
     ecal_clusters = make_ecal_clusters(decoded_calo)
 
     calo_matching_objects = make_track_matching(
         decoded_calo, velo_tracks, velo_states, ut_tracks, forward_tracks,
         kalman_velo_only)
+    if add_electron_id:
+        kalman_velo_only = {
+            "forward_tracks":
+            kalman_velo_only["forward_tracks"],
+            "pvs":
+            kalman_velo_only["pvs"],
+            "dev_kf_tracks":
+            calo_matching_objects["dev_kf_tracks_with_electron_id"],
+            "dev_kalman_pv_ipchi2":
+            kalman_velo_only["dev_kalman_pv_ipchi2"]
+        }
+    secondary_vertices = fit_secondary_vertices(forward_tracks, pvs,
+                                                kalman_velo_only)
     return {
         "velo_tracks": velo_tracks,
         "pvs": pvs,
