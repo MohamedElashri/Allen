@@ -41,6 +41,6 @@ namespace pv_beamline_peak {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 1};
+    Property<block_dim_x_t> m_block_dim_x {this, 32};
   };
 } // namespace pv_beamline_peak
