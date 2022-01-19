@@ -68,10 +68,11 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 
     // Filter first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
+    const bool trackA_is_lepton = trackA.is_muon || trackA.is_electron;
     if (
-      trackA.pt() < parameters.track_min_pt || (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA.is_muon) ||
-      (trackA.chi2 / trackA.ndof > parameters.track_max_chi2ndof && !trackA.is_muon) ||
-      (trackA.chi2 / trackA.ndof > parameters.track_muon_max_chi2ndof && trackA.is_muon)) {
+      trackA.pt() < parameters.track_min_pt || (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA_is_lepton) ||
+      (trackA.chi2 / trackA.ndof > parameters.track_max_chi2ndof && !trackA_is_lepton) ||
+      (trackA.chi2 / trackA.ndof > parameters.track_muon_max_chi2ndof && trackA_is_lepton)) {
       continue;
     }
 
@@ -79,17 +80,18 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 
       // Filter second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
+      const bool trackB_is_lepton = trackB.is_muon || trackB.is_electron;
       if (
-        trackB.pt() < parameters.track_min_pt || (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB.is_muon) ||
-        (trackB.chi2 / trackB.ndof > parameters.track_max_chi2ndof && !trackB.is_muon) ||
-        (trackB.chi2 / trackB.ndof > parameters.track_muon_max_chi2ndof && trackB.is_muon)) {
+        trackB.pt() < parameters.track_min_pt || (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB_is_lepton) ||
+        (trackB.chi2 / trackB.ndof > parameters.track_max_chi2ndof && !trackB_is_lepton) ||
+        (trackB.chi2 / trackB.ndof > parameters.track_muon_max_chi2ndof && trackB_is_lepton)) {
         continue;
       }
 
       // Same PV cut for non-muons.
       if (
         pv_table.pv(i_track) != pv_table.pv(j_track) && pv_table.value(i_track) < parameters.max_assoc_ipchi2 &&
-        pv_table.value(j_track) < parameters.max_assoc_ipchi2 && (!trackA.is_muon || !trackB.is_muon)) {
+        pv_table.value(j_track) < parameters.max_assoc_ipchi2 && (!trackA_is_lepton || !trackB_is_lepton)) {
         continue;
       }
 

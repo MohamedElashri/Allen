@@ -21,7 +21,7 @@ namespace ParKalmanFilter {
                                                                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
 
   // 26 VELO + 4 UT + 12 SciFi.
-  constexpr int nMaxMeasurements = 42; 
+  constexpr int nMaxMeasurements = 42;
 
   // Max number of bins for the UT <-> SciFi extrapolation.
   constexpr int nBinXMax = 60;
@@ -83,13 +83,14 @@ namespace ParKalmanFilter {
     KalmanFloat chi2T;
     KalmanFloat ipChi2;
     KalmanFloat ip;
-    
+
     unsigned ndof;
     unsigned ndofV;
     unsigned ndofT;
     unsigned nhits;
 
     bool is_muon;
+    bool is_electron;
 
     __device__ __host__ FittedTrack() {}
 
