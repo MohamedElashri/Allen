@@ -37,7 +37,6 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   unsigned* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
   const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
-  ;
 
   const float* zseeds = parameters.dev_zpeaks + event_number * PV::max_number_vertices;
   const unsigned number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
@@ -49,20 +48,6 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   const float* pvtracks_denom = parameters.dev_pvtracks_denom + velo_tracks_view.offset();
 
   const float2 seed_pos_xy {dev_beamline[0], dev_beamline[1]};
-
-  // Find out the tracks we have to process
-  // Exploit the fact tracks are sorted by z
-  int first_track_in_range = -1;
-  unsigned number_of_tracks_in_range = 0;
-  for (unsigned i = 0; i < velo_tracks_view.size(); i++) {
-    const auto z = parameters.dev_pvtrack_z[velo_tracks_view.offset() + i];
-    if (BeamlinePVConstants::Common::zmin < z && z < BeamlinePVConstants::Common::zmax) {
-      if (first_track_in_range == -1) {
-        first_track_in_range = i;
-      }
-      ++number_of_tracks_in_range;
-    }
-  }
 
   // make sure that we have one thread per seed
   for (unsigned i_thisseed = threadIdx.y; i_thisseed < number_of_seeds; i_thisseed += blockDim.y) {
@@ -97,9 +82,10 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       float local_chi2tot = 0.f;
       float local_sum_weights = 0.f;
 
-      for (unsigned i = threadIdx.x; i < number_of_tracks_in_range; i += blockDim.x) {
+      for (unsigned i = threadIdx.x; i < velo_tracks_view.size(); i += blockDim.x) {
         // compute the chi2
-        const PVTrackInVertex& trk = tracks[first_track_in_range + i];
+        const PVTrackInVertex& trk = tracks[i];
+        if (BeamlinePVConstants::Common::zmin >= trk.z && trk.z >= BeamlinePVConstants::Common::zmax) continue;
 
         const auto dz = vtxpos_z - trk.z;
         const float2 res = vtxpos_xy - (trk.x + trk.tx * dz);
@@ -123,10 +109,10 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           const auto denom = BeamlinePVConstants::MultiFitter::chi2CutExp + nom;
           // substract this term to avoid double counting
 
-          const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i] - exp_chi2_0);
+          const auto track_weight = nom / (denom + pvtracks_denom[i] - exp_chi2_0);
 
           // unfortunately branchy, but reduces fake rate
-          // not cuttign on the weights seems to be important for reoslution of high multiplcitiy tracks
+          // not cutting on the weights seems to be important for resolution of high multiplicity tracks
           if (track_weight > BeamlinePVConstants::MultiFitter::minWeight) {
             const float3 HWr {
               res.x * trk.W_00, res.y * trk.W_11, -trk.tx.x * res.x * trk.W_00 - trk.tx.y * res.y * trk.W_11};

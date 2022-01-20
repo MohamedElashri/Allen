@@ -21,8 +21,6 @@ namespace pv_beamline_extrapolate {
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
     DEVICE_OUTPUT(dev_pvtracks_t, PVTrack) dev_pvtracks;
-    DEVICE_OUTPUT(dev_pvtrack_z_t, float) dev_pvtrack_z;
-    DEVICE_OUTPUT(dev_pvtrack_unsorted_z_t, float) dev_pvtrack_unsorted_z;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
@@ -43,6 +41,6 @@ namespace pv_beamline_extrapolate {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
 } // namespace pv_beamline_extrapolate
