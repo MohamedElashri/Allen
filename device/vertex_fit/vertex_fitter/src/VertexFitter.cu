@@ -150,15 +150,13 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     parameters.dev_two_track_sv_track_pointers[2 * sv_offset + n_svs + i_sv] = 
       const_cast<Allen::Views::Physics::BasicParticle*>(long_track_particles.particle_pointer(j_track));
 
-    VertexFit::TrackMVAVertex sv;
     // Do the fit.
-    // TODO: In case doFit returns false, what should happen?
-    doFit(trackA, trackB, sv);
-    sv.trk1 = i_track;
-    sv.trk2 = j_track;
+    doFit(trackA, trackB, tmp_sv);
+    tmp_sv.trk1 = i_track;
+    tmp_sv.trk2 = j_track;
 
     // Fill extra info.
-    fill_extra_info(sv, trackA, trackB);
+    fill_extra_info(tmp_sv, trackA, trackB);
     if (trackA.get_pv() != nullptr && trackB.get_pv() != nullptr) {
       // Was getting a segfault if I didn't cache the ipchi2 values. Might
       // cause issues on the GPU if the calculation is using too much memory.
@@ -168,18 +166,18 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
       pv_table.pv(i_sv) = i_pv;
 
       const PV::Vertex pv = ipchi2A < ipchi2B ? trackA.pv() : trackB.pv();
-      fill_extra_pv_info(sv, pv, trackA, trackB, parameters.max_assoc_ipchi2);
+      fill_extra_pv_info(tmp_sv, pv, trackA, trackB, parameters.max_assoc_ipchi2);
     }
     // Handle events with no PV.
     else {
       // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
       pv_table.pv(i_sv) = 0;
-      sv.minipchi2 = 0;
+      tmp_sv.minipchi2 = 0;
     }
-    event_secondary_vertices[i_sv] = sv;
+    event_secondary_vertices[i_sv] = tmp_sv;
 
     // Fill the SV fit result.
-    fill_sv_fit_result(parameters.dev_sv_fit_results, sv, sv_offset + i_sv, total_number_of_svs);
+    fill_sv_fit_result(parameters.dev_sv_fit_results, tmp_sv, sv_offset + i_sv, total_number_of_svs);
   }
 }
 
