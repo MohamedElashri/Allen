@@ -39,9 +39,32 @@ def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
+
+        # Scifi tracks view and dependencies
         dev_scifi_tracks_view_t=forward_tracks["dev_scifi_tracks_view"],
+        dev_scifi_track_view_t=forward_tracks["dev_scifi_track_view"],
+        dev_scifi_hits_view_t=forward_tracks["dev_scifi_hits_view"],
+        dev_scifi_track_hits_t=forward_tracks["dev_scifi_track_hits"],
+        dev_offsets_scifi_track_hit_number_t=forward_tracks["dev_offsets_scifi_track_hit_number"],
+        dev_scifi_track_ut_indices_t=forward_tracks["dev_scifi_track_ut_indices"],
+
+        # UT tracks view and dependencies
         dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_ut_track_view_t=ut_tracks["dev_ut_track_view"],
+        dev_ut_hits_view_t=ut_tracks["dev_ut_hits_view"],
+        dev_ut_track_hits_t=ut_tracks["dev_ut_track_hits"],
+        dev_offsets_ut_tracks_t=ut_tracks["dev_offsets_ut_tracks"],
+        dev_offsets_ut_track_hit_number_t=ut_tracks["dev_offsets_ut_track_hit_number"],
+        dev_ut_track_velo_indices_t=ut_tracks["dev_ut_track_velo_indices"],
+
+        # Velo tracks view and dependencies
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_velo_track_view_t=velo_tracks["dev_velo_track_view"],
+        dev_velo_hits_view_t=velo_tracks["dev_velo_hits_view"],
+        dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
+        dev_offsets_all_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
+        dev_offsets_velo_track_hit_number_t=velo_tracks["dev_offsets_velo_track_hit_number"],
+
         dev_offsets_forward_tracks_t=forward_tracks[
             "dev_offsets_forward_tracks"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],

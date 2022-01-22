@@ -90,9 +90,32 @@ namespace kalman_velo_only {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+
+    // SciFi tracks view and dependencies
     DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
+    DEVICE_INPUT(dev_scifi_track_view_t, Allen::Views::SciFi::Consolidated::Track) dev_scifi_track_view;
+    DEVICE_INPUT(dev_scifi_hits_view_t, Allen::Views::SciFi::Consolidated::Hits) dev_scifi_hits_view;
+    DEVICE_INPUT(dev_scifi_track_hits_t, char) dev_scifi_track_hits;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_offsets_scifi_track_hit_number;
+    DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+
+    // UT tracks view and dependencies.
     DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
+    DEVICE_INPUT(dev_ut_track_view_t, Allen::Views::UT::Consolidated::Track) dev_ut_track_view;
+    DEVICE_INPUT(dev_ut_hits_view_t, Allen::Views::UT::Consolidated::Hits) dev_ut_hits_view;
+    DEVICE_INPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_offsets_ut_tracks;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_offsets_ut_track_hit_number;
+    DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
+
+    // VELO tracks view and dependencies.
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
+    DEVICE_INPUT(dev_velo_track_view_t, Allen::Views::Velo::Consolidated::Track) dev_velo_track_view;
+    DEVICE_INPUT(dev_velo_hits_view_t, Allen::Views::Velo::Consolidated::Hits) dev_velo_hits_view;
+    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
+
     DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
@@ -128,13 +151,44 @@ namespace kalman_velo_only {
       dev_long_track_particles_view_t,
       DEPENDENCIES(
         dev_long_track_particle_view_t,
-        dev_offsets_forward_tracks_t,
         dev_kalman_states_view_t,
         dev_kalman_fit_results_t,
         dev_multi_final_vertices_t,
         dev_kalman_pv_ipchi2_t,
         dev_kalman_pv_tables_t,
-        dev_is_muon_t),
+        dev_is_muon_t,
+
+        // Note: To get the dependencies to work, we should only need to include
+        // them here because the particle view is never used without the
+        // particles view, but this is sort of fragile. Might also need to add
+        // these to the multi-event particles view, but for now that isn't
+        // actually used anywhere.
+
+        // SciFi track dependencies
+        dev_scifi_tracks_view_t,
+        dev_scifi_track_view_t,
+        dev_scifi_hits_view_t,
+        dev_offsets_forward_tracks_t,
+        dev_offsets_scifi_track_hit_number_t,
+        dev_scifi_track_hits_t,
+        dev_scifi_track_ut_indices_t,
+
+        // UT track dependencies
+        dev_ut_tracks_view_t,
+        dev_ut_track_view_t,
+        dev_ut_hits_view_t,
+        dev_ut_track_hits_t,
+        dev_offsets_ut_tracks_t,
+        dev_offsets_ut_track_hit_number_t,
+        dev_ut_track_velo_indices_t,
+
+        // VELO track dependencies
+        dev_velo_tracks_view_t,
+        dev_velo_track_view_t,
+        dev_velo_hits_view_t,
+        dev_velo_track_hits_t,
+        dev_offsets_all_velo_tracks_t,
+        dev_offsets_velo_track_hit_number_t),
       Allen::Views::Physics::BasicParticles)
     dev_long_track_particles_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
