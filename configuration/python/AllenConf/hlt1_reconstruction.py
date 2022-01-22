@@ -34,19 +34,20 @@ def hlt1_reconstruction(add_electron_id=False):
     calo_matching_objects = make_track_matching(
         decoded_calo, velo_tracks, velo_states, ut_tracks, forward_tracks,
         kalman_velo_only)
-    if add_electron_id:
-        kalman_velo_only = {
-            "forward_tracks":
-            kalman_velo_only["forward_tracks"],
-            "pvs":
-            kalman_velo_only["pvs"],
-            "dev_kf_tracks":
-            calo_matching_objects["dev_kf_tracks_with_electron_id"],
-            "dev_kalman_pv_ipchi2":
-            kalman_velo_only["dev_kalman_pv_ipchi2"]
-        }
+    # This block of code will not work with the new physics event model.
+    # if add_electron_id:
+    #     kalman_velo_only = {
+    #         "forward_tracks":
+    #         kalman_velo_only["forward_tracks"],
+    #         "pvs":
+    #         kalman_velo_only["pvs"],
+    #         "dev_kf_tracks":
+    #         calo_matching_objects["dev_kf_tracks_with_electron_id"],
+    #         "dev_kalman_pv_ipchi2":
+    #         kalman_velo_only["dev_kalman_pv_ipchi2"]
+    #     }
     secondary_vertices = fit_secondary_vertices(forward_tracks, pvs,
-                                                kalman_velo_only)
+                                                kalman_velo_only, muonID)
     return {
         "velo_tracks": velo_tracks,
         "pvs": pvs,
