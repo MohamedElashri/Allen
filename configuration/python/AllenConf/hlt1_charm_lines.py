@@ -51,7 +51,6 @@ def make_d2pipi_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string)
 
 
-
 def make_two_ks_line(forward_tracks,
                      secondary_vertices,
                      pre_scaler_hash_string="two_ks_line_pre",
