@@ -24,7 +24,7 @@ from AllenConf.persistency import make_global_decision, make_sel_report_writer
 # Helper function to make composite nodes
 def make_line_composite_node(name, algos):
     return CompositeNode(
-        name + "_node", algos, NodeLogic.LAZY_AND, force_order=True)
+        name + "_node", algos, NodeLogic.LAZY_AND, force_order=True )
 
 
 @configurable
