@@ -514,10 +514,10 @@ namespace Allen {
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
-              energy += dynamic_cast<const BasicParticle*>(substr)->e(mPi);
+              energy += static_cast<const BasicParticle*>(substr)->e(mPi);
             }
             else {
-              energy += dynamic_cast<const CompositeParticle*>(substr)->e();
+              energy += static_cast<const CompositeParticle*>(substr)->e();
             }
           }
           return energy;
@@ -529,10 +529,10 @@ namespace Allen {
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
-              sum += dynamic_cast<const BasicParticle*>(substr)->pt();
+              sum += static_cast<const BasicParticle*>(substr)->pt();
             }
             else {
-              sum += dynamic_cast<const CompositeParticle*>(substr)->pt();
+              sum += static_cast<const CompositeParticle*>(substr)->pt();
             }
           }
           return sum;
@@ -550,16 +550,16 @@ namespace Allen {
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
           if (substr1->number_of_substructures() == 1) {
-            energy += dynamic_cast<const BasicParticle*>(substr1)->e(m1);
+            energy += static_cast<const BasicParticle*>(substr1)->e(m1);
           }
           else {
-            energy += dynamic_cast<const CompositeParticle*>(substr1)->e();
+            energy += static_cast<const CompositeParticle*>(substr1)->e();
           }
           if (substr2->number_of_substructures() == 1) {
-            energy += dynamic_cast<const BasicParticle*>(substr2)->e(m2);
+            energy += static_cast<const BasicParticle*>(substr2)->e(m2);
           }
           else {
-            energy += dynamic_cast<const CompositeParticle*>(substr2)->e();
+            energy += static_cast<const CompositeParticle*>(substr2)->e();
           }
           return sqrtf(energy * energy - vertex().p2());
         }
@@ -641,10 +641,10 @@ namespace Allen {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
-              tmp = dynamic_cast<const BasicParticle*>(substr)->ip_chi2();
+              tmp = static_cast<const BasicParticle*>(substr)->ip_chi2();
             }
             else {
-              tmp = dynamic_cast<const CompositeParticle*>(substr)->minipchi2();
+              tmp = static_cast<const CompositeParticle*>(substr)->minipchi2();
             }
             if (tmp < val || val < 0) val = tmp;
           }
@@ -658,10 +658,10 @@ namespace Allen {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
-              tmp = dynamic_cast<const BasicParticle*>(substr)->ip();
+              tmp = static_cast<const BasicParticle*>(substr)->ip();
             }
             else {
-              tmp = dynamic_cast<const CompositeParticle*>(substr)->minip();
+              tmp = static_cast<const CompositeParticle*>(substr)->minip();
             }
             if (tmp < val || val < 0) val = tmp;
           }
@@ -675,10 +675,10 @@ namespace Allen {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
-              tmp = dynamic_cast<const BasicParticle*>(substr)->p();
+              tmp = static_cast<const BasicParticle*>(substr)->p();
             }
             else {
-              tmp = dynamic_cast<const CompositeParticle*>(substr)->p();
+              tmp = static_cast<const CompositeParticle*>(substr)->p();
             }
             if (tmp < val && val > 0) val = tmp;
           }
@@ -692,10 +692,10 @@ namespace Allen {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
-              tmp = dynamic_cast<const BasicParticle*>(substr)->pt();
+              tmp = static_cast<const BasicParticle*>(substr)->pt();
             }
             else {
-              tmp = dynamic_cast<const CompositeParticle*>(substr)->pt();
+              tmp = static_cast<const CompositeParticle*>(substr)->pt();
             }
             if (tmp < val || val < 0) val = tmp;
           }
@@ -723,7 +723,7 @@ namespace Allen {
           float tyA;
           const auto substr1 = substructure(index1);
           if (substr1->number_of_substructures() == 1) {
-            const auto track = dynamic_cast<const BasicParticle*>(substr1);
+            const auto track = static_cast<const BasicParticle*>(substr1);
             const auto state = track->state();
             xA = state.x();
             yA = state.y();
@@ -732,7 +732,7 @@ namespace Allen {
             tyA = state.ty();
           }
           else {
-            const auto sv1 = dynamic_cast<const CompositeParticle*>(substr1);
+            const auto sv1 = static_cast<const CompositeParticle*>(substr1);
             xA = sv1->x();
             yA = sv1->y();
             zA = sv1->z();
@@ -747,7 +747,7 @@ namespace Allen {
           float tyB;
           const auto substr2 = substructure(index2);
           if (substr1->number_of_substructures() == 1) {
-            const auto track = dynamic_cast<const BasicParticle*>(substr2);
+            const auto track = static_cast<const BasicParticle*>(substr2);
             const auto state = track->state();
             xB = state.x();
             yB = state.y();
@@ -756,7 +756,7 @@ namespace Allen {
             tyB = state.ty();
           }
           else {
-            const auto sv2 = dynamic_cast<const CompositeParticle*>(substr2);
+            const auto sv2 = static_cast<const CompositeParticle*>(substr2);
             xB = sv2->x();
             yB = sv2->y();
             zB = sv2->z();
@@ -817,8 +817,8 @@ namespace Allen {
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
           if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1) return false;
-          return dynamic_cast<const BasicParticle*>(substr1)->is_muon() &&
-                 dynamic_cast<const BasicParticle*>(substr2)->is_muon();
+          return static_cast<const BasicParticle*>(substr1)->is_muon() &&
+                 static_cast<const BasicParticle*>(substr2)->is_muon();
         }
 
         __host__ __device__ float clone_sin2() const
@@ -826,8 +826,8 @@ namespace Allen {
           if (!is_dimuon()) return -1.f;
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
-          const auto state1 = dynamic_cast<const BasicParticle*>(substr1)->state();
-          const auto state2 = dynamic_cast<const BasicParticle*>(substr2)->state();
+          const auto state1 = static_cast<const BasicParticle*>(substr1)->state();
+          const auto state2 = static_cast<const BasicParticle*>(substr2)->state();
           const float txA = state1.tx();
           const float tyA = state1.ty();
           const float txB = state2.tx();

@@ -42,7 +42,7 @@ lines.append(
         "Hlt1TrackMVA_Non_Restricted",
         make_track_mva_line(
             non_restricted_hlt1_reconstruction["forward_tracks"],
-            non_restricted_hlt1_reconstruction["secondary_vertices"],
+            non_restricted_hlt1_reconstruction["kalman_velo_only"],
             name="Hlt1TrackMVA_Non_Restricted"),
         enableGEC=True))
 lines.append(
