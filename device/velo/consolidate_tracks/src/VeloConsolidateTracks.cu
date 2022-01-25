@@ -40,6 +40,8 @@ __global__ void create_velo_views(velo_consolidate_tracks::Parameters parameters
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_velo_multi_event_tracks_view)
       Allen::Views::Velo::Consolidated::MultiEventTracks {parameters.dev_velo_tracks_view, number_of_events};
+
+    parameters.dev_velo_multi_event_lhcb_id_container[0] = parameters.dev_velo_multi_event_tracks_view;
   }
 }
 

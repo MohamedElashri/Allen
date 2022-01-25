@@ -71,9 +71,15 @@ def generate_json_configuration(algorithms, filename):
                     # If it is an output, check dependencies
                     dependencies = algorithm.type.__slots__[parameter_name].Dependencies
                     if dependencies:
-                        argument_dependencies[parameter_full_name] = []
+                        parameter_dependencies_set = set([])
                         for dep in dependencies:
-                            argument_dependencies[parameter_full_name].append(param_name_to_full_name[dep])
+                            dep_full_name = param_name_to_full_name[dep]
+                            parameter_dependencies_set.add(dep_full_name)
+                            # Look for transitive dependencies
+                            if dep_full_name in argument_dependencies:
+                                for transitive_dep in argument_dependencies[dep_full_name]:
+                                    parameter_dependencies_set.add(transitive_dep)
+                        argument_dependencies[parameter_full_name] = list(parameter_dependencies_set)
                 else:
                     raise "Parameter should either be an input or an output"
                 arguments.append(parameter_full_name)
