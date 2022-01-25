@@ -189,13 +189,6 @@ int allen(
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
   auto const [json_configuration_file, run_from_json] = Allen::sequence_conf(options);
 
-#ifdef TARGET_DEVICE_CUDA
-  // For CUDA targets, set the maximum number of connections environment variable
-  // equal to the number of thread/streams, with a maximum of 32.
-  const auto cuda_device_max_connections = number_of_threads < 32 ? number_of_threads : 32;
-  setenv("CUDA_DEVICE_MAX_CONNECTIONS", std::to_string(cuda_device_max_connections).c_str(), 1);
-#endif
-
   // Set device for main thread
   auto [device_set, device_name, device_memory_alignment] = Allen::set_device(device_id, 0);
   if (!device_set) {
