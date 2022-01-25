@@ -137,7 +137,6 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices, n_pvs_event};
 
   // SV -> PV table.
-  const auto kalman_pv_table = parameters.dev_kalman_pv_tables[event_number];
   const unsigned total_number_of_svs = parameters.dev_sv_offsets[number_of_events];
   // TODO: Don't use two different types of PV table.
   Associate::Consolidated::Table sv_pv_ipchi2 {parameters.dev_sv_pv_ipchi2, total_number_of_svs};

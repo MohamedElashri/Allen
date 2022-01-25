@@ -30,9 +30,7 @@ namespace ut_consolidate_tracks {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_hits_view_t,
       DEPENDENCIES(
-        dev_ut_track_hits_t,
-        dev_offsets_ut_tracks_t,
-        dev_offsets_ut_track_hit_number_t),
+        dev_ut_track_hits_t),
       Allen::Views::UT::Consolidated::Hits)
     dev_ut_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
@@ -41,37 +39,19 @@ namespace ut_consolidate_tracks {
         dev_ut_hits_view_t,
         dev_velo_tracks_view_t,
         dev_ut_track_velo_indices_t,
-        dev_ut_track_params_t,
-        dev_ut_track_hits_t,
-        dev_offsets_ut_tracks_t,
-        dev_offsets_ut_track_hit_number_t),
+        dev_ut_track_params_t),
       Allen::Views::UT::Consolidated::Track)
     dev_ut_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_tracks_view_t,
       DEPENDENCIES(
-        dev_ut_hits_view_t,
-        dev_ut_track_view_t,
-        dev_velo_tracks_view_t,
-        dev_ut_track_velo_indices_t,
-        dev_ut_track_params_t,
-        dev_ut_track_hits_t,
-        dev_offsets_ut_tracks_t,
-        dev_offsets_ut_track_hit_number_t),
+        dev_ut_track_view_t),
       Allen::Views::UT::Consolidated::Tracks)
     dev_ut_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_multi_event_tracks_view_t,
       DEPENDENCIES(
-        dev_ut_hits_view_t,
-        dev_ut_track_view_t,
-        dev_ut_tracks_view_t,
-        dev_velo_tracks_view_t,
-        dev_ut_track_velo_indices_t,
-        dev_ut_track_params_t,
-        dev_ut_track_hits_t,
-        dev_offsets_ut_tracks_t,
-        dev_offsets_ut_track_hit_number_t),
+        dev_ut_tracks_view_t),
       Allen::Views::UT::Consolidated::MultiEventTracks)
     dev_ut_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

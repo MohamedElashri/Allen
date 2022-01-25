@@ -35,9 +35,7 @@ namespace scifi_consolidate_tracks {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_hits_view_t,
       DEPENDENCIES(
-        dev_scifi_hits_t,
-        dev_offsets_forward_tracks_t,
-        dev_scifi_hit_offsets_t),
+        dev_scifi_hits_t),
       Allen::Views::SciFi::Consolidated::Hits)
     dev_scifi_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
@@ -45,38 +43,19 @@ namespace scifi_consolidate_tracks {
       DEPENDENCIES(
         dev_scifi_hits_view_t,
         dev_ut_tracks_view_t,
-        dev_velo_tracks_view_t,
-        dev_scifi_qop_t,
-        dev_scifi_track_hits_t,
-        dev_offsets_forward_tracks_t,
-        dev_scifi_hit_offsets_t),
+        dev_scifi_qop_t),
       Allen::Views::SciFi::Consolidated::Track)
     dev_scifi_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_tracks_view_t,
       DEPENDENCIES(
-        dev_scifi_hits_view_t,
-        dev_scifi_track_view_t,
-        dev_ut_tracks_view_t,
-        dev_velo_tracks_view_t,
-        dev_scifi_qop_t,
-        dev_scifi_track_hits_t,
-        dev_offsets_forward_tracks_t,
-        dev_scifi_hit_offsets_t),
+        dev_scifi_track_view_t),
       Allen::Views::SciFi::Consolidated::Tracks)
     dev_scifi_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_multi_event_tracks_view_t,
       DEPENDENCIES(
-        dev_scifi_hits_view_t,
-        dev_scifi_track_view_t,
-        dev_scifi_tracks_view_t,
-        dev_ut_tracks_view_t,
-        dev_velo_tracks_view_t,
-        dev_scifi_qop_t,
-        dev_scifi_track_hits_t,
-        dev_offsets_forward_tracks_t,
-        dev_scifi_hit_offsets_t),
+        dev_scifi_tracks_view_t),
       Allen::Views::SciFi::Consolidated::MultiEventTracks)
     dev_scifi_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
