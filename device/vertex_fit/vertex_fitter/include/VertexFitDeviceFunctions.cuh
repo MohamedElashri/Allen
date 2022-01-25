@@ -152,7 +152,7 @@ namespace VertexFit {
     halfD2Chi2_11 += invcov11;
     halfD2Chi2_20 += -invcov00 * track.state[2];
     halfD2Chi2_21 += -invcov11 * track.state[3];
-    halfD2Chi2_22 += invcov00 * track.state[0] * track.state[0] + invcov11 * track.state[1] * track.state[1];
+    halfD2Chi2_22 += invcov00 * track.state[2] * track.state[2] + invcov11 * track.state[3] * track.state[3];
     return invcov00 * rX * rX + invcov11 * rY * rY;
   }
 
