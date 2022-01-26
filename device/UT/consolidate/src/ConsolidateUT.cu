@@ -62,6 +62,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
   set_size<dev_ut_track_view_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_multi_event_tracks_view_t>(arguments, 1);
+  set_size<dev_ut_multi_event_lhcb_id_container_t>(arguments, 1);
 }
 
 void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
