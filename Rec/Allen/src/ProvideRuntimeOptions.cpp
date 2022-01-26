@@ -37,7 +37,6 @@ public:
 private:
   Gaudi::Property<std::string> m_monitorFile {this, "MonitorFile", "allen_monitor.root"};
 
-  mutable CheckerInvoker m_checker_invoker {};
   std::unique_ptr<ROOTService> m_root_service {};
 };
 
@@ -83,7 +82,7 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
           cpu_offload,
           mep_layout,
           param_inject_mem_fail,
-          &m_checker_invoker,
+          nullptr,
           m_root_service.get()};
 }
 

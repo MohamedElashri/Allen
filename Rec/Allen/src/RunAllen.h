@@ -57,7 +57,6 @@ private:
   const bool m_cpu_offload = true;
   const unsigned m_n_buffers = 1;
   const bool m_do_check = true;
-  mutable ROOTService m_root_service;
 
   std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
