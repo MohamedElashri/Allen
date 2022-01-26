@@ -21,12 +21,12 @@
 .run_matrix_jobs_full:
   parallel:
     matrix:
-      
+
       # run throughput, contracts enabled
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
-        OPTIONS: [BUILD_TESTS+ENABLE_CONTRACTS]
+        OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
 
 
       # run throughput, no_gec
@@ -91,7 +91,7 @@
   extends:
     - .base_job
     - .default_rules
-  
+
   tags: ['$DEVICE_ID']
 
   variables:
