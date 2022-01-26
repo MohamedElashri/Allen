@@ -63,7 +63,7 @@ void KalmanChecker::accumulate(
   auto guard = std::scoped_lock {m_mutex};
   for (size_t i = 0; i < event_list.size(); ++i) {
     const auto evnum = event_list[i];
-    const auto& event_tracks = tracks[i];
+    const auto& event_tracks = tracks[evnum];
     const auto& mc_event = mc_events[evnum];
     const auto& mcps = mc_event.m_mcps;
     MCAssociator mcassoc {mcps};
