@@ -2,7 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.utils import initialize_number_of_events, mep_layout, gec
-from AllenConf.hlt1_reconstruction_noCalo import hlt1_reconstruction, validator_node
+from AllenConf.hlt1_reconstruction_no_calo import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_two_track_catboost_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
