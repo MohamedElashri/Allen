@@ -28,20 +28,22 @@ ROOTService::ROOTService(std::string filename)
 {
   ROOT::EnableImplicitMT();
 
-  auto output_dir = fs::path {filename}.parent_path();
-  if (!output_dir.empty()) {
-    if (fs::exists(output_dir) && !fs::is_directory(output_dir)) {
-      throw StrException {"Output directory "s + output_dir.string() + " exists, but is not a directory"};
-    }
-    else if (!fs::exists(output_dir)) {
-      if (!fs::create_directory(output_dir)) {
-        throw StrException {"Failed to create ROOT output directory "s + output_dir.string()};
+  if (!filename.empty()) {
+    auto output_dir = fs::path {filename}.parent_path();
+    if (!output_dir.empty()) {
+      if (fs::exists(output_dir) && !fs::is_directory(output_dir)) {
+        throw StrException {"Output directory "s + output_dir.string() + " exists, but is not a directory"};
+      }
+      else if (!fs::exists(output_dir)) {
+        if (!fs::create_directory(output_dir)) {
+          throw StrException {"Failed to create ROOT output directory "s + output_dir.string()};
+        }
       }
     }
-  }
-  m_file = std::make_unique<TFile>(filename.c_str(), "RECREATE", filename.c_str());
-  if (!m_file->IsOpen() || m_file->IsZombie()) {
-    throw StrException {"Failed to open ROOT file "s + filename};
+    m_file = std::make_unique<TFile>(filename.c_str(), "RECREATE", filename.c_str());
+    if (!m_file->IsOpen() || m_file->IsZombie()) {
+      throw StrException {"Failed to open ROOT file "s + filename};
+    }
   }
 }
 
@@ -53,7 +55,7 @@ ROOTService::~ROOTService()
       tree.reset();
     }
   }
-  m_file->Close();
+  if (m_file) m_file->Close();
 }
 
 TDirectory* ROOTService::directory(std::string const& dir_name)

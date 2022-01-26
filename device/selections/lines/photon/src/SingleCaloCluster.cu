@@ -120,15 +120,16 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
 {
   if (!property<make_tuple_t>()) return;
 
+  auto handler = runtime_options.root_service->handle(name());
+  auto tree = handler.tree("monitor_tree");
+  if (tree == nullptr) return;
+
   Allen::copy<host_clusters_x_t, dev_clusters_x_t>(arguments, context);
   Allen::copy<host_clusters_y_t, dev_clusters_y_t>(arguments, context);
   Allen::copy<host_clusters_Et_t, dev_clusters_Et_t>(arguments, context);
   Allen::copy<host_clusters_Eta_t, dev_clusters_Eta_t>(arguments, context);
   Allen::copy<host_clusters_Phi_t, dev_clusters_Phi_t>(arguments, context);
   Allen::synchronize(context);
-
-  auto handler = runtime_options.root_service->handle(name());
-  auto tree = handler.tree("monitor_tree");
 
   float Et = 0.f;
   float Eta = 0.f;

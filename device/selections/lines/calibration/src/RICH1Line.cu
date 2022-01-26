@@ -99,6 +99,10 @@ void rich_1_line::rich_1_line_t::output_monitor(
 {
   if (!property<make_tuple_t>()) return;
 
+  auto handler = runtime_options.root_service->handle(name());
+  auto tree = handler.tree("monitor_tree");
+  if (tree == nullptr) return;
+
   Allen::copy_async<host_decision_t, dev_decision_t>(arguments, context);
   Allen::copy_async<host_pt_t, dev_pt_t>(arguments, context);
   Allen::copy_async<host_p_t, dev_p_t>(arguments, context);
@@ -107,10 +111,6 @@ void rich_1_line::rich_1_line_t::output_monitor(
   Allen::copy_async<host_phi_t, dev_phi_t>(arguments, context);
 
   Allen::synchronize(context);
-
-  auto handler = runtime_options.root_service->handle(name());
-
-  auto tree = handler.tree("monitor_tree");
 
   bool decision {};
   float pt {};
