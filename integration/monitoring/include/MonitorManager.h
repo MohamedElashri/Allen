@@ -34,14 +34,13 @@ struct MonitorManager {
 #endif
 
 private:
-  ROOTService* m_rsvc = nullptr;
-  std::vector<std::vector<std::unique_ptr<BufferMonitor>>> m_monitors;
-
-  std::queue<size_t> free_monitors;
-
 #ifdef WITH_ROOT
+  ROOTService* m_rsvc = nullptr;
   TDirectory* m_dir = nullptr;
 #endif
+  
+  std::vector<std::vector<std::unique_ptr<BufferMonitor>>> m_monitors;
+  std::queue<size_t> free_monitors;
 
   std::unique_ptr<MetaMonitor> meta_mon;
   unsigned count_processed {0}, count_skipped {0};

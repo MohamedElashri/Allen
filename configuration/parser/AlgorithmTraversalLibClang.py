@@ -136,12 +136,8 @@ class AlgorithmTraversal():
     # therefore ignoring some speeds up the traversal.
     __ignored_namespaces = ["std", "__gnu_cxx", "__cxxabiv1", "__gnu_debug"]
 
-    # Arguments to pass to compiler, as function of file extension.
-    __compile_flags = {
-        "cuh": ["-x", "c++", "-std=c++17", "-nostdinc++"],
-        "hpp": ["-std=c++17", "-nostdinc++"],
-        "h": ["-std=c++17", "-nostdinc++"]
-    }
+    # Arguments to pass to compiler
+    __compile_flags = ["-x", "c++", "-std=c++17", "-nostdinc++"]
 
     # Clang index
     __index = cindex.Index.create()
@@ -337,18 +333,14 @@ class AlgorithmTraversal():
         """Opens the file with libClang, parses it and find algorithms.
         Returns a list of ParsedAlgorithms."""
         AlgorithmTraversal.__properties = {}
-        extension = filename.split(".")[-1]
-        try:
-            clang_args = AlgorithmTraversal.__compile_flags[extension]
-            clang_args.append("-I" + project_location + "/stream/gear/include")
-            clang_args.append("-I" + project_location + "/backend/include")
-            tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
-            if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
-                return make_parsed_algorithms(
-                    filename,
-                    AlgorithmTraversal.traverse_children(
-                        tu.cursor, AlgorithmTraversal.namespace, filename))
-            else:
-                return None
-        except IndexError:
-            print("Filename of unexpected extension:", filename, extension)
+        clang_args = AlgorithmTraversal.__compile_flags.copy()
+        clang_args.append("-I" + project_location + "/stream/gear/include")
+        clang_args.append("-I" + project_location + "/backend/include")
+        tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
+        if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
+            return make_parsed_algorithms(
+                filename,
+                AlgorithmTraversal.traverse_children(
+                    tu.cursor, AlgorithmTraversal.namespace, filename))
+        else:
+            return None
