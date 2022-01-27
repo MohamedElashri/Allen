@@ -35,9 +35,7 @@ namespace Allen {
     unsigned m_number_of_substructures = 0;
 
   public:
-    __host__ __device__ ILHCbIDStructure(const unsigned size) : 
-      m_number_of_substructures(size) 
-    {}
+    __host__ __device__ ILHCbIDStructure(const unsigned size) : m_number_of_substructures(size) {}
 
     virtual __host__ __device__ unsigned number_of_substructures() const { return m_number_of_substructures; }
 
@@ -57,9 +55,7 @@ namespace Allen {
       unsigned index,
       unsigned total_number_of_composites) :
       ILHCbIDStructure {number_of_substructures},
-      m_substructures(substructures),
-      m_index(index),
-      m_total_number_of_composites(total_number_of_composites)
+      m_substructures(substructures), m_index(index), m_total_number_of_composites(total_number_of_composites)
     {}
 
     __host__ __device__ const ILHCbIDStructure* substructure(const unsigned substructure_index) const
@@ -70,9 +66,7 @@ namespace Allen {
   };
 
   struct ILHCbIDSequence : ILHCbIDStructure {
-    __host__ __device__ ILHCbIDSequence(const unsigned size) :
-      ILHCbIDStructure {size}
-    {}
+    __host__ __device__ ILHCbIDSequence(const unsigned size) : ILHCbIDStructure {size} {}
     virtual __host__ __device__ unsigned number_of_ids() const { return 0; }
     virtual __host__ __device__ unsigned id(const unsigned) const { return 0; };
   };
@@ -84,15 +78,13 @@ namespace Allen {
     unsigned m_size;
 
   public:
-    __host__ __device__ 
-    ILHCbIDContainer(const ILHCbIDStructure* structure, const unsigned size) :
-      m_structure(structure),
-      m_size(size)
+    __host__ __device__ ILHCbIDContainer(const ILHCbIDStructure* structure, const unsigned size) :
+      m_structure(structure), m_size(size)
     {}
 
     virtual __host__ __device__ unsigned number_of_id_structures() const { return m_size; }
 
-    virtual __host__ __device__ const ILHCbIDStructure& id_structure(const unsigned index) const 
+    virtual __host__ __device__ const ILHCbIDStructure& id_structure(const unsigned index) const
     {
       return m_structure[index];
     };

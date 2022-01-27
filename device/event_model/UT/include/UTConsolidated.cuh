@@ -117,8 +117,8 @@ namespace Allen {
             const unsigned track_index,
             const unsigned event_number) :
             ILHCbIDSequence {1},
-            m_hits(hits + event_number),
-            m_velo_track(velo_track), m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
+            m_hits(hits + event_number), m_velo_track(velo_track),
+            m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
             m_track_params(track_params + 4 * offset_tracks[event_number]),
             m_number_of_tracks_event(number_of_tracks_event), m_track_index(track_index)
           {
@@ -174,11 +174,9 @@ namespace Allen {
           unsigned m_offset = 0;
 
         public:
-
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
-            ILHCbIDContainer {
-              track + offset_tracks[event_number],
-              offset_tracks[event_number + 1] - offset_tracks[event_number]},
+            ILHCbIDContainer {track + offset_tracks[event_number],
+                              offset_tracks[event_number + 1] - offset_tracks[event_number]},
             m_offset(offset_tracks[event_number])
           {}
 

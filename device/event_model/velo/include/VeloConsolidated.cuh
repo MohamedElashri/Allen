@@ -211,8 +211,7 @@ namespace Allen {
             const unsigned track_index,
             const unsigned event_number) :
             ILHCbIDSequence {1},
-            m_hits(hits + event_number),
-            m_track_index(track_index)
+            m_hits(hits + event_number), m_track_index(track_index)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
@@ -243,15 +242,14 @@ namespace Allen {
 
         struct Tracks : Allen::ILHCbIDContainer {
         private:
-          //const Track* m_track = nullptr;
+          // const Track* m_track = nullptr;
           unsigned m_offset = 0;
-          //unsigned m_size = 0;
+          // unsigned m_size = 0;
 
         public:
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
-            Allen::ILHCbIDContainer {
-              track + offset_tracks[event_number], 
-              offset_tracks[event_number + 1] - offset_tracks[event_number] },
+            Allen::ILHCbIDContainer {track + offset_tracks[event_number],
+                                     offset_tracks[event_number + 1] - offset_tracks[event_number]},
             m_offset(offset_tracks[event_number])
           {}
 
@@ -267,9 +265,7 @@ namespace Allen {
            * @brief This offset indicates the relative position of the
            *        tracks in the container for the current event.
            */
-          __host__ __device__ unsigned offset() const { 
-            return m_offset; 
-          }
+          __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
         using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;

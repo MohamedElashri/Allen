@@ -305,8 +305,7 @@ namespace Allen {
           const bool* muon_id,
           const unsigned index) :
           ILHCbIDSequence {1},
-          m_track(track),
-          m_states(states), m_pv(pv), m_muon_id(muon_id), m_index(index)
+          m_track(track), m_states(states), m_pv(pv), m_muon_id(muon_id), m_index(index)
         {
           // Make sure this isn't a composite ID structure.
           // TODO: Is this sensible at all?
@@ -432,12 +431,13 @@ namespace Allen {
 
       struct BasicParticles : ILHCbIDContainer {
       private:
-        unsigned m_offset = 0;        
+        unsigned m_offset = 0;
 
       public:
         __host__ __device__
         BasicParticles(const BasicParticle* track, const unsigned* track_offsets, const unsigned event_number) :
-          ILHCbIDContainer {track + track_offsets[event_number], track_offsets[event_number + 1] - track_offsets[event_number]},
+          ILHCbIDContainer {track + track_offsets[event_number],
+                            track_offsets[event_number + 1] - track_offsets[event_number]},
           m_offset(track_offsets[event_number])
         {}
 
@@ -446,11 +446,10 @@ namespace Allen {
           return m_structure[index];
         }
 
-        __host__ __device__ unsigned size() const { 
-          return m_size; 
-        }
+        __host__ __device__ unsigned size() const { return m_size; }
 
-        __host__ __device__ const BasicParticle& particle(const unsigned index) const { 
+        __host__ __device__ const BasicParticle& particle(const unsigned index) const
+        {
           return static_cast<const BasicParticle*>(m_structure)[index];
         }
 
@@ -692,7 +691,7 @@ namespace Allen {
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
-            //if (substr->number_of_substructures() == 1) {
+            // if (substr->number_of_substructures() == 1) {
             tmp = static_cast<const BasicParticle*>(substr)->pt();
             // }
             // else {
@@ -723,7 +722,7 @@ namespace Allen {
           float txA;
           float tyA;
           const auto substr1 = substructure(index1);
-          //if (substr1->number_of_substructures() == 1) {
+          // if (substr1->number_of_substructures() == 1) {
           const auto track1 = static_cast<const BasicParticle*>(substr1);
           const auto state1 = track1->state();
           xA = state1.x();
@@ -817,7 +816,7 @@ namespace Allen {
         {
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
-          //if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1) return false;
+          // if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1) return false;
           return static_cast<const BasicParticle*>(substr1)->is_muon() &&
                  static_cast<const BasicParticle*>(substr2)->is_muon();
         }
