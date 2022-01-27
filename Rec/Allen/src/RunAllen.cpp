@@ -201,7 +201,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const size_t n_events = 1;
   auto provider = std::make_shared<TESProvider>(number_of_slices, events_per_slice, n_events);
 
-  int rv = m_tes_input_provider->set_banks(allen_banks);
+  int rv = provider->set_banks(allen_banks);
   if (rv > 0) {
     error() << "Error in reading dumped raw banks" << endmsg;
   }
@@ -212,7 +212,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const size_t slice_index = 0;
   const bool mep_layout = false;
   const uint inject_mem_fail = 0;
-  RuntimeOptions runtime_options {m_tes_input_provider,
+  RuntimeOptions runtime_options {provider,
                                   slice_index,
                                   {event_start, event_end},
                                   m_number_of_repetitions,
