@@ -167,8 +167,8 @@ macro(allen_project)
     find_package(GaudiProject REQUIRED)
 
 #Declare project name and version
-    gaudi_project(Allen v1r8
-                  USE Rec v33r4
+    gaudi_project(Allen v1r9
+                  USE Rec v34r0
                   DATA AppConfig VERSION v3r*
                        FieldMap VERSION v5r*
                        PRConfig VERSION v1r*
