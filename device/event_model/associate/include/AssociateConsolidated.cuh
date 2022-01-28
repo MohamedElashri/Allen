@@ -71,8 +71,7 @@ namespace Associate {
 
     public:
       __host__ __device__ Table_t(typename ForwardType<T, char>::t* base_pointer, const unsigned total_number) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T, int>::t*>(base_pointer)),
-        m_total_number(total_number)
+        m_base_pointer(reinterpret_cast<typename ForwardType<T, int>::t*>(base_pointer)), m_total_number(total_number)
       {}
 
       __host__ __device__ unsigned total_number() const { return m_total_number; }

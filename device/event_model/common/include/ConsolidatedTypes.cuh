@@ -31,7 +31,7 @@ namespace Allen {
   };
 
   struct ILHCbIDStructure {
-  //protected:
+    // protected:
     unsigned m_number_of_substructures = 0;
 
   public:
