@@ -30,7 +30,7 @@ if (NOT STANDALONE)
   endif()
 
   # -- Public dependencies
-  lhcb_find_package(Rec 32.0 REQUIRED)
+  lhcb_find_package(Rec 34.0 REQUIRED)
 
   find_package(AIDA REQUIRED)
   find_package(fmt REQUIRED)
