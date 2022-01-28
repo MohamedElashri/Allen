@@ -17,14 +17,14 @@ namespace Associate {
     template<typename T>
     struct EventTable_t {
     private:
-      typename ForwardType<T, unsigned>::t* m_base_pointer;
+      typename ForwardType<T, int>::t* m_base_pointer;
       const unsigned m_event_tracks_offset;
       const unsigned m_total_number;
       const unsigned m_size;
 
     public:
       __host__ __device__ EventTable_t(
-        typename ForwardType<T, unsigned>::t* base_pointer,
+        typename ForwardType<T, int>::t* base_pointer,
         const unsigned event_tracks_offset,
         const unsigned total_number,
         const unsigned size) :
@@ -34,12 +34,12 @@ namespace Associate {
 
       __host__ __device__ unsigned total_number() { return m_total_number; }
 
-      __host__ __device__ unsigned pv(const unsigned index) const
+      __host__ __device__ int pv(const unsigned index) const
       {
         return *(m_base_pointer + 2 + m_event_tracks_offset + index);
       }
 
-      __host__ __device__ unsigned& pv(const unsigned index)
+      __host__ __device__ int& pv(const unsigned index)
       {
         return *(m_base_pointer + 2 + m_event_tracks_offset + index);
       }
@@ -66,12 +66,12 @@ namespace Associate {
     struct Table_t {
     private:
       // SOA of associated indices and values
-      typename ForwardType<T, unsigned>::t* m_base_pointer;
+      typename ForwardType<T, int>::t* m_base_pointer;
       const unsigned m_total_number;
 
     public:
       __host__ __device__ Table_t(typename ForwardType<T, char>::t* base_pointer, const unsigned total_number) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T, unsigned>::t*>(base_pointer)),
+        m_base_pointer(reinterpret_cast<typename ForwardType<T, int>::t*>(base_pointer)),
         m_total_number(total_number)
       {}
 
@@ -87,9 +87,9 @@ namespace Associate {
         return *reinterpret_cast<typename ForwardType<T, float>::t*>(m_base_pointer + 1);
       }
 
-      __host__ __device__ unsigned pv() const { return *(m_base_pointer + 2); }
+      __host__ __device__ int pv() const { return *(m_base_pointer + 2); }
 
-      __host__ __device__ unsigned& pv() { return *(m_base_pointer + 2); }
+      __host__ __device__ int& pv() { return *(m_base_pointer + 2); }
 
       __host__ __device__ float value() const
       {

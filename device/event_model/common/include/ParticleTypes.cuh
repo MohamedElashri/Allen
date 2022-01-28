@@ -26,7 +26,7 @@ namespace Allen {
       // just easier.
       struct PVTable {
       private:
-        const unsigned* m_base_pointer = nullptr;
+        const int* m_base_pointer = nullptr;
         unsigned m_offset = 0;
         unsigned m_total_number = 0;
         unsigned m_size = 0;
@@ -34,7 +34,7 @@ namespace Allen {
       public:
         __host__ __device__
         PVTable(const char* base_pointer, const unsigned offset, const unsigned total_number, const unsigned size) :
-          m_base_pointer(reinterpret_cast<const unsigned*>(base_pointer)),
+          m_base_pointer(reinterpret_cast<const int*>(base_pointer)),
           m_offset(offset), m_total_number(total_number), m_size(size)
         {}
 
