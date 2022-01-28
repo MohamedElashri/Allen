@@ -491,10 +491,6 @@ foreach(sequence_filename ${available_sequences})
   endif()
 endforeach()
 
-if(NOT BUILD_SEQUENCES)
-  message(FATAL_ERROR "No sequences selected to be built with pattern ${SEQUENCES}.")
-endif()
-
 set(EXTERNAL_DIR "external")
 
 if(BUILD_TESTING)
