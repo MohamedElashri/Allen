@@ -74,8 +74,8 @@ namespace Allen {
   struct ILHCbIDContainer {
 
   protected:
-    const ILHCbIDStructure* m_structure;
-    unsigned m_size;
+    const ILHCbIDStructure* m_structure = nullptr;
+    unsigned m_size = 0;
 
   public:
     __host__ __device__ ILHCbIDContainer(const ILHCbIDStructure* structure, const unsigned size) :

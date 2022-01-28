@@ -89,26 +89,7 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_offsets_all_velo_tracks_t=velo_tracks[
-            "dev_offsets_all_velo_tracks"],
-        dev_offsets_velo_track_hit_number_t=velo_tracks[
-            "dev_offsets_velo_track_hit_number"],
-        dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
-        dev_offsets_ut_tracks_t=ut_tracks["dev_offsets_ut_tracks"],
-        dev_offsets_ut_track_hit_number_t=ut_tracks[
-            "dev_offsets_ut_track_hit_number"],
-        dev_ut_qop_t=ut_tracks["dev_ut_qop"],
-        dev_ut_track_velo_indices_t=ut_tracks["dev_ut_track_velo_indices"],
-        dev_ut_track_hits_t=ut_tracks["dev_ut_track_hits"],
-        dev_offsets_forward_tracks_t=forward_tracks[
-            "dev_offsets_forward_tracks"],
-        dev_offsets_scifi_track_hit_number_t=forward_tracks[
-            "dev_offsets_scifi_track_hit_number"],
-        dev_scifi_qop_t=forward_tracks["dev_scifi_qop"],
-        dev_scifi_states_t=forward_tracks["dev_scifi_states"],
-        dev_scifi_track_ut_indices_t=forward_tracks[
-            "dev_scifi_track_ut_indices"],
-        dev_scifi_track_hits_t=forward_tracks["dev_scifi_track_hits"],
+        dev_long_track_particles_t=secondary_vertices["dev_long_track_particles"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])
 
     prefix_sum_long_track_hits = make_algorithm(
