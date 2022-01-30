@@ -9,9 +9,11 @@
 gaudi_add_library(BinaryDumpers
                   SOURCES
                     src/lib/TestUTBoards.cpp
+                    src/lib/Utils.cpp
                   LINK PUBLIC
                     Gaudi::GaudiKernel
-                    LHCb::DAQEventLib)
+                    LHCb::DAQEventLib
+                    LHCb::MuonDAQLib)
 
 gaudi_add_module(BinaryDumpersModule
                  SOURCES
@@ -34,7 +36,6 @@ gaudi_add_module(BinaryDumpersModule
                    src/PVDumper.cpp
                    src/TestMuonTable.cpp
                    src/TransposeRawBanks.cpp
-                   src/Utils.cpp
                  LINK
                    Rangev3::rangev3
                    Gaudi::GaudiAlgLib

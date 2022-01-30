@@ -13,17 +13,21 @@ include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
                  SOURCES
-                   src/AllenReportsToRawEvent.cpp
+                   src/AllenCaloToCaloClusters.cpp
                    src/AllenForwardToV2Tracks.cpp
                    src/AllenPVsToRecVertexV2.cpp
-                   src/TestVeloClusters.cpp
+                   src/AllenReportsToRawEvent.cpp
+                   src/AllenSVsToRecVertexV2.cpp
                    src/AllenUTToV2Tracks.cpp
                    src/AllenVeloToV2Tracks.cpp
+                   src/GaudiAllenForwardToV2Tracks.cpp
+                   src/GaudiAllenVeloToV2Tracks.cpp
+                   src/ProvideConstants.cpp
+                   src/ProvideRuntimeOptions.cpp
                    src/RunAllen.cpp
                    src/TestAllenCaloDigits.cpp
                    src/TestUTHits.cpp
-                   src/ProvideConstants.cpp
-                   src/ProvideRuntimeOptions.cpp
+                   src/TestVeloClusters.cpp
                  LINK
                    AllenLib
                    EventModel

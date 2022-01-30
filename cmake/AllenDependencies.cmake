@@ -16,6 +16,13 @@ if (NOT STANDALONE)
   # Find modules we need
   list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/modules)
 
+  if(WITH_Allen_PRIVATE_DEPENDENCIES)
+    # Disable messages from the LHCb configuration checks that fire as
+    # a result of the different directory/source structure of Allen
+    set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE CACHE STRING "DEBUG" FORCE)
+    set(LHCB_UNUSED_SOURCE_MESSAGE_TYPE CACHE STRING "IGNORE" FORCE)
+  endif()
+
   if(NOT COMMAND lhcb_find_package)
     # Look for LHCb find_package wrapper
     find_file(LHCbFindPackage_FILE LHCbFindPackage.cmake)

@@ -17,7 +17,7 @@
 #include <Kernel/CaloCellID.h>
 #include <Kernel/CaloCellCode.h>
 #include "DumpCaloGeometry.h"
-#include "Utils.h"
+#include <Dumpers/Utils.h> 
 
 DECLARE_COMPONENT(DumpCaloGeometry)
 

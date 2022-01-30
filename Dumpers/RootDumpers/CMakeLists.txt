@@ -11,14 +11,19 @@ GPU algorithms
 
 gaudi_add_module(RootDumpers
                  SOURCES
+                   src/PrTrackerDumper.cpp
                    src/DumpVeloUTState.cpp
                  LINK
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib
+                   LHCb::LinkerEvent
                    LHCb::TrackEvent
                    LHCb::MCEvent
+                   LHCb::RelationsLib
                    Rec::PrKernel
-                   Boost::headers)
+                   Boost::headers
+                   BinaryDumpers
+                   ROOT::Tree)
 
 gaudi_add_tests(QMTest)

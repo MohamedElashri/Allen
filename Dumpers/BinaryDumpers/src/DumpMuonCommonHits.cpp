@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 
 #include "DumpMuonCommonHits.h"
-#include "Utils.h"
+#include <Dumpers/Utils.h> 
 
 namespace {
   using std::string;
