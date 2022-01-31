@@ -16,7 +16,7 @@ if (NOT STANDALONE)
   # Find modules we need
   list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/modules)
 
-  if(WITH_Allen_PRIVATE_DEPENDENCIES)
+  if(WITH_Allen_PRIVATE_DEPENDENCIES AND PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
     # Disable messages from the LHCb configuration checks that fire as
     # a result of the different directory/source structure of Allen
     set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE CACHE STRING "DEBUG" FORCE)
