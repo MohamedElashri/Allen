@@ -47,7 +47,11 @@ struct any_type {
 // Warning #940-D: missing return statement at end of non-void function "struct_to_tuple(T &&)""
 #ifdef __CUDACC__
 #pragma push
+#if (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 5) || __CUDACC_VER_MAJOR__ > 11
+#pragma nv_diag_suppress = 940
+#else
 #pragma diag_suppress = 940
+#endif
 #endif
 
 /**

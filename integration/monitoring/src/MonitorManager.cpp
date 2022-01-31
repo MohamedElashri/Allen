@@ -15,10 +15,10 @@ MonitorManager::MonitorManager(
   HostBuffersManager* buffers_manager,
   [[maybe_unused]] ROOTService* rsvc,
   int time_step,
-  int offset) :
-  m_rsvc {rsvc}
+  int offset)
 {
 #ifdef WITH_ROOT
+  m_rsvc = rsvc;
   m_dir = rsvc->handle("Monitors").directory();
 #endif
 
