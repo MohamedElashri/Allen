@@ -99,7 +99,7 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
-  auto kernel_fn = bank_version == 4 ?
+  auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<4, true>) :
                                                    global_function(scifi_calculate_cluster_count_kernel<4, false>)) :
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<6, true>) :

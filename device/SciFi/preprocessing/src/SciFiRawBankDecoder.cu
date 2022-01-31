@@ -139,7 +139,7 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
 {
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
-  auto kernel_fn = bank_version == 4 ?
+  auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<4, true>) :
                                                    global_function(scifi_raw_bank_decoder_kernel<4, false>)) :
                      (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<6, true>) :
