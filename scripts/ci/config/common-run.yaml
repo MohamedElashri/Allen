@@ -45,14 +45,14 @@
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_scifi_v6"]
+        SEQUENCE: ["hlt1_pp_scifi"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_1k"]
         GEOMETRY: ["scifi_v6"]
 
       # run physics efficiency, scifi_v6
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_scifi_v6_validation"]
+        SEQUENCE: ["hlt1_pp_scifi_validation"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
         GEOMETRY: ["scifi_v6"]
 
@@ -75,7 +75,7 @@
         DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_1k"]
 
       - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_scifi_v6"]
+        SEQUENCE: ["hlt1_pp_scifi"]
         DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01"]
         GEOMETRY: ["sim10_up08_md"]
   
