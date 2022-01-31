@@ -38,12 +38,11 @@ DECLARE_COMPONENT(DumpUTGeometry)
 
 DumpUtils::Dump DumpUTGeometry::dumpGeom() const
 {
-  const auto& sectors = detector().sectors();
-  uint32_t number_of_sectors = sectors.size();
+  uint32_t number_of_sectors = detector().nSectors();
   // first strip is always 1
   vector<uint32_t> firstStrip = views::repeat_n(1, number_of_sectors) | to<std::vector<uint32_t>>();
-  vector<float> pitch = views::transform(sectors, &DeUTSector::pitch) | to<std::vector<float>>();
-  vector<float> cos = views::transform(sectors, &DeUTSector::cosAngle) | to<std::vector<float>>();
+  vector<float> pitch;
+  vector<float> cos;
   vector<float> dy;
   vector<float> dp0diX;
   vector<float> dp0diY;
@@ -52,6 +51,8 @@ DumpUtils::Dump DumpUTGeometry::dumpGeom() const
   vector<float> p0Y;
   vector<float> p0Z;
 
+  pitch.reserve(number_of_sectors);
+  cos.reserve(number_of_sectors);
   dy.reserve(number_of_sectors);
   dp0diX.reserve(number_of_sectors);
   dp0diY.reserve(number_of_sectors);
@@ -60,19 +61,21 @@ DumpUtils::Dump DumpUTGeometry::dumpGeom() const
   p0Y.reserve(number_of_sectors);
   p0Z.reserve(number_of_sectors);
 
-  for (const auto sector : sectors) { // loop DeUTSector
-    dy.push_back(sector->get_dy());
-    const auto dp0di = sector->get_dp0di();
+  detector().applyToAllSectors([&](DeUTSector const& sector) {
+    pitch.push_back(sector.pitch());
+    cos.push_back(sector.cosAngle());
+    dy.push_back(sector.get_dy());
+    const auto dp0di = sector.get_dp0di();
     dp0diX.push_back(dp0di.x());
     dp0diY.push_back(dp0di.y());
     dp0diZ.push_back(dp0di.z());
-    const auto p0 = sector->get_p0();
+    const auto p0 = sector.get_p0();
     p0X.push_back(p0.x());
     p0Y.push_back(p0.y());
     // hack: since p0z is always positive, we can use the signbit to encode whether or not to "stripflip"
-    p0Z.push_back(((sector->xInverted() && sector->getStripflip()) ? -1 : 1) * p0.z());
+    p0Z.push_back(((sector.xInverted() && sector.getStripflip()) ? -1 : 1) * p0.z());
     // this hack will be used in UTPreDecode.cu and UTDecodeRawBanksInOrder.cu
-  }
+  });
 
   DumpUtils::Writer ut_geometry {};
   ut_geometry.write(number_of_sectors, firstStrip, pitch, dy, dp0diX, dp0diY, dp0diZ, p0X, p0Y, p0Z, cos);

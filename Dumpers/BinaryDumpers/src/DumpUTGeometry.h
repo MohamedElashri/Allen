@@ -17,7 +17,7 @@
 class DumpUTGeometry final : public DumpGeometry<DeUTDetector> {
 public:
   DumpUTGeometry(std::string name, ISvcLocator* loc) :
-    DumpGeometry<DeUTDetector> {std::move(name), loc, DeUTDetLocation::UT}
+    DumpGeometry<DeUTDetector> {std::move(name), loc, DeUTDetLocation::location()}
   {}
 
 protected:
