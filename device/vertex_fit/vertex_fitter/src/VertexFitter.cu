@@ -18,7 +18,7 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
     const int i_pv = pv_table.pv(i);
     if (i_pv >= 0) {
       new (parameters.dev_two_track_composite_view + offset + i) Allen::Views::Physics::CompositeParticle {
-        const_cast<const Allen::ILHCbIDStructure**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
+        const_cast<const Allen::Views::Physics::Particle**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
         parameters.dev_sv_fit_results_view + event_number,
         parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + i_pv,
         2,
@@ -27,7 +27,7 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
     }
     else {
       new (parameters.dev_two_track_composite_view + offset + i) Allen::Views::Physics::CompositeParticle {
-        const_cast<const Allen::ILHCbIDStructure**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
+        const_cast<const Allen::Views::Physics::Particle**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
         parameters.dev_sv_fit_results_view + event_number,
         nullptr,
         2,

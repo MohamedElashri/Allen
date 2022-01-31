@@ -116,7 +116,6 @@ namespace Allen {
             const unsigned number_of_tracks_event,
             const unsigned track_index,
             const unsigned event_number) :
-            ILHCbIDSequence {1},
             m_hits(hits + event_number), m_velo_track(velo_track),
             m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
             m_track_params(track_params + 4 * offset_tracks[event_number]),

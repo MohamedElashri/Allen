@@ -285,9 +285,39 @@ namespace Allen {
         }
       };
 
+      struct Particle {
+        unsigned m_number_of_substructures = 0;
+
+        __host__ __device__ Particle(const unsigned size) : m_number_of_substructures(size) {}
+
+        virtual __host__ __device__ unsigned number_of_substructures() const { return m_number_of_substructures; }
+
+        virtual __host__ __device__ ~Particle() {}
+      };
+
+      struct ParticleContainer {
+      protected:
+        const Particle* m_particle = nullptr;
+        unsigned m_size = 0;
+
+      public:
+        __host__ __device__ ParticleContainer(const Particle* particle, const unsigned size) :
+          m_particle(particle), m_size(size)
+        {}
+
+        virtual __host__ __device__ unsigned size() const { return m_size; }
+
+        // virtual __host__ __device__ const Particle* particle_pointer(const unsigned index) const
+        // {
+        //   return m_particle + index;
+        // }
+
+        virtual __host__ __device__ ~ParticleContainer() {}
+      };
+
       // Is it necessary for BasicParticle to inherit from an ILHCbIDStructure to
       // work with aggregates in the SelReport writer?
-      struct BasicParticle : ILHCbIDSequence {
+      struct BasicParticle : Particle {
       private:
         const ILHCbIDSequence* m_track = nullptr;
         const KalmanStates* m_states = nullptr;
@@ -304,12 +334,12 @@ namespace Allen {
           const PV::Vertex* pv,
           const bool* muon_id,
           const unsigned index) :
-          ILHCbIDSequence {1},
+          Particle {1},
           m_track(track), m_states(states), m_pv(pv), m_muon_id(muon_id), m_index(index)
         {
           // Make sure this isn't a composite ID structure.
           // TODO: Is this sensible at all?
-          assert(m_track->m_number_of_substructures == 1);
+          assert(m_track->number_of_substructures() == 1);
         }
 
         // Accessors to allow copying. Is there a better way to handle this?
@@ -319,9 +349,9 @@ namespace Allen {
         __host__ __device__ const bool* get_muon_id() const { return m_muon_id; }
         __host__ __device__ unsigned get_index() const { return m_index; }
 
-        __host__ __device__ unsigned number_of_ids() const override { return m_track->number_of_ids(); }
+        __host__ __device__ unsigned number_of_ids() const { return m_track->number_of_ids(); }
 
-        __host__ __device__ unsigned id(const unsigned index) const override { return m_track->id(index); }
+        __host__ __device__ unsigned id(const unsigned index) const { return m_track->id(index); }
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
 
@@ -429,60 +459,70 @@ namespace Allen {
         }
       };
 
-      struct BasicParticles : ILHCbIDContainer {
+      struct BasicParticles : ParticleContainer {
       private:
         unsigned m_offset = 0;
 
       public:
         __host__ __device__
         BasicParticles(const BasicParticle* track, const unsigned* track_offsets, const unsigned event_number) :
-          ILHCbIDContainer {track + track_offsets[event_number],
-                            track_offsets[event_number + 1] - track_offsets[event_number]},
+          ParticleContainer {track + track_offsets[event_number],
+                             track_offsets[event_number + 1] - track_offsets[event_number]},
           m_offset(track_offsets[event_number])
         {}
-
-        __host__ __device__ const ILHCbIDStructure& id_structure(const unsigned index) const override
-        {
-          return m_structure[index];
-        }
 
         __host__ __device__ unsigned size() const { return m_size; }
 
         __host__ __device__ const BasicParticle& particle(const unsigned index) const
         {
-          return static_cast<const BasicParticle*>(m_structure)[index];
+          return static_cast<const BasicParticle*>(m_particle)[index];
         }
 
         __host__ __device__ const BasicParticle* particle_pointer(const unsigned index) const
         {
-          return static_cast<const BasicParticle*>(m_structure) + index;
+          return static_cast<const BasicParticle*>(m_particle) + index;
         }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
 
-      struct CompositeParticle : ILHCbIDComposite {
+      struct CompositeParticle : Particle {
         // TODO: Get these masses from somewhere else.
         static constexpr float mPi = 139.57f;
         static constexpr float mMu = 105.66f;
 
       private:
+        const Particle** m_substructures = nullptr;
         const SecondaryVertices* m_vertices = nullptr;
         const PV::Vertex* m_pv = nullptr;
+        unsigned m_total_number_of_composites = 0;
+        unsigned m_index = 0;
+        
 
       public:
         __host__ __device__ CompositeParticle(
-          const ILHCbIDStructure** children,
+          const Particle** children,
           const SecondaryVertices* vertices,
           const PV::Vertex* pv,
           unsigned number_of_children,
           unsigned total_number_of_composites,
           unsigned index) :
-          ILHCbIDComposite {number_of_children, children, index, total_number_of_composites},
-          m_vertices(vertices), m_pv(pv)
+          Particle {number_of_children},
+          m_substructures(children),
+          m_vertices(vertices), 
+          m_pv(pv),
+          m_total_number_of_composites(total_number_of_composites),
+          m_index(index)
         {}
 
+        __host__ __device__ const Particle* substructure(const unsigned substructure_index) const
+        {
+          assert(substructure_index < m_number_of_substructures);
+          return m_substructures[m_total_number_of_composites * substructure_index + m_index];
+        }
+
         __host__ __device__ const PV::Vertex* get_pv() const { return m_pv; }
+
         __host__ __device__ const SecondaryVertices* get_vertices() const { return m_vertices; }
 
         __host__ __device__ SecondaryVertex vertex() const { return m_vertices->vertex(m_index); }
@@ -505,7 +545,7 @@ namespace Allen {
 
         __host__ __device__ float p() const { return vertex().p(); }
 
-        __host__ __device__ unsigned number_of_substructures() const override { return m_number_of_substructures; }
+        //__host__ __device__ unsigned number_of_substructures() const override { return m_number_of_substructures; }
 
         // TODO: Some of these quantities are expensive to calculate, so it
         // might be a good idea to store them in an "extra info" array. Need to
@@ -515,7 +555,7 @@ namespace Allen {
           float energy = 0.f;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             const auto substr = substructure(i);
-            if (substr->m_number_of_substructures == 1) {
+            if (substr->number_of_substructures() == 1) {
               energy += static_cast<const BasicParticle*>(substr)->e(mPi);
             }
             else {
@@ -530,7 +570,7 @@ namespace Allen {
           float sum = 0.f;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             const auto substr = substructure(i);
-            if (substr->m_number_of_substructures == 1) {
+            if (substr->number_of_substructures() == 1) {
               sum += static_cast<const BasicParticle*>(substr)->pt();
             }
             else {
@@ -551,13 +591,13 @@ namespace Allen {
           float energy = 0.f;
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
-          if (substr1->m_number_of_substructures == 1) {
+          if (substr1->number_of_substructures() == 1) {
             energy += static_cast<const BasicParticle*>(substr1)->e(m1);
           }
           else {
             energy += static_cast<const CompositeParticle*>(substr1)->e();
           }
-          if (substr2->m_number_of_substructures == 1) {
+          if (substr2->number_of_substructures() == 1) {
             energy += static_cast<const BasicParticle*>(substr2)->e(m2);
           }
           else {
@@ -659,7 +699,7 @@ namespace Allen {
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
-            if (substr->m_number_of_substructures == 1) {
+            if (substr->number_of_substructures() == 1) {
               tmp = static_cast<const BasicParticle*>(substr)->ip();
             }
             else {
@@ -676,7 +716,7 @@ namespace Allen {
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
-            if (substr->m_number_of_substructures == 1) {
+            if (substr->number_of_substructures() == 1) {
               tmp = static_cast<const BasicParticle*>(substr)->p();
             }
             else {
@@ -693,7 +733,7 @@ namespace Allen {
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
-            if (substr->m_number_of_substructures == 1) {
+            if (substr->number_of_substructures() == 1) {
               tmp = static_cast<const BasicParticle*>(substr)->pt();
             }
             else {
@@ -724,7 +764,7 @@ namespace Allen {
           float txA;
           float tyA;
           const auto substr1 = substructure(index1);
-          if (substr1->m_number_of_substructures == 1) {
+          if (substr1->number_of_substructures() == 1) {
             const auto track1 = static_cast<const BasicParticle*>(substr1);
             const auto state1 = track1->state();
             xA = state1.x();
@@ -748,7 +788,7 @@ namespace Allen {
           float txB;
           float tyB;
           const auto substr2 = substructure(index2);
-          if (substr1->m_number_of_substructures == 1) {
+          if (substr1->number_of_substructures() == 1) {
             const auto track2 = static_cast<const BasicParticle*>(substr2);
             const auto state2 = track2->state();
             xB = state2.x();
@@ -818,7 +858,7 @@ namespace Allen {
         {
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
-          if (substr1->m_number_of_substructures != 1 || substr2->m_number_of_substructures != 1) return false;
+          if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1) return false;
           return static_cast<const BasicParticle*>(substr1)->is_muon() &&
                  static_cast<const BasicParticle*>(substr2)->is_muon();
         }
@@ -841,25 +881,24 @@ namespace Allen {
         }
       };
 
-      struct CompositeParticles {
+      struct CompositeParticles : ParticleContainer {
       private:
-        const CompositeParticle* m_composite = nullptr;
+        //const CompositeParticle* m_composite = nullptr;
         unsigned m_offset = 0;
-        unsigned m_size = 0;
 
       public:
         __host__ __device__
         CompositeParticles(const CompositeParticle* composite, const unsigned* offsets, unsigned event_number) :
-          m_composite(composite + offsets[event_number]),
-          m_offset(offsets[event_number]), m_size(offsets[event_number + 1] - offsets[event_number])
+          ParticleContainer {composite + offsets[event_number], offsets[event_number + 1] - offsets[event_number]},
+          m_offset(offsets[event_number])
         {}
 
         __host__ __device__ const CompositeParticle& particle(unsigned particle_index) const
         {
-          return m_composite[particle_index];
+          return static_cast<const CompositeParticle*>(m_particle)[particle_index];
         }
 
-        __host__ __device__ unsigned size() const { return m_size; }
+        // __host__ __device__ unsigned size() const { return m_size; }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
       };

@@ -103,7 +103,6 @@ namespace Allen {
             const unsigned* offset_track_hit_number,
             const unsigned track_index,
             const unsigned event_number) :
-            ILHCbIDSequence {1},
             m_hits(hits + event_number), m_ut_track(ut_track), m_qop(qop + offset_tracks[event_number]),
             m_track_index(track_index)
           {

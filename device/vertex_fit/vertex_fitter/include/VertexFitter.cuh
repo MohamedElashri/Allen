@@ -47,7 +47,7 @@ namespace VertexFit {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_two_track_sv_track_pointers_t,
       DEPENDENCIES(dev_long_track_particles_t),
-      Allen::ILHCbIDStructure*)
+      Allen::Views::Physics::Particle*)
     dev_two_track_sv_track_pointers;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_two_track_composite_view_t,

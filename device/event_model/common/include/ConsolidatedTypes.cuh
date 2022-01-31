@@ -30,61 +30,39 @@ namespace Allen {
     }
   };
 
-  struct ILHCbIDStructure {
-    // protected:
-    unsigned m_number_of_substructures = 0;
+  // struct ILHCbIDStructure {
+  //   // protected:
+  //   unsigned m_number_of_substructures = 0;
 
-  public:
-    __host__ __device__ ILHCbIDStructure(const unsigned size) : m_number_of_substructures(size) {}
+  // public:
+  //   __host__ __device__ ILHCbIDStructure(const unsigned size) : m_number_of_substructures(size) {}
 
-    virtual __host__ __device__ unsigned number_of_substructures() const { return m_number_of_substructures; }
+  //   virtual __host__ __device__ unsigned number_of_substructures() const { return m_number_of_substructures; }
 
-    virtual __host__ __device__ ~ILHCbIDStructure() {}
-  };
+  //   virtual __host__ __device__ ~ILHCbIDStructure() {}
+  // };
 
-  struct ILHCbIDComposite : ILHCbIDStructure {
-  protected:
-    const ILHCbIDStructure** m_substructures = nullptr;
-    unsigned m_index = 0;
-    unsigned m_total_number_of_composites = 0;
-
-  public:
-    __host__ __device__ ILHCbIDComposite(
-      unsigned number_of_substructures,
-      const ILHCbIDStructure** substructures,
-      unsigned index,
-      unsigned total_number_of_composites) :
-      ILHCbIDStructure {number_of_substructures},
-      m_substructures(substructures), m_index(index), m_total_number_of_composites(total_number_of_composites)
-    {}
-
-    __host__ __device__ const ILHCbIDStructure* substructure(const unsigned substructure_index) const
-    {
-      assert(substructure_index < m_number_of_substructures);
-      return m_substructures[m_total_number_of_composites * substructure_index + m_index];
-    }
-  };
-
-  struct ILHCbIDSequence : ILHCbIDStructure {
-    __host__ __device__ ILHCbIDSequence(const unsigned size) : ILHCbIDStructure {size} {}
-    virtual __host__ __device__ unsigned number_of_ids() const { return 0; }
-    virtual __host__ __device__ unsigned id(const unsigned) const { return 0; };
+  struct ILHCbIDSequence {
+    __host__ __device__ ILHCbIDSequence() {}
+    virtual __host__ __device__ unsigned number_of_ids() const = 0;
+    virtual __host__ __device__ unsigned id(const unsigned) const = 0;
+    virtual __host__ __device__ ~ILHCbIDSequence() {}
   };
 
   struct ILHCbIDContainer {
 
   protected:
-    const ILHCbIDStructure* m_structure = nullptr;
+    const ILHCbIDSequence* m_structure = nullptr;
     unsigned m_size = 0;
 
   public:
-    __host__ __device__ ILHCbIDContainer(const ILHCbIDStructure* structure, const unsigned size) :
+    __host__ __device__ ILHCbIDContainer(const ILHCbIDSequence* structure, const unsigned size) :
       m_structure(structure), m_size(size)
     {}
 
     virtual __host__ __device__ unsigned number_of_id_structures() const { return m_size; }
 
-    virtual __host__ __device__ const ILHCbIDStructure& id_structure(const unsigned index) const
+    virtual __host__ __device__ const ILHCbIDSequence& id_structure(const unsigned index) const
     {
       return m_structure[index];
     };
