@@ -426,9 +426,9 @@ namespace Allen {
             }
             // Assume at most one level of recursion. Needed for the HIP build.
             else {
-              for (unsigned j = 0; j < substr->number_of_substructures()) {
+              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
                 const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
-                energy += static_cast<const BasicParticle*>(subsubstr)->e();
+                energy += static_cast<const BasicParticle*>(subsubstr)->e(mPi);
               }
             }
           }
@@ -444,7 +444,7 @@ namespace Allen {
               sum += static_cast<const BasicParticle*>(substr)->pt();
             }
             else {
-              for (unsigned j = 0; j < substr->number_of_substructures()) {
+              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
                 const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
                 sum += static_cast<const BasicParticle*>(subsubstr)->pt();
               }
@@ -552,7 +552,7 @@ namespace Allen {
               tmp = static_cast<const BasicParticle*>(substr)->ip_chi2();
             }
             else {
-              for (unsigned j = 0; j < substr->number_of_substructures()) {
+              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
                 const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
                 const auto tmptmp = static_cast<const BasicParticle*>(subsubstr)->ip_chi2();
                 if (tmptmp < tmp || tmp < 0) tmp = tmptmp;
@@ -573,7 +573,7 @@ namespace Allen {
               tmp = static_cast<const BasicParticle*>(substr)->ip();
             }
             else {
-              for (unsigned j = 0; j < substr->number_of_substructures()) {
+              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
                 const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
                 const auto tmptmp = static_cast<const BasicParticle*>(subsubstr)->ip();
                 if (tmptmp < tmp || tmp < 0) tmp = tmptmp;
