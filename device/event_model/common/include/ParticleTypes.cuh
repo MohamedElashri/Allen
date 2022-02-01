@@ -125,7 +125,6 @@ namespace Allen {
             return m_scifi_segment->id(index - number_of_velo_hits() - number_of_ut_hits());
           }
         }
-
       };
 
       struct SecondaryVertices {
