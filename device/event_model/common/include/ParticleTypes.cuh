@@ -56,6 +56,73 @@ namespace Allen {
         __host__ __device__ unsigned size() { return m_size; }
       };
 
+      struct Track {
+      private:
+        const Allen::Views::Velo::Consolidated::Track* m_velo_segment = nullptr;
+        const Allen::Views::UT::Consolidated::Track* m_ut_segment = nullptr;
+        const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
+        
+      public:
+        __host__ __device__ Track(
+          const Allen::Views::Velo::Consolidated::Track* velo_segment,
+          const Allen::Views::UT::Consolidated::Track* ut_segment,
+          const Allen::Views::SciFi::Consolidated::Track* scifi_segment) :
+          m_velo_segment(velo_segment),
+          m_ut_segment(ut_segment),
+          m_scifi_segment(scifi_segment)
+        {}
+
+        __host__ __device__ unsigned number_of_scifi_hits() const {
+          if (m_scifi_segment == nullptr) {
+            return 0;
+          }
+          else {
+            return m_scifi_segment->number_of_scifi_hits();
+          }
+        }
+
+        __host__ __device__ unsigned number_of_ut_hits() const {
+          if (m_ut_segment == nullptr) {
+            return 0;
+          }
+          else {
+            return m_ut_segment->number_of_ut_hits();
+          }
+        }
+
+        __host__ __device__ unsigned number_of_velo_hits() const {
+          if (m_velo_segment == nullptr) {
+            return 0;
+          }
+          else {
+            return m_velo_segment->number_of_hits();
+          }
+        }
+
+        __host__ __device__ unsigned number_of_hits() const {
+          return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
+        }
+
+        __host__ __device__ unsigned id(const unsigned index) const {
+          assert(index < number_of_hits());
+          if (index < number_of_velo_hits()) {
+            return m_velo_segment->id(index);
+          }
+          else if (index < number_of_ut_hits()) {
+            return m_ut_segment->id(index - number_of_velo_hits());
+          }
+          else {
+            return m_scifi_segment->id(index - number_of_velo_hits() - number_of_ut_hits());
+          }
+        }
+
+        __host__ __device__ bool has_velo() const { return m_velo_segment != nullptr; }
+
+        __host__ __device__ bool has_ut() const { return m_ut_segment != nullptr; }
+
+        __host__ __device__ bool has_scifi() const { return m_scifi_segment != nullptr; }
+      };
+
       struct SecondaryVertices {
       private:
         const char* m_base_pointer = nullptr;
