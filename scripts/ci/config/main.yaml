@@ -109,6 +109,7 @@ throughput:
     paths:
       - devices_throughputs_*.csv
     expire_in: 1 month
+    when: always
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -309,4 +310,5 @@ throughput-full:
     paths:
       - devices_throughputs_*.csv
     expire_in: 1 month
+    when: always
 
