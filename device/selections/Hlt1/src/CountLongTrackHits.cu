@@ -32,6 +32,7 @@ __global__ void count_long_track_hits::count_hits(count_long_track_hits::Paramet
   for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < event_tracks.size(); i_scifi_track += blockDim.x) {
     const auto track = event_tracks.particle(i_scifi_track);
     const unsigned track_idx = event_tracks.offset() + i_scifi_track;
+    const auto long_track = track.get_track();
     parameters.dev_long_track_hit_number[track_idx] = track.number_of_ids();
   }
 }

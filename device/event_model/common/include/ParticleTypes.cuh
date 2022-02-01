@@ -181,7 +181,7 @@ namespace Allen {
       // work with aggregates in the SelReport writer?
       struct BasicParticle : Particle {
       private:
-        const ILHCbIDSequence* m_track = nullptr;
+        const Track* m_track = nullptr;
         const KalmanStates* m_states = nullptr;
         const PV::Vertex* m_pv = nullptr; // PV event model should be rebuilt too.
         // Could store muon and calo PID in a single array, but they're created by
@@ -191,7 +191,7 @@ namespace Allen {
 
       public:
         __host__ __device__ BasicParticle(
-          const ILHCbIDSequence* track,
+          const Track* track,
           const KalmanStates* states,
           const PV::Vertex* pv,
           const bool* muon_id,
@@ -205,21 +205,19 @@ namespace Allen {
         }
 
         // Accessors to allow copying. Is there a better way to handle this?
-        __host__ __device__ const ILHCbIDSequence* get_track() const { return m_track; }
+        __host__ __device__ const Track* get_track() const { return m_track; }
+
         __host__ __device__ const KalmanStates* get_states() const { return m_states; }
+
         __host__ __device__ const PV::Vertex* get_pv() const { return m_pv; }
+
         __host__ __device__ const bool* get_muon_id() const { return m_muon_id; }
+
         __host__ __device__ unsigned get_index() const { return m_index; }
 
-        __host__ __device__ unsigned number_of_ids() const {
-          // TODO: Add interface to common track container to support non-scifi tracks.
-          return static_cast<const Allen::Views::SciFi::Consolidated::Track*>(m_track)->number_of_ids(); 
-        }
+        __host__ __device__ unsigned number_of_ids() const { return m_track->number_of_hits(); }
 
-        __host__ __device__ unsigned id(const unsigned index) const { 
-          // TODO: Add interface to common track container to support non-scifi tracks.
-          return static_cast<const Allen::Views::SciFi::Consolidated::Track*>(m_track)->id(index);
-        }
+        __host__ __device__ unsigned id(const unsigned index) const { return m_track->id(index); }
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
 
