@@ -15,12 +15,12 @@ void __global__ create_views(kalman_velo_only::Parameters parameters)
   const auto scifi_tracks = parameters.dev_scifi_tracks_view[event_number];
 
   for (unsigned i = threadIdx.x; i < number_of_tracks; i++) {
-    
+
     const auto scifi_track = scifi_tracks.track(i);
-    parameters.dev_long_tracks[offset + i] = Allen::Views::Physics::Track {
-      &parameters.dev_scifi_tracks_view[event_number].track(i).velo_track(),
-      &parameters.dev_scifi_tracks_view[event_number].track(i).ut_track(),
-      &parameters.dev_scifi_tracks_view[event_number].track(i)};
+    parameters.dev_long_tracks[offset + i] =
+      Allen::Views::Physics::Track {&parameters.dev_scifi_tracks_view[event_number].track(i).velo_track(),
+                                    &parameters.dev_scifi_tracks_view[event_number].track(i).ut_track(),
+                                    &parameters.dev_scifi_tracks_view[event_number].track(i)};
 
     new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
       //&parameters.dev_scifi_tracks_view[event_number].track(i),
@@ -67,8 +67,10 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  // global_function(create_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-  global_function(create_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  // global_function(create_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(),
+  // context)(arguments);
+  global_function(create_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+    arguments);
 
   if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);

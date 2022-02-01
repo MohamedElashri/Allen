@@ -61,18 +61,18 @@ namespace Allen {
         const Allen::Views::Velo::Consolidated::Track* m_velo_segment = nullptr;
         const Allen::Views::UT::Consolidated::Track* m_ut_segment = nullptr;
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
-        
+
       public:
         __host__ __device__ Track(
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment) :
           m_velo_segment(velo_segment),
-          m_ut_segment(ut_segment),
-          m_scifi_segment(scifi_segment)
+          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment)
         {}
 
-        __host__ __device__ unsigned number_of_scifi_hits() const {
+        __host__ __device__ unsigned number_of_scifi_hits() const
+        {
           if (m_scifi_segment == nullptr) {
             return 0;
           }
@@ -81,7 +81,8 @@ namespace Allen {
           }
         }
 
-        __host__ __device__ unsigned number_of_ut_hits() const {
+        __host__ __device__ unsigned number_of_ut_hits() const
+        {
           if (m_ut_segment == nullptr) {
             return 0;
           }
@@ -90,7 +91,8 @@ namespace Allen {
           }
         }
 
-        __host__ __device__ unsigned number_of_velo_hits() const {
+        __host__ __device__ unsigned number_of_velo_hits() const
+        {
           if (m_velo_segment == nullptr) {
             return 0;
           }
@@ -99,11 +101,13 @@ namespace Allen {
           }
         }
 
-        __host__ __device__ unsigned number_of_hits() const {
+        __host__ __device__ unsigned number_of_hits() const
+        {
           return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
         }
 
-        __host__ __device__ unsigned id(const unsigned index) const {
+        __host__ __device__ unsigned id(const unsigned index) const
+        {
           assert(index < number_of_hits());
           if (index < number_of_velo_hits()) {
             return m_velo_segment->id(index);
@@ -363,7 +367,6 @@ namespace Allen {
         const PV::Vertex* m_pv = nullptr;
         unsigned m_total_number_of_composites = 0;
         unsigned m_index = 0;
-        
 
       public:
         __host__ __device__ CompositeParticle(
@@ -374,11 +377,8 @@ namespace Allen {
           unsigned total_number_of_composites,
           unsigned index) :
           Particle {number_of_children},
-          m_substructures(children),
-          m_vertices(vertices), 
-          m_pv(pv),
-          m_total_number_of_composites(total_number_of_composites),
-          m_index(index)
+          m_substructures(children), m_vertices(vertices), m_pv(pv),
+          m_total_number_of_composites(total_number_of_composites), m_index(index)
         {}
 
         __host__ __device__ const Particle* substructure(const unsigned substructure_index) const
@@ -749,7 +749,7 @@ namespace Allen {
 
       struct CompositeParticles : ParticleContainer {
       private:
-        //const CompositeParticle* m_composite = nullptr;
+        // const CompositeParticle* m_composite = nullptr;
         unsigned m_offset = 0;
 
       public:

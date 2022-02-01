@@ -103,8 +103,8 @@ namespace Allen {
             const unsigned* offset_track_hit_number,
             const unsigned track_index,
             const unsigned event_number) :
-            m_hits(hits + event_number), m_ut_track(ut_track), m_qop(qop + offset_tracks[event_number]),
-            m_track_index(track_index)
+            m_hits(hits + event_number),
+            m_ut_track(ut_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
@@ -140,9 +140,9 @@ namespace Allen {
             return m_hits->hit(m_offset + scifi_hit_index);
           }
 
-          __host__ __device__ unsigned number_of_ids() const  { return number_of_total_hits(); }
+          __host__ __device__ unsigned number_of_ids() const { return number_of_total_hits(); }
 
-          __host__ __device__ unsigned id(const unsigned index) const 
+          __host__ __device__ unsigned id(const unsigned index) const
           {
             if (index < number_of_velo_hits()) {
               return velo_track().hit(index).id();

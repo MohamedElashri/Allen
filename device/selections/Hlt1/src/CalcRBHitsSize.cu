@@ -92,9 +92,9 @@ __global__ void calc_rb_hits_size::calc_size(calc_rb_hits_size::Parameters param
       for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
         if (decs[sv_index]) {
           const auto sv = event_svs.particle(sv_index);
-          const Allen::Views::Physics::BasicParticle* track1 = 
+          const Allen::Views::Physics::BasicParticle* track1 =
             static_cast<const Allen::Views::Physics::BasicParticle*>(sv.substructure(0));
-          const Allen::Views::Physics::BasicParticle* track2 = 
+          const Allen::Views::Physics::BasicParticle* track2 =
             static_cast<const Allen::Views::Physics::BasicParticle*>(sv.substructure(1));
           const unsigned track1_index = track1->get_index();
           const unsigned track2_index = track2->get_index();

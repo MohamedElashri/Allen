@@ -89,7 +89,8 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_long_track_particles_t=secondary_vertices["dev_long_track_particles"],
+        dev_long_track_particles_t=secondary_vertices[
+            "dev_long_track_particles"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])
 
     prefix_sum_long_track_hits = make_algorithm(
@@ -107,7 +108,8 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_hits_offsets_t=prefix_sum_long_track_hits.dev_output_buffer_t,
-        dev_long_track_particles_t=secondary_vertices["dev_long_track_particles"])
+        dev_long_track_particles_t=secondary_vertices[
+            "dev_long_track_particles"])
 
     calc_rb_hits_size = make_algorithm(
         calc_rb_hits_size_t,
@@ -118,8 +120,10 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_long_track_particles_t=secondary_vertices["dev_long_track_particles"],
-        dev_two_track_particles_t=secondary_vertices["dev_two_track_particles"],
+        dev_long_track_particles_t=secondary_vertices[
+            "dev_long_track_particles"],
+        dev_two_track_particles_t=secondary_vertices[
+            "dev_two_track_particles"],
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
         dev_number_of_active_lines_t=gather_selections.
         dev_number_of_active_lines_t,

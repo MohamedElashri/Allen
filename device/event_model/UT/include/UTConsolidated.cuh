@@ -117,8 +117,8 @@ namespace Allen {
             const unsigned number_of_tracks_event,
             const unsigned track_index,
             const unsigned event_number) :
-            m_hits(hits + event_number), m_velo_track(velo_track),
-            m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
+            m_hits(hits + event_number),
+            m_velo_track(velo_track), m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
             m_track_params(track_params + 4 * offset_tracks[event_number]),
             m_number_of_tracks_event(number_of_tracks_event), m_track_index(track_index)
           {

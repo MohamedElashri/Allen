@@ -10,7 +10,6 @@
 #include <cmath>
 #endif
 
-
 /**
  * @brief A simplified state for the Velo
  *
@@ -312,6 +311,6 @@ namespace Allen {
 
         __host__ __device__ float p() const { return sqrtf(p2()); }
       };
-    }
-  }
-}
+    } // namespace Physics
+  }   // namespace Views
+} // namespace Allen

@@ -28,7 +28,7 @@ __global__ void make_hits_container::make_container(make_hits_container::Paramet
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto event_tracks = parameters.dev_long_track_particles[event_number];
-  
+
   const unsigned n_scifi_tracks = event_tracks.size();
   for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
     const auto track = event_tracks.particle(i_scifi_track);
