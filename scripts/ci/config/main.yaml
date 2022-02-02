@@ -99,18 +99,27 @@ run-changes:
     exit_codes: 3
 
 throughput:
-  stage: publish
   extends: 
-    - .publish_throughput
+    - .publish_test_throughput
     - .default_rules_always_run
-  
+  stage: test
+  variables:
+    PUBLISH_ARTIFACT_NAME: "test_throughput"
   artifacts:
     name: "$PUBLISH_ARTIFACT_NAME"
     paths:
       - devices_throughputs_*.csv
+      - test_throughput_details/*.txt
     expire_in: 1 month
     when: always
 
+
+pub-throughput:
+  stage: publish
+  extends: 
+    - .publish_test_throughput
+    - .default_rules_always_run
+  needs: [throughput]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # manual trigger job for the full pipeline                  #
@@ -294,21 +303,31 @@ run-changes-full:
   allow_failure: 
     exit_codes: 3
 
-
 throughput-full:
-  stage: publish full
   extends: 
-    - .publish_throughput
+    - .publish_test_throughput
     - .default_rules_always_run
     - .depend_full_run_jobs
 
+  stage: test full
+
   variables:
-    PUBLISH_ARTIFACT_NAME: "publish_throughput_full"
+    PUBLISH_ARTIFACT_NAME: "test_throughput_full"
   
   artifacts:
     name: "$PUBLISH_ARTIFACT_NAME"
     paths:
       - devices_throughputs_*.csv
+      - test_throughput_details/*.txt
     expire_in: 1 month
     when: always
 
+
+pub-throughput-full:
+  extends: 
+    - .publish_test_throughput
+    - .default_rules_always_run
+
+  needs: [throughput-full]
+
+  stage: publish full
