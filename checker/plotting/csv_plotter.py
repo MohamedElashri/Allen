@@ -56,7 +56,7 @@ def get_master_throughput(
     print (f"Pipeline URL: {pipeline.web_url}")
 
     # select corresponding job containing our artifact
-    pipeline_job = [j for j in pipeline.jobs.list() if j.name == job_name]
+    pipeline_job = [j for j in pipeline.jobs.list(per_page=300) if j.name == job_name]
     if not pipeline_job:
         raise RuntimeError(
             f"job_name {job_name} not found."
