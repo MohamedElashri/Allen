@@ -2,10 +2,8 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import (
-    data_provider_t, host_prefix_sum_t, scifi_calculate_cluster_count_v4_t,
-    scifi_pre_decode_v4_t, scifi_raw_bank_decoder_v4_t,
-    scifi_calculate_cluster_count_v6_t, scifi_pre_decode_v6_t,
-    scifi_raw_bank_decoder_v6_t, lf_search_initial_windows_t,
+    data_provider_t, host_prefix_sum_t, scifi_calculate_cluster_count_t,
+    scifi_pre_decode_t, scifi_raw_bank_decoder_t, lf_search_initial_windows_t,
     lf_triplet_seeding_t, lf_create_tracks_t, lf_quality_filter_length_t,
     lf_quality_filter_t, scifi_copy_track_hit_number_t,
     scifi_consolidate_tracks_t)
@@ -15,32 +13,18 @@ from PyConf.tonic import configurable
 
 
 @configurable
-def decode_scifi(raw_bank_version="v4"):
+def decode_scifi():
     number_of_events = initialize_number_of_events()
     scifi_banks = make_algorithm(
         data_provider_t, name="scifi_banks", bank_type="FTCluster")
 
-    scifi_calculate_cluster_count_algorithm = None
-    scifi_pre_decode_algorithm = None
-    scifi_raw_bank_decoder_algorithm = None
-
-    if raw_bank_version == "v4":
-        scifi_calculate_cluster_count_algorithm = scifi_calculate_cluster_count_v4_t
-        scifi_pre_decode_algorithm = scifi_pre_decode_v4_t
-        scifi_raw_bank_decoder_algorithm = scifi_raw_bank_decoder_v4_t
-    elif raw_bank_version == "v6":
-        scifi_calculate_cluster_count_algorithm = scifi_calculate_cluster_count_v6_t
-        scifi_pre_decode_algorithm = scifi_pre_decode_v6_t
-        scifi_raw_bank_decoder_algorithm = scifi_raw_bank_decoder_v6_t
-    else:
-        raise
-
     scifi_calculate_cluster_count = make_algorithm(
-        scifi_calculate_cluster_count_algorithm,
+        scifi_calculate_cluster_count_t,
         name="scifi_calculate_cluster_count",
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
-        host_number_of_events_t=number_of_events["host_number_of_events"])
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
     prefix_sum_scifi_hits = make_algorithm(
         host_prefix_sum_t,
@@ -48,17 +32,18 @@ def decode_scifi(raw_bank_version="v4"):
         dev_input_buffer_t=scifi_calculate_cluster_count.dev_scifi_hit_count_t)
 
     scifi_pre_decode = make_algorithm(
-        scifi_pre_decode_algorithm,
+        scifi_pre_decode_t,
         name="scifi_pre_decode",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
         host_total_sum_holder_t,
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
-        dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t)
+        dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
+        host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
     scifi_raw_bank_decoder = make_algorithm(
-        scifi_raw_bank_decoder_algorithm,
+        scifi_raw_bank_decoder_t,
         name="scifi_raw_bank_decoder",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
@@ -67,7 +52,8 @@ def decode_scifi(raw_bank_version="v4"):
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
-        dev_cluster_references_t=scifi_pre_decode.dev_cluster_references_t)
+        dev_cluster_references_t=scifi_pre_decode.dev_cluster_references_t,
+        host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
     return {
         "dev_scifi_hits": scifi_raw_bank_decoder.dev_scifi_hits_t,

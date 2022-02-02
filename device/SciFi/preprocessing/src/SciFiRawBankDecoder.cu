@@ -1,14 +1,14 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include "SciFiRawBankDecoderV6.cuh"
+#include "SciFiRawBankDecoder.cuh"
 #include <MEPTools.h>
 #include "assert.h"
 
-INSTANTIATE_ALGORITHM(scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t)
+INSTANTIATE_ALGORITHM(scifi_raw_bank_decoder::scifi_raw_bank_decoder_t)
 
 // Merge of PrStoreFTHit and RawBankDecoder.
-__device__ void make_cluster_v6(
+__device__ void make_cluster(
   const int hit_index,
   const SciFi::SciFiGeometry& geom,
   uint32_t chan,
@@ -46,10 +46,8 @@ __device__ void make_cluster_v6(
   hits.assembled_datatype(hit_index) = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
 }
 
-template<bool mep_layout>
-__global__ void scifi_raw_bank_decoder_v6_kernel(
-  scifi_raw_bank_decoder_v6::Parameters parameters,
-  const char* scifi_geometry)
+template<int decoding_version, bool mep_layout>
+__global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters parameters, const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -67,8 +65,6 @@ __global__ void scifi_raw_bank_decoder_v6_kernel(
     const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
-    const int condition = (cluster_reference >> 13) & 0x07;
-    const int delta_parameter = cluster_reference & 0xFF;
 
     const auto rawbank = scifi_raw_event.raw_bank(raw_bank_number);
     const uint16_t* it = rawbank.data + 2;
@@ -80,39 +76,49 @@ __global__ void scifi_raw_bank_decoder_v6_kernel(
     // Call parameters for make_cluster
     uint32_t cluster_chan = ch;
     uint8_t cluster_fraction = SciFi::fraction(c);
-    uint8_t pseudoSize = 4;
 
-    assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
-
-    if (condition == 0x02) {
-      pseudoSize = 0;
+    if constexpr (decoding_version == 4) {
+      // In v4 decoding clusters may have pseudosize only equal to 0 or 4
+      uint8_t pseudoSize = SciFi::cSize(c) ? 0 : 4;
+      make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
-    else if (condition > 0x02) {
-      const auto c2 = *(it + 1);
-      const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+    else if constexpr (decoding_version == 6) {
+      const int condition = (cluster_reference >> 13) & 0x07;
+      const int delta_parameter = cluster_reference & 0xFF;
+      uint8_t pseudoSize = 4;
 
-      if (condition == 0x03) {
+      assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
+
+      if (condition == 0x02) {
         pseudoSize = 0;
-        cluster_fraction = 1;
-        cluster_chan += delta_parameter;
       }
-      else if (condition == 0x04) {
-        pseudoSize = 0;
-        cluster_fraction = (widthClus - 1) % 2;
-        cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
+      else if (condition > 0x02) {
+        const auto c2 = *(it + 1);
+        const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+
+        if (condition == 0x03) {
+          pseudoSize = 0;
+          cluster_fraction = 1;
+          cluster_chan += delta_parameter;
+        }
+        else if (condition == 0x04) {
+          pseudoSize = 0;
+          cluster_fraction = (widthClus - 1) % 2;
+          cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
+        }
+        else if (condition == 0x05) {
+          pseudoSize = widthClus;
+          cluster_fraction = (widthClus - 1) % 2;
+          cluster_chan += (widthClus - 1) / 2 - 1;
+        }
       }
-      else if (condition == 0x05) {
-        pseudoSize = widthClus;
-        cluster_fraction = (widthClus - 1) % 2;
-        cluster_chan += (widthClus - 1) / 2 - 1;
-      }
+
+      make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
-
-    make_cluster_v6(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
   }
 }
 
-void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::set_arguments_size(
+void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
   const Constants&,
@@ -123,14 +129,21 @@ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::set_arguments_size(
     first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
 }
 
-void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_t::operator()(
+void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers&,
   const Allen::Context& context) const
 {
-  global_function(
-    runtime_options.mep_layout ? scifi_raw_bank_decoder_v6_kernel<true> : scifi_raw_bank_decoder_v6_kernel<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_scifi_geometry);
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+
+  auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
+                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<4, true>) :
+                                                   global_function(scifi_raw_bank_decoder_kernel<4, false>)) :
+                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<6, true>) :
+                                                   global_function(scifi_raw_bank_decoder_kernel<6, false>));
+
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments, constants.dev_scifi_geometry);
 }
