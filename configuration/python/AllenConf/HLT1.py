@@ -41,49 +41,41 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
                           secondary_vertices, calo_matching_objects):
     lines = []
     lines.append(
-        line_maker(
-            "Hlt1KsToPiPi",
-            make_kstopipi_line(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1KsToPiPi",
+                   make_kstopipi_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker(
-            "Hlt1TrackMVA",
-            make_track_mva_line(forward_tracks, kalman_velo_only)))
+        line_maker("Hlt1TrackMVA",
+                   make_track_mva_line(forward_tracks, kalman_velo_only)))
     lines.append(
-        line_maker(
-            "Hlt1TwoTrackMVA",
-            make_two_track_mva_line(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1TwoTrackMVA",
+                   make_two_track_mva_line(forward_tracks,
+                                           secondary_vertices)))
     lines.append(
         line_maker(
             "Hlt1TwoTrackCatBoost",
             make_two_track_catboost_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker(
-            "Hlt1TwoTrackKs",
-            make_two_track_line_ks(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1TwoTrackKs",
+                   make_two_track_line_ks(forward_tracks, secondary_vertices)))
     lines.append(
         line_maker(
             "Hlt1SingleHighPtMuon",
             make_single_high_pt_muon_line(forward_tracks, kalman_velo_only)))
     lines.append(
-        line_maker(
-            "Hlt1LowPtMuon",
-            make_low_pt_muon_line(forward_tracks, kalman_velo_only)))
+        line_maker("Hlt1LowPtMuon",
+                   make_low_pt_muon_line(forward_tracks, kalman_velo_only)))
     lines.append(
-        line_maker(
-            "Hlt1D2KK",
-            make_d2kk_line(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1D2KK",
+                   make_d2kk_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker(
-            "Hlt1D2KPi",
-            make_d2kpi_line(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1D2KPi",
+                   make_d2kpi_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker(
-            "Hlt1D2PiPi",
-            make_d2pipi_line(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1D2PiPi",
+                   make_d2pipi_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker(
-            "Hlt1DiMuonHighMass",
-            make_di_muon_mass_line(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1DiMuonHighMass",
+                   make_di_muon_mass_line(forward_tracks, secondary_vertices)))
     lines.append(
         line_maker(
             "Hlt1DiMuonLowMass",
@@ -100,17 +92,15 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
                 maxVertexChi2="25.",
                 minIPChi2="4.")))
     lines.append(
-        line_maker(
-            "Hlt1DiMuonSoft",
-            make_di_muon_soft_line(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1DiMuonSoft",
+                   make_di_muon_soft_line(forward_tracks, secondary_vertices)))
     lines.append(
         line_maker(
             "Hlt1LowPtDiMuon",
             make_low_pt_di_muon_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker(
-            "Hlt1TrackMuonMVA",
-            make_track_muon_mva_line(forward_tracks, kalman_velo_only)))
+        line_maker("Hlt1TrackMuonMVA",
+                   make_track_muon_mva_line(forward_tracks, kalman_velo_only)))
     lines.append(
         line_maker(
             "Hlt1TrackElectronMVA",
