@@ -54,10 +54,10 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
         THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
 FAIL: throughput decreased too much for sequence ${SEQUENCE} over dataset ${INPUT_FILES}"
     elif [ "$RC" != "0" ]; then
-        echo "FAIL: check_throughput.py script failed"
-        exit 1
+        THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
+FAIL: check_throughput.py script failed for ${SEQUENCE} - ${INPUT_FILES}"
+        THROUGHPUT_ALARM=1
     fi
-
     echo ""
     echo ""
 done
