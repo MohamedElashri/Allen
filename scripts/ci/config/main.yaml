@@ -105,6 +105,8 @@ throughput:
   stage: test
   variables:
     PUBLISH_ARTIFACT_NAME: "test_throughput"
+    TEST_NAME: "test_throughput"
+  
   artifacts:
     name: "$PUBLISH_ARTIFACT_NAME"
     paths:
@@ -119,6 +121,10 @@ pub-throughput:
   extends: 
     - .publish_test_throughput
     - .default_rules_always_run
+  variables:
+    PUBLISH_ARTIFACT_NAME: "test_throughput"
+    TEST_NAME: "publish_throughput"
+
   needs: [throughput]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -313,7 +319,8 @@ throughput-full:
 
   variables:
     PUBLISH_ARTIFACT_NAME: "test_throughput_full"
-  
+    TEST_NAME: "test_throughput"
+
   artifacts:
     name: "$PUBLISH_ARTIFACT_NAME"
     paths:
@@ -327,6 +334,9 @@ pub-throughput-full:
   extends: 
     - .publish_test_throughput
     - .default_rules_always_run
+
+  variables:
+    TEST_NAME: "publish_throughput"
 
   needs: [throughput-full]
 
