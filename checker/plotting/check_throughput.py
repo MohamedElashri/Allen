@@ -30,7 +30,7 @@ def check_throughput_change(speedup_wrt_master):
 
     # Average throughputs across all devices and complain if we are above decr % threshold
     if len(speedup_wrt_master) == 0:
-        return [":warning: Missing throughput reference!"]
+        return problems
     
     average_speedup = (sum(speedup * weights[device]
                            for device, speedup in speedup_wrt_master.items()) /
