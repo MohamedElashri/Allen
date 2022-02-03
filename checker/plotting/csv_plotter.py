@@ -7,8 +7,8 @@ import os
 import csv
 from optparse import OptionParser
 from termgraph import TermGraph
+from io import StringIO
 import requests
-
 import gitlab
 
 
@@ -66,7 +66,7 @@ def get_master_throughput(
     print (f"Job URL: {pipeline_job.web_url}")
     job = project.jobs.get(pipeline_job.id, lazy=True)
 
-    content = job.artifact(csvfile)
+    content = StringIO(job.artifact(csvfile))
     try:
         master_throughput = parse_throughput(content, scale=scale)
     except Exception as e:
