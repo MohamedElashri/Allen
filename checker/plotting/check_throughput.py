@@ -37,12 +37,12 @@ def check_throughput_change(speedup_wrt_master):
                        sum(weights.values()))
     change = average_speedup - 1.0
     print(f"Device-averaged speedup: {average_speedup}")
-    print(f"               % change: {change}")
+    print(f"               % change: {change*100}")
     tput_tol = AVG_THROUGHPUT_DECREASE_THRESHOLD
     if change < tput_tol:
         msg = (
             f" :warning: :eyes: **average** throughput change {change*100}% " +
-            f"_exceeds_ {abs(tput_tol)} % threshold")
+            f"_exceeds_ {abs(tput_tol)*100} % threshold")
         print(msg)
         problems.append(msg)
 
@@ -50,14 +50,16 @@ def check_throughput_change(speedup_wrt_master):
     for device, speedup in speedup_wrt_master.items():
         change = speedup - 1.0
         tput_tol = DEVICE_THROUGHPUT_DECREASE_THRESHOLD / weights[device]
-        print(f"{device}  speedup: {speedup}")
-        print(f"{device} % change: {change*100}")
+        print(f"{device}  speedup (% change): {speedup} ({change*100}%)")
+
         if change < tput_tol:
             msg = (
                 f":warning: :eyes: **{device}** throughput change {change*100}% "
-                + f"_exceeds_ {abs(tput_tol)}% threshold")
+                + f"_exceeds_ {abs(tput_tol)*100}% threshold")
             print(msg)
             problems.append(msg)
+
+    print("Pass\n" if not problems else "Fail\n")
 
     return problems
 

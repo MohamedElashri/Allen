@@ -14,6 +14,8 @@ echo ""
 echo "run_throughput outputs:"
 ls -1 | grep output | grep run_throughput
 
+set +x;
+
 THROUGHPUT_ALARM=0
 THROUGHPUT_MESSAGES=""
 for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughput_output_([a-z0-9_]+?)" | sed 's/^run_throughput_output_//') ; do

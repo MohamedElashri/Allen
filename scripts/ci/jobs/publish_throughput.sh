@@ -7,6 +7,8 @@ set -euo pipefail
 
 setupViews
 
+set +x
+
 for SEQUENCE_DATASET in $(ls -1 | grep "devices_throughputs" | grep -Ei "devices_throughputs_([a-z0-9_]+?)" | sed 's/^devices_throughputs_//') ; do
     INPUT_FILES=$(cat test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_input_files.txt)
     SEQUENCE=$(cat test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_sequence.txt)
