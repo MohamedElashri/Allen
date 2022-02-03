@@ -12,8 +12,7 @@ void is_muon::is_muon_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_muon_track_occupancies_t>(
-    arguments, 0);
+  set_size<dev_muon_track_occupancies_t>(arguments, 0);
   set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
@@ -139,19 +138,19 @@ __global__ void is_muon::is_muon(
         const float extrapolation_x = state.x + state.tx * (muon_hits.z(idx) - state.z);
         const float extrapolation_y = state.y + state.ty * (muon_hits.z(idx) - state.z);
         occupancies[station_id] += is_in_window(
-                                      muon_hits.x(idx),
-                                      muon_hits.y(idx),
-                                      muon_hits.dx(idx),
-                                      muon_hits.dy(idx),
-                                      dev_muon_foi,
-                                      station_id,
-                                      muon_hits.region(idx),
-                                      momentum,
-                                      extrapolation_x,
-                                      extrapolation_y);
+          muon_hits.x(idx),
+          muon_hits.y(idx),
+          muon_hits.dx(idx),
+          muon_hits.dy(idx),
+          dev_muon_foi,
+          station_id,
+          muon_hits.region(idx),
+          momentum,
+          extrapolation_x,
+          extrapolation_y);
       }
     }
-  
+
     if (occupancies[0] == 0 || occupancies[1] == 0) {
       parameters.dev_is_muon[event_offset + track_id] = false;
     }

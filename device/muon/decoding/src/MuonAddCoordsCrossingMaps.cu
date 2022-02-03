@@ -56,9 +56,8 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
   auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
 
-  for (unsigned i = 0;
-       i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-       i ++) {
+  for (unsigned i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+       i++) {
 
     // Note: The location of the indices depends on n_layouts.
     const auto start_index = storage_station_region_quarter_offsets[2 * i] - event_offset;
@@ -82,7 +81,8 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
     const auto layout1 = (x1 > x2 ? Muon::MuonLayout {x1, y1} : Muon::MuonLayout {x2, y2});
     const auto layout2 = (x1 > x2 ? Muon::MuonLayout {x2, y2} : Muon::MuonLayout {x1, y1});
 
-    for (unsigned digitsOneIndex = start_index + threadIdx.x; digitsOneIndex < mid_index; digitsOneIndex+=blockDim.x) {
+    for (unsigned digitsOneIndex = start_index + threadIdx.x; digitsOneIndex < mid_index;
+         digitsOneIndex += blockDim.x) {
       const unsigned int keyX =
         Muon::MuonTileID::nX(storage_tile_id[digitsOneIndex]) * layout2.xGrid() / layout1.xGrid();
       const unsigned int keyY = Muon::MuonTileID::nY(storage_tile_id[digitsOneIndex]);
@@ -110,7 +110,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
 
     __syncthreads(); // for used
 
-    for (auto index = start_index+ threadIdx.x; index < end_index; index+=blockDim.x) {
+    for (auto index = start_index + threadIdx.x; index < end_index; index += blockDim.x) {
       if (!used[index]) {
         const auto tile = Muon::MuonTileID(storage_tile_id[index]);
         const int region = tile.region();

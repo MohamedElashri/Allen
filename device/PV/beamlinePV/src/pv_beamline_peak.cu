@@ -42,16 +42,19 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
   __shared__ BinIndex clusteredges[PV::max_number_clusteredges]; // 200
   unsigned number_of_clusteredges = 0;
 
-  #if defined(TARGET_DEVICE_CUDA)
+#if defined(TARGET_DEVICE_CUDA)
   uint32_t prev_mask = -1u;
   uint32_t lanemask_eq = 1 << threadIdx.x;
   uint32_t lanemask_lt = lanemask_eq - 1;
   // Use a warp (32 threads) to process the 3200 bins in 100 iterations:
-  for (auto i = threadIdx.x ; i < BeamlinePVConstants::Common::Nbins; i += blockDim.x) {
+  for (auto i = threadIdx.x; i < BeamlinePVConstants::Common::Nbins; i += blockDim.x) {
     const float zBin = BeamlinePVConstants::Common::zmin + i * BeamlinePVConstants::Common::dz;
-    const float Z0Err = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ? BeamlinePVConstants::Common::SMOG2_maxTrackZ0Err : BeamlinePVConstants::Common::pp_maxTrackZ0Err;
+    const float Z0Err = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                          BeamlinePVConstants::Common::SMOG2_maxTrackZ0Err :
+                          BeamlinePVConstants::Common::pp_maxTrackZ0Err;
     const float inv_maxTrackZ0Err = 1.f / (10.f * Z0Err);
-    const float threshold = BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
+    const float threshold =
+      BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
     bool empty = zhisto[i] < threshold;
 
     uint32_t loop_mask = -1u; // relies on NBins being a multiple of 32 (warp size)
@@ -69,12 +72,12 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
 
   // Filter protoclusters with small integrals
   int outIdx = 0;
-  for (int i = 0; i < number_of_clusteredges; i+=2) {
+  for (int i = 0; i < number_of_clusteredges; i += 2) {
     const BinIndex ibegin = clusteredges[i];
-    const BinIndex iend   = clusteredges[i + 1];
+    const BinIndex iend = clusteredges[i + 1];
 
     float integral = 0;
-    for (int j=ibegin+threadIdx.x; j<iend ; j+=blockDim.x) {
+    for (int j = ibegin + threadIdx.x; j < iend; j += blockDim.x) {
       integral += zhisto[j];
     }
     for (int offset = 16; offset > 0; offset /= 2) {
@@ -82,7 +85,9 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
     }
 
     const float zBin = BeamlinePVConstants::Common::zmin + iend * BeamlinePVConstants::Common::dz;
-    const float minInSeed = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ? BeamlinePVConstants::Peak::SMOG2_minTracksInSeed : BeamlinePVConstants::Peak::pp_minTracksInSeed;
+    const float minInSeed = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
+                              BeamlinePVConstants::Peak::SMOG2_minTracksInSeed :
+                              BeamlinePVConstants::Peak::pp_minTracksInSeed;
     if (integral > minInSeed) {
       if (threadIdx.x == 0) {
         clusteredges[outIdx] = ibegin;
@@ -94,7 +99,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
   number_of_clusteredges = outIdx;
   __syncthreads();
 
-  #else
+#else
   // Fallback on non-vectorized version for targets that does not support warp level intrinsics
   bool prevempty = true;
   float integral = zhisto[0];
@@ -122,7 +127,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
       integral = 0;
     }
   }
-  #endif
+#endif
 
   // Step B: turn these into clusters. There can be more than one cluster per proto-cluster.
   const size_t Nproto = number_of_clusteredges / 2;
@@ -183,7 +188,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
     assert(rising == false);
     extrema[number_of_extrema] = Extremum(iend, zhisto[iend], integral);
     number_of_extrema++;
-    
+
     // now partition on  extrema
     const auto N = number_of_extrema;
     Cluster subclusters[PV::max_number_subclusters];
@@ -209,7 +214,8 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
           Cluster(extrema[0].index, extrema[number_of_extrema - 1].index, extrema[1].index);
         number_of_clusters++;
       }
-    } else {
+    }
+    else {
       // adjust the limit of the first and last to extend to the entire protocluster
       subclusters[0].izfirst = ibegin;
       subclusters[number_of_subclusters].izlast = iend;
@@ -231,7 +237,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
 
   for (unsigned i = threadIdx.x; i < number_of_clusters; i += blockDim.x) {
     zpeaks[i] = zClusterMean(clusters[i].izmax);
-    //printf("%d %f\n", i, zpeaks[i]);
+    // printf("%d %f\n", i, zpeaks[i]);
   }
 
   if (threadIdx.x == 0) parameters.dev_number_of_zpeaks[event_number] = number_of_clusters;
