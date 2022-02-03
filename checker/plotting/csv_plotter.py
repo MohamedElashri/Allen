@@ -68,13 +68,13 @@ def get_master_throughput(
     print (f"Job URL: {pipeline_job.web_url}")
     job = project.jobs.get(pipeline_job.id, lazy=True)
 
-    artifact = job.artifact(csvfile)
-    print("Artifact:")
-    print(artifact)
-    print("--\n")
-
-    content = StringIO(artifact.decode('utf-8'))
     try:
+        artifact = job.artifact(csvfile)
+        print("Artifact:")
+        print(artifact)
+        print("--\n")
+
+        content = StringIO(artifact.decode('utf-8'))
         master_throughput = parse_throughput(content, scale=scale)
     except Exception as e:
         print("get_master_throughput exception:", e)
