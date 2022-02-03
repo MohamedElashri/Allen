@@ -69,7 +69,9 @@ def get_master_throughput(
     job = project.jobs.get(pipeline_job.id, lazy=True)
 
     artifact = job.artifact(csvfile)
+    print("Artifact:")
     print(artifact)
+    print("--\n")
 
     content = StringIO(artifact.decode('utf-8'))
     try:
