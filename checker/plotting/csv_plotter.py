@@ -15,10 +15,12 @@ import gitlab
 
 def parse_throughput(content, scale=1.0):
     throughput = {}
-    content_reader = csv.reader(content.splitlines())
+    content_reader = csv.reader(content)
     for row in content_reader:
-        if row:
+        if len(row) > 1:
             throughput[row[0]] = float(row[1]) * scale
+        else:
+            print("WARNING: bad row %r" % (row))
     return throughput
 
 
@@ -66,7 +68,10 @@ def get_master_throughput(
     print (f"Job URL: {pipeline_job.web_url}")
     job = project.jobs.get(pipeline_job.id, lazy=True)
 
-    content = StringIO(job.artifact(csvfile).decode('utf-8'))
+    artifact = job.artifact(csvfile)
+    print(artifact)
+
+    content = StringIO(artifact.decode('utf-8'))
     try:
         master_throughput = parse_throughput(content, scale=scale)
     except Exception as e:
