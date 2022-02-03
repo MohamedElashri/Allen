@@ -94,6 +94,6 @@ namespace velo_consolidate_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace velo_consolidate_tracks
