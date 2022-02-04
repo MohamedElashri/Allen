@@ -2,39 +2,85 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+
+import os
 import csv
 from optparse import OptionParser
 from termgraph import TermGraph
+from io import StringIO
 import requests
+import gitlab
+
 
 
 def parse_throughput(content, scale=1.0):
     throughput = {}
-    content_reader = csv.reader(content.splitlines())
+    content_reader = csv.reader(content)
     for row in content_reader:
-        if row:
+        if len(row) > 1:
             throughput[row[0]] = float(row[1]) * scale
+        else:
+            print("WARNING: bad row %r" % (row))
     return throughput
 
 
 def get_master_throughput(
-        job_name,
-        url="https://gitlab.cern.ch/lhcb/Allen/-/jobs/artifacts/master/raw/",
-        csvfile="devices_throughputs.csv",
-        scale=1.0,
+    job_name,
+    csvfile,
+    ref="master",
+    instance="https://gitlab.cern.ch",
+    scale=1.0
 ):
+    """
+    Use GitLab API to retrieve throughput reference from a successful or failed pipeline.
+    """
+    if "ALLENCI_PAT" not in os.environ:
+        raise RuntimeError(
+            "Environment variable ALLENCI_PAT is not set - cannot access the GitLab API."
+        )
+
+    gl = gitlab.Gitlab(
+        instance, private_token=os.environ[f"ALLENCI_PAT"]
+    )
+
+    gl.auth()
+
+    proj_id = int(os.environ["CI_PROJECT_ID"])
+    project = gl.projects.get(proj_id)
+
+    # select last successful or failed pipeline
+    pipeline = [p for p in project.pipelines.list(ref=ref) if p.status in ['success', 'failed']][0]
+
+    print (f"Selected pipeline {pipeline.id} to extract throughput reference:")
+    print (f"Ref (sha): {pipeline.ref}  ({pipeline.sha})")
+    print (f"Status: {pipeline.status}")
+    print (f"Created at: {pipeline.created_at}")
+    print (f"Pipeline URL: {pipeline.web_url}")
+
+    # select corresponding job containing our artifact
+    pipeline_job = [j for j in pipeline.jobs.list(per_page=300) if j.name == job_name]
+    if not pipeline_job:
+        raise RuntimeError(
+            f"job_name {job_name} not found."
+        )
+    pipeline_job = pipeline_job[0]
+
+    print (f"Job URL: {pipeline_job.web_url}")
+    job = project.jobs.get(pipeline_job.id, lazy=True)
+
     try:
-        master_throughput = {}
-        if job_name:
-            base_url = url + csvfile
-            r = requests.get(
-                base_url, params={"job": job_name}, allow_redirects=True)
-            content = r.content.decode("utf-8")
-            master_throughput = parse_throughput(content, scale=scale)
-        return master_throughput
+        artifact = job.artifact(csvfile)
+        print("Artifact:")
+        print(artifact)
+        print("--\n")
+
+        content = StringIO(artifact.decode('utf-8'))
+        master_throughput = parse_throughput(content, scale=scale)
     except Exception as e:
         print("get_master_throughput exception:", e)
         return {}
+    
+    return master_throughput
 
 
 def format_text(title, plot_data, unit, x_max, master_throughput={}):
