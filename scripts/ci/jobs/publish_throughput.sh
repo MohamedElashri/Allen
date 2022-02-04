@@ -29,7 +29,7 @@ for SEQUENCE_DATASET in $(ls -1 | grep "devices_throughputs" | grep -Ei "devices
 
     RC=0
     python checker/plotting/post_combined_message.py \
-        -j "${CI_JOB_NAME}" \
+        -j "${REFERENCE_JOB}" \
         -l "Throughput of [branch **\`${CI_COMMIT_REF_NAME} (${CI_COMMIT_SHORT_SHA})\`**, sequence **\`${SEQUENCE}\`** over dataset **\`${INPUT_FILES}\`** build options \`${BUILDOPTIONS_DISPLAY}\`](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" \
         -t devices_throughputs_${SEQUENCE_DATASET}.csv \
         -b test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_algo_breakdown.csv \

@@ -125,6 +125,7 @@ pub-throughput:
   variables:
     PUBLISH_ARTIFACT_NAME: "test_throughput"
     TEST_NAME: "publish_throughput"
+    REFERENCE_JOB: "throughput"
 
   needs: [throughput]
 
@@ -339,6 +340,7 @@ pub-throughput-full:
 
   variables:
     TEST_NAME: "publish_throughput"
+    REFERENCE_JOB: "throughput-full"
 
   needs: [throughput-full]
 
