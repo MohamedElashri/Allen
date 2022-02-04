@@ -112,6 +112,7 @@ throughput:
     paths:
       - devices_throughputs_*.csv
       - test_throughput_details/*.txt
+      - test_throughput_details/*.csv
     expire_in: 1 month
     when: always
 
@@ -326,6 +327,7 @@ throughput-full:
     paths:
       - devices_throughputs_*.csv
       - test_throughput_details/*.txt
+      - test_throughput_details/*.csv
     expire_in: 1 month
     when: always
 
