@@ -60,9 +60,9 @@ def main():
         )
 
     with open(options.throughput) as csvfile:
-        throughput = parse_throughput(csvfile.read(), scale=1e-3)
+        throughput = parse_throughput(csvfile, scale=1e-3)
     with open(options.breakdown) as csvfile:
-        breakdown = parse_throughput(csvfile.read(), scale=1)
+        breakdown = parse_throughput(csvfile, scale=1)
 
     master_throughput = get_master_throughput(
         options.job, csvfile=options.throughput, scale=1e-3)
