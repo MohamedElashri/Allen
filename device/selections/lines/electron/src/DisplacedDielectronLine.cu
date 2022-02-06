@@ -14,12 +14,6 @@ displaced_dielectron_line::displaced_dielectron_line_t::get_input(
   const VertexFit::TrackMVAVertex* event_vertices = parameters.dev_svs + parameters.dev_sv_offsets[event_number];
   const auto& vertex = event_vertices[i];
 
-  const auto N_SciFi_tracks =
-    parameters.dev_track_offsets[event_number + 1] - parameters.dev_track_offsets[event_number];
-
-  // Some vertices contain undefined tracks
-  if (vertex.trk1 > N_SciFi_tracks || vertex.trk2 > N_SciFi_tracks) return std::forward_as_tuple(vertex, 0, 0.f);
-
   const bool is_electron_1 = parameters.dev_track_isElectron[vertex.trk1 + parameters.dev_track_offsets[event_number]];
   const bool is_electron_2 = parameters.dev_track_isElectron[vertex.trk2 + parameters.dev_track_offsets[event_number]];
   const bool is_dielectron = is_electron_1 && is_electron_2;
