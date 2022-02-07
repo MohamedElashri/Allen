@@ -118,7 +118,6 @@ def is_muon(decoded_muon, forward_tracks):
 
     return {
         "forward_tracks": forward_tracks,
-        "dev_muon_track_occupancies": is_muon.dev_muon_track_occupancies_t,
         "dev_is_muon": is_muon.dev_is_muon_t
     }
 

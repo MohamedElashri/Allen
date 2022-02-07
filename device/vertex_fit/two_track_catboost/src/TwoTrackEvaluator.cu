@@ -28,10 +28,10 @@ void two_track_evaluator::two_track_evaluator_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  const int block_dim = 64;
-  const auto grid_dim = dim3((first<host_number_of_svs_t>(arguments) + block_dim - 1) / block_dim);
+  const auto block_dim = property<block_dim_x_t>().get();
+  const auto grid_dim = (first<host_number_of_svs_t>(arguments) + block_dim - 1) / block_dim;
 
-  global_function(two_track_evaluator)(grid_dim, dim3(block_dim), context)(
+  global_function(two_track_evaluator)(grid_dim, block_dim, context)(
     arguments,
     constants.dev_two_track_catboost_leaf_values,
     constants.dev_two_track_catboost_leaf_offsets,

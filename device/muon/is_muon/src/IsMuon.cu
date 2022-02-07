@@ -12,7 +12,6 @@ void is_muon::is_muon_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_muon_track_occupancies_t>(arguments, 0);
   set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
@@ -23,8 +22,6 @@ void is_muon::is_muon_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  initialize<dev_muon_track_occupancies_t>(arguments, 0, context);
-
   global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
 

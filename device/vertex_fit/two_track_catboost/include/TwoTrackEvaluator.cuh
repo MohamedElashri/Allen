@@ -19,7 +19,7 @@ namespace two_track_evaluator {
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_two_track_catboost_preprocess_output_t, float) dev_two_track_catboost_preprocess_output;
     DEVICE_OUTPUT(dev_two_track_catboost_evaluation_t, float) dev_two_track_catboost_evaluation;
-    PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
   };
 
   __global__ void two_track_evaluator(
@@ -48,7 +48,7 @@ namespace two_track_evaluator {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 
 } // namespace two_track_evaluator

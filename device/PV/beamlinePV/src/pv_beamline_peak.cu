@@ -22,7 +22,7 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  global_function(pv_beamline_peak)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>().get(), context)(
+  global_function(pv_beamline_peak)(dim3(size<dev_event_list_t>(arguments)), warp_size, context)(
     arguments, size<dev_event_list_t>(arguments));
 }
 
@@ -163,12 +163,9 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
           }
           else if (dv1 > dv2) {
             number_of_extrema--;
-            if (number_of_extrema < 0) number_of_extrema = 0;
           }
           else {
-            number_of_extrema--;
-            number_of_extrema--;
-            if (number_of_extrema < 0) number_of_extrema = 0;
+            number_of_extrema -= 2;
             extrema[number_of_extrema] = Extremum(i, value, integral + 0.5f * value);
             number_of_extrema++;
           }
