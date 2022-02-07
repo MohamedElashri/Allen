@@ -51,7 +51,7 @@
 
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_veloSP_scifi_v6_validation"]
+        SEQUENCE: ["hlt1_pp_veloSP_validation"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster"]
         GEOMETRY: ["scifi_v6"]
 
