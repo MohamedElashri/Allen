@@ -30,12 +30,12 @@ void is_muon::is_muon_t::operator()(
   }
 }
 
-inline __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
+__device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
 {
   return a + b * expf(-c * momentum / Gaudi::Units::GeV);
 }
 
-inline __device__ std::pair<float, float> field_of_interest(
+__device__ std::pair<float, float> field_of_interest(
   const Muon::Constants::FieldOfInterest* muon_foi_params,
   const int station,
   const int region,
@@ -53,7 +53,7 @@ inline __device__ std::pair<float, float> field_of_interest(
             momentum)};
 }
 
-inline __device__ bool is_in_window(
+__device__ bool is_in_window(
   const float hit_x,
   const float hit_y,
   const float hit_dx,
