@@ -41,6 +41,7 @@
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["SMOG2_pppHe_1k"]
+        GEOMETRY: ["smog"]
 
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
@@ -55,6 +56,12 @@
         SEQUENCE: ["hlt1_pp_validation"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
         GEOMETRY: ["scifi_v6"]
+
+      # efficiency tests, SMOG2 pHe
+      - TEST_NAME: "run_physics_efficiency"
+        SEQUENCE: ["hlt1_pp_validation"]
+        DATA_TAG: ["SMOG2_pHe_5k"]
+        GEOMETRY: ["smog"]
 
       # FIXME
       # - TEST_NAME: "run_physics_efficiency"
