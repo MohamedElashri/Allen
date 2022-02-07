@@ -14,12 +14,12 @@ TEST_CASE("unit_tests.host_prefix_sum", "[HostPrefixSum]")
   // Do prefix sum with vectors
   std::vector<unsigned> output_v(v.size());
   output_v[0] = 0;
-  std::partial_sum(v.begin(), v.end() - 1, output_v.begin() + 1);
+  std::partial_sum(v.begin(), v.end(), output_v.begin());
   const unsigned expected_sum = output_v.back();
 
   // Use host_prefix_sum_impl
   unsigned sum;
-  host_prefix_sum::host_prefix_sum_impl(v.data(), v.size() - 1, &sum);
+  host_prefix_sum::host_prefix_sum_impl(v.data(), v.size(), &sum);
 
   REQUIRE(sum == expected_sum);
   REQUIRE([&]() {
