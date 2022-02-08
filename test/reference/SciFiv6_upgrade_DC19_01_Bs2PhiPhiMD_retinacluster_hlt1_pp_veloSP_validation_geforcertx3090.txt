@@ -32,7 +32,7 @@ TrackChecker output                               :      2743/    55521   4.94% 
 02_velo+UT                                        :     49425/    83670  59.07% ( 59.48%),       380 (  0.76%) clones, pur  99.57%, hit eff  96.17%
 03_velo+UT_P>5GeV                                 :     37736/    47632  79.22% ( 79.58%),       283 (  0.74%) clones, pur  99.64%, hit eff  96.55%
 04_velo+notLong                                   :      9605/    38929  24.67% ( 25.16%),        72 (  0.74%) clones, pur  99.31%, hit eff  95.27%
-05_velo+UT+notLong                                :      9532/    27299  34.92% ( 35.42%),        71 (  0.74%) clones, pur  99.39%, hit eff  95.27%
+05_velo+UT+notLong                                :      9532/    27299  34.92% ( 35.43%),        71 (  0.74%) clones, pur  99.39%, hit eff  95.27%
 06_velo+UT+notLong_P>5GeV                         :      5535/     8455  65.46% ( 66.54%),        40 (  0.72%) clones, pur  99.55%, hit eff  96.41%
 07_long                                           :     39899/    56923  70.09% ( 70.48%),       309 (  0.77%) clones, pur  99.61%, hit eff  96.38%
 08_long_P>5GeV                                    :     32207/    39606  81.32% ( 81.60%),       243 (  0.75%) clones, pur  99.65%, hit eff  96.57%
