@@ -12,7 +12,7 @@
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
 #include <GaudiAlg/GaudiHistoAlg.h>
-#include <Dumpers/Utils.h> 
+#include <Dumpers/Utils.h>
 
 template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;

@@ -21,7 +21,7 @@
 #include <GaudiKernel/Service.h>
 #include <Kernel/ICondDBInfo.h>
 
-#include <Dumpers/Utils.h> 
+#include <Dumpers/Utils.h>
 
 #include <Dumpers/IUpdater.h>
 #include <Dumpers/Identifiers.h>

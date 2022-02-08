@@ -6,7 +6,7 @@
 // local
 #include "PVDumper.h"
 #include "Associators/Associators.h"
-#include <Dumpers/Utils.h> 
+#include <Dumpers/Utils.h>
 #include <boost/filesystem.hpp>
 
 namespace {

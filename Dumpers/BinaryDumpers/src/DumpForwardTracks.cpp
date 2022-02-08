@@ -6,7 +6,7 @@
 #include <boost/filesystem.hpp>
 
 #include "DumpForwardTracks.h"
-#include <Dumpers/Utils.h> 
+#include <Dumpers/Utils.h>
 
 namespace fs = boost::filesystem;
 

@@ -4,7 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <string>
 
-#include <Dumpers/Utils.h> 
+#include <Dumpers/Utils.h>
 
 namespace {
   namespace fs = boost::filesystem;

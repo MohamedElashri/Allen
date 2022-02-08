@@ -9,7 +9,7 @@
 #include "Event/VPLightCluster.h"
 
 #include "DumpFTHits.h"
-#include <Dumpers/Utils.h> 
+#include <Dumpers/Utils.h>
 
 namespace fs = boost::filesystem;
 
