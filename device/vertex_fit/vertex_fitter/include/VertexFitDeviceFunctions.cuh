@@ -24,9 +24,7 @@ namespace VertexFit {
     float& y,
     float& z);
 
-  __device__ inline float doca(
-    const ParKalmanFilter::FittedTrack& trackA, 
-    const ParKalmanFilter::FittedTrack& trackB);
+  __device__ inline float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB);
 
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
@@ -101,7 +99,7 @@ namespace VertexFit {
     float secondBB = txB * txB + tyB * tyB + 1.0f;
     float secondAB = -txA * txB - tyA * tyB - 1.0f;
     float det = secondAA * secondBB - secondAB * secondAB;
-    //if (fabsf(det) / (fabsf(secondAA * secondBB) + fabsf(secondAB * secondAB)) > 1e-6f) {
+    // if (fabsf(det) / (fabsf(secondAA * secondBB) + fabsf(secondAB * secondAB)) > 1e-6f) {
     if (abs(det) > 0) {
       float secondinvAA = secondBB / det;
       float secondinvBB = secondAA / det;
@@ -126,9 +124,7 @@ namespace VertexFit {
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
   }
 
-  __device__ float doca(
-    const ParKalmanFilter::FittedTrack& trackA, 
-    const ParKalmanFilter::FittedTrack& trackB)
+  __device__ float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB)
   {
     const float xA = trackA.state[0];
     const float yA = trackA.state[1];
