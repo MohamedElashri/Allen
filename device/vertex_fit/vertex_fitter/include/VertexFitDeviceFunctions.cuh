@@ -99,8 +99,7 @@ namespace VertexFit {
     float secondBB = txB * txB + tyB * tyB + 1.0f;
     float secondAB = -txA * txB - tyA * tyB - 1.0f;
     float det = secondAA * secondBB - secondAB * secondAB;
-    // if (fabsf(det) / (fabsf(secondAA * secondBB) + fabsf(secondAB * secondAB)) > 1e-6f) {
-    if (abs(det) > 0) {
+    if (fabs(det) > 0) {
       float secondinvAA = secondBB / det;
       float secondinvBB = secondAA / det;
       float secondinvAB = -secondAB / det;
