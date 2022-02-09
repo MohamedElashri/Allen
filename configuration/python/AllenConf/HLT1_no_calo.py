@@ -3,11 +3,10 @@
 ###############################################################################
 from AllenConf.utils import initialize_number_of_events, mep_layout, gec
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
-from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_two_track_catboost_line, make_kstopipi_line
+from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_two_track_catboost_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
-from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line
+from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
-from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
 
 from AllenConf.validators import rate_validation
@@ -38,8 +37,8 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
     return line_algorithm, node
 
 
-def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
-                          secondary_vertices, calo_matching_objects):
+def default_physics_lines(forward_tracks, kalman_velo_only,
+                          secondary_vertices):
     lines = []
     lines.append(
         line_maker(
@@ -60,6 +59,11 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
         line_maker(
             "Hlt1TwoTrackCatBoost",
             make_two_track_catboost_line(forward_tracks, secondary_vertices),
+            enableGEC=True))
+    lines.append(
+        line_maker(
+            "Hlt1TwoTrackKs",
+            make_two_track_line_ks(forward_tracks, secondary_vertices),
             enableGEC=True))
     lines.append(
         line_maker(
@@ -121,35 +125,6 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
         line_maker(
             "Hlt1TrackMuonMVA",
             make_track_muon_mva_line(forward_tracks, kalman_velo_only),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1TrackElectronMVA",
-            make_track_electron_mva_line(forward_tracks, kalman_velo_only,
-                                         calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1SingleHighPtElectron",
-            make_single_high_pt_electron_line(forward_tracks, kalman_velo_only,
-                                              calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1DisplacedDielectron",
-            make_displaced_dielectron_line(forward_tracks, secondary_vertices,
-                                           calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1DisplacedLeptons",
-            make_displaced_leptons_line(forward_tracks, kalman_velo_only,
-                                        calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1SingleHighEt",
-            make_single_high_et_line(velo_tracks, calo_matching_objects),
             enableGEC=True))
     lines.append(
         line_maker(
@@ -221,21 +196,29 @@ def default_monitoring_lines(velo_tracks):
     lines.append(
         line_maker(
             "Hlt1Passthrough", make_passthrough_line(), enableGEC=False))
+    lines.append(
+        line_maker(
+            "Hlt1RICH1Alignment",
+            make_rich_1_line(hlt1_reconstruction()),
+            enableGEC=True))
+    lines.append(
+        line_maker(
+            "HLt1RICH2Alignment",
+            make_rich_2_line(hlt1_reconstruction()),
+            enableGEC=True))
 
     return lines
 
 
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
+    reconstructed_objects = hlt1_reconstruction()
 
     with line_maker.bind(enableGEC=EnableGEC):
         physics_lines = default_physics_lines(
-            reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["kalman_velo_only"],
-            reconstructed_objects["secondary_vertices"],
-            reconstructed_objects["calo_matching_objects"])
+            reconstructed_objects["secondary_vertices"])
 
     monitoring_lines = default_monitoring_lines(
         reconstructed_objects["velo_tracks"])
@@ -253,13 +236,13 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
-            make_sel_report_writer(
+            make_global_decision(lines=line_algorithms),
+            rate_validation(lines=line_algorithms),
+            *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["forward_tracks"],
                 secondary_vertices=reconstructed_objects["secondary_vertices"])
-            ["dev_sel_reports"].producer,
-            make_global_decision(lines=line_algorithms),
-            rate_validation(lines=line_algorithms)
+            ["algorithms"],
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)

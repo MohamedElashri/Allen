@@ -11,56 +11,7 @@ from csv_plotter import (
     get_master_throughput,
     parse_throughput,
 )
-
-DEVICE_THROUGHPUT_DECREASE_THRESHOLD = -0.075
-AVG_THROUGHPUT_DECREASE_THRESHOLD = -0.025
-# By default weights are 1.0 if not specified.
-# When a weight is less than one for a device, it will contribute
-# correspondlingly less to the average and its individual threshold will
-# be relaxed.
-DEVICE_WEIGHTS = {
-    "MI100": 0.5,
-}
-
-
-def check_throughput_change(speedup_wrt_master):
-    problems = []
-    weights = {
-        device: DEVICE_WEIGHTS.get(device, 1.0)
-        for device in speedup_wrt_master
-    }
-
-    # Average throughputs across all devices and complain if we are above decr % threshold
-    assert len(speedup_wrt_master) > 0
-    average_speedup = (sum(speedup * weights[device]
-                           for device, speedup in speedup_wrt_master.items()) /
-                       sum(weights.values()))
-    change = average_speedup - 1.0
-    print(f"Device-averaged speedup: {average_speedup}")
-    print(f"               % change: {change}")
-    tput_tol = AVG_THROUGHPUT_DECREASE_THRESHOLD
-    if change < tput_tol:
-        msg = (
-            f" :warning: :eyes: **average** throughput change {change*100}% " +
-            f"_exceeds_ {abs(tput_tol)} % threshold")
-        print(msg)
-        problems.append(msg)
-
-    # single device throughput decrease check
-    for device, speedup in speedup_wrt_master.items():
-        change = speedup - 1.0
-        tput_tol = DEVICE_THROUGHPUT_DECREASE_THRESHOLD / weights[device]
-        print(f"{device}  speedup: {speedup}")
-        print(f"{device} % change: {change*100}")
-        if change < tput_tol:
-            msg = (
-                f":warning: :eyes: **{device}** throughput change {change*100}% "
-                + f"_exceeds_ {abs(tput_tol)}% threshold")
-            print(msg)
-            problems.append(msg)
-
-    return problems
-
+from check_throughput import check_throughput_change
 
 def main():
     """
@@ -109,9 +60,9 @@ def main():
         )
 
     with open(options.throughput) as csvfile:
-        throughput = parse_throughput(csvfile.read(), scale=1e-3)
+        throughput = parse_throughput(csvfile, scale=1e-3)
     with open(options.breakdown) as csvfile:
-        breakdown = parse_throughput(csvfile.read(), scale=1)
+        breakdown = parse_throughput(csvfile, scale=1)
 
     master_throughput = get_master_throughput(
         options.job, csvfile=options.throughput, scale=1e-3)

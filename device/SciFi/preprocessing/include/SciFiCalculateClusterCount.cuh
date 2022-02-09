@@ -7,21 +7,18 @@
 #include "SciFiEventModel.cuh"
 #include "AlgorithmTypes.cuh"
 
-namespace scifi_raw_bank_decoder_v4 {
+namespace scifi_calculate_cluster_count {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_accumulated_number_of_scifi_hits_t, unsigned) host_accumulated_number_of_scifi_hits;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned) dev_scifi_raw_input_offsets;
-    DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
-    DEVICE_INPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
-    MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
+    DEVICE_OUTPUT(dev_scifi_hit_count_t, unsigned) dev_scifi_hit_count;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  struct scifi_raw_bank_decoder_v4_t : public DeviceAlgorithm, Parameters {
+  struct scifi_calculate_cluster_count_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
@@ -36,6 +33,6 @@ namespace scifi_raw_bank_decoder_v4 {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{240, 1, 1}}};
   };
-} // namespace scifi_raw_bank_decoder_v4
+} // namespace scifi_calculate_cluster_count

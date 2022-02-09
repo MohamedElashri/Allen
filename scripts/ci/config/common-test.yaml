@@ -35,7 +35,7 @@
       - SEQUENCE: "hlt1_pp_validation"
 
 
-.publish_throughput:
+.publish_test_throughput:
   stage: publish
   extends: 
     - .base_job

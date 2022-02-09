@@ -56,9 +56,6 @@ namespace rich_1_line {
     DEVICE_OUTPUT(dev_track_chi2_t, float) dev_track_chi2;
     HOST_OUTPUT(host_track_chi2_t, float) host_track_chi2;
 
-    // DEVICE_OUTPUT(dev_ip_chi2_t, float) dev_ip_chi2;
-    // HOST_OUTPUT(host_ip_chi2_t, float) host_ip_chi2;
-
     DEVICE_OUTPUT(dev_eta_t, float) dev_eta;
     HOST_OUTPUT(host_eta_t, float) host_eta;
 
@@ -67,7 +64,6 @@ namespace rich_1_line {
 
     PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
     PROPERTY(minP_t, "minP", "minP description", float) minP;
-    // PROPERTY(maxIPChi2_t, "maxIPChi2", "maxIPChi2 description", float) maxIPChi2;
     PROPERTY(maxTrChi2_t, "maxTrChi2", "max track chi2", float) maxTrChi2;
 
     PROPERTY(minEta_t, "minEta", "minimum pseudorapidity", std::array<float, 1>) minEta;
@@ -122,7 +118,6 @@ namespace rich_1_line {
     // RICH 1 Line-specific properties
     Property<minPt_t> m_minPt {this, 500.0f / Gaudi::Units::MeV};
     Property<minP_t> m_minP {this, 20000.0f / Gaudi::Units::MeV};
-    // Property<maxIPChi2_t> m_maxIPChi2 {this, 25.0f};
     Property<maxTrChi2_t> m_maxTrChi2 {this, 2.0f};
 
     Property<minEta_t> m_minEta {this, {1.60}};
