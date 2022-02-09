@@ -109,7 +109,10 @@ namespace VertexFit {
       float muB = -(secondinvBB * firstB + secondinvAB * firstA);
       x = 0.5f * (xA + muA * txA + xB + muB * txB);
       y = 0.5f * (yA + muA * tyA + yB + muB * tyB);
-      z = 0.5f * (zA + muA + zB + muB);
+      // Because floating point addition is non-associative, the parentheses
+      // below are needed to ensure that z does not depend on the order in which
+      // tracks are passed to the function.
+      z = 0.5f * ((zA + muA) + (zB + muB));
       return true;
     }
     return false;
