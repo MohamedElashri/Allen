@@ -24,6 +24,7 @@ target_link_libraries(Backend PUBLIC Vectorization Gear AllenCommon)
 target_link_libraries(Backend PRIVATE HostCommon)
 target_include_directories(Backend PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/Backend>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_definitions(Backend PUBLIC ${TARGET_DEFINITION})
 

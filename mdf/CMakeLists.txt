@@ -22,7 +22,7 @@ target_include_directories (mdf PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>)
 target_link_libraries(mdf PUBLIC LHCbEvent)
 
-set(lhcb_public_headers include/write_mdf.hpp daq40/sourceid.h)
+set(lhcb_public_headers include/write_mdf.hpp include/read_mdf.hpp include/mdf_header.hpp daq40/sourceid.h)
 target_include_directories(LHCbEvent INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/daq40>)
 
 if (STANDALONE)

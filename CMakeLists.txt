@@ -523,6 +523,7 @@ foreach(header
     Provider.h
     SystemOfUnits.h
     Logger.h
+    AllenIO.h
     Timer.h
     LoggerCommon.h
     BankTypes.h

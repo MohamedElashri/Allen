@@ -13,9 +13,9 @@
 #include <unordered_set>
 #include <functional>
 
-#include <BankTypes.h>
-#include <BankMapping.h>
-#include <AllenIO.h>
+#include "BankTypes.h"
+#include "BankMapping.h"
+#include "AllenIO.h"
 
 #include <gsl/gsl>
 
