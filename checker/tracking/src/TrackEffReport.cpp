@@ -108,12 +108,12 @@ void Checker::TrackEffReport::operator()(
 
 void Checker::TrackEffReport::report() const
 {
-  auto clonerate = 0.f, eff = 0.f, eff_per_event = 0.f;
+  double clonerate = 0.0, eff = 0.0, eff_per_event = 0.0;
 
-  const float n_tot = float(m_nfound + m_nclones);
-  if (m_nfound) clonerate = float(m_nclones) / n_tot;
-  if (m_naccept) eff = float(m_nfound) / float(m_naccept);
-  if (m_number_of_events) eff_per_event = ((float) m_eff_per_event) / ((float) m_number_of_events);
+  const double n_tot = m_nfound + m_nclones;
+  if (m_nfound) clonerate = double(m_nclones) / n_tot;
+  if (m_naccept) eff = double(m_nfound) / double(m_naccept);
+  if (m_number_of_events) eff_per_event = ((double) m_eff_per_event) / ((double) m_number_of_events);
 
   if (m_naccept > 0) {
     auto hitpur = std::accumulate(std::begin(m_hitpurs), std::end(m_hitpurs), 0.0) / (m_nfound + m_nclones);
