@@ -485,7 +485,7 @@ namespace Allen {
           return sqrtf(energy * energy - vertex().p2());
         }
 
-        __host__ __device__ float m12() const { return m12(mPi, mPi); }
+        __host__ __device__ float mdipi() const { return m12(mPi, mPi); }
 
         __host__ __device__ float mdimu() const { return m12(mMu, mMu); }
 
