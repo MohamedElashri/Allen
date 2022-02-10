@@ -106,7 +106,8 @@ namespace Allen {
             const unsigned event_number,
             const bool has_ut) :
             m_hits(hits + event_number),
-            m_base_track(base_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index), m_has_ut(has_ut)
+            m_base_track(base_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index),
+            m_has_ut(has_ut)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
@@ -115,26 +116,30 @@ namespace Allen {
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
-          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const { 
+          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const
+          {
             assert(m_has_ut);
-            return *static_cast<const Allen::Views::UT::Consolidated::Track*>(m_base_track); 
+            return *static_cast<const Allen::Views::UT::Consolidated::Track*>(m_base_track);
           }
 
           __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
           {
             if (m_has_ut) {
               return ut_track().velo_track();
-            } else {
+            }
+            else {
               return *static_cast<const Allen::Views::Velo::Consolidated::Track*>(m_base_track);
             }
           }
 
           __host__ __device__ unsigned number_of_scifi_hits() const { return m_number_of_hits; }
 
-          __host__ __device__ unsigned number_of_ut_hits() const { 
+          __host__ __device__ unsigned number_of_ut_hits() const
+          {
             if (m_has_ut) {
-              return ut_track().number_of_ut_hits(); 
-            } else {
+              return ut_track().number_of_ut_hits();
+            }
+            else {
               return 0;
             }
           }
