@@ -190,7 +190,7 @@ namespace Allen {
       template<typename T>
       struct MultiEventParticleContainer : MultiEventContainer<T>, IMultiEventParticleContainer {
         using MultiEventContainer<T>::MultiEventContainer;
-        __host__ __device__ unsigned number_of_particle_containers() const override
+        __host__ __device__ unsigned number_of_containers() const override
         {
           return MultiEventContainer<T>::number_of_events();
         }

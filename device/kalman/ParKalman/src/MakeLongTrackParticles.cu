@@ -37,6 +37,7 @@ void make_long_track_particles::make_long_track_particles_t::operator()(
 
 void __global__ make_long_track_particles::make_particles(make_long_track_particles::Parameters parameters)
 {
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
   const auto scifi_tracks = parameters.dev_scifi_tracks_view[event_number];
   const unsigned offset = scifi_tracks.offset();
@@ -60,5 +61,10 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
   if (threadIdx.x == 0) {
     new (parameters.dev_long_track_particles_view + event_number) Allen::Views::Physics::BasicParticles {
       parameters.dev_long_track_particle_view, parameters.dev_atomics_scifi, event_number};
+  }
+
+  if (blockIdx.x == 0 && threadIdx.x == 0) {
+    new (parameters.dev_multi_event_basic_particles_view)
+      Allen::Views::Physics::MultiEventBasicParticles {parameters.dev_long_track_particles_view, number_of_events};
   }
 }

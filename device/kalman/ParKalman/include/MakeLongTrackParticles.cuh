@@ -47,6 +47,11 @@ namespace make_long_track_particles {
       DEPENDENCIES(dev_long_track_particle_view_t),
       Allen::Views::Physics::BasicParticles)
     dev_long_track_particles_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_multi_event_basic_particles_view_t,
+      DEPENDENCIES(dev_long_track_particles_view_t),
+      Allen::Views::Physics::MultiEventBasicParticles)
+    dev_multi_event_basic_particles_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
