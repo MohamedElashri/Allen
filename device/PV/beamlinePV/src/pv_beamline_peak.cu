@@ -22,13 +22,10 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  global_function(pv_beamline_peak)(dim3(size<dev_event_list_t>(arguments)), warp_size, context)(
-    arguments, size<dev_event_list_t>(arguments));
+  global_function(pv_beamline_peak)(dim3(size<dev_event_list_t>(arguments)), warp_size, context)(arguments);
 }
 
-__global__ void pv_beamline_peak::pv_beamline_peak(
-  pv_beamline_peak::Parameters parameters,
-  const unsigned event_list_size)
+__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters)
 {
   auto event_index = blockIdx.x;
   const unsigned event_number = parameters.dev_event_list[event_index];
@@ -124,7 +121,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
       else
         number_of_clusteredges--;
       prevempty = empty;
-      integral = 0;
+      integral = zhisto[i];
     }
   }
 #endif
@@ -234,7 +231,6 @@ __global__ void pv_beamline_peak::pv_beamline_peak(
 
   for (unsigned i = threadIdx.x; i < number_of_clusters; i += blockDim.x) {
     zpeaks[i] = zClusterMean(clusters[i].izmax);
-    // printf("%d %f\n", i, zpeaks[i]);
   }
 
   if (threadIdx.x == 0) parameters.dev_number_of_zpeaks[event_number] = number_of_clusters;

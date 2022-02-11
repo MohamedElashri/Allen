@@ -62,8 +62,7 @@ __global__ void two_track_evaluator::two_track_evaluator(
     for (unsigned tree_id = 0; tree_id < n_trees; tree_id++) {
       int index = 0;
       const int tree_offset = tree_offsets[tree_id];
-      for (int depth = 0; depth < 8; ++depth) {
-        if (depth >= tree_sizes[tree_id]) break;
+      for (int depth = 0; depth < tree_sizes[tree_id]; ++depth) {
         const int feature_id = split_features[tree_offset + depth];
         const float feature_value = parameters.dev_two_track_catboost_preprocess_output[object_offset + feature_id];
         const float border = split_borders[tree_offset + depth];

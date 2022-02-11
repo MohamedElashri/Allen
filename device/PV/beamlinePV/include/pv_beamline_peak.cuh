@@ -23,7 +23,7 @@ namespace pv_beamline_peak {
     DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned) dev_number_of_zpeaks;
   };
 
-  __global__ void pv_beamline_peak(Parameters, const unsigned event_list_size);
+  __global__ void pv_beamline_peak(Parameters);
 
   struct pv_beamline_peak_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
