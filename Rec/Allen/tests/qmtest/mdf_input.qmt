@@ -15,7 +15,6 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
-    <text>--disable-run-changes</text><text>1</text>
     <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
     <text>--mdf</text><text>${ALLEN_PROJECT_ROOT}/input/minbias/mdf/upgrade_mc_minbias_scifi_v5.mdf</text>
   </set></argument>

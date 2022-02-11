@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
+#include "ParKalmanFittedTrack.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "AlgorithmTypes.cuh"
 

@@ -39,8 +39,6 @@ std::vector<ProgramOption> allen_program_options()
   return {{{"g", "geometry"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
           {{"params"}, "folder containing parameters that do not change with the geometry", "../input/parameters/"},
           {{"mdf"}, "comma-separated list of MDF files to use as input"},
-          {{"mep"}, "comma-separated list of MEP files to use as input"},
-          {{"transpose-mep"}, "Transpose MEPs instead of decoding from MEP layout directly", "0", "don't transpose"},
           {{"print-status"}, "show status of buffer and socket", "0"},
           {{"print-config"}, "show current algorithm configuration", "0"},
           {{"write-configuration"}, "write current algorithm configuration to file", "0"},
@@ -58,10 +56,6 @@ std::vector<ProgramOption> allen_program_options()
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
           {{"output-file"}, "Write selected event to output file", ""},
           {{"device"}, "select device to use", "0"},
-          {{"non-stop"}, "Runs the program indefinitely", "0"},
-          {{"with-mpi"}, "Read events with MPI"},
-          {{"mpi-window-size"}, "Size of MPI sliding window", "4"},
-          {{"mpi-number-of-slices"}, "Number of MPI network slices", "6"},
           {{"inject-mem-fail"}, "Whether to insert random memory failures (0: off 1-15: rate of 1 in 2^N)", "0"},
           {{"monitoring-filename"}, "ROOT file to write monitoring histograms to", "monitoring.root"},
           {{"monitoring-save-period"}, "Number of seconds between writes of the monitoring histograms (0: off)", "0"},
@@ -133,4 +127,14 @@ std::tuple<bool, std::map<std::string, int>> parse_receivers(const std::string& 
     }
   }
   return {true, result};
+}
+
+bool flag_in(std::string const& flag, std::vector<std::string> const& option_flags)
+{
+  if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
+    return true;
+  }
+  else {
+    return false;
+  }
 }

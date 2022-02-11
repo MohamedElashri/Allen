@@ -59,12 +59,13 @@ void kstopipi_line::kstopipi_line_t::output_monitor(
 {
   if (!property<make_tuple_t>()) return;
 
+  auto handler = runtime_options.root_service->handle(name());
+  auto tree = handler.tree("monitor_tree");
+  if (tree == nullptr) return;
+
   Allen::copy<host_sv_masses_t, dev_sv_masses_t>(arguments, context);
   Allen::copy<host_pt_t, dev_pt_t>(arguments, context);
   Allen::synchronize(context);
-
-  auto handler = runtime_options.root_service->handle(name());
-  auto tree = handler.tree("monitor_tree");
 
   float mass;
   float pt;

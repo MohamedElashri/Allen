@@ -12,6 +12,7 @@
 
 #include "RunAllen.h"
 #include "ROOTService.h"
+#include "InputReader.h"
 #include "HltDecReport.cuh"
 
 DECLARE_COMPONENT(RunAllen)
@@ -170,14 +171,6 @@ StatusCode RunAllen::initialize()
 
   m_stream->configure_algorithms(configuration_reader.params());
 
-  // Initialize input provider
-  const size_t number_of_slices = 1;
-  const size_t events_per_slice = 1;
-  const size_t n_events = 1;
-  m_tes_input_provider.reset(
-    new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
-      number_of_slices, events_per_slice, n_events));
-
   for (unsigned i = 0; i < m_line_names.size(); ++i) {
     const std::string name = m_line_names[i] + "Decision";
     m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
@@ -202,7 +195,13 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
   const LHCb::ODIN&) const
 {
-  int rv = m_tes_input_provider->set_banks(allen_banks);
+  // Initialize input provider
+  const size_t number_of_slices = 1;
+  const size_t events_per_slice = 1;
+  const size_t n_events = 1;
+  auto provider = std::make_shared<TESProvider>(number_of_slices, events_per_slice, n_events);
+
+  int rv = provider->set_banks(allen_banks);
   if (rv > 0) {
     error() << "Error in reading dumped raw banks" << endmsg;
   }
@@ -213,7 +212,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   const size_t slice_index = 0;
   const bool mep_layout = false;
   const uint inject_mem_fail = 0;
-  RuntimeOptions runtime_options {m_tes_input_provider,
+  RuntimeOptions runtime_options {provider,
                                   slice_index,
                                   {event_start, event_end},
                                   m_number_of_repetitions,

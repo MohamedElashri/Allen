@@ -5,6 +5,7 @@
 
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "VertexDefinitions.cuh"
 #include "VertexFitDeviceFunctions.cuh"
 #include "PV_Definitions.cuh"

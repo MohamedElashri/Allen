@@ -1,4 +1,4 @@
-/*****************************************************************************\
+/***************************************************************************** \
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 /**
@@ -39,8 +39,6 @@
 #include "Tools.h"
 #include "InputTools.h"
 #include "InputReader.h"
-#include "MDFProvider.h"
-#include "MEPProvider.h"
 #include "Timer.h"
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
@@ -56,6 +54,8 @@
 #include "RegisterConsumers.h"
 #include "CPUID.h"
 #include <tuple>
+#include "Provider.h"
+#include "ROOTService.h"
 
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
@@ -76,37 +76,25 @@ namespace {
 int allen(
   std::map<std::string, std::string> options,
   Allen::NonEventData::IUpdater* updater,
+  std::shared_ptr<IInputProvider> input_provider,
+  OutputHandler* output_handler,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
 {
   // Folder containing detector configuration and mva models
-  std::string folder_detector_configuration = "../input/detector_configuration/down/";
   std::string folder_parameters = "../input/parameters/";
-  std::string json_configuration_file = "Sequence.json";
-  // Sequence to run
-  std::string sequence;
 
-  unsigned number_of_slices = 0;
+  unsigned n_slices = 0;
   unsigned number_of_buffers = 0;
-  long number_of_events_requested = 0;
-  unsigned events_per_slice = 0;
   unsigned number_of_threads = 1;
-  unsigned number_of_repetitions = 1;
+  unsigned n_repetitions = 1;
   unsigned verbosity = 3;
   bool print_memory_usage = false;
-  bool non_stop = false;
   bool write_config = false;
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
-  // MPI options
-  bool with_mpi = false;
-  std::map<std::string, int> receivers = {{"mem", 1}};
-  int mpi_window_size = 4;
+
   // Input file options
-  std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf";
-  std::string mep_input;
-  bool mep_layout = true;
-  std::string output_file;
   int device_id = 0;
   int cpu_offload = 1;
   std::string file_list;
@@ -116,85 +104,51 @@ int allen(
   uint mon_save_period = 0;
   std::string mon_filename;
   bool disable_run_changes = 0;
-  bool run_from_json = false;
 
   std::string flag, arg;
-  const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
-    if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
-      return true;
-    }
-    return false;
-  };
 
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag_in({"g", "geometry"})) {
-      folder_detector_configuration = arg + "/";
-    }
-    else if (flag_in({"params"})) {
+    if (flag_in(flag, {"params"})) {
       folder_parameters = arg + "/";
     }
-    else if (flag_in({"mdf"})) {
-      mdf_input = arg;
-    }
-    else if (flag_in({"mep"})) {
-      mep_input = arg;
-    }
-    else if (flag_in({"transpose-mep"})) {
-      mep_layout = !atoi(arg.c_str());
-    }
-    else if (flag_in({"write-configuration"})) {
+    else if (flag_in(flag, {"write-configuration"})) {
       write_config = atoi(arg.c_str());
     }
-    else if (flag_in({"n", "number-of-events"})) {
-      number_of_events_requested = atol(arg.c_str());
+    else if (flag_in(flag, {"s", "number-of-slices"})) {
+      n_slices = atoi(arg.c_str());
     }
-    else if (flag_in({"s", "number-of-slices"})) {
-      number_of_slices = atoi(arg.c_str());
-    }
-    else if (flag_in({"events-per-slice"})) {
-      events_per_slice = atoi(arg.c_str());
-    }
-    else if (flag_in({"t", "threads"})) {
+    else if (flag_in(flag, {"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
       if (number_of_threads > max_stream_threads) {
         error_cout << "Error: more than maximum number of threads (" << max_stream_threads << ") requested\n";
         return -1;
       }
     }
-    else if (flag_in({"r", "repetitions"})) {
-      number_of_repetitions = atoi(arg.c_str());
-      if (number_of_repetitions == 0) {
+    else if (flag_in(flag, {"r", "repetitions"})) {
+      n_repetitions = atoi(arg.c_str());
+      if (n_repetitions == 0) {
         error_cout << "Error: number of repetitions must be at least 1\n";
         return -1;
       }
     }
-    else if (flag_in({"m", "memory"})) {
+    else if (flag_in(flag, {"m", "memory"})) {
       reserve_mb = atoi(arg.c_str());
     }
-    else if (flag_in({"host-memory"})) {
+    else if (flag_in(flag, {"host-memory"})) {
       reserve_host_mb = atoi(arg.c_str());
     }
-    else if (flag_in({"v", "verbosity"})) {
+    else if (flag_in(flag, {"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
     }
-    else if (flag_in({"p", "print-memory"})) {
+    else if (flag_in(flag, {"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
     }
-    else if (flag_in({"sequence"})) {
-      sequence = arg;
-    }
-    else if (flag_in({"run-from-json"})) {
-      run_from_json = atoi(arg.c_str());
-    }
-    else if (flag_in({"cpu-offload"})) {
+    else if (flag_in(flag, {"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
     }
-    else if (flag_in({"output-file"})) {
-      output_file = arg;
-    }
-    else if (flag_in({"device"})) {
+    else if (flag_in(flag, {"device"})) {
       if (arg.find(":") != std::string::npos) {
         // Get by PCI bus ID
         bool s = false;
@@ -205,40 +159,25 @@ int allen(
         device_id = atoi(arg.c_str());
       }
     }
-    else if (flag_in({"with-mpi"})) {
-      with_mpi = true;
-      bool parsed = false;
-      std::tie(parsed, receivers) = parse_receivers(arg);
-      if (!parsed) {
-        error_cout << "Failed to parse argument to with-mpi\n";
-        exit(1);
-      }
-    }
-    else if (flag_in({"file-list"})) {
+    else if (flag_in(flag, {"file-list"})) {
       file_list = arg;
     }
-    else if (flag_in({"mpi-window-size"})) {
-      mpi_window_size = atoi(arg.c_str());
-    }
-    else if (flag_in({"print-config"})) {
+    else if (flag_in(flag, {"print-config"})) {
       print_config = atoi(arg.c_str());
     }
-    else if (flag_in({"non-stop"})) {
-      non_stop = atoi(arg.c_str());
-    }
-    else if (flag_in({"print-status"})) {
+    else if (flag_in(flag, {"print-status"})) {
       print_status = atoi(arg.c_str());
     }
-    else if (flag_in({"inject-mem-fail"})) {
+    else if (flag_in(flag, {"inject-mem-fail"})) {
       inject_mem_fail = atoi(arg.c_str());
     }
-    else if (flag_in({"monitoring-filename"})) {
+    else if (flag_in(flag, {"monitoring-filename"})) {
       mon_filename = arg;
     }
-    else if (flag_in({"monitoring-save-period"})) {
+    else if (flag_in(flag, {"monitoring-save-period"})) {
       mon_save_period = atoi(arg.c_str());
     }
-    else if (flag_in({"disable-run-changes"})) {
+    else if (flag_in(flag, {"disable-run-changes"})) {
       disable_run_changes = atoi(arg.c_str());
     }
   }
@@ -247,12 +186,8 @@ int allen(
   std::cout << std::fixed << std::setprecision(6);
   logger::setVerbosity(verbosity);
 
-#ifdef TARGET_DEVICE_CUDA
-  // For CUDA targets, set the maximum number of connections environment variable
-  // equal to the number of thread/streams, with a maximum of 32.
-  const auto cuda_device_max_connections = number_of_threads < 32 ? number_of_threads : 32;
-  setenv("CUDA_DEVICE_MAX_CONNECTIONS", std::to_string(cuda_device_max_connections).c_str(), 1);
-#endif
+  auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
+  auto const [json_configuration_file, run_from_json] = Allen::sequence_conf(options);
 
   // Set device for main thread
   auto [device_set, device_name, device_memory_alignment] = Allen::set_device(device_id, 0);
@@ -263,66 +198,13 @@ int allen(
   // Show call options
   print_call_options(options, device_name);
 
-  // Determine configuration
-  if (run_from_json) {
-    json_configuration_file = sequence + ".json";
-  }
-  else {
-    int error =
-      system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py")
-               .c_str());
-    if (error) {
-      throw std::runtime_error("sequence generation failed");
-    }
-    info_cout << "\n";
-  }
-
-  // Determine wether to run with async I/O.
-  bool enable_async_io = true;
-  size_t n_io_reps = number_of_repetitions;
-  if ((number_of_slices == 0 || number_of_slices == 1) && number_of_repetitions > 1) {
-    // NOTE: Special case to be able to compare throughput with and
-    // without async I/O; if repetitions are requested and the number
-    // of slices is default (0) or 1, never free the initially filled
-    // slice.
-    enable_async_io = false;
-    number_of_slices = 1;
-    n_io_reps = 1;
-    debug_cout << "Disabling async I/O to measure throughput without it.\n";
-  }
-  else if (number_of_slices <= number_of_threads) {
-    warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
-    number_of_slices = number_of_threads + 1;
-    number_of_repetitions = 1;
-  }
-  else {
-    info_cout << "Using " << number_of_slices << " input slices."
-              << "\n";
-    number_of_repetitions = 1;
-  }
-
   number_of_buffers = number_of_threads + n_mon + 1;
-
-  // Set a sane default for the number of events per input slice
-  if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
-    events_per_slice = number_of_events_requested;
-  }
 
   std::unique_ptr<ConfigurationReader> configuration_reader;
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
-
   std::unique_ptr<CatboostModelReader> two_track_catboost_model_reader;
-
   std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
-
-  std::shared_ptr<IInputProvider> input_provider;
-
-  // Number of requested events as an optional
-  boost::optional<size_t> n_events = boost::make_optional(false, size_t {});
-  if (number_of_events_requested != 0) {
-    n_events = number_of_events_requested;
-  }
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -336,42 +218,6 @@ int allen(
     allen_control->connect(control_connection.data());
     control_index = items.size() - 1;
     items[control_index] = {*allen_control, 0, zmq::POLLIN, 0};
-  }
-
-  // Create the InputProvider, either MDF or MEP
-  // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
-  if (!mep_input.empty() || with_mpi) {
-    MEPProviderConfig config {false,                // verify MEP checksums
-                              10,                   // number of read buffers
-                              mep_layout ? 1u : 4u, // number of transpose threads
-                              mpi_window_size,      // MPI sliding window size
-                              with_mpi,             // Receive from MPI or read files
-                              non_stop,             // Run the application non-stop
-                              !mep_layout,          // MEPs should be transposed to Allen layout
-                              !disable_run_changes, // Whether to split slices by run number
-                              receivers};           // Map of receiver to MPI rank to receive from
-    input_provider = std::make_shared<
-      MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal>>(
-      number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
-  }
-  else if (!mdf_input.empty()) {
-    mep_layout = false;
-    MDFProviderConfig config {false,                     // verify MDF checksums
-                              10,                        // number of read buffers
-                              4,                         // number of transpose threads
-                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
-                              events_per_slice,          // number of events per read buffer
-                              n_io_reps,                 // number of loops over the input files
-                              !disable_run_changes};     // Whether to split slices by run number
-    input_provider = std::make_shared<MDFProvider<
-      BankTypes::VP,
-      BankTypes::UT,
-      BankTypes::FT,
-      BankTypes::MUON,
-      BankTypes::ODIN,
-      BankTypes::ECal,
-      BankTypes::OTRaw,
-      BankTypes::OTError>>(number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
 
   // Load constant parameters from JSON
@@ -444,7 +290,7 @@ int allen(
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, events_per_slice, n_lines, error_line);
+    std::make_unique<HostBuffersManager>(number_of_buffers, input_provider->events_per_slice(), n_lines, error_line);
 
   if (print_status) {
     buffers_manager->printStatus();
@@ -455,21 +301,6 @@ int allen(
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
     std::make_unique<MonitorManager>(n_mon, buffers_manager.get(), root_service.get(), 30, time(0));
-
-  std::unique_ptr<OutputHandler> output_handler;
-  if (!output_file.empty()) {
-    try {
-      if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, events_per_slice, zmqSvc);
-      }
-      else {
-        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, events_per_slice);
-      }
-    } catch (std::runtime_error const& e) {
-      error_cout << e.what() << "\n";
-      exit(1);
-    }
-  }
 
   // Notify used memory if requested verbose mode
   if (logger::verbosity() >= logger::verbose) {
@@ -529,9 +360,9 @@ int allen(
                         zmqSvc,
                         checker_invoker.get(),
                         root_service.get(),
-                        number_of_repetitions,
+                        io_conf.number_of_repetitions,
                         cpu_offload,
-                        mep_layout,
+                        input_provider->layout() == IInputProvider::Layout::MEP,
                         inject_mem_fail};
   };
 
@@ -543,8 +374,7 @@ int allen(
 
   // Lambda with the execution of the output thread
   const auto output_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {
-      run_output, thread_id, zmqSvc, output_handler ? output_handler.get() : nullptr, buffers_manager.get()};
+    return std::thread {run_output, thread_id, zmqSvc, output_handler, buffers_manager.get()};
   };
 
   // Lambda with the execution of the monitoring thread
@@ -642,8 +472,8 @@ int allen(
   // allow slices to be sub-divided if necessary
   // key of map corresponds to the first entry in a sub-slice
   std::vector<std::map<size_t, SliceStatus>> input_slice_status(
-    number_of_slices, std::map<size_t, SliceStatus> {{0, SliceStatus::Empty}});
-  std::vector<std::map<size_t, size_t>> events_in_slice(number_of_slices, std::map<size_t, size_t> {{0, 0}});
+    io_conf.number_of_slices, std::map<size_t, SliceStatus> {{0, SliceStatus::Empty}});
+  std::vector<std::map<size_t, size_t>> events_in_slice(io_conf.number_of_slices, std::map<size_t, size_t> {{0, 0}});
 
   auto count_status = [&input_slice_status](SliceStatus const status) {
     return std::accumulate(
@@ -742,18 +572,19 @@ int allen(
           ++slices_processed;
           stream_ready[i] = true;
 
-          if (throughput_socket && t) {
+          if (t) {
             double elapsed_time = t->get_elapsed_time();
             auto dt = elapsed_time - previous_time_measurement;
             if (dt > 5.) {
               if (print_status) {
+                info_cout << "Processed " << n_events_processed << " events\n";
                 char buf[200];
                 std::snprintf(
                   buf,
                   sizeof(buf),
                   "Processed %7li events at a rate of %8.2f events/s\n",
-                  n_events_measured * number_of_repetitions,
-                  n_events_measured * number_of_repetitions / dt);
+                  n_events_measured * io_conf.number_of_repetitions,
+                  n_events_measured * io_conf.number_of_repetitions / dt);
                 info_cout << buf;
                 std::snprintf(
                   buf,
@@ -763,7 +594,11 @@ int allen(
                   n_output_measured / dt);
                 info_cout << buf;
               }
-              zmqSvc->send(*throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
+
+              if (throughput_socket) {
+                zmqSvc->send(
+                  *throughput_socket, std::to_string(n_events_measured * io_conf.number_of_repetitions / dt));
+              }
               previous_time_measurement = elapsed_time;
               n_events_measured = 0;
               n_output_measured = 0;
@@ -795,7 +630,6 @@ int allen(
   };
 
   if (!allen_control && !error_count) {
-    input_provider->start();
     for (size_t i = 0; i < n_io; ++i) {
       auto& socket = std::get<1>(io_workers[i]);
       zmqSvc->send(socket, "START");
@@ -807,7 +641,9 @@ int allen(
 
   bool io_done = false;
   // stop triggered, input done, output done
-  auto stop = false, exit_loop = false;
+  bool stop = false, exit_loop = false;
+  std::optional<Timer> t_stop;
+  float stop_timeout = 5.f;
 
   // Main event loop
   // - Check if input slices are available from the input thread
@@ -826,7 +662,7 @@ int allen(
   while (error_count == 0) {
 
     // Wait for messages to come in from the I/O, monitoring or stream threads
-    zmqSvc->poll(&items[0], items.size(), -1);
+    zmqSvc->poll(&items[0], items.size(), stop ? 100 : -1);
 
     // If we have a pending run change we must do that before receiving further input from the I/O threads
     if (run_change) {
@@ -866,9 +702,11 @@ int allen(
             }
 
             // FIXME: make the warmup time configurable
-            if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
+            if (
+              !t && (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) ||
+                     !io_conf.async_io)) {
               info_cout << "Starting timer for throughput measurement\n";
-              throughput_start = n_events_processed * number_of_repetitions;
+              throughput_start = n_events_processed * io_conf.number_of_repetitions;
               t = Timer {};
               previous_time_measurement = t->get_elapsed_time();
             }
@@ -906,7 +744,7 @@ int allen(
                 break;
               }
             }
-            if (enable_async_io && slice_finished) {
+            if (io_conf.async_io && slice_finished) {
               input_slice_status[slc_idx].clear();
               input_slice_status[slc_idx][0] = SliceStatus::Empty;
               input_provider->slice_free(slc_idx);
@@ -936,14 +774,14 @@ int allen(
     // I/O is disabled send the slice(s) to all stream_threads
     if (slice_index) {
       bool first = true;
-      while ((enable_async_io && first) || (!enable_async_io && stream_ready.count())) {
+      while ((io_conf.async_io && first) || (!io_conf.async_io && stream_ready.count())) {
         first = false;
         size_t processor_index = prev_processor++;
         if (prev_processor == number_of_threads) {
           prev_processor = 0;
         }
         // send message to processor to process the slice
-        if (enable_async_io) {
+        if (io_conf.async_io) {
           input_slice_status[*slice_index][0] = SliceStatus::Processing;
         }
         buffer_index = std::optional<size_t> {buffers_manager->assignBufferToFill()};
@@ -1036,13 +874,13 @@ int allen(
     if (allen_control && items[control_index].revents & zmq::POLLIN) {
       auto msg = zmqSvc->receive<std::string>(*allen_control);
       if (msg == "STOP") {
+        stop_timeout = zmqSvc->receive<float>(*allen_control);
         stop = true;
-        input_provider->stop();
+        t_stop = Timer {};
       }
       else if (msg == "START") {
         // Start the input provider
         io_done = false;
-        input_provider->start();
 
         // Send slice thread start to start asking for slices
         for (size_t i = 0; i < n_io; ++i) {
@@ -1063,26 +901,34 @@ int allen(
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
     bool io_cond =
-      ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done)) && !run_change;
-    if (t && io_cond && number_of_repetitions > 1) {
+      ((!io_conf.async_io && stream_ready.count() == number_of_threads) || (io_conf.async_io && io_done)) &&
+      !run_change;
+    if (t && io_cond && io_conf.number_of_repetitions > 1) {
       if (!throughput_processed) {
-        throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
+        throughput_processed = n_events_processed * io_conf.number_of_repetitions - throughput_start;
       }
       t->stop();
     }
 
     // Check if we're done
-    if (
-      stream_ready.count() == number_of_threads && buffers_manager->buffersEmpty() && io_cond &&
-      (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
-      info_cout << "Processing complete\n";
-      if (allen_control && stop) {
-        stop = false;
-        zmqSvc->send(*allen_control, "READY");
+    if (stream_ready.count() == number_of_threads && io_cond) {
+      if (
+        buffers_manager->buffersEmpty() &&
+        (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
+        info_cout << "Processing complete\n";
+        if (allen_control && stop) {
+          stop = false;
+          t_stop.reset();
+          if (output_handler) output_handler->output_done();
+          zmqSvc->send(*allen_control, "READY");
+        }
+        if (!allen_control || (allen_control && exit_loop)) {
+          break;
+        }
       }
-      else if (!allen_control || (allen_control && exit_loop)) {
-        break;
-      }
+    }
+    else if (allen_control && stop && t_stop && static_cast<float>(t_stop->get()) > stop_timeout) {
+      if (output_handler) output_handler->cancel();
     }
   }
 
@@ -1101,7 +947,7 @@ loop_error:
   // make sure the timer has stopped
   if (t) {
     if (!throughput_processed) {
-      throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
+      throughput_processed = n_events_processed * io_conf.number_of_repetitions - throughput_start;
     }
     t->stop();
   }
@@ -1117,10 +963,12 @@ loop_error:
   if (print_status) {
     buffers_manager->printStatus();
   }
-  monitor_manager->saveHistograms();
+  if (!mon_filename.empty()) {
+    monitor_manager->saveHistograms();
+  }
 
   // Print checker reports
-  checker_invoker->report(n_events_processed * number_of_repetitions);
+  checker_invoker->report(n_events_processed * io_conf.number_of_repetitions);
   checker_invoker.reset();
 
   // Print throughput measurement result
@@ -1137,8 +985,9 @@ loop_error:
                  << "\n";
   }
 
-  if (!output_file.empty()) {
-    info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_file << "\n";
+  if (output_handler != nullptr) {
+    info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to "
+              << output_handler->connection() << "\n";
   }
 
   // Reset device

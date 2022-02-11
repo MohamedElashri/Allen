@@ -5,6 +5,7 @@
 
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "VertexDefinitions.cuh"
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"

@@ -23,6 +23,7 @@
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
+#include <sourceid.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Event/RawBank.h>
@@ -30,7 +31,36 @@
 
 #include "TransposeTypes.h"
 
-//
+/**
+ * @brief      Get the (Allen) subdetector from the bank type
+ *
+ * @param      raw bank
+ *
+ * @return     Allen subdetector
+ */
+BankTypes sd_from_bank_type(LHCb::RawBank const* raw_bank);
+
+/**
+ * @brief      Get the (Allen) subdetector from the 5
+ *             most-significant bits of a source ID
+ *
+ * @param      raw bank
+ *
+ * @return     Allen subdetector
+ */
+BankTypes sd_from_sourceID(LHCb::RawBank const* raw_bank);
+
+/**
+ * @brief      Check if any of the soruce IDs have a non-zero value
+ *             in the 5 most-significant bits
+ *
+ * @param      span with banks in MDF layout
+ *
+ * @return     true if any of the sourceIDs has a non-zero value in
+ *             its 5 most-significant bits
+ */
+bool check_sourceIDs(gsl::span<char const> bank_data);
+
 /**
  * @brief      read events from input file into prefetch buffer
  *
@@ -49,7 +79,7 @@
  */
 std::tuple<bool, bool, bool, size_t> read_events(
   Allen::IO& input,
-  ReadBuffer& read_buffer,
+  Allen::ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
   std::vector<char>& compress_buffer,
   size_t n_events,
@@ -64,7 +94,9 @@ std::tuple<bool, bool, bool, size_t> read_events(
  *
  * @return     (success, number of banks per bank type; 0 if the bank is not needed)
  */
-std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::span<char const> bank_data);
+std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
+  gsl::span<char const> bank_data,
+  Allen::sd_from_raw_bank sd_from_raw_bank);
 
 /**
  * @brief      Transpose events to Allen layout
@@ -79,39 +111,16 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
  * @return     tuple of: (success, slice is full)
  */
 std::tuple<bool, bool, bool> transpose_event(
-  Slices& slices,
+  Allen::Slices& slices,
   int const slice_index,
-  std::vector<int> const& bank_ids,
-  std::unordered_set<BankTypes> const& to_transpose,
-  std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  std::unordered_set<BankTypes> const& bank_types,
+  Allen::sd_from_raw_bank sd_from_raw_bank,
+  std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
+  std::vector<char>& event_mask,
   const gsl::span<char const> bank_data,
   bool split_by_run);
-
-/**
- * @brief      Reset a slice
- *
- * @param      slices
- * @param      slice_index
- * @param      event_ids
- */
-template<BankTypes... Banks>
-void reset_slice(Slices& slices, int const slice_index, EventIDs& event_ids, bool mep = false)
-{
-  // "Reset" the slice
-  for (auto bank_type : {Banks...}) {
-    auto ib = to_integral(bank_type);
-    auto& [banks, data_size, offsets, offsets_size] = slices[ib][slice_index];
-    std::fill(offsets.begin(), offsets.end(), 0);
-    offsets_size = 1;
-    if (mep) {
-      banks.clear();
-      data_size = 0;
-    }
-  }
-  event_ids.clear();
-}
 
 /**
  * @brief      Transpose events to Allen layout
@@ -123,49 +132,19 @@ void reset_slice(Slices& slices, int const slice_index, EventIDs& event_ids, boo
  * @param      bank versions to fill
  * @param      event ids of banks in this slice
  * @param      number of banks per event
- * @param      number of events to transpose
+ * @param      number of events tor transpose
  *
  * @return     (success, slice full for one of the bank types, number of events transposed)
  */
 std::tuple<bool, bool, size_t> transpose_events(
-  const ReadBuffer& read_buffer,
-  Slices& slices,
+  const Allen::ReadBuffer& read_buffer,
+  Allen::Slices& slices,
   int const slice_index,
-  std::vector<int> const& bank_ids,
   std::unordered_set<BankTypes> const& bank_types,
-  std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  Allen::sd_from_raw_bank sd_from_raw_bank,
+  std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
+  std::vector<char>& event_mask,
   size_t n_events,
   bool split_by_run = false);
-
-template<BankTypes... Banks>
-Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun)
-{
-  Slices slices;
-  for (auto bank_type : {Banks...}) {
-    auto [n_bytes, n_offsets] = size_fun(bank_type);
-
-    auto ib = to_integral(bank_type);
-    auto& bank_slices = slices[ib];
-    bank_slices.reserve(n_slices);
-    for (size_t i = 0; i < n_slices; ++i) {
-      char* events_mem = nullptr;
-      unsigned* offsets_mem = nullptr;
-
-      if (n_bytes) Allen::malloc_host((void**) &events_mem, n_bytes);
-      if (n_offsets) Allen::malloc_host((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned));
-
-      for (size_t i = 0; i < n_offsets + 1; ++i) {
-        offsets_mem[i] = 0;
-      }
-      std::vector<gsl::span<char>> spans {};
-      if (n_bytes) {
-        spans.emplace_back(events_mem, n_bytes);
-      }
-      bank_slices.emplace_back(
-        std::move(spans), n_bytes, offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)}, 1);
-    }
-  }
-  return slices;
-}

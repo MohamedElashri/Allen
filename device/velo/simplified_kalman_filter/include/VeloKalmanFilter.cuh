@@ -9,7 +9,6 @@
 #include "Common.h"
 #include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
-#include "patPV_Definitions.cuh"
 
 namespace velo_kalman_filter {
   /**

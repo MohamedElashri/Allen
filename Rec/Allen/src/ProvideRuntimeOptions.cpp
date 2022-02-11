@@ -17,6 +17,7 @@
 
 // Allen
 #include <TESProvider.h>
+#include <ROOTService.h>
 #include <Constants.cuh>
 #include <Logger.h>
 
@@ -36,7 +37,6 @@ public:
 private:
   Gaudi::Property<std::string> m_monitorFile {this, "MonitorFile", "allen_monitor.root"};
 
-  mutable CheckerInvoker m_checker_invoker {};
   std::unique_ptr<ROOTService> m_root_service {};
 };
 
@@ -67,14 +67,7 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
   const size_t events_per_slice = 1;
   const unsigned event_start = 0;
   const unsigned event_end = 1;
-  auto tes_provider = std::make_shared<TESProvider<
-    BankTypes::VP,
-    BankTypes::UT,
-    BankTypes::FT,
-    BankTypes::MUON,
-    BankTypes::ODIN,
-    BankTypes::ECal,
-    BankTypes::HCal>>(n_slices, events_per_slice, event_end - event_start);
+  auto tes_provider = std::make_shared<TESProvider>(n_slices, events_per_slice, event_end - event_start);
   tes_provider->set_banks(allen_banks);
 
   // initialize RuntimeOptions
@@ -89,7 +82,7 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
           cpu_offload,
           mep_layout,
           param_inject_mem_fail,
-          &m_checker_invoker,
+          nullptr,
           m_root_service.get()};
 }
 

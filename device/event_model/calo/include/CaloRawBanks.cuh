@@ -13,9 +13,9 @@
 #include "BackendCommon.h"
 
 struct CaloRawBank {
-  uint32_t source_id;
-  uint32_t const* data;
-  uint32_t const* end;
+  uint32_t source_id = 0;
+  uint32_t const* data = nullptr;
+  uint32_t const* end = nullptr;
 
   // For Allen format
   __device__ __host__ CaloRawBank(const char* raw_bank, uint32_t s) :

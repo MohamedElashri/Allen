@@ -9,6 +9,7 @@ from AllenConf.algorithms import calc_selrep_size_t, make_selrep_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
+from PyConf.tonic import configurable
 
 
 def make_gather_selections(lines):
@@ -39,13 +40,15 @@ def make_gather_selections(lines):
         names_of_active_lines=",".join([line.name for line in lines]))
 
 
-def make_dec_reporter(lines):
+@configurable
+def make_dec_reporter(lines, TCK="0"):
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
         dec_reporter_t,
         name="dec_reporter",
+        tck=TCK,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_active_lines_t=gather_selections.
         host_number_of_active_lines_t,

@@ -23,15 +23,20 @@
 #include <Logger.h>
 #include <InputProvider.h>
 #include <mdf_header.hpp>
+#include <sourceid.h>
 #include <read_mdf.hpp>
 #include <write_mdf.hpp>
 #include <Event/RawBank.h>
+#include "BankMapping.h"
 
-#include "Transpose.h"
+#include <SliceUtils.h>
+#include <Transpose.h>
 #include <BackendCommon.h>
 
 namespace {
   using namespace Allen::Units;
+
+  using namespace std::string_literals;
 } // namespace
 
 /**
@@ -82,18 +87,20 @@ struct MDFProviderConfig {
  * @param      Configuration struct
  *
  */
-template<BankTypes... Banks>
-class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
+// template<BankTypes... Banks>
+// class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
+class MDFProvider final : public InputProvider {
 public:
   MDFProvider(
     size_t n_slices,
     size_t events_per_slice,
-    boost::optional<size_t> n_events,
+    std::optional<size_t> n_events,
     std::vector<std::string> connections,
+    std::unordered_set<BankTypes> const& bank_types,
     MDFProviderConfig config = MDFProviderConfig {}) :
-    InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, n_events},
-    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, -1), m_slice_free(n_slices, true), m_banks_count {0},
-    m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    InputProvider {n_slices, events_per_slice, bank_types, IInputProvider::Layout::Allen, n_events},
+    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true),
+    m_mfp_count {0}, m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
@@ -115,8 +122,6 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
-    m_bank_ids = bank_ids();
-
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
@@ -125,6 +130,11 @@ public:
     {
       // aquire lock
       std::unique_lock<std::mutex> lock {m_prefetch_mut};
+
+      m_masks.resize(n_slices);
+      for (auto& mask : m_masks) {
+        mask.resize(events_per_slice, 0);
+      }
 
       // start prefetch thread
       m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
@@ -138,12 +148,25 @@ public:
         // Offsets are to the start of the event, which includes the header
         auto i_read = m_prefetched.front();
         auto& [n_filled, event_offsets, buffer, transpose_start] = m_buffers[i_read];
-        std::tie(count_success, m_banks_count) = fill_counts({buffer.data(), event_offsets[1]});
+        gsl::span<char> const event_span = {buffer.data(), event_offsets[1]};
+
+        // Check what type of file we have: old MC or (new MC or data)
+        m_is_mc = check_sourceIDs(event_span);
+        m_sd_from_raw = m_is_mc ? sd_from_bank_type : sd_from_sourceID;
+        std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw);
+
+        for (auto allen_type : types()) {
+          if (m_mfp_count[to_integral(allen_type)] == 0) {
+            error_cout << "Banks for " << bank_name(allen_type) << " are not present in the file\n";
+            m_read_error = true;
+          }
+        }
+
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
           m_read_error = true;
         }
-        else {
+        else if (!m_read_error) {
           m_sizes_known = true;
 
           // Allocate slice memory that will contain transposed banks ready
@@ -157,16 +180,6 @@ public:
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
 
-            // Lookup LHCb bank type corresponding to Allen bank type
-            auto type_it =
-              std::find_if(Allen::bank_types.begin(), Allen::bank_types.end(), [bank_type](const auto& entry) {
-                return entry.second == bank_type;
-              });
-            if (type_it == Allen::bank_types.end()) {
-              throw std::out_of_range {std::string {"Failed to lookup LHCb type for bank type "} + std::to_string(ib)};
-            }
-            auto lhcb_type = to_integral<LHCb::RawBank::BankType>(type_it->first);
-
             // When events are transposed from the read buffer into
             // the per-rawbank-type slices, a check is made each time
             // to see if there is enough space available in a slice.
@@ -176,12 +189,11 @@ public:
             // problems for banks with very low average size like the
             // ODIN bank - 0.1 kB, a fixed amount is also added.
             auto n_bytes = std::lround(
-              ((1 + m_banks_count[lhcb_type]) * sizeof(uint32_t) + it->second * kB) * allocate_events *
-                bank_size_fudge_factor +
+              ((1 + m_mfp_count[ib]) * sizeof(uint32_t) + it->second * kB) * allocate_events * bank_size_fudge_factor +
               2 * MB);
             return {n_bytes, events_per_slice};
           };
-          m_slices = allocate_slices<Banks...>(n_slices, size_fun);
+          m_slices = allocate_slices(n_slices, types(), size_fun);
         }
       }
     }
@@ -237,7 +249,7 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
     const override
   {
     auto const& ids = m_event_ids[slice_index];
@@ -263,8 +275,8 @@ public:
     auto const offsets = std::get<2>(tup);
     auto const offsets_size = std::get<3>(tup);
 
-    span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-    span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
+    gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
+    gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
   }
 
@@ -275,8 +287,7 @@ public:
    *
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
-    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> timeout = {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
@@ -331,14 +342,20 @@ public:
         m_slice_free[slice_index] = true;
         freed = true;
 
+        // Reset the slice
+        auto& event_ids = m_event_ids[slice_index];
+        reset_slice(m_slices, slice_index, types(), event_ids);
+
         // Clear relation between slice and buffer
-        i_read = m_slice_to_buffer[slice_index];
+        i_read = m_slice_to_buffer[slice_index].buffer_index;
         auto& status = m_buffer_status[i_read];
-        m_slice_to_buffer[slice_index] = -1;
+        m_slice_to_buffer[slice_index].buffer_index = -1;
 
         if (
           status.work_counter == 0 && std::get<0>(m_buffers[i_read]) == std::get<3>(m_buffers[i_read]) &&
-          (std::find(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), i_read) == m_slice_to_buffer.end())) {
+          (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), [i_read](auto const stb) {
+             return stb.buffer_index == i_read;
+           }) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
           // "Reset" buffer; the 0th offset is always 0. Set transpose
@@ -359,44 +376,58 @@ public:
     }
   }
 
+  gsl::span<char const> raw_banks(Allen::ReadBuffer const& buffer, size_t const read_event_start, size_t const event)
+    const
+  {
+    auto const event_index = event + read_event_start;
+
+    // FIXME structured binding version below triggers clang 11 bug
+    //       revert after clang fix available
+    // auto const& [n_filled, event_offsets, event_buffer, transpose_start] = m_buffers[i_read];
+    auto const& event_offsets = std::get<1>(buffer);
+    auto const& event_buffer = std::get<2>(buffer);
+
+    auto event_offset = event_offsets[event_index];
+
+    // The first bank in the read buffer is the DAQ bank, which
+    // contains the MDF header as bank payload; it does not belong to
+    // the original event and should be skipped
+    auto const* daq_bank = reinterpret_cast<LHCb::RawBank const*>(event_buffer.data() + event_offset);
+    assert(daq_bank->type() == LHCb::RawBank::DAQ);
+    auto const daq_bank_size = daq_bank->totalSize();
+
+    auto const* banks_start = event_buffer.data() + event_offset + daq_bank_size;
+    return {banks_start, event_offsets[event_index + 1] - event_offset - daq_bank_size};
+  }
+
   void event_sizes(
     size_t const slice_index,
     gsl::span<unsigned int const> const selected_events,
     std::vector<size_t>& sizes) const override
   {
-    // The first bank in the read buffer is the DAQ bank, which
-    // contains the MDF header as bank payload
-    auto const daq_bank_size = bank_header_size + mdf_header_size;
-    auto i_read = m_slice_to_buffer[slice_index];
-    auto const& event_offsets = std::get<1>(m_buffers[i_read]);
-    size_t transpose_start = std::get<3>(m_buffers[i_read]);
+    auto const stb = m_slice_to_buffer[slice_index];
+    auto const i_read = stb.buffer_index;
+    auto const read_event_start = stb.buffer_event_start;
+    auto const& buffer = m_buffers[i_read];
+
     for (size_t i = 0; i < static_cast<size_t>(selected_events.size()); ++i) {
-      auto event = selected_events[i];
-      sizes[i] = event_offsets[transpose_start + event + 1] - event_offsets[transpose_start + event] - daq_bank_size;
+      auto const event = selected_events[i];
+      sizes[i] = raw_banks(buffer, read_event_start, event).size_bytes();
     }
   }
 
-  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const override
+  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> output_buffer) const override
   {
     // The first bank in the read buffer is the DAQ bank, which
     // contains the MDF header as bank payload
-    auto const header_size = LHCb::MDFHeader::sizeOf(3);
-    auto const daq_bank_size = 4 * sizeof(3) + header_size;
+    auto const stb = m_slice_to_buffer[slice_index];
+    auto const i_read = stb.buffer_index;
+    auto const read_event_start = stb.buffer_event_start;
 
-    auto i_read = m_slice_to_buffer[slice_index];
-
-    // FIXME structured binding version below triggers clang 11 bug
-    //       revert after clang fix available
-    // auto const& [n_filled, event_offsets, event_buffer, transpose_start] = m_buffers[i_read];
-    auto const& tup = m_buffers[i_read];
-    auto const& event_offsets = std::get<1>(tup);
-    auto const& event_buffer = std::get<2>(tup);
-    auto const transpose_start = std::get<3>(tup);
-
-    auto const event_size =
-      event_offsets[transpose_start + event + 1] - event_offsets[event + transpose_start] - daq_bank_size;
-    auto const* banks_start = event_buffer.data() + event_offsets[event + transpose_start] + daq_bank_size;
-    std::memcpy(buffer.data(), banks_start, event_size);
+    auto const& buffer = m_buffers[i_read];
+    auto const banks = raw_banks(buffer, read_event_start, event);
+    assert(banks.size_bytes() <= output_buffer.size());
+    std::memcpy(output_buffer.data(), banks.data(), banks.size_bytes());
   }
 
 private:
@@ -469,25 +500,21 @@ private:
         }
         if (it != m_slice_free.end()) {
           slice_index = distance(m_slice_free.begin(), it);
-          m_slice_to_buffer[*slice_index] = i_read;
           this->debug_output("Got slice index " + std::to_string(*slice_index), thread_id);
         }
       }
-
-      // Reset the slice
-      auto& event_ids = m_event_ids[*slice_index];
-      reset_slice<Banks...>(m_slices, *slice_index, event_ids);
 
       // Transpose the events in the read buffer into the slice
       std::tie(good, transpose_full, n_transposed) = transpose_events(
         m_buffers[i_read],
         m_slices,
         *slice_index,
-        m_bank_ids,
         this->types(),
-        m_banks_count,
+        m_sd_from_raw,
+        m_mfp_count,
         m_banks_version,
         m_event_ids[*slice_index],
+        m_masks[*slice_index],
         this->events_per_slice(),
         m_config.split_by_run);
 
@@ -497,6 +524,9 @@ private:
         --status.work_counter;
         m_transpose_cond.notify_one();
         break;
+      }
+      else {
+        m_slice_to_buffer[*slice_index] = {static_cast<int>(i_read), std::get<3>(m_buffers[i_read])};
       }
 
       // Increment the transpose_start with the number of transposed events
@@ -537,7 +567,7 @@ private:
   /**
    * @brief      Open an input file; called from the prefetch thread
    *
-   * @return     success
+   * @return     (success, is_mc)
    */
   bool open_file() const
   {
@@ -635,9 +665,16 @@ private:
       // needed
       while (true) {
         size_t read = std::get<0>(read_buffer);
-        size_t to_prefetch = to_read ? std::min(eps, *to_read) : eps;
+        size_t to_prefetch = to_read ? std::min(eps, *to_read + read) : eps;
         std::tie(eof, error, buffer_full, bytes_read) =
           read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
+
+        auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
+        if (m_is_mc && *m_is_mc != is_mc) {
+          throw std::out_of_range {"The next batch of events is different from the previous events"s +
+                                   (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
+        }
+
         size_t n_read = std::get<0>(read_buffer) - read;
         if (to_read) {
           *to_read -= std::min(*to_read, n_read);
@@ -705,7 +742,7 @@ private:
   }
 
   // Memory buffers to read binary data into from the file
-  mutable ReadBuffers m_buffers;
+  mutable Allen::ReadBuffers m_buffers;
 
   // data members for prefetch thread
   std::mutex m_prefetch_mut;
@@ -726,12 +763,15 @@ private:
   // Storage to read the header into for each event
   mutable LHCb::MDFHeader m_header;
 
-  // Allen IDs of LHCb raw banks
-  std::vector<int> m_bank_ids;
-
   // Memory slices, N for each raw bank type
-  Slices m_slices;
-  std::vector<size_t> m_slice_to_buffer;
+  Allen::Slices m_slices;
+  std::vector<std::vector<char>> m_masks;
+
+  struct SliceToBuffer {
+    int buffer_index;
+    size_t buffer_event_start;
+  };
+  std::vector<SliceToBuffer> m_slice_to_buffer;
 
   // Array to store the version of banks per bank type
   mutable std::array<int, NBankTypes> m_banks_version;
@@ -749,9 +789,13 @@ private:
   // Threads transposing data
   std::vector<std::thread> m_transpose_threads;
 
-  // Array to store the number of banks per bank type
-  mutable std::array<unsigned int, LHCb::NBankTypes> m_banks_count;
+  // Array to store the number of banks per subdetector
+  mutable std::array<unsigned int, NBankTypes> m_mfp_count;
   mutable bool m_sizes_known = false;
+
+  std::optional<bool> m_is_mc = std::nullopt;
+
+  Allen::sd_from_raw_bank m_sd_from_raw;
 
   // Run and event numbers present in each slice
   std::vector<EventIDs> m_event_ids;
@@ -770,6 +814,4 @@ private:
 
   // Configuration struct
   MDFProviderConfig m_config;
-
-  using base_class = InputProvider<MDFProvider<Banks...>>;
 };

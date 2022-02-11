@@ -14,7 +14,7 @@ public:
   ZMQOutputSender(
     IInputProvider const* input_provider,
     std::string receiver_connection,
-    size_t events_per_slice,
+    size_t const n_lines,
     IZeroMQSvc* zmqSvc,
     bool checksum = true);
 
@@ -25,7 +25,7 @@ public:
   void handle() override;
 
 protected:
-  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) override;
+  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size, size_t) override;
 
   virtual bool write_buffer(size_t) override;
 
@@ -44,9 +44,6 @@ private:
 
   // request socket
   std::optional<zmq::socket_t> m_request;
-
-  // do checksum on write
-  bool const m_checksum = false;
 
   // Buffer message
   zmq::message_t m_buffer;

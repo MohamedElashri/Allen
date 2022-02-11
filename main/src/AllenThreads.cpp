@@ -113,11 +113,12 @@ void run_output(
         auto first_evt = zmqSvc->receive<size_t>(control);
         auto buf_idx = zmqSvc->receive<size_t>(control);
         bool success = true;
+        size_t n_written = 0;
 
         auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] =
           buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
-          success = output_handler->output_selected_events(
+          std::tie(success, n_written) = output_handler->output_selected_events(
             slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
         }
 
@@ -126,7 +127,7 @@ void run_output(
         zmqSvc->send(control, first_evt, send_flags::sndmore);
         zmqSvc->send(control, buf_idx, send_flags::sndmore);
         zmqSvc->send(control, success, send_flags::sndmore);
-        zmqSvc->send(control, static_cast<size_t>(passing_event_list.size()));
+        zmqSvc->send(control, n_written);
       }
     }
   }

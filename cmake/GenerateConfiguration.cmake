@@ -21,12 +21,6 @@ file(MAKE_DIRECTORY ${CODE_GENERATION_DIR})
 file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
 file(MAKE_DIRECTORY ${ALLEN_ALGORITHMDB_DIR})
 
-# We need a Python 3 interpreter
-find_package(Python3 REQUIRED)
-
-# Find libClang, required for parsing the Allen codebase
-find_package(LibClang QUIET)
-
 set(MINIMUM_REQUIRED_LIBCLANG_VERSION 9)
 if(LIBCLANG_FOUND AND "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
   message(STATUS "libClang version found (${LIBCLANG_VERSION}) does not meet minimum version requirement (${MINIMUM_REQUIRED_LIBCLANG_VERSION})")
@@ -137,11 +131,18 @@ else()
 endif()
 
 function(generate_sequence sequence)
+  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
+  file(MAKE_DIRECTORY ${sequence_dir})
   if(NOT STANDALONE)
-    install(FILES "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${sequence}.json" DESTINATION "${CMAKE_INSTALL_PREFIX}/constants")
+    configure_file(${CMAKE_SOURCE_DIR}/scripts/generate_script.sh.in ${sequence_dir}/generate_${sequence}.sh @ONLY)
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
+      COMMAND
+        ${CMAKE_BINARY_DIR}/run bash ${sequence_dir}/generate_${sequence}.sh &&
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+      DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view
+      WORKING_DIRECTORY ${sequence_dir})
   else()
-    set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
-    file(MAKE_DIRECTORY ${sequence_dir})
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
       COMMAND
@@ -149,7 +150,8 @@ function(generate_sequence sequence)
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
       DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${sequence}.py" generate_algorithms_view checkout_gaudi_dirs
       WORKING_DIRECTORY ${sequence_dir})
-    add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
-    add_dependencies(Stream sequence_${sequence})
   endif()
+  add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
+  add_dependencies(Stream sequence_${sequence})
+  install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION constants)
 endfunction()

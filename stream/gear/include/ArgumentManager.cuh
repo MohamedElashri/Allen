@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "BackendCommon.h"
 #include "Logger.h"
-#include "AllenTypeTraits.cuh"
+#include "AllenTypeTraits.h"
 #include "Argument.cuh"
 #include "StructToTuple.cuh"
 

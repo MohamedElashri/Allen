@@ -1,7 +1,7 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <HostPrefixSum.h>
 #include <vector>
 #include <numeric>

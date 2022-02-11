@@ -23,11 +23,11 @@
  *
  */
 
-template<BankTypes... Banks>
-class TESProvider final : public InputProvider<TESProvider<Banks...>> {
+// template<BankTypes... Banks>
+class TESProvider final : public InputProvider {
 public:
-  TESProvider(size_t n_slices, size_t events_per_slice, boost::optional<size_t> n_events) :
-    InputProvider<TESProvider<Banks...>> {n_slices, events_per_slice, n_events}, m_bank_ids_mapping(bank_ids())
+  TESProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
+    InputProvider {n_slices, events_per_slice, {}, IInputProvider::Layout::Allen, n_events}
   {}
 
   /**
@@ -40,12 +40,17 @@ public:
   {
     // store banks and offsets as BanksAndOffsets object
     for (size_t i = 0; i < transposed_banks.size(); ++i) {
-      if (std::get<0>(transposed_banks[i]).empty()) continue;
+      auto const& [banks, version] = transposed_banks[i];
+
+      if (banks.empty()) continue;
 
       if (i >= m_bank_ids_mapping.size()) {
         std::cout << "ERROR: LHCb::RawBank index out of scope from conversion between Allen and LHCb raw bank types"
                   << std::endl;
         return 1;
+      }
+      else if (banks.empty()) {
+        continue;
       }
       auto bank = static_cast<LHCb::RawBank::BankType>(i);
       const auto allen_bank_index = m_bank_ids_mapping[bank];
@@ -53,8 +58,6 @@ public:
         std::cout << "ERROR: dumped bank type does not exist in Allen" << std::endl;
         return 1;
       }
-
-      auto const& [banks, version] = transposed_banks[bank];
 
       // Offsets to events (we only process one event)
       auto& offsets = m_offsets[allen_bank_index];
@@ -79,10 +82,22 @@ public:
    *
    * @return     Banks and their offsets
    */
-  BanksAndOffsets banks(BankTypes bank_type, size_t /* slice_index */) const override
+  BanksAndOffsets banks(BankTypes bank_type, size_t) const override
   {
     const auto ib = to_integral<BankTypes>(bank_type);
     return m_banks_and_offsets[ib];
+  }
+
+  EventIDs event_ids(size_t, std::optional<size_t> = {}, std::optional<size_t> = {}) const override
+  {
+    return EventIDs {};
+  }
+
+  void slice_free(size_t) override {};
+
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> = {}) override
+  {
+    return {false, false, false, 0, 0, 0};
   }
 
   void event_sizes(size_t const, gsl::span<unsigned int const> const, std::vector<size_t>&) const override {}
@@ -91,7 +106,7 @@ public:
 
 private:
   // Mapping of LHCb::RawBank::BankType to Allen::BankType
-  const std::vector<int> m_bank_ids_mapping;
+  const std::array<int, LHCb::RawBank::types().size()> m_bank_ids_mapping = Allen::bank_ids();
 
   std::array<BanksAndOffsets, NBankTypes> m_banks_and_offsets;
   std::array<std::array<unsigned int, 2>, NBankTypes> m_offsets;

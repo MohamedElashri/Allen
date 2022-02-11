@@ -25,7 +25,7 @@ struct CaloRawEvent {
     number_of_raw_banks = reinterpret_cast<uint32_t const*>(data)[0];
   }
 
-  __device__ __host__ CaloRawBank bank(unsigned const n)
+  __device__ __host__ CaloRawBank bank(unsigned const n) const
   {
     uint32_t const* bank_offsets = reinterpret_cast<uint32_t const*>(data) + 1;
     return CaloRawBank {data + (number_of_raw_banks + 2) * sizeof(uint32_t) + bank_offsets[n],
@@ -44,7 +44,7 @@ struct CaloMepEvent {
     number_of_raw_banks {MEP::number_of_banks(o)}, blocks {b}, offsets {o}, event {event_number}
   {}
 
-  __device__ __host__ CaloRawBank bank(unsigned const n)
+  __device__ __host__ CaloRawBank bank(unsigned const n) const
   {
     return MEP::raw_bank<CaloRawBank>(blocks, offsets, event, n);
   }

@@ -64,3 +64,8 @@ std::vector<Checker::Tracks> prepareForwardTracks(
   const char* host_scifi_geometry,
   gsl::span<const mask_t> event_list,
   gsl::span<const Allen::bool_as_char_t<bool>> is_muon = {});
+
+/**
+ * @brief Read forward tracks from binary files
+ */
+std::vector<Checker::Tracks> read_forward_tracks(const char* events, const unsigned* event_offsets, const int n_events);

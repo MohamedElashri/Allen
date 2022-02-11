@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
+#include "Argument.cuh"
 #include "KalmanParametrizations.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"

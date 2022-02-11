@@ -16,6 +16,8 @@
 #include "Tools.h"
 #include "Constants.cuh"
 #include "RuntimeOptions.h"
+#include "HostBuffers.cuh"
+#include "HostBuffersManager.cuh"
 #include "CheckerInvoker.h"
 #include "Configuration.cuh"
 
