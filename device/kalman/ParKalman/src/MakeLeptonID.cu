@@ -24,9 +24,9 @@ void make_lepton_id::make_lepton_id_t::set_arguments_size(
 
 void make_lepton_id::make_lepton_id_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(make_lepton_id)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);

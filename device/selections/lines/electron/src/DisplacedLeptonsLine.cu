@@ -26,7 +26,6 @@ __device__ bool displaced_leptons_line::displaced_leptons_line_t::select(
 {
   const auto tracks = std::get<0>(input);
   const unsigned N_tracks = std::get<1>(input);
-  const bool* are_electrons = std::get<2>(input);
   const float* brem_corrected_pts = std::get<3>(input);
 
   unsigned N_good_leptons {0};
