@@ -20,6 +20,11 @@ namespace Allen {
           unsigned m_index = 0;
           unsigned m_total_number_of_hits = 0;
 
+          __host__ __device__ unsigned assembled_datatype() const
+          {
+            return reinterpret_cast<const unsigned*>(m_base_pointer)[4 * m_total_number_of_hits + m_index];
+          }
+
         public:
           __host__ __device__
           Hit(const float* base_pointer, const unsigned index, const unsigned total_number_of_hits) :
@@ -36,11 +41,6 @@ namespace Allen {
           __host__ __device__ unsigned channel() const
           {
             return reinterpret_cast<const unsigned*>(m_base_pointer)[3 * m_total_number_of_hits + m_index];
-          }
-
-          __host__ __device__ unsigned assembled_datatype() const
-          {
-            return reinterpret_cast<const unsigned*>(m_base_pointer)[4 * m_total_number_of_hits + m_index];
           }
 
           __host__ __device__ unsigned id() const { return (10u << 28) + channel(); }
