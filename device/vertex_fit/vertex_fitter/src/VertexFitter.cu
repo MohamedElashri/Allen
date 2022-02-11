@@ -43,6 +43,11 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
     new (parameters.dev_two_track_composites_view + event_number) Allen::Views::Physics::CompositeParticles {
       parameters.dev_two_track_composite_view, parameters.dev_sv_offsets, event_number};
   }
+
+  if (blockIdx.x == 0 && threadIdx.x == 0) {
+    new (parameters.dev_multi_event_composites_view) 
+      Allen::Views::Physics::MultiEventCompositeParticles {parameters.dev_two_track_composites_view, number_of_events};
+  }
 }
 
 void VertexFit::fit_secondary_vertices_t::set_arguments_size(
