@@ -7,7 +7,7 @@
 #include <gsl/gsl>
 #include "BankTypes.h"
 #include "BackendCommon.h"
-#include "AllenTypeTraits.cuh"
+#include "AllenTypeTraits.h"
 #include "PinnedVector.h"
 #include "ArgumentManager.cuh"
 

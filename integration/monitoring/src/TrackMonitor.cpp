@@ -5,10 +5,7 @@
 #include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"
 #include "Logger.h"
-
-#include "ParKalmanDefinitions.cuh"
-
-#include <cmath>
+#include "ParKalmanFittedTrack.cuh"
 
 #ifdef WITH_ROOT
 void TrackMonitor::fill(unsigned i_buf, bool)

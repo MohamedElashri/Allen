@@ -15,7 +15,7 @@
 #include <GaudiAlg/Consumer.h>
 #include <GaudiKernel/ParsersFactory.h>
 
-#include "Utils.h"
+#include <Dumpers/Utils.h>
 
 namespace {
   using std::to_string;

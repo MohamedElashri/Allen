@@ -1,8 +1,6 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#ifdef TARGET_DEVICE_CPU
-
 #include "BackendCommon.h"
 #include <iostream>
 
@@ -100,5 +98,3 @@ float __float_cap_to_half_precision(const float f)
 uint16_t __float2half(const float f) { return __float2half_impl(f); }
 
 float __half2float(const uint16_t h) { return __half2float_impl(h); }
-
-#endif

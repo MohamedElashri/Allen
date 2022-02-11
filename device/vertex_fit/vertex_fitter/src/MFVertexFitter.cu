@@ -5,6 +5,7 @@
 #include "MFVertexFitter.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 
 INSTANTIATE_ALGORITHM(MFVertexFit::fit_mf_vertices_t)
 

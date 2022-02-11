@@ -18,7 +18,7 @@
 #include <string>
 #include <cassert>
 #include <array>
-#include "AllenTypeTraits.cuh"
+#include "AllenTypeTraits.h"
 #include "BackendCommonInterface.h"
 
 // Dispatch to the right backend
@@ -92,6 +92,8 @@ namespace Allen {
     }
   } // namespace device
 } // namespace Allen
+#else
+#include <cmath>
 #endif
 
 // Replacement for gsl::span in device code

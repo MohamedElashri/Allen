@@ -1,6 +1,8 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+add_library(WrapperInterface INTERFACE)
+
 add_subdirectory(utils)
 add_subdirectory(velo)
 add_subdirectory(PV/patPV)
@@ -14,3 +16,4 @@ add_subdirectory(kalman)
 add_subdirectory(vertex_fit)
 add_subdirectory(example)
 add_subdirectory(selections)
+add_subdirectory(event_model)

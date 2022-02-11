@@ -84,8 +84,8 @@ Create the reference file with the format `test/reference/${DATA_TAG}_${DEVICE_I
 
 The `parallel:matrix:` keys will need to be modified in either `.build_job_minimal_matrix` or `.build_job_additional_matrix`.
 
-N.B. 
+N.B.
 
 - `$TARGET` does not need to be set in `parallel:matrix:` for the full builds, but it will need to be for the minimal builds.
-- `$OPTIONS` can be left blank or undefined. If options need to be passed to CMake e.g. `-DBUILD_TESTS=ON -DENABLE_CONTRACTS=ON`, then `$OPTIONS` can be set to `BUILD_TESTS+ENABLE_CONTRACTS` which will set both CMake options to `ON` by default. If you need this to be something other than `ON`, then you can do `BUILD_TESTS=OFF+ENABLE_CONTRACTS=OFF`, for example.
+- `$OPTIONS` can be left blank or undefined. If options need to be passed to CMake e.g. `-DBUILD_TESTING=ON -DENABLE_CONTRACTS=ON`, then `$OPTIONS` can be set to `BUILD_TESTING+ENABLE_CONTRACTS` which will set both CMake options to `ON` by default. If you need this to be something other than `ON`, then you can do `BUILD_TESTING=OFF+ENABLE_CONTRACTS=OFF`, for example.
 - In downstream `run`-stage jobs, the `$OPTIONS` variable content *must* match for the build to be found properly.

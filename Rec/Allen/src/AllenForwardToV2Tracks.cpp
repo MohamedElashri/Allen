@@ -9,9 +9,6 @@
  *
  */
 
-#ifndef ALLENFORWARDTOV2TRACKS_H
-#define ALLENFORWARDTOV2TRACKS_H
-
 // Gaudi
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
@@ -22,7 +19,7 @@
 // Allen
 #include "HostBuffers.cuh"
 #include "Logger.h"
-#include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
@@ -51,8 +48,6 @@ private:
 
   std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
 };
-
-#endif
 
 DECLARE_COMPONENT(AllenForwardToV2Tracks)
 

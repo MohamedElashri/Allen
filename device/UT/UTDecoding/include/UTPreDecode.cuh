@@ -6,6 +6,7 @@
 #include "UTDefinitions.cuh"
 #include "AlgorithmTypes.cuh"
 #include "UTEventModel.cuh"
+#include "UTRaw.cuh"
 
 namespace ut_pre_decode {
   struct Parameters {

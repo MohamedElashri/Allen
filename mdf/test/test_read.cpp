@@ -16,6 +16,7 @@
 
 #include "Event/RawBank.h"
 #include "read_mdf.hpp"
+#include "sourceid.h"
 
 using namespace std;
 
@@ -57,6 +58,9 @@ int main(int argc, char* argv[])
 
     array<size_t, LHCb::RawBank::LastType + 1> bank_counts {0};
 
+    unsigned header_size = header.size();
+
+    unsigned bank_total_size = 0;
     // Put the banks in the event-local buffers
     char const* bank = bank_span.data();
     char const* end = bank_span.data() + bank_span.size();
@@ -67,9 +71,16 @@ int main(int argc, char* argv[])
         goto error;
       }
 
+      auto const source_id = b->sourceID();
+      std::string det = SourceId_sysstr(source_id);
+      std::string fill(7 - det.size(), ' ');
+
       if (b->type() < LHCb::RawBank::LastType) {
         ++bank_counts[b->type()];
-        cout << "bank: " << b->type() << " " << b->sourceID() << "\n";
+        cout << "bank: " << std::setw(16) << b->type() << " version " << std::setw(2) << b->version()
+             << " sourceID: " << std::setw(6) << b->sourceID() << " top5: " << std::setw(2) << SourceId_sys(source_id)
+             << fill << " (" << det << ") " << std::setw(5) << SourceId_num(source_id) << " " << std::setw(5)
+             << b->totalSize() << "\n";
       }
       else {
         ++bank_counts[LHCb::RawBank::LastType];
@@ -77,9 +88,13 @@ int main(int argc, char* argv[])
 
       // Move to next raw bank
       bank += b->totalSize();
+      if (b->type() != LHCb::RawBank::DAQ) {
+        bank_total_size += b->totalSize();
+      }
     }
 
-    cout << "Event " << std::setw(7) << i_event << "\n";
+    cout << "Event " << std::setw(7) << i_event << "; header size: " << header_size
+         << "; bank total size: " << bank_total_size << "\n";
     cout << "Type | #Banks\n";
     for (size_t i = 0; i < bank_counts.size(); ++i) {
       if (bank_counts[i] != 0) {

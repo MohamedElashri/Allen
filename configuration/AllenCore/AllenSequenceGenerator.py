@@ -25,7 +25,7 @@ def generate_json_configuration(algorithms, filename):
             sequence_json[algorithm.name] = {}
             for k, v in algorithm.properties.items():
                 sequence_json[algorithm.name][str(k)] = str(v)
-    
+
     # Generate list of configured algorithms
     configured_algorithms = [[f"{algorithm.type.namespace()}::{algorithm.typename}", algorithm.name] for algorithm in algorithms]
 
@@ -87,7 +87,7 @@ def generate_json_configuration(algorithms, filename):
         "argument_dependencies": argument_dependencies
     }
     with open(filename, 'w') as outfile:
-        dump(sequence_json, outfile)
+        dump(sequence_json, outfile, indent=4, sort_keys=True)
 
 
 def generate_allen_sequence(

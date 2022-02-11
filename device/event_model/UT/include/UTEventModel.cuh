@@ -139,68 +139,68 @@ namespace UT {
       return m_base_pointer[m_offset + index];
     }
 
-    __host__ __device__ float& yBegin(const unsigned index)
+    __host__ __device__ inline float& yBegin(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + index];
     }
 
-    __host__ __device__ float yEnd(const unsigned index) const
+    __host__ __device__ inline float yEnd(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + m_total_number_of_hits + index];
     }
 
-    __host__ __device__ float& yEnd(const unsigned index)
+    __host__ __device__ inline float& yEnd(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + m_total_number_of_hits + index];
     }
 
-    __host__ __device__ float zAtYEq0(const unsigned index) const
+    __host__ __device__ inline float zAtYEq0(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 2 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ float& zAtYEq0(const unsigned index)
+    __host__ __device__ inline float& zAtYEq0(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 2 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ float xAtYEq0(const unsigned index) const
+    __host__ __device__ inline float xAtYEq0(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 3 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ float& xAtYEq0(const unsigned index)
+    __host__ __device__ inline float& xAtYEq0(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 3 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ float weight(const unsigned index) const
+    __host__ __device__ inline float weight(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 4 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ float& weight(const unsigned index)
+    __host__ __device__ inline float& weight(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 4 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ unsigned id(const unsigned index) const
+    __host__ __device__ inline unsigned id(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
         m_base_pointer)[m_offset + 5 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ unsigned& id(const unsigned index)
+    __host__ __device__ inline unsigned& id(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
@@ -210,52 +210,52 @@ namespace UT {
     /**
      * @brief Gets a hit in the UT::Hit format from the global hit index.
      */
-    __host__ __device__ Hit getHit(const unsigned index) const
+    __host__ __device__ inline Hit getHit(const unsigned index) const
     {
       return {yBegin(index), yEnd(index), zAtYEq0(index), xAtYEq0(index), weight(index), id(index), 0};
     }
 
-    __host__ __device__ bool isYCompatible(const unsigned index, const float y, const float tol) const
+    __host__ __device__ inline bool isYCompatible(const unsigned index, const float y, const float tol) const
     {
       return yMin(index) - tol <= y && y <= yMax(index) + tol;
     }
 
-    __host__ __device__ bool isNotYCompatible(const unsigned index, const float y, const float tol) const
+    __host__ __device__ inline bool isNotYCompatible(const unsigned index, const float y, const float tol) const
     {
       return yMin(index) - tol > y || y > yMax(index) + tol;
     }
 
-    __host__ __device__ float cosT(const unsigned index, const float dxDy) const
+    __host__ __device__ inline float cosT(const unsigned index, const float dxDy) const
     {
       return (fabsf(xAtYEq0(index)) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
     }
 
-    __host__ __device__ float sinT(const unsigned index, const float dxDy) const
+    __host__ __device__ inline float sinT(const unsigned index, const float dxDy) const
     {
       return tanT(dxDy) * cosT(index, dxDy);
     }
 
-    __host__ __device__ float tanT(const float dxDy) const { return -1.f * dxDy; }
+    __host__ __device__ inline float tanT(const float dxDy) const { return -1.f * dxDy; }
 
-    __host__ __device__ float xAt(const unsigned index, const float globalY, const float dxDy) const
+    __host__ __device__ inline float xAt(const unsigned index, const float globalY, const float dxDy) const
     {
       return xAtYEq0(index) + globalY * dxDy;
     }
 
-    __host__ __device__ float yMax(const unsigned index) const { return fmaxf(yBegin(index), yEnd(index)); }
+    __host__ __device__ inline float yMax(const unsigned index) const { return fmaxf(yBegin(index), yEnd(index)); }
 
-    __host__ __device__ float yMid(const unsigned index) const { return 0.5f * (yBegin(index) + yEnd(index)); }
+    __host__ __device__ inline float yMid(const unsigned index) const { return 0.5f * (yBegin(index) + yEnd(index)); }
 
-    __host__ __device__ float yMin(const unsigned index) const { return fminf(yBegin(index), yEnd(index)); }
+    __host__ __device__ inline float yMin(const unsigned index) const { return fminf(yBegin(index), yEnd(index)); }
 
     // Pointer accessors for binary search
-    __host__ __device__ typename ForwardType<T, float>::t* yBegin_p(const unsigned index) const
+    __host__ __device__ inline typename ForwardType<T, float>::t* yBegin_p(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer + m_offset + index;
     }
 
-    __host__ __device__ typename ForwardType<T, float>::t* yEnd_p(const unsigned index) const
+    __host__ __device__ inline typename ForwardType<T, float>::t* yEnd_p(const unsigned index) const
     {
       assert(m_offset + index <= m_total_number_of_hits);
       return m_base_pointer + m_offset + m_total_number_of_hits + index;

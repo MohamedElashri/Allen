@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "ParKalmanMath.cuh"
 #include "VertexDefinitions.cuh"
 #include "PV_Definitions.cuh"

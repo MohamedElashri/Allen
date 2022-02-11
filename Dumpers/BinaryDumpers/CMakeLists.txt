@@ -4,46 +4,51 @@
 ################################################################################
 # Package: BinaryDumpers
 ################################################################################
-gaudi_subdir(BinaryDumpers v1r0)
 
-gaudi_depends_on_subdirs(Det/FTDet
-                         Det/VPDet
-                         UT/UTDAQ
-                         Det/CaloDet
-                         UT/UTKernel
-                         Event/FTEvent
-                         DAQ/DAQKernel
-                         Event/DAQEvent
-                         Event/DigiEvent
-                         GaudiAlg
-                         Pr/PrKernel
-                         Muon/MuonID)
 
-find_package(Boost REQUIRED)
-find_package(Rangev3 REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS})
+gaudi_add_library(BinaryDumpers
+                  SOURCES
+                    src/lib/TestUTBoards.cpp
+                    src/lib/Utils.cpp
+                  LINK PUBLIC
+                    Gaudi::GaudiKernel
+                    LHCb::DAQEventLib
+                    LHCb::MuonDAQLib)
 
-gaudi_install_headers(Dumpers)
+gaudi_add_module(BinaryDumpersModule
+                 SOURCES
+                   src/AllenUpdater.cpp
+                   src/DumpBeamline.cpp
+                   src/DumpCaloGeometry.cpp
+                   src/DumpForwardTracks.cpp
+                   src/DumpFTGeometry.cpp
+                   src/DumpFTHits.cpp
+                   src/DumpMagneticField.cpp
+                   src/DumpMuonCommonHits.cpp
+                   src/DumpMuonCoords.cpp
+                   src/DumpMuonGeometry.cpp
+                   src/DumpMuonTable.cpp
+                   src/DumpRawBanks.cpp
+                   src/DumpUTGeometry.cpp
+                   src/DumpUTHits.cpp
+                   src/DumpUTLookupTables.cpp
+                   src/DumpVPGeometry.cpp
+                   src/PVDumper.cpp
+                   src/TestMuonTable.cpp
+                   src/TransposeRawBanks.cpp
+                 LINK
+                   Rangev3::rangev3
+                   Gaudi::GaudiAlgLib
+                   LHCb::MCEvent
+                   LHCb::DAQEventLib
+                   LHCb::DAQKernelLib
+                   LHCb::VPDetLib
+                   LHCb::UTDetLib
+                   LHCb::UTKernelLib
+                   LHCb::CaloDetLib
+                   LHCb::FTDetLib
+                   LHCb::MuonDAQLib
+                   Rec::PrKernel
+                   BinaryDumpers)
 
-gaudi_add_library(BinaryDumpersLib
-                  NO_PUBLIC_HEADERS
-                  src/lib/*.cpp
-                  INCLUDE_DIRS Event/FTEvent Pr/PrPixel Muon/MuonID
-                  LINK_LIBRARIES DAQEventLib DAQKernelLib GaudiAlgLib
-                                 PrKernel VPDetLib UTDetLib UTKernelLib
-                                 FTDetLib MuonDAQLib)
-
-gaudi_add_module(BinaryDumpers
-                 src/*.cpp
-                 INCLUDE_DIRS Event/FTEvent Det/VPDet Muon/MuonID
-                 LINK_LIBRARIES DAQEventLib DAQKernelLib GaudiAlgLib
-                                PrKernel VPDetLib UTDetLib UTKernelLib
-                                CaloDetLib FTDetLib MuonDAQLib MCEvent)
-
-# FIXME: USE_DD4HEP doesn't seem to be inherited from LHCb libraries
-if (TARGET Detector::DetectorLib)
-   target_compile_definitions(BinaryDumpersLib PUBLIC USE_DD4HEP)
-   target_compile_definitions(BinaryDumpers PUBLIC USE_DD4HEP)
-endif()
-
-gaudi_add_test(QMTest QMTEST)
+gaudi_add_tests(QMTest)

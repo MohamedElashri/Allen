@@ -17,8 +17,6 @@
 
 // Allen includes
 #include "Constants.cuh"
-#include "InputTools.h"
-#include "InputReader.h"
 #include "RegisterConsumers.h"
 #include <Dumpers/IUpdater.h>
 #include "HostBuffers.cuh"
@@ -27,7 +25,8 @@
 #include "BankTypes.h"
 #include "Stream.h"
 #include "Logger.h"
-#include "TESProvider.h"
+#include <TESProvider.h>
+#include <ROOTService.h>
 
 // STL includes
 #include <deque>
@@ -61,8 +60,6 @@ private:
 
   std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
-  std::shared_ptr<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>
-    m_tes_input_provider;
   std::unique_ptr<ROOTService> m_root_service;
 
   Gaudi::Property<std::string> m_sequence {this, "Sequence", "hlt1_pp_default"};

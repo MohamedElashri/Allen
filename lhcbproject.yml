@@ -1,0 +1,8 @@
+###############################################################################
+# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+###############################################################################
+---
+name: Allen
+license: Apache-2.0
+dependencies:
+  - Rec

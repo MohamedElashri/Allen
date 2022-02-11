@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2000-2021 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include <cstring>
 #include <fstream>
@@ -12,7 +12,7 @@
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
 #include <GaudiAlg/GaudiHistoAlg.h>
-#include "Utils.h"
+#include <Dumpers/Utils.h>
 
 template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;

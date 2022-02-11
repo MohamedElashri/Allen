@@ -4,26 +4,36 @@
 
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
+project(Allen VERSION 1.9
+        LANGUAGES CXX)
+
 # ---------------
 # Boolean options
 # ---------------
 
-option(BUILD_TESTS "Build test programs" OFF)
+option(BUILD_TESTING "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
-option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
 option(TREAT_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
 option(ALWAYS_DISPATCH_TO_DEFAULT "Dispatch architecture-specific functions always to default target" OFF)
-set(SEQUENCE_BUILD_JOBS 1 CACHE STRING "Number of sequence build jobs"  )
+option(USE_BOOST_FILESYSTEM "Use Boost filesystem library instead of std::filesystem" OFF)
 
 # --------
 # Settings
 # --------
 
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
+# for find_package and include
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
+
+if(NOT PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
+  # Fix CMAKE_MODULE_PATH when building the stack as single project
+  list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+  return()
+endif()
 
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
@@ -46,11 +56,11 @@ set(CPU_STATIC_VECTOR_WIDTH OFF CACHE STRING "Define a static vector width for C
 set_property(CACHE CPU_STATIC_VECTOR_WIDTH PROPERTY STRINGS OFF scalar 128bits 256bits 512bits)
 
 # Build type (builds based on Gaudi are setting CMAKE_BUILD_TYPE in gaudi_project)
-if(STANDALONE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
+if(STANDALONE AND NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debug)
-  message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 endif()
+message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
@@ -66,9 +76,10 @@ set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 
 # --------------------
 
 # Sequences to build, SEQUENCE argument overrides SEQUENCES for now
-set(SEQUENCES "" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
-if(NOT STANDALONE)
-  set(SEQUENCES "hlt1_pp_default")
+if (STANDALONE)
+  set(SEQUENCES "" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
+else()
+  set(SEQUENCES "all" CACHE STRING "Sequences to build as a regex for exact matching; \"all\" builds all sequences")
 endif()
 
 # Configured CPU architecture
@@ -131,20 +142,26 @@ if(CALLGRIND_PROFILE)
   add_compile_definitions(CALLGRIND_PROFILE)
 endif()
 
-# Deal with device target architecture
-if(NOT STANDALONE)
-  message(STATUS "Configured Gaudi build")
-  if(FORCE_CUDA)
-    message(STATUS "Configured Gaudi build - CUDA target")
-  else()
-    message(STATUS "Configured Gaudi build - CPU target")
-    set(TARGET_DEVICE "CPU")
-  endif()
-endif()
-message(STATUS "Allen device target: " ${TARGET_DEVICE})
+set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
+include(AllenDependencies)
 
-# Add compile definition for target
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
+
+include(CTest)
+
+if (NOT STANDALONE)
+  set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE "VERBOSE")
+  set(LHCB_UNUSED_SOURCE_MESSAGE_TYPE "IGNORE")
+
+  lhcb_add_subdirectories(
+    Rec/Allen
+    Dumpers/BinaryDumpers
+    Dumpers/RootDumpers)
+
+  lhcb_env(
+    SET ALLEN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+    SET ALLEN_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
 
 # Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.
 # Support it in a future Allen release.
@@ -159,65 +176,6 @@ foreach(SUBMODULE ${EXPECTED_SUBMODULES})
     message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! Please update submodules and try again. You may need to run `git submodule update --init --recursive`.")
   endif()
 endforeach()
-
-#Setup the project to build as a Gaudi project or else standalone
-macro(allen_project)
-#Gaudi build
-  if (NOT STANDALONE)
-    find_package(GaudiProject REQUIRED)
-
-#Declare project name and version
-    gaudi_project(Allen v1r9
-                  USE Rec v34r0
-                  DATA AppConfig VERSION v3r*
-                       FieldMap VERSION v5r*
-                       PRConfig VERSION v1r*
-                       RawEventFormat)
-
-#Always enable tests for gaudi builds
-    set(BUILD_TESTS ON)
-
-#Always enable ROOT for Gaudi builds
-    set(USE_ROOT ON)
-
-# FIXME: Remove once USE_DD4HEP is properly propagated
-    if (TARGET Detector::DetectorLib)
-      message(STATUS "Using DD4HEP")
-      if (NOT DEFINED USE_DD4HEP)
-        set(USE_DD4HEP ON CACHE BOOL "Controls whether DD4hep is used for the subdetectors supporting it")
-      endif()
-    else()
-      message(STATUS "Using DetDesc")
-    endif()
-
-#Find the CUDA compiler if it's not set
-#FIXME : this assumes a standard device install : re - evaluate if
-#LCG_XXdeviceYY is used
-    if (TARGET_DEVICE STREQUAL "CUDA")
-      if (NOT CMAKE_CUDA_COMPILER)
-        find_program(CMAKE_CUDA_COMPILER nvcc
-                     HINTS /usr/local/cuda/bin)
-        if (CMAKE_CUDA_COMPILER)
-          message(STATUS "Found CUDA compiler ${CMAKE_CUDA_COMPILER}")
-        endif()
-      else()
-        message(STATUS "Using CUDA compiler ${CMAKE_CUDA_COMPILER}")
-      endif()
-#Make sure the lcg compiler wrapper scripts are used to call
-#the host compiler
-      set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-    endif()
-  else()
-    project(Allen C CXX)
-    if (BUILD_TESTS)
-      enable_testing()
-    endif()
-  endif()
-
-  # https://github.com/nlohmann/json
-  find_package(nlohmann_json REQUIRED)
-  find_package(cppgsl REQUIRED)
-endmacro()
 
 # Detect CUDA architecture
 if(TARGET_DEVICE STREQUAL "CUDA")
@@ -312,10 +270,11 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_library(${ARGV})
-
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib OPTIONAL)
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
   endfunction()
 
   function(allen_add_device_library)
@@ -335,9 +294,11 @@ if(TARGET_DEVICE STREQUAL "CPU")
       set(destination lib/sequences)
     endif()
 
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination} OPTIONAL)
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
@@ -348,9 +309,8 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endforeach()
 
     add_executable(${ARGV})
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
@@ -359,47 +319,28 @@ if(TARGET_DEVICE STREQUAL "CPU")
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
    endif()
 
-   allen_project()
 elseif(TARGET_DEVICE STREQUAL "HIP")
-  allen_project()
-
-  # Setup HIPCC compiler
-  if(NOT DEFINED ROCM_PATH)
-    if(NOT DEFINED ENV{ROCM_PATH})
-      set(ROCM_PATH "/opt/rocm" CACHE PATH "Path where ROCM has been installed")
-    else()
-      set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "Path where ROCM has been installed")
-    endif()
-  endif()
-
-  # Find HIP
-  set(HIP_PATH "${ROCM_PATH}/hip")
-  set(HIP_CLANG_PATH "${ROCM_PATH}/llvm/bin")
-  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
-  find_package(HIP QUIET REQUIRED)
-  if(HIP_FOUND)
-    message(STATUS "Found HIP: " ${HIP_VERSION})
-  else()
-    message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable ROCM_PATH is set.")
-  endif()
 
   # Deal with build type (HIP)
-  if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+  if(NOT CMAKE_BUILD_TYPE)
+    set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
+  elseif(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
     set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
-  else()
-    message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif()
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION lib)
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
   endfunction()
 
   function(allen_add_device_library)
@@ -413,27 +354,29 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
 
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
+
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    target_include_directories(${ARGV0} PRIVATE ${CPPGSL_INCLUDE_DIR} ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
-  allen_project()
   enable_language(CUDA)
 
-  # set(CMAKE_CUDA_STANDARD 17) # 17 not supported by current CMake version
+  set(CMAKE_CUDA_STANDARD 17)
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_DEBUG "-G -g -DALLEN_DEBUG")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-  set(CUDA_STANDARD 17)
 
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
   if (CUDA_VERBOSE_BUILD)
@@ -459,7 +402,10 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_device_library)
@@ -474,13 +420,15 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     add_library(${ARGV})
 
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} LIBRARY DESTINATION ${destination})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION ${destination})
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
@@ -528,77 +476,12 @@ if(STANDALONE)
   endif()
 endif()
 
-if (USE_MPI)
-  find_package(MPI REQUIRED)
-#hwloc is also needed
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(HWLOC IMPORTED_TARGET hwloc)
-  include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
-  add_compile_definitions(HAVE_MPI)
-else(USE_MPI)
-  set(MPI_FOUND OFF)
-endif()
-
 if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()
 
-if (USE_ROOT)
-   if (GaudiProject_FOUND)
-     find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO Thread)
-     find_package(TBB REQUIRED)
-     set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-     set(ALLEN_ROOT_LIBRARIES ${ROOT_LIBRARIES} ${TBB_LIBRARIES})
-   else()
-     if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-     elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-     elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
-       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
-     else()
-       message(FATAL_ERROR "ROOTSYS must be set to use ROOT with a standalone build of Allen")
-     endif()
-     find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree RIO Thread)
-     if (ROOT_FOUND)
-       message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
-
-#If ROOT is built with C++ 17 support, everything that includes ROOT
-#headers must be built with C++ 17 support.CUDA doesn't support
-#that, so we have to factor that out.
-       execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
-       string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
-       message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
-       if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
-         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-       else()
-         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
-       endif()
-
-       set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
-
-       execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
-       string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
-       message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
-       if (${ROOT_HAS_IMT} STREQUAL "yes")
-         find_package(TBB REQUIRED)
-         get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
-         set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
-       endif()
-     else()
-       message(STATUS "Compiling without ROOT")
-     endif()
-   endif()
-else()
-   message(STATUS "Compiling without ROOT")
-endif()
-
-set(EXTERNAL_DIR "external")
-
-find_package(Boost REQUIRED COMPONENTS iostreams)
-
 # Determine which sequences to generate or copy configurations for
-file(GLOB available_sequences "configuration/sequences/*.py")
+file(GLOB available_sequences CONFIGURE_DEPENDS "configuration/sequences/*.py")
 set(BUILD_SEQUENCES "")
 foreach(sequence_filename ${available_sequences})
   get_filename_component(sequence ${sequence_filename} NAME_WE)
@@ -608,184 +491,149 @@ foreach(sequence_filename ${available_sequences})
   endif()
 endforeach()
 
-include_directories(${CMAKE_SOURCE_DIR}/test/contracts/include)
-include_directories(checker/tracking/include)
-include_directories(device/PV/beamlinePV/include)
-include_directories(device/PV/common/include)
+set(EXTERNAL_DIR "external")
 
-if(BUILD_TESTS)
-add_subdirectory(external/Catch2)
-add_subdirectory(test/unit_tests)
+if(BUILD_TESTING)
+  add_subdirectory(external/Catch2)
+  add_subdirectory(test/unit_tests)
 endif()
 
+add_subdirectory(configuration)
 add_subdirectory(backend)
+add_subdirectory(host)
 add_subdirectory(device)
 add_subdirectory(checker)
-add_subdirectory(host)
 add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
-
 add_subdirectory(stream)
+
+
+# Interface library that will be used for common functionality
+add_library(AllenCommon INTERFACE)
+target_include_directories(AllenCommon
+  INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
+
+set(AllenHeaders)
+foreach(header
+    Allen.h
+    Provider.h
+    SystemOfUnits.h
+    Logger.h
+    AllenIO.h
+    Timer.h
+    LoggerCommon.h
+    BankTypes.h
+    BankMapping.h
+    Common.h
+    AllenUnits.h
+    MEPTools.h
+    InputProvider.h
+    OutputHandler.h
+    SliceUtils.h
+    TransposeTypes.h)
+  list(APPEND AllenHeaders main/include/${header})
+endforeach()
+
+set_target_properties(AllenCommon PROPERTIES PUBLIC_HEADER "${AllenHeaders}")
+install(TARGETS AllenCommon EXPORT Allen
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
 
 #Make sure extra search paths get included as system to avoid
 #warnings in external headers
 if (DEFINED ENV{CPLUS_INCLUDE_PATH})
-  include_directories(SYSTEM $ENV{CPLUS_INCLUDE_PATH})
+  target_include_directories(AllenCommon SYSTEM INTERFACE $ENV{CPLUS_INCLUDE_PATH})
 elseif (DEFINED ENV{CPATH})
-  include_directories(SYSTEM $ENV{CPATH})
+  target_include_directories(AllenCommon SYSTEM INTERFACE $ENV{CPATH})
 endif()
 
-#Include directories
-include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-include_directories(main/include)
-include_directories(backend/include)
-include_directories(host/velo/clustering/include)
-include_directories(host/utils/prefix_sum/include)
-include_directories(device/global_event_cut/include)
-include_directories(device/UT/common/include)
-include_directories(device/UT/compassUT/include)
-include_directories(device/UT/UTDecoding/include)
-include_directories(device/UT/consolidate/include)
-include_directories(device/velo/common/include)
-include_directories(device/velo/calculate_phi_and_sort/include)
-include_directories(device/velo/consolidate_tracks/include)
-include_directories(device/velo/mask_clustering/include)
-include_directories(device/velo/search_by_triplet/include)
-include_directories(device/velo/simplified_kalman_filter/include)
-include_directories(device/SciFi/common/include)
-include_directories(device/SciFi/looking_forward/include)
-include_directories(device/SciFi/consolidate/include)
-include_directories(device/calo/event_model/include)
-include_directories(device/muon/common/include)
-include_directories(device/muon/decoding/include)
-include_directories(device/muon/match_upstream_muon/include)
-include_directories(device/utils/prefix_sum/include)
-include_directories(device/event_model/velo/include)
-include_directories(device/event_model/UT/include)
-include_directories(device/event_model/SciFi/include)
-include_directories(device/event_model/muon/include)
-include_directories(device/event_model/common/include)
-include_directories(device/vertex_fit/common/include)
-include_directories(device/selections/Hlt1/include)
-include_directories(device/raw_banks/include)
-include_directories(checker/pv/include)
-include_directories(checker/selections/include)
-include_directories(stream/sequence/include)
-include_directories(stream/gear/include)
-include_directories(device/UT/UTDecoding/include)
-include_directories(device/kalman/ParKalman/include)
-include_directories(mdf/include)
-include_directories(integration/monitoring/include)
-include_directories(integration/non_event_data/include)
-include_directories(external)
-include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
-include_directories(${CPPGSL_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
-
-#Main Allen executable
-file(GLOB common_sources "main/src/*.cpp")
-set(allen_lib_sources)
-
-#Remove main.cpp from common_sources
-foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend RegisterConsumers Stream)
-  get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
-  list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
-endforeach()
-
-set(allen_lib_sources
-  ${Allen_cpp_path}
-  ${AllenThreads_cpp_path}
-  ${OutputHandler_cpp_path}
-  ${ZMQOutputSender_cpp_path}
-  ${RegisterConsumers_cpp_path}
-  ${StreamLoader_cpp_path})
-
-if (USE_MPI AND MPI_FOUND)
-  list(APPEND allen_lib_sources "main/src/MPISend.cpp")
+# Use std::filesystem or Boost filesystem depeding on availability
+add_library(AllenFS INTERFACE)
+install(TARGETS AllenFS EXPORT Allen)
+if(NOT Filesystem_FOUND OR USE_BOOST_FILESYSTEM)
+  target_compile_definitions(AllenFS INTERFACE USE_BOOST_FILESYSTEM)
+  target_link_libraries(AllenFS INTERFACE Boost::filesystem)
+else()
+  target_link_libraries(AllenFS INTERFACE std::filesystem)
 endif()
-
-
-#common libraries
-allen_add_host_library(AllenCommon SHARED ${common_sources})
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
-add_library(allen_fs INTERFACE)
-find_package(Filesystem)
-if(NOT Filesystem_FOUND)
-  find_package(Boost COMPONENTS filesystem REQUIRED)
-  target_compile_definitions(allen_fs INTERFACE USE_BOOST_FILESYSTEM)
-  target_link_libraries(allen_fs INTERFACE Boost::filesystem)
-else()
-  target_link_libraries(allen_fs INTERFACE std::filesystem)
-endif()
+# Add host library
+allen_add_host_library(HostCommon STATIC
+  main/src/BankTypes.cpp
+  main/src/CheckVP.cpp
+  main/src/InputReader.cpp
+  main/src/InputTools.cpp
+  main/src/Logger.cpp
+  main/src/ProgramOptions.cpp
+  main/src/ROOTService.cpp
+  main/src/SliceUtils.cpp
+  main/src/Timer.cpp
+  main/src/Tools.cpp
+  main/src/Transpose.cpp)
 
-if(TARGET_DEVICE STREQUAL "CPU")
-  set_source_files_properties(${common_device_sources} PROPERTIES LANGUAGE CXX)
-endif()
+target_link_libraries(AllenCommon INTERFACE
+  mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
+target_link_libraries(HostCommon PRIVATE
+  EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent)
 
-if (TARGET_DEVICE STREQUAL "CUDA")
-  find_package(CUDAToolkit)
-  target_link_libraries(AllenCommon PUBLIC CUDA::cudart)
-elseif(TARGET_DEVICE STREQUAL "HIP")
-  # find_package(hip) doesn't work as hip-targets.cmake is not relocatable
-  find_library(hip_runtime_lib amdhip64 HINTS ${HIP_PATH}/lib REQUIRED)
-  target_link_libraries(AllenCommon PUBLIC ${hip_runtime_lib})
-endif()
+allen_add_host_library(AllenLib SHARED
+  main/src/Allen.cpp
+  main/src/AllenThreads.cpp
+  main/src/OutputHandler.cpp
+  main/src/Provider.cpp
+  main/src/RegisterConsumers.cpp
+  main/src/ZMQOutputSender.cpp)
 
-target_link_libraries(AllenCommon PUBLIC mdf allen_fs nlohmann_json::nlohmann_json)
-
-allen_add_host_library(AllenLib SHARED ${allen_lib_sources})
-
-# Required packages
-find_package(Threads REQUIRED)
-
-if (TARGET_DEVICE STREQUAL "CUDA")
-  find_package(CUDAToolkit)
-  target_link_libraries(AllenLib PUBLIC CUDA::cudart)
-endif()
+target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
 
 target_link_libraries(AllenLib PUBLIC
   Stream
+  HostCommon
   AllenCommon
+  HostEventModel
   TrackChecking
   PVChecking
   CheckClustering
   SelChecking
-  AllenMonitoring
+  Monitoring
   NonEventData
   AllenZMQ
   HostCombiners
   Threads::Threads
+  Backend
+  EventModel
+  Gear
+  mdf
+  LHCbEvent
   ${CMAKE_DL_LIBS})
 
-if (USE_MPI AND MPI_FOUND)
-  get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
-  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES})
-  if (HWLOC_FOUND)
-    target_link_libraries(AllenLib PUBLIC -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
-    target_compile_definitions(AllenLib PRIVATE HAVE_HWLOC)
-  endif()
-endif()
+# To propagate filesystem includes/libs
+target_link_libraries(AllenLib PRIVATE AllenFS)
 
 if (USE_ROOT AND ROOT_FOUND)
-  target_compile_definitions(AllenLib PRIVATE ${ALLEN_ROOT_DEFINITIONS})
-  target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
-  target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
+  target_compile_definitions(AllenCommon INTERFACE ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(AllenCommon SYSTEM INTERFACE ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(AllenCommon INTERFACE ${ALLEN_ROOT_LIBRARIES})
 endif()
 
-if (GaudiProject_FOUND)
-  find_package(AIDA)
-  target_include_directories(AllenLib PUBLIC ${AIDA_INCLUDE_DIRS})
+if (NOT STANDALONE)
+  target_link_libraries(AllenLib PRIVATE AIDA::aida)
 endif()
 
-allen_add_executable(Allen ${main_cpp_path})
+allen_add_executable(Allen main/src/main.cpp)
 
-if (STANDALONE)
-  target_link_libraries(Allen PRIVATE AllenLib)
-else()
-  find_package(fmt REQUIRED)
-  target_link_libraries(Allen PRIVATE AllenLib fmt::fmt)
+target_link_libraries(Allen PRIVATE AllenLib)
+
+if (NOT STANDALONE)
+  target_link_libraries(Allen PRIVATE fmt::fmt)
+
+  gaudi_install(CMAKE cmake/modules)
+
+  # Finalize configuration
+  lhcb_finalize_configuration()
 endif()

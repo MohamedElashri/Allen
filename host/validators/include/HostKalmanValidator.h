@@ -6,7 +6,7 @@
 #include "BackendCommon.h"
 #include "AlgorithmTypes.cuh"
 #include "States.cuh"
-#include "ParKalmanFilter.cuh"
+#include "ParKalmanFittedTrack.cuh"
 
 namespace host_kalman_validator {
   struct Parameters {

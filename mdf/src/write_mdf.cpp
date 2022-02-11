@@ -6,7 +6,7 @@
 #include "Event/RawBank.h"
 #include "write_mdf.hpp"
 
-size_t add_raw_bank(
+size_t Allen::add_raw_bank(
   unsigned char const type,
   unsigned char const version,
   short const sourceID,
@@ -20,5 +20,11 @@ size_t add_raw_bank(
   bank->setVersion(version);
   bank->setSourceID(sourceID);
   std::memcpy(bank->begin<char>(), fragment.data(), fragment.size());
-  return bank->size() + bank->hdrSize();
+
+  // pad to a multiple of 4 bytes
+  auto const padded_size = padded_bank_size(fragment.size());
+  std::memset(bank->begin<char>() + fragment.size(), 0, padded_size - fragment.size());
+  assert(static_cast<unsigned long>(bank->totalSize()) == bank->hdrSize() + padded_size);
+
+  return bank->totalSize();
 }

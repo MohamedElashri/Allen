@@ -4,21 +4,28 @@
 #pragma once
 
 #include <vector>
-#include <Logger.h>
-#include <BankTypes.h>
-#include <Timer.h>
+
 #include <zmq/zmq.hpp>
 #include <gsl/span>
 
-struct IInputProvider;
+#include "InputProvider.h"
+#include "BankTypes.h"
+#include "Timer.h"
 
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider, size_t eps) : m_input_provider {input_provider}, m_sizes(eps) {}
+  OutputHandler() {}
+
+  OutputHandler(IInputProvider const* input_provider, std::string connection, size_t n_lines, bool checksum)
+  {
+    init(input_provider, std::move(connection), n_lines, checksum);
+  }
 
   virtual ~OutputHandler() {}
 
-  bool output_selected_events(
+  std::string const& connection() const { return m_connection; }
+
+  std::tuple<bool, size_t> output_selected_events(
     size_t const slice_index,
     size_t const event_offset,
     gsl::span<bool const> const selected_events,
@@ -30,13 +37,30 @@ public:
 
   virtual void handle() {}
 
+  virtual void cancel() {}
+
+  virtual void output_done() {}
+
+  bool do_checksum() const { return m_checksum; }
+
 protected:
-  virtual std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) = 0;
+  void init(IInputProvider const* input_provider, std::string connection, size_t n_lines, bool checksum)
+  {
+    m_input_provider = input_provider;
+    m_connection = std::move(connection);
+    m_sizes.resize(input_provider->events_per_slice());
+    m_nlines = n_lines;
+    m_checksum = checksum;
+  }
+
+  virtual std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size, size_t n_events) = 0;
 
   virtual bool write_buffer(size_t id) = 0;
 
   IInputProvider const* m_input_provider = nullptr;
+  std::string m_connection;
   std::vector<size_t> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
-  unsigned m_number_of_hlt1_lines;
+  size_t m_nlines = 0;
+  bool m_checksum = false;
 };

@@ -8,43 +8,6 @@ file(GLOB muon_decoding "decoding/src/*cu")
 file(GLOB muon_upstream_filtering "match_upstream_muon/src/*cu")
 file(GLOB muon_filter "muon_filter/src/*cu")
 
-include_directories(preprocessing/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/consolidate/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/velo/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/SciFi/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/calo/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/UT/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/main/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/utils/sorting/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/muon/include)
-include_directories(common/include)
-include_directories(is_muon/include)
-include_directories(match_upstream_muon/include)
-include_directories(muon_filter/include)
-include_directories(classification/include)
-include_directories(decoding/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/associate/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/associate/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/UT/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/utils/float_operations/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/PV/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/UT/PrVeloUT/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/UT/UTDecoding/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/muon/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/muon/decoding/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include/)
-include_directories(${CMAKE_SOURCE_DIR}/external)
-include_directories(${CMAKE_SOURCE_DIR}/backend/include)
-include_directories(${CPPGSL_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
-
 allen_add_device_library(Muon STATIC
   ${muon_filtering}
   ${muon_features_extraction}
@@ -54,4 +17,19 @@ allen_add_device_library(Muon STATIC
   ${muon_filter}
 )
 
-target_link_libraries(Muon Utils)
+add_library(MuonCommon INTERFACE)
+target_include_directories(MuonCommon INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
+)
+install(TARGETS MuonCommon EXPORT Allen)
+
+target_link_libraries(Muon PRIVATE AllenCommon Backend HostEventModel EventModel Utils)
+target_link_libraries(Muon PUBLIC MuonCommon)
+
+target_include_directories(Muon PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/preprocessing/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/is_muon/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/match_upstream_muon/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/muon_filter/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/classification/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/decoding/include>)

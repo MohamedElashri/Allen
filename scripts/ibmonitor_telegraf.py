@@ -10,14 +10,15 @@ import sys
 import time
 import datetime
 import requests
+import socket as sock
 
 SYS_DIR = '/sys/class/infiniband'
 
 
 def send(telegraf_string):
-    telegraf_url = 'http://localhost:8186/telegraf' 
+    telegraf_url = 'http:///dcinflux01:8189/telegraf'
     session = requests.session()
-    session.trust_env = False 
+    session.trust_env = False
     try:
         print('Sending telegraf string: %s' % telegraf_string)
         response = session.post(telegraf_url, data=telegraf_string)
@@ -25,26 +26,28 @@ def send(telegraf_string):
     except:
         print('Failed to submit data string %s' % telegraf_string)
         print(traceback.format_exc())
- 
-    
+
+
 def send_to_telegraf(labels, mbps_in_, mbps_out_, kpps_in_, kpps_out_):
-    
+
     now = datetime.datetime.now()
-    timestamp = datetime.datetime.timestamp(now) * 1000000000 
+    timestamp = datetime.datetime.timestamp(now) * 1000000000
     print('Current Timestamp : ', timestamp)
 
-    for lab, mbps_in, mbps_out, kpps_in, kpps_out in zip(labels, mbps_in_, mbps_out_, kpps_in_, kpps_out_):
+    for lab, mbps_in, mbps_out, kpps_in, kpps_out in zip(
+            labels, mbps_in_, mbps_out_, kpps_in_, kpps_out_):
         print(lab, mbps_in)
-  
-        telegraf_string = "AllenIntegrationTest,ib_link=%s " % (lab)
-        telegraf_string += "mbps_in=%.2f,mbps_out=%.2f,kpps_in=%.2f,kpps_out=%.2f " % (float(mbps_in), float(mbps_out), float(kpps_in), float(kpps_out)) 
-        telegraf_string += " %d" % timestamp 
+
+        telegraf_string = "AllenIntegrationTest,host=%s,ib_link=%s " % (
+            sock.gethostname(), lab)
+        telegraf_string += "mbps_in=%.2f,mbps_out=%.2f,kpps_in=%.2f,kpps_out=%.2f " % (
+            float(mbps_in), float(mbps_out), float(kpps_in), float(kpps_out))
+        telegraf_string += " %d" % timestamp
 
         send(telegraf_string)
-   
+
 
 class Link(object):
-
     def __init__(self, hca, port):
         self.hca = hca
         self.port = port
@@ -82,6 +85,7 @@ class Link(object):
     def __repr__(self):
         return "<ibtop.Port %s at 0x%x>" % (repr(self.name()), id(self))
 
+
 def print_iterator(it):
     for x in it:
         print(x, end=' ')
@@ -89,10 +93,14 @@ def print_iterator(it):
 
 
 parser = ArgumentParser(description=__doc__)
-parser.add_argument('-i', '--interval', type=int, required=True,
-                    help='Amount of time in seconds between each report')
-parser.add_argument('-c', '--count', type=int,
-                    help='Number of reports generated')
+parser.add_argument(
+    '-i',
+    '--interval',
+    type=int,
+    required=True,
+    help='Amount of time in seconds between each report')
+parser.add_argument(
+    '-c', '--count', type=int, help='Number of reports generated')
 args = parser.parse_args()
 
 links = []
@@ -123,21 +131,30 @@ while True:
     bytes_out_now = list(map(Link.bytes_out, links))
     packets_in_now = list(map(Link.packets_in, links))
     packets_out_now = list(map(Link.packets_out, links))
-    bytes_in_delta = list(starmap(int.__sub__, zip(bytes_in_now, bytes_in_start)))
-    bytes_out_delta = list(starmap(int.__sub__, zip(bytes_out_now, bytes_out_start)))
-    packets_in_delta = list(starmap(int.__sub__, zip(packets_in_now, packets_in_start)))
-    packets_out_delta = list(starmap(int.__sub__, zip(packets_out_now, packets_out_start)))
+    bytes_in_delta = list(
+        starmap(int.__sub__, zip(bytes_in_now, bytes_in_start)))
+    bytes_out_delta = list(
+        starmap(int.__sub__, zip(bytes_out_now, bytes_out_start)))
+    packets_in_delta = list(
+        starmap(int.__sub__, zip(packets_in_now, packets_in_start)))
+    packets_out_delta = list(
+        starmap(int.__sub__, zip(packets_out_now, packets_out_start)))
     labels = list(map(lambda l: f'{l.name():{link_len}}', links))
-    mbps_in = list(map(lambda x: f'{x * 8 / period / 1e6:>{mbps_len}.3f}', bytes_in_delta))
-    mbps_out = list(map(lambda x: f'{x * 8 / period / 1e6:>{mbps_len}.3f}', bytes_out_delta))
-    kpps_in = list(map(lambda x: f'{x / period / 1e3:>{kpps_len}.3f}', packets_in_delta))
-    kpps_out = list(map(lambda x: f'{x / period / 1e3:>{kpps_len}.3f}', packets_out_delta))
+    mbps_in = list(
+        map(lambda x: f'{x * 8 / period / 1e6:>{mbps_len}.3f}',
+            bytes_in_delta))
+    mbps_out = list(
+        map(lambda x: f'{x * 8 / period / 1e6:>{mbps_len}.3f}',
+            bytes_out_delta))
+    kpps_in = list(
+        map(lambda x: f'{x / period / 1e3:>{kpps_len}.3f}', packets_in_delta))
+    kpps_out = list(
+        map(lambda x: f'{x / period / 1e3:>{kpps_len}.3f}', packets_out_delta))
     print(header)
     list(starmap(print, zip(labels, mbps_in, mbps_out, kpps_in, kpps_out)))
 
     # send measurements to telegraf
     send_to_telegraf(labels, mbps_in, mbps_out, kpps_in, kpps_out)
-
 
     bytes_in_start = bytes_in_now
     bytes_out_start = bytes_out_now

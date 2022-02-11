@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "DumpUTLookupTables.h"
-#include "Utils.h"
+#include <Dumpers/Utils.h>
 
 DECLARE_COMPONENT(DumpUTLookupTables)
 

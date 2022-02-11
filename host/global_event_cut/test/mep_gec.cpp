@@ -20,6 +20,7 @@
 #include <eb_header.hpp>
 #include <read_mdf.hpp>
 #include <read_mep.hpp>
+#include <SliceUtils.h>
 #include <Transpose.h>
 #include <TransposeMEP.h>
 #include <BackendCommon.h>
@@ -62,6 +63,7 @@ int main(int argc, char* argv[])
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
   std::array<int, NBankTypes> banks_version;
+  std::unordered_set<BankTypes> bank_types {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
 
   ::Slices slices;
   EventIDs events;
@@ -87,7 +89,7 @@ int main(int argc, char* argv[])
         // 0 to not allocate data memory; -1 to correct for +1 in allocate_slices: re-evaluate
         return {0, 2 + n_blocks + (1 + interval) * (1 + n_blocks) - 2};
       };
-      slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_meps, size_fun);
+      slices = allocate_slices(n_meps, bank_types, size_fun);
       blocks.resize(mep_header.n_blocks);
     }
 

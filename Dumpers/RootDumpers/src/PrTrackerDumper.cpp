@@ -27,7 +27,7 @@
 #include <TString.h>
 #include <TTree.h>
 
-#include "../BinaryDumpers/src/Utils.h"
+#include <Dumpers/Utils.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/streams/vectorstream.hpp>
