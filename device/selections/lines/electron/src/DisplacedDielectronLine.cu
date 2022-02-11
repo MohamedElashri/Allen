@@ -11,7 +11,7 @@ displaced_dielectron_line::displaced_dielectron_line_t::get_input(
   const unsigned event_number,
   const unsigned i)
 {
-  const auto event_vertices = parameters.dev_svs[event_number];
+  const auto event_vertices = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_multi_event_svs[0].particle_container(event_number));
   const auto vertex = event_vertices.particle(i);
   const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.substructure(0));
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.substructure(1));

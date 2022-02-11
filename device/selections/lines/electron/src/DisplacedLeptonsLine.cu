@@ -9,7 +9,7 @@ INSTANTIATE_LINE(displaced_leptons_line::displaced_leptons_line_t, displaced_lep
 __device__ std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
 displaced_leptons_line::displaced_leptons_line_t::get_input(const Parameters& parameters, const unsigned event_number)
 {
-  const auto event_tracks = parameters.dev_tracks[event_number];
+  const auto event_tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(parameters.dev_multi_event_tracks[0].particle_container(event_number));
 
   const unsigned N_tracks = parameters.dev_track_offsets[event_number + 1] - parameters.dev_track_offsets[event_number];
 

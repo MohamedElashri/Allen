@@ -12,7 +12,7 @@ single_high_pt_electron_line::single_high_pt_electron_line_t::get_input(
   const unsigned event_number,
   const unsigned i)
 {
-  const auto event_tracks = parameters.dev_tracks[event_number];
+  const auto event_tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(parameters.dev_multi_event_tracks[0].particle_container(event_number));
   const auto track = event_tracks.particle(i);
 
   const bool is_electron = track.is_electron();
