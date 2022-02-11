@@ -420,8 +420,6 @@ namespace Allen {
 
         __host__ __device__ float p() const { return vertex().p(); }
 
-        //__host__ __device__ unsigned number_of_substructures() const override { return m_number_of_substructures; }
-
         // TODO: Some of these quantities are expensive to calculate, so it
         // might be a good idea to store them in an "extra info" array. Need to
         // see how the timing shakes out.

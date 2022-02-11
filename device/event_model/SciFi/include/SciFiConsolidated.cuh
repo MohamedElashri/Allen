@@ -160,7 +160,7 @@ namespace Allen {
             return m_hits->hit(m_offset + scifi_hit_index);
           }
 
-          __host__ __device__ unsigned number_of_ids() const { return number_of_total_hits(); }
+          __host__ __device__ unsigned number_of_ids() const { return number_of_scifi_hits(); }
 
           __host__ __device__ unsigned id(const unsigned index) const { return hit(index).id(); }
         };

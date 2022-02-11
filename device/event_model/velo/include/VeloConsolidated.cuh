@@ -241,9 +241,7 @@ namespace Allen {
 
         struct Tracks : Allen::ILHCbIDContainer {
         private:
-          // const Track* m_track = nullptr;
           unsigned m_offset = 0;
-          // unsigned m_size = 0;
 
         public:
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :

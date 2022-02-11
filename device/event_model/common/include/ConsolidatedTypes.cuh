@@ -32,8 +32,11 @@ namespace Allen {
 
   struct ILHCbIDSequence {
     __host__ __device__ ILHCbIDSequence() {}
-    virtual __host__ __device__ unsigned number_of_ids() const = 0;
-    virtual __host__ __device__ unsigned id(const unsigned) const = 0;
+    // Having tracks override these pure virtual methods leads to runtime errors
+    // that I don't fully understand. This inheritance isn't really necessary,
+    // so I'm removing it for now.
+    // virtual __host__ __device__ unsigned number_of_ids() const = 0;
+    // virtual __host__ __device__ unsigned id(const unsigned) const = 0;
     virtual __host__ __device__ ~ILHCbIDSequence() {}
   };
 
