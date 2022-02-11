@@ -817,6 +817,10 @@ namespace Allen {
 
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
+
+      using MultiEventBasicParticles = MultiEventParticleContainer<BasicParticles>;
+      using MultiEventCompositeParticles = MultiEventParticleContainer<CompositeParticles>;
+
     } // namespace Physics
   }   // namespace Views
 } // namespace Allen
