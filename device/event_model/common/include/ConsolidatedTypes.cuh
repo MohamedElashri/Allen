@@ -30,22 +30,10 @@ namespace Allen {
     }
   };
 
-  // struct ILHCbIDStructure {
-  //   // protected:
-  //   unsigned m_number_of_substructures = 0;
-
-  // public:
-  //   __host__ __device__ ILHCbIDStructure(const unsigned size) : m_number_of_substructures(size) {}
-
-  //   virtual __host__ __device__ unsigned number_of_substructures() const { return m_number_of_substructures; }
-
-  //   virtual __host__ __device__ ~ILHCbIDStructure() {}
-  // };
-
   struct ILHCbIDSequence {
     __host__ __device__ ILHCbIDSequence() {}
-    // virtual __host__ __device__ unsigned number_of_ids() const = 0;
-    // virtual __host__ __device__ unsigned id(const unsigned) const = 0;
+    virtual __host__ __device__ unsigned number_of_ids() const = 0;
+    virtual __host__ __device__ unsigned id(const unsigned) const = 0;
     virtual __host__ __device__ ~ILHCbIDSequence() {}
   };
 

@@ -202,11 +202,7 @@ namespace Allen {
           const unsigned index) :
           Particle {1},
           m_track(track), m_states(states), m_pv(pv), m_lepton_id(lepton_id), m_index(index)
-        {
-          // Make sure this isn't a composite ID structure.
-          // TODO: Is this sensible at all?
-          assert(m_track->number_of_substructures() == 1);
-        }
+        {}
 
         // Accessors to allow copying. Is there a better way to handle this?
         __host__ __device__ const Track* get_track() const { return m_track; }
