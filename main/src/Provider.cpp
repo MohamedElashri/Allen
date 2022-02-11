@@ -49,6 +49,7 @@ std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& js
 
 std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::string> const& options)
 {
+  static bool generated = false;
   std::string json_configuration_file = "Sequence.json";
   // Sequence to run
   std::string sequence = "hlt1_pp_default";
@@ -74,7 +75,7 @@ std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::st
       json_configuration_file = sequence + ".json";
     }
   }
-  else {
+  else if (!generated) {
     int error =
       system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/sequences/" + sequence + ".py")
                .c_str());
@@ -82,6 +83,7 @@ std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::st
       throw std::runtime_error("sequence generation failed");
     }
     info_cout << "\n";
+    generated = true;
   }
 
   return {json_configuration_file, run_from_json};
