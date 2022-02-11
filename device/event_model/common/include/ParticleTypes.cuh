@@ -181,6 +181,25 @@ namespace Allen {
         virtual __host__ __device__ ~ParticleContainer() {}
       };
 
+      struct IMultiEventParticleContainer {
+        virtual __host__ __device__ unsigned number_of_containers() const = 0;
+        virtual __host__ __device__ const ParticleContainer& particle_container(const unsigned) const = 0;
+        virtual __host__ __device__ ~IMultiEventParticleContainer() {}
+      };
+
+      template<typename T>
+      struct MultiEventParticleContainer : MultiEventContainer<T>, IMultiEventParticleContainer {
+        using MultiEventContainer<T>::MultiEventContainer;
+        __host__ __device__ unsigned number_of_particle_containers() const override
+        {
+          return MultiEventContainer<T>::number_of_events();
+        }
+        __host__ __device__ const ParticleContainer& particle_container(const unsigned event_number) const override
+        {
+          return MultiEventContainer<T>::container(event_number);
+        }
+      };
+
       // Is it necessary for BasicParticle to inherit from an ILHCbIDStructure to
       // work with aggregates in the SelReport writer?
       struct BasicParticle : Particle {
