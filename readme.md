@@ -109,7 +109,7 @@ Follow these [instructions](https://gitlab.cern.ch/rmatev/lb-stack-setup) to set
 To compile a sequence other than the default sequence (hlt1_pp_default), compile for example with
 
 ```
-make Allen CMAKEFLAGS='-DSEQUENCES=hlt1_pp.
+make Allen CMAKEFLAGS='-DSEQUENCES=hlt1_pp.'
 ```
 Note that default CMAKEFLAGS are set for Allen in `utils/default-config.json` of the stack setup. For convenience, it is easiest to change the sequence there.
 
