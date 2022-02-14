@@ -65,7 +65,7 @@ void Checker::TrackEffReport::event_done()
 {
   if (m_naccept_per_event) {
     m_number_of_events++;
-    const float eff = float(m_nfound_per_event) / float(m_naccept_per_event);
+    const double eff = double(m_nfound_per_event) / double(m_naccept_per_event);
     m_eff_per_event += eff;
   }
 }
@@ -108,12 +108,12 @@ void Checker::TrackEffReport::operator()(
 
 void Checker::TrackEffReport::report() const
 {
-  auto clonerate = 0.f, eff = 0.f, eff_per_event = 0.f;
+  double clonerate = 0.0, eff = 0.0, eff_per_event = 0.0;
 
-  const float n_tot = float(m_nfound + m_nclones);
-  if (m_nfound) clonerate = float(m_nclones) / n_tot;
-  if (m_naccept) eff = float(m_nfound) / float(m_naccept);
-  if (m_number_of_events) eff_per_event = ((float) m_eff_per_event) / ((float) m_number_of_events);
+  const double n_tot = m_nfound + m_nclones;
+  if (m_nfound) clonerate = double(m_nclones) / n_tot;
+  if (m_naccept) eff = double(m_nfound) / double(m_naccept);
+  if (m_number_of_events) eff_per_event = m_eff_per_event / m_number_of_events;
 
   if (m_naccept > 0) {
     auto hitpur = std::accumulate(std::begin(m_hitpurs), std::end(m_hitpurs), 0.0) / (m_nfound + m_nclones);
@@ -124,10 +124,10 @@ void Checker::TrackEffReport::report() const
       m_name.c_str(),
       m_nfound,
       m_naccept,
-      100 * static_cast<double>(eff),
-      100 * static_cast<double>(eff_per_event),
+      100 * eff,
+      100 * eff_per_event,
       m_nclones,
-      100 * static_cast<double>(clonerate),
+      100 * clonerate,
       100 * hitpur,
       100 * hiteff);
   }
