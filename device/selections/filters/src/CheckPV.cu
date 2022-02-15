@@ -3,6 +3,8 @@
 \************************************************************************/
 #include "CheckPV.cuh"
 
+INSTANTIATE_ALGORITHM(check_pvs::check_pvs_t)
+
 void check_pvs::check_pvs_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -33,13 +35,9 @@ void check_pvs::check_pvs_t::operator()(
 
   global_function(check_pvs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
-  copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
-  Allen::synchronize(context);
-
+  Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
-
-  Allen::synchronize(context);
+  Allen::copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
   reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 

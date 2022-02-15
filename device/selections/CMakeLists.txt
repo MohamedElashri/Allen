@@ -1,6 +1,7 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
+include_directories(filters/include)
 include_directories(lines/calibration/include)
 include_directories(lines/charm/include)
 include_directories(lines/inclusive_hadron/include)
@@ -25,7 +26,6 @@ include_directories(${CMAKE_SOURCE_DIR}/device/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/utils/tuple_operations/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/selections/Hlt1/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/selections/filters/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
@@ -52,7 +52,6 @@ endif()
 add_compile_definitions(ODIN_WITHOUT_GAUDI)
 
 file(GLOB selections_src "Hlt1/src/*cu")
-<<<<<<< HEAD
 file(GLOB filters_src "filters/src/*cu")
 file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/inclusive_hadron/src/*cpp" "lines/muon/src/*cu" "lines/photon/src/*cu" "lines/electron/src/*cu" "lines/monitoring/src/*cu" "lines/SMOG2/src/*cu")
 
@@ -60,11 +59,13 @@ if(SEPARABLE_COMPILATION)
   allen_add_device_library(Selections STATIC
     ${lines_src}
     ${selections_src}
+    ${filters_src}
   )
 else()
   allen_add_device_library_unified(Selections STATIC
     ${lines_src}
     ${selections_src}
+    ${filters_src}
   )
 endif()
 

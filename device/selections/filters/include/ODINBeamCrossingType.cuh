@@ -3,8 +3,7 @@
 \*************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
-#include "PV_Definitions.cuh"
+#include "AlgorithmTypes.cuh"
 #include "ODINBank.cuh"
 
 namespace odin_beamcrossingtype {

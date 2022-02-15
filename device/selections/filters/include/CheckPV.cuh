@@ -3,7 +3,7 @@
 \*************************************************************************/
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "AlgorithmTypes.cuh"
 #include "PV_Definitions.cuh"
 
 namespace check_pvs {
