@@ -15,14 +15,10 @@ reconstructed_objects = hlt1_reconstruction()
 ecal_clusters = reconstructed_objects["ecal_clusters"]
 
 calo_cluster_line = line_maker(
-    "Hlt1SingleCaloCluster",
-    make_single_calo_cluster_line(ecal_clusters),
-    enableGEC=False)
+    make_single_calo_cluster_line(ecal_clusters, name = "Hlt1SingleCaloCluster") )
 
 calo_digits_line = line_maker(
-    "Hlt1CaloDigitsMinADC",
-    make_calo_digits_minADC_line(decode_calo()),
-    enableGEC=False)
+    make_calo_digits_minADC_line(decode_calo(), name = "Hlt1CaloDigitsMinADC") )
 
 line_algorithms = [calo_cluster_line[0], calo_digits_line[0]]
 

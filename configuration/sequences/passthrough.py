@@ -18,13 +18,13 @@ bank_providers = [decode_odin()['dev_odin_raw_input'].producer]
 #     bank_providers.append(
 #         make_algorithm(data_provider_t, name=det + "_banks", bank_type=bt))
 
+
 passthrough_line = line_maker(
-    "Hlt1Passthrough",
     make_passthrough_line(
         name="Hlt1Passthrough",
         pre_scaler_hash_string="passthrough_line_pre",
-        post_scaler_hash_string="passthrough_line_post"),
-    enableGEC=False)
+        post_scaler_hash_string="passthrough_line_post") 
+)
 
 line_algorithms = [passthrough_line[0]]
 
