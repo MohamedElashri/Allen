@@ -25,6 +25,8 @@ namespace VertexFit {
     float& y,
     float& z);
 
+  __device__ inline float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB);
+
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
   __device__ inline float addToDerivatives(
@@ -108,7 +110,10 @@ namespace VertexFit {
       float muB = -(secondinvBB * firstB + secondinvAB * firstA);
       x = 0.5f * (xA + muA * txA + xB + muB * txB);
       y = 0.5f * (yA + muA * tyA + yB + muB * tyB);
-      z = 0.5f * (zA + muA + zB + muB);
+      // Because floating point addition is non-associative, the parentheses
+      // below are needed to ensure that z does not depend on the order in which
+      // tracks are passed to the function.
+      z = 0.5f * ((zA + muA) + (zB + muB));
       return true;
     }
     return false;
@@ -120,6 +125,39 @@ namespace VertexFit {
     float dx = x + dz * tx - x0;
     float dy = y + dz * ty - y0;
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
+  }
+
+  __device__ float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB)
+  {
+    const float xA = trackA.state[0];
+    const float yA = trackA.state[1];
+    const float zA = trackA.z;
+    const float txA = trackA.state[2];
+    const float tyA = trackA.state[3];
+    const float xB = trackB.state[0];
+    const float yB = trackB.state[1];
+    const float zB = trackB.z;
+    const float txB = trackB.state[2];
+    const float tyB = trackB.state[3];
+    const float secondAA = txA * txA + tyA * tyA + 1.f;
+    const float secondBB = txB * txB + tyB * tyB + 1.f;
+    const float secondAB = -txA * txB - tyA * tyB - 1.f;
+    const float det = secondAA * secondBB - secondAB * secondAB;
+    float ret = -1.f;
+    if (fabsf(det) > 0) {
+      const float secondinvAA = secondBB / det;
+      const float secondinvBB = secondAA / det;
+      const float secondinvAB = -secondAB / det;
+      const float firstA = txA * (xA - xB) + tyA * (yA - yB) + (zA - zB);
+      const float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
+      const float muA = -(secondinvAA * firstA + secondinvAB * firstB);
+      const float muB = -(secondinvBB * firstB + secondinvAB * firstA);
+      const float dx = (xA + muA * txA) - (xB + muB * txB);
+      const float dy = (yA + muA * tyA) - (yB + muB * tyB);
+      const float dz = (zA + muA) - (zB + muB);
+      ret = sqrtf(dx * dx + dy * dy + dz * dz);
+    }
+    return ret;
   }
 
   //----------------------------------------------------------------------
@@ -153,7 +191,7 @@ namespace VertexFit {
     halfD2Chi2_11 += invcov11;
     halfD2Chi2_20 += -invcov00 * track.state[2];
     halfD2Chi2_21 += -invcov11 * track.state[3];
-    halfD2Chi2_22 += invcov00 * track.state[0] * track.state[0] + invcov11 * track.state[1] * track.state[1];
+    halfD2Chi2_22 += invcov00 * track.state[2] * track.state[2] + invcov11 * track.state[3] * track.state[3];
     return invcov00 * rX * rX + invcov11 * rY * rY;
   }
 
@@ -209,9 +247,7 @@ namespace VertexFit {
     float halfDChi2_1 = 0.f;
     float halfDChi2_2 = 0.f;
     /// Add DOCA
-    vertex.doca =
-      2.f *
-      ip(vertex.x, vertex.y, vertex.z, trackA.state[0], trackA.state[1], trackA.z, trackA.state[2], trackA.state[3]);
+    vertex.doca = doca(trackA, trackB);
     vertex.chi2 = addToDerivatives(
       trackA,
       vertex.x,

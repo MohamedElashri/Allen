@@ -69,16 +69,16 @@ Ghost tracks identified as muon with isMuon:                              115/  
 
 
 rate_validator validation:
-Hlt1KsToPiPi:                  8/  1000, (  240.00 +/-    84.51) kHz
+Hlt1KsToPiPi:                 25/  1000, (  750.00 +/-   148.11) kHz
 Hlt1TrackMVA:                196/  1000, ( 5880.00 +/-   376.60) kHz
-Hlt1TwoTrackMVA:             304/  1000, ( 9120.00 +/-   436.38) kHz
-Hlt1TwoTrackCatBoost:        399/  1000, (11970.00 +/-   464.56) kHz
-Hlt1TwoTrackKs:                2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1TwoTrackMVA:             416/  1000, (12480.00 +/-   467.60) kHz
+Hlt1TwoTrackCatBoost:        554/  1000, (16620.00 +/-   471.57) kHz
+Hlt1TwoTrackKs:                4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1SingleHighPtMuon:          2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowPtMuon:               103/  1000, ( 3090.00 +/-   288.36) kHz
-Hlt1D2KK:                     13/  1000, (  390.00 +/-   107.46) kHz
-Hlt1D2KPi:                    22/  1000, (  660.00 +/-   139.16) kHz
-Hlt1D2PiPi:                   24/  1000, (  720.00 +/-   145.20) kHz
+Hlt1D2KK:                     23/  1000, (  690.00 +/-   142.21) kHz
+Hlt1D2KPi:                    28/  1000, (  840.00 +/-   156.51) kHz
+Hlt1D2PiPi:                   29/  1000, (  870.00 +/-   159.20) kHz
 Hlt1DiMuonHighMass:           12/  1000, (  360.00 +/-   103.30) kHz
 Hlt1DiMuonLowMass:            28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1DiMuonSoft:                0/  1000, (    0.00 +/-     0.00) kHz
@@ -86,7 +86,7 @@ Hlt1LowPtDiMuon:              57/  1000, ( 1710.00 +/-   219.95) kHz
 Hlt1TrackMuonMVA:             10/  1000, (  300.00 +/-    94.39) kHz
 Hlt1TrackElectronMVA:         36/  1000, ( 1080.00 +/-   176.73) kHz
 Hlt1SingleHighPtElectron:      6/  1000, (  180.00 +/-    73.26) kHz
-Hlt1DisplacedDielectron:       8/  1000, (  240.00 +/-    84.51) kHz
+Hlt1DisplacedDielectron:       6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1DisplacedLeptons:         20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1SingleHighEt:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1GECPassthrough:          845/  1000, (25350.00 +/-   343.33) kHz
@@ -105,16 +105,16 @@ Inclusive:                  1000/  1000, (30000.00 +/-     0.00) kHz
 
 selreport_validator validation:
                           Events  Candidates
-Hlt1KsToPiPi:                  8           8
+Hlt1KsToPiPi:                 25          26
 Hlt1TrackMVA:                196         297
-Hlt1TwoTrackMVA:             304         756
-Hlt1TwoTrackCatBoost:        399        1210
-Hlt1TwoTrackKs:                2           2
+Hlt1TwoTrackMVA:             416        1158
+Hlt1TwoTrackCatBoost:        554        2346
+Hlt1TwoTrackKs:                4           4
 Hlt1SingleHighPtMuon:          2           2
 Hlt1LowPtMuon:               103         117
-Hlt1D2KK:                     13          15
-Hlt1D2KPi:                    22          27
-Hlt1D2PiPi:                   24          25
+Hlt1D2KK:                     23          26
+Hlt1D2KPi:                    28          33
+Hlt1D2PiPi:                   29          30
 Hlt1DiMuonHighMass:           12          13
 Hlt1DiMuonLowMass:            28          33
 Hlt1DiMuonSoft:                0           0
@@ -122,7 +122,7 @@ Hlt1LowPtDiMuon:              57          74
 Hlt1TrackMuonMVA:             10          10
 Hlt1TrackElectronMVA:         36          38
 Hlt1SingleHighPtElectron:      6           6
-Hlt1DisplacedDielectron:       8           8
+Hlt1DisplacedDielectron:       6           6
 Hlt1DisplacedLeptons:         20           0
 Hlt1SingleHighEt:              0           0
 Hlt1GECPassthrough:          845           0
@@ -137,9 +137,9 @@ Hlt1Passthrough:            1000           0
 Hlt1RICH1Alignment:            3           3
 Hlt1RICH2Alignment:            0           0
 
-Total decisions: 3100
-Total tracks:    1867
-Total SVs:       1477
-Total hits:      46336
-Total stdinfo:   23944
+Total decisions: 3405
+Total tracks:    2570
+Total SVs:       2594
+Total hits:      63355
+Total stdinfo:   34341
 
