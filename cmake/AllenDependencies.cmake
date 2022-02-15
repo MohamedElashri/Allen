@@ -127,9 +127,10 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(Boost REQUIRED COMPONENTS filesystem iostreams thread regex
     serialization program_options)
 
+  # for ZeroMQ
   find_package(PkgConfig)
-  pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)  # for ZeroMQ
-
+  pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)
+  pkg_check_modules(sodium libsodium REQUIRED IMPORTED_TARGET)
 endif()
 
 # ROOT
