@@ -38,7 +38,6 @@ def line_maker(line_algorithm, prefilter=None):
         else:
             node = make_line_composite_node(
                 line_algorithm.name, algos=[prefilter, line_algorithm])
-
     return line_algorithm, node
 
 def passthrough_line( name = 'Hlt1Passthrough' ):
@@ -149,6 +148,27 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
         line_maker(
             make_track_muon_mva_line(forward_tracks, long_track_particles, name = "Hlt1TrackMuonMVA" + name_suffix )
         ))
+    lines.append(
+        line_maker(
+            make_track_electron_mva_line(forward_tracks, kalman_velo_only,
+                                         calo_matching_objects, 
+                                         name = "Hlt1TrackElectronMVA" + name_suffix)))
+    lines.append(
+        line_maker(
+            make_single_high_pt_electron_line(forward_tracks, kalman_velo_only,
+                                              calo_matching_objects, name = "Hlt1SingleHighPtElectron" + name_suffix)))
+    lines.append(
+        line_maker(
+            make_displaced_dielectron_line(
+                forward_tracks, secondary_vertices,
+                calo_matching_objects, name = "Hlt1DisplacedDielectron" + name_suffix)))
+    lines.append(
+        line_maker(
+            make_displaced_leptons_line(forward_tracks, kalman_velo_only,
+                                        calo_matching_objects, name = "Hlt1DisplacedLeptons" + name_suffix)))
+    lines.append(
+        line_maker(
+            make_single_high_et_line(velo_tracks, calo_matching_objects, name = "Hlt1SingleHighEt" + name_suffix)))
 
     return lines
 
@@ -303,6 +323,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         
     with line_maker.bind(prefilter=pp_prefilters):
         physics_lines += default_physics_lines(
+            reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
             reconstructed_objects["secondary_vertices"],
@@ -315,10 +336,20 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         reconstructed_objects["long_track_particles"],
         reconstructed_objects["velo_states"])
 
+    with line_maker.bind(prefilter=pp_checkPV):
+        physics_lines += [passthrough_line(name="Hlt1Passthrough_pp_checkPV")]
+    
+    if EnableGEC:
+        with line_maker.bind(prefilter=None):
+            physics_lines += [passthrough_line()]
+
+        with line_maker.bind(prefilter=gec):
+            physics_lines += [passthrough_line(name="Hlt1Passthrough_gec")]
+
     if EnableGEC:
         monitoring_lines.append(
             line_maker(
-                make_velo_micro_bias_line(
+                make_velo_micro_bias_line( 
                     reconstructed_objects["velo_tracks"],
                     name="Hlt1VeloMicroBias_gec"),
                 prefilter=gec))
@@ -337,11 +368,9 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
 
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
-    line_algorithms = [tup[0] for tup in physics_lines
-                       ] + [tup[0] for tup in monitoring_lines]
+    line_algorithms = [tup[0] for tup in physics_lines] + [tup[0] for tup in monitoring_lines]
     # lost of line nodes, required to set up the CompositeNode
-    line_nodes = [tup[1] for tup in physics_lines
-                  ] + [tup[1] for tup in monitoring_lines]
+    line_nodes = [tup[1] for tup in physics_lines ] + [tup[1] for tup in monitoring_lines]
 
     if withSMOG2:        
         SMOG2_prefilters = [        
@@ -359,8 +388,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         lowMult_5 = make_lowmult( reconstructed_objects['velo_tracks'], minTracks = '1', maxTracks = '5') 
         with line_maker.bind( prefilter = lowMult_5):
             smog2_lines = [ passthrough_line( name = "Hlt1PassThrough_LowMult")]
-            
- 
+             
         with line_maker.bind( prefilter = SMOG2_prefilters) :
             smog2_lines += default_smog2_lines(
                 reconstructed_objects["velo_tracks"],
@@ -373,6 +401,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         
         line_algorithms += [ tup[0] for tup in smog2_lines ]
         line_nodes      += [ tup[1] for tup in smog2_lines ]
+
 
     lines = CompositeNode(
         "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
@@ -390,7 +419,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
-
+    
     if not withMCChecking:
         return hlt1_node
     else:

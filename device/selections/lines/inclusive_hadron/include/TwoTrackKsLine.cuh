@@ -43,6 +43,7 @@ namespace two_track_line_ks {
     PROPERTY(maxM_Ks_t, "maxM_Ks", "maxM_Ks description", float) maxM_Ks;
     PROPERTY(minCosOpening_t, "minCosOpening", "minCosOpening description", float) minCosOpening;
     PROPERTY(min_combip_t, "min_combip", "min_combip description", float) min_combip;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;    
   };
 
   struct two_track_line_ks_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_line_ks_t, Parameters> {
@@ -65,5 +66,6 @@ namespace two_track_line_ks {
     Property<maxM_Ks_t> m_maxM_Ks {this, 545.0f / Gaudi::Units::MeV};
     Property<minCosOpening_t> m_minCosOpening {this, 0.99f};
     Property<min_combip_t> m_min_combip {this, 0.72f / Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -300.f};
   };
 } // namespace two_track_line_ks

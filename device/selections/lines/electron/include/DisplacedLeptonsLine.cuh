@@ -29,6 +29,7 @@ namespace displaced_leptons_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(min_ipchi2_t, "min_ipchi2", "Minimum ipchi2", float) min_ipchi2;
     PROPERTY(min_pt_t, "min_pt", "Minimum pt", float) min_pt;
+    PROPERTY(minBPVz_t, "min_BPVz", "Minimum z for the associated best primary vertex", float) minBPVz;
   };
 
   struct displaced_leptons_line_t : public SelectionAlgorithm,
@@ -48,5 +49,6 @@ namespace displaced_leptons_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<min_ipchi2_t> m_min_ipchi2 {this, 7.4f};
     Property<min_pt_t> m_min_pt {this, 1000.f};
+    Property<minBPVz_t> m_minBPVz {this, -300.f};
   };
 } // namespace displaced_leptons_line

@@ -5,6 +5,8 @@
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
 
+INSTANTIATE_ALGORITHM( odin_beamcrossingtype::odin_beamcrossingtype_t)
+
 void odin_beamcrossingtype::odin_beamcrossingtype_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -36,12 +38,9 @@ void odin_beamcrossingtype::odin_beamcrossingtype_t::operator()(
 
   global_function(odin_beamcrossingtype)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
-  copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
-  Allen::synchronize(context);
-
+  Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
-  Allen::synchronize(context);
+  Allen::copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
   reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
@@ -59,10 +58,9 @@ __global__ void odin_beamcrossingtype::odin_beamcrossingtype(odin_beamcrossingty
       odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
   }
 
-  const uint32_t word8 = event_odin_data [LHCb::ODIN::Data::Word8];
-  const unsigned bxt = (word8 & LHCb::ODIN::BXTypeMask) >> LHCb::ODIN::BXTypeBits;
-
   unsigned* event_decision = parameters.dev_event_decisions.get() + blockIdx.x;
+
+  const unsigned bxt = static_cast<unsigned int>(LHCb::ODIN({event_odin_data, 10}).bunchCrossingType());
   const bool dec = bxt == parameters.beam_crossing_type;
   if (dec) atomicOr( event_decision, dec );
 

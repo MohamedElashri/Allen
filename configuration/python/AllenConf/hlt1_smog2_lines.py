@@ -4,14 +4,16 @@
 from AllenConf.algorithms import (SMOG2_minimum_bias_line_t, SMOG2_dimuon_highmass_line_t, 
                                   SMOG2_ditrack_line_t, SMOG2_singletrack_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
-from AllenCore.event_list_utils import make_algorithm
+from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
-def make_SMOG2_minimum_bias_line(velo_tracks,
-                                 velo_kalman_states,
-                                 pre_scaler_hash_string="Hlt1_SMOG2MB_line_pre",
-                                 post_scaler_hash_string="Hlt1_SMOG2MB_line_post",
-                                 name="Hlt1SMOG2_MinimumBias"):
+
+def make_SMOG2_minimum_bias_line(
+        velo_tracks,
+        velo_kalman_states,
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None,
+        name="Hlt1SMOG2_MinimumBias"):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
@@ -26,17 +28,18 @@ def make_SMOG2_minimum_bias_line(velo_tracks,
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],        
         dev_mep_layout_t=layout["dev_mep_layout"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_velo_kalman_beamline_states_t=velo_kalman_states["dev_velo_kalman_beamline_states"] ,
         dev_velo_track_hit_number_t=velo_tracks["dev_offsets_velo_track_hit_number"] )
 
 
-def make_SMOG2_dimon_highmass_line(secondary_vertices, 
-                                   pre_scaler_hash_string="Hlt1_dimuon_highmass_line_pre",
-                                   post_scaler_hash_string="Hlt1_dimuon_highmass_line_post",
-                                   name="Hlt1SMOG2_DiMuonHighMassLine"):
+def make_SMOG2_dimon_highmass_line(
+        secondary_vertices,
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None,
+        name="Hlt1SMOG2_DiMuonHighMassLine"):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
@@ -51,14 +54,21 @@ def make_SMOG2_dimon_highmass_line(secondary_vertices,
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string )
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_SMOG2_ditrack_line(secondary_vertices, m1 = "0.f" , m2 = "0.f", mMother = "0..f",
-                            pre_scaler_hash_string="Hlt1_SMOG2_ditrack_line_pre",
-                            post_scaler_hash_string="Hlt1_SMOG2_ditrack_line_post",
-                            name="Hlt1_SMOG2_DiTrack", mWindow = "150.f", minTrackP = "3000.f", minTrackPt = "400.f"):
+def make_SMOG2_ditrack_line(
+        secondary_vertices,
+        m1="0.f",
+        m2="0.f",
+        mMother="0..f",
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None,
+        name="Hlt1_SMOG2_DiTrack",
+        mWindow="150.f",
+        minTrackP="3000.f",
+        minTrackPt="400.f"):
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -74,16 +84,22 @@ def make_SMOG2_ditrack_line(secondary_vertices, m1 = "0.f" , m2 = "0.f", mMother
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string, 
-        m1 = m1, m2 = m2, mMother = mMother, 
-        massWindow = mWindow, minTrackP = minTrackP, minTrackPt = minTrackPt )
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        m1=m1,
+        m2=m2,
+        mMother=mMother,
+        massWindow=mWindow,
+        minTrackP=minTrackP,
+        minTrackPt=minTrackPt)
 
-    
-def make_SMOG2_singletrack_line( forward_tracks, kalman_velo_only,
-                                 pre_scaler_hash_string="Hlt1_SMOG2_singletrack_line_pre",
-                                 post_scaler_hash_string="Hlt1_SMOG2_singletrack_line_post",
-                                 name="Hlt1_SMOG2_SingleTrack" ):
+
+def make_SMOG2_singletrack_line(
+        forward_tracks,
+        kalman_velo_only,
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None,
+        name="Hlt1_SMOG2_SingleTrack"):
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -100,5 +116,5 @@ def make_SMOG2_singletrack_line( forward_tracks, kalman_velo_only,
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string )
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")

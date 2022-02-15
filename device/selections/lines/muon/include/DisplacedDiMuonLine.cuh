@@ -27,6 +27,7 @@ namespace displaced_di_muon_line {
     PROPERTY(dispMinIPChi2_t, "dispMinIPChi2", "dispMinIPChi2 description", float) dispMinIPChi2;
     PROPERTY(dispMinEta_t, "dispMinEta", "dispMinEta description", float) dispMinEta;
     PROPERTY(dispMaxEta_t, "dispMaxEta", "dispMaxEta description", float) dispMaxEta;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z dimuon coordinate", float) minZ;
   };
 
   struct displaced_di_muon_line_t : public SelectionAlgorithm,
@@ -46,5 +47,6 @@ namespace displaced_di_muon_line {
     Property<dispMinIPChi2_t> m_dispMinIPChi2 {this, 6.f};
     Property<dispMinEta_t> m_dispMinEta {this, 2.f};
     Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
+    Property<minZ_t> m_minZ {this, -300.f};
   };
 } // namespace displaced_di_muon_line

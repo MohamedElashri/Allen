@@ -35,6 +35,7 @@ namespace kstopipi_line {
     PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
     PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
     PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
@@ -70,6 +71,7 @@ namespace kstopipi_line {
     Property<maxDoca_t> m_maxDoca {this, 0.2f};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
+    Property<minZ_t> m_minZ {this, -300.f};
 
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
