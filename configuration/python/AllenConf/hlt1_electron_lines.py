@@ -40,8 +40,8 @@ def make_single_high_pt_electron_line(
         long_track_particles,
         calo,
         name = "Hlt1SingleHighPtElectron",
-        pre_scaler_hash_string="single_high_pt_electron_line_pre",
-        post_scaler_hash_string="single_high_pt_electron_line_post"):
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
