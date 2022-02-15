@@ -69,6 +69,7 @@ Hlt1D2KPi:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2PiPi:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMass:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonLowMass:             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1TwoKs:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:              0/  1000, (    0.00 +/-     0.00) kHz
@@ -105,6 +106,7 @@ Hlt1D2KPi:                     0           0
 Hlt1D2PiPi:                    0           0
 Hlt1DiMuonHighMass:            0           0
 Hlt1DiMuonLowMass:             0           0
+Hlt1TwoKs:                     0           0
 Hlt1DiMuonSoft:                0           0
 Hlt1LowPtDiMuon:               0           0
 Hlt1TrackMuonMVA:              0           0
