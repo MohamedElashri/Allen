@@ -14,7 +14,7 @@ endif()
 
 # Vectorization interface library
 add_library(Vectorization INTERFACE)
-target_include_directories(Vectorization INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external>)
+target_include_directories(Vectorization INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external>)
 install(TARGETS Vectorization EXPORT Allen)
 
 

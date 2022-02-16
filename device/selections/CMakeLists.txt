@@ -24,7 +24,7 @@ if(USE_ROOT AND ROOT_FOUND)
 endif()
 
 target_include_directories(Selections PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/configuration/sequences>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/configuration/sequences>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Hlt1/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/calibration/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/monitoring/include>

@@ -1,8 +1,8 @@
 ###############################################################################
 # (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/backend/src/CPUBackend.cpp
-  ${CMAKE_SOURCE_DIR}/host/global_event_cut/src/HostGlobalEventCut.cpp)
+add_executable(mep_gec test/mep_gec.cpp ${PROJECT_SOURCE_DIR}/backend/src/CPUBackend.cpp
+  ${PROJECT_SOURCE_DIR}/host/global_event_cut/src/HostGlobalEventCut.cpp)
 
 target_include_directories(mep_gec PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 

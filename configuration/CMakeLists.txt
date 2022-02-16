@@ -16,4 +16,4 @@ endif()
 
 # Configuration interface library
 add_library(Configuration INTERFACE)
-target_include_directories(Configuration INTERFACE ${CMAKE_BINARY_DIR}/configuration/sequences)
+target_include_directories(Configuration INTERFACE ${PROJECT_BINARY_DIR}/configuration/sequences)
