@@ -246,9 +246,9 @@ void compare<BankTypes::VP>(
     auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
     REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
-    REQUIRE(mep_bank.sp_count == allen_bank.sp_count);
-    for (size_t j = 0; j < allen_bank.sp_count; ++j) {
-      REQUIRE(allen_bank.sp_word[j] == mep_bank.sp_word[j]);
+    REQUIRE(mep_bank.count == allen_bank.count);
+    for (size_t j = 0; j < allen_bank.count; ++j) {
+      REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
     }
   }
 }

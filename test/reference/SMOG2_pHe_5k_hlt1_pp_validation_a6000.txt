@@ -14,12 +14,12 @@ MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
 
-All                  :  1.025 (   727/   709)
-Isolated             :  1.025 (   727/   709)
+All                  :  1.023 (   725/   709)
+Isolated             :  1.023 (   725/   709)
 Close                :  0.000 (     0/     0)
-False rate           :  0.010 (     7/   734)
-Real false rate      :  0.010 (     7/   734)
-Clones               :  0.000 (     0/   727)
+False rate           :  0.010 (     7/   732)
+Real false rate      :  0.010 (     7/   732)
+Clones               :  0.000 (     0/   725)
 
 
 veloUT_validator validation:
@@ -68,7 +68,6 @@ Hlt1D2KK:                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPi:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2PiPi:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMass:            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TwoKs:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonLowMass:             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:               0/  1000, (    0.00 +/-     0.00) kHz
@@ -105,7 +104,6 @@ Hlt1D2KK:                      0           0
 Hlt1D2KPi:                     0           0
 Hlt1D2PiPi:                    0           0
 Hlt1DiMuonHighMass:            0           0
-Hlt1TwoKs:                     0           0
 Hlt1DiMuonLowMass:             0           0
 Hlt1DiMuonSoft:                0           0
 Hlt1LowPtDiMuon:               0           0
