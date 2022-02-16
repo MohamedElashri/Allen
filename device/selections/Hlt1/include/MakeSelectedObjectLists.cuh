@@ -24,6 +24,19 @@ namespace make_selected_object_lists {
     DEVICE_OUTPUT(dev_sel_sv_indices_t, unsigned) dev_sel_sv_indices;
     DEVICE_OUTPUT(dev_track_duplicate_map_t, int) dev_track_duplicate_map;
     DEVICE_OUTPUT(dev_sv_duplicate_map_t, int) dev_sv_duplicate_map;
+    DEVICE_OUTPUT(dev_unique_track_list_t, unsigned) dev_unique_track_list;
+    DEVICE_OUTPUT(dev_unique_sv_list_t, unsigned) dev_unique_sv_list;
+    DEVICE_OUTPUT(dev_unique_track_count_t, unsigned) dev_unique_track_count;
+    DEVICE_OUTPUT(dev_unique_sv_count_t, unsigned) dev_unique_sv_count;
+    DEVICE_OUTPUT(dev_sel_count_t, unsigned) dev_sel_count;
+    DEVICE_OUTPUT(dev_sel_list_t, unsigned) dev_sel_list;
+    DEVICE_OUTPUT(dev_hits_bank_size_t, unsigned) dev_hits_bank_size;
+    DEVICE_OUTPUT(dev_substr_bank_size_t, unsigned) dev_substr_bank_size;
+    DEVICE_OUTPUT(dev_substr_sel_size_t, unsigned) dev_substr_sel_size;
+    DEVICE_OUTPUT(dev_stdinfo_bank_size_t, unsigned) dev_stdinfo_bank_size;
+    DEVICE_OUTPUT(dev_objtyp_bank_size_t, unsigned) dev_objtyp_bank_size;
+    DEVICE_OUTPUT(dev_selrep_size_t, unsigned) dev_selrep_size;
+
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_selected_basic_particle_ptrs_t,
       DEPENDENCIES(dev_multi_event_particle_containers_t),
@@ -42,6 +55,8 @@ namespace make_selected_object_lists {
   };
 
   __global__ void make_selected_object_lists(Parameters, const unsigned total_events);
+
+  __global__ void calc_rb_sizes(Parameters);
 
   struct make_selected_object_lists_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
