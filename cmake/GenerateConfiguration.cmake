@@ -110,6 +110,7 @@ if(NOT STANDALONE)
   # Build step that will produce all .cpp conversion files
   add_custom_command(
     OUTPUT ${WRAPPED_ALGORITHM_SOURCES}
+    COMMENT "Generating wrapped algorithm sources"
     COMMAND
       ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate wrappers --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
