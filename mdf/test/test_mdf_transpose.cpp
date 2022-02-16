@@ -253,10 +253,8 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   REQUIRE(n_bytes == mdf_header_size);
 
   // read events
-  auto [eof, error, buffer_full, bytes_read] =
-    read_events(input, read_buffer, header, decompress_buffer, max_events, true);
+  auto [eof, error, bytes_read] = read_events(input, read_buffer, header, decompress_buffer, max_events, true);
   REQUIRE(!error);
-  REQUIRE(!buffer_full);
   REQUIRE(max_events == std::get<0>(read_buffer));
 
   auto [is_mc, sd_from_raw] = file_type({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});

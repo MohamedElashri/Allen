@@ -616,7 +616,7 @@ private:
   void prefetch()
   {
 
-    bool eof = false, error = false, buffer_full = false, prefetch_done = false;
+    bool eof = false, error = false, prefetch_done = false;
     size_t bytes_read = 0;
 
     auto to_read = this->n_events();
@@ -666,7 +666,7 @@ private:
       while (true) {
         size_t read = std::get<0>(read_buffer);
         size_t to_prefetch = to_read ? std::min(eps, *to_read + read) : eps;
-        std::tie(eof, error, buffer_full, bytes_read) =
+        std::tie(eof, error, bytes_read) =
           read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
 
         auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
@@ -702,8 +702,8 @@ private:
           }
           break;
         }
-        else if (std::get<0>(read_buffer) == eps || buffer_full) {
-          // Number of events in a slice reached or buffer is full
+        else if (std::get<0>(read_buffer) == eps) {
+          // Number of events in a slice reached
           break;
         }
         else if (eof && !open_file()) {

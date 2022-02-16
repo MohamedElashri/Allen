@@ -202,7 +202,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
 
   if (!mdf_input.empty()) {
     MDFProviderConfig config {false,                     // verify MDF checksums
-                              10,                        // number of read buffers
+                              4,                         // number of read buffers
                               4,                         // number of transpose threads
                               events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
                               events_per_slice,          // number of events per read buffer

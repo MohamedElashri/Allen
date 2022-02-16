@@ -77,7 +77,7 @@ bool check_sourceIDs(gsl::span<char const> bank_data);
  *
  * @return     (eof, error, full, n_bytes)
  */
-std::tuple<bool, bool, bool, size_t> read_events(
+std::tuple<bool, bool, size_t> read_events(
   Allen::IO& input,
   Allen::ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
