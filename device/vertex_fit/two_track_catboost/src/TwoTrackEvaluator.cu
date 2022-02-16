@@ -51,8 +51,8 @@ __global__ void two_track_evaluator::two_track_evaluator(
   const int* split_features,
   const int* tree_sizes,
   const int* tree_offsets,
-  const int n_trees,
-  const int n_objects)
+  const unsigned n_trees,
+  const unsigned n_objects)
 {
   for (unsigned object_id = blockIdx.x * blockDim.x + threadIdx.x; object_id < n_objects;
        object_id += blockDim.x * gridDim.x) {

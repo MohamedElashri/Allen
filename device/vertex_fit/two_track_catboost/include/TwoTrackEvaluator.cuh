@@ -30,8 +30,8 @@ namespace two_track_evaluator {
     const int* split_features,
     const int* tree_sizes,
     const int* tree_offsets,
-    const int n_trees,
-    const int n_objects);
+    const unsigned n_trees,
+    const unsigned n_objects);
 
   struct two_track_evaluator_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
