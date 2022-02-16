@@ -165,8 +165,14 @@ int main(int argc, char* argv[])
   s_config.run = !s_config.mdf_files.empty();
   if (s_config.run) {
 
-    std::unordered_set<BankTypes> bank_types = {
-      BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ODIN, BankTypes::ECal, BankTypes::HCal, BankTypes::MUON};
+    std::unordered_set<BankTypes> bank_types = {BankTypes::VP,
+                                                BankTypes::VPRetinaCluster,
+                                                BankTypes::UT,
+                                                BankTypes::FT,
+                                                BankTypes::ODIN,
+                                                BankTypes::ECal,
+                                                BankTypes::HCal,
+                                                BankTypes::MUON};
     auto json_file = write_json(bank_types);
 
     // Allocate providers and get slices

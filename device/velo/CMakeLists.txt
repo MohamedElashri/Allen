@@ -23,6 +23,7 @@ target_include_directories(Velo PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/prefix_sum/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/mask_clustering/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/retinacluster_decoding/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/calculate_phi_and_sort/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/search_by_triplet/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/simplified_kalman_filter/include>
