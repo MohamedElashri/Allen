@@ -248,8 +248,6 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   message(STATUS "Device architecture set to ${DEVICE_ARCHITECTURE}")
 endif()
 
-include(ConfigurationUtils)
-
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
   # This seems to be needed across compilers
