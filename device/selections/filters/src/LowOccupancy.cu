@@ -16,9 +16,6 @@ void low_occupancy::low_occupancy_t::set_arguments_size(
   set_size<host_number_of_selected_events_t>(arguments, 1);
 
   set_size<dev_event_list_output_t>(arguments, size<dev_event_list_t>(arguments));
-  set_size<host_event_list_output_t>(arguments, size<dev_event_list_t>(arguments));
-  set_size<dev_event_decisions_t>(arguments, size<dev_event_list_t>(arguments));
-
 }
 
 void low_occupancy::low_occupancy_t::operator()(
@@ -29,24 +26,24 @@ void low_occupancy::low_occupancy_t::operator()(
   const Allen::Context& context) const
 {
 
-  initialize<host_event_list_output_t>(arguments, 0, context);
-  initialize<dev_event_list_output_t>(arguments, 0, context);
-  initialize<dev_event_decisions_t>(arguments, 0, context);
-  initialize<dev_number_of_selected_events_t>(arguments, 0, context);
+  //initialize<host_event_list_output_t>(arguments, 0, context);
+  initialize<typename Parameters::dev_event_list_output_t>(arguments, 0, context);
+  //initialize<dev_event_decisions_t>(arguments, 0, context);
+  initialize<typename Parameters::host_number_of_selected_events_t>(arguments, 0, context);
+  initialize<typename Parameters::dev_number_of_selected_events_t>(arguments, 0, context);
 
-  global_function(low_occupancy)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-  Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);  
-  reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  global_function(low_occupancy)(dim3(size<typename Parameters::dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  Allen::copy<typename Parameters::host_number_of_selected_events_t, typename Parameters::dev_number_of_selected_events_t>(arguments, context);
+  reduce_size<typename Parameters::dev_event_list_output_t>(arguments, first<typename Parameters::host_number_of_selected_events_t>(arguments));
 
-  Allen::copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
-  reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-
+  //Allen::copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
+  //reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
 __global__ void low_occupancy::low_occupancy(low_occupancy::Parameters parameters)
 {
 
-  const auto event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_offsets_velo_tracks,
                                                parameters.dev_offsets_velo_track_hit_number,
                                                event_number,
@@ -59,6 +56,6 @@ __global__ void low_occupancy::low_occupancy(low_occupancy::Parameters parameter
 
   if ( threadIdx.x == 0 && *event_decision ) {
     const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.get(), 1);
-    parameters.dev_event_list_output[current_event] = event_number;
+    parameters.dev_event_list_output[current_event] = mask_t {event_number};
   }
 }

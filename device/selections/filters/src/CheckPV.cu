@@ -11,13 +11,10 @@ void check_pvs::check_pvs_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_number_of_selected_events_t>(arguments, 1);
-  set_size<host_number_of_selected_events_t>(arguments, 1);
+  set_size<typename Parameters::dev_number_of_selected_events_t>(arguments, 1);
+  set_size<typename Parameters::host_number_of_selected_events_t>(arguments, 1);
 
-  set_size<dev_event_list_output_t>( arguments, size<dev_event_list_t>(arguments));
-  set_size<host_event_list_output_t>( arguments, size<dev_event_list_t>(arguments));
-
-  set_size<dev_event_decisions_t>(arguments, size<dev_event_list_t>(arguments));
+  set_size<typename Parameters::dev_event_list_output_t>(arguments, size<typename Parameters::dev_event_list_t>(arguments));
 }
 
 void check_pvs::check_pvs_t::operator()(
@@ -28,26 +25,50 @@ void check_pvs::check_pvs_t::operator()(
   const Allen::Context& context) const
 {
 
-  initialize<dev_event_list_output_t>(arguments, 0, context);
-  initialize<dev_event_decisions_t>(arguments, 0, context);
-  initialize<host_number_of_selected_events_t>(arguments, 0, context);
-  initialize<dev_number_of_selected_events_t>(arguments, 0, context);
-
+  initialize<typename Parameters::dev_event_list_output_t>(arguments, 0, context);
+  //initialize<typename Parameters::dev_event_decisions_t>(arguments, 0, context);
+  initialize<typename Parameters::host_number_of_selected_events_t>(arguments, 0, context);
+  initialize<typename Parameters::dev_number_of_selected_events_t>(arguments, 0, context);
+ 
+  //print<dev_number_of_selected_events_t>(arguments);
   global_function(check_pvs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
-  Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
-  reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-  Allen::copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
-  reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  //print<dev_number_of_selected_events_t>(arguments);  
+
+  //print<dev_event_list_output_t>(arguments);    
+  //print<host_event_list_output_t>(arguments);    
+
+  Allen::copy<typename Parameters::host_number_of_selected_events_t, typename Parameters::dev_number_of_selected_events_t>(arguments, context);
+  reduce_size<typename Parameters::dev_event_list_output_t>(arguments, first<typename Parameters::host_number_of_selected_events_t>(arguments));
+
+  //print<dev_event_list_output_t>(arguments);    
+  //print<host_event_list_output_t>(arguments);    
+
+  //Allen::copy<typename Parameters::host_event_list_output_t, typename Parameters::dev_event_list_output_t>(arguments, context);
+  //reduce_size<typename Parameters::host_event_list_output_t>(arguments, first<typename Parameters::host_number_of_selected_events_t>(arguments));
+  //print<dev_event_list_output_t>(arguments);    
+  //print<host_event_list_output_t>(arguments);    
+
+  //print<host_number_of_selected_events_t>(arguments);    
+  //Allen::synchronize(context);
+  //print<host_number_of_selected_events_t>(arguments);    
+
+  //print<dev_event_list_output_t>(arguments);    
+  //print<host_event_list_output_t>(arguments);    
+
 }
 
 __global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
 {
 
-  const auto event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const PV::Vertex* vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;
 
-  unsigned* event_decision = parameters.dev_event_decisions.get() + blockIdx.x;
+  //unsigned* event_decision = parameters.dev_event_decisions.get() + blockIdx.x;
+  __shared__ int event_decision;
+  if ( threadIdx.x == 0 ) event_decision = 0;
+  __syncthreads();
+
 
   for (unsigned i = threadIdx.x; i < parameters.dev_number_of_multi_final_vertices[event_number]; i += blockDim.x) {
     const auto& pv = vertices[i];
@@ -57,8 +78,8 @@ __global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
 
   __syncthreads();
 
-  if ( threadIdx.x == 0 && *event_decision ) {
+  if (threadIdx.x == 0 && event_decision) {
     const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.get(), 1);
-    parameters.dev_event_list_output[current_event] = event_number;
+    parameters.dev_event_list_output[current_event] = mask_t {event_number};
   }
 }
