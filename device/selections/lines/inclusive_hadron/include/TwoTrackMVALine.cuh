@@ -11,7 +11,7 @@ namespace two_track_mva_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_multi_event_svs_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_multi_event_svs;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_INPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
@@ -26,6 +26,7 @@ namespace two_track_mva_line {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+    HOST_OUTPUT(host_particle_container_t, Allen::Views::Physics::IMultiEventParticleContainer*) host_particle_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)

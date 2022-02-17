@@ -31,7 +31,7 @@ two_track_mva_line::two_track_mva_line_t::get_input(
   const unsigned i)
 {
   const unsigned sv_index = i + parameters.dev_sv_offsets[event_number];
-  const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_multi_event_svs[0].particle_container(event_number));
+  const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
   const auto particle = particles.particle(i);
   return std::forward_as_tuple(particle, parameters.dev_two_track_mva_evaluation[sv_index]);
 }

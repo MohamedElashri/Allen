@@ -14,7 +14,7 @@
  * It assumes an inheriting class will have the following inputs:
  *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
  *  HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
- *  DEVICE_INPUT(dev_multi_event_tracks_t, Allen::Views::Physics::MultiEventBasicParticles) dev_tracks;
+ *  DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_tracks;
  *  DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
  *
  * It also assumes the OneTrackLine will be defined as:
@@ -40,7 +40,7 @@ struct OneTrackLine : public Line<Derived, Parameters> {
   __device__ static std::tuple<const Allen::Views::Physics::BasicParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
-    const auto tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(parameters.dev_multi_event_tracks[0].particle_container(event_number));
+    const auto tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
     const auto track = tracks.particle(i);
     return std::forward_as_tuple(track);
   }

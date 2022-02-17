@@ -52,6 +52,7 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_hits_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_substr_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_substr_sel_size_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_substr_sv_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_stdinfo_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_objtyp_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
 }
@@ -71,6 +72,12 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   initialize<dev_unique_track_count_t>(arguments, 0, context);
   initialize<dev_unique_sv_count_t>(arguments, 0, context);
   initialize<dev_sel_count_t>(arguments, 0, context);
+  initialize<dev_hits_bank_size_t>(arguments, 0, context);
+  initialize<dev_substr_bank_size_t>(arguments, 0, context);
+  initialize<dev_substr_sel_size_t>(arguments, 0, context);
+  initialize<dev_substr_sv_size_t>(arguments, 0, context);
+  initialize<dev_stdinfo_bank_size_t>(arguments, 0, context);
+  initialize<dev_objtyp_bank_size_t>(arguments, 0, context);
 
   global_function(make_selected_object_lists)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
@@ -264,6 +271,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     // Each SV structure consists of 1 short that gives the size and 1 short for
     // each substructure.
     atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + sv->number_of_substructures());
+    atomicAdd(parameters.dev_substr_sv_size + event_number, 1 + sv->number_of_substructures());
   }
 
   __syncthreads();

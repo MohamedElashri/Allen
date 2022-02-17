@@ -33,6 +33,7 @@ namespace make_selected_object_lists {
     DEVICE_OUTPUT(dev_hits_bank_size_t, unsigned) dev_hits_bank_size;
     DEVICE_OUTPUT(dev_substr_bank_size_t, unsigned) dev_substr_bank_size;
     DEVICE_OUTPUT(dev_substr_sel_size_t, unsigned) dev_substr_sel_size;
+    DEVICE_OUTPUT(dev_substr_sv_size_t, unsigned) dev_substr_sv_size;
     DEVICE_OUTPUT(dev_stdinfo_bank_size_t, unsigned) dev_stdinfo_bank_size;
     DEVICE_OUTPUT(dev_objtyp_bank_size_t, unsigned) dev_objtyp_bank_size;
     DEVICE_OUTPUT(dev_selrep_size_t, unsigned) dev_selrep_size;

@@ -14,7 +14,7 @@
  * It assumes an inheriting class will have the following inputs:
  *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
  *  HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
- *  DEVICE_INPUT(dev_multi_event_svs_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_svs;
+ *  DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_svs;
  *  DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
  *  DEVICE_OUTPUT(decisions_t, bool) decisions;
  *
@@ -38,7 +38,7 @@ struct TwoTrackLine : public Line<Derived, Parameters> {
   __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
-    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_multi_event_svs[0].particle_container(event_number));
+    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
     const auto particle = particles.particle(i);
     return std::forward_as_tuple(particle);
   }

@@ -79,6 +79,7 @@ private:
 public:
   using iteration_t = LineIteration::default_iteration_tag;
   constexpr static auto lhcbid_container = LHCbIDContainer::none;
+  constexpr static auto has_particle_container = false;
 
   void init()
   {
@@ -317,6 +318,9 @@ void Line<Derived, Parameters>::operator()(
 
   // Populate container with tag.
   data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);
+  if constexpr (Derived::has_particle_container) {
+    data<typename Parameters::host_particle_container_t>(arguments)[0] = data<typename Parameters::dev_particle_container_t>(arguments);
+  }
 
   const auto* derived_instance = static_cast<const Derived*>(this);
 
