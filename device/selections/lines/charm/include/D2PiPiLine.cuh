@@ -12,7 +12,6 @@ namespace d2pipi_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
-    DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;

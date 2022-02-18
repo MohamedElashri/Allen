@@ -11,11 +11,11 @@ displaced_leptons_line::displaced_leptons_line_t::get_input(const Parameters& pa
 {
   const auto event_tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
 
-  const unsigned N_tracks = parameters.dev_track_offsets[event_number + 1] - parameters.dev_track_offsets[event_number];
+  const unsigned N_tracks = event_tracks.size();
 
-  const bool* are_electrons = parameters.dev_track_isElectron + parameters.dev_track_offsets[event_number];
+  const bool* are_electrons = parameters.dev_track_isElectron + event_tracks.offset();
 
-  const float* brem_corrected_pts = parameters.dev_brem_corrected_pt + parameters.dev_track_offsets[event_number];
+  const float* brem_corrected_pts = parameters.dev_brem_corrected_pt + event_tracks.offset();
 
   return std::forward_as_tuple(event_tracks, N_tracks, are_electrons, brem_corrected_pts);
 }

@@ -32,7 +32,8 @@ struct TwoTrackLine : public Line<Derived, Parameters> {
 
   __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
   {
-    return parameters.dev_sv_offsets[event_number];
+    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
+    return particles.offset();
   }
 
   __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle>

@@ -17,7 +17,7 @@ track_electron_mva_line::track_electron_mva_line_t::get_input(
 
   const bool is_electron = track.is_electron();
 
-  const float corrected_pt = parameters.dev_brem_corrected_pt[i + parameters.dev_track_offsets[event_number]];
+  const float corrected_pt = parameters.dev_brem_corrected_pt[i + event_tracks.offset()];
 
   return std::forward_as_tuple(track, is_electron, corrected_pt);
 }

@@ -11,7 +11,6 @@ namespace track_electron_mva_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
-    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
