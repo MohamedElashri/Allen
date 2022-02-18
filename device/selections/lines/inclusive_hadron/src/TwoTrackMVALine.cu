@@ -20,6 +20,14 @@ __device__ unsigned two_track_mva_line::two_track_mva_line_t::offset(
   return particles.offset();
 }
 
+__device__ unsigned two_track_mva_line::two_track_mva_line_t::input_size(
+  const Parameters& parameters,
+  const unsigned event_number)
+{
+  const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
+  return particles.size();
+}
+
 unsigned two_track_mva_line::two_track_mva_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments)
 {
   return first<typename Parameters::host_number_of_svs_t>(arguments);

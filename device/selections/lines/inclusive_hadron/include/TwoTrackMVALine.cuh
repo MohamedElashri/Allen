@@ -49,6 +49,8 @@ namespace two_track_mva_line {
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
 
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
+
     static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
 
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>

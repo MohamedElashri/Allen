@@ -167,7 +167,8 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
 {
   __shared__ int event_decision;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
+  // const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
+  const unsigned input_size = Derived::input_size(parameters, event_number);
 
   if (threadIdx.x == 0) {
     event_decision = 0;

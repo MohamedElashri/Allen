@@ -14,6 +14,13 @@ __device__ unsigned single_high_et_line::single_high_et_line_t::offset(
   return parameters.dev_velo_tracks_offsets[event_number];
 }
 
+__device__ unsigned single_high_et_line::single_high_et_line_t::input_size(
+  const Parameters& parameters,
+  const unsigned event_number)
+{
+  return parameters.dev_velo_tracks_offsets[event_number + 1] - parameters.dev_velo_tracks_offsets[event_number];
+}
+
 // Get decision size function
 unsigned single_high_et_line::single_high_et_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments)
 {
