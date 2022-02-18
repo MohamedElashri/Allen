@@ -60,6 +60,7 @@ void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   set_size<dev_two_track_sv_track_pointers_t>(arguments, 2 * first<host_number_of_svs_t>(arguments));
   set_size<dev_two_track_composite_view_t>(arguments, first<host_number_of_svs_t>(arguments));
   set_size<dev_two_track_composites_view_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_multi_event_composites_view_t>(arguments, 1);
   set_size<dev_sv_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(first<host_number_of_svs_t>(arguments)));
   set_size<dev_sv_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
   // TODO: Clean this up.

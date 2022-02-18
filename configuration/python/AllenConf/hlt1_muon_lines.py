@@ -29,8 +29,7 @@ def make_single_high_pt_muon_line(
         post_scaler_hash_string=post_scaler_hash_string,
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=long_track_particles["dev_long_track_particles"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"])
+        dev_particle_container_t=long_track_particles["dev_multi_event_basic_particles"])
 
 
 def make_low_pt_muon_line(forward_tracks,
@@ -52,8 +51,7 @@ def make_low_pt_muon_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string,
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=long_track_particles["dev_long_track_particles"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"])
+        dev_particle_container_t=long_track_particles["dev_multi_event_basic_particles"])
 
 
 def make_di_muon_mass_line(forward_tracks,
@@ -79,8 +77,7 @@ def make_di_muon_mass_line(forward_tracks,
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_svs_t=secondary_vertices["dev_two_track_particles"],
-        dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
+        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
         minHighMassTrackPt=minHighMassTrackPt,
@@ -107,8 +104,7 @@ def make_di_muon_soft_line(forward_tracks,
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_svs_t=secondary_vertices["dev_two_track_particles"],
-        dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
+        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
@@ -130,8 +126,7 @@ def make_low_pt_di_muon_line(
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_svs_t=secondary_vertices["dev_two_track_particles"],
-        dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
+        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
@@ -154,7 +149,6 @@ def make_track_muon_mva_line(
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=long_track_particles["dev_long_track_particles"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_particle_container_t=long_track_particles["dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)

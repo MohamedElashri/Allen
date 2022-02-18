@@ -22,6 +22,7 @@ void make_long_track_particles::make_long_track_particles_t::set_arguments_size(
   set_size<dev_long_tracks_t>(arguments, n_scifi_tracks);
   set_size<dev_long_track_particle_view_t>(arguments, n_scifi_tracks);
   set_size<dev_long_track_particles_view_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_multi_event_basic_particles_view_t>(arguments, 1);
 }
 
 void make_long_track_particles::make_long_track_particles_t::operator()(

@@ -29,8 +29,7 @@ def make_track_electron_mva_line(
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=long_track_particles["dev_long_track_particles"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_particle_container_t=long_track_particles["dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
         dev_track_isElectron_t=calo["dev_track_isElectron"],
@@ -58,8 +57,7 @@ def make_single_high_pt_electron_line(
         post_scaler_hash_string=post_scaler_hash_string,
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=long_track_particles["dev_long_track_particles"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_particle_container_t=long_track_particles["dev_multi_event_basic_particles"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
@@ -82,8 +80,7 @@ def make_displaced_dielectron_line(
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_svs_t=secondary_vertices["dev_two_track_particles"],
-        dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
+        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
@@ -111,8 +108,7 @@ def make_displaced_leptons_line(
         dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
-        dev_tracks_t=long_track_particles["dev_long_track_particles"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_particle_container_t=long_track_particles["dev_multi_event_basic_particles"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
