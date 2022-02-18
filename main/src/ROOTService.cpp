@@ -26,8 +26,6 @@ namespace {
 
 ROOTService::ROOTService(std::string filename)
 {
-  ROOT::EnableImplicitMT();
-
   if (!filename.empty()) {
     auto output_dir = fs::path {filename}.parent_path();
     if (!output_dir.empty()) {
