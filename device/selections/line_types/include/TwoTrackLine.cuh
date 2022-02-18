@@ -24,6 +24,7 @@
 template<typename Derived, typename Parameters>
 struct TwoTrackLine : public Line<Derived, Parameters> {
   constexpr static auto lhcbid_container = LHCbIDContainer::sv;
+  constexpr static auto has_particle_container = true;
 
   static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
   {
