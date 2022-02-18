@@ -6,6 +6,8 @@
 #include "Line.cuh"
 #include "ROOTService.h"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
+
 namespace single_calo_cluster_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -27,6 +29,7 @@ namespace single_calo_cluster_line {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+    HOST_OUTPUT(host_particle_container_t, Allen::Views::Physics::IMultiEventParticleContainer*) host_particle_container;
 
     // monitoring
     DEVICE_OUTPUT(dev_clusters_x_t, float) dev_clusters_x;
