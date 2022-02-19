@@ -31,8 +31,8 @@ namespace Velo {
 
   namespace Tracking {
     // Constants for filters
-    static constexpr float param_w = 3966.94f;
-    static constexpr float param_w_inverted = 0.000252083f;
+    static constexpr float param_w = 6400.f;
+    static constexpr float param_w_inverted = 0.00015625;
     static constexpr unsigned max_h0_candidates = 8;
     static constexpr unsigned initial_seeding_h0_candidates = 8;
     static constexpr unsigned seeding_h0_candidates = 4;

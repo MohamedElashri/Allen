@@ -289,11 +289,8 @@ UpdateStateV(Velo::Consolidated::ConstHits& hits, int forward, int nHit, Vector5
   res(0) = (KalmanFloat) hits.x(nHit) - x(0);
   res(1) = (KalmanFloat) hits.y(nHit) - x(1);
 
-  // TODO: For now, I'm assuming xErr == yErr == 0.015 mm. This
-  // roughly matches what Daniel uses in the simplified Kalman
-  // filter, but needs to be checked.
-  KalmanFloat xErr = 0.015;
-  KalmanFloat yErr = 0.015;
+  KalmanFloat xErr = 0.0125f;
+  KalmanFloat yErr = 0.0125f;
   KalmanFloat CResTmp[3] = {xErr * xErr + C(0, 0), C(0, 1), yErr * yErr + C(1, 1)};
   SymMatrix2x2 CRes(CResTmp);
 

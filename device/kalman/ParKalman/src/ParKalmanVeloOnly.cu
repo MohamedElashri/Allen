@@ -34,6 +34,99 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   }
 }
 
+__device__ void add_noise_1d(
+  const KalmanFloat dz,
+  const KalmanFloat tx,
+  KalmanFloat& qop,
+  KalmanFloat& predcovXX,
+  KalmanFloat& predcovXTx,
+  KalmanFloat& predcovTxTx,
+  const KalmanFloat Cms,
+  const KalmanFloat etaxx,
+  const KalmanFloat etaxtx,
+  const KalmanFloat Eloss,
+  const bool infoil)
+{
+  // Adds full noise.
+  // Scattering paramters are defined in the include/ParKalmanVeloOnly.cuh as
+  // scatterSensorParameter_VPHit2VPHit_{cms,etaxx, etaxtx, Eloss}
+  // Values are taken from the Rec/Tr/TrackFitEvent/include/Event/ParametrisedScatters.h
+  // fine tuned on 10k events of upgrade-magdown-sim10-up08-30000000-digi from TestFileDB
+  // as of 14.12.21
+
+  const KalmanFloat tx2 = tx * tx;
+  const KalmanFloat n2 = 1 + tx2;
+  const KalmanFloat n = sqrtf(n2);
+  const KalmanFloat invp = fabsf(qop);
+  const KalmanFloat norm = n2 * invp * invp * n;
+
+  KalmanFloat normCms = norm * Cms;
+  normCms += infoil ? norm * rffoilscatter : 0;
+
+  const KalmanFloat sig = (1 + tx2) * normCms;
+  // x, tx part
+  predcovXX += sig * dz * dz * etaxx * etaxx;
+  predcovXTx += sig * dz * etaxtx;
+  predcovTxTx += sig;
+
+  const KalmanFloat deltaE = ((dz) < 0 ? 1 : -1) * Eloss * n;
+  const KalmanFloat charge = qop > 0 ? 1. : -1.;
+  const KalmanFloat momnew =
+    (fabsf(qop) > 1e-20f && 10.f < (fabsf(1.f / qop) + deltaE)) ? fabsf(1.f / qop) + deltaE : 10.f;
+  qop = (fabsf(momnew) > 10.f && fabsf(qop) > 1e-20f) ? (charge / momnew) : qop;
+}
+__device__ void add_noise_2d(
+  const KalmanFloat dz,
+  const KalmanFloat tx,
+  const KalmanFloat ty,
+  KalmanFloat& qop,
+  SymMatrix5x5& Q,
+  const KalmanFloat Cms,
+  const KalmanFloat etaxx,
+  const KalmanFloat etaxtx,
+  const KalmanFloat Eloss,
+  const bool infoil)
+{
+
+  // Adds full noise.
+  // Scattering paramters are defined in the include/ParKalmanVeloOnly.cuh as
+  // scatterSensorParameter_VPHit2VPHit_{cms,etaxx, etaxtx, Eloss}
+  // Values are taken from the Rec/Tr/TrackFitEvent/include/Event/ParametrisedScatters.h
+  // fine tuned on 10k events of upgrade-magdown-sim10-up08-30000000-digi from TestFileDB
+  // as of 14.12.21
+
+  const KalmanFloat tx2 = tx * tx;
+  const KalmanFloat ty2 = ty * ty;
+  const KalmanFloat n2 = 1 + tx2 + ty2;
+  const KalmanFloat n = sqrtf(n2);
+  const KalmanFloat invp = fabsf(qop);
+  const KalmanFloat norm = n2 * invp * invp * n;
+
+  KalmanFloat normCms = norm * Cms;
+  normCms += infoil ? (norm * rffoilscatter) : 0;
+
+  Q(2, 2) = (1 + tx2) * normCms;
+  Q(3, 3) = (1 + ty2) * normCms;
+  Q(3, 2) = tx * ty * normCms;
+
+  // x, tx part
+  Q(0, 0) = Q(2, 2) * dz * dz * etaxx * etaxx;
+  Q(2, 0) = Q(2, 2) * dz * etaxtx;
+  // y, ty part
+  Q(1, 1) = Q(3, 3) * dz * dz * etaxx * etaxx;
+  Q(3, 1) = Q(3, 3) * dz * etaxtx;
+
+  Q(1, 0) = Q(3, 2) * dz * dz * etaxx * etaxx;
+  Q(3, 0) = Q(3, 2) * dz * etaxtx;
+  Q(2, 1) = Q(3, 0);
+
+  const KalmanFloat deltaE = ((dz) < 0 ? 1 : -1) * Eloss * n;
+  const KalmanFloat charge = (qop > 0) ? 1. : -1.;
+  const KalmanFloat momnew =
+    (fabsf(qop) > 1e-20f && 10.f < (fabsf(1.f / qop) + deltaE)) ? fabsf(1.f / qop) + deltaE : 10.f;
+  qop = (fabsf(momnew) > 10.f && fabsf(qop) > 1e-20f) ? (charge / momnew) : qop;
+}
+
 __device__ void simplified_step(
   const KalmanFloat z,
   const KalmanFloat zhit,
@@ -45,7 +138,8 @@ __device__ void simplified_step(
   KalmanFloat& covXX,
   KalmanFloat& covXTx,
   KalmanFloat& covTxTx,
-  KalmanFloat& chi2)
+  KalmanFloat& chi2,
+  const bool infoil)
 {
   // Predict the state.
   const KalmanFloat dz = zhit - z;
@@ -54,7 +148,6 @@ __device__ void simplified_step(
   // const KalmanFloat predx = x + 0.5 * (tx + predTx) * dz;
   const KalmanFloat predTx = tx;
   const KalmanFloat predx = x + tx * dz;
-
   // Predict the covariance matrix (accurate if we ignore the small
   // momentum dependence of the Jacobian).
   const KalmanFloat dz_t_covTxTx = dz * covTxTx;
@@ -64,16 +157,18 @@ __device__ void simplified_step(
   KalmanFloat predcovTxTx = covTxTx;
 
   // Add noise.
-  const KalmanFloat par1 = scatterSensorParameters_0;
-  const KalmanFloat par2 = scatterSensorParameters_1;
-  const KalmanFloat par6 = scatterSensorParameters_2;
-  const KalmanFloat par7 = scatterSensorParameters_3;
-  const KalmanFloat sigTx = par1 * ((KalmanFloat) 1e-5) + par2 * fabsf(qop);
-  const KalmanFloat sigX = par6 * sigTx * fabsf(dz);
-  const KalmanFloat corr = par7;
-  predcovXX += sigX * sigX;
-  predcovXTx += corr * sigX * sigTx;
-  predcovTxTx += sigTx * sigTx;
+  add_noise_1d(
+    dz,
+    tx,
+    qop,
+    predcovXX,
+    predcovXTx,
+    predcovTxTx,
+    scatterSensorParameter_VPHit2VPHit_cms,
+    scatterSensorParameter_VPHit2VPHit_etaxx,
+    scatterSensorParameter_VPHit2VPHit_etaxtx,
+    scatterSensorParameter_VPHit2VPHit_Eloss,
+    infoil);
 
   // Gain matrix.
   const KalmanFloat R = 1.0f / (winv + predcovXX);
@@ -118,16 +213,25 @@ __device__ void extrapolate_velo_only(
   F(2, 4) = par[4] * ((KalmanFloat) 1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
   F(0, 4) = ((KalmanFloat) 0.5) * dz * F(2, 4);
 
-  // Noise matrix.
-  KalmanFloat sigt = par[1] * ((KalmanFloat) 1.0e-5) + par[2] * fabsf(x_old[4]);
-  KalmanFloat sigx = par[6] * sigt * fabsf(dz);
-  KalmanFloat corr = par[7];
-  Q(0, 0) = sigx * sigx;
-  Q(1, 1) = sigx * sigx;
-  Q(2, 2) = sigt * sigt;
-  Q(3, 3) = sigt * sigt;
-  Q(0, 2) = corr * sigx * sigt;
-  Q(1, 3) = corr * sigx * sigt;
+  // Add full noise.
+  KalmanFloat qop = x[4];
+  const KalmanFloat xprime = x[1] + x[0];
+  const KalmanFloat yprime = x[1] - x[0];
+
+  const bool infoil = (yprime > -15 && xprime >= 0 && xprime < 15) || (yprime < 15 && xprime > -15 && xprime <= 0);
+
+  add_noise_2d(
+    dz,
+    x[2],
+    x[3],
+    qop,
+    Q,
+    scatterSensorParameter_VPHit2VPHit_cms,
+    scatterSensorParameter_VPHit2VPHit_etaxx,
+    scatterSensorParameter_VPHit2VPHit_etaxtx,
+    scatterSensorParameter_VPHit2VPHit_Eloss,
+    infoil);
+  x[4] = qop;
 }
 
 __device__ void predict_velo_only(
@@ -161,11 +265,8 @@ update_velo_only(Velo::Consolidated::ConstHits& hits, int nHit, Vector5& x, SymM
   res(0) = (KalmanFloat) hits.x(nHit) - x(0);
   res(1) = (KalmanFloat) hits.y(nHit) - x(1);
 
-  // TODO: For now, I'm assuming xErr == yErr == 0.015 mm. This
-  // roughly matches what Daniel uses in the simplified Kalman
-  // filter, but needs to be checked.
-  KalmanFloat xErr = 0.015;
-  KalmanFloat yErr = 0.015;
+  KalmanFloat xErr = pixelErr;
+  KalmanFloat yErr = pixelErr;
   KalmanFloat CResTmp[3] = {xErr * xErr + C(0, 0), C(0, 1), yErr * yErr + C(1, 1)};
   SymMatrix2x2 CRes(CResTmp);
 
@@ -211,12 +312,12 @@ __device__ void velo_only_fit(
 
   // Set covariance matrix with large uncertainties and no correlations.
   SymMatrix5x5 C;
-  C(0, 0) = (KalmanFloat) 100.0;
+  C(0, 0) = (KalmanFloat) pixelErr * pixelErr;
   C(0, 1) = (KalmanFloat) 0.0;
   C(0, 2) = (KalmanFloat) 0.0;
   C(0, 3) = (KalmanFloat) 0.0;
   C(0, 4) = (KalmanFloat) 0.0;
-  C(1, 1) = (KalmanFloat) 100.0;
+  C(1, 1) = (KalmanFloat) pixelErr * pixelErr;
   C(1, 2) = (KalmanFloat) 0.0;
   C(1, 3) = (KalmanFloat) 0.0;
   C(1, 4) = (KalmanFloat) 0.0;
@@ -251,10 +352,10 @@ __device__ void velo_only_fit(
 
 __device__ void propagate_to_beamline(FittedTrack& track)
 {
-  const KalmanFloat x = track.state[0];
-  const KalmanFloat y = track.state[1];
-  const KalmanFloat tx = track.state[2];
-  const KalmanFloat ty = track.state[3];
+  KalmanFloat x = track.state[0];
+  KalmanFloat y = track.state[1];
+  KalmanFloat tx = track.state[2];
+  KalmanFloat ty = track.state[3];
   const KalmanFloat t2 = sqrtf(tx * tx + ty * ty);
 
   // Get the beam position.
@@ -262,15 +363,10 @@ __device__ void propagate_to_beamline(FittedTrack& track)
   KalmanFloat denom = t2 * t2;
   const KalmanFloat tol = (KalmanFloat) 0.001;
   zBeam = (denom < tol * tol) ? zBeam : track.z - (x * tx + y * ty) / denom;
-
-  // Add RF foil scattering.
-  const KalmanFloat qop = track.state[4];
-  const KalmanFloat scat2RFFoil = scatterFoilParameters_0 * (1.f + scatterFoilParameters_1 * t2) * qop * qop;
-  track.cov(2, 2) += scat2RFFoil;
-  track.cov(3, 3) += scat2RFFoil;
+  const KalmanFloat dz = zBeam - track.z;
+  KalmanFloat qop = track.state[4];
 
   // Propagate the covariance matrix.
-  const KalmanFloat dz = zBeam - track.z;
   const KalmanFloat dz2 = dz * dz;
   track.cov(0, 0) += dz2 * track.cov(2, 2) + 2 * dz * track.cov(0, 2);
   track.cov(0, 2) += dz * track.cov(2, 2);
@@ -281,6 +377,44 @@ __device__ void propagate_to_beamline(FittedTrack& track)
   track.state[0] = x + dz * tx;
   track.state[1] = y + dz * ty;
   track.z = zBeam;
+
+  //
+  x = track.state[0];
+  y = track.state[1];
+  tx = track.state[2];
+  ty = track.state[3];
+
+  SymMatrix5x5 Q;
+  // add noise
+  // Note: for VPhit2BeamLine propagation the rf-foil is included in the parameters,
+  // so infoil has to be set to false.
+  add_noise_2d(
+    dz,
+    tx,
+    ty,
+    qop,
+    Q,
+    scatterSensorParameter_VPHit2ClosestToBeam_cms,
+    scatterSensorParameter_VPHit2ClosestToBeam_etaxx,
+    scatterSensorParameter_VPHit2ClosestToBeam_etaxtx,
+    scatterSensorParameter_VPHit2ClosestToBeam_Eloss,
+    false);
+
+  track.state[4] = qop;
+
+  track.cov(0, 0) += Q(0, 0);
+  track.cov(1, 1) += Q(1, 1);
+  track.cov(2, 2) += Q(2, 2);
+  track.cov(3, 3) += Q(3, 3);
+
+  track.cov(1, 0) += Q(1, 0);
+
+  track.cov(2, 0) += Q(2, 0);
+  track.cov(2, 1) += Q(2, 1);
+
+  track.cov(3, 0) += Q(3, 0);
+  track.cov(3, 1) += Q(3, 1);
+  track.cov(3, 2) += Q(3, 2);
 }
 
 __device__ void simplified_fit(
@@ -303,14 +437,6 @@ __device__ void simplified_fit(
   KalmanFloat qop = init_qop;
   KalmanFloat z = first_hit.z();
 
-  // Initialize the covariance.
-  KalmanFloat cXX = 100.0;
-  KalmanFloat cXTx = 0;
-  KalmanFloat cTxTx = 0.01;
-  KalmanFloat cYY = 100.0;
-  KalmanFloat cYTy = 0;
-  KalmanFloat cTyTy = 0.01;
-
   // Initialize the chi2.
   KalmanFloat chi2 = 0;
 
@@ -318,14 +444,26 @@ __device__ void simplified_fit(
   const KalmanFloat wx = pixelErr * pixelErr;
   const KalmanFloat wy = wx;
 
+  // Initialize the covariance.
+  KalmanFloat cXX = wx;
+  KalmanFloat cXTx = 0;
+  KalmanFloat cTxTx = 0.01;
+  KalmanFloat cYY = wy;
+  KalmanFloat cYTy = 0;
+  KalmanFloat cTyTy = 0.01;
+
   // Fit loop.
   for (int i = first_hit_number + dhit; i != last_hit_number + dhit; i += dhit) {
     const auto hit = velo_track.hit(i);
     const auto hit_x = hit.x();
     const auto hit_y = hit.y();
     const auto hit_z = hit.z();
-    simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
-    simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
+
+    const KalmanFloat xprime = hit_x + hit_y;
+    const KalmanFloat yprime = hit_y - hit_x;
+    const bool infoil = (yprime > -15 && xprime >= 0 && xprime < 15) || (yprime < 15 && xprime > -15 && xprime <= 0);
+    simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2, infoil);
+    simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2, infoil);
     z = hit_z;
   }
   __syncthreads();
