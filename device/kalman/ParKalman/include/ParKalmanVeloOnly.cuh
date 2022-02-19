@@ -23,14 +23,19 @@ typedef Vector<2> Vector2;
 typedef SquareMatrix<true, 2> SymMatrix2x2;
 typedef SquareMatrix<false, 2> Matrix2x2;
 
-static constexpr float scatterSensorParameters_0 = 0.54772f;
-static constexpr float scatterSensorParameters_1 = 1.478845f;
-static constexpr float scatterSensorParameters_2 = 0.626634f;
-static constexpr float scatterSensorParameters_3 = -0.78f;
+static constexpr float pixelErr = 0.0125f;
 
-static constexpr float scatterFoilParameters_0 = 1.67f;
-static constexpr float scatterFoilParameters_1 = 20.f;
-static constexpr float pixelErr = 0.0125;
+static constexpr float scatterSensorParameter_VPHit2VPHit_cms = 1.48;
+static constexpr float scatterSensorParameter_VPHit2VPHit_etaxx = 0.643;
+static constexpr float scatterSensorParameter_VPHit2VPHit_etaxtx = 0.526;
+static constexpr float scatterSensorParameter_VPHit2VPHit_Eloss = 0.592;
+
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_cms = 2.91;
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_etaxx = 0.808;
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_etaxtx = 0.793;
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_Eloss = 1.29;
+
+static constexpr float rffoilscatter = 0.6;
 
 __device__ void simplified_step(
   const float z,
