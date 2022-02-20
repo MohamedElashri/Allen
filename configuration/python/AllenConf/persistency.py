@@ -5,7 +5,7 @@ from AllenConf.algorithms import gather_selections_t, dec_reporter_t, global_dec
 from AllenConf.algorithms import count_long_track_hits_t, host_prefix_sum_t, make_hits_container_t
 from AllenConf.algorithms import calc_rb_hits_size_t, calc_rb_substr_size_t, make_rb_substr_t
 from AllenConf.algorithms import make_rb_hits_t, make_rb_stdinfo_t, make_rb_objtyp_t
-from AllenConf.algorithms import calc_selrep_size_t, make_selrep_t
+from AllenConf.algorithms import calc_selrep_size_t, make_selrep_t, make_selected_object_lists_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
@@ -34,6 +34,9 @@ def make_gather_selections(lines):
         ],
         host_lhcbid_containers_agg_t=[
             line.host_lhcbid_container_t for line in lines
+        ],
+        host_particle_containers_agg_t=[
+            line.host_particle_container_t for line in lines
         ],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
@@ -82,6 +85,19 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
 
     ut_tracks = forward_tracks["veloUT_tracks"]
     velo_tracks = ut_tracks["velo_tracks"]
+
+    make_selected_object_lists = make_algorithm(
+        make_selected_object_lists_t,
+        name="make_selected_object_lists",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_active_lines_t=gather_selections.host_number_of_active_lines_t,
+        dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
+        dev_number_of_active_lines_t=gather_selections.dev_number_of_active_lines_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_multi_event_particle_containers_t=gather_selections.dev_particle_containers_t,
+        dev_selections_t=gather_selections.dev_selections_t,
+        dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
+        dev_lhcbid_containers_t=gather_selections.dev_lhcbid_containers_t)
 
     count_long_track_hits = make_algorithm(
         count_long_track_hits_t,
@@ -281,15 +297,16 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_rb_stdinfo_t=make_rb_stdinfo.dev_rb_stdinfo_t)
 
     return {
-        "algorithms": [
-            count_long_track_hits, prefix_sum_long_track_hits,
-            make_hits_container, calc_rb_hits_size, prefix_sum_track_tags,
-            prefix_sum_sv_tags, prefix_sum_selected_hits, prefix_sum_hits_size,
-            calc_rb_substr_size, prefix_sum_substr_size,
-            prefix_sum_stdinfo_size, prefix_sum_candidate_count, make_rb_hits,
-            make_rb_substr, make_rb_stdinfo, make_rb_objtyp, calc_selrep_size,
-            prefix_sum_selrep_size, make_selreps
-        ],
+        # "algorithms": [
+        #     count_long_track_hits, prefix_sum_long_track_hits,
+        #     make_hits_container, calc_rb_hits_size, prefix_sum_track_tags,
+        #     prefix_sum_sv_tags, prefix_sum_selected_hits, prefix_sum_hits_size,
+        #     calc_rb_substr_size, prefix_sum_substr_size,
+        #     prefix_sum_stdinfo_size, prefix_sum_candidate_count, make_rb_hits,
+        #     make_rb_substr, make_rb_stdinfo, make_rb_objtyp, calc_selrep_size,
+        #     prefix_sum_selrep_size, make_selreps
+        # ],
+        "algorithms": [make_selected_object_lists],
         "dev_sel_reports":
         make_selreps.dev_sel_reports_t,
         "dev_selrep_offsets":
