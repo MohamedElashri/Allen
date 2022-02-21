@@ -42,5 +42,6 @@ namespace Allen {
   int subdetector_index_from_bank_type(BankTypes bt);
 
   using sd_from_raw_bank = std::function<BankTypes(LHCb::RawBank const* raw_bank)>;
+  using bank_sorter = std::function<bool(LHCb::RawBank const* a, LHCb::RawBank const* b)>;
 
 } // namespace Allen

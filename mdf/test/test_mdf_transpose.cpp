@@ -47,17 +47,20 @@ namespace {
   Config s_config;
 } // namespace
 
-std::tuple<bool, Allen::sd_from_raw_bank> file_type(gsl::span<char const> bank_data)
+std::tuple<bool, Allen::sd_from_raw_bank, Allen::bank_sorter> file_type(gsl::span<char const> bank_data)
 {
   auto is_mc = check_sourceIDs(bank_data);
   Allen::sd_from_raw_bank sd_from_raw;
+  Allen::bank_sorter sorter;
   if (is_mc) {
     sd_from_raw = sd_from_bank_type;
+    sorter = sort_by_bank_type;
   }
   else {
     sd_from_raw = sd_from_sourceID;
+    sorter = sort_by_sourceID;
   }
-  return {is_mc, sd_from_raw};
+  return {is_mc, std::move(sd_from_raw), std::move(sorter)};
 }
 
 std::tuple<bool, std::array<unsigned, NBankTypes>, std::vector<LHCb::ODIN>, size_t, size_t, size_t, size_t>
@@ -104,6 +107,7 @@ mdf_read_sizes(std::string filename, std::unordered_set<BankTypes> const& bank_t
 
   bool is_mc = false, first = true;
   Allen::sd_from_raw_bank sd_from_raw;
+  Allen::bank_sorter bank_sorter;
 
   while (true) {
 
@@ -113,7 +117,7 @@ mdf_read_sizes(std::string filename, std::unordered_set<BankTypes> const& bank_t
     }
     else if (first) {
       first = false;
-      std::tie(is_mc, sd_from_raw) = file_type(bank_span);
+      std::tie(is_mc, sd_from_raw, bank_sorter) = file_type(bank_span);
     }
 
     bank_sizes.fill(0);
@@ -257,7 +261,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   REQUIRE(!error);
   REQUIRE(max_events == std::get<0>(read_buffer));
 
-  auto [is_mc, sd_from_raw] = file_type({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
+  auto [is_mc, sd_from_raw, bank_sorter] = file_type({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
 
   input.close();
 
@@ -281,6 +285,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
       slice_index,
       allen_types,
       sd_from_raw,
+      bank_sorter,
       banks_count,
       banks_version,
       event_ids,

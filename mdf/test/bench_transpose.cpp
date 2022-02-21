@@ -128,11 +128,14 @@ int main(int argc, char* argv[])
   gsl::span<char const> bank_data {read_buffer.data(), event_offsets[1]};
   auto is_mc = check_sourceIDs(bank_data);
   Allen::sd_from_raw_bank sd_from_raw;
+  Allen::bank_sorter bank_sorter;
   if (is_mc) {
     sd_from_raw = sd_from_bank_type;
+    bank_sorter = sort_by_bank_type;
   }
   else {
     sd_from_raw = sd_from_sourceID;
+    bank_sorter = sort_by_sourceID;
   }
 
   std::tie(count_success, banks_count) = fill_counts(bank_data, sd_from_raw);
@@ -161,6 +164,7 @@ int main(int argc, char* argv[])
                                   n_reps,
                                   n_events,
                                   &sd_from_raw,
+                                  &bank_sorter,
                                   &read_buffers,
                                   &slices,
                                   &bank_types,
@@ -181,6 +185,7 @@ int main(int argc, char* argv[])
           i,
           {BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
           sd_from_raw,
+          bank_sorter,
           banks_count,
           banks_version,
           event_ids[i],

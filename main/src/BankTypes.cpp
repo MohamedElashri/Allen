@@ -11,12 +11,13 @@ namespace {
   const std::map<BankTypes, std::string> BankNames = {{BankTypes::VP, "VP"},
                                                       {BankTypes::VPRetinaCluster, "VPRetinaCluster"},
                                                       {BankTypes::UT, "UT"},
-                                                      {BankTypes::FT, "FTCluster"},
+                                                      {BankTypes::FT, "FT"},
                                                       {BankTypes::MUON, "Muon"},
                                                       {BankTypes::ODIN, "ODIN"},
-                                                      {BankTypes::Rich, "Rich"},
-                                                      {BankTypes::HCal, "HcalPacked"},
-                                                      {BankTypes::ECal, "EcalPacked"},
+                                                      {BankTypes::Rich1, "Rich1"},
+                                                      {BankTypes::Rich2, "Rich2"},
+                                                      {BankTypes::HCal, "HCal"},
+                                                      {BankTypes::ECal, "ECal"},
                                                       {BankTypes::OTRaw, "tracks"},
                                                       {BankTypes::OTError, "PVs"}};
 }

@@ -51,7 +51,7 @@ BankTypes sd_from_bank_type(LHCb::RawBank const* raw_bank);
 BankTypes sd_from_sourceID(LHCb::RawBank const* raw_bank);
 
 /**
- * @brief      Check if any of the soruce IDs have a non-zero value
+ * @brief      Check if any of the source IDs have a non-zero value
  *             in the 5 most-significant bits
  *
  * @param      span with banks in MDF layout
@@ -60,6 +60,33 @@ BankTypes sd_from_sourceID(LHCb::RawBank const* raw_bank);
  *             its 5 most-significant bits
  */
 bool check_sourceIDs(gsl::span<char const> bank_data);
+
+/**
+ * @brief      Use the source IDs to sort banks
+ *
+ * @param      raw bank
+ * @param      raw bank
+ *
+ * @return     sourceID of a < sourceID of b
+ */
+inline bool sort_by_sourceID(LHCb::RawBank const* a, LHCb::RawBank const* b)
+{
+  return a->sourceID() < b->sourceID();
+}
+
+/**
+ * @brief      Use the bank type to source banks;
+ *             for equal bank types compare the source IDs;
+ *
+ * @param      raw bank
+ * @param      raw bank
+ *
+ * @return     bank type of a < bank type of b
+ */
+inline bool sort_by_bank_type(LHCb::RawBank const* a, LHCb::RawBank const* b)
+{
+  return (a->type() == b->type()) ? (a->sourceID() < b->sourceID()) : (a->type() < b->type());
+}
 
 /**
  * @brief      read events from input file into prefetch buffer
@@ -115,11 +142,13 @@ std::tuple<bool, bool, bool> transpose_event(
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
   Allen::sd_from_raw_bank sd_from_raw_bank,
-  std::array<unsigned int, NBankTypes> const& mfp_count,
+  Allen::bank_sorter bank_sort,
+  std::array<unsigned int, NBankTypes>& bank_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   std::vector<char>& event_mask,
   const gsl::span<char const> bank_data,
+  std::vector<LHCb::RawBank* const>& sorted_banks,
   bool split_by_run);
 
 /**
@@ -142,6 +171,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   int const slice_index,
   std::unordered_set<BankTypes> const& bank_types,
   Allen::sd_from_raw_bank sd_from_raw_bank,
+  Allen::bank_sorter bank_sort,
   std::array<unsigned int, NBankTypes> const& mfp_count,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,

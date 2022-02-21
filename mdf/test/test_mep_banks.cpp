@@ -163,16 +163,19 @@ int main(int argc, char* argv[])
   std::cout << "mdf_files = " << s_config.mdf_files << std::endl;
   std::cout << "mep_files = " << s_config.mep_files << std::endl;
   s_config.run = !s_config.mdf_files.empty();
-  if (s_config.run) {
 
-    std::unordered_set<BankTypes> bank_types = {BankTypes::VP,
-                                                BankTypes::VPRetinaCluster,
-                                                BankTypes::UT,
-                                                BankTypes::FT,
-                                                BankTypes::ODIN,
-                                                BankTypes::ECal,
-                                                BankTypes::HCal,
-                                                BankTypes::MUON};
+  logger::setVerbosity(4);
+
+  if (s_config.run) {
+    // std::unordered_set<BankTypes> bank_types = {BankTypes::VP,
+    //                                             BankTypes::UT,
+    //                                             BankTypes::FT,
+    //                                             BankTypes::ODIN,
+    //                                             BankTypes::ECal,
+    //                                             BankTypes::HCal,
+    //                                             BankTypes::MUON};
+    std::unordered_set<BankTypes> bank_types = {
+      BankTypes::ODIN, BankTypes::ECal, BankTypes::Rich2, BankTypes::MUON};
     auto json_file = write_json(bank_types);
 
     // Allocate providers and get slices
@@ -468,7 +471,8 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 }
 
 // Main test case, multiple bank types are checked
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", VeloTag, UTTag, SciFiTag, MuonTag, ECalTag)
+// VeloTag, UTTag, SciFiTag,
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", MuonTag, ECalTag)
 {
   if (!s_config.run) return;
 

@@ -154,7 +154,14 @@ public:
 
         // Check what type of file we have: old MC or (new MC or data)
         m_is_mc = check_sourceIDs(event_span);
-        m_sd_from_raw = m_is_mc ? sd_from_bank_type : sd_from_sourceID;
+        if (*m_is_mc) {
+          m_sd_from_raw = sd_from_bank_type;
+          m_bank_sorter = sort_by_bank_type;
+        }
+        else {
+          m_sd_from_raw = sd_from_sourceID;
+          m_bank_sorter = sort_by_sourceID;
+        }
         std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw);
 
         for (auto allen_type : types()) {
@@ -516,6 +523,7 @@ private:
         *slice_index,
         this->types(),
         m_sd_from_raw,
+        m_bank_sorter,
         m_mfp_count,
         m_banks_version,
         m_event_ids[*slice_index],
@@ -801,6 +809,8 @@ private:
   std::optional<bool> m_is_mc = std::nullopt;
 
   Allen::sd_from_raw_bank m_sd_from_raw;
+
+  Allen::bank_sorter m_bank_sorter;
 
   // Run and event numbers present in each slice
   std::vector<EventIDs> m_event_ids;
