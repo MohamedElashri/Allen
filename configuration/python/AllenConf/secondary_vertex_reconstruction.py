@@ -159,8 +159,8 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
         filter_tracks.dev_svs_trk1_idx_t,
         "dev_svs_trk2_idx":
         filter_tracks.dev_svs_trk2_idx_t,
-        "dev_long_track_particles":
-        long_track_particles["dev_long_track_particles"],
+        # "dev_long_track_particles":
+        # long_track_particles["dev_long_track_particles"],
         "dev_two_track_particles":
         fit_secondary_vertices.dev_two_track_composites_view_t,
         "dev_multi_event_composites":

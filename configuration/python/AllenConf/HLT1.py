@@ -237,7 +237,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
             rate_validation(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
-                forward_tracks=reconstructed_objects["forward_tracks"],
+                forward_tracks=reconstructed_objects["long_track_particles"],
                 secondary_vertices=reconstructed_objects["secondary_vertices"])
             ["algorithms"],
         ],

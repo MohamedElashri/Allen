@@ -46,6 +46,7 @@ namespace two_track_mva_line {
   struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, Line<two_track_mva_line_t, Parameters> {
 
     constexpr static auto lhcbid_container = LHCbIDContainer::sv;
+    constexpr static auto has_particle_container = true;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
 

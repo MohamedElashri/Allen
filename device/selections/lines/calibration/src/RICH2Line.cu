@@ -51,6 +51,7 @@ void rich_2_line::rich_2_line_t::set_arguments_size(
 
   set_size<typename Parameters::dev_phi_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_phi_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
+  set_size<typename Parameters::host_particle_container_t>(arguments, 1);
 }
 
 #ifdef WITH_ROOT
