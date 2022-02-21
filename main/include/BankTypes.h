@@ -15,7 +15,11 @@
 #include "Common.h"
 
 constexpr auto NBankTypes = 11;
+<<<<<<< HEAD
 enum class BankTypes { VP, VPRetinaCluster, UT, FT, MUON, ODIN, OTRaw, OTError, Rich, ECal, HCal, Unknown };
+=======
+enum class BankTypes { VP, UT, FT, MUON, ODIN, OTRaw, OTError, Rich1, Rich2, ECal, HCal, Unknown };
+>>>>>>> Separate Allen bank types for Rich1 and Rich2
 
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.
@@ -25,7 +29,8 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 20.f},
                                                         {BankTypes::UT, 12.f},
                                                         {BankTypes::FT, 15.f},
                                                         {BankTypes::MUON, 4.f},
-                                                        {BankTypes::Rich, 35.f},
+                                                        {BankTypes::Rich1, 35.f},
+                                                        {BankTypes::Rich2, 35.f},
                                                         {BankTypes::HCal, 5.1f},
                                                         {BankTypes::ECal, 15.f},
                                                         {BankTypes::ODIN, 1.f},
