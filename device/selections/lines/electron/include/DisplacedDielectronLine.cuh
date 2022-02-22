@@ -29,7 +29,8 @@ namespace displaced_dielectron_line {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
-    HOST_OUTPUT(host_particle_container_t, Allen::Views::Physics::IMultiEventParticleContainer*) host_particle_container;
+    HOST_OUTPUT(host_particle_container_t, Allen::Views::Physics::IMultiEventParticleContainer*)
+    host_particle_container;
     // Properties
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;

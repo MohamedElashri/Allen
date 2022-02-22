@@ -48,7 +48,7 @@ namespace make_selected_object_lists {
       DEPENDENCIES(dev_multi_event_particle_containers_t),
       Allen::Views::Physics::CompositeParticle*)
     dev_selected_composite_particle_ptrs;
-    PROPERTY(max_selected_tracks_t, "max_selected_tracks", "Maximum number of selected tracks per event.", unsigned) 
+    PROPERTY(max_selected_tracks_t, "max_selected_tracks", "Maximum number of selected tracks per event.", unsigned)
     max_selected_tracks;
     PROPERTY(max_selected_svs_t, "max_selected_svs", "Maximum number of selected SVs per event.", unsigned)
     max_selected_svs;
@@ -73,10 +73,10 @@ namespace make_selected_object_lists {
       HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
-    private:
-      Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-      Property<max_selected_tracks_t> m_max_selected_tracks {this, 100};
-      Property<max_selected_svs_t> m_max_selected_svs {this, 100};
+  private:
+    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+    Property<max_selected_tracks_t> m_max_selected_tracks {this, 100};
+    Property<max_selected_svs_t> m_max_selected_svs {this, 100};
   };
 
 } // namespace make_selected_object_lists

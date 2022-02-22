@@ -35,7 +35,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
 
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    
+
     unsigned* event_rb_substr = parameters.dev_rb_substr + parameters.dev_rb_substr_offsets[event_number];
     const unsigned event_rb_substr_size =
       parameters.dev_rb_substr_offsets[event_number + 1] - parameters.dev_rb_substr_offsets[event_number];
@@ -95,7 +95,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         event_rb_substr[i_word] = (event_rb_substr[i_word] & ~(mask << bits)) | (sv_struct << bits);
       }
       for (unsigned i_substr = 0; i_substr < n_substr; i_substr++) {
-        
+
         // Find the location of the substructure in the bank.
         const auto substr = sv->substructure(i_substr);
         unsigned substr_loc;
@@ -108,7 +108,8 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
               break;
             }
           }
-        } else {
+        }
+        else {
           const auto composite_substr = static_cast<const Allen::Views::Physics::CompositeParticle*>(substr);
           for (unsigned i_sv = 0; i_sv < n_svs; i_sv++) {
             const unsigned sv_index = parameters.dev_unique_sv_list[sv_offset + i_sv];
@@ -124,8 +125,9 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         i_part = i_short % 2;
         if (i_part == 0) {
           event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | substr_loc;
-        } else {
-          event_rb_substr[i_word] = (event_rb_substr[i_word] & ~(mask <<bits)) | (substr_loc << bits);
+        }
+        else {
+          event_rb_substr[i_word] = (event_rb_substr[i_word] & ~(mask << bits)) | (substr_loc << bits);
         }
       }
       i_short++;
@@ -157,7 +159,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
 
       // Handle lines that select BasicParticles.
       if (sel_type == to_integral(LHCbIDContainer::track)) {
-        const unsigned* line_candidate_indices = 
+        const unsigned* line_candidate_indices =
           parameters.dev_sel_track_indices + number_of_events * (event_number + n_lines * line_id);
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
         unsigned i_word = insert_short / 2;
@@ -169,8 +171,9 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_track = line_candidate_indices[i_cand];
-          const unsigned track_index = 
-            parameters.dev_track_duplicate_map[track_offset + i_track] >= 0 ? parameters.dev_track_duplicate_map[track_offset + i_track] : i_track;
+          const unsigned track_index = parameters.dev_track_duplicate_map[track_offset + i_track] >= 0 ?
+                                         parameters.dev_track_duplicate_map[track_offset + i_track] :
+                                         i_track;
           unsigned obj_index = 0;
           // if (track_index < 0) track_index = i_track;
           for (unsigned j_track = 0; j_track < n_tracks; j_track++) {
@@ -203,8 +206,9 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_sv = line_candidate_indices[i_cand];
-          const unsigned sv_index = 
-            parameters.dev_sv_duplicate_map[sv_offset + i_sv] >= 0 ? parameters.dev_sv_duplicate_map[sv_offset + i_sv] : i_sv;
+          const unsigned sv_index = parameters.dev_sv_duplicate_map[sv_offset + i_sv] >= 0 ?
+                                      parameters.dev_sv_duplicate_map[sv_offset + i_sv] :
+                                      i_sv;
           unsigned obj_index = 0;
           // if (sv_index < 0) sv_index = i_sv;
           for (unsigned j_sv = 0; j_sv < n_svs; j_sv++) {
@@ -234,7 +238,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     unsigned i_obj = 1;
     // Fill the bank size.
     event_rb_objtyp[0] = (event_rb_objtyp[0] & ~mask) | n_objtyps;
-    event_rb_objtyp[0] = (event_rb_objtyp[0] & ~(mask <<bits)) | (objtyp_size << bits);
+    event_rb_objtyp[0] = (event_rb_objtyp[0] & ~(mask << bits)) | (objtyp_size << bits);
     // Selections.
     if (n_sels != 0) {
       unsigned short CLID = 1;
@@ -258,7 +262,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
 
     // Create the StdInfo bank.
     unsigned* event_rb_stdinfo = parameters.dev_rb_stdinfo + parameters.dev_rb_stdinfo_offsets[event_number];
-    const unsigned stdinfo_size = 
+    const unsigned stdinfo_size =
       parameters.dev_rb_stdinfo_offsets[event_number + 1] - parameters.dev_rb_stdinfo_offsets[event_number];
     const unsigned sels_start_word = 1 + (3 + n_tracks + n_svs + n_sels) / 4;
 
@@ -283,7 +287,6 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
       float_info[i_word] = static_cast<float>(event_sel_list[i_sel] + 1);
     }
-
 
     // Add SV information to the beginning of the bank.
     for (unsigned i_sv = 0; i_sv < n_svs; i_sv++) {
@@ -352,5 +355,4 @@ __global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters
   if (threadIdx.x == 0) {
     event_rb_hits[0] = (event_rb_hits[0] & 0xFFFFL) | n_hit_sequences;
   }
-
 }

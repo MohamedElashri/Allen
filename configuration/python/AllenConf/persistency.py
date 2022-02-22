@@ -2,8 +2,8 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import gather_selections_t, dec_reporter_t, global_decision_t
-from AllenConf.algorithms import host_prefix_sum_t, make_selrep_t 
-from AllenConf.algorithms import make_selected_object_lists_t, make_subbanks_t 
+from AllenConf.algorithms import host_prefix_sum_t, make_selrep_t
+from AllenConf.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.algorithms import particle_container_life_support_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, mep_layout
@@ -89,11 +89,14 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         make_selected_object_lists_t,
         name="make_selected_object_lists",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_active_lines_t=gather_selections.host_number_of_active_lines_t,
+        host_number_of_active_lines_t=gather_selections.
+        host_number_of_active_lines_t,
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
-        dev_number_of_active_lines_t=gather_selections.dev_number_of_active_lines_t,
+        dev_number_of_active_lines_t=gather_selections.
+        dev_number_of_active_lines_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_multi_event_particle_containers_t=gather_selections.dev_particle_containers_t,
+        dev_multi_event_particle_containers_t=gather_selections.
+        dev_particle_containers_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
         dev_lhcbid_containers_t=gather_selections.dev_lhcbid_containers_t)
@@ -135,8 +138,10 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         host_substr_bank_size_t=prefix_sum_substr_size.host_total_sum_holder_t,
         host_hits_bank_size_t=prefix_sum_hits_size.host_total_sum_holder_t,
         host_objtyp_bank_size_t=prefix_sum_objtyp_size.host_total_sum_holder_t,
-        host_stdinfo_bank_size_t=prefix_sum_stdinfo_size.host_total_sum_holder_t,
-        dev_number_of_active_lines_t=gather_selections.dev_number_of_active_lines_t,
+        host_stdinfo_bank_size_t=prefix_sum_stdinfo_size.
+        host_total_sum_holder_t,
+        dev_number_of_active_lines_t=gather_selections.
+        dev_number_of_active_lines_t,
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
@@ -145,16 +150,23 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_candidate_count_t=make_selected_object_lists.dev_candidate_count_t,
         dev_candidate_offsets_t=prefix_sum_candidate_count.dev_output_buffer_t,
         dev_lhcbid_containers_t=gather_selections.dev_lhcbid_containers_t,
-        dev_unique_track_list_t=make_selected_object_lists.dev_unique_track_list_t,
-        dev_unique_track_count_t=make_selected_object_lists.dev_unique_track_count_t,
+        dev_unique_track_list_t=make_selected_object_lists.
+        dev_unique_track_list_t,
+        dev_unique_track_count_t=make_selected_object_lists.
+        dev_unique_track_count_t,
         dev_unique_sv_list_t=make_selected_object_lists.dev_unique_sv_list_t,
         dev_unique_sv_count_t=make_selected_object_lists.dev_unique_sv_count_t,
-        dev_track_duplicate_map_t=make_selected_object_lists.dev_track_duplicate_map_t,
-        dev_sv_duplicate_map_t=make_selected_object_lists.dev_sv_duplicate_map_t,
-        dev_sel_track_indices_t=make_selected_object_lists.dev_sel_track_indices_t,
+        dev_track_duplicate_map_t=make_selected_object_lists.
+        dev_track_duplicate_map_t,
+        dev_sv_duplicate_map_t=make_selected_object_lists.
+        dev_sv_duplicate_map_t,
+        dev_sel_track_indices_t=make_selected_object_lists.
+        dev_sel_track_indices_t,
         dev_sel_sv_indices_t=make_selected_object_lists.dev_sel_sv_indices_t,
-        dev_basic_particle_ptrs_t=make_selected_object_lists.dev_selected_basic_particle_ptrs_t,
-        dev_composite_particle_ptrs_t=make_selected_object_lists.dev_selected_composite_particle_ptrs_t,
+        dev_basic_particle_ptrs_t=make_selected_object_lists.
+        dev_selected_basic_particle_ptrs_t,
+        dev_composite_particle_ptrs_t=make_selected_object_lists.
+        dev_selected_composite_particle_ptrs_t,
         dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
         dev_substr_sel_size_t=make_selected_object_lists.dev_substr_sel_size_t,
         dev_substr_sv_size_t=make_selected_object_lists.dev_substr_sv_size_t,
@@ -180,21 +192,21 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
     basic_particle_life_support = make_algorithm(
         particle_container_life_support_t,
         name="basic_particle_life_support",
-        dev_particle_container_ptr_t=forward_tracks["dev_multi_event_basic_particles_ptr"],
+        dev_particle_container_ptr_t=forward_tracks[
+            "dev_multi_event_basic_particles_ptr"],
         dev_particle_container_user_t=make_subbanks.dev_rb_hits_t)
 
     composite_particle_life_support = make_algorithm(
         particle_container_life_support_t,
         name="composite_particle_life_support",
-        dev_particle_container_ptr_t=secondary_vertices["dev_multi_event_composites_ptr"],
+        dev_particle_container_ptr_t=secondary_vertices[
+            "dev_multi_event_composites_ptr"],
         dev_particle_container_user_t=make_subbanks.dev_rb_hits_t)
 
     return {
         "algorithms": [
-            make_selected_object_lists,
-            make_subbanks,
-            basic_particle_life_support, 
-            composite_particle_life_support,
+            make_selected_object_lists, make_subbanks,
+            basic_particle_life_support, composite_particle_life_support,
             make_selreps
         ],
         "dev_sel_reports":

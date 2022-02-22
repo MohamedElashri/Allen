@@ -33,20 +33,23 @@ struct TwoTrackLine : public Line<Derived, Parameters> {
 
   __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
   {
-    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
+    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
+      parameters.dev_particle_container[0].particle_container(event_number));
     return particles.offset();
   }
 
   __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
   {
-    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
+    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
+      parameters.dev_particle_container[0].particle_container(event_number));
     return particles.size();
   }
 
   __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
-    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(parameters.dev_particle_container[0].particle_container(event_number));
+    const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
+      parameters.dev_particle_container[0].particle_container(event_number));
     const auto particle = particles.particle(i);
     return std::forward_as_tuple(particle);
   }

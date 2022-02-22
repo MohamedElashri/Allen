@@ -45,7 +45,7 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
-    new (parameters.dev_multi_event_composites_view) 
+    new (parameters.dev_multi_event_composites_view)
       Allen::Views::Physics::MultiEventCompositeParticles {parameters.dev_two_track_composites_view, number_of_events};
     parameters.dev_multi_event_composites_ptr[0] = parameters.dev_multi_event_composites_view;
   }

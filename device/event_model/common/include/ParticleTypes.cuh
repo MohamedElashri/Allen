@@ -814,7 +814,7 @@ namespace Allen {
 
       struct IMultiEventParticleContainer {
       private:
-          unsigned m_number_of_events = 0;
+        unsigned m_number_of_events = 0;
 
       public:
         __host__ __device__ IMultiEventParticleContainer(const unsigned number_of_events) :
@@ -831,8 +831,7 @@ namespace Allen {
 
       public:
         __host__ __device__ MultiEventBasicParticles(const BasicParticles* container, const unsigned number_of_events) :
-          IMultiEventParticleContainer {number_of_events},
-          m_container(container)
+          IMultiEventParticleContainer {number_of_events}, m_container(container)
         {}
 
         __host__ __device__ const BasicParticles& particle_container(const unsigned event_number) const
@@ -847,7 +846,8 @@ namespace Allen {
         const CompositeParticles* m_container = nullptr;
 
       public:
-        __host__ __device__ MultiEventCompositeParticles(const CompositeParticles* container, const unsigned number_of_events) :
+        __host__ __device__
+        MultiEventCompositeParticles(const CompositeParticles* container, const unsigned number_of_events) :
           IMultiEventParticleContainer {number_of_events},
           m_container(container)
         {}
@@ -858,7 +858,6 @@ namespace Allen {
           return m_container[event_number];
         }
       };
-
 
     } // namespace Physics
   }   // namespace Views

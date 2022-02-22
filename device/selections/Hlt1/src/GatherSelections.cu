@@ -123,7 +123,8 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_lhcbid_containers_t, host_lhcbid_containers_t>(arguments, context);
 
   // Populate the list of particle containers
-  Allen::aggregate::store_contiguous_async<host_particle_containers_t, host_particle_containers_agg_t>(arguments, context);
+  Allen::aggregate::store_contiguous_async<host_particle_containers_t, host_particle_containers_agg_t>(
+    arguments, context);
   Allen::copy_async<dev_particle_containers_t, host_particle_containers_t>(arguments, context);
 
   // Populate dev_selections_t

@@ -6,14 +6,15 @@
 INSTANTIATE_ALGORITHM(make_selected_object_lists::make_selected_object_lists_t)
 
 void make_selected_object_lists::make_selected_object_lists_t::set_arguments_size(
-    ArgumentReferences<Parameters> arguments,
-    const RuntimeOptions&,
-    const Constants&,
-    const HostBuffers&) const
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
   // For keeping track of selections.
   set_size<dev_sel_count_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_sel_list_t>(arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+  set_size<dev_sel_list_t>(
+    arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
 
   // For keeping track of selected candidates.
   set_size<dev_candidate_count_t>(
@@ -22,11 +23,13 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_sel_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
   // These are effectively 3D arrays. Use the convention: X = candidate, Y = event, Z = line.
   set_size<dev_sel_track_indices_t>(
-    arguments, 
-    property<max_selected_tracks_t>() * first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+    arguments,
+    property<max_selected_tracks_t>() * first<host_number_of_events_t>(arguments) *
+      first<host_number_of_active_lines_t>(arguments));
   set_size<dev_sel_sv_indices_t>(
-    arguments, 
-    property<max_selected_svs_t>() * first<host_number_of_events_t>(arguments)  * first<host_number_of_active_lines_t>(arguments));
+    arguments,
+    property<max_selected_svs_t>() * first<host_number_of_events_t>(arguments) *
+      first<host_number_of_active_lines_t>(arguments));
 
   // For saving selected candidates.
   // We could have multiple track and SV containers, so we can either set these
@@ -43,8 +46,7 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
     arguments, first<host_number_of_events_t>(arguments) * property<max_selected_svs_t>());
   set_size<dev_unique_track_list_t>(
     arguments, first<host_number_of_events_t>(arguments) * property<max_selected_tracks_t>());
-  set_size<dev_unique_sv_list_t>(
-    arguments, first<host_number_of_events_t>(arguments) * property<max_selected_svs_t>());
+  set_size<dev_unique_sv_list_t>(arguments, first<host_number_of_events_t>(arguments) * property<max_selected_svs_t>());
   set_size<dev_unique_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_unique_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
 
@@ -81,7 +83,8 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   initialize<dev_objtyp_bank_size_t>(arguments, 0, context);
   initialize<dev_selrep_size_t>(arguments, 0, context);
 
-  global_function(make_selected_object_lists)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(make_selected_object_lists)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
 
   // TODO: Look into whether or not these kernels benefit from using different
@@ -91,7 +94,7 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
 }
 
 __global__ void make_selected_object_lists::make_selected_object_lists(
-  make_selected_object_lists::Parameters parameters, 
+  make_selected_object_lists::Parameters parameters,
   const unsigned total_events)
 {
   const auto event_number = blockIdx.x;
@@ -119,16 +122,17 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     // Handle lines that select BasicParticles.
     if (sel_type == to_integral(LHCbIDContainer::track)) {
       auto decs = selections.get_span(line_index, event_number);
-      const auto multi_event_track_container = 
-        static_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(parameters.dev_multi_event_particle_containers[line_index]);
-      const auto event_tracks = 
-        static_cast<const Allen::Views::Physics::BasicParticles&>(multi_event_track_container->particle_container(event_number));
+      const auto multi_event_track_container = static_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(
+        parameters.dev_multi_event_particle_containers[line_index]);
+      const auto event_tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(
+        multi_event_track_container->particle_container(event_number));
       for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
         if (decs[track_index]) {
           const unsigned track_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
-          parameters.dev_sel_track_indices[
-            total_events * (event_number + n_lines * line_index) + track_candidate_index] = track_insert_index;
+          parameters
+            .dev_sel_track_indices[total_events * (event_number + n_lines * line_index) + track_candidate_index] =
+            track_insert_index;
           parameters.dev_selected_basic_particle_ptrs[selected_track_offset + track_insert_index] =
             const_cast<Allen::Views::Physics::BasicParticle*>(event_tracks.particle_pointer(track_index));
         }
@@ -138,16 +142,16 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     // Handle lines that select CompositeParticles
     if (sel_type == to_integral(LHCbIDContainer::sv)) {
       auto decs = selections.get_span(line_index, event_number);
-      const auto multi_event_sv_container =
-        static_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(parameters.dev_multi_event_particle_containers[line_index]);
-      const auto event_svs =
-        static_cast<const Allen::Views::Physics::CompositeParticles&>(multi_event_sv_container->particle_container(event_number));
+      const auto multi_event_sv_container = static_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(
+        parameters.dev_multi_event_particle_containers[line_index]);
+      const auto event_svs = static_cast<const Allen::Views::Physics::CompositeParticles&>(
+        multi_event_sv_container->particle_container(event_number));
       for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
         if (decs[sv_index]) {
           const unsigned sv_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
-          parameters.dev_sel_sv_indices[
-            total_events * (event_number + n_lines * line_index) + sv_candidate_index] = sv_insert_index;
+          parameters.dev_sel_sv_indices[total_events * (event_number + n_lines * line_index) + sv_candidate_index] =
+            sv_insert_index;
           parameters.dev_selected_composite_particle_ptrs[selected_sv_offset + sv_insert_index] =
             const_cast<Allen::Views::Physics::CompositeParticle*>(&event_svs.particle(sv_index));
 
@@ -162,7 +166,8 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
               const auto basic_substr = static_cast<const Allen::Views::Physics::BasicParticle*>(substr);
               parameters.dev_selected_basic_particle_ptrs[selected_track_offset + track_insert_index] =
                 const_cast<Allen::Views::Physics::BasicParticle*>(basic_substr);
-            } else { // Handle composite substructures.
+            }
+            else { // Handle composite substructures.
               const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
               const auto composite_substr = static_cast<const Allen::Views::Physics::CompositeParticle*>(substr);
               parameters.dev_selected_composite_particle_ptrs[selected_sv_offset + sv_insert_index] =
@@ -173,7 +178,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
               for (unsigned i_subsubstr = 0; i_subsubstr < n_subsubstr; i_subsubstr++) {
                 const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
                 // Assume all sub-substructures are BasicParticles.
-                const auto basic_subsubstr = 
+                const auto basic_subsubstr =
                   static_cast<const Allen::Views::Physics::BasicParticle*>(composite_substr->substructure(i_subsubstr));
                 parameters.dev_selected_basic_particle_ptrs[selected_sv_offset + track_insert_index] =
                   const_cast<Allen::Views::Physics::BasicParticle*>(basic_subsubstr);
@@ -254,7 +259,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   }
 
   // Calculate the size of the substr bank.
-  for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0]; 
+  for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0];
        line_index += blockDim.x) {
     HltDecReport dec_report;
     dec_report.setDecReport(event_dec_reports[2 + line_index]);
@@ -298,7 +303,8 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     }
 
     // Get the size of the StdInfo bank.
-    const unsigned n_objects = parameters.dev_sel_count[event_number] + parameters.dev_unique_track_count[event_number] +
+    const unsigned n_objects = parameters.dev_sel_count[event_number] +
+                               parameters.dev_unique_track_count[event_number] +
                                parameters.dev_unique_sv_count[event_number];
 
     // StdInfo contains 1 word giving the structure of the bank, 8
@@ -318,15 +324,10 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
 
     // Calculate the total selrep size.
     // Size of the empty extraInfo sub-bank depends on the number of objects.
-    const unsigned einfo_size = 2 + n_objects / 4;     
+    const unsigned einfo_size = 2 + n_objects / 4;
     const unsigned header_size = 10;
     parameters.dev_selrep_size[event_number] =
-      header_size + 
-      parameters.dev_hits_bank_size[event_number] +
-      parameters.dev_substr_bank_size[event_number] +
-      parameters.dev_stdinfo_bank_size[event_number] +
-      parameters.dev_objtyp_bank_size[event_number] +
-      einfo_size;
+      header_size + parameters.dev_hits_bank_size[event_number] + parameters.dev_substr_bank_size[event_number] +
+      parameters.dev_stdinfo_bank_size[event_number] + parameters.dev_objtyp_bank_size[event_number] + einfo_size;
   }
-
 }

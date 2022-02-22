@@ -23,7 +23,8 @@ def make_d2kk_line(forward_tracks,
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
@@ -44,7 +45,8 @@ def make_d2pipi_line(forward_tracks,
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 

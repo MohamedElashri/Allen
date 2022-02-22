@@ -168,7 +168,8 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
 {
   __shared__ int event_decision;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  // const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
+  // const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters,
+  // event_number);
   const unsigned input_size = Derived::input_size(parameters, event_number);
 
   if (threadIdx.x == 0) {
@@ -321,7 +322,8 @@ void Line<Derived, Parameters>::operator()(
   // Populate container with tag.
   data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);
   if constexpr (Derived::has_particle_container) {
-    data<typename Parameters::host_particle_container_t>(arguments)[0] = data<typename Parameters::dev_particle_container_t>(arguments);
+    data<typename Parameters::host_particle_container_t>(arguments)[0] =
+      data<typename Parameters::dev_particle_container_t>(arguments);
   }
 
   const auto* derived_instance = static_cast<const Derived*>(this);
