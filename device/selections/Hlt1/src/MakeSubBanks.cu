@@ -362,7 +362,6 @@ __global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters
     }
 
     seq_begin += n_hits;
-    
   }
 
   if (threadIdx.x == 0) {
