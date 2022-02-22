@@ -181,24 +181,18 @@ namespace Allen {
         virtual __host__ __device__ ~ParticleContainer() {}
       };
 
-      struct IMultiEventParticleContainer {
-        virtual __host__ __device__ unsigned number_of_containers() const = 0;
-        virtual __host__ __device__ const ParticleContainer& particle_container(const unsigned) const = 0;
-        virtual __host__ __device__ ~IMultiEventParticleContainer() {}
-      };
-
-      template<typename T>
-      struct MultiEventParticleContainer : MultiEventContainer<T>, IMultiEventParticleContainer {
-        using MultiEventContainer<T>::MultiEventContainer;
-        __host__ __device__ unsigned number_of_containers() const override
-        {
-          return MultiEventContainer<T>::number_of_events();
-        }
-        __host__ __device__ const ParticleContainer& particle_container(const unsigned event_number) const override
-        {
-          return MultiEventContainer<T>::container(event_number);
-        }
-      };
+      // template<typename T>
+      // struct MultiEventParticleContainer : MultiEventContainer<T>, IMultiEventParticleContainer {
+      //   using MultiEventContainer<T>::MultiEventContainer;
+      //   __host__ __device__ unsigned number_of_containers() const override
+      //   {
+      //     return MultiEventContainer<T>::number_of_events();
+      //   }
+      //   __host__ __device__ const ParticleContainer& particle_container(const unsigned event_number) const override
+      //   {
+      //     return MultiEventContainer<T>::container(event_number);
+      //   }
+      // };
 
       // Is it necessary for BasicParticle to inherit from an ILHCbIDStructure to
       // work with aggregates in the SelReport writer?
@@ -818,8 +812,53 @@ namespace Allen {
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
 
-      using MultiEventBasicParticles = MultiEventParticleContainer<BasicParticles>;
-      using MultiEventCompositeParticles = MultiEventParticleContainer<CompositeParticles>;
+      struct IMultiEventParticleContainer {
+      private:
+          unsigned m_number_of_events = 0;
+
+      public:
+        __host__ __device__ IMultiEventParticleContainer(const unsigned number_of_events) :
+          m_number_of_events(number_of_events)
+        {}
+
+        __host__ __device__ unsigned number_of_containers() const { return m_number_of_events; }
+        virtual __host__ __device__ ~IMultiEventParticleContainer() {}
+      };
+
+      struct MultiEventBasicParticles : IMultiEventParticleContainer {
+      private:
+        const BasicParticles* m_container = nullptr;
+
+      public:
+        __host__ __device__ MultiEventBasicParticles(const BasicParticles* container, const unsigned number_of_events) :
+          IMultiEventParticleContainer {number_of_events},
+          m_container(container)
+        {}
+
+        __host__ __device__ const BasicParticles& particle_container(const unsigned event_number) const
+        {
+          assert(event_number < m_number_of_events);
+          return m_container[event_number];
+        }
+      };
+
+      struct MultiEventCompositeParticles : IMultiEventParticleContainer {
+      private:
+        const CompositeParticles* m_container = nullptr;
+
+      public:
+        __host__ __device__ MultiEventCompositeParticles(const CompositeParticles* container, const unsigned number_of_events) :
+          IMultiEventParticleContainer {number_of_events},
+          m_container(container)
+        {}
+
+        __host__ __device__ const CompositeParticles& particle_container(const unsigned event_number) const
+        {
+          assert(event_number < m_number_of_events);
+          return m_container[event_number];
+        }
+      };
+
 
     } // namespace Physics
   }   // namespace Views

@@ -103,13 +103,13 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
     basic_particle_life_support = make_algorithm(
         particle_container_life_support_t,
         name="basic_particle_life_support",
-        dev_particle_container_t=forward_tracks["dev_multi_event_basic_particles"],
+        dev_particle_container_ptr_t=forward_tracks["dev_multi_event_basic_particles_ptr"],
         dev_particle_container_user_t=make_selected_object_lists.dev_selrep_size_t)
 
     composite_particle_life_support = make_algorithm(
         particle_container_life_support_t,
         name="composite_particle_life_support",
-        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
+        dev_particle_container_ptr_t=secondary_vertices["dev_multi_event_composites_ptr"],
         dev_particle_container_user_t=make_selected_object_lists.dev_selrep_size_t)
 
     # count_long_track_hits = make_algorithm(

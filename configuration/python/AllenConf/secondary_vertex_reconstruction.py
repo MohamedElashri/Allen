@@ -105,7 +105,9 @@ def make_basic_particles(kalman_velo_only,
         "dev_long_track_particle":
         make_long_track_particles.dev_long_track_particle_view_t,
         "dev_multi_event_basic_particles":
-        make_long_track_particles.dev_multi_event_basic_particles_view_t
+        make_long_track_particles.dev_multi_event_basic_particles_view_t,
+        "dev_multi_event_basic_particles_ptr":
+        make_long_track_particles.dev_multi_event_basic_particles_ptr_t
     }
 
 
@@ -164,5 +166,7 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
         "dev_two_track_particles":
         fit_secondary_vertices.dev_two_track_composites_view_t,
         "dev_multi_event_composites":
-        fit_secondary_vertices.dev_multi_event_composites_view_t
+        fit_secondary_vertices.dev_multi_event_composites_view_t,
+        "dev_multi_event_composites_ptr":
+        fit_secondary_vertices.dev_multi_event_composites_ptr_t
     }

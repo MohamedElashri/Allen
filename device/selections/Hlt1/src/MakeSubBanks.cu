@@ -169,7 +169,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_track = line_candidate_indices[i_cand];
-          unsigned track_index = parameters.dev_track_duplicate_map[track_offset + i_track];
+          int track_index = parameters.dev_track_duplicate_map[track_offset + i_track];
           unsigned obj_index = 0;
           if (track_index < 0) track_index = i_track;
           for (unsigned j_track = 0; j_track < n_tracks; j_track++) {
@@ -202,7 +202,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_sv = line_candidate_indices[i_cand];
-          unsigned sv_index = parameters.dev_sv_duplicate_map[sv_offset + i_sv];
+          int sv_index = parameters.dev_sv_duplicate_map[sv_offset + i_sv];
           unsigned obj_index = 0;
           if (sv_index < 0) sv_index = i_sv;
           for (unsigned j_sv = 0; j_sv < n_svs; j_sv++) {
@@ -234,21 +234,21 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     event_rb_objtyp[0] = (event_rb_objtyp[0] & ~mask) | n_objtyps;
     event_rb_objtyp[0] = (event_rb_objtyp[0] & ~(mask <<bits)) | (objtyp_size << bits);
     // Selections.
-    if (n_sels > 0) {
+    if (n_sels != 0) {
       unsigned short CLID = 1;
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | n_sels;
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
       i_obj++;
     }
     // SVs.
-    if (n_svs > 0) {
+    if (n_svs != 0) {
       unsigned short CLID = 10030;
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs);
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
       i_obj++;
     }
     // Tracks.
-    if (n_tracks > 0) {
+    if (n_tracks != 0) {
       unsigned short CLID = 10010;
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs + n_tracks);
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
