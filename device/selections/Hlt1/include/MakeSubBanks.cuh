@@ -23,8 +23,8 @@ namespace make_subbanks {
     DEVICE_INPUT(dev_unique_sv_list_t, unsigned) dev_unique_sv_list;
     DEVICE_INPUT(dev_unique_track_count_t, unsigned) dev_unique_track_count;
     DEVICE_INPUT(dev_unique_sv_count_t, unsigned) dev_unique_sv_count;
-    DEVICE_INPUT(dev_track_duplicate_map_t, unsigned) dev_track_duplicate_map;
-    DEVICE_INPUT(dev_sv_duplicate_map_t, unsigned) dev_sv_duplicate_map;
+    DEVICE_INPUT(dev_track_duplicate_map_t, int) dev_track_duplicate_map;
+    DEVICE_INPUT(dev_sv_duplicate_map_t, int) dev_sv_duplicate_map;
     DEVICE_INPUT(dev_sel_track_indices_t, unsigned) dev_sel_track_indices;
     DEVICE_INPUT(dev_sel_sv_indices_t, unsigned) dev_sel_sv_indices;
     DEVICE_INPUT(dev_basic_particle_ptrs_t, Allen::Views::Physics::BasicParticle*) dev_basic_particle_ptrs;

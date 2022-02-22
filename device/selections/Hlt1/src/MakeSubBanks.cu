@@ -169,11 +169,12 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_track = line_candidate_indices[i_cand];
-          int track_index = parameters.dev_track_duplicate_map[track_offset + i_track];
+          const unsigned track_index = 
+            parameters.dev_track_duplicate_map[track_offset + i_track] >= 0 ? parameters.dev_track_duplicate_map[track_offset + i_track] : i_track;
           unsigned obj_index = 0;
-          if (track_index < 0) track_index = i_track;
+          // if (track_index < 0) track_index = i_track;
           for (unsigned j_track = 0; j_track < n_tracks; j_track++) {
-            const unsigned test_index = parameters.dev_unique_track_list[track_offset + j_track];
+            const unsigned test_index = parameters.dev_unique_track_list[track_offset + j_track] > 0;
             if (track_index == test_index) {
               obj_index = n_sels + n_svs + track_index;
               break;
@@ -202,9 +203,10 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_sv = line_candidate_indices[i_cand];
-          int sv_index = parameters.dev_sv_duplicate_map[sv_offset + i_sv];
+          const unsigned sv_index = 
+            parameters.dev_sv_duplicate_map[sv_offset + i_sv] >= 0 ? parameters.dev_sv_duplicate_map[sv_offset + i_sv] : i_sv;
           unsigned obj_index = 0;
-          if (sv_index < 0) sv_index = i_sv;
+          // if (sv_index < 0) sv_index = i_sv;
           for (unsigned j_sv = 0; j_sv < n_svs; j_sv++) {
             const unsigned test_index = event_unique_sv_list[j_sv];
             if (sv_index == test_index) {
