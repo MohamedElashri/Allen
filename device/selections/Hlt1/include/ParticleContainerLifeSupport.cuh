@@ -15,7 +15,7 @@
 
 namespace particle_container_life_support {
   struct Parameters {
-    DEVICE_INPUT(dev_particle_container_ptr_t, Allen::Views::Physics::IMultiEventParticleContainer*)
+    DEVICE_INPUT_OPTIONAL(dev_particle_container_ptr_t, Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_container_ptr_t;
     DEVICE_INPUT(dev_particle_container_user_t, unsigned) dev_particle_container_user_t;
   };
