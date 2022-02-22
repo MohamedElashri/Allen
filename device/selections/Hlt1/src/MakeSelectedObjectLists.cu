@@ -49,6 +49,7 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_unique_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
 
   // Bank sizes.
+  set_size<dev_selrep_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_hits_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_substr_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_substr_sel_size_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -78,6 +79,7 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   initialize<dev_substr_sv_size_t>(arguments, 0, context);
   initialize<dev_stdinfo_bank_size_t>(arguments, 0, context);
   initialize<dev_objtyp_bank_size_t>(arguments, 0, context);
+  initialize<dev_selrep_size_t>(arguments, 0, context);
 
   global_function(make_selected_object_lists)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
@@ -318,6 +320,12 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     // Size of the empty extraInfo sub-bank depends on the number of objects.
     const unsigned einfo_size = 2 + n_objects / 4;     
     const unsigned header_size = 10;
+    // printf("Event %u: %u, %u, %u, %u\n", 
+    //   event_number, 
+    //   parameters.dev_hits_bank_size[event_number],
+    //   parameters.dev_substr_bank_size[event_number],
+    //   parameters.dev_stdinfo_bank_size[event_number],
+    //   parameters.dev_objtyp_bank_size[event_number]);
     parameters.dev_selrep_size[event_number] =
       header_size + 
       parameters.dev_hits_bank_size[event_number] +
@@ -325,6 +333,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
       parameters.dev_stdinfo_bank_size[event_number] +
       parameters.dev_objtyp_bank_size[event_number] +
       einfo_size;
+    printf("%u\n", parameters.dev_selrep_size[event_number]);
   }
 
 }

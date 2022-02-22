@@ -125,6 +125,11 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         name="prefix_sum_candidate_count",
         dev_input_buffer_t=make_selected_object_lists.dev_candidate_count_t)
 
+    prefix_sum_selrep_size = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_selrep_size",
+        dev_input_buffer_t=make_selected_object_lists.dev_selrep_size_t)
+
     make_subbanks = make_algorithm(
         make_subbanks_t,
         name="make_subbanks",
@@ -159,18 +164,32 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
         dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t)
 
+    make_selreps = make_algorithm(
+        make_selrep_t,
+        name="make_selreps",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_selrep_size_t=prefix_sum_selrep_size.host_total_sum_holder_t,
+        dev_selrep_offsets_t=prefix_sum_selrep_size.dev_output_buffer_t,
+        dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
+        dev_rb_hits_offsets_t=prefix_sum_hits_size.dev_output_buffer_t,
+        dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
+        dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t,
+        dev_rb_objtyp_t=make_subbanks.dev_rb_objtyp_t,
+        dev_rb_hits_t=make_subbanks.dev_rb_hits_t,
+        dev_rb_substr_t=make_subbanks.dev_rb_substr_t,
+        dev_rb_stdinfo_t=make_subbanks.dev_rb_stdinfo_t)
 
     basic_particle_life_support = make_algorithm(
         particle_container_life_support_t,
         name="basic_particle_life_support",
         dev_particle_container_ptr_t=forward_tracks["dev_multi_event_basic_particles_ptr"],
-        dev_particle_container_user_t=make_subbanks.dev_rb_substr_t)
+        dev_particle_container_user_t=make_subbanks.dev_rb_hits_t)
 
     composite_particle_life_support = make_algorithm(
         particle_container_life_support_t,
         name="composite_particle_life_support",
         dev_particle_container_ptr_t=secondary_vertices["dev_multi_event_composites_ptr"],
-        dev_particle_container_user_t=make_subbanks.dev_rb_substr_t)
+        dev_particle_container_user_t=make_subbanks.dev_rb_hits_t)
 
     # count_long_track_hits = make_algorithm(
     #     count_long_track_hits_t,
@@ -383,7 +402,8 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
             make_selected_object_lists,
             make_subbanks,
             basic_particle_life_support, 
-            composite_particle_life_support
+            composite_particle_life_support,
+            make_selreps
         ],
         # "dev_sel_reports":
         # make_selreps.dev_sel_reports_t,
