@@ -71,7 +71,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     for (unsigned i_track = 0; i_track < n_tracks; i_track++) {
       const unsigned i_short = tracks_start_short + 2 * i_track;
       const unsigned i_word = i_short / 2;
-      const unsigned i_part = i_short & 2;
+      const unsigned i_part = i_short % 2;
       const unsigned mask = 0xFFFFL;
       const unsigned bits = 16;
 
@@ -360,6 +360,9 @@ __global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters
       unsigned mask = 0xFFFFL << bits;
       event_rb_hits[i_word] = (event_rb_hits[i_word] & ~mask) | (seq_end << bits);
     }
+
+    seq_begin += n_hits;
+    
   }
 
   if (threadIdx.x == 0) {
