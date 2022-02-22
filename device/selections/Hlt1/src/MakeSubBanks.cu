@@ -366,6 +366,6 @@ __global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters
   }
 
   if (threadIdx.x == 0) {
-    event_rb_hits[0] = (event_rb_hits[0] & 0xFFFFL) | n_hit_sequences;
+    event_rb_hits[0] = (event_rb_hits[0] & ~0xFFFFL) | n_hit_sequences;
   }
 }
