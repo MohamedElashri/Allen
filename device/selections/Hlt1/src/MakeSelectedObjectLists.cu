@@ -320,12 +320,6 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     // Size of the empty extraInfo sub-bank depends on the number of objects.
     const unsigned einfo_size = 2 + n_objects / 4;     
     const unsigned header_size = 10;
-    // printf("Event %u: %u, %u, %u, %u\n", 
-    //   event_number, 
-    //   parameters.dev_hits_bank_size[event_number],
-    //   parameters.dev_substr_bank_size[event_number],
-    //   parameters.dev_stdinfo_bank_size[event_number],
-    //   parameters.dev_objtyp_bank_size[event_number]);
     parameters.dev_selrep_size[event_number] =
       header_size + 
       parameters.dev_hits_bank_size[event_number] +
@@ -333,7 +327,6 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
       parameters.dev_stdinfo_bank_size[event_number] +
       parameters.dev_objtyp_bank_size[event_number] +
       einfo_size;
-    printf("%u\n", parameters.dev_selrep_size[event_number]);
   }
 
 }
