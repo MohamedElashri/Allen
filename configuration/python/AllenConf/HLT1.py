@@ -336,9 +336,6 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         reconstructed_objects["long_track_particles"],
         reconstructed_objects["velo_states"])
 
-    with line_maker.bind(prefilter=pp_checkPV):
-        physics_lines += [passthrough_line(name="Hlt1Passthrough_pp_checkPV")]
-    
     if EnableGEC:
         with line_maker.bind(prefilter=None):
             physics_lines += [passthrough_line()]

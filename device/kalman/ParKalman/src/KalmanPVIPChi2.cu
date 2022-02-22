@@ -67,14 +67,14 @@ __device__ void associate_and_muon_id(
       float val = fabsf(Distance::kalman_ipchi2(states.state(i), *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
+      best_pvz   = (first || val < best_value) ? pv.position.z : best_pvz;
       first = false;
     }
     table.pv(i) = best_index;
     table.value(i) = best_value;
     tracks[i].ipChi2 = best_value;
     tracks[i].is_muon = is_muon[i];
-    tracks[i].ip = kalman_ip(states.state(i), *(vertices.data() + best_index));
-    tracks[i].bpv_z  = (vertices.data() + best_index) -> position.z;
+    tracks[i].bpv_z = best_pvz;
   }
 }
 

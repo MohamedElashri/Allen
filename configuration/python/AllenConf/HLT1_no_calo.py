@@ -45,7 +45,7 @@ def passthrough_line(name='Hlt1Passthrough'):
             post_scaler_hash_string=name + "_line_post"))
 
 def default_physics_lines(forward_tracks, long_track_particles,
-                          secondary_vertices):
+                          secondary_vertices, name_suffix = ''):
     lines = []
     lines.append(
         line_maker(
@@ -233,7 +233,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         pp_prefilters += [gec]
         name_suffix += '_gec'
 
-    with line_maker.bind(enableGEC=EnableGEC):
+    with line_maker.bind(prefilter=pp_prefilters):
         physics_lines = default_physics_lines(
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
