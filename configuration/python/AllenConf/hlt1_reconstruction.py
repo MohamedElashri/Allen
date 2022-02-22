@@ -70,6 +70,8 @@ def validator_node(reconstructed_objects, line_algorithms):
                 "velo_validation",
                 velo_validation(reconstructed_objects["velo_tracks"])),
             make_composite_node_with_gec(
+                "pv_validation", pv_validation(reconstructed_objects["pvs"])),
+            make_composite_node_with_gec(
                 "veloUT_validation",
                 veloUT_validation(reconstructed_objects["ut_tracks"])),
             make_composite_node_with_gec(
@@ -78,8 +80,6 @@ def validator_node(reconstructed_objects, line_algorithms):
             make_composite_node_with_gec(
                 "muon_validation",
                 muon_validation(reconstructed_objects["muonID"])),
-            make_composite_node_with_gec(
-                "pv_validation", pv_validation(reconstructed_objects["pvs"])),
             make_composite_node_with_gec(
                 "kalman_validation",
                 kalman_validation(reconstructed_objects["kalman_velo_only"])),
