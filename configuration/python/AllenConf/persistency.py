@@ -2,11 +2,9 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.algorithms import gather_selections_t, dec_reporter_t, global_decision_t
-from AllenConf.algorithms import count_long_track_hits_t, host_prefix_sum_t, make_hits_container_t
-from AllenConf.algorithms import calc_rb_hits_size_t, calc_rb_substr_size_t, make_rb_substr_t
-from AllenConf.algorithms import make_rb_hits_t, make_rb_stdinfo_t, make_rb_objtyp_t
-from AllenConf.algorithms import calc_selrep_size_t, make_selrep_t 
-from AllenConf.algorithms import make_selected_object_lists_t, make_subbanks_t, particle_container_life_support_t
+from AllenConf.algorithms import host_prefix_sum_t, make_selrep_t 
+from AllenConf.algorithms import make_selected_object_lists_t, make_subbanks_t 
+from AllenConf.algorithms import particle_container_life_support_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
