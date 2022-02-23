@@ -37,6 +37,7 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   // Get the first vertex decision.
   // Vertex quality cuts.
   bool dec1 = vertex1.vertex().chi2() > 0 && vertex1.vertex().chi2() < parameters.maxVertexChi2;
+  dec1 &= vertex1.z >= parameters.minZ;
   if (!dec1) return false;
   // Kinematic cuts.
   dec1 &= vertex1.minpt() > parameters.minTrackPt_piKs;
@@ -83,6 +84,7 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     // Get the first vertex decision.
     // Vertex quality cuts.
     bool dec2 = vertex2.vertex().chi2() > 0 && vertex2.vertex().chi2() < parameters.maxVertexChi2;
+    dec2 &= vertex2.z >= parameters.minZ;
     if (!dec2) continue;
     // Kinematic cuts.
     dec2 &= vertex2.minpt() > parameters.minTrackPt_piKs;
