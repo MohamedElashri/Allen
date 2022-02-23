@@ -40,6 +40,6 @@ namespace muon_add_coords_crossing_maps {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
   };
 } // namespace muon_add_coords_crossing_maps

@@ -21,10 +21,9 @@ namespace pv_beamline_peak {
     DEVICE_INPUT(dev_zhisto_t, float) dev_zhisto;
     DEVICE_OUTPUT(dev_zpeaks_t, float) dev_zpeaks;
     DEVICE_OUTPUT(dev_number_of_zpeaks_t, unsigned) dev_number_of_zpeaks;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 
-  __global__ void pv_beamline_peak(Parameters, const unsigned event_list_size);
+  __global__ void pv_beamline_peak(Parameters);
 
   struct pv_beamline_peak_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
@@ -39,8 +38,5 @@ namespace pv_beamline_peak {
       const Constants&,
       HostBuffers&,
       const Allen::Context& context) const;
-
-  private:
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 } // namespace pv_beamline_peak

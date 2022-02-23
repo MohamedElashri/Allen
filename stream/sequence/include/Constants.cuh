@@ -110,7 +110,7 @@ struct Constants {
   int* dev_muon_catboost_leaf_offsets = nullptr;
 
   // Two-track catboost constants.
-  int two_track_catboost_n_trees;
+  unsigned two_track_catboost_n_trees;
   int* dev_two_track_catboost_tree_depths = nullptr;
   int* dev_two_track_catboost_tree_offsets = nullptr;
   int* dev_two_track_catboost_split_features = nullptr;

@@ -42,6 +42,6 @@ namespace muon_populate_hits {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
 } // namespace muon_populate_hits

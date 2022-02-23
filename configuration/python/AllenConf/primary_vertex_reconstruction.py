@@ -66,8 +66,7 @@ def make_pvs(velo_tracks):
         dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t,
         dev_zpeaks_t=pv_beamline_peak.dev_zpeaks_t,
         dev_number_of_zpeaks_t=pv_beamline_peak.dev_number_of_zpeaks_t,
-        dev_pvtracks_denom_t=pv_beamline_calculate_denom.dev_pvtracks_denom_t,
-        dev_pvtrack_z_t=pv_beamline_extrapolate.dev_pvtrack_z_t)
+        dev_pvtracks_denom_t=pv_beamline_calculate_denom.dev_pvtracks_denom_t)
 
     pv_beamline_cleanup = make_algorithm(
         pv_beamline_cleanup_t,

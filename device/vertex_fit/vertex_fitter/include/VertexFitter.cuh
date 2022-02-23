@@ -66,6 +66,6 @@ namespace VertexFit {
 
   private:
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};
-    Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
 } // namespace VertexFit
