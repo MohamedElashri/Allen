@@ -110,7 +110,10 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                 name="Hlt1DiMuonHighMass" + prefilter_suffix)))
     lines.append(
         line_maker(
-            make_two_ks_line(forward_tracks, secondary_vertices, name="Hlt1TwoKs" + prefilter_suffix) ))
+            make_two_ks_line(
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1TwoKs" + prefilter_suffix)))
     lines.append(
         line_maker(
             make_di_muon_mass_line(
@@ -211,10 +214,12 @@ def default_monitoring_lines(velo_tracks, forward_tracks,
     return lines
 
 
-def default_smog2_lines( velo_tracks, velo_states, pvs, forward_tracks, 
-                         long_track_particles, secondary_vertices, prefilter_suffix = ''):
-
-    smog2_lines = [ passthrough_line( name = "Hlt1Passthrough_SMOG2" + prefilter_suffix) ]
+def default_smog2_lines(velo_tracks,
+                        velo_states,
+                        forward_tracks,
+                        long_track_particles,
+                        secondary_vertices,
+                        prefilter_suffix=''):
 
     smog2_lines.append(
         line_maker(
@@ -299,7 +304,16 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         pp_prefilters += [ gec ]
         prefilter_suffix += '_gec'
 
-        
+    pp_checkPV = make_checkPV(
+        reconstructed_objects['pvs'],
+        name='pp_checkPV',
+        minZ='-300',  #mm
+        maxZ='+300'   #mm
+    )
+
+    pp_prefilters    += [pp_checkPV]
+    prefilter_suffix += '_pp_checkPV'
+
     with line_maker.bind(prefilter=pp_prefilters):
         physics_lines += default_physics_lines(
             reconstructed_objects["velo_tracks"],
@@ -315,10 +329,10 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         reconstructed_objects["long_track_particles"],
         reconstructed_objects["velo_states"])
 
-    if EnableGEC:
-        with line_maker.bind(prefilter=None):
-            physics_lines += [ line_maker( make_passthrough_line()) ]
+    with line_maker.bind(prefilter=None):
+        physics_lines += [ line_maker( make_passthrough_line()) ]
 
+    if EnableGEC:
         with line_maker.bind(prefilter=gec):
             physics_lines += [line_maker( make_passthrough_line(name="Hlt1Passthrough_gec") )]
 
@@ -348,8 +362,21 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     # lost of line nodes, required to set up the CompositeNode
     line_nodes = [tup[1] for tup in physics_lines ] + [tup[1] for tup in monitoring_lines]
 
-    if withSMOG2:        
-        SMOG2_prefilters = [        
+    if withSMOG2:
+        SMOG2_prefilters, SMOG2_lines, prefilter_suffix = [], [], ''
+
+        lowMult_5 = make_lowmult(
+            reconstructed_objects['velo_tracks'], minTracks='1', maxTracks='5')
+        with line_maker.bind(prefilter=lowMult_5):
+            SMOG2_lines += [
+                line_maker(
+                    make_passthrough_line(name="Hlt1PassThrough_LowMult5"))]
+
+        if EnableGEC:
+            SMOG2_prefilters += [gec]
+            prefilter_suffix += '_gec'
+
+        SMOG2_prefilters += [
             make_checkPV(
                 reconstructed_objects['pvs'],
                 name='check_SMOG2_PV',
@@ -369,7 +396,6 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             smog2_lines += default_smog2_lines(
                 reconstructed_objects["velo_tracks"],
                 reconstructed_objects["velo_states"], 
-                reconstructed_objects["pvs"],         
                 reconstructed_objects["forward_tracks"],        
                 reconstructed_objects["long_track_particles"],      
                 reconstructed_objects["secondary_vertices"], 
