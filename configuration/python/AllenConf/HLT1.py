@@ -4,7 +4,7 @@
 from AllenConf.utils import initialize_number_of_events, mep_layout, gec
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_two_track_catboost_line, make_kstopipi_line, make_two_track_line_ks
-from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
+from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_ks_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
@@ -76,6 +76,11 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
     lines.append(
         line_maker("Hlt1DiMuonHighMass",
                    make_di_muon_mass_line(forward_tracks, secondary_vertices)))
+    lines.append(
+        line_maker(
+            "Hlt1TwoKs",
+            make_two_ks_line(forward_tracks, secondary_vertices),
+            enableGEC=True))
     lines.append(
         line_maker(
             "Hlt1DiMuonLowMass",
