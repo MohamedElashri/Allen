@@ -35,11 +35,11 @@ def hlt1_reconstruction(add_electron_id=False):
         decoded_calo, velo_tracks, velo_states, ut_tracks, forward_tracks,
         kalman_velo_only)
 
-    # if add_electron_id:
-    long_track_particles = make_basic_particles(kalman_velo_only, muonID,
-                                                calo_matching_objects)
-    # else:
-    #     long_track_particles = make_basic_particles(kalman_velo_only, muonID)
+    if add_electron_id:
+        long_track_particles = make_basic_particles(kalman_velo_only, muonID,
+                                                    calo_matching_objects)
+    else:
+        long_track_particles = make_basic_particles(kalman_velo_only, muonID)
     secondary_vertices = fit_secondary_vertices(
         forward_tracks, pvs, kalman_velo_only, long_track_particles)
     return {
