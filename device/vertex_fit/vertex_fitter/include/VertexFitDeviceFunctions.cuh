@@ -27,7 +27,9 @@ namespace VertexFit {
     float& y,
     float& z);
 
-  __device__ inline float doca(const Allen::Views::Physics::BasicParticle& trackA, const Allen::Views::Physics::BasicParticle& trackB);
+  __device__ inline float doca(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB);
 
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
@@ -133,7 +135,9 @@ namespace VertexFit {
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
   }
 
-  __device__ float doca(const Allen::Views::Physics::BasicParticle& trackA, const Allen::Views::Physics::BasicParticle& trackB)
+  __device__ float doca(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB)
   {
     const float xA = trackA.state().x();
     const float yA = trackA.state().y();

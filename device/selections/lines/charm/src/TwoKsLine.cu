@@ -39,10 +39,9 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     // Return false if the vertices have a common track.
     // Make this selection first as it is will initially reject the
     // largest amount of combinations.
-    if (vertex1.substructure(0) == vertex2.substructure(0) || 
-        vertex1.substructure(0) == vertex2.substructure(1) || 
-        vertex1.substructure(1) == vertex2.substructure(0) ||
-        vertex1.substructure(1) == vertex2.substructure(1)) {
+    if (
+      vertex1.substructure(0) == vertex2.substructure(0) || vertex1.substructure(0) == vertex2.substructure(1) ||
+      vertex1.substructure(1) == vertex2.substructure(0) || vertex1.substructure(1) == vertex2.substructure(1)) {
       continue;
     }
 
@@ -60,27 +59,29 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     const auto v1track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(1));
     const auto v2track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(0));
     const auto v2track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(1));
-    const auto cos1 = (v1track1->px() * v1track2->px() + v1track1->py() * v1track2->py() + v1track1->pz() * v1track2->pz()) / (v1track1->p() * v1track2->p());
-    const auto cos2 = (v2track1->px() * v2track2->px() + v2track1->py() * v2track2->py() + v2track1->pz() * v2track2->pz()) / (v2track1->p() * v2track2->p());
+    const auto cos1 =
+      (v1track1->px() * v1track2->px() + v1track1->py() * v1track2->py() + v1track1->pz() * v1track2->pz()) /
+      (v1track1->p() * v1track2->p());
+    const auto cos2 =
+      (v2track1->px() * v2track2->px() + v2track1->py() * v2track2->py() + v2track1->pz() * v2track2->pz()) /
+      (v2track1->p() * v2track2->p());
     // This decision is split into multiple lines because evaluating in all at
     // once results in a heavy register load. This can cause crashes depending
     // on the number of threads in the block.
-    bool decision =
-      vertex1.vertex().chi2() < parameters.maxVertexChi2 && vertex1.eta() > parameters.minEta_Ks &&
-      vertex1.eta() < parameters.maxEta_Ks && vertex1.minipchi2() > parameters.minTrackIPChi2_Ks;
+    bool decision = vertex1.vertex().chi2() < parameters.maxVertexChi2 && vertex1.eta() > parameters.minEta_Ks &&
+                    vertex1.eta() < parameters.maxEta_Ks && vertex1.minipchi2() > parameters.minTrackIPChi2_Ks;
     decision &= vertex1.mdipi() > parameters.minM_Ks && vertex1.mdipi() < parameters.maxM_Ks &&
-      vertex1.pt() > parameters.minComboPt_Ks && cos1 > parameters.minCosOpening &&
-      vertex1.dira() > parameters.minCosDira && vertex1.minp() > parameters.minTrackP_piKs;
+                vertex1.pt() > parameters.minComboPt_Ks && cos1 > parameters.minCosOpening &&
+                vertex1.dira() > parameters.minCosDira && vertex1.minp() > parameters.minTrackP_piKs;
     decision &= v1track1->ip() * v1track2->ip() / vertex1.ip() > parameters.min_combip &&
-      vertex1.minpt() > parameters.minTrackPt_piKs;
-    decision &= 
-      vertex2.vertex().chi2() < parameters.maxVertexChi2 && vertex2.eta() > parameters.minEta_Ks && 
-      vertex2.eta() < parameters.maxEta_Ks && vertex2.minipchi2() > parameters.minTrackIPChi2_Ks;
-    decision &= vertex2.mdipi() > parameters.minM_Ks && vertex2.mdipi() < parameters.maxM_Ks && 
-      vertex2.pt() > parameters.minComboPt_Ks && cos2 > parameters.minCosOpening && 
-      vertex2.dira() > parameters.minCosDira && vertex2.minp() > parameters.minTrackP_piKs;
+                vertex1.minpt() > parameters.minTrackPt_piKs;
+    decision &= vertex2.vertex().chi2() < parameters.maxVertexChi2 && vertex2.eta() > parameters.minEta_Ks &&
+                vertex2.eta() < parameters.maxEta_Ks && vertex2.minipchi2() > parameters.minTrackIPChi2_Ks;
+    decision &= vertex2.mdipi() > parameters.minM_Ks && vertex2.mdipi() < parameters.maxM_Ks &&
+                vertex2.pt() > parameters.minComboPt_Ks && cos2 > parameters.minCosOpening &&
+                vertex2.dira() > parameters.minCosDira && vertex2.minp() > parameters.minTrackP_piKs;
     decision &= v2track1->ip() * v2track2->ip() / vertex2.ip() > parameters.min_combip &&
-      vertex2.minpt() > parameters.minTrackPt_piKs;
+                vertex2.minpt() > parameters.minTrackPt_piKs;
 
     if (decision) {
       return decision;
