@@ -199,7 +199,6 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
   const bool size_is_number_of_events =
     ut_multi_event_tracks_view[0].number_of_events() == multiev_id_cont->number_of_id_containers();
   bool equal_number_of_tracks_and_sequences = true;
-  bool equal_number_of_hits_and_ids = true;
   bool lhcb_ids_never_zero = true;
   bool ut_ids_have_ut_preamble = true;
   bool velo_ids_have_velo_preamble = true;
@@ -211,20 +210,18 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
 
     for (unsigned sequence_index = 0; sequence_index < tracks.size(); ++sequence_index) {
       const auto& track = tracks.track(sequence_index);
-      const auto& id_seq =
-        dynamic_cast<const Allen::Views::UT::Consolidated::Track&>(id_cont.id_structure(sequence_index));
-      equal_number_of_hits_and_ids &= track.number_of_total_hits() == id_seq.number_of_ids();
+      const auto& velo_track = track.velo_track();
 
+      // In order to avoid recursive calls, VELO hits need to be accessed by the
+      // VELO track.
       for (unsigned id_index = 0; id_index < track.number_of_total_hits() - track.number_of_ut_hits(); id_index++) {
-        lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
-        velo_ids_have_velo_preamble &= lhcb_id::is_velo(id_seq.id(id_index));
+        lhcb_ids_never_zero &= velo_track.id(id_index) != 0;
+        velo_ids_have_velo_preamble &= lhcb_id::is_velo(velo_track.id(id_index));
       }
 
-      for (unsigned id_index = track.number_of_total_hits() - track.number_of_ut_hits();
-           id_index < track.number_of_total_hits();
-           id_index++) {
-        lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
-        ut_ids_have_ut_preamble &= lhcb_id::is_ut(id_seq.id(id_index));
+      for (unsigned id_index = 0; id_index < track.number_of_ut_hits(); id_index++) {
+        lhcb_ids_never_zero &= track.id(id_index) != 0;
+        ut_ids_have_ut_preamble &= lhcb_id::is_ut(track.id(id_index));
       }
     }
   }
@@ -233,8 +230,6 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
   require(
     equal_number_of_tracks_and_sequences,
     "Require that the number of tracks equals the number of LHCb ID sequences for all events");
-  require(
-    equal_number_of_hits_and_ids, "Require that the number of hits equals the number of LHCb IDs for all sequences");
   require(lhcb_ids_never_zero, "Require that LHCb IDs are never zero");
   require(velo_ids_have_velo_preamble, "Require that LHCb IDs of VELO hits have VELO preamble");
   require(ut_ids_have_ut_preamble, "Require that LHCb IDs of UT hits have UT preamble");
