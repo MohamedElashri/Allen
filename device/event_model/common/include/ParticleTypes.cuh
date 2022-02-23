@@ -836,7 +836,7 @@ namespace Allen {
 
         __host__ __device__ const BasicParticles& particle_container(const unsigned event_number) const
         {
-          assert(event_number < m_number_of_events);
+          assert(event_number < number_of_containers());
           return m_container[event_number];
         }
       };
@@ -854,7 +854,7 @@ namespace Allen {
 
         __host__ __device__ const CompositeParticles& particle_container(const unsigned event_number) const
         {
-          assert(event_number < m_number_of_events);
+          assert(event_number < number_of_containers());
           return m_container[event_number];
         }
       };
