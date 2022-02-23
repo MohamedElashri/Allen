@@ -5,7 +5,7 @@
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
 
-include_directories(${CMAKE_SOURCE_DIR}/external/Catch2/single_include/catch2)
+include_directories(${PROJECT_SOURCE_DIR}/external/Catch2/single_include/catch2)
 
 set(mdf_sources
     src/raw_helpers.cpp
@@ -19,7 +19,7 @@ endif()
 allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>)
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/main/include>)
 target_link_libraries(mdf PUBLIC LHCbEvent)
 
 set(lhcb_public_headers include/write_mdf.hpp include/read_mdf.hpp include/mdf_header.hpp daq40/sourceid.h)
@@ -96,5 +96,5 @@ if (BUILD_TESTING)
     target_link_libraries(test_mep_banks PRIVATE Gaudi::GaudiKernel)
   endif()
 
-  add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --mdf-file ${CMAKE_SOURCE_DIR}/input/minbias/mdf/upgrade_mc_minbias_scifi_v5.mdf)
+  add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --mdf-file ${PROJECT_SOURCE_DIR}/input/minbias/mdf/upgrade_mc_minbias_scifi_v5.mdf)
 endif()

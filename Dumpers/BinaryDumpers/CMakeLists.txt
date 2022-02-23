@@ -39,6 +39,8 @@ gaudi_add_module(BinaryDumpersModule
                  LINK
                    Rangev3::rangev3
                    Gaudi::GaudiAlgLib
+                   LHCb::AssociatorsBase
+                   LHCb::LinkerEvent
                    LHCb::MCEvent
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib

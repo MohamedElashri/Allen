@@ -28,13 +28,6 @@ option(USE_BOOST_FILESYSTEM "Use Boost filesystem library instead of std::filesy
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
-if(NOT PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
-  # Fix CMAKE_MODULE_PATH when building the stack as single project
-  list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
-  return()
-endif()
-
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
@@ -150,8 +143,12 @@ set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 include(CTest)
 
 if (NOT STANDALONE)
-  set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE "VERBOSE")
-  set(LHCB_UNUSED_SOURCE_MESSAGE_TYPE "IGNORE")
+  # Disable messages from the LHCb configuration checks that fire as
+  # a result of the different directory/source structure of Allen
+  if(PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
+    set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE "VERBOSE")
+    set(LHCB_UNUSED_SOURCE_MESSAGE_TYPE "IGNORE")
+  endif()
 
   lhcb_add_subdirectories(
     Rec/Allen
@@ -196,7 +193,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_ARCH_LIST)
   #CUDA_ARCH can be set to MAX
     if(CUDA_ARCH STREQUAL "MAX")
-      set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
+      set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
       set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
       execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -std=c++17 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
       if(CUDA_ARCH STREQUAL "MAX")
@@ -250,8 +247,6 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   endif()
   message(STATUS "Device architecture set to ${DEVICE_ARCHITECTURE}")
 endif()
-
-include(ConfigurationUtils)
 
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
@@ -513,9 +508,9 @@ add_subdirectory(stream)
 add_library(AllenCommon INTERFACE)
 target_include_directories(AllenCommon
   INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/main/include>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/main/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/test/contracts/include>)
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/test/contracts/include>)
 
 set(AllenHeaders)
 foreach(header

@@ -15,6 +15,7 @@ gaudi_add_module(RootDumpers
                    src/DumpVeloUTState.cpp
                  LINK
                    Gaudi::GaudiAlgLib
+                   LHCb::AssociatorsBase
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib
                    LHCb::LinkerEvent

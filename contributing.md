@@ -68,12 +68,12 @@ The newly created `example/CMakeLists.txt` file should reflect the project we ar
 file(GLOB saxpy_sources "src/*cu")
 
 include_directories(include)
-include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/device/event_model/velo/include)
-include_directories(${CMAKE_SOURCE_DIR}/main/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
+include_directories(${PROJECT_SOURCE_DIR}/device/velo/common/include)
+include_directories(${PROJECT_SOURCE_DIR}/device/event_model/common/include)
+include_directories(${PROJECT_SOURCE_DIR}/device/event_model/velo/include)
+include_directories(${PROJECT_SOURCE_DIR}/main/include)
+include_directories(${PROJECT_SOURCE_DIR}/stream/gear/include)
+include_directories(${PROJECT_SOURCE_DIR}/stream/sequence/include)
 
 allen_add_device_library(Examples STATIC
   ${saxpy_sources}
@@ -310,7 +310,7 @@ __global__ void saxpy::saxpy(saxpy::Parameters parameters)
     Velo::Consolidated::ConstTracks velo_tracks {
       parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
     const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-    
+
     parameters.dev_saxpy_output[event_number] =
         parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
   }

@@ -16,13 +16,6 @@ if (NOT STANDALONE)
   # Find modules we need
   list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/modules)
 
-  if(WITH_Allen_PRIVATE_DEPENDENCIES AND PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME)
-    # Disable messages from the LHCb configuration checks that fire as
-    # a result of the different directory/source structure of Allen
-    set(LHCB_UNUSED_SUBDIR_MESSAGE_TYPE CACHE STRING "DEBUG" FORCE)
-    set(LHCB_UNUSED_SOURCE_MESSAGE_TYPE CACHE STRING "IGNORE" FORCE)
-  endif()
-
   if(NOT COMMAND lhcb_find_package)
     # Look for LHCb find_package wrapper
     find_file(LHCbFindPackage_FILE LHCbFindPackage.cmake)
@@ -114,7 +107,7 @@ find_package(Filesystem REQUIRED)
 
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # We need a Python 3 interpreter
-  find_package(Python3 REQUIRED)
+  find_package(Python 3 REQUIRED Development Interpreter)
 
   # Find libClang, required for parsing the Allen codebase
   find_package(LibClang QUIET)
@@ -131,6 +124,10 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(PkgConfig)
   pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)
   pkg_check_modules(sodium libsodium REQUIRED IMPORTED_TARGET)
+
+  if(NOT STANDALONE)
+    find_package(Rangev3 REQUIRED)
+  endif()
 endif()
 
 # ROOT

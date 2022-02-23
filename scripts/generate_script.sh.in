@@ -2,4 +2,4 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-PYTHONPATH=@PROJECT_SEQUENCE_DIR@:${PYTHONPATH} @Python3_EXECUTABLE@ @CMAKE_SOURCE_DIR@/configuration/sequences/@sequence@.py
+PYTHONPATH=@PROJECT_SEQUENCE_DIR@:${PYTHONPATH} @Python_EXECUTABLE@ @PROJECT_SOURCE_DIR@/configuration/sequences/@sequence@.py > /dev/null

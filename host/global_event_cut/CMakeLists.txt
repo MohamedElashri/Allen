@@ -11,5 +11,5 @@ target_link_libraries(HostGEC PRIVATE HostEventModel EventModel Gear AllenCommon
 
 target_include_directories(HostGEC PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/device/UT/common/include>
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/device/SciFi/common/include>)
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/device/UT/common/include>
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/device/SciFi/common/include>)

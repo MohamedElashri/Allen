@@ -26,7 +26,7 @@ else()
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compat>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/svc>
-    ${CMAKE_SOURCE_DIR}/main/include)
+    ${PROJECT_SOURCE_DIR}/main/include)
   target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
   target_link_libraries(AllenZMQ PUBLIC PkgConfig::zmq PkgConfig::sodium Boost::headers)
 
@@ -39,7 +39,7 @@ function(zmq_program)
   cmake_parse_arguments(PARSED_ARGS "" "NAME;SRC" "" ${ARGN})
   add_executable(${PARSED_ARGS_NAME} ${PARSED_ARGS_SRC})
   target_include_directories(${PARSED_ARGS_NAME} PRIVATE
-    ${CMAKE_SOURCE_DIR}/mdf/include)
+    ${PROJECT_SOURCE_DIR}/mdf/include)
 
   find_package(Threads REQUIRED)
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf AllenFS Threads::Threads LHCbEvent EventModel AllenCommon)
