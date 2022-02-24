@@ -49,7 +49,8 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   // Cuts that need constituent tracks.
   const auto v1track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(0));
   const auto v1track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(1));
-  const float cos1 = (v1track1->px() * v1track2->px() + v1track1->py() * v1track2->py() + v1track1->pz() * v1track2->pz()) /
+  const float cos1 =
+    (v1track1->px() * v1track2->px() + v1track1->py() * v1track2->py() + v1track1->pz() * v1track2->pz()) /
     (v1track1->p() * v1track2->p());
   dec1 &= cos1 > parameters.minCosOpening;
   dec1 &= v1track1->ip() * v1track2->ip() / vertex1.ip() > parameters.min_combip;
@@ -86,7 +87,8 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     // Cuts that need constituent tracks.
     const auto v2track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(0));
     const auto v2track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(1));
-    const float cos2 = (v2track1->px() * v2track2->px() + v2track1->py() * v2track2->py() + v2track1->pz() * v2track2->pz()) /
+    const float cos2 =
+      (v2track1->px() * v2track2->px() + v2track1->py() * v2track2->py() + v2track1->pz() * v2track2->pz()) /
       (v2track1->p() * v2track2->p());
     dec2 &= cos2 > parameters.minCosOpening;
     dec2 &= v2track1->ip() * v2track2->ip() / vertex2.ip() > parameters.min_combip;
