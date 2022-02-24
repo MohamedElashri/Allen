@@ -225,11 +225,14 @@ std::tuple<bool, bool, bool> transpose_event(
   // Where should offsets to individual banks be written
   uint32_t* banks_offsets_write = nullptr;
 
+  // Memory where bank sizes are kept. The first N entries are offsets to the sizes per event
+  uint16_t* fragment_sizes = nullptr;
+
   unsigned int bank_offset = 0;
   unsigned int bank_counter = 1;
 
-  std::array<unsigned int, NBankTypes> sizes;
-  sizes.fill(2 * sizeof(unsigned int));
+  std::array<unsigned int, NBankTypes> size_per_type;
+  size_per_type.fill(2 * sizeof(unsigned int));
 
   auto bank = bank_data.data(), bank_end = bank_data.data() + bank_data.size();
 
@@ -248,7 +251,7 @@ std::tuple<bool, bool, bool> transpose_event(
     if (bank_types.count(allen_type) || allen_type == BankTypes::ODIN) {
       sorted_banks.push_back(b);
       bank_count[to_integral(allen_type)] += 1;
-      sizes[to_integral(allen_type)] += sizeof(unsigned int) + b->size();
+      size_per_type[to_integral(allen_type)] += sizeof(unsigned int) + b->size();
     }
     bank += b->totalSize();
   }
@@ -258,8 +261,8 @@ std::tuple<bool, bool, bool> transpose_event(
   // little space to fit this event
   for (auto allen_type : bank_types) {
     auto const ia = to_integral(allen_type);
-    const auto& [slice, slice_size, slice_offsets, offsets_size] = slices[ia][slice_index];
-    if ((slice_offsets[offsets_size - 1] + sizes[ia]) > slice_size) {
+    const auto& [slice, fragment_sizes, slice_size, slice_offsets, offsets_size] = slices[ia][slice_index];
+    if ((slice_offsets[offsets_size - 1] + size_per_type[ia]) > slice_size) {
       return {true, true, false};
     }
   }
@@ -305,9 +308,10 @@ std::tuple<bool, bool, bool> transpose_event(
       // set bank version
       banks_version[to_integral(allen_type)] = b->version();
 
+      // Reset bank count
       bank_counter = 1;
-      banks_offsets = std::get<2>(slice).data();
-      n_banks_offsets = &std::get<3>(slice);
+      banks_offsets = std::get<3>(slice).data();
+      n_banks_offsets = &std::get<4>(slice);
 
       // Calculate the size taken by storing the number of banks
       // and offsets to all banks within the event
@@ -317,10 +321,22 @@ std::tuple<bool, bool, bool> transpose_event(
       // previous one and increment with the preamble size
       banks_offsets[*n_banks_offsets] = (banks_offsets[*n_banks_offsets - 1] + preamble_words * sizeof(uint32_t));
 
-      // Three things to write for a new set of banks:
+      // Five things to write for a new set of banks:
       // - number of banks/offsets
       // - offsets to individual banks
       // - bank data
+      // - offset to the start of the bank sizes
+      // - the bank size
+
+      // The offsets to the sizes for this batch of fragments is
+      // copied from the current value
+      fragment_sizes = std::get<1>(slice)[0].data();
+      fragment_sizes_offset = fragment_sizes[*n_banks_offsets] + bank_counter - 1;
+      fragment_sizes[*n_banks_offsets + 1] = fragment_sizes_offset;
+      fragment_sizes += fragment_offset;
+
+      // Size write pointer is initialiazed from the offset
+      sizes_write = sizes_data + *n_sizes_write;
 
       // Initialize point to write from offset of previous set
       banks_write = reinterpret_cast<uint32_t*>(std::get<0>(slice)[0].data() + banks_offsets[*n_banks_offsets - 1]);
@@ -348,6 +364,9 @@ std::tuple<bool, bool, bool> transpose_event(
 
     // Write sourceID
     banks_write[bank_offset] = b->sourceID();
+
+    // Store bank size
+    fragment_sizes[bank_counter - 1] = b->size();
 
     // Copy padded data
     auto const padded_size = b->totalSize() - b->hdrSize();

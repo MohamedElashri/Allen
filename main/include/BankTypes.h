@@ -64,7 +64,12 @@ constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
   return static_cast<typename std::underlying_type<ENUM>::type>(e);
 }
 
-using BanksAndOffsets = std::tuple<std::vector<gsl::span<const char>>, size_t, gsl::span<const unsigned int>, int>;
+using BanksAndOffsets = std::tuple<
+  std::vector<gsl::span<const char>>, // Fragment data
+  std::vector<gsl::span<const uint16_t>>, // Fragment sizes
+  size_t, // Total data size
+  gsl::span<const unsigned int>, // Fragment offsets
+  int>; // Bank version
 
 template<BankTypes... BANKS>
 std::unordered_set<BankTypes> banks_set()
