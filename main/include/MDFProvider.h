@@ -180,7 +180,7 @@ public:
 
           // Allocate slice memory that will contain transposed banks ready
           // for processing by the Allen kernels
-          auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t> {
+          auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t, size_t> {
             auto it = BankSizes.find(bank_type);
             auto ib = to_integral<BankTypes>(bank_type);
             if (it == end(BankSizes)) {
@@ -189,18 +189,17 @@ public:
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
 
+            auto n_sizes = allocate_events * (Allen::max_fragments + 1);
+
             // When events are transposed from the read buffer into
             // the per-rawbank-type slices, a check is made each time
             // to see if there is enough space available in a slice.
             // To avoid having to read every event twice to get the
-            // size of all the banks, the size of the entire event is
-            // used for the check - 65 kB on average. To avoid
-            // problems for banks with very low average size like the
-            // ODIN bank - 0.1 kB, a fixed amount is also added.
+            // size of all the banks.
             auto n_bytes = std::lround(
               ((1 + m_mfp_count[ib]) * sizeof(uint32_t) + it->second * kB) * allocate_events * bank_size_fudge_factor +
               2 * MB);
-            return {n_bytes, events_per_slice};
+            return {n_bytes, n_sizes, events_per_slice};
           };
           m_slices = allocate_slices(n_slices, types(), size_fun);
         }
@@ -276,17 +275,15 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral(bank_type);
-    // FIXME structured binding version below triggers clang 11 bug
-    //       revert after clang fix available
-    // auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
-    auto const& tup = m_slices[ib][slice_index];
-    auto const& banks = std::get<0>(tup);
-    auto const offsets = std::get<2>(tup);
-    auto const offsets_size = std::get<3>(tup);
+    auto const& slice = m_slices[ib][slice_index];
+    auto const& banks = slice.fragments;
+    auto const offsets = slice.offsets;
+    auto const offsets_size = slice.n_offsets;
 
     gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
+    gsl::span<uint16_t const> s {slice.sizes[0].data(), slice.sizes[0].size()};
     gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
+    return BanksAndOffsets {{std::move(b)}, {std::move(s)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
   }
 
   /**

@@ -261,8 +261,8 @@ std::tuple<bool, bool, bool> transpose_event(
   // little space to fit this event
   for (auto allen_type : bank_types) {
     auto const ia = to_integral(allen_type);
-    const auto& [slice, fragment_sizes, slice_size, slice_offsets, offsets_size] = slices[ia][slice_index];
-    if ((slice_offsets[offsets_size - 1] + size_per_type[ia]) > slice_size) {
+    const auto& slice = slices[ia][slice_index];
+    if ((slice.offsets[slice.n_offsets - 1] + size_per_type[ia]) > slice.fragments_mem_size) {
       return {true, true, false};
     }
   }
@@ -310,8 +310,8 @@ std::tuple<bool, bool, bool> transpose_event(
 
       // Reset bank count
       bank_counter = 1;
-      banks_offsets = std::get<3>(slice).data();
-      n_banks_offsets = &std::get<4>(slice);
+      banks_offsets = slice.offsets.data();
+      n_banks_offsets = &slice.n_offsets;
 
       // Calculate the size taken by storing the number of banks
       // and offsets to all banks within the event
@@ -329,17 +329,15 @@ std::tuple<bool, bool, bool> transpose_event(
       // - the bank size
 
       // The offsets to the sizes for this batch of fragments is
-      // copied from the current value
-      fragment_sizes = std::get<1>(slice)[0].data();
-      fragment_sizes_offset = fragment_sizes[*n_banks_offsets] + bank_counter - 1;
+      // copied from the current value, then the pointer is moved to
+      // the point where bank sizes can be stored
+      fragment_sizes = slice.sizes[0].data();
+      auto const fragment_sizes_offset = slice.sizes[0][*n_banks_offsets] + bank_counter - 1;
       fragment_sizes[*n_banks_offsets + 1] = fragment_sizes_offset;
-      fragment_sizes += fragment_offset;
-
-      // Size write pointer is initialiazed from the offset
-      sizes_write = sizes_data + *n_sizes_write;
+      fragment_sizes += fragment_sizes_offset;
 
       // Initialize point to write from offset of previous set
-      banks_write = reinterpret_cast<uint32_t*>(std::get<0>(slice)[0].data() + banks_offsets[*n_banks_offsets - 1]);
+      banks_write = reinterpret_cast<uint32_t*>(slice.fragments[0].data() + banks_offsets[*n_banks_offsets - 1]);
 
       // New offset to increment
       ++(*n_banks_offsets);
@@ -386,21 +384,6 @@ std::tuple<bool, bool, bool> transpose_event(
   return {true, false, false};
 }
 
-/**
- * @brief      Reset a slice
- *
- * @param      slices
- * @param      slice_index
- * @param      event_ids
- */
-
-void reset_slice(
-  Allen::Slices& slices,
-  int const slice_index,
-  std::unordered_set<BankTypes> const& bank_types,
-  EventIDs& event_ids,
-  bool mep);
-
 std::tuple<bool, bool, size_t> transpose_events(
   const Allen::ReadBuffer& read_buffer,
   Allen::Slices& slices,
@@ -426,6 +409,13 @@ std::tuple<bool, bool, size_t> transpose_events(
 
   std::array<unsigned int, NBankTypes> bank_count;
   bank_count.fill(0);
+
+  // Initialize the first size offset from the number of events
+  for (auto allen_type : bank_types) {
+    auto const ia = to_integral(allen_type);
+    auto& fragment_sizes = slices[ia][slice_index].sizes[0];
+    fragment_sizes[0] = n_events;
+  }
 
   // Loop over events in the prefetch buffer
   size_t i_event = event_start;
@@ -455,37 +445,4 @@ std::tuple<bool, bool, size_t> transpose_events(
   }
 
   return {success, full, i_event - event_start};
-}
-
-Allen::Slices allocate_slices(
-  size_t n_slices,
-  std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun,
-  std::unordered_set<BankTypes> const& bank_types)
-{
-  Allen::Slices slices;
-  for (auto bank_type : bank_types) {
-    auto [n_bytes, n_offsets] = size_fun(bank_type);
-
-    auto ib = to_integral<BankTypes>(bank_type);
-    auto& bank_slices = slices[ib];
-    bank_slices.reserve(n_slices);
-    for (size_t i = 0; i < n_slices; ++i) {
-      char* events_mem = nullptr;
-      unsigned* offsets_mem = nullptr;
-
-      if (n_bytes) Allen::malloc_host((void**) &events_mem, n_bytes);
-      if (n_offsets) Allen::malloc_host((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned));
-
-      for (size_t i = 0; i < n_offsets + 1; ++i) {
-        offsets_mem[i] = 0;
-      }
-      std::vector<gsl::span<char>> spans {};
-      if (n_bytes) {
-        spans.emplace_back(events_mem, n_bytes);
-      }
-      bank_slices.emplace_back(
-        std::move(spans), n_bytes, offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)}, 1);
-    }
-  }
-  return slices;
 }

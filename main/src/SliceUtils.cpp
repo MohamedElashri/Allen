@@ -29,15 +29,15 @@ void reset_slice(
   // "Reset" the slice
   for (auto bank_type : bank_types) {
     auto ib = to_integral(bank_type);
-    auto& [banks, sizes, data_size, offsets, offsets_size] = slices[ib][slice_index];
-    std::fill(offsets.begin(), offsets.end(), 0);
-    offsets_size = 1;
+    auto& slice = slices[ib][slice_index];
+    std::fill(slice.offsets.begin(), slice.offsets.end(), 0);
+    slice.n_offsets = 1;
     if (mep) {
-      banks.clear();
-      data_size = 0;
+      slice.fragments.clear();
+      slice.fragments_mem_size = 0;
     }
     else {
-      std::fill(sizes[0].begin(), sizes[0].end(), 0);
+      std::fill(slice.sizes[0].begin(), slice.sizes[0].end(), 0);
     }
   }
   event_ids.clear();
@@ -67,18 +67,23 @@ Allen::Slices allocate_slices(
       for (size_t i = 0; i < n_offsets + 1; ++i) {
         offsets_mem[i] = 0;
       }
-      std::vector<gsl::span<char const>> bank_spans {};
+      std::vector<gsl::span<char>> bank_spans {};
       if (n_bytes) {
         bank_spans.emplace_back(events_mem, n_bytes);
       }
 
-      std::vector<gsl::span<uint16_t const>> size_spans {};
+      std::vector<gsl::span<uint16_t>> size_spans {};
       if (n_sizes) {
         size_spans.emplace_back(sizes_mem, n_sizes);
       }
 
       bank_slices.emplace_back(
-        std::move(bank_spans), std::move(size_spans), n_bytes, offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)}, 1);
+        Allen::Slice{
+          std::move(bank_spans),
+          std::move(size_spans),
+          n_bytes,
+          offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)},
+          1});
     }
   }
   return slices;

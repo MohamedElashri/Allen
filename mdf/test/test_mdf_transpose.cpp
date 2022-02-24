@@ -267,8 +267,9 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   std::cout << alloc_size << " " << split_event << " " << max_events << "\n";
 
-  auto size_fun = [as = alloc_size, n_events = max_events](BankTypes) -> std::tuple<size_t, size_t> {
-    return {as, n_events + 1};
+  auto size_fun = [as = alloc_size, n_events = max_events, bc = banks_count](BankTypes) -> std::tuple<size_t, size_t, size_t> {
+    auto n_banks = std::accumulate(bc.begin(), bc.end(), 0u);
+    return {as, n_events * (n_banks + 1), n_events + 1};
   };
 
   auto slices = allocate_slices(s_config.n_slices, allen_types, size_fun);
@@ -303,11 +304,11 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   // comparing event and run numbers from ODIN
   size_t i = 0;
   auto oi = to_integral(BankTypes::ODIN);
-  for (auto const& [banks, _, event_offsets, n_offsets] : slices[oi]) {
-    for (size_t j = 0; j < n_offsets - 1; ++j) {
+  for (auto const& slice : slices[oi]) {
+    for (size_t j = 0; j < slice.n_offsets - 1; ++j) {
       auto const& read_odin = odins[i];
       auto const* odin_data =
-        reinterpret_cast<unsigned const*>(banks[0].data() + event_offsets[j] + 4 * sizeof(uint32_t));
+        reinterpret_cast<unsigned const*>(slice.fragments[0].data() + slice.offsets[j] + 4 * sizeof(uint32_t));
       auto transposed_odin = MDF::decode_odin(banks_version[oi], odin_data);
       REQUIRE(read_odin.runNumber() == transposed_odin.runNumber());
       REQUIRE(read_odin.eventNumber() == transposed_odin.eventNumber());

@@ -25,17 +25,24 @@ namespace LHCb {
 
 namespace Allen {
 
+  // There are at most 550 Tell40s in the system (2 fragments per
+  // Tell40) plus a conservative estimate of 100 banks for Allen MC
+  // info (tracks and vertices each)
+  constexpr size_t max_fragments = 1300;
+
   // Read buffer containing the number of events, offsets to the start
   // of the event and the event data
   using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>, size_t>;
   using ReadBuffers = std::vector<ReadBuffer>;
 
-  using Slice = std::tuple<
-    std::vector<gsl::span<char>>, // bank data
-    std::vector<gsl::span<uint16_t>>, // the sizes of the fragments
-    size_t, // size of the bank data
-    gsl::span<unsigned int>, // offsets to address the fragments
-    size_t>; // number of offsets
+  struct Slice {
+    std::vector<gsl::span<char>> fragments;
+    std::vector<gsl::span<uint16_t>> sizes;
+    size_t fragments_mem_size = 0;
+    gsl::span<unsigned int> offsets;
+    size_t n_offsets;
+  };
+
   using BankSlices = std::vector<Slice>;
   using Slices = std::array<BankSlices, NBankTypes>;
 
