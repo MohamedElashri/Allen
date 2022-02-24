@@ -12,15 +12,15 @@
 namespace Allen {
   const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {
     {LHCb::RawBank::VP, BankTypes::VP},
-    {LHCb::RawBank::VPRetinaCluster, BankTypes::VPRetinaCluster},
+    {LHCb::RawBank::VPRetinaCluster, BankTypes::VP},
     {LHCb::RawBank::UT, BankTypes::UT},
     {LHCb::RawBank::FTCluster, BankTypes::FT},
     {LHCb::RawBank::Muon, BankTypes::MUON},
     {LHCb::RawBank::ODIN, BankTypes::ODIN},
     {LHCb::RawBank::HcalPacked, BankTypes::HCal},
     {LHCb::RawBank::EcalPacked, BankTypes::ECal},
-    {LHCb::RawBank::OTError, BankTypes::OTError}, // used for PV MC info
-    {LHCb::RawBank::OTRaw, BankTypes::OTRaw}};    // used for track MC info
+    {LHCb::RawBank::OTError, BankTypes::MCTracks}, // used for PV MC info
+    {LHCb::RawBank::OTRaw, BankTypes::MCVertices}};    // used for track MC info
 
   const std::unordered_map<SourceIdSys, BankTypes> subdetectors = {
     {SourceIdSys::SourceIdSys_ODIN, BankTypes::ODIN},

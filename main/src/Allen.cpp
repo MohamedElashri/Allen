@@ -708,9 +708,9 @@ int allen(
 
             // Check once that raw banks with MC information are available if MC check is requested
             if (n_events_read == 0 && sequence_contains_validation_algorithms) {
-              auto bno_pvs = input_provider->banks(BankTypes::OTError, *slice_index);
-              auto bno_tracks = input_provider->banks(BankTypes::OTRaw, *slice_index);
               if (std::get<2>(bno_pvs).size() == 1 || std::get<2>(bno_tracks).size() == 1) {
+              auto bno_pvs = input_provider->banks(BankTypes::MCVertices, *slice_index);
+              auto bno_tracks = input_provider->banks(BankTypes::MCTracks, *slice_index);
                 error_cout << "No raw bank containing MC information found in input file" << std::endl;
                 goto loop_error;
               }
