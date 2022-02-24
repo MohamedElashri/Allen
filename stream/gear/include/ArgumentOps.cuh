@@ -450,13 +450,13 @@ template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
 void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const Allen::Context& context)
 {
   auto offset = data<DATA_ARG>(args);
-  for (gsl::span<char const> data_span : std::get<0>(bno)) {
+  for (gsl::span<char const> data_span : bno.fragments) {
     Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), Allen::memcpyHostToDevice, context);
     offset += data_span.size_bytes();
   }
 
   Allen::memcpy_async(
-    data<OFFSET_ARG>(args), std::get<2>(bno).data(), std::get<2>(bno).size_bytes(), Allen::memcpyHostToDevice, context);
+    data<OFFSET_ARG>(args), bno.offsets.data(), bno.offsets.size_bytes(), Allen::memcpyHostToDevice, context);
 }
 
 /**
