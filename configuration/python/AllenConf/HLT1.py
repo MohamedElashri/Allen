@@ -2,7 +2,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import initialize_number_of_events, mep_layout, gec, checkPV, lowMult
+from AllenConf.utils import initialize_number_of_events, mep_layout, gec, checkPV, lowOcc
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_ks_line
@@ -337,25 +337,20 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             physics_lines += [line_maker( make_passthrough_line(name="Hlt1Passthrough_gec") )]
 
     if EnableGEC:
-        monitoring_lines.append(
-            line_maker(
-                make_velo_micro_bias_line( 
-                    reconstructed_objects["velo_tracks"],
-                    name="Hlt1VeloMicroBias_gec"),
-                prefilter=gec))
+        with line_maker.bind(prefilter=gec):
+            monitoring_lines.append(
+                line_maker(
+                    make_velo_micro_bias_line(
+                        reconstructed_objects["velo_tracks"],
+                        name="Hlt1VeloMicroBias_gec") ))
         monitoring_lines.append(
             line_maker(
                 make_rich_1_line(
-                    hlt1_reconstruction(), 
-                    name = "Hlt1RICH1Alignment_gec" ),
-                prefilter=gec))
+                    hlt1_reconstruction(), name="Hlt1RICH1Alignment_gec")))
         monitoring_lines.append(
             line_maker(
                 make_rich_2_line(
-                    hlt1_reconstruction(), 
-                    name = "HLt1RICH2Alignment_gec"),
-                prefilter = gec)) 
-
+                    hlt1_reconstruction(), name="HLt1RICH2Alignment_gec")))
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines] + [tup[0] for tup in monitoring_lines]
@@ -365,12 +360,12 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     if withSMOG2:
         SMOG2_prefilters, SMOG2_lines, prefilter_suffix = [], [], ''
 
-        lowMult_5 = make_lowmult(
+        lowOcc_5 = make_lowocc(
             reconstructed_objects['velo_tracks'], minTracks='1', maxTracks='5')
-        with line_maker.bind(prefilter=lowMult_5):
+        with line_maker.bind(prefilter=lowOcc_5):
             SMOG2_lines += [
                 line_maker(
-                    make_passthrough_line(name="Hlt1PassThrough_LowMult5"))]
+                    make_passthrough_line(name="Hlt1PassThrough_LowOcc5"))]
 
         if EnableGEC:
             SMOG2_prefilters += [gec]

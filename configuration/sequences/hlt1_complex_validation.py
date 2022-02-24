@@ -1,7 +1,6 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import gec
 from AllenConf.ut_reconstruction import make_ut_tracks
 from AllenConf.persistency import make_gather_selections, make_global_decision
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, make_composite_node_with_gec
@@ -22,33 +21,32 @@ restricted_hlt1_reconstruction = hlt1_reconstruction()
 gec = make_gec()
 
 lines = []
-lines.append(
-        make_track_mva_line(
-            restricted_hlt1_reconstruction["forward_tracks"],
-            restricted_hlt1_reconstruction["long_track_particles"],
-            name="Hlt1TrackMVA_Restricted"),
-        prefilter = gec))
-lines.append(
-    line_maker(
-        make_two_track_mva_line(
-            restricted_hlt1_reconstruction["forward_tracks"],
-            restricted_hlt1_reconstruction["secondary_vertices"],
-            name="Hlt1TwoTrackMVA_Restricted"),
-        prefilter=gec))
-lines.append(
-    line_maker(
-        make_track_mva_line(
-            non_restricted_hlt1_reconstruction["forward_tracks"],
-            non_restricted_hlt1_reconstruction["secondary_vertices"],
-            name="Hlt1TrackMVA_Non_Restricted"),
-        prefilter=gec))
-lines.append(
-    line_maker(
-        make_two_track_mva_line(
-            non_restricted_hlt1_reconstruction["forward_tracks"],
-            non_restricted_hlt1_reconstruction["secondary_vertices"],
-            name="Hlt1TwoTrackMVA_Non_Restricted"),
-        prefilter=gec))
+<<<<<<< HEAD
+with line_maker.bind(prefilter=gec):
+    lines.append(
+        line_maker(
+            make_track_mva_line(
+                restricted_hlt1_reconstruction["forward_tracks"],
+                restricted_hlt1_reconstruction["long_track_particles"],
+                name="Hlt1TrackMVA_Restricted")))
+    lines.append(
+        line_maker(
+            make_two_track_mva_line(
+                restricted_hlt1_reconstruction["forward_tracks"],
+                restricted_hlt1_reconstruction["secondary_vertices"],
+                name="Hlt1TwoTrackMVA_Restricted")))
+    lines.append(
+        line_maker(
+            make_track_mva_line(
+                non_restricted_hlt1_reconstruction["forward_tracks"],
+                non_restricted_hlt1_reconstruction["secondary_vertices"],
+                name="Hlt1TrackMVA_Non_Restricted")))
+    lines.append(
+        line_maker(
+            make_two_track_mva_line(
+                non_restricted_hlt1_reconstruction["forward_tracks"],
+                non_restricted_hlt1_reconstruction["secondary_vertices"],
+                name="Hlt1TwoTrackMVA_Non_Restricted")))
 
 # list of line algorithms, required for the gather selection and DecReport algorithms
 line_algorithms = [tup[0] for tup in lines]

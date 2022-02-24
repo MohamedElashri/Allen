@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
 
@@ -48,7 +48,7 @@ namespace SMOG2_singletrack_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<minP_t> m_minP {this, 3.f * Gaudi::Units::GeV};
-    Property<minPt_t> m_minPt {this, 1000.f * Gaudi::Units::MeV};
+    Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 4.f};
     Property<minBPVz_t> m_minBPVz {this, -550.f * Gaudi::Units::mm};
     Property<maxBPVz_t> m_maxBPVz {this, -300.f * Gaudi::Units::mm};

@@ -51,6 +51,6 @@ namespace track_muon_mva_line {
     Property<param2_t> m_param2 {this, 2.0f};
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 0.f};
-    Property<minBPVz_t> m_minBPVz {this, -300.f / Gaudi::Units::mm};
+    Property<minBPVz_t> m_minBPVz {this, -300.f * Gaudi::Units::mm};
   };
 } // namespace track_muon_mva_line

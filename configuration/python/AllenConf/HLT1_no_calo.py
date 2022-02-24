@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import initialize_number_of_events, mep_layout, gec, checkPV, lowMult
+from AllenConf.utils import initialize_number_of_events, mep_layout, gec, checkPV, lowOcc
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_ks_line
@@ -257,8 +257,8 @@ def make_checkPV(pvs, name='check_PV', minZ='-9999999', maxZ='99999999'):
 
 
 @configurable
-def make_lowmult(velo_tracks, minTracks='0', maxTracks='9999999'):
-    return lowMult(velo_tracks, minTracks=minTracks, maxTracks=maxTracks)
+def make_lowocc(velo_tracks, minTracks='0', maxTracks='9999999'):
+    return lowOcc(velo_tracks, minTracks=minTracks, maxTracks=maxTracks)
 
 
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
@@ -326,12 +326,12 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     if withSMOG2:
         SMOG2_prefilters, SMOG2_lines, prefilter_suffix = [], [], ''
 
-        lowMult_5 = make_lowmult(
+        lowOcc_5 = make_lowocc(
             reconstructed_objects['velo_tracks'], minTracks='1', maxTracks='5')
-        with line_maker.bind(prefilter=lowMult_5):
+        with line_maker.bind(prefilter=lowOcc_5):
             SMOG2_lines += [
                 line_maker(
-                    make_passthrough_line(name="Hlt1PassThrough_LowMult5"))]
+                    make_passthrough_line(name="Hlt1PassThrough_LowOcc5"))]
 
         if EnableGEC:
             SMOG2_prefilters += [gec]

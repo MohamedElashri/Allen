@@ -71,7 +71,7 @@ namespace kstopipi_line {
     Property<maxDoca_t> m_maxDoca {this, 0.2f};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
-    Property<minZ_t> m_minZ {this, -300.f};
+    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
 
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};

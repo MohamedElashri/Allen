@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
 
@@ -33,19 +33,18 @@ namespace SMOG2_ditrack_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string) post_scaler_hash_string;
 
     // SMOG2_DITRACK
-    PROPERTY(minTrackP_t, "minTrackP", "minimum daughters momentum", float) minTrackP;
-    PROPERTY(minTrackPt_t, "minTrackPt", "minimum daughters transverse momentum", float) minTrackPt;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
+    PROPERTY(minTrackP_t, "minTrackP", "minimum final-state particles momentum", float) minTrackP;
+    PROPERTY(minTrackPt_t, "minTrackPt", "minimum final-state particles transverse momentum", float) minTrackPt;
+    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "max SV Chi2", float) maxVertexChi2;
     PROPERTY(maxDoca_t, "maxDoca", "max distance of closest approach", float) maxDoca;
-    PROPERTY(minPocaZ_t, "minPocaZ", "minimum z for the track poca to the beam line", float) minPocaZ;
-    PROPERTY(maxPocaZ_t, "maxPocaZ", "maximum z for the track poca to the beam line", float) maxPocaZ;
+    PROPERTY(minZ_t, "minZ", "minimum accepted SV z", float) minZ;
+    PROPERTY(maxZ_t, "maxZ", "maximum accepted SV z", float) maxZ;
     PROPERTY(combCharge_t, "combCharge", "Charge of the combination", int) combCharge;
-    PROPERTY(m1_t, "m1", "first daughter mass", float) m1;
-    PROPERTY(m2_t, "m2", "second daughter mass", float) m2;
+    PROPERTY(m1_t, "m1", "first final-state particle mass", float) m1;
+    PROPERTY(m2_t, "m2", "second final-state particle mass", float) m2;
     PROPERTY(mMother_t, "mMother", "resonance mass", float) mMother;
     PROPERTY(massWindow_t, "massWindow", "maximum mass difference wrt mM", float) massWindow;
   };
-
   struct SMOG2_ditrack_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<SMOG2_ditrack_line_t, Parameters> {
     __device__ static bool select(const Parameters& parameters, std::tuple<const VertexFit::TrackMVAVertex&> input);
 
@@ -58,8 +57,8 @@ namespace SMOG2_ditrack_line {
     Property<minTrackP_t> m_minTrackP {this, 3.f * Gaudi::Units::GeV};
     Property<minTrackPt_t> m_minTrackPt {this, 400.f * Gaudi::Units::MeV};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.f};
-    Property<minPocaZ_t> m_minPocaZ {this, -550.f * Gaudi::Units::mm};
-    Property<maxPocaZ_t> m_maxPocaZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -550.f * Gaudi::Units::mm};
+    Property<maxZ_t> m_maxZ {this, -300.f * Gaudi::Units::mm};
     Property<maxDoca_t> m_maxDoca {this, 0.5f * Gaudi::Units::mm};
     Property<combCharge_t> m_combCharge {this, 0};
     Property<m1_t> m_m1 {this, -1.f * Gaudi::Units::MeV};

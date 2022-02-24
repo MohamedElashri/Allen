@@ -1,8 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (SMOG2_minimum_bias_line_t, SMOG2_dimuon_highmass_line_t, 
-                                  SMOG2_ditrack_line_t, SMOG2_singletrack_line_t)
+from AllenConf.algorithms import SMOG2_minimum_bias_line_t, SMOG2_dimuon_highmass_line_t, SMOG2_ditrack_line_t, SMOG2_singletrack_line_t
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
@@ -58,17 +57,16 @@ def make_SMOG2_dimon_highmass_line(
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_SMOG2_ditrack_line(
-        secondary_vertices,
-        m1="0.f",
-        m2="0.f",
-        mMother="0..f",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None,
-        name="Hlt1_SMOG2_DiTrack",
-        mWindow="150.f",
-        minTrackP="3000.f",
-        minTrackPt="400.f"):
+def make_SMOG2_ditrack_line(secondary_vertices,
+                            m1="0.f",
+                            m2="0.f",
+                            mMother="0.f",
+                            pre_scaler_hash_string=None,
+                            post_scaler_hash_string=None,
+                            name="Hlt1_SMOG2_DiTrack",
+                            mWindow="150.f",
+                            minTrackP="3000.f",
+                            minTrackPt="400.f"):
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()

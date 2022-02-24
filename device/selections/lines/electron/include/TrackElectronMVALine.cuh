@@ -58,6 +58,6 @@ namespace track_electron_mva_line {
     Property<param2_t> m_param2 {this, 1.f * Gaudi::Units::GeV};
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 0.f};
-    Property<minBPVz_t> m_minBPVz {this, -300.f};
+    Property<minBPVz_t> m_minBPVz {this, -300.f * Gaudi::Units::mm};
   };
 } // namespace track_electron_mva_line

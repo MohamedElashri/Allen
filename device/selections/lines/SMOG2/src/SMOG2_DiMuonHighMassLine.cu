@@ -14,10 +14,9 @@ __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select
     return false;
   }
 
-  bool decision = vtx.is_dimuon && vtx.doca < parameters.maxDoca && vtx.mdimu >= parameters.minMass &&
+  bool decision = vtx.z < parameters.maxZ && vtx.is_dimuon && vtx.doca < parameters.maxDoca && vtx.mdimu >= parameters.minMass &&
                   vtx.minpt >= parameters.minTrackPt && vtx.minp >= parameters.minTrackP &&
-                  vtx.chi2 < parameters.maxVertexChi2 && vtx.z >= parameters.minZ && vtx.z < parameters.maxZ &&
-                  vtx.charge == parameters.CombCharge;
+                  vtx.chi2 < parameters.maxVertexChi2 && vtx.z >= parameters.minZ && vtx.charge == parameters.CombCharge;
 
   return decision;
 }

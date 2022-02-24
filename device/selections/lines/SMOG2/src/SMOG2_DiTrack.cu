@@ -14,8 +14,13 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
     return false;
   }
   
-  const bool mass_decision =  parameters.m1 != -1 and parameters.m2 != -1? fabsf(vtx.m(parameters.m1, parameters.m2) - parameters.mMother) < parameters.massWindow : true;
-  const bool decision =  vtx.z >= parameters.minPocaZ && vtx.z < parameters.maxPocaZ && vtx.p1 > parameters.minTrackP && vtx.p2 > parameters.minTrackP && vtx.minpt > parameters.minTrackPt && vtx.chi2 < parameters.maxVertexChi2 && vtx.doca <= parameters.maxDoca && vtx.charge == parameters.combCharge && mass_decision;
+  const bool mass_decision = parameters.m1 == -1 and parameters.m2 == -1 ?
+                               true :
+                               fabsf(vtx.m(parameters.m1, parameters.m2) - parameters.mMother) < parameters.massWindow;
 
+  const bool decision = vtx.z < parameters.maxZ && vtx.z >= parameters.minZ && 
+                        vtx.minp > parameters.minTrackP && vtx.minpt > parameters.minTrackPt &&
+                        vtx.chi2 < parameters.maxVertexChi2 && vtx.doca <= parameters.maxDoca &&
+                        vtx.charge == parameters.combCharge && mass_decision;
   return decision;
 }

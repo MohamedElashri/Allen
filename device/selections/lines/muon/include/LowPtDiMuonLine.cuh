@@ -49,6 +49,6 @@ namespace low_pt_di_muon_line {
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.f};
     Property<minMass_t> m_minMass {this, 220.f};
-    Property<minZ_t> m_minZ {this, -300.f};
+    Property<minZ_t> m_minZ {this, -300.f  * Gaudi::Units::mm};
   };
 } // namespace low_pt_di_muon_line

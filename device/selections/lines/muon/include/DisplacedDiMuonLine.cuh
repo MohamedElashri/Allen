@@ -47,6 +47,6 @@ namespace displaced_di_muon_line {
     Property<dispMinIPChi2_t> m_dispMinIPChi2 {this, 6.f};
     Property<dispMinEta_t> m_dispMinEta {this, 2.f};
     Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
-    Property<minZ_t> m_minZ {this, -300.f};
+    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
   };
 } // namespace displaced_di_muon_line

@@ -26,18 +26,14 @@ void low_occupancy::low_occupancy_t::operator()(
   const Allen::Context& context) const
 {
 
-  //initialize<host_event_list_output_t>(arguments, 0, context);
-  initialize<typename Parameters::dev_event_list_output_t>(arguments, 0, context);
-  //initialize<dev_event_decisions_t>(arguments, 0, context);
-  initialize<typename Parameters::host_number_of_selected_events_t>(arguments, 0, context);
   initialize<typename Parameters::dev_number_of_selected_events_t>(arguments, 0, context);
+  initialize<typename Parameters::host_number_of_selected_events_t>(arguments, 0, context);
+  initialize<typename Parameters::dev_event_list_output_t>(arguments, 0, context);
 
   global_function(low_occupancy)(dim3(size<typename Parameters::dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
   Allen::copy<typename Parameters::host_number_of_selected_events_t, typename Parameters::dev_number_of_selected_events_t>(arguments, context);
   reduce_size<typename Parameters::dev_event_list_output_t>(arguments, first<typename Parameters::host_number_of_selected_events_t>(arguments));
 
-  //Allen::copy<host_event_list_output_t, dev_event_list_output_t>(arguments, context);
-  //reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
 __global__ void low_occupancy::low_occupancy(low_occupancy::Parameters parameters)
@@ -50,7 +46,10 @@ __global__ void low_occupancy::low_occupancy(low_occupancy::Parameters parameter
                                                parameters.dev_number_of_events[0]};
   const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
 
-  unsigned* event_decision = parameters.dev_event_decisions.get() + blockIdx.x;
+  __shared__ int event_decision;
+  if (threadIdx.x == 0) event_decision = 0;
+  __syncthreads();
+
   const bool dec = number_of_velo_tracks >= parameters.minTracks && number_of_velo_tracks < parameters.maxTracks;
   if (dec) atomicOr( event_decision, dec );
 

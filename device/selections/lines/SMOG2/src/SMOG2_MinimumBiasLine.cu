@@ -47,11 +47,9 @@ __device__ bool SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::select(
   const Parameters& parameters,
   std::tuple<const unsigned, const float> input)
 {
-  // Get current pv info
   const auto& velo_track_hit_number = std::get<0>(input);
   const auto& velo_track_state_poca_z = std::get<1>(input);
 
-  // Check if pv satisfies requirement
   const bool decision = velo_track_state_poca_z < parameters.maxZ && velo_track_state_poca_z >= parameters.minZ &&
                         velo_track_hit_number >= parameters.minNHits;
   return decision;

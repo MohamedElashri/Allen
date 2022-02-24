@@ -1,5 +1,5 @@
 /************************************************************************ \
- * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration      *
+ * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration      *
 \*************************************************************************/
 #pragma once
 
@@ -14,13 +14,12 @@ namespace check_pvs {
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_OUTPUT(dev_number_of_selected_events_t, unsigned) dev_number_of_selected_events;
-    DEVICE_OUTPUT(dev_event_decisions_t, unsigned) dev_event_decisions;
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
 
-    PROPERTY(minZ_t, "minZ", "min z coordinate for accepted reconstructed primary vertex", float) minZ;
-    PROPERTY(maxZ_t, "maxZ", "max z coordinate for accepted reconstructed primary vertex", float) maxZ;
+    PROPERTY(minZ_t, "minZ", "min z coordinate to accept a reconstructed primary vertex", float) minZ;
+    PROPERTY(maxZ_t, "maxZ", "max z coordinate to accept a reconstructed primary vertex", float) maxZ;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

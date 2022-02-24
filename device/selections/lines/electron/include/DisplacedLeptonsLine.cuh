@@ -49,6 +49,6 @@ namespace displaced_leptons_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<min_ipchi2_t> m_min_ipchi2 {this, 7.4f};
     Property<min_pt_t> m_min_pt {this, 1000.f};
-    Property<minBPVz_t> m_minBPVz {this, -300.f};
+    Property<minBPVz_t> m_minBPVz {this, -300.f * Gaudi::Units::mm};
   };
 } // namespace displaced_leptons_line
