@@ -33,6 +33,28 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
     parameters.dev_particle_container[0].particle_container(event_number));
   unsigned n_svs = particles.size();
+
+  // Get the first vertex decision.
+  // Vertex quality cuts.
+  bool dec1 = vertex1.vertex().chi2() > 0 && vertex1.vertex().chi2() < parameters.maxVertexChi2;
+  if (!dec1) return false;
+  // Kinematic cuts.
+  dec1 &= vertex1.minpt() > parameters.minTrackPt_piKs && vertex1.minp() > parameters.minTrackP_piKs;
+  dec1 &= vertex1.mdipi() > parameters.minM_Ks && vertex1.mdipi() < parameters.maxM_Ks;
+  if (!dec1) return false;
+  // PV cuts.
+  dec1 &= vertex1.eta() > parameters.minEta_Ks && vertex1.eta() < parameters.maxEta_Ks;
+  dec1 &= vertex1.minipchi2() > parameters.minTrackIPChi2_Ks && vertex1.dira() > parameters.minCosDira;
+  if (!dec1) return false;
+  // Cuts that need constituent tracks.
+  const auto v1track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(0));
+  const auto v1track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(1));
+  const float cos1 = (v1track1->px() * v1track2->px() + v1track1->py() * v1track2->py() + v1track1->pz() * v1track2->pz()) /
+    (v1track1->p() * v1track2->p());
+  dec1 &= cos1 > parameters.minCosOpening;
+  dec1 &= v1track1->ip() * v1track2->ip() / vertex1.ip() > parameters.min_combip;
+  if (!dec1) return false;
+
   for (unsigned i = threadIdx.y + vertex1_id + 1; i < n_svs; i += blockDim.y) {
     const auto vertex2 = particles.particle(i);
 
@@ -45,46 +67,33 @@ __device__ bool two_ks_line::two_ks_line_t::select(
       continue;
     }
 
-    // Return false if vertex fit failed for either vertex.
-    if (vertex1.vertex().chi2() < 0) {
-      return false;
-    }
-
     if (vertex2.vertex().chi2() < 0) {
       continue;
     }
 
-    // Need all four individual tracks for these cuts.
-    const auto v1track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(0));
-    const auto v1track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(1));
+    // Get the first vertex decision.
+    // Vertex quality cuts.
+    bool dec2 = vertex2.vertex().chi2() > 0 && vertex2.vertex().chi2() < parameters.maxVertexChi2;
+    if (!dec2) continue;
+    // Kinematic cuts.
+    dec2 &= vertex2.minpt() > parameters.minTrackPt_piKs && vertex2.minp() > parameters.minTrackP_piKs;
+    dec2 &= vertex2.mdipi() > parameters.minM_Ks && vertex2.mdipi() < parameters.maxM_Ks;
+    if (!dec2) continue;
+    // PV cuts.
+    dec2 &= vertex2.eta() > parameters.minEta_Ks && vertex2.eta() < parameters.maxEta_Ks;
+    dec2 &= vertex2.minipchi2() > parameters.minTrackIPChi2_Ks && vertex2.dira() > parameters.minCosDira;
+    if (!dec2) continue;
+    // Cuts that need constituent tracks.
     const auto v2track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(0));
     const auto v2track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(1));
-    const auto cos1 =
-      (v1track1->px() * v1track2->px() + v1track1->py() * v1track2->py() + v1track1->pz() * v1track2->pz()) /
-      (v1track1->p() * v1track2->p());
-    const auto cos2 =
-      (v2track1->px() * v2track2->px() + v2track1->py() * v2track2->py() + v2track1->pz() * v2track2->pz()) /
+    const float cos2 = (v2track1->px() * v2track2->px() + v2track1->py() * v2track2->py() + v2track1->pz() * v2track2->pz()) /
       (v2track1->p() * v2track2->p());
-    // This decision is split into multiple lines because evaluating in all at
-    // once results in a heavy register load. This can cause crashes depending
-    // on the number of threads in the block.
-    bool decision = vertex1.vertex().chi2() < parameters.maxVertexChi2 && vertex1.eta() > parameters.minEta_Ks &&
-                    vertex1.eta() < parameters.maxEta_Ks && vertex1.minipchi2() > parameters.minTrackIPChi2_Ks;
-    decision &= vertex1.mdipi() > parameters.minM_Ks && vertex1.mdipi() < parameters.maxM_Ks &&
-                vertex1.pt() > parameters.minComboPt_Ks && cos1 > parameters.minCosOpening &&
-                vertex1.dira() > parameters.minCosDira && vertex1.minp() > parameters.minTrackP_piKs;
-    decision &= v1track1->ip() * v1track2->ip() / vertex1.ip() > parameters.min_combip &&
-                vertex1.minpt() > parameters.minTrackPt_piKs;
-    decision &= vertex2.vertex().chi2() < parameters.maxVertexChi2 && vertex2.eta() > parameters.minEta_Ks &&
-                vertex2.eta() < parameters.maxEta_Ks && vertex2.minipchi2() > parameters.minTrackIPChi2_Ks;
-    decision &= vertex2.mdipi() > parameters.minM_Ks && vertex2.mdipi() < parameters.maxM_Ks &&
-                vertex2.pt() > parameters.minComboPt_Ks && cos2 > parameters.minCosOpening &&
-                vertex2.dira() > parameters.minCosDira && vertex2.minp() > parameters.minTrackP_piKs;
-    decision &= v2track1->ip() * v2track2->ip() / vertex2.ip() > parameters.min_combip &&
-                vertex2.minpt() > parameters.minTrackPt_piKs;
+    dec2 &= cos2 > parameters.minCosOpening;
+    dec2 &= v2track1->ip() * v2track2->ip() / vertex2.ip() > parameters.min_combip;
+    if (!dec2) continue;
 
-    if (decision) {
-      return decision;
+    if (dec1 && dec2) {
+      return true;
     }
   }
 
