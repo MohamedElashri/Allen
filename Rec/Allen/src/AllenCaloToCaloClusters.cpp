@@ -17,7 +17,6 @@
  */
 
 #include "AllenCaloToCaloClusters.h"
-#include "CaloConstants.cuh"
 
 DECLARE_COMPONENT(AllenCaloToCaloClusters)
 
@@ -33,9 +32,6 @@ AllenCaloToCaloClusters::AllenCaloToCaloClusters(const std::string& name, ISvcLo
 
 LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffers& host_buffers) const
 {
-  // avoid long names
-  // using namespace LHCb::CaloDataFunctor;
-
   LHCb::Event::Calo::Clusters EcalClusters;
   // Make the clusters
   const unsigned i_event = 0;
@@ -60,14 +56,7 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
 
     auto seedCellID = LHCb::Calo::DenseIndex::details::toCellID(cluster.center_id);
 
-    if (msgLevel(MSG::DEBUG) && i < 50 && i % 5 == 0) {
-      if (!LHCb::Calo::isValid(std::move(seedCellID))) {
-        debug() << "ECAL CellID " << seedCellID << " corresponding to dense ID " << cluster.center_id << " is invalid!"
-                << endmsg;
-        debug() << " \t ECAL center_id = " << cluster.center_id << " cellID: " << seedCellID << ", e = " << cluster.e
-                << ", x = " << cluster.x << ", y = " << cluster.y;
-      }
-
+    if (msgLevel(MSG::DEBUG)) {
       for (unsigned j = 0; j < Calo::Constants::max_neighbours; ++j) {
         debug() << " " << cluster.digits[j];
         debug() << endmsg;
@@ -76,7 +65,11 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
 
     // Add the all digits, marking the seed ones
 
-    if (LHCb::Calo::isValid(std::move(seedCellID))) {
+#ifndef USE_DD4HEP
+    if (LHCb::Calo::isValid(seedCellID)) {
+#else
+    if (LHCb::Detector::Calo::isValid(seedCellID)) {
+#endif
       EcalClusters.emplace_back(
         seedCellID,
         cluster.e,
@@ -88,7 +81,11 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
         if (cluster.digits[j] == USHRT_MAX) continue;
         ncells++;
         auto cellID = LHCb::Calo::DenseIndex::details::toCellID(cluster.digits[j]);
-        if (LHCb::Calo::isValid(std::move(cellID))) {
+#ifndef USE_DD4HEP
+        if (LHCb::Calo::isValid(cellID)) {
+#else
+        if (LHCb::Detector::Calo::isValid(cellID)) {
+#endif
           EcalClusters.emplace_back(
             cellID,
             0.,
@@ -105,6 +102,12 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
         {cluster.x, cluster.y, Calo::Constants::z});
 
       iFirstEntry += ncells + 1; // seed digit+ associated digits making the cluster
+    }
+    else if (msgLevel(MSG::DEBUG)) {
+      debug() << "ECAL CellID " << seedCellID << " corresponding to dense ID " << cluster.center_id << " is invalid!"
+              << endmsg;
+      debug() << " \t ECAL center_id = " << cluster.center_id << " cellID: " << seedCellID << ", e = " << cluster.e
+              << ", x = " << cluster.x << ", y = " << cluster.y;
     }
   }
 

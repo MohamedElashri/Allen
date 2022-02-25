@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
+#include <climits>
 #include <BackendCommon.h>
 #include "CaloConstants.cuh"
 
@@ -29,8 +30,9 @@ struct CaloCluster {
   float e = 0.f;
   float x = 0.f;
   float y = 0.f;
-  uint16_t center_id = 0;
-  uint16_t digits[Calo::Constants::max_neighbours] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  uint16_t center_id = USHRT_MAX;
+  uint16_t digits[Calo::Constants::max_neighbours] =
+    {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
 
   __device__ __host__ CaloCluster() {}
 

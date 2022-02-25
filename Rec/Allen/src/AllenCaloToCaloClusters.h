@@ -22,7 +22,6 @@
 #include "Logger.h"
 #include "VeloConsolidated.cuh"
 #include "CaloCluster.cuh"
-#include "CaloConstants.cuh"
 #include "Event/CaloClusters_v2.h"
 #include "Kernel/CaloCellID.h"
 #include "GaudiKernel/Point3DTypes.h"
