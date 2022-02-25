@@ -283,35 +283,21 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
 
-    pp_prefilters = [
-        make_checkPV(
+    pp_prefilters, physics_lines, prefilter_suffix = [], [], ''
+    if EnableGEC:
+        gec = make_gec()
+        pp_prefilters += [gec]
+        if withSMOG2: prefilter_suffix += '_gec'
+
+    if withSMOG2:
+        pp_checkPV = make_checkPV(
             reconstructed_objects['pvs'],
             name='pp_checkPV',
-            minZ='-300',
-            maxZ='300') ]
-    prefilter_suffix = '_pp_checkPV'
-    physics_lines = []
+            minZ='-300' ,  
+            maxZ='+300' )
 
-    if EnableGEC: 
-        with line_maker.bind( prefilter = None):
-            physics_lines += [ passthrough_line() ]
-
-        gec = make_gec()         
-        with line_maker.bind( prefilter = gec):
-            physics_lines += [ passthrough_line( name = "Hlt1Passthrough_gec") ]
-        
-        pp_prefilters += [ gec ]
-        prefilter_suffix += '_gec'
-
-    pp_checkPV = make_checkPV(
-        reconstructed_objects['pvs'],
-        name='pp_checkPV',
-        minZ='-300',  #mm
-        maxZ='+300'   #mm
-    )
-
-    pp_prefilters    += [pp_checkPV]
-    prefilter_suffix += '_pp_checkPV'
+        pp_prefilters += [pp_checkPV]
+        prefilter_suffix += '_pp_checkPV'
 
     with line_maker.bind(prefilter=pp_prefilters):
         physics_lines += default_physics_lines(
@@ -322,34 +308,34 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             reconstructed_objects["calo_matching_objects"],
             prefilter_suffix=prefilter_suffix)
 
-    monitoring_lines = default_monitoring_lines(
-        reconstructed_objects["velo_tracks"],
-        reconstructed_objects["forward_tracks"],
-        reconstructed_objects["long_track_particles"],
-        reconstructed_objects["velo_states"])
-
     with line_maker.bind(prefilter=None):
-        physics_lines += [ line_maker( make_passthrough_line()) ]
+        monitoring_lines = default_monitoring_lines(
+            reconstructed_objects["velo_tracks"],
+            reconstructed_objects["forward_tracks"],
+            reconstructed_objects["long_track_particles"],
+            reconstructed_objects["velo_states"])
+
+        physics_lines += [line_maker(make_passthrough_line())]
 
     if EnableGEC:
         with line_maker.bind(prefilter=gec):
-            physics_lines += [line_maker( make_passthrough_line(name="Hlt1Passthrough_gec") )]
+            physics_lines += [
+                line_maker(make_passthrough_line(name="Hlt1Passthrough_gec")) ]
 
-    if EnableGEC:
-        with line_maker.bind(prefilter=gec):
+            prefilter_suffix = '_gec' if withSMOG2 else ''
             monitoring_lines.append(
                 line_maker(
                     make_velo_micro_bias_line(
                         reconstructed_objects["velo_tracks"],
-                        name="Hlt1VeloMicroBias_gec") ))
-        monitoring_lines.append(
-            line_maker(
-                make_rich_1_line(
-                    hlt1_reconstruction(), name="Hlt1RICH1Alignment_gec")))
-        monitoring_lines.append(
-            line_maker(
-                make_rich_2_line(
-                    hlt1_reconstruction(), name="HLt1RICH2Alignment_gec")))
+                        name="Hlt1VeloMicroBias" + prefilter_suffix)))
+            monitoring_lines.append(
+                line_maker(
+                    make_rich_1_line(
+                        hlt1_reconstruction(), name="Hlt1RICH1Alignment" + prefilter_suffix)))
+            monitoring_lines.append(
+                line_maker(
+                    make_rich_2_line(
+                        hlt1_reconstruction(), name="HLt1RICH2Alignment" + prefilter_suffix)))
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines] + [tup[0] for tup in monitoring_lines]

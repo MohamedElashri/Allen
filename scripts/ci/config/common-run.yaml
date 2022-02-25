@@ -66,6 +66,18 @@
         DATA_TAG: ["SMOG2_pppHe_1k"]
         GEOMETRY: ["smog"]
 
+      # run throughput, pp_SMOG2_default, minbias_scifi_v5
+      - TEST_NAME: "run_throughput"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_SMOG2_default"]
+        DATA_TAG: [""upgrade_mc_minbias_scifi_v5_000""]
+
+      # run physics efficiency, pp_SMOG2_default, minbias_scifi_v5
+      - TEST_NAME: "run_physics_efficiency"
+        BUILD_TYPE: ["RelWithDebInfo"]
+        SEQUENCE: ["hlt1_pp_SMOG2_default"]
+        DATA_TAG: [""upgrade_mc_minbias_scifi_v5_000""]
+
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
