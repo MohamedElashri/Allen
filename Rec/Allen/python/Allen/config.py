@@ -33,6 +33,4 @@ def setup_allen_non_event_data_service(dump_geometry=False,
                   DumpMuonGeometry, DumpMuonTable, DumpMagneticField,
                   DumpBeamline, DumpUTLookupTables, ecal_geom)
     ]
-    ApplicationMgr().ExtSvc += [
-        AllenUpdater(OutputLevel=2),
-    ] + producers
+    ApplicationMgr().ExtSvc += [AllenUpdater()] + producers

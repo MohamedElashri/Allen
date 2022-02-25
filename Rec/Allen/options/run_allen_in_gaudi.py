@@ -199,9 +199,7 @@ producers = [
 ]
 
 # Add the services that will produce the non-event-data
-ApplicationMgr().ExtSvc += [
-    AllenUpdater(OutputLevel=2),
-] + producers
+ApplicationMgr().ExtSvc += [AllenUpdater()] + producers
 
 
 # remove algorithms that are not needed

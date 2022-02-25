@@ -98,7 +98,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   }
 
   // Check if 'E'cal or 'H'cal
-  std::vector<uint16_t> neighbors(indexSize * max_neighbors, 0);
+  std::vector<uint16_t> neighbors(indexSize * max_neighbors, USHRT_MAX);
   std::vector<float> xy(indexSize * 2, 0.f);
   std::vector<float> gain(indexSize, 0.f);
   // Create neighbours per cellID.
