@@ -5,53 +5,22 @@ ApplicationMgr       INFO Application Manager Configured successfully
 DetectorPersist...   INFO Added successfully Conversion service:XmlCnvSvc
 DetectorDataSvc   SUCCESS Detector description database: git:/lhcb.xml
 EventClockSvc.F...   INFO Event times generated from 0 with steps of 0
-AllenUpdater        DEBUG Registered Producer for VeloGeometry
-AllenUpdater        DEBUG Registered Producer for UTBoards
-AllenUpdater        DEBUG Registered Producer for UTGeometry
 DeFTDetector         INFO Current FT geometry version =   63
-AllenUpdater        DEBUG Registered Producer for SciFiGeometry
 DumpMuonGeometry     INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M2/Cabling
 DumpMuonGeometry     INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M3/Cabling
 DumpMuonGeometry     INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M4/Cabling
 DumpMuonGeometry     INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M5/Cabling
 DumpMuonGeometry     INFO Number of tiles in tell1 table: 19968
-AllenUpdater        DEBUG Registered Producer for MuonGeometry
-AllenUpdater        DEBUG Registered Producer for MuonLookupTables
 MagneticFieldSvc     INFO Map scaled by factor 1 with polarity internally used: -1 signed relative current: -1
-AllenUpdater        DEBUG Registered Producer for MagneticField
-AllenUpdater        DEBUG Registered Producer for Beamline
 ToolSvc.PrUTMag...   INFO Start generation of VeloUT Bdl LUTs
 ToolSvc.PrUTMag...   INFO Generation of VeloUT Bdl LUTs finished
 ToolSvc.PrUTMag...   INFO Start generation of VeloUT deflection LUTs
 ToolSvc.PrUTMag...   INFO Generation of VeloUT deflection LUTs finished
-AllenUpdater        DEBUG Registered Producer for UTLookupTables
-AllenUpdater        DEBUG Registered Producer for EcalGeometry
 EventLoopMgr      WARNING Unable to locate service "EventSelector"
 EventLoopMgr      WARNING No events will be processed from external input.
 ApplicationMgr       INFO Application Manager Initialized successfully
 ApplicationMgr       INFO Application Manager Started successfully
 Using 2 input slices.
-AllenUpdater        DEBUG Registered Consumer for UTBoards
-AllenUpdater        DEBUG Registered Consumer for UTLookupTables
-AllenUpdater        DEBUG Registered Consumer for UTGeometry
-AllenUpdater        DEBUG Registered Consumer for SciFiGeometry
-AllenUpdater        DEBUG Registered Consumer for MagneticField
-AllenUpdater        DEBUG Registered Consumer for Beamline
-AllenUpdater        DEBUG Registered Consumer for VeloGeometry
-AllenUpdater        DEBUG Registered Consumer for EcalGeometry
-AllenUpdater        DEBUG Registered Consumer for MuonGeometry
-AllenUpdater        DEBUG Registered Consumer for MuonLookupTables
-AllenUpdater        DEBUG Running Update 0
-AllenUpdater        DEBUG Updating Beamline
-AllenUpdater        DEBUG Updating EcalGeometry
-AllenUpdater        DEBUG Updating MagneticField
-AllenUpdater        DEBUG Updating MuonGeometry
-AllenUpdater        DEBUG Updating MuonLookupTables
-AllenUpdater        DEBUG Updating SciFiGeometry
-AllenUpdater        DEBUG Updating UTBoards
-AllenUpdater        DEBUG Updating UTGeometry
-AllenUpdater        DEBUG Updating UTLookupTables
-AllenUpdater        DEBUG Updating VeloGeometry
 Input complete
 Processing complete
 ApplicationMgr       INFO Application Manager Stopped successfully
