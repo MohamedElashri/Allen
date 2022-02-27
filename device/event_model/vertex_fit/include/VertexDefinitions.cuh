@@ -65,7 +65,9 @@ namespace VertexFit {
     int ntrks16 = 0;
     // cos DIRA
     float dira = 0.0f;
-    //Sum of particle charges
+    // z of the best associated PV
+    float bpvz = -99999.f;
+    // Sum of particle charges
     int charge = -99999;
 
     // Degrees of freedom.

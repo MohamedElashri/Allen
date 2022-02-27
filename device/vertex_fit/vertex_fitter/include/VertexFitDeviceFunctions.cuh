@@ -419,6 +419,9 @@ namespace VertexFit {
     const float dz = sv.z - pv.position.z;
     const float fd = sqrtf(dx * dx + dy * dy + dz * dz);
 
+    //z of the best associated PV
+    sv.bpvz = pv.position.z;
+
     // PV-SV eta.
     sv.eta = atanhf(dz / fd);
     // SVz - PVz
