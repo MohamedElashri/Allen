@@ -189,7 +189,7 @@ public:
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
 
-            auto n_sizes = allocate_events * (Allen::max_fragments + 1);
+            auto n_sizes = allocate_events * ((Allen::max_fragments + 1) / 2 + 1);
 
             // When events are transposed from the read buffer into
             // the per-rawbank-type slices, a check is made each time
@@ -281,9 +281,9 @@ public:
     auto const offsets_size = slice.n_offsets;
 
     gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-    gsl::span<uint16_t const> s {slice.sizes[0].data(), slice.sizes[0].size()};
+    gsl::span<unsigned int const> s {slice.sizes.data(), slice.sizes.size()};
     gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-    return BanksAndOffsets {{std::move(b)}, {std::move(s)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
+    return BanksAndOffsets {{std::move(b)}, std::move(o), offsets[offsets_size - 1], std::move(s), m_banks_version[ib]};
   }
 
   /**

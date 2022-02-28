@@ -331,10 +331,9 @@ std::tuple<bool, bool, bool> transpose_event(
       // The offsets to the sizes for this batch of fragments is
       // copied from the current value, then the pointer is moved to
       // the point where bank sizes can be stored
-      fragment_sizes = slice.sizes[0].data();
-      auto const fragment_sizes_offset = slice.sizes[0][*n_banks_offsets] + bank_counter - 1;
-      fragment_sizes[*n_banks_offsets + 1] = fragment_sizes_offset;
-      fragment_sizes += fragment_sizes_offset;
+      auto const fragment_sizes_offset = slice.sizes[*n_banks_offsets] + bank_counter - 1;
+      slice.sizes[*n_banks_offsets + 1] = fragment_sizes_offset;
+      fragment_sizes = reinterpret_cast<unsigned short*>(slice.sizes.data()) + fragment_sizes_offset;
 
       // Initialize point to write from offset of previous set
       banks_write = reinterpret_cast<uint32_t*>(slice.fragments[0].data() + banks_offsets[*n_banks_offsets - 1]);
@@ -410,11 +409,14 @@ std::tuple<bool, bool, size_t> transpose_events(
   std::array<unsigned int, NBankTypes> bank_count;
   bank_count.fill(0);
 
-  // Initialize the first size offset from the number of events
+  // Initialize the first size offset from the number of events. The
+  // offsets at the start of the array are 32 bit unsigned, while the
+  // sizes themselves are 16 bit unsigned. Since the offsets are stored at
+  // the start of the same array they take twice as much spance.
   for (auto allen_type : bank_types) {
     auto const ia = to_integral(allen_type);
-    auto& fragment_sizes = slices[ia][slice_index].sizes[0];
-    fragment_sizes[0] = n_events;
+    auto& fragment_sizes_offsets = slices[ia][slice_index].sizes;
+    fragment_sizes_offsets[0] = 2 * n_events;
   }
 
   // Loop over events in the prefetch buffer

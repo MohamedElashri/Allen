@@ -37,10 +37,10 @@ namespace Allen {
 
   struct Slice {
     std::vector<gsl::span<char>> fragments;
-    std::vector<gsl::span<uint16_t>> sizes;
-    size_t fragments_mem_size = 0;
     gsl::span<unsigned int> offsets;
+    size_t fragments_mem_size = 0;
     size_t n_offsets;
+    gsl::span<unsigned int> sizes;
   };
 
   using BankSlices = std::vector<Slice>;

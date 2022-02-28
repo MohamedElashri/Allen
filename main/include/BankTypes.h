@@ -61,9 +61,9 @@ constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
 
 struct BanksAndOffsets {
   std::vector<gsl::span<const char>> fragments;
-  std::vector<gsl::span<const uint16_t>> sizes;
+  gsl::span<unsigned const> offsets;
   size_t fragments_mem_size = 0;
-  gsl::span<const unsigned int> offsets;
+  gsl::span<unsigned const> sizes;
   int version = 0;
 };
 
