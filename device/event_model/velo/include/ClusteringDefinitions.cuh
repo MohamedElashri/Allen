@@ -108,11 +108,12 @@ namespace Velo {
     __device__ __host__ VeloRawEvent(const char* event) { initialize(event); }
 
     __device__ __host__ VeloRawEvent(
-      const char* dev_scifi_raw_input,
-      const unsigned* dev_scifi_raw_input_offsets,
+      const char* dev_velo_raw_input,
+      const unsigned* dev_velo_raw_input_offsets,
+      const unsigned*,
       const unsigned event_number)
     {
-      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number]);
+      initialize(dev_velo_raw_input + dev_velo_raw_input_offsets[event_number]);
     }
 
     __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }

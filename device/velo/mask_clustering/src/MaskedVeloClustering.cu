@@ -455,7 +455,7 @@ __global__ void velo_masked_clustering_kernel(
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
   const auto velo_raw_event =
-    Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number};
+    Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, parameters.dev_velo_raw_input_sizes, event_number};
 
   // process no neighbour sp
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < velo_raw_event.number_of_raw_banks();
