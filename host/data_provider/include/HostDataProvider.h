@@ -12,6 +12,7 @@ namespace host_data_provider {
   struct Parameters {
     HOST_OUTPUT(host_raw_banks_t, gsl::span<char const>) host_raw_banks;
     HOST_OUTPUT(host_raw_offsets_t, gsl::span<unsigned int const>) host_raw_offsets;
+    HOST_OUTPUT(host_raw_sizes_t, gsl::span<unsigned int const>) host_raw_sizes;
     HOST_OUTPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes) prop_raw_bank_type;
   };

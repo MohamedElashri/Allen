@@ -14,12 +14,12 @@ struct UTRawBank {
 
   static_assert(decoding_version == -1 || decoding_version == 3 || decoding_version == 4);
 
-  __device__ __host__ UTRawBank(const char* ut_raw_bank, const uint32_t size) :
-    UTRawBank {reinterpret_cast<const uint32_t*>(ut_raw_bank)[0], ut_raw_bank + sizeof(uint32_t), ut_raw_bank + size}
+  __device__ __host__ UTRawBank(const char* ut_raw_bank, const uint16_t size) :
+    UTRawBank {reinterpret_cast<const uint32_t*>(ut_raw_bank)[0], ut_raw_bank + sizeof(uint32_t), size}
   {}
 
   __device__ __host__
-  UTRawBank(const uint32_t sID, const char* ut_fragment, [[maybe_unused]] const char* ut_fragment_end)
+  UTRawBank(const uint32_t sID, const char* ut_fragment, [[maybe_unused]] const uint16_t size)
   {
     sourceID = sID;
     auto p = reinterpret_cast<const uint32_t*>(ut_fragment);
@@ -29,7 +29,7 @@ struct UTRawBank {
       data = reinterpret_cast<const uint16_t*>(p);
     }
     else if constexpr (decoding_version == 4) {
-      if ((ut_fragment_end - ut_fragment) >= static_cast<long>(6 * sizeof(uint32_t))) {
+      if (size >= static_cast<long>(6 * sizeof(uint32_t))) {
         bool bad = false;
         auto add_to_hits = [this, &bad](uint32_t n_hits_in_lane, uint32_t lane_index) {
           if (n_hits_in_lane == 255)
@@ -66,10 +66,12 @@ struct UTRawBank {
 struct UTRawEvent {
   uint32_t number_of_raw_banks;
   const uint32_t* raw_bank_offsets;
+  const uint16_t* sizes;
   const char* data;
 
-  __device__ __host__ UTRawEvent(const char* event)
+  __device__ __host__ UTRawEvent(const char* event, const uint16_t* s)
   {
+    sizes = s;
     const char* p = event;
     number_of_raw_banks = *(reinterpret_cast<const uint32_t*>(p));
     p += sizeof(uint32_t);
@@ -79,9 +81,9 @@ struct UTRawEvent {
   }
 
   template<int decoding_version>
-  __device__ __host__ UTRawBank<decoding_version> getUTRawBank(const uint32_t& index) const
+  __device__ __host__ UTRawBank<decoding_version> getUTRawBank(const uint32_t index) const
   {
     const uint32_t offset = raw_bank_offsets[index];
-    return UTRawBank<decoding_version>(data + offset, raw_bank_offsets[index + 1] - offset);
+    return UTRawBank<decoding_version>(data + offset, sizes[index]);
   }
 };

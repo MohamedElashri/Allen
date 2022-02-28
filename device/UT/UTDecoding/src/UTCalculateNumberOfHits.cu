@@ -137,13 +137,13 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
     for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
       // Construct UT raw bank from MEP layout
       const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(
-        parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
+        parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number, raw_bank_index);
       calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_bank);
     }
   }
   else { // no mep
     const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
-    const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
+    const UTRawEvent raw_event{parameters.dev_ut_raw_input + event_offset, Allen::bank_sizes(parameters.dev_ut_raw_input_sizes, event_number)};
     for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
          raw_bank_index += blockDim.x)
       calculate_number_of_hits(
