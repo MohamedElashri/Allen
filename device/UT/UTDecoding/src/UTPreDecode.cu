@@ -267,7 +267,7 @@ __global__ void ut_pre_decode::ut_pre_decode(
     auto const number_of_ut_raw_banks = parameters.dev_ut_raw_input_offsets[0];
     for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
       const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(
-        parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
+        parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number, raw_bank_index);
       pre_decode_raw_bank(
         dev_ut_region_offsets,
         dev_unique_x_sector_offsets,
@@ -282,7 +282,7 @@ __global__ void ut_pre_decode::ut_pre_decode(
   }
   else { // no mep
     const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
-    const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
+    const UTRawEvent raw_event{parameters.dev_ut_raw_input + event_offset, Allen::bank_sizes(parameters.dev_ut_raw_input_sizes, event_number)};
     for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
          raw_bank_index += blockDim.x)
       pre_decode_raw_bank(

@@ -196,7 +196,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   const UTGeometry geometry(ut_geometry);
 
   [[maybe_unused]] const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[event_number];
-  [[maybe_unused]] const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
+  [[maybe_unused]] const UTRawEvent raw_event{parameters.dev_ut_raw_input + event_offset, Allen::bank_sizes(parameters.dev_ut_raw_input_sizes, event_number)};
 
   const unsigned layer_offset = ut_hit_offsets.layer_offset(layer_number);
   const unsigned layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
@@ -208,7 +208,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
     if constexpr (mep) {
       // Create UT raw bank from MEP layout
       const auto raw_bank = MEP::raw_bank<UTRawBank<decoding_version>>(
-        parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, event_number, raw_bank_index);
+        parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number, raw_bank_index);
       decode_raw_bank(dev_ut_region_offsets, geometry, boards, raw_bank, hit_index, raw_bank_hit_index, ut_hits);
     }
     else { // no mep
