@@ -7,7 +7,10 @@ variables:
   TARGET_BRANCH: master
 
   ALLEN_DATA: "/scratch/allen_data"
-  LCG_VERSION: "LCG_101"
+  LCG_VERSION: LCG_101
+  LB_NIGHTLY_SLOT: lhcb-head
+  BINARY_TAG: x86_64_v2-centos7-gcc11-opt  
+  NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
 
   PROFILE_DEVICE: "a5000"
   RUN_THROUGHPUT_OPTIONS_CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
@@ -24,6 +27,7 @@ stages:
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software
   - publish          # Publishes the results of the tests and runs in channels and grafana
+  - docs             # Build Sphinx documentation
 
   - manual trigger   # Blocks full pipeline from running in merge requests
   - build full
@@ -54,9 +58,9 @@ check-env:
 
 check-copyright:
   <<: *active_branches
-
+    
   stage: check
-  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   script:
     - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/master/LbDevTools/SourceTools.py?inline=False"
     - python lb-check-copyright --license=Apache-2.0 origin/${TARGET_BRANCH}
@@ -84,7 +88,6 @@ check-formatting:
     expire_in: 1 week
   needs: []
 
-
 docker_image:build:
   stage: build docker
   only:
@@ -99,6 +102,42 @@ docker_image:build:
     TO: $CI_REGISTRY_IMAGE:latest
     GIT_SUBMODULE_STRATEGY: recursive
   allow_failure: true
+  needs: []
+
+pages:
+  stage: docs
+  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
+  tags:
+    - cvmfs
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  script:
+    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
+    # use nightly build for python environment, needed for API reference of python selection functions
+    # if today's nightly build does not exist, use yesterday's
+    - |
+      if [ -d "/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today" ] ; then
+        export DAY=Today
+        echo "Using today's nightly"
+      else
+        export DAY=Yesterday
+        echo "Using yesterday's nightly"
+      fi
+  
+    - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
+          
+    - mv doc/_build/html public
+    - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
+  allow_failure:
+    exit_codes: 77
+  artifacts:
+    paths:
+      - public
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .cache/pip
   needs: []
 
 include: "scripts/ci/config/main.yaml"

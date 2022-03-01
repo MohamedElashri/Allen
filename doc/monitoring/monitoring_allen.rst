@@ -1,22 +1,19 @@
-
-Adding monitoring histograms
-============================
+Monitoring in Allen
+=================================
 
 Overview
---------
-
+^^^^^^^^^^^^^
 Monitoring in Allen is performed by dedicated monitoring threads (by default there is a single thread). 
 After a slice of data is processed, the `HostBuffers` corresponding to that slice are sent to the monitoring 
 thread concurrent with being sent to the I/O thread for output. The flow of `HostBuffers` is shown below:
 
-```mermaid
-graph LR
-A((HostBuffer<br>Manager))-->B[GPU thread]
-B-->C[I/O thread]
-B-->|if free|D[Monitoring thread]
-C-->A
-D-->A
-```
+.. mermaid::
+  graph LR
+  A((HostBuffer<br>Manager))-->B[GPU thread]
+  B-->C[I/O thread]
+  B-->|if free|D[Monitoring thread]
+  C-->A
+  D-->A
 
 To avoid excessive load on the CPU, monitoring threads will not queue `HostBuffers`, i.e, if the 
 monitoring thread is already busy then new `HostBuffers` will be immediately marked as monitored. 
@@ -28,8 +25,7 @@ could be run on a random sub-sample of slices. The `MetaMonitor` provides monito
 the numbers of successfully monitored and skipped slices as well as the monitoring level. 
 
 Monitor classes
----------------
-
+^^^^^^^^^^^^^^^^^^^
 Currently, monitoring is performed of the rate for each HLT line (`RateMonitor`) and for the momentum,
 pT and chi^2(IP) of each track produced by the Kalman filter (`TrackMonitor`). Further monitoring histograms
 can be either added to one of these classes or to a new monitoring class, as appropriate.
@@ -40,9 +36,10 @@ example of this. Furthermore, each histogram that is added must be given a uniqu
 
 Once a new monitoring class has been written, this may be added to the monitoring thread(s) by including an instance 
 of the class in the vectors created in `MonitorManager::init`, e.g.
-```
-m_monitors.back().push_back(new RateMonitor(buffers_manager, time_step, offset));
-```
+
+.. code-block:: c++
+
+  m_monitors.back().push_back(new RateMonitor(buffers_manager, time_step, offset));
 
 To monitor a feature, either that feature or others from which it can be calculated must be present in the
 `HostBuffers`. For example, the features recorded by `TrackMonitor` depend on the buffers `host_kf_tracks`
@@ -53,8 +50,7 @@ a loss of performance, these buffers must be written to pinned memory, i.e. the 
 `cudaMallocHost` and not by `malloc` in `HostBuffers::reserve`.
 
 Saving histograms
------------------
-
+^^^^^^^^^^^^^^^^^^^^^^
 All histograms may be saved by calling `MonitorManager::saveHistograms`. This is currently performed once after 
 Allen has finished executing. In principle, this could be performed on a regular basis within the main loop but 
 ideally would require monitoring threads to be paused for thread safety. 
