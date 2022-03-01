@@ -5,7 +5,6 @@
 #pragma once
 
 #include "CaloRawEvent.cuh"
-#include "CaloRawBanks.cuh"
 #include "CaloGeometry.cuh"
 #include "CaloDigit.cuh"
 #include "AlgorithmTypes.cuh"
@@ -17,6 +16,7 @@ namespace calo_decode {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_raw_input_t, char) dev_ecal_raw_input;
     DEVICE_INPUT(dev_ecal_raw_input_offsets_t, unsigned) dev_ecal_raw_input_offsets;
+    DEVICE_INPUT(dev_ecal_raw_input_sizes_t, unsigned) dev_ecal_raw_input_sizes;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
