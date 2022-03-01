@@ -21,7 +21,6 @@ def make_beam_line(pre_scaler_hash_string=None,
     }
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
-    layout = mep_layout()
     line_name = name or name_map[beam_crossing_type]
 
     return make_algorithm(
@@ -29,11 +28,9 @@ def make_beam_line(pre_scaler_hash_string=None,
         name=line_name,
         beam_crossing_type=beam_crossing_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")
+        dev_odin_t=odin["dev_odin"])
 
 
 def make_velo_micro_bias_line(velo_tracks,
@@ -67,9 +64,7 @@ def make_odin_event_type_line(name=None,
     return make_algorithm(
         odin_event_type_line_t,
         name=line_name,
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
+        dev_odin_t=odin["dev_odin"],
         odin_event_type=odin_event_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",

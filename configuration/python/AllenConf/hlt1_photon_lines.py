@@ -19,6 +19,7 @@ def make_single_calo_cluster_line(calo,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        dev_odin_t=odin["dev_odin"],
         dev_ecal_clusters_t=calo["dev_ecal_clusters"],
         dev_ecal_cluster_offsets_t=calo["dev_ecal_cluster_offsets"],
         host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"])

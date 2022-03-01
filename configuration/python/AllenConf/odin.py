@@ -16,10 +16,8 @@ def decode_odin():
         host_mep_layout_t=mep_layout()['host_mep_layout'])
 
     return {
-        "dev_odin_raw_input": odin_banks.dev_raw_banks_t,
-        "dev_odin_raw_input_offsets": odin_banks.dev_raw_offsets_t,
-        "host_odin_raw_input": odin_banks.host_raw_banks_t,
-        "host_odin_raw_input_offsets": odin_banks.host_raw_offsets_t,
+        "dev_odin": odin_banks.dev_odin_t,
+        "host_odin": odin_banks.host_odin_t,
         "host_odin_version": odin_banks.host_raw_bank_version_t,
     }
 
