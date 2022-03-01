@@ -25,10 +25,8 @@ namespace LHCb {
 
 namespace Allen {
 
-  // There are at most 550 Tell40s in the system (2 fragments per
-  // Tell40) plus a conservative estimate of 100 banks for Allen MC
-  // info (tracks and vertices each)
-  constexpr size_t max_fragments = 1300;
+  // The detector with the most Tell40s is the SciFi: 144, so 288 fragments.
+  constexpr size_t max_fragments = 300;
 
   // Read buffer containing the number of events, offsets to the start
   // of the event and the event data
