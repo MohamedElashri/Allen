@@ -75,8 +75,10 @@ def gec(name="gec", min_scifi_ut_clusters=0, max_scifi_ut_clusters=9750):
         name=name,
         host_ut_raw_banks_t=host_ut_banks.host_raw_banks_t,
         host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t,
+        host_ut_raw_sizes_t=host_ut_banks.host_raw_sizes_t,
         host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t,
         host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t,
+        host_scifi_raw_sizes_t=host_scifi_banks.host_raw_sizes_t,
         min_scifi_ut_clusters=min_scifi_ut_clusters,
         max_scifi_ut_clusters=max_scifi_ut_clusters,
         host_ut_raw_bank_version_t=host_ut_banks.host_raw_bank_version_t)

@@ -30,6 +30,7 @@ def decode_calo():
         host_total_sum_holder_t,
         dev_ecal_raw_input_t=ecal_banks.dev_raw_banks_t,
         dev_ecal_raw_input_offsets_t=ecal_banks.dev_raw_offsets_t,
+        dev_ecal_raw_input_sizes_t=ecal_banks.dev_raw_sizes_t,
         dev_ecal_digits_offsets_t=prefix_sum_ecal_num_digits.
         dev_output_buffer_t)
 
