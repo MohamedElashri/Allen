@@ -129,6 +129,8 @@ namespace Velo {
     constexpr static unsigned offset_phi = (sizeof(unsigned) + 3 * sizeof(half_t)) / sizeof(int16_t);
 
     Clusters_t() = default;
+    Clusters_t(const Clusters_t&) = default;
+    Clusters_t& operator=(const Clusters_t&) = default;
 
     __host__ __device__
     Clusters_t(T* base_pointer, const unsigned total_estimated_number_of_clusters, const unsigned offset = 0) :
