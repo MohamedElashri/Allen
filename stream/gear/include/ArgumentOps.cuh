@@ -454,7 +454,7 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
     Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), Allen::memcpyHostToDevice, context);
     offset += data_span.size_bytes();
   }
-  assert(offset == bno.fragments_mem_size);
+  assert(static_cast<size_t>(offset - data<DATA_ARG>(args)) == bno.fragments_mem_size);
 
   Allen::memcpy_async(
     data<SIZE_ARG>(args), bno.sizes.data(), bno.sizes.size_bytes(), Allen::memcpyHostToDevice, context);
