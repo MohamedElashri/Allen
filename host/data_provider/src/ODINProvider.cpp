@@ -46,8 +46,8 @@ void odin_provider::odin_provider_t::operator()(
     // Loop over events and create a new v7 ODIN from the v6 in the
     // input data.
     for (unsigned event = 0; event < first<host_number_of_events_t>(arguments); ++event) {
-      auto const event_odin = mep_layout ? odin_data_mep_t::bank(blocks[0].data(), offsets, sizes, event) :
-                                           odin_data_t::bank(blocks[0].data(), offsets, sizes, event);
+      auto const event_odin = mep_layout ? odin_bank<true>(blocks[0].data(), offsets, sizes, event) :
+                                           odin_bank<false>(blocks[0].data(), offsets, sizes, event);
       LHCb::ODIN* output_odin = data<host_odin_t>(arguments) + event;
       *output_odin  = LHCb::ODIN::from_version<6>({event_odin.data, event_odin.size});
     }

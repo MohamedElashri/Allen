@@ -32,13 +32,13 @@ namespace MEP {
     return 2 + n_banks * (1 + event) + bank;
   }
 
-  __host__ __device__ inline unsigned short const* bank_sizes(unsigned int const* sizes, unsigned const bank_number) {
+  __host__ __device__ inline unsigned short const* bank_sizes(char const*, unsigned int const* sizes, unsigned const bank_number) {
     // NOTE: Once we move to copying large chunks of the MEP into a
     // separate piece of device memory, this will have to change.
     return Allen::bank_sizes(sizes, bank_number);
   }
 
-  __host__ __device__ inline unsigned short bank_size(unsigned int const* sizes, unsigned const event, unsigned const bank) {
+  __host__ __device__ inline unsigned short bank_size(char const*, unsigned int const* sizes, unsigned const event, unsigned const bank) {
     // NOTE: Once we move to copying large chunks of the MEP into a
     // separate piece of device memory, this will have to change.
     return Allen::bank_size(sizes, bank, event);
@@ -59,7 +59,7 @@ namespace MEP {
       auto const source_id = offsets[2 + bank];
       auto const n_banks = offsets[0];
       auto const* fragment = blocks + offsets[offset_index(n_banks, event, bank)];
-      return {source_id, fragment, MEP::bank_size(sizes, event, bank)};
+      return {source_id, fragment, MEP::bank_size(blocks, sizes, event, bank)};
     }
 
     template<class Bank, typename... Args, std::enable_if_t<!has_constructor<Bank, Args...>::value>* = nullptr>
@@ -105,7 +105,7 @@ namespace MEP {
 
     __host__ __device__ unsigned bank_size(const unsigned index) const
     {
-      return MEP::bank_size(m_raw_input_sizes, m_event_number, index);
+      return MEP::bank_size(m_raw_input, m_raw_input_sizes, m_event_number, index);
     }
   };
 } // namespace MEP

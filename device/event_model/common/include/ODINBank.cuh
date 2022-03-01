@@ -32,10 +32,14 @@ struct ODINRawBank {
   }
 };
 
-struct odin_data_t {
-  static __host__ __device__ ODINRawBank
-  bank(const char* dev_odin_data, const uint* dev_odin_offsets, const uint* dev_odin_sizes, const uint event_number)
-  {
+template<bool mep_layout>
+static __host__ __device__ ODINRawBank
+odin_bank(const char* dev_odin_data, const uint* dev_odin_offsets, const uint* dev_odin_sizes, const uint event_number)
+{
+  if constexpr(mep_layout) {
+    return MEP::raw_bank<ODINRawBank>(dev_odin_data, dev_odin_offsets, dev_odin_sizes, event_number, 0);
+  }
+  else {
     // In Allen layout the first uint is the number of raw banks,
     // which should always be one. This is followed by N+1 offsets. As there
     // is only 1 banks, there are two offsets.
@@ -46,12 +50,4 @@ struct odin_data_t {
 
     return ODINRawBank(event_data + 3 * sizeof(uint32_t), size);
   }
-};
-
-struct odin_data_mep_t {
-  static __host__ __device__ ODINRawBank
-  bank(const char* dev_odin_data, const uint* dev_odin_offsets, const uint* dev_odin_sizes, const uint event_number)
-  {
-    return MEP::raw_bank<ODINRawBank>(dev_odin_data, dev_odin_offsets, dev_odin_sizes, event_number, 0);
-  }
-};
+}

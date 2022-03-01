@@ -71,7 +71,7 @@ namespace host_global_event_cut {
           auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
           auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
           char const* bank_data = parameters.ut_banks[i].data() + fragment_offset;
-          auto const bank_size = MEP::bank_size(parameters.ut_sizes[0].data(), event_number, i);
+          auto const bank_size = MEP::bank_size(bank_data, parameters.ut_sizes[0].data(), event_number, i);
           if (ut_raw_bank_version == 4)
             n_UT_clusters += UTRawBank<4> {sourceID, bank_data, bank_size}.get_n_hits();
           else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
