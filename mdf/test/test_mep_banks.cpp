@@ -22,7 +22,6 @@
 #include <UTRaw.cuh>
 #include <MuonRaw.cuh>
 #include <CaloRawEvent.cuh>
-#include <CaloRawBanks.cuh>
 
 #include <GaudiKernel/Bootstrap.h>
 #include <GaudiKernel/IProperty.h>
@@ -217,16 +216,10 @@ void compare(
   const int,
   gsl::span<char const> mep_fragments,
   gsl::span<unsigned const> mep_offsets,
+  gsl::span<unsigned const> mep_sizes,
   gsl::span<char const> alle_fragments,
   gsl::span<unsigned const> allen_offsets,
-  size_t const i_event);
-
-template<typename... BankType>
-void compare_UT(
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_fragments,
-  gsl::span<unsigned const> allen_offsets,
+  gsl::span<unsigned const> allen_sizes,
   size_t const i_event);
 
 template<>
@@ -234,18 +227,22 @@ void compare<BankTypes::VP>(
   const int,
   gsl::span<char const> mep_fragments,
   gsl::span<unsigned const> mep_offsets,
+  gsl::span<unsigned const> mep_sizes,
   gsl::span<char const> allen_banks,
   gsl::span<unsigned const> allen_offsets,
+  gsl::span<unsigned const> allen_sizes,
   size_t const i_event)
 {
-  auto const mep_n_banks = mep_offsets[0];
 
-  const auto allen_raw_event = Velo::VeloRawEvent(allen_banks.data() + allen_offsets[i_event]);
+  const auto allen_raw_event = Velo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+  const auto mep_raw_event = Velo::RawEvent<true>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+  auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
+
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
-    auto const mep_bank = MEP::raw_bank<Velo::VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const mep_bank = mep_raw_event.raw_bank(bank);
     auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
     REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
@@ -287,19 +284,21 @@ void compare<BankTypes::UT>(
   const int version,
   gsl::span<char const> mep_fragments,
   gsl::span<unsigned const> mep_offsets,
+  gsl::span<unsigned const> mep_sizes,
   gsl::span<char const> allen_banks,
   gsl::span<unsigned const> allen_offsets,
+  gsl::span<unsigned const> allen_sizes,
   size_t const i_event)
 {
   auto const mep_n_banks = mep_offsets[0];
 
-  const auto allen_raw_event = UTRawEvent(allen_banks.data() + allen_offsets[i_event]);
+  const auto allen_raw_event = UTRawEvent{allen_banks.data() + allen_offsets[i_event], Allen::bank_sizes(allen_sizes.data(), i_event)};
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
     if (version == 3) {
-      auto const mep_bank = MEP::raw_bank<UTRawBank<3>>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+      auto const mep_bank = MEP::raw_bank<UTRawBank<3>>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event, bank);
       auto const event_offset = allen_raw_event.raw_bank_offsets[bank];
       auto const allen_bank = allen_raw_event.getUTRawBank<3>(bank);
       auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
@@ -310,7 +309,7 @@ void compare<BankTypes::UT>(
       }
     }
     if (version == 4) {
-      auto const mep_bank = MEP::raw_bank<UTRawBank<4>>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+      auto const mep_bank = MEP::raw_bank<UTRawBank<4>>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event, bank);
       auto const event_offset = allen_raw_event.raw_bank_offsets[bank];
       auto const allen_bank = allen_raw_event.getUTRawBank<4>(bank);
 
@@ -340,18 +339,21 @@ void compare<BankTypes::FT>(
   const int,
   gsl::span<char const> mep_fragments,
   gsl::span<unsigned const> mep_offsets,
+  gsl::span<unsigned const> mep_sizes,
   gsl::span<char const> allen_banks,
   gsl::span<unsigned const> allen_offsets,
+  gsl::span<unsigned const> allen_sizes,
   size_t const i_event)
 {
-  auto const mep_n_banks = mep_offsets[0];
+  const auto allen_raw_event = SciFi::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+  const auto mep_raw_event = SciFi::RawEvent<true>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+  auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
-  const auto allen_raw_event = SciFi::SciFiRawEvent(allen_banks.data() + allen_offsets[i_event]);
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
-    auto const mep_bank = MEP::raw_bank<SciFi::SciFiRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const mep_bank = mep_raw_event.raw_bank(bank);
     auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto mep_len = mep_bank.last - mep_bank.data;
     auto allen_len = allen_bank.last - allen_bank.data;
@@ -369,18 +371,22 @@ void compare<BankTypes::MUON>(
   const int,
   gsl::span<char const> mep_fragments,
   gsl::span<unsigned const> mep_offsets,
+  gsl::span<unsigned const> mep_sizes,
   gsl::span<char const> allen_banks,
   gsl::span<unsigned const> allen_offsets,
+  gsl::span<unsigned const> allen_sizes,
   size_t const i_event)
 {
-  auto const mep_n_banks = mep_offsets[0];
 
-  const auto allen_raw_event = Muon::MuonRawEvent(allen_banks.data() + allen_offsets[i_event]);
+  const auto allen_raw_event = Muon::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+  const auto mep_raw_event = Muon::RawEvent<false>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+  auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
+
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
-    auto const mep_bank = MEP::raw_bank<Muon::MuonRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const mep_bank = mep_raw_event.raw_bank(bank);
     auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto mep_len = mep_bank.last - mep_bank.data;
     auto allen_len = allen_bank.last - allen_bank.data;
@@ -398,18 +404,22 @@ void compare<BankTypes::ECal>(
   const int,
   gsl::span<char const> mep_fragments,
   gsl::span<unsigned const> mep_offsets,
+  gsl::span<unsigned const> mep_sizes,
   gsl::span<char const> allen_banks,
   gsl::span<unsigned const> allen_offsets,
+  gsl::span<unsigned const> allen_sizes,
   size_t const i_event)
 {
-  auto const mep_n_banks = mep_offsets[0];
 
-  const auto allen_raw_event = CaloRawEvent(allen_banks.data(), allen_offsets.data(), i_event);
+  const auto allen_raw_event = Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+  const auto mep_raw_event = Calo::RawEvent<true>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+  auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
+
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
 
   for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
     // Read raw bank
-    auto const mep_bank = MEP::raw_bank<CaloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const mep_bank = mep_raw_event.bank(bank);
     auto const allen_bank = allen_raw_event.bank(bank);
     auto mep_len = mep_bank.end - mep_bank.data;
     auto allen_len = allen_bank.end - allen_bank.data;
@@ -447,18 +457,21 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
   // To make direct use of the offsets, the MFPs need to be copied
   // into temporary storage
-  auto const& mfps = std::get<0>(mep_data);
-  auto const& mep_offsets = std::get<2>(mep_data);
-  vector<char> mep_fragments(std::get<1>(mep_data), 0);
+  auto const& mfps = mep_data.fragments;
+  auto const& mep_offsets = mep_data.offsets;
+  auto const& mep_sizes = mep_data.sizes;
+  vector<char> mep_fragments(mep_data.fragments_mem_size, 0);
   char* destination = &mep_fragments[0];
-  for (gsl::span<char const> mfp : mfps) {
+  for (auto mfp : mfps) {
     ::memcpy(destination, mfp.data(), mfp.size_bytes());
     destination += mfp.size_bytes();
   }
+  assert(static_cast<size_t>(destination - mep_fragments.data()) == mep_data.fragments_mem_size);
 
   // Allen banks; the fragments are already contiguous
-  auto const& allen_banks = std::get<0>(allen_data);
-  auto const& allen_offsets = std::get<2>(allen_data);
+  auto const& allen_banks = allen_data.fragments;
+  auto const& allen_offsets = allen_data.offsets;
+  auto const& allen_sizes = allen_data.sizes;
 
   // In Allen layout the first uint32_t for each event is the number
   // of banks, while in MEP layout the first uint32_t in the offsets
@@ -466,7 +479,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
   // consistent
   for (size_t i = 0; i < n_events; ++i) {
     REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
-    compare<BT>(std::get<3>(mep_data), mep_fragments, mep_offsets, allen_banks[0], allen_offsets, i);
+    compare<BT>(mep_data.version, mep_fragments, mep_offsets, mep_sizes, allen_banks[0], allen_offsets, allen_sizes, i);
   }
 }
 
@@ -490,10 +503,10 @@ TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", MuonTag, ECalTag)
   }
 
   auto mep_banks = mep->banks(TestType::BT, slice_mep);
-  auto mdf_banks = mdf->banks(TestType::BT, slice_mdf);
+  auto allen_banks = mdf->banks(TestType::BT, slice_mdf);
 
   // Compare reported versions
-  REQUIRE(std::get<3>(mep_banks) == std::get<3>(mdf_banks));
+  REQUIRE(mep_banks.version == allen_banks.version);
 
-  SECTION("Checking banks") { check_banks<TestType::BT>(mep_banks, mdf_banks, s_config.n_events); }
+  SECTION("Checking banks") { check_banks<TestType::BT>(mep_banks, allen_banks, s_config.n_events); }
 }
