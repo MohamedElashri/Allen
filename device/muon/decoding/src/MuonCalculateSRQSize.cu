@@ -14,7 +14,7 @@ __device__ void calculate_srq_size(
 {
   const auto tell_number = raw_bank.sourceID;
 
-  uint16_t* p = raw_bank.data;
+  const uint16_t* p = raw_bank.data;
 
   // Note: Review this logic
   p += (*p + 3) & 0xFFFE;
@@ -55,7 +55,7 @@ __global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Paramete
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto raw_event =
-    Muon::RawEvent<mep_layout> {parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number};
+    Muon::RawEvent<mep_layout> {parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, parameters.dev_muon_raw_sizes, event_number};
   unsigned* storage_station_region_quarter_sizes =
     parameters.dev_storage_station_region_quarter_sizes + event_number * Muon::Constants::n_layouts *
                                                             Muon::Constants::n_stations * Muon::Constants::n_regions *

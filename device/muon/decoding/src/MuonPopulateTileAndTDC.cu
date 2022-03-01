@@ -16,7 +16,7 @@ __device__ void decode_muon_bank(
   unsigned* dev_storage_tdc_value)
 {
   const auto tell_number = raw_bank.sourceID;
-  uint16_t* p = raw_bank.data;
+  const uint16_t* p = raw_bank.data;
 
   p += (*p + 3) & 0xFFFE;
   for (int j = 0; j < batch_index; ++j) {
@@ -59,7 +59,7 @@ __global__ void muon_populate_tile_and_tdc_kernel(muon_populate_tile_and_tdc::Pa
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto raw_event =
-    Muon::RawEvent<mep_layout> {parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number};
+    Muon::RawEvent<mep_layout> {parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, parameters.dev_muon_raw_sizes, event_number};
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
