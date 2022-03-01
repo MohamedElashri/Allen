@@ -47,7 +47,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
 
   SciFi::SciFiGeometry geom(scifi_geometry);
   const auto scifi_raw_event =
-    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number);
+    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, parameters.dev_scifi_raw_input_sizes, event_number);
 
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 

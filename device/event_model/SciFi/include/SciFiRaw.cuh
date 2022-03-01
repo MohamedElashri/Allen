@@ -19,14 +19,14 @@ namespace SciFi {
       sourceID = *((uint32_t*) p);
       p += sizeof(uint32_t);
       data = (uint16_t*) p;
-      last = data + s;
+      last = data + s / sizeof(uint16_t);
     }
 
     __device__ __host__ SciFiRawBank(const uint32_t sID, const char* fragment, const uint16_t s)
     {
       sourceID = sID;
       data = (uint16_t*) fragment;
-      last = data + s;
+      last = data + s / sizeof(uint16_t);
     }
   };
 

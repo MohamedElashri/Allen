@@ -54,7 +54,7 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
 
   const SciFi::SciFiGeometry geom {scifi_geometry};
   const auto scifi_raw_event =
-    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number);
+    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, parameters.dev_scifi_raw_input_sizes, event_number);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
                     parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
