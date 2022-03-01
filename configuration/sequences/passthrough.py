@@ -13,7 +13,7 @@ from AllenConf.validators import rate_validation
 bank_providers = [decode_odin()['dev_odin'].producer]
 
 # To test memory traffic when copying to the device, add the following
-# for det, bt in (("velo", "VP"), ("ut", "UT"), ("scifi", "FTCluster"),
+# for det, bt in (("velo", "VP"), ("ut", "UT"), ("scifi", "FT"),
 #                 ("muon", "Muon")):
 #     bank_providers.append(
 #         make_algorithm(data_provider_t, name=det + "_banks", bank_type=bt))

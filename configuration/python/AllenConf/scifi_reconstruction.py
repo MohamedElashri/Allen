@@ -16,7 +16,7 @@ from PyConf.tonic import configurable
 def decode_scifi():
     number_of_events = initialize_number_of_events()
     scifi_banks = make_algorithm(
-        data_provider_t, name="scifi_banks", bank_type="FTCluster")
+        data_provider_t, name="scifi_banks", bank_type="FT")
 
     scifi_calculate_cluster_count = make_algorithm(
         scifi_calculate_cluster_count_t,

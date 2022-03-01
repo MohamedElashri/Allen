@@ -68,7 +68,7 @@ def gec(name="gec", min_scifi_ut_clusters=0, max_scifi_ut_clusters=9750):
         host_data_provider_t, name="host_ut_banks", bank_type="UT")
 
     host_scifi_banks = make_algorithm(
-        host_data_provider_t, name="host_scifi_banks", bank_type="FTCluster")
+        host_data_provider_t, name="host_scifi_banks", bank_type="FT")
 
     gec = make_algorithm(
         host_global_event_cut_t,
