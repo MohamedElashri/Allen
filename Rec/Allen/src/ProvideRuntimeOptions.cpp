@@ -22,7 +22,7 @@
 #include <Logger.h>
 
 class ProvideRuntimeOptions final : public Gaudi::Functional::Transformer<RuntimeOptions(
-                                      std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const&)> {
+  std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::LastType> const&)> {
 
 public:
   /// Standard constructor
@@ -32,7 +32,7 @@ public:
 
   /// Algorithm execution
   RuntimeOptions operator()(
-    std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const override;
+    std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::LastType> const& allen_banks) const override;
 
 private:
   Gaudi::Property<std::string> m_monitorFile {this, "MonitorFile", "allen_monitor.root"};
@@ -57,7 +57,7 @@ StatusCode ProvideRuntimeOptions::initialize()
 }
 
 RuntimeOptions ProvideRuntimeOptions::operator()(
-  std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::LastType> const& allen_banks) const
+  std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::LastType> const& allen_banks) const
 {
   const unsigned number_of_repetitions = 1;
   const bool do_check = false;

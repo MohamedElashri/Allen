@@ -37,11 +37,11 @@ public:
    * @param      Array with raw bank content
    * @param      Set with bank types to be used as input for Allen
    */
-  int set_banks(const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& transposed_banks)
+  int set_banks(const std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>& transposed_banks)
   {
     // store banks and offsets as BanksAndOffsets object
     for (size_t i = 0; i < transposed_banks.size(); ++i) {
-      auto const& [banks, version] = transposed_banks[i];
+      auto const& [banks, bank_sizes, version] = transposed_banks[i];
 
       if (banks.empty()) continue;
 
@@ -65,12 +65,20 @@ public:
       offsets[0] = 0;
       offsets[1] = banks.size();
 
+      // Bank sizes
+      auto& sizes_offsets = m_sizes[allen_bank_index];
+      // Only 1 event, so a single offset offset is enough. The offset
+      // counts uint16_t and is a uint32_t itself.
+      sizes_offsets[0] = 2;
+      uint16_t* sizes = reinterpret_cast<uint16_t*>(&sizes_offsets[1]);
+      std::copy_n(bank_sizes.begin(), bank_sizes.size(), sizes);
+
       // bank content
       auto data_size = static_cast<span_size_t<char const>>(banks.size());
       gsl::span<char const> b {banks.data(), data_size};
 
       m_banks_and_offsets[allen_bank_index] = {
-        {std::move(b)}, static_cast<std::size_t>(data_size), {offsets.data(), 2u}, version};
+        {std::move(b)}, {offsets.data(), 2u}, static_cast<std::size_t>(data_size), {sizes_offsets.data(), bank_sizes.size() + 1 / 2 + 1}, version};
     }
 
     return 0;
@@ -113,4 +121,5 @@ private:
 
   std::array<BanksAndOffsets, NBankTypes> m_banks_and_offsets;
   std::array<std::array<unsigned int, 2>, NBankTypes> m_offsets;
+  std::array<std::array<unsigned int, (Allen::max_fragments + 1) / 2 + 1>, NBankTypes> m_sizes;
 };

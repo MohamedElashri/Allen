@@ -33,7 +33,7 @@
 
 class RunAllen final
   : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
-      const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
+      const std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>& allen_banks,
       const LHCb::ODIN& odin)> {
 public:
   /// Standard constructor
@@ -47,7 +47,7 @@ public:
 
   /// Algorithm execution
   std::tuple<bool, HostBuffers> operator()(
-    const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
+    const std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
 private:

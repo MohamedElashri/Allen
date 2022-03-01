@@ -32,6 +32,6 @@ namespace odin_event_type_line {
     Property<post_scaler_t> m_post_scaler {this, 0.5f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<odin_event_type_t> m_odin_event_type {this, static_cast<unsigned short>(LHCb::ODIN::EventTypes::Lumi)};
+    Property<odin_event_type_t> m_odin_event_type {this, static_cast<uint16_t>(LHCb::ODIN::EventTypes::Lumi)};
   };
 } // namespace odin_event_type_line
