@@ -3,10 +3,13 @@
 \*****************************************************************************/
 #pragma once
 
+#include <string>
+
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
 #include "Line.cuh"
-#include <string>
+#include "Event/ODIN.h"
+
 
 namespace gather_selections {
   struct Parameters {
@@ -26,8 +29,7 @@ namespace gather_selections {
     HOST_OUTPUT(host_fn_indices_t, unsigned) host_fn_indices;
     DEVICE_OUTPUT(dev_fn_indices_t, unsigned) dev_fn_indices;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
+    DEVICE_INPUT(dev_odin_t, LHCb::ODIN) dev_odin;
     DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
     DEVICE_OUTPUT(dev_selections_lines_offsets_t, unsigned) dev_selections_lines_offsets;
     DEVICE_OUTPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;

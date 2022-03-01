@@ -6,8 +6,6 @@
 #include <string>
 #include <ArgumentOps.cuh>
 #include <DeterministicScaler.cuh>
-#include "Event/ODIN.h"
-#include "ODINBank.cuh"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
 #include <tuple>
