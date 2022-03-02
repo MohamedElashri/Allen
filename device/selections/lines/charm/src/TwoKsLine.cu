@@ -42,13 +42,15 @@ __device__ bool two_ks_line::two_ks_line_t::select(
 
   const VertexFit::TrackMVAVertex* event_vertices = parameters.dev_svs + parameters.dev_sv_offsets[event_number];
   unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
-  for (unsigned i = threadIdx.y + vertex1_id + 1; i < n_svs; i += blockDim.y) {
+  for (unsigned i = vertex1_id + 1; i < n_svs; i++) {
     const auto& vertex2 = event_vertices[i];
 
     // Return false if the vertices have a common track.
     // Make this selection first as it is will initially reject the
     // largest amount of combinations.
-    if (vertex1.trk1 == vertex2.trk1 || vertex1.trk1 == vertex2.trk2 || vertex1.trk2 == vertex2.trk2) {
+    if (
+      vertex1.trk1 == vertex2.trk1 || vertex1.trk1 == vertex2.trk2 || vertex1.trk2 == vertex2.trk2 ||
+      vertex1.trk2 == vertex2.trk1) {
       continue;
     }
 
@@ -60,14 +62,14 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     const bool decision =
       vertex1.chi2 < parameters.maxVertexChi2 && vertex1.eta > parameters.minEta_Ks &&
       vertex1.eta < parameters.maxEta_Ks && vertex1.minipchi2 > parameters.minTrackIPChi2_Ks &&
-      vertex1.m(139.57, 139.57) > parameters.minM_Ks && vertex1.m(139.57, 139.57) < parameters.maxM_Ks &&
+      vertex1.m(139.57f, 139.57f) > parameters.minM_Ks && vertex1.m(139.57f, 139.57f) < parameters.maxM_Ks &&
       vertex1.pt() > parameters.minComboPt_Ks && vertex1.cos > parameters.minCosOpening &&
       vertex1.dira > parameters.minCosDira && vertex1.p1 > parameters.minTrackP_piKs &&
       vertex1.p2 > parameters.minTrackP_piKs && vertex1.ip1 * vertex1.ip2 / vertex1.vertex_ip > parameters.min_combip &&
       vertex1.minpt > parameters.minTrackPt_piKs && vertex2.chi2 < parameters.maxVertexChi2 &&
       vertex2.eta > parameters.minEta_Ks && vertex2.eta < parameters.maxEta_Ks &&
-      vertex2.minipchi2 > parameters.minTrackIPChi2_Ks && vertex2.m(139.57, 139.57) > parameters.minM_Ks &&
-      vertex2.m(139.57, 139.57) < parameters.maxM_Ks && vertex2.pt() > parameters.minComboPt_Ks &&
+      vertex2.minipchi2 > parameters.minTrackIPChi2_Ks && vertex2.m(139.57f, 139.57f) > parameters.minM_Ks &&
+      vertex2.m(139.57f, 139.57f) < parameters.maxM_Ks && vertex2.pt() > parameters.minComboPt_Ks &&
       vertex2.cos > parameters.minCosOpening && vertex2.dira > parameters.minCosDira &&
       vertex2.p1 > parameters.minTrackP_piKs && vertex2.p2 > parameters.minTrackP_piKs &&
       vertex2.ip1 * vertex2.ip2 / vertex2.vertex_ip > parameters.min_combip &&
@@ -77,5 +79,6 @@ __device__ bool two_ks_line::two_ks_line_t::select(
       return decision;
     }
   }
+
   return false;
 }
