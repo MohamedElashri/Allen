@@ -35,11 +35,10 @@ target_link_libraries(Stream
     Backend
     Validators
     AllenCommon
+    algorithm_db
   PUBLIC
     Utils
     Selections)
-
-add_dependencies(Stream algorithm_db)
 
 # In STANDALONE, the following dependencies will make runtime sequence generation work
 # even if SEQUENCES was empty.
