@@ -266,7 +266,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_library(${ARGV})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    target_link_libraries(${ARGV0} PRIVATE struct_to_tuple)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -291,7 +290,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endif()
 
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    target_link_libraries(${ARGV0} PRIVATE struct_to_tuple)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -338,7 +336,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION lib)
-    target_link_libraries(${ARGV0} PRIVATE struct_to_tuple)
   endfunction()
 
   function(allen_add_device_library)
@@ -359,7 +356,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION ${destination})
-    target_link_libraries(${ARGV0} PRIVATE struct_to_tuple)
   endfunction()
 
   function(allen_add_executable)
@@ -404,7 +400,6 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION ${destination})
-    target_link_libraries(${ARGV0} PRIVATE struct_to_tuple)
   endfunction()
 
   function(allen_add_device_library)
@@ -424,7 +419,6 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION ${destination})
-    target_link_libraries(${ARGV0} PRIVATE struct_to_tuple)
   endfunction()
 
   function(allen_add_executable)
