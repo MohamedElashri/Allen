@@ -1,14 +1,14 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import initialize_number_of_events, mep_layout, gec, checkPV, lowOcc
+from AllenConf.utils import initialize_number_of_events, mep_layout, line_maker, make_line_composite_node, make_gec, make_checkPV, make_lowocc
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_ks_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
-from AllenConf.hlt1_smog2_lines import make_SMOG2_minimum_bias_line, make_SMOG2_dimon_highmass_line, make_SMOG2_ditrack_line, make_SMOG2_singletrack_line
+from AllenConf.hlt1_smog2_lines import make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line, make_SMOG2_ditrack_line, make_SMOG2_singletrack_line
 
 from AllenConf.validators import rate_validation
 from AllenCore.generator import make_algorithm
@@ -17,32 +17,6 @@ from PyConf.tonic import configurable
 from AllenConf.odin import decode_odin
 from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer
 
-
-# Helper function to make composite nodes
-def make_line_composite_node(name, algos):
-    return CompositeNode(
-        name + "_node", algos, NodeLogic.LAZY_AND, force_order=True)
-
-
-@configurable
-def line_maker(line_algorithm, prefilter=None):
-
-    if prefilter is None: node = line_algorithm
-    else:
-        if isinstance(prefilter, list):
-            node = make_line_composite_node(
-                line_algorithm.name, algos=prefilter + [line_algorithm])
-        else:
-            node = make_line_composite_node(
-                line_algorithm.name, algos=[prefilter, line_algorithm])
-    return line_algorithm, node
-
-def passthrough_line(name='Hlt1Passthrough'):
-    return line_maker(
-        make_passthrough_line(
-            name=name,
-            pre_scaler_hash_string=name + "_line_pre",
-            post_scaler_hash_string=name + "_line_post"))
 
 
 def default_physics_lines(forward_tracks,
@@ -203,7 +177,7 @@ def default_smog2_lines(velo_tracks,
 
     smog2_lines.append(
         line_maker(
-            make_SMOG2_dimon_highmass_line(
+            make_SMOG2_dimuon_highmass_line(
                 secondary_vertices,
                 name="HLT1_SMOG2_DiMuonHighMassLine" + prefilter_suffix)))
 
@@ -240,25 +214,6 @@ def default_smog2_lines(velo_tracks,
                 name="HLT1_SMOG2_SingleTrack" + prefilter_suffix)))
 
     return smog2_lines
-
-
-@configurable
-def make_gec(gec_name='gec',
-             min_scifi_ut_clusters="0",
-             max_scifi_ut_clusters="9750"):
-    return gec(
-        name=gec_name,
-        min_scifi_ut_clusters=min_scifi_ut_clusters,
-        max_scifi_ut_clusters=max_scifi_ut_clusters)
-
-@configurable
-def make_checkPV(pvs, name='check_PV', minZ='-9999999', maxZ='99999999'):
-    return checkPV(pvs, name=name, minZ=minZ, maxZ=maxZ)
-
-
-@configurable
-def make_lowocc(velo_tracks, minTracks='0', maxTracks='9999999'):
-    return lowOcc(velo_tracks, minTracks=minTracks, maxTracks=maxTracks)
 
 
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):

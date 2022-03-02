@@ -5,7 +5,7 @@ from AllenConf.ut_reconstruction import make_ut_tracks
 from AllenConf.persistency import make_gather_selections, make_global_decision
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, make_composite_node_with_gec
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line
-from AllenConf.HLT1 import line_maker, make_gec
+from AllenConf.utils import line_maker, make_gec
 from AllenConf.validators import (
     velo_validation, veloUT_validation, forward_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation)

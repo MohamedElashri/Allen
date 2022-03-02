@@ -34,11 +34,10 @@ def make_SMOG2_minimum_bias_line(
         dev_velo_track_hit_number_t=velo_tracks["dev_offsets_velo_track_hit_number"] )
 
 
-def make_SMOG2_dimon_highmass_line(
-        secondary_vertices,
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None,
-        name="Hlt1SMOG2_DiMuonHighMassLine"):
+def make_SMOG2_dimuon_highmass_line(secondary_vertices,
+                                   pre_scaler_hash_string=None,
+                                   post_scaler_hash_string=None,
+                                   name="Hlt1SMOG2_DiMuonHighMassLine"):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()

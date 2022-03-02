@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import initialize_number_of_events, mep_layout, gec, checkPV, lowOcc
+from AllenConf.utils import initialize_number_of_events, mep_layout, make_line_composite_node, line_maker, make_gec, make_checkPV, make_lowocc
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_ks_line
@@ -20,29 +20,9 @@ from PyConf.tonic import configurable
 from AllenConf.odin import decode_odin
 from AllenConf.persistency import make_global_decision, make_sel_report_writer
 
-# Helper function to make composite nodes
-def make_line_composite_node(name, algos):
-    return CompositeNode(
-        name + "_node", algos, NodeLogic.LAZY_AND, force_order=True )
-
-
-@configurable
-def line_maker(line_algorithm, prefilter=None):
-
-    if prefilter is None: node = line_algorithm
-    else:
-        if isinstance(prefilter, list):
-            node = make_line_composite_node(
-                line_algorithm.name, algos=prefilter + [line_algorithm])
-        else:
-            node = make_line_composite_node(
-                line_algorithm.name, algos=[prefilter, line_algorithm])
-    return line_algorithm, node
-
 def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                           secondary_vertices, calo_matching_objects, prefilter_suffix = ''):
 
-    lines = [passthrough_line( name = 'Hlt1Passthrough' + prefilter_suffix)]
     lines.append(
         line_maker(
             make_kstopipi_line(
@@ -259,24 +239,6 @@ def default_smog2_lines(velo_tracks,
         ))
 
     return smog2_lines
-
-
-@configurable
-def make_gec(gec_name='gec',
-             min_scifi_ut_clusters="0",
-             max_scifi_ut_clusters="9750"):
-    return gec(
-        name=gec_name,
-        min_scifi_ut_clusters=min_scifi_ut_clusters,
-        max_scifi_ut_clusters=max_scifi_ut_clusters)
-
-@configurable
-def make_checkPV(pvs, name='check_PV', minZ='-9999999', maxZ= '99999999'):
-    return checkPV(pvs, name=name, minZ=minZ, maxZ=maxZ)
-
-@configurable
-def make_lowmult(velo_tracks, minTracks = '0', maxTracks = '9999999'):
-    return lowMult( velo_tracks, minTracks = minTracks, maxTracks = maxTracks)
 
 
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):

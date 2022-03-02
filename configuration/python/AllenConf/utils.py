@@ -6,6 +6,46 @@ from AllenConf.algorithms import (host_init_number_of_events_t,
                                   host_data_provider_t,
                                   host_global_event_cut_t, layout_provider_t, 
                                   check_pvs_t, low_occupancy_t, odin_beamcrossingtype_t)
+from PyConf.tonic import configurable
+from PyConf.control_flow import NodeLogic, CompositeNode
+
+
+# Helper function to make composite nodes
+def make_line_composite_node(name, algos):
+    return CompositeNode(
+        name + "_node", algos, NodeLogic.LAZY_AND, force_order=True)
+
+@configurable
+def line_maker(line_algorithm, prefilter=None):
+
+    if prefilter is None: node = line_algorithm
+    else:
+        if isinstance(prefilter, list):
+            node = make_line_composite_node(
+                line_algorithm.name, algos=prefilter + [line_algorithm])
+        else:
+            node = make_line_composite_node(
+                line_algorithm.name, algos=[prefilter, line_algorithm])
+    return line_algorithm, node
+
+@configurable
+def make_gec(gec_name='gec',
+             min_scifi_ut_clusters="0",
+             max_scifi_ut_clusters="9750"):
+    return gec(
+        name=gec_name,
+        min_scifi_ut_clusters=min_scifi_ut_clusters,
+        max_scifi_ut_clusters=max_scifi_ut_clusters)
+
+@configurable
+def make_checkPV(pvs, name='check_PV', minZ='-9999999', maxZ='99999999'):
+    return checkPV(pvs, name=name, minZ=minZ, maxZ=maxZ)
+
+
+@configurable
+def make_lowocc(velo_tracks, minTracks='0', maxTracks='9999999'):
+    return lowOcc(velo_tracks, minTracks=minTracks, maxTracks=maxTracks)
+>>>>>>> 34ca63d1e (Solve MR first comments)
 
 
 def initialize_number_of_events():
