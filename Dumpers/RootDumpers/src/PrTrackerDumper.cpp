@@ -16,7 +16,6 @@
 #include "Event/RawBank.h"
 #include "Event/RawEvent.h"
 #include "Event/VPLightCluster.h"
-#include "GaudiAlg/Transformer.h"
 #include "Linker/LinkerWithKey.h"
 #include "PrKernel/PrFTHitHandler.h"
 #include "PrKernel/PrHit.h"
@@ -28,6 +27,10 @@
 #include <TTree.h>
 
 #include <Dumpers/Utils.h>
+
+#include "GaudiAlg/Transformer.h"
+#include "GaudiKernel/PhysicalConstants.h"
+#include "GaudiKernel/Vector3DTypes.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/streams/vectorstream.hpp>
