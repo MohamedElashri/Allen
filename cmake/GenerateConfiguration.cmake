@@ -98,6 +98,9 @@ add_custom_target(algorithm_db_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FIL
 add_library(algorithm_db INTERFACE)
 add_dependencies(algorithm_db algorithm_db_generation)
 target_include_directories(algorithm_db INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
+install(TARGETS algorithm_db
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
 
 # Generate StructToTuple.cuh
 add_custom_command(
@@ -112,6 +115,9 @@ add_custom_target(struct_to_tuple_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_
 add_library(struct_to_tuple INTERFACE)
 add_dependencies(struct_to_tuple struct_to_tuple_generation)
 target_include_directories(struct_to_tuple INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
+install(TARGETS struct_to_tuple
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
 
 if(NOT STANDALONE)
   # We need to get the list of algorithms at configuration time in order to
