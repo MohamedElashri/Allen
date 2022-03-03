@@ -635,6 +635,14 @@ class AlgorithmCategory(Enum):\n\
         with open(filename, "w") as f:
             f.write(code)
 
+    @staticmethod
+    def write_struct_to_tuple(algorithms,
+                              output_filename):
+        max_length = max(len(alg.parameters) + len(alg.properties) for alg in algorithms)
+        from struct_to_tuple.struct_to_tuple_generator import StructToTupleGenerator
+        gen = StructToTupleGenerator()
+        gen.generate_file(output_filename, max_length)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -671,7 +679,8 @@ if __name__ == '__main__':
         type=str,
         default="views",
         choices=["parsed_algorithms", "views",
-                 "wrapperlist", "wrappers", "db"],
+                 "wrapperlist", "wrappers", "db",
+                 "struct_to_tuple"],
         help="action that will be performed")
 
     args = parser.parse_args()
@@ -707,3 +716,7 @@ if __name__ == '__main__':
         elif args.generate == "db":
             # Generate Allen algorithms DB
             AllenCore.write_algorithms_db(parsed_algorithms, args.filename)
+        elif args.generate == "struct_to_tuple":
+            # Write struct to tuple to support all parameters and properties
+            # of all existing algorithms
+            AllenCore.write_struct_to_tuple(parsed_algorithms, args.filename)

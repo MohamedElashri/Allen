@@ -43,6 +43,9 @@ gaudi_add_module(AllenWrapper
                    LHCb::MCEvent
                    Rec::PrKernel)
 
+target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
+add_dependencies(AllenWrapper struct_to_tuple)
+
 gaudi_add_module(AllenAlgorithms
                  SOURCES
                    ${WRAPPED_ALGORITHM_SOURCES}
@@ -66,7 +69,8 @@ gaudi_add_module(AllenAlgorithms
 target_include_directories(AllenAlgorithms PRIVATE Allen)
 
 add_custom_target(gaudi_wrappers_of_allen_algorithms DEPENDS ${WRAPPED_ALGORITHM_SOURCES})
-add_dependencies(AllenAlgorithms gaudi_wrappers_of_allen_algorithms)
+target_include_directories(AllenAlgorithms PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
+add_dependencies(AllenAlgorithms gaudi_wrappers_of_allen_algorithms struct_to_tuple)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)

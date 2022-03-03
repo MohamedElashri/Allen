@@ -8,7 +8,7 @@
 set(CODE_GENERATION_DIR ${PROJECT_BINARY_DIR}/code_generation)
 set(PROJECT_SEQUENCE_DIR ${CODE_GENERATION_DIR}/sequences)
 set(SEQUENCE_DEFINITION_DIR ${PROJECT_SEQUENCE_DIR}/AllenConf)
-set(ALLEN_ALGORITHMDB_DIR ${PROJECT_SEQUENCE_DIR}/include)
+set(ALLEN_GENERATED_INCLUDE_FILES_DIR ${PROJECT_SEQUENCE_DIR}/include)
 set(ALLEN_CORE_DIR ${PROJECT_SEQUENCE_DIR}/AllenCore)
 set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
@@ -19,7 +19,7 @@ include_guard(GLOBAL)
 
 file(MAKE_DIRECTORY ${CODE_GENERATION_DIR})
 file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
-file(MAKE_DIRECTORY ${ALLEN_ALGORITHMDB_DIR})
+file(MAKE_DIRECTORY ${ALLEN_GENERATED_INCLUDE_FILES_DIR})
 
 set(MINIMUM_REQUIRED_LIBCLANG_VERSION 9)
 if(LIBCLANG_FOUND AND "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
@@ -87,14 +87,37 @@ add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
 
 # Generate Allen AlgorithmDB
 add_custom_command(
-  OUTPUT "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h"
+  OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h"
   COMMENT "Generating AlgorithmDB"
-  COMMAND ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate db --filename "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
+  COMMAND ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate db --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
-add_custom_target(algorithm_db DEPENDS "${ALLEN_ALGORITHMDB_DIR}/AlgorithmDB.h")
+add_custom_target(algorithm_db_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
 
+add_library(algorithm_db INTERFACE)
+add_dependencies(algorithm_db algorithm_db_generation)
+target_include_directories(algorithm_db INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
+install(TARGETS algorithm_db
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
+
+# Generate StructToTuple.cuh
+add_custom_command(
+  OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh"
+  COMMAND
+    ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate struct_to_tuple --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh" --prefix_project_folder "${CMAKE_SOURCE_DIR}"
+  WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
+  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+
+add_custom_target(struct_to_tuple_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh")
+
+add_library(struct_to_tuple INTERFACE)
+add_dependencies(struct_to_tuple struct_to_tuple_generation)
+target_include_directories(struct_to_tuple INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
+install(TARGETS struct_to_tuple
+      EXPORT Allen
+      LIBRARY DESTINATION lib)
 
 if(NOT STANDALONE)
   # We need to get the list of algorithms at configuration time in order to

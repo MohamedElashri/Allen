@@ -394,8 +394,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     endif()
 
     add_library(${ARGV})
-
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${PROJECT_BINARY_DIR}/code_generation)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     install(TARGETS ${ARGV0}

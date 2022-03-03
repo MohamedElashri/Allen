@@ -15,6 +15,7 @@ target_link_libraries(mep_gec PRIVATE
   Backend
   HostCommon
   LHCbEvent
+  struct_to_tuple
   ${MPI_CXX_LIBRARIES})
 
 if (NOT STANDALONE)
@@ -23,5 +24,6 @@ if (NOT STANDALONE)
 endif()
 
 target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
+add_dependencies(mep_gec struct_to_tuple)
 
 install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)

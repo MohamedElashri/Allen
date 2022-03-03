@@ -19,4 +19,7 @@ endif()
 include(Catch)
 catch_discover_tests(unit_tests)
 
+add_dependencies(unit_tests struct_to_tuple)
+target_include_directories(unit_tests PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
+
 install(TARGETS unit_tests RUNTIME DESTINATION bin)
