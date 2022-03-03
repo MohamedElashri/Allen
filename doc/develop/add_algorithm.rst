@@ -117,7 +117,7 @@ Link the new library "Examples" to the stream library in `stream/CMakeLists.txt`
 Next, we create the header file for our algorithm `SAXPY_example.cuh`, which is similar to an algorithm definition in Gaudi: inputs, outputs and properties are defined, as well as the algorithm function itself and an operator calling the function.
 
 There are slight differences to Gaudi, since we want to be able to run the algorithm on a GPU.
-The full file is under `here <https://gitlab.cern.ch/lhcb/Allen/-/blob/dovombru_documentation/device/example/include/SAXPY_example.cuh>`_. Let's take a look at the components:
+The full file is under `here <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/example/include/SAXPY_example.cuh>`_. Let's take a look at the components:
 
 .. code-block:: c++
 

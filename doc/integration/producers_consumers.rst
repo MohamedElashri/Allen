@@ -1,7 +1,7 @@
 Writing Producers and Consumers
 ===================================
 
-All headers and source files are relative to the directory `integration/non_event_data <https://gitlab.cern.ch/lhcb/Allen/-/tree/dovombru_documentation/integration/non_event_data>`_.
+All headers and source files are relative to the directory `integration/non_event_data <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/integration/non_event_data>`_.
 
 
 Identifiers
@@ -48,7 +48,7 @@ file looks like this:
      return reader.read_geometry(polarity_file);
   };
 
-Have a look at `Updater::Updater` in `src/Updater.cpp <https://gitlab.cern.ch/lhcb/Allen/-/blob/dovombru_documentation/integration/non_event_data/src/Updater.cpp>`_ to see how the
+Have a look at `Updater::Updater` in `src/Updater.cpp <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/integration/non_event_data/src/Updater.cpp>`_ to see how the
 registration is done.
 
 Consumer
@@ -101,4 +101,4 @@ instead it is checked that the size data matches if the consumer is
 called again.
 
 Consumers are registered to the `Updater` in `register_consumers` that
-is defined in `main/src/Allen.cpp <https://gitlab.cern.ch/lhcb/Allen/-/blob/dovombru_documentation/main/src/Allen.cpp>`_.
+is defined in `main/src/Allen.cpp <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/main/src/Allen.cpp>`_.

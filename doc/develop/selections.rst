@@ -809,5 +809,5 @@ The training procedure for the TwoTrackMVA is found in `https://github.com/nikla
 
 The event types used for training can be seen in `here <https://github.com/niklasnolte/HLT_2Track/blob/main/hlt2trk/utils/config.py#L384>`_.
 
-The model exported from there goes into `Allen/input/parameters/two_track_mva_model.json <https://gitlab.cern.ch/lhcb/Allen/-/blob/dovombru_documentation/input/parameters/two_track_mva_model.json>`_
+The model exported from there goes into `Allen/input/parameters/two_track_mva_model.json <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/input/parameters/two_track_mva_model.json>`_
     
