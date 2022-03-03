@@ -63,7 +63,7 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   dec1 &= v1ip1 * v1ip2 / v1ip > parameters.min_combip;
   if (!dec1) return false;
 
-  for (unsigned i = threadIdx.y + vertex1_id + 1; i < n_svs; i += blockDim.y) {
+  for (unsigned i = vertex1_id + 1; i < n_svs; i++) {
     const auto vertex2 = particles.particle(i);
 
     // Return false if the vertices have a common track.
