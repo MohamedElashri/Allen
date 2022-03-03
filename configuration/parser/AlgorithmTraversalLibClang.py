@@ -142,7 +142,7 @@ class AlgorithmTraversal():
     # Clang index
     __index = cindex.Index.create()
 
-    # Property names
+    # Properties and their default values
     __properties = {}
 
     @staticmethod
@@ -293,39 +293,62 @@ class AlgorithmTraversal():
         if c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in AlgorithmTraversal.__ignored_namespaces and \
             c.location.file.name == filename:
             ts = [a.spelling for a in c.get_tokens()]
-            # Check if it is a "new algorithm":
+            # Check if it is a "new algorithm", which is identified by locating
+            # at least one of the tokens in AlgorithmTraversal.__algorithm_tokens:
             if [a for a in AlgorithmTraversal.__algorithm_tokens if a in ts]:
-                try:
-                    last_found = -1
-                    while True:
-                        try:
-                            last_found = ts.index("PROPERTY", last_found + 1)
-                            typename = ts[last_found + 2]
-                            name = ts[last_found + 4]
-                            description = ts[last_found + 6]
-                            closing_parenthesis = ts.index(")", last_found + 8)
-                            property_type = "".join(ts[last_found + 8:closing_parenthesis])
-                            AlgorithmTraversal.__properties[typename] = {
-                                "name": name,
-                                "description": description,
-                                "property_type": property_type
-                            }
-                        except ValueError:
-                            # Traverse the "Property"s to find out the default values
-                            try:
-                                last_found = ts.index("Property", last_found + 1)
-                                typename = ts[last_found + 2]
-                                comma_position = ts.index(",", last_found)
-                                semicolon_position = ts.index(";", last_found)
-                                default_value = "".join(ts[comma_position+1:semicolon_position-1])
-                                AlgorithmTraversal.__properties[typename]["default_value"] = default_value
-                            except ValueError:
-                                break
-                    return (c.kind, c.spelling,
-                            AlgorithmTraversal.traverse_children(
-                                c, AlgorithmTraversal.algorithm))
-                except:
-                    return None
+                last_found = -1
+                properties = {}
+                while True:
+                    # Loop over all "PROPERTY"s until there are no more to be parsed
+                    try:
+                        last_found = ts.index("PROPERTY", last_found + 1)
+                    except ValueError:
+                        break
+                    typename = ts[last_found + 2]
+                    name = ts[last_found + 4]
+                    description = ts[last_found + 6]
+                    closing_parenthesis = ts.index(")", last_found + 8)
+                    property_type = "".join(ts[last_found + 8:closing_parenthesis])
+                    properties[typename] = {
+                        "name": name,
+                        "description": description,
+                        "property_type": property_type
+                    }
+
+                last_found = -1
+                default_values = {}
+                while True:
+                    # Loop over all "Property"s until there are no more to be parsed
+                    try:
+                        last_found = ts.index("Property", last_found + 1)
+                    except ValueError:
+                        break
+                    # Traverse the "Property"s to find out the default values
+                    typename = ts[last_found + 2]
+                    comma_position = ts.index(",", last_found)
+                    semicolon_position = ts.index(";", last_found)
+                    default_value = "".join(ts[comma_position+1:semicolon_position-1])
+                    default_values[typename] = default_value
+
+                # Match all PROPERTY blocks with all Property blocks. In essence, for each code as:
+                #
+                #   PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;
+                #
+                # there should be a corresponding:
+                #
+                #   Property<block_dim_x_t> m_block_dim_x {this, 64};
+                set_diff = set(properties).symmetric_difference(set(default_values))
+                if set_diff:
+                    raise Exception(f"Error parsing properties {set_diff} in file {filename}.\n"
+                        "Please ensure all properties have a PROPERTY field and a Property definition.")
+                
+                AlgorithmTraversal.__properties = properties
+                for t, v in default_values.items():
+                    AlgorithmTraversal.__properties[t]["default_value"] = v
+
+                return (c.kind, c.spelling,
+                        AlgorithmTraversal.traverse_children(
+                            c, AlgorithmTraversal.algorithm))
         return None
 
     @staticmethod
