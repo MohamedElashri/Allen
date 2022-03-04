@@ -105,6 +105,7 @@ docker_image:build:
   needs: []
 
 pages:
+  <<: *active_branches
   stage: docs
   image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
   tags:
