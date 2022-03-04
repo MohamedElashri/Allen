@@ -298,7 +298,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endif()
 
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     install(TARGETS ${ARGV0}
       EXPORT Allen
       DESTINATION ${destination})
@@ -371,7 +371,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
 
     install(TARGETS ${ARGV0}
       EXPORT Allen
