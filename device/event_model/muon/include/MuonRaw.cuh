@@ -16,7 +16,7 @@ namespace Muon {
     __device__ MuonRawBank(const char* raw_bank, const uint16_t s)
     {
       const char* p = raw_bank;
-      sourceID = *((uint32_t*) p);
+      sourceID = reinterpret_cast<const uint32_t*>(p)[0];
       p += sizeof(uint32_t);
       data = reinterpret_cast<const uint16_t*>(p);
       last = reinterpret_cast<const uint16_t*>(p + s);
@@ -32,10 +32,10 @@ namespace Muon {
 
   struct MuonRawEvent {
   private:
-    uint32_t m_number_of_raw_banks;
-    const uint32_t* m_raw_bank_offset;
-    const uint16_t* m_raw_bank_sizes;
-    const char* m_payload;
+    uint32_t m_number_of_raw_banks = 0;
+    const uint32_t* m_raw_bank_offset = nullptr;
+    const uint16_t* m_raw_bank_sizes = nullptr;
+    const char* m_payload = nullptr;
 
     __device__ __host__ void initialize(const char* event, const uint16_t* sizes)
     {

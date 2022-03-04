@@ -45,7 +45,7 @@ struct RawEvent {
 
   // For Allen format
   __device__ __host__ RawEvent(char const* d, uint32_t const* o, uint32_t const* s, unsigned const event_number)
-    : offsets{0}, event{event_number}
+    : offsets{o}, event{event_number}
   {
     if constexpr (mep_layout) {
       data = d;
