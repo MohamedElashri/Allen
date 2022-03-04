@@ -26,7 +26,8 @@ void host_prefix_sum::host_prefix_sum_impl(
     offset = _mm_shuffle_epi32(x, _MM_SHUFFLE(3, 3, 3, 3));
   }
 
-  unsigned sum = _mm_extract_epi32(offset, 0);
+  unsigned sum;
+  _mm_storeu_si32(&sum, offset);
   const auto first_element_remaining = size - (size % 4);
   for (unsigned i = 0; i < size % 4; ++i) {
     sum += host_prefix_sum_buffer[first_element_remaining + i];
