@@ -9,7 +9,7 @@ INSTANTIATE_ALGORITHM(muon_calculate_srq_size::muon_calculate_srq_size_t)
 __device__ void calculate_srq_size(
   Muon::MuonRawToHits const* muon_raw_to_hits,
   int const batch_index,
-  Muon::MuonRawBank const& raw_bank,
+  Muon::MuonRawBank<2> const& raw_bank,
   unsigned int* storage_station_region_quarter_sizes)
 {
   const auto tell_number = raw_bank.sourceID;

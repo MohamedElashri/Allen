@@ -378,8 +378,8 @@ void compare<BankTypes::MUON>(
   size_t const i_event)
 {
 
-  const auto allen_raw_event = Muon::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
-  const auto mep_raw_event = Muon::RawEvent<true>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+  const auto allen_raw_event = Muon::RawEvent<false, 3>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+  const auto mep_raw_event = Muon::RawEvent<true, 3>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
   auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
