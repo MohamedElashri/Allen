@@ -205,6 +205,8 @@ In addition, lines must be instantiated in their source file definition:
 
 * `INSTANTIATE_LINE("name_of_algorithm", "parameters_of_algorithm")`
 
+Lines are automatically parallelized with `threadIdx.x` (see the default setting in `Line.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/line_types/include/Line.cuh#L139>`_. The 1D block dimension is configurable however by providing a different implementation of `Derived::get_block_dim_x`.
+
 Below are four examples of lines.
 
 OneTrackLine example
