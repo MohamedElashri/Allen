@@ -19,8 +19,8 @@ namespace Allen {
     {LHCb::RawBank::ODIN, BankTypes::ODIN},
     {LHCb::RawBank::HcalPacked, BankTypes::HCal},
     {LHCb::RawBank::EcalPacked, BankTypes::ECal},
-    {LHCb::RawBank::OTError, BankTypes::MCTracks}, // used for PV MC info
-    {LHCb::RawBank::OTRaw, BankTypes::MCVertices}};    // used for track MC info
+    {LHCb::RawBank::OTError, BankTypes::MCVertices}, // used for PV MC info
+    {LHCb::RawBank::OTRaw, BankTypes::MCTracks}};    // used for track MC info
 
   const std::unordered_map<SourceIdSys, BankTypes> subdetectors = {
     {SourceIdSys::SourceIdSys_ODIN, BankTypes::ODIN},
