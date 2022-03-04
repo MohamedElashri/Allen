@@ -10,7 +10,7 @@ from AllenConf.algorithms import data_provider_t
 from AllenConf.utils import line_maker
 from AllenConf.validators import rate_validation
 
-bank_providers = [decode_odin()['dev_odin'].producer]
+bank_providers = [decode_odin()['dev_odin_data'].producer]
 
 # To test memory traffic when copying to the device, add the following
 # for det, bt in (("velo", "VP"), ("ut", "UT"), ("scifi", "FT"),
