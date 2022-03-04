@@ -9,24 +9,24 @@
 
 namespace SciFi {
   struct SciFiRawBank {
-    uint32_t sourceID;
-    uint16_t* data;
-    uint16_t* last;
+    uint32_t sourceID = 0;
+    uint16_t const* data = nullptr;
+    uint16_t const* last = nullptr;
 
     __device__ __host__ SciFiRawBank(const char* raw_bank, const uint16_t s)
     {
       const char* p = raw_bank;
-      sourceID = *((uint32_t*) p);
+      sourceID = reinterpret_cast<uint32_t const*>(p)[0];
       p += sizeof(uint32_t);
-      data = (uint16_t*) p;
-      last = data + s / sizeof(uint16_t);
+      data = reinterpret_cast<uint16_t const*>(p);
+      last = reinterpret_cast<uint16_t const*>(p + s);
     }
 
     __device__ __host__ SciFiRawBank(const uint32_t sID, const char* fragment, const uint16_t s)
     {
       sourceID = sID;
-      data = (uint16_t*) fragment;
-      last = data + s / sizeof(uint16_t);
+      data = reinterpret_cast<uint16_t const*>(fragment);
+      last = reinterpret_cast<uint16_t const*>(fragment + s);
     }
   };
 
@@ -40,12 +40,12 @@ namespace SciFi {
     __device__ __host__ void initialize(const char* event, const uint16_t* sizes)
     {
       const char* p = event;
-      m_number_of_raw_banks = *((uint32_t*) p);
+      m_number_of_raw_banks = reinterpret_cast<uint32_t const*>(p)[0];
       p += sizeof(uint32_t);
-      m_raw_bank_offset = (uint32_t*) p;
+      m_raw_bank_offset = reinterpret_cast<uint32_t const*>(p);
       p += (m_number_of_raw_banks + 1) * sizeof(uint32_t);
       m_raw_bank_sizes = sizes;
-      m_payload = (char*) p;
+      m_payload = p;
     }
 
   public:

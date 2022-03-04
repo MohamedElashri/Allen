@@ -67,7 +67,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
 
     auto rawbank = scifi_raw_event.raw_bank(current_raw_bank);
     const uint16_t* starting_it = rawbank.data + 2;
-    uint16_t* last = rawbank.last;
+    const uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
     if (starting_it >= last || starting_it >= rawbank.last) continue;

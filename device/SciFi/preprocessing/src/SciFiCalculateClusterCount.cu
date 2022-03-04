@@ -28,10 +28,10 @@ __global__ void scifi_calculate_cluster_count_kernel(
   // NO version checking of the decoding - to be improved later
   for (unsigned i = threadIdx.x; i < scifi_raw_event.number_of_raw_banks(); i += blockDim.x) {
     const unsigned current_raw_bank = SciFi::getRawBankIndexOrderedByX(i);
-    uint32_t* hits_module;
+    uint32_t* hits_module = nullptr;
     const auto rawbank = scifi_raw_event.raw_bank(current_raw_bank);
-    uint16_t* it = rawbank.data + 2;
-    uint16_t* last = rawbank.last;
+    uint16_t const* it = rawbank.data + 2;
+    uint16_t const* last = rawbank.last;
 
     // For details see RawBankDecoder
     if (*(last - 1) == 0) --last; // Remove padding at the end
