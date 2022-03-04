@@ -379,7 +379,7 @@ void compare<BankTypes::MUON>(
 {
 
   const auto allen_raw_event = Muon::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
-  const auto mep_raw_event = Muon::RawEvent<false>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+  const auto mep_raw_event = Muon::RawEvent<true>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
   auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
   REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
@@ -485,7 +485,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
 // Main test case, multiple bank types are checked
 // VeloTag, UTTag, SciFiTag,
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", MuonTag, ECalTag)
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag)
 {
   if (!s_config.run) return;
 
