@@ -5,10 +5,33 @@
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
 
+if (STANDALONE)
+  set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
+else()
+  set(odin_files "src/ODIN.cpp")
+endif()
+
+foreach(odin_file ${odin_files})
+  if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
+    file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/master/Event/DAQEvent/${odin_file}"
+      "${PROJECT_BINARY_DIR}/imported_${odin_file}"
+      STATUS ODIN_DOWNLOAD_STATUS)
+    list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
+    if(ODIN_DOWNLOAD_STATUS_CODE)
+      message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
+    endif()
+  endif()
+endforeach()
+
+add_library(odin OBJECT ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
+target_link_libraries(odin PRIVATE LHCbEvent)
+target_compile_definitions(odin PRIVATE ODIN_WITHOUT_GAUDI)
+
 set(mdf_sources
     src/raw_helpers.cpp
     src/read_mdf.cpp
-    src/write_mdf.cpp)
+    src/write_mdf.cpp
+	$<TARGET_OBJECTS:odin>)
 
 if (USE_ROOT)
   list(APPEND mdf_sources src/root_mdf.cpp)
@@ -25,20 +48,6 @@ target_include_directories(LHCbEvent INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT
 
 if (STANDALONE)
   # Make sure we have a local copy of ODIN.{h,cpp} if building in standalone mode
-  set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
-  foreach(odin_file ${odin_files})
-    if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
-      file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/master/Event/DAQEvent/${odin_file}"
-        "${PROJECT_BINARY_DIR}/imported_${odin_file}"
-        STATUS ODIN_DOWNLOAD_STATUS)
-      list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
-      if(ODIN_DOWNLOAD_STATUS_CODE)
-        message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
-      endif()
-    endif()
-  endforeach()
-  list(APPEND mdf_sources ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
-  target_sources(mdf PRIVATE ${mdf_sources})
   target_include_directories(LHCbEvent INTERFACE
     lhcb
     ${PROJECT_BINARY_DIR}/imported_include

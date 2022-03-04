@@ -37,14 +37,14 @@ namespace gather_selections {
     bool* dev_decisions,
     unsigned* dev_decisions_offsets,
     Allen::IMultiEventContainer** dev_particle_container_ptr,
-    const LHCb::ODIN* dev_odin,
+    const ODINData* dev_odin_data,
     const unsigned number_of_events,
     const unsigned number_of_lines,
     const unsigned* line_offsets)
   {
     // Process each event with a different block
     // ODIN data
-    auto const& odin = dev_odin[blockIdx.x];
+    LHCb::ODIN odin{dev_odin_data[blockIdx.x]};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -75,7 +75,7 @@ namespace gather_selections {
   __global__ void postscaler(
     bool* dev_selections,
     const unsigned* dev_selections_offsets,
-    const LHCb::ODIN* dev_odin,
+    const ODINData* dev_odin_data,
     const float* scale_factors,
     const uint32_t* scale_hashes,
     const unsigned number_of_lines)
@@ -85,7 +85,7 @@ namespace gather_selections {
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-    auto const& odin = dev_odin[event_number];
+    LHCb::ODIN odin{dev_odin_data[event_number]};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -220,7 +220,7 @@ void gather_selections::gather_selections_t::operator()(
     data<dev_selections_t>(arguments),
     data<dev_selections_offsets_t>(arguments),
     data<dev_particle_containers_t>(arguments),
-    data<dev_odin_t>(arguments),
+    data<dev_odin_data_t>(arguments),
     first<host_number_of_events_t>(arguments),
     first<host_number_of_active_lines_t>(arguments),
     data<dev_selections_lines_offsets_t>(arguments));
@@ -252,7 +252,7 @@ void gather_selections::gather_selections_t::operator()(
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     data<dev_selections_t>(arguments),
     data<dev_selections_offsets_t>(arguments),
-    data<dev_odin_t>(arguments),
+    data<dev_odin_data_t>(arguments),
     data<dev_post_scale_factors_t>(arguments),
     data<dev_post_scale_hashes_t>(arguments),
     first<host_number_of_active_lines_t>(arguments));

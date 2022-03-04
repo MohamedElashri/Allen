@@ -7,8 +7,12 @@
 
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
+<<<<<<< HEAD
 #include "Line.cuh"
 #include "Event/ODIN.h"
+=======
+#include "ODINBank.cuh"
+>>>>>>> afc601016... WIP: Use ODIN::data instead of ODIN in device memory
 
 
 namespace gather_selections {
@@ -28,7 +32,7 @@ namespace gather_selections {
     HOST_OUTPUT(host_fn_indices_t, unsigned) host_fn_indices;
     DEVICE_OUTPUT(dev_fn_indices_t, unsigned) dev_fn_indices;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    DEVICE_INPUT(dev_odin_t, LHCb::ODIN) dev_odin;
+    DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
     DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
     DEVICE_OUTPUT(dev_selections_lines_offsets_t, unsigned) dev_selections_lines_offsets;
     DEVICE_OUTPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;

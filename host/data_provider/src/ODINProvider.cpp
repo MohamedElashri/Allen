@@ -16,10 +16,10 @@ void odin_provider::odin_provider_t::set_arguments_size(
 {
 
   // Device copy of the ODIN banks that is always in v7 format
-  set_size<dev_odin_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_odin_data_t>(arguments, first<host_number_of_events_t>(arguments));
 
   // Host copy of the ODIN banks that is always in v7 format
-  set_size<host_odin_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<host_odin_data_t>(arguments, first<host_number_of_events_t>(arguments));
 
   // A single number for the version
   set_size<host_raw_bank_version_t>(arguments, 1);
@@ -42,22 +42,24 @@ void odin_provider::odin_provider_t::operator()(
   auto const version = bno.version;
   auto const mep_layout = first<host_mep_layout_t>(arguments);
 
-  if (version == 6) {
-    // Loop over events and create a new v7 ODIN from the v6 in the
-    // input data.
-    for (unsigned event = 0; event < first<host_number_of_events_t>(arguments); ++event) {
-      auto const event_odin = mep_layout ? odin_bank<true>(blocks[0].data(), offsets, sizes, event) :
-                                           odin_bank<false>(blocks[0].data(), offsets, sizes, event);
-      LHCb::ODIN* output_odin = data<host_odin_t>(arguments) + event;
-      *output_odin  = LHCb::ODIN::from_version<6>({event_odin.data, event_odin.size});
-    }
-  }
-  else {
+  if (version < 6 || version > 7) {
     throw StrException {"Unsupported ODIN version: "s + std::to_string(version)};
   }
 
+  for (unsigned event = 0; event < first<host_number_of_events_t>(arguments); ++event) {
+    auto const event_odin = mep_layout ? odin_bank<true>(blocks[0].data(), offsets, sizes, event) :
+                                         odin_bank<false>(blocks[0].data(), offsets, sizes, event);
+    auto* output = data<host_odin_data_t>(arguments) + event;
+    if (version == 6) {
+      *output = LHCb::ODIN::from_version<6>({event_odin.data, event_odin.size}).data;
+    }
+    else {
+      std::copy_n(event_odin.data, event_odin.size, output->data());
+    }
+  }
+
   // Copy data to device
-  Allen::copy_async<dev_odin_t, host_odin_t>(arguments, context);
+  Allen::copy_async<dev_odin_data_t, host_odin_data_t>(arguments, context);
 
   // Copy the bank version
   ::memcpy(data<host_raw_bank_version_t>(arguments), &version, sizeof(version));

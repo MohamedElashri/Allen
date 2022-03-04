@@ -2,9 +2,13 @@
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #pragma once
+#include <array>
 
 #include <BackendCommon.h>
 #include <MEPTools.h>
+#include <Event/ODIN.h>
+
+using ODINData = std::array<uint32_t, std::tuple_size_v<decltype(LHCb::ODIN::data)>>;
 
 struct ODINRawBank {
 
