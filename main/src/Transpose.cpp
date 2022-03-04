@@ -190,8 +190,11 @@ std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
       return {false, mfp_count};
     }
 
-    auto const sd_idx = to_integral(sd_from_raw_bank(b));
-    ++mfp_count[sd_idx];
+    auto const sd = sd_from_raw_bank(b);
+    if (sd != BankTypes::Unknown) {
+      auto const sd_idx = to_integral(sd);
+      ++mfp_count[sd_idx];
+    }
 
     // Increment overall bank pointer
     bank += b->totalSize();
@@ -331,8 +334,9 @@ std::tuple<bool, bool, bool> transpose_event(
       // The offsets to the sizes for this batch of fragments is
       // copied from the current value, then the pointer is moved to
       // the point where bank sizes can be stored
-      auto const fragment_sizes_offset = slice.sizes[*n_banks_offsets] + bank_counter - 1;
-      slice.sizes[*n_banks_offsets + 1] = fragment_sizes_offset;
+      auto const n_banks = bank_count[to_integral(allen_type)];
+      auto const fragment_sizes_offset = slice.sizes[*n_banks_offsets - 1];
+      slice.sizes[*n_banks_offsets] = fragment_sizes_offset + n_banks;
       fragment_sizes = reinterpret_cast<unsigned short*>(slice.sizes.data()) + fragment_sizes_offset;
 
       // Initialize point to write from offset of previous set
@@ -342,7 +346,7 @@ std::tuple<bool, bool, bool> transpose_event(
       ++(*n_banks_offsets);
 
       // Write the number of banks
-      banks_write[0] = bank_count[to_integral(allen_type)];
+      banks_write[0] = n_banks;
 
       // All bank offsets are uit32_t so cast to that type
       banks_offsets_write = banks_write + 1;
@@ -416,7 +420,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   for (auto allen_type : bank_types) {
     auto const ia = to_integral(allen_type);
     auto& fragment_sizes_offsets = slices[ia][slice_index].sizes;
-    fragment_sizes_offsets[0] = 2 * n_events;
+    fragment_sizes_offsets[0] = 2 * (n_events + 1);
   }
 
   // Loop over events in the prefetch buffer
