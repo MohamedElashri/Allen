@@ -206,7 +206,7 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
     return {
         "algorithms": [
             make_selected_object_lists, make_subbanks,
-            basic_particle_life_support, composite_particle_life_support,
+            # basic_particle_life_support, composite_particle_life_support,
             make_selreps
         ],
         "dev_sel_reports":
