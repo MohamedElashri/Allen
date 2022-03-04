@@ -25,7 +25,7 @@ def make_gather_selections(lines):
         host_input_post_scale_hashes_t=[
             line.host_post_scaler_hash_t for line in lines
         ],
-        dev_odin_t=odin["dev_odin"],
+        dev_odin_data_t=odin["dev_odin_data"],
         names_of_active_lines=",".join([line.name for line in lines]),
         names_of_active_line_algorithms=",".join(
             [line.typename for line in lines]),

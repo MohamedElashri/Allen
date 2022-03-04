@@ -16,7 +16,7 @@ def decode_odin():
         host_mep_layout_t=mep_layout()['host_mep_layout'])
 
     return {
-        "dev_odin": odin_banks.dev_odin_t,
+        "dev_odin_data": odin_banks.dev_odin_data_t,
         "host_odin": odin_banks.host_odin_t,
         "host_odin_version": odin_banks.host_raw_bank_version_t,
     }
