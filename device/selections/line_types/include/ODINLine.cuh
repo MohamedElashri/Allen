@@ -15,10 +15,9 @@
  */
 template<typename Derived, typename Parameters>
 struct ODINLine : public EventLine<Derived, Parameters> {
-  __device__ static std::tuple<const LHCb::ODIN&>
+  __device__ static std::tuple<const ODINData&>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned)
   {
-    const LHCb::ODIN& odin = parameters.dev_odin[event_number];
-    return std::forward_as_tuple(odin);
+    return std::forward_as_tuple(parameters.dev_odin_data[event_number]);
   }
 };

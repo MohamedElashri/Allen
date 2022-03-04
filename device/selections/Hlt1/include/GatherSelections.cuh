@@ -7,12 +7,8 @@
 
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
-<<<<<<< HEAD
 #include "Line.cuh"
-#include "Event/ODIN.h"
-=======
 #include "ODINBank.cuh"
->>>>>>> afc601016... WIP: Use ODIN::data instead of ODIN in device memory
 
 
 namespace gather_selections {
