@@ -117,7 +117,7 @@ pages:
     # if today's nightly build does not exist, use yesterday's
     - |
       nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/"$BINARY_TAG
-      if [ -d nightly_installation_path ] ; then
+      if [ -d $nightly_installation_path ] ; then
         export DAY=Today
         echo "Using today's nightly"
       else
