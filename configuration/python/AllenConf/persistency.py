@@ -37,6 +37,9 @@ def make_gather_selections(lines):
         host_particle_containers_agg_t=[
             line.host_particle_container_ptr_t for line in lines
         ],
+        dev_particle_containers_agg_t=[
+            line.dev_particle_container_ptr_t for line in lines
+        ],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         names_of_active_lines=",".join([line.name for line in lines]))

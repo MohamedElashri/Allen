@@ -325,6 +325,8 @@ void Line<Derived, Parameters>::operator()(
   if constexpr (Derived::has_particle_container) {
     data<typename Parameters::host_particle_container_ptr_t>(arguments)[0] =
       data<typename Parameters::dev_particle_container_t>(arguments);
+    // data<typename Parameters::dev_particle_container_ptr_t>(arguments)[0] =
+    //   data<typename Parameters::dev_particle_container_t>(arguments);
   }
 
   const auto* derived_instance = static_cast<const Derived*>(this);

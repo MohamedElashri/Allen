@@ -22,6 +22,8 @@ namespace gather_selections {
     HOST_INPUT_AGGREGATE(host_lhcbid_containers_agg_t, uint8_t) host_lhcbid_containers_agg;
     HOST_INPUT_AGGREGATE(host_particle_containers_agg_t, Allen::Views::Physics::IMultiEventParticleContainer*)
     host_particle_containers_agg;
+    DEVICE_INPUT_AGGREGATE(dev_particle_containers_agg_t, Allen::Views::Physics::IMultiEventParticleContainer*)
+    dev_particle_containers_agg;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
@@ -34,7 +36,7 @@ namespace gather_selections {
     DEVICE_OUTPUT(dev_lhcbid_containers_t, uint8_t) dev_lhcbid_containers;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_containers_t, 
-      DEPENDENCIES(host_particle_containers_agg_t),
+      DEPENDENCIES(dev_particle_containers_agg_t),
       Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_containers;
     HOST_OUTPUT(host_lhcbid_containers_t, uint8_t) host_lhcbid_containers;
