@@ -113,7 +113,8 @@ public:
     set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
     set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
-    set_size<typename Parameters::host_particle_container_t>(arguments, 1);
+    set_size<typename Parameters::host_particle_container_ptr_t>(arguments, 1);
+    set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
   }
 
   void operator()(
@@ -322,7 +323,7 @@ void Line<Derived, Parameters>::operator()(
   // Populate container with tag.
   data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);
   if constexpr (Derived::has_particle_container) {
-    data<typename Parameters::host_particle_container_t>(arguments)[0] =
+    data<typename Parameters::host_particle_container_ptr_t>(arguments)[0] =
       data<typename Parameters::dev_particle_container_t>(arguments);
   }
 

@@ -35,7 +35,7 @@ def make_gather_selections(lines):
             line.host_lhcbid_container_t for line in lines
         ],
         host_particle_containers_agg_t=[
-            line.host_particle_container_t for line in lines
+            line.host_particle_container_ptr_t for line in lines
         ],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
