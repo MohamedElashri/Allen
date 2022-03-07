@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
           read_buffer,
           slices,
           i,
-          {BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
+          {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},
           sd_from_raw,
           bank_sorter,
           banks_count,

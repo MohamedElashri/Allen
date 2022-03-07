@@ -247,7 +247,7 @@ __global__ void decode_retinaclusters_sorted(
 
   // Read raw event
   const auto velo_raw_event = Velo::RawEvent<mep_layout> {
-    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, event_number};
+    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, parameters.dev_velo_retina_raw_input_sizes, event_number};
 
   // Populate retina clusters
   const auto event_clusters_offset = sensor_offsets[0];

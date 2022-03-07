@@ -234,7 +234,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   auto filename = s_config.mdf_files[0];
 
   std::unordered_set<BankTypes> allen_types {
-    BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
 
   auto [success, banks_count, odins, split_event, alloc_size, max_events, total_size] =
     mdf_read_sizes(filename, allen_types, s_config.n_events);

@@ -16,7 +16,7 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_kernel(
 
   // Read raw event
   const auto velo_raw_event = Velo::RawEvent<mep_layout> {
-    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, event_number};
+    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, parameters.dev_velo_retina_raw_input_sizes, event_number};
 
   unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {

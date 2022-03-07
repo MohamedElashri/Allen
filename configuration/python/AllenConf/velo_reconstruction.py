@@ -28,7 +28,9 @@ def decode_velo(retina_decoding=True):
             host_number_of_events_t=number_of_events["host_number_of_events"],
             dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
             dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
-            dev_raw_offsets_t)
+            dev_raw_offsets_t,
+            dev_velo_retina_raw_input_sizes_t=velo_retina_banks.
+            dev_raw_sizes_t)
 
         prefix_sum_offsets_estimated_input_size = make_algorithm(
             host_prefix_sum_t,
@@ -45,6 +47,8 @@ def decode_velo(retina_decoding=True):
             dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
             dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
             dev_raw_offsets_t,
+            dev_velo_retina_raw_input_sizes_t=velo_retina_banks.
+            dev_raw_sizes_t,
             dev_offsets_each_sensor_size_t=
             prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
