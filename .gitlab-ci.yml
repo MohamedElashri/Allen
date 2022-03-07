@@ -7,16 +7,16 @@ variables:
   TARGET_BRANCH: master
 
   ALLEN_DATA: "/scratch/allen_data"
-  LCG_VERSION: LCG_101
-  LB_NIGHTLY_SLOT: lhcb-head
-  BINARY_TAG: x86_64_v2-centos7-gcc11-opt  
-  NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
+  LCG_VERSION: "LCG_101"
 
   PROFILE_DEVICE: "a5000"
   RUN_THROUGHPUT_OPTIONS_CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
   RUN_THROUGHPUT_OPTIONS_CUDA: "-n 500 -m 500 -r 1000 -t 16"
-  RUN_THROUGHPUT_OPTIONS_HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 1000"
+  RUN_THROUGHPUT_OPTIONS_HIP: "-n 5000 --events-per-slice 5000 -m 3000 -t 10 -r 1000"
   RUN_THROUGHPUT_OPTIONS_CPU: "-n 100 -m 100 -r 200"
+
+  AVG_THROUGHPUT_DECREASE_THRESHOLD: "-2.5" # (%); fail throughput check if averaged throughput % change falls below -2.5%
+  DEVICE_THROUGHPUT_DECREASE_THRESHOLD: "-7.5" # (%); fail throughput check if single device throughput % change falls below -10.0%
 
   OVERRIDE_CUDA_ARCH_FLAG: "-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_86,code=sm_86"
 
@@ -27,7 +27,6 @@ stages:
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software
   - publish          # Publishes the results of the tests and runs in channels and grafana
-  - docs             # Build Sphinx documentation
 
   - manual trigger   # Blocks full pipeline from running in merge requests
   - build full
@@ -58,9 +57,9 @@ check-env:
 
 check-copyright:
   <<: *active_branches
-    
+
   stage: check
-  image:  gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   script:
     - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/master/LbDevTools/SourceTools.py?inline=False"
     - python lb-check-copyright --license=Apache-2.0 origin/${TARGET_BRANCH}
@@ -88,6 +87,7 @@ check-formatting:
     expire_in: 1 week
   needs: []
 
+
 docker_image:build:
   stage: build docker
   only:
@@ -102,44 +102,6 @@ docker_image:build:
     TO: $CI_REGISTRY_IMAGE:latest
     GIT_SUBMODULE_STRATEGY: recursive
   allow_failure: true
-  needs: []
-
-pages:
-  <<: *active_branches
-  stage: docs
-  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
-  tags:
-    - cvmfs
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  script:
-    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
-    # use nightly build for python environment, needed for API reference of python selection functions
-    # if today's nightly build does not exist, use yesterday's
-    - |
-      nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/"$BINARY_TAG
-      if [ -d $nightly_installation_path ] ; then
-        export DAY=Today
-        echo "Using today's nightly"
-      else
-        export DAY=Yesterday
-        echo "Using yesterday's nightly"
-      fi
-  
-    - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
-    - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
-          
-    - mv doc/_build/html public
-    - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
-  allow_failure:
-    exit_codes: 77
-  artifacts:
-    paths:
-      - public
-  cache:
-    key: "$CI_JOB_NAME"
-    paths:
-      - .cache/pip
   needs: []
 
 include: "scripts/ci/config/main.yaml"

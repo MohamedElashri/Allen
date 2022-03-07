@@ -149,7 +149,7 @@ NTupleSvc().Output = ["FILE1 DATAFILE='velo_states.root' TYP='ROOT' OPT='NEW'"]
 # Save raw banks in Allen format on the TES
 outputdirectory = "dump/"
 transpose_banks = TransposeRawBanks(
-    BankTypes=["VP", "UT", "FTCluster", "Muon", "ODIN"],
+    BankTypes=["VP", "VPRetinaCluster", "UT", "FTCluster", "Muon", "ODIN"],
     RawEventLocations=["DAQ/RawEvent"])
 dump_seq = GaudiSequencer("RecoAllenPrepareSeq")
 dump_seq.Members += [transpose_banks]

@@ -77,9 +77,6 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
         line_maker("Hlt1DiMuonHighMass",
                    make_di_muon_mass_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker("Hlt1TwoKs",
-                   make_two_ks_line(forward_tracks, secondary_vertices)))
-    lines.append(
         line_maker(
             "Hlt1DiMuonLowMass",
             make_di_muon_mass_line(

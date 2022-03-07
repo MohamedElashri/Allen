@@ -142,9 +142,9 @@ __device__ void no_neighbour_sp(
 {
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
-  for (unsigned sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
+  for (unsigned sp_index = 0; sp_index < raw_bank.count; ++sp_index) {
     // Decode sp
-    const uint32_t sp_word = raw_bank.sp_word[sp_index];
+    const uint32_t sp_word = raw_bank.word[sp_index];
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
 
@@ -247,7 +247,7 @@ __device__ void rest_of_clusters(
   const auto starting_pixel_location = candidate & 0x7;
 
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
-  const uint32_t sp_word = raw_bank.sp_word[sp_index];
+  const uint32_t sp_word = raw_bank.word[sp_index];
   const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
   // Note: In the code below, row and col are int32_t (not unsigned)
   //       This is not a bug
@@ -295,8 +295,8 @@ __device__ void rest_of_clusters(
   // Load SPs
   // Note: We will pick up the current one,
   //       no need to add a special case
-  for (unsigned k = 0; k < raw_bank.sp_count; ++k) {
-    const uint32_t other_sp_word = raw_bank.sp_word[k];
+  for (unsigned k = 0; k < raw_bank.count; ++k) {
+    const uint32_t other_sp_word = raw_bank.word[k];
     const uint32_t other_no_sp_neighbours = other_sp_word & 0x80000000U;
     if (!other_no_sp_neighbours) {
       const uint32_t other_sp_addr = (other_sp_word & 0x007FFF00U) >> 8;

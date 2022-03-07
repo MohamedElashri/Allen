@@ -114,9 +114,16 @@ __device__ void velo_sort_by_phi::calculate_permutation(
         const auto other_phi = velo_cluster_container.phi(other_hit_index);
 
         // Ensure sorting is reproducible
-        position +=
-          phi > other_phi || (hit_index != other_hit_index && phi == other_phi &&
-                              velo_cluster_container.id(hit_index) > velo_cluster_container.id(other_hit_index));
+        position += phi > other_phi ||
+                    (hit_index != other_hit_index && phi == other_phi &&
+                     velo_cluster_container.id(hit_index) > velo_cluster_container.id(other_hit_index)) ||
+                    (hit_index != other_hit_index && phi == other_phi &&
+                     velo_cluster_container.id(hit_index) == velo_cluster_container.id(other_hit_index) &&
+                     velo_cluster_container.x(hit_index) > velo_cluster_container.x(other_hit_index)) ||
+                    (hit_index != other_hit_index && phi == other_phi &&
+                     velo_cluster_container.id(hit_index) == velo_cluster_container.id(other_hit_index) &&
+                     velo_cluster_container.x(hit_index) == velo_cluster_container.x(other_hit_index) &&
+                     velo_cluster_container.y(hit_index) > velo_cluster_container.y(other_hit_index));
       }
 
       // Store it in hit permutations

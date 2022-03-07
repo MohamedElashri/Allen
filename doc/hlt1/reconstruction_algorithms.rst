@@ -15,9 +15,9 @@ Format needed by one RawEvent for masked clustering code::
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  sensor_index        | uint32_t | 1                     |
  ------------------------------------------------------------------------------
- sp_count            | uint32_t | 1                     | number_of_rawbanks
+ count               | uint32_t | 1                     | number_of_rawbanks
  ------------------------------------------------------------------------------
- sp_word             | uint32_t | sp_count              |
+ word                | uint32_t | count                 |
  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++x
 
 raw_bank_offset: array containing the offsets to each raw bank, this array is 
@@ -26,7 +26,7 @@ several raw banks in parallel
 
 sp = super pixel
 
-sp_word: contains super pixel address and 8 bit hit pattern
+word: contains super pixel address and 8 bit hit pattern
 
 
 Velo tracks

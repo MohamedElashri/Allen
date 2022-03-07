@@ -36,8 +36,8 @@ std::vector<std::vector<uint32_t>> clustering(
       // const unsigned int module = sensor / Velo::Constants::n_sensors_per_module;
       // const float* ltg = g.ltg + 16 * sensor;
 
-      for (unsigned int j = 0; j < velo_raw_bank.sp_count; ++j) {
-        const uint32_t sp_word = *(velo_raw_bank.sp_word + j);
+      for (unsigned int j = 0; j < velo_raw_bank.count; ++j) {
+        const uint32_t sp_word = *(velo_raw_bank.word + j);
 
         uint8_t sp = sp_word & 0xFFU;
 

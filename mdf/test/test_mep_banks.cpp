@@ -165,8 +165,14 @@ int main(int argc, char* argv[])
   s_config.run = !s_config.mdf_files.empty();
   if (s_config.run) {
 
-    std::unordered_set<BankTypes> bank_types = {
-      BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ODIN, BankTypes::ECal, BankTypes::HCal, BankTypes::MUON};
+    std::unordered_set<BankTypes> bank_types = {BankTypes::VP,
+                                                BankTypes::VPRetinaCluster,
+                                                BankTypes::UT,
+                                                BankTypes::FT,
+                                                BankTypes::ODIN,
+                                                BankTypes::ECal,
+                                                BankTypes::HCal,
+                                                BankTypes::MUON};
     auto json_file = write_json(bank_types);
 
     // Allocate providers and get slices
@@ -240,9 +246,35 @@ void compare<BankTypes::VP>(
     auto const allen_bank = allen_raw_event.raw_bank(bank);
     auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
     REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
-    REQUIRE(mep_bank.sp_count == allen_bank.sp_count);
-    for (size_t j = 0; j < allen_bank.sp_count; ++j) {
-      REQUIRE(allen_bank.sp_word[j] == mep_bank.sp_word[j]);
+    REQUIRE(mep_bank.count == allen_bank.count);
+    for (size_t j = 0; j < allen_bank.count; ++j) {
+      REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
+    }
+  }
+}
+
+template<>
+void compare<BankTypes::VPRetinaCluster>(
+  const int,
+  gsl::span<char const> mep_fragments,
+  gsl::span<unsigned const> mep_offsets,
+  gsl::span<char const> allen_banks,
+  gsl::span<unsigned const> allen_offsets,
+  size_t const i_event)
+{
+  auto const mep_n_banks = mep_offsets[0];
+
+  const auto allen_raw_event = Velo::VeloRawEvent(allen_banks.data() + allen_offsets[i_event]);
+  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
+
+  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+    // Read raw bank
+    auto const mep_bank = MEP::raw_bank<Velo::VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
+    auto const allen_bank = allen_raw_event.raw_bank(bank);
+    REQUIRE(mep_bank.sensor_index == allen_bank.sensor_index);
+    REQUIRE(mep_bank.count == allen_bank.count);
+    for (size_t j = 0; j < allen_bank.count; ++j) {
+      REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
     }
   }
 }
@@ -393,6 +425,7 @@ struct BTTag {
 };
 
 using VeloTag = BTTag<BankTypes::VP>;
+using VeloClusterTag = BTTag<BankTypes::VPRetinaCluster>;
 using SciFiTag = BTTag<BankTypes::FT>;
 using UTTag = BTTag<BankTypes::UT>;
 using MuonTag = BTTag<BankTypes::MUON>;

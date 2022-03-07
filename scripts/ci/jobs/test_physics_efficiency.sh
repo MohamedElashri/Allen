@@ -25,22 +25,23 @@ for OUTPUT_FOLDER in run_physics_efficiency_output_*/ ; do
     echo " "
     echo "Checking ${i}"
 
-
-    if [ ! -f "${TOPLEVEL}/test/reference/${i}" ]; then 
-     echo "No reference file found - continue."
-
-     continue
-    fi
-
     echo "Folder    : ${OUTPUT_FOLDER}"
     echo "File      : efficiency_${i}"
-    echo "Reference : test/reference/${i}"
-    echo ""
   
     FIRST=`grep -nr "Processing complete" ${i} | sed -e 's/\([0-9]*\).*/\1/'`
     NLINES=`wc -l ${i} | awk '{ print $1; }'`
     tail -n$((${NLINES}-${FIRST}-1)) ${i} | head -n$((${NLINES}-${FIRST}-3)) > efficiency_${i}
     cp efficiency_${i} ${TOPLEVEL}/generated_reference_files/${i}
+
+    if [ ! -f "${TOPLEVEL}/test/reference/${i}" ]; then 
+      echo "Reference : NOT FOUND - continue."
+      continue
+    else
+      echo "Reference : test/reference/${i}"
+      echo ""
+    fi
+
+
     if ! diff -u -B -Z ${TOPLEVEL}/test/reference/${i} efficiency_${i}; then
       echo "***"
       echo "*** A difference was found."

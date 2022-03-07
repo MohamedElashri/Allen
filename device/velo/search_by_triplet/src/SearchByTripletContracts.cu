@@ -40,15 +40,26 @@ void velo_search_by_triplet::cluster_container_checks::operator()(
         if (module_hit_num > 0) {
           auto previous_hit_phi = velo_container_view.phi(module_hit_start);
           auto previous_hit_id = velo_container_view.id(module_hit_start);
+          auto previous_hit_x = velo_container_view.x(module_hit_start);
+          auto previous_hit_y = velo_container_view.y(module_hit_start);
           for (unsigned hit_number = 0; hit_number < module_hit_num; ++hit_number) {
             const auto hit_index = module_hit_start + hit_number;
             if (hit_number > 0) {
               hit_phi_is_sorted &= velo_container_view.phi(hit_index) > previous_hit_phi ||
                                    (velo_container_view.phi(hit_index) == previous_hit_phi &&
-                                    velo_container_view.id(hit_index) > previous_hit_id);
+                                    velo_container_view.id(hit_index) > previous_hit_id) ||
+                                   (velo_container_view.phi(hit_index) == previous_hit_phi &&
+                                    velo_container_view.id(hit_index) == previous_hit_id &&
+                                    velo_container_view.x(hit_index) > previous_hit_x) ||
+                                   (velo_container_view.phi(hit_index) == previous_hit_phi &&
+                                    velo_container_view.id(hit_index) == previous_hit_id &&
+                                    velo_container_view.x(hit_index) == previous_hit_x &&
+                                    velo_container_view.y(hit_index) > previous_hit_y);
             }
             previous_hit_phi = velo_container_view.phi(hit_index);
             previous_hit_id = velo_container_view.id(hit_index);
+            previous_hit_x = velo_container_view.x(hit_index);
+            previous_hit_y = velo_container_view.y(hit_index);
 
             x_greater_than_min_value &= velo_container_view.x(hit_index) > velo_cluster_min_x;
             x_lower_than_max_value &= velo_container_view.x(hit_index) < velo_cluster_max_x;

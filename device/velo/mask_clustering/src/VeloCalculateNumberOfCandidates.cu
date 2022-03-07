@@ -20,7 +20,7 @@ __global__ void velo_calculate_number_of_candidates_kernel(
     unsigned number_of_candidates = 0;
     for (unsigned raw_bank_number = 0; raw_bank_number < velo_raw_event.number_of_raw_banks(); ++raw_bank_number) {
       const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-      number_of_candidates += raw_bank.sp_count;
+      number_of_candidates += raw_bank.count;
     }
 
     // The maximum number of candidates is two times the number of SPs

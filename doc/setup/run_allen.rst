@@ -7,8 +7,7 @@ Standalone Allen
 
 Some input files are included with the project for testing:
 
-* `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI TestFile DB entry. Includes raw banks with MC information.
-* `input/minbias/mdf/upgrade_mc_minbias_scifi_v5_000.mdf`: Minbias sample produced from production of the SciFi group. Does not include raw banks with MC information, but is the sample used for benchmark throughput measurements since early Allen days.
+* `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI TestFile DB entry. Includes raw banks with MC information.
 * the directory `input/detector_configuration/down` contains the dumped geometry files for the above listed three data sets (they all have the same geometry version)
 * other dumped geometries shipped with Allen are located in `input/detector_configuration` and used for other data sets in the CI tests
 

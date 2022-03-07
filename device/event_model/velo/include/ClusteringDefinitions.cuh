@@ -56,17 +56,17 @@ namespace VP {
 namespace Velo {
   struct VeloRawBank {
     uint32_t sensor_index;
-    uint32_t sp_count;
-    uint32_t* sp_word;
+    uint32_t count;
+    uint32_t* word;
 
     // For MEP format
     __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment)
     {
       sensor_index = source_id;
       const char* p = fragment;
-      sp_count = *((uint32_t*) p);
+      count = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      sp_word = (uint32_t*) p;
+      word = (uint32_t*) p;
     }
 
     // For Allen format
@@ -75,9 +75,9 @@ namespace Velo {
       const char* p = raw_bank;
       sensor_index = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      sp_count = *((uint32_t*) p);
+      count = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      sp_word = (uint32_t*) p;
+      word = (uint32_t*) p;
     }
   };
 

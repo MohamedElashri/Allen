@@ -63,7 +63,8 @@ int main(int argc, char* argv[])
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
   std::array<int, NBankTypes> banks_version;
-  std::unordered_set<BankTypes> bank_types {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
+  std::unordered_set<BankTypes> bank_types {
+    BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
 
   ::Slices slices;
   EventIDs events;

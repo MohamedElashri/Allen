@@ -54,7 +54,7 @@ setup_allen_non_event_data_service(dump_binaries=True)
 
 # Dump raw banks and UT, FT and muon hits
 transpose_banks = TransposeRawBanks(
-    BankTypes=["VP", "UT", "FTCluster", "Muon", "ODIN"])
+    BankTypes=["VP", "VPRetinaCluster", "UT", "FTCluster", "Muon", "ODIN"])
 dump_banks = DumpRawBanks()
 dump_ut = DumpUTHits()
 dump_ft = DumpFTHits()

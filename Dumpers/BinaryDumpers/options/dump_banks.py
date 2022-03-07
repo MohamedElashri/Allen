@@ -53,7 +53,7 @@ ApplicationMgr().ExtSvc += [DumpUTGeometry()]
 
 # Dump raw banks and UT, FT and muon hits
 transpose_banks = TransposeRawBanks(
-    BankTypes=["VP", "UT", "FTCluster", "Muon", "ODIN"],
+    BankTypes=["VP", "VPRetinaCluster", "UT", "FTCluster", "Muon", "ODIN"],
     RawEventLocations=["DAQ/RawEvent"])
 dump_banks = DumpRawBanks()
 dump_seq = GaudiSequencer("DumpSeq")
