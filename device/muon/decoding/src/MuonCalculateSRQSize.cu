@@ -65,7 +65,7 @@ __global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Paramete
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks() * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks() * Muon::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
@@ -109,6 +109,6 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
     runtime_options.mep_layout ? muon_calculate_srq_size_kernel<true> : muon_calculate_srq_size_kernel<false>)(
     size<dev_event_list_t>(arguments),
     // FIXME
-    10 * Muon::MuonRawEvent::batches_per_bank,
+    10 * Muon::batches_per_bank,
     context)(arguments);
 }

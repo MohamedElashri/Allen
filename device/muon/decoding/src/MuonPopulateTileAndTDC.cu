@@ -70,7 +70,7 @@ __global__ void muon_populate_tile_and_tdc_kernel(muon_populate_tile_and_tdc::Pa
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks() * Muon::MuonRawEvent::batches_per_bank;
+  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks() * Muon::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
@@ -117,6 +117,6 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
     runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<true> : muon_populate_tile_and_tdc_kernel<false>)(
     size<dev_event_list_t>(arguments),
     // FIXME:
-    10 * Muon::MuonRawEvent::batches_per_bank,
+    10 * Muon::batches_per_bank,
     context)(arguments);
 }

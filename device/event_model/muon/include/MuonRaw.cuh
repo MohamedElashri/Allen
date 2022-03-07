@@ -36,6 +36,7 @@ namespace Muon {
     }
   };
 
+  template <unsigned version = 2>
   struct MuonRawEvent {
   private:
     uint32_t m_number_of_raw_banks = 0;
@@ -70,7 +71,6 @@ namespace Muon {
 
     __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }
 
-    template <unsigned version = 2>
     __device__ __host__ MuonRawBank<version> raw_bank(const unsigned index) const
     {
       return MuonRawBank<version> {m_payload + m_raw_bank_offset[index], m_raw_bank_sizes[index]};
@@ -78,5 +78,5 @@ namespace Muon {
   };
 
   template<bool mep_layout, unsigned version = 2>
-  using RawEvent = std::conditional_t<mep_layout, MEP::RawEvent<MuonRawBank<version>>, MuonRawEvent>;
+  using RawEvent = std::conditional_t<mep_layout, MEP::RawEvent<MuonRawBank<version>>, MuonRawEvent<version>>;
 } // namespace Muon
