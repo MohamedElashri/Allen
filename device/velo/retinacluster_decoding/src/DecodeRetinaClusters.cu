@@ -25,23 +25,6 @@ __global__ void populate_module_pair_offsets_and_sizes(
   }
 }
 
-__global__ void populate_module_pair_offsets_and_sizes(
-  decode_retinaclusters::Parameters parameters,
-  const unsigned module_pair_cluster_num_size)
-{
-  constexpr unsigned step_size =
-    (Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module) / Velo::Constants::n_module_pairs;
-  auto offsets = parameters.dev_offsets_each_sensor_size;
-
-  for (unsigned element = threadIdx.x; element < module_pair_cluster_num_size; element += blockDim.x) {
-    const auto current_offset_index = element * step_size;
-    const auto next_offset_index = (element + 1) * step_size;
-
-    parameters.dev_offsets_module_pair_cluster[element + 1] = offsets[next_offset_index];
-    parameters.dev_module_pair_cluster_num[element] = offsets[next_offset_index] - offsets[current_offset_index];
-  }
-}
-
 __device__ void put_retinaclusters_into_container(
   Velo::Clusters velo_cluster_container,
   VeloGeometry const& g,
@@ -93,7 +76,6 @@ __global__ void decode_retinaclusters_kernel(
   if (threadIdx.x == 0 && threadIdx.y == 0) {
     parameters.dev_velo_clusters[event_number] = velo_cluster_container;
   }
-
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;

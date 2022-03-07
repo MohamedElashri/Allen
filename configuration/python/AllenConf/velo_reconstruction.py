@@ -21,7 +21,7 @@ def decode_velo(retina_decoding=True):
             data_provider_t,
             name="velo_retina_banks",
             bank_type="VPRetinaCluster")
-            
+
         calculate_number_of_retinaclusters_each_sensor = make_algorithm(
             calculate_number_of_retinaclusters_each_sensor_t,
             name="calculate_number_of_retinaclusters_each_sensor",

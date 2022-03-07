@@ -11,7 +11,7 @@
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
         #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster"]
- 
+
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]

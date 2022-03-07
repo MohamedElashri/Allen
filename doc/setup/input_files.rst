@@ -9,12 +9,16 @@ When running Allen standalone, MDF files are used as input. They contain the sub
 For various samples, MDF files and the corresponding geometry information have been produced and are available here:
 
   /eos/lhcb/wg/rta/WP6/Allen/mdf_input/
+  
+With lhcb/Allen!655, the default sequence uses Retina clusters for VELO tracking. MDF samples containing Retina clusters are available here:
+
+  /eos/lhcb/wg/rta/WP6/Allen/mdf_input/RetinaCluster_samples/
 
 The directory name corresponds to the TestFileDB key of the sample. Some of these files have also been copied to the GPU development server (see :ref:`where_to_develop_for_gpus`), because they are used in the nightly CI tests. These can be found here:
 
   /scratch/allen_data/mdf_input/
 
-If other inputs are required, follow these instructions: `Produce MDF files for standalone Allen`_.
+If other inputs are required, follow these instructions: `Produce MDF files for standalone Allen`_. The same instructions explain also how to add Retina clusters to existing (X)DIGI files.
 
 As Gaudi project, event loop steered by Moore (offline)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -40,5 +44,15 @@ If you would like to dump a large amount of events into MDF files, it is conveni
 
   ./Moore/run gaudirun.py Moore/Hlt/RecoConf/scripts/mdf_split_for_standalone_Allen.py
 
+How to add RetinaClusters to existing DIGI files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+To add RetinaClusters to a (X)DIGI file run the following command within Moore
+```
+./Moore/run gaudirun.py runLLAApp.py LLASequence.py
+```
+where [runLLAApp.py](https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/runLLAApp.py) and [LLASequence.py](https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/LLASequence.py) are option files available under `Hlt/RecoConf/options/` within the `add_veloclusters_to_digi` Moore branch.\
+Input (X)DIGI files, together with their DDDB and CondDB tags, should be specified within `runLLAApp.py`.\
+In the same option file an appropriate name for the output (X)DIGI file containing RetinaClusters should also be specified.\
+Starting from an (X)DIGI file containing RetinaClusters, the corresponding MDF file can be obtained with the [mdf_for_standalone_Allen](https://gitlab.cern.ch/lhcb/Moore/blob/master/Hlt/RecoConf/options/mdf_for_standalone_Allen.py) script (see instructions above).
 
