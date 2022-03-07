@@ -1,12 +1,12 @@
 Allen CI configuration
 ==========================
 
-The scripts to configure Allen's CI pipeline are located in `scripts/ci/config <https://gitlab.cern.ch/lhcb/Allen/-/tree/dovombru_documentation/scripts/ci/config>`_
+The scripts to configure Allen's CI pipeline are located in `scripts/ci/config <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/scripts/ci/config>`_
 Two pipelines are defined and used as follows: Every commit to a merge request triggers the "minimal" pipeline. Before merging a merge request, the "full pipeline" with a larger varietey of build options and data sets is triggered manually from the merge request page. 
 
 Adding new devices
 ^^^^^^^^^^^^^^^^^^^^^^^^
-1. Add an entry for the device to `devices.yaml <https://gitlab.cern.ch/lhcb/Allen/-/blob/dovombru_documentation/scripts/ci/config/devices.yaml>`_. Set `TARGET`, `DEVICE_ID`, and the `tag:` accordingly
+1. Add an entry for the device to `devices.yaml <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/scripts/ci/config/devices.yaml>`_. Set `TARGET`, `DEVICE_ID`, and the `tag:` accordingly
 
 2. Add a job entry to run in the minimal pipeline: e.g.
 

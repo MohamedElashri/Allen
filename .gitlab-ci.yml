@@ -105,6 +105,7 @@ docker_image:build:
   needs: []
 
 pages:
+  <<: *active_branches
   stage: docs
   image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
   tags:
@@ -116,7 +117,8 @@ pages:
     # use nightly build for python environment, needed for API reference of python selection functions
     # if today's nightly build does not exist, use yesterday's
     - |
-      if [ -d "/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today" ] ; then
+      nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/"$BINARY_TAG
+      if [ -d $nightly_installation_path ] ; then
         export DAY=Today
         echo "Using today's nightly"
       else
