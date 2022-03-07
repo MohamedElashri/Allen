@@ -47,8 +47,12 @@ struct Config {
   std::string mep_files;
   size_t n_slices = 1;
   size_t n_events = 10;
+  size_t eps = 0;
   bool run = false;
   std::string sequence;
+
+  std::unordered_map<EventID, unsigned> mdf_slices;
+  std::unordered_map<EventID, unsigned> mep_slices;
 };
 
 namespace {
@@ -56,9 +60,6 @@ namespace {
 
   std::shared_ptr<IInputProvider> mdf;
   IInputProvider* mep;
-
-  size_t slice_mdf = 0, slice_mep = 0;
-  size_t filled_mdf = 0, filled_mep = 0;
 
 #ifdef USE_BOOST_FILESYSTEM
   namespace fs = boost::filesystem;
@@ -113,8 +114,8 @@ IInputProvider* mep_provider(std::string json_file)
   auto provider = sloc->service<IService>("MEPProvider");
   if (!provider) return nullptr;
   auto provider_prop = provider.as<IProperty>();
-  sc &= provider_prop->setProperty("NSlices", "1").isSuccess();
-  sc &= provider_prop->setProperty("EventsPerSlice", std::to_string(s_config.n_events));
+  sc &= provider_prop->setProperty("NSlices", std::to_string(s_config.n_slices)).isSuccess();
+  sc &= provider_prop->setProperty("EventsPerSlice", std::to_string(s_config.eps));
   sc &= provider_prop->setProperty("EvtMax", std::to_string(s_config.n_events));
   sc &= provider_prop->setProperty("SplitByRun", "0");
   sc &= provider_prop->setProperty("Source", "\"Files\"");
@@ -149,7 +150,9 @@ int main(int argc, char* argv[])
              Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
                ["--mep"]("MEP files") |
              Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
-               ["--nevents"]("number of events");
+               ["--nevents"]("number of events") |
+             Opt(s_config.eps, string {"#events-per-slice"}) // bind variable to a new option, with a hint string
+               ["--eps"]("number of events per slice");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
@@ -162,6 +165,9 @@ int main(int argc, char* argv[])
   std::cout << "mdf_files = " << s_config.mdf_files << std::endl;
   std::cout << "mep_files = " << s_config.mep_files << std::endl;
   s_config.run = !s_config.mdf_files.empty();
+
+  if (s_config.eps == 0) s_config.eps = s_config.n_events;
+  s_config.n_slices = (s_config.n_events - 1) / s_config.eps + 1;
 
   logger::setVerbosity(4);
 
@@ -178,21 +184,17 @@ int main(int argc, char* argv[])
     auto json_file = write_json(bank_types);
 
     // Allocate providers and get slices
-    std::map<std::string, std::string> options = {{"s", "1"},
+    std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
                                                   {"n", std::to_string(s_config.n_events)},
                                                   {"mdf", s_config.mdf_files},
                                                   {"sequence", json_file.string()},
                                                   {"run-from-json", "1"},
-                                                  {"events-per-slice", std::to_string(s_config.n_events)},
+                                                  {"events-per-slice", std::to_string(s_config.eps)},
                                                   {"disable-run-changes", "1"}};
 
     mdf = Allen::make_provider(options);
-
-    bool good = false, timed_out = false, done = false;
-    std::any odin;
-    std::tie(good, done, timed_out, slice_mdf, filled_mdf, odin) = mdf->get_slice();
-    if (!good) {
-      std::cerr << "Failed to obtain MDF slice\n";
+    if (!mdf) {
+      std::cerr << "Failed to obtain MDFProvider\n";
       return 1;
     }
 
@@ -201,14 +203,47 @@ int main(int argc, char* argv[])
       std::cerr << "Failed to obtain MEPProvider\n";
       return 1;
     }
-    std::tie(good, done, timed_out, slice_mep, filled_mep, odin) = mep->get_slice();
-    if (!good) {
-      std::cerr << "Failed to obtain MEP slice\n";
-      return 1;
+
+    bool good = false, timed_out = false, done = false;
+    unsigned slice_id = 0, n_filled = 0;
+    uint runno = 0;
+
+    for (size_t s = 0; s < s_config.n_slices; ++s) {
+      std::any odin;
+      std::tie(good, done, timed_out, slice_id, n_filled, odin) = mdf->get_slice();
+      if (!good) {
+        std::cerr << "Failed to obtain MDF slice " << s << "\n";
+        return 1;
+      }
+
+      auto events_mdf = mdf->event_ids(slice_id);
+      auto first_id = events_mdf.front();
+      s_config.mdf_slices.emplace(std::move(first_id), slice_id);
+
+      std::tie(good, done, timed_out, slice_id, n_filled, odin) = mep->get_slice();
+      if (!good) {
+        std::cerr << "Failed to obtain MEP slice " << s << "\n";
+        return 1;
+      }
+
+      auto events_mep = mep->event_ids(slice_id);
+      first_id = events_mep.front();
+      s_config.mep_slices.emplace(std::move(first_id), slice_id);
     }
+
   }
 
-  return session.run();
+  auto r = session.run();
+
+  for (auto [id, slice_mdf] : s_config.mdf_slices) {
+    mdf->slice_free(slice_mdf);
+  }
+
+  for (auto [id, slice_mep] : s_config.mep_slices) {
+    mep->slice_free(slice_mep);
+  }
+
+  return r;
 }
 
 template<BankTypes BT>
@@ -485,28 +520,35 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
 // Main test case, multiple bank types are checked
 // VeloTag, UTTag, SciFiTag,
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag)
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag)
 {
   if (!s_config.run) return;
 
-  // Check that the number of events read matches
-  REQUIRE(filled_mep == filled_mdf);
+  for (auto [event_id, slice_mdf] : s_config.mdf_slices) {
 
-  auto events_mdf = mdf->event_ids(slice_mdf);
-  auto events_mep = mep->event_ids(slice_mdf);
+    auto it = s_config.mep_slices.find(event_id);
+    REQUIRE(it != s_config.mep_slices.end());
 
-  for (size_t i = 0; i < filled_mdf; ++i) {
-    auto [run_mdf, event_mdf] = events_mdf[i];
-    auto [run_mep, event_mep] = events_mep[i];
-    REQUIRE(run_mdf == run_mep);
-    REQUIRE(event_mdf == event_mep);
+    auto const slice_mep = it->second;
+
+    auto events_mdf = mdf->event_ids(slice_mdf);
+    auto events_mep = mep->event_ids(slice_mep);
+
+    for (size_t i = 0; i < events_mdf.size(); ++i) {
+      auto [run_mdf, event_mdf] = events_mdf[i];
+      auto [run_mep, event_mep] = events_mep[i];
+      REQUIRE(run_mdf == run_mep);
+      REQUIRE(event_mdf == event_mep);
+    }
+
+    auto mdf_banks = mdf->banks(TestType::BT, slice_mdf);
+    auto mep_banks = mep->banks(TestType::BT, slice_mep);
+
+    // Compare reported versions
+    REQUIRE(mep_banks.version == mdf_banks.version);
+
+    SECTION(std::string{"Checking "} + bank_name(TestType::BT) + " banks") {
+      check_banks<TestType::BT>(mep_banks, mdf_banks, s_config.eps);
+    }
   }
-
-  auto mep_banks = mep->banks(TestType::BT, slice_mep);
-  auto allen_banks = mdf->banks(TestType::BT, slice_mdf);
-
-  // Compare reported versions
-  REQUIRE(mep_banks.version == allen_banks.version);
-
-  SECTION("Checking banks") { check_banks<TestType::BT>(mep_banks, allen_banks, s_config.n_events); }
 }
