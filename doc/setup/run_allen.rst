@@ -15,7 +15,7 @@ A run of the Allen program with the help option `-h` will let you know the basic
 
     Usage: ./Allen
      -g, --geometry {folder containing detector configuration}=../input/detector_configuration/down/
-     --mdf {comma-separated list of MDF files to use as input}
+     --mdf {comma-separated list of MDF files to use as input OR single text file containing one MDF file per line}
      --mep {comma-separated list of MEP files to use as input}
      --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)
      --print-status {show status of buffer and socket}=0
@@ -59,6 +59,11 @@ Here are some examples for run options::
     # Run one stream with 5000 events and print all memory allocations
     ./Allen --sequence hlt1_pp_default -n 5000 -p 1 --mdf /path/to/mdf/input/file
 
+    # Run on all events in all files listed in file.lst; four streams
+    # with batches of 1000 events
+    find /some/directory/with/files -type f | sort > files.lst
+    ./Allen --sequence hlt1_pp_default -t 4 --events-per-slice 1000 --mdf /path/to/files.lst
+
 .. _run_allen_in_gaudi_moore_eventloop:
 As Gaudi project, event loop steered by Moore (offline)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -81,13 +86,13 @@ same way::
 To obtain a JSON file that contains all configurable parameters, the
 following can be used::
   ./Moore/run Allen --write-configuration 1
-  
+
 This will write a file `config.json` in the current working
 directory, which can be modified to rerun with a different set of cuts
 without rebuilding.
 
 How to study the HLT1 physics performance within Moore is described in :ref:`moore_performance_scripts`.
-  
+
 .. _run_allen_in_gaudi_allen_eventloop:
 As Gaudi project, event loop steered by Allen (data-taking)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -96,4 +101,3 @@ Use Gaudi to update non-event data such as alignment and configuration constants
 
   cd Allen
   ./build.${CMTCONFIG}/run bindings/Allen.py
-
