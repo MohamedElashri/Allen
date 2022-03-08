@@ -26,7 +26,6 @@ variables:
 
 stages:
   - check            # Ensures the CI environment is valid
-  - build docker
   - build
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software
@@ -90,23 +89,6 @@ check-formatting:
       - apply-formatting.patch
     when: on_failure
     expire_in: 1 week
-  needs: []
-
-
-docker_image:build:
-  stage: build docker
-  only:
-    refs:
-      - master
-      - web
-      - schedules
-  tags:
-    - docker-image-build
-  script: "echo 'Building Allen dev docker image"
-  variables:
-    TO: $CI_REGISTRY_IMAGE:latest
-    GIT_SUBMODULE_STRATEGY: recursive
-  allow_failure: true
   needs: []
 
 pages:
