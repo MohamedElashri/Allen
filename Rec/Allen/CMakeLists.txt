@@ -62,6 +62,7 @@ gaudi_add_module(AllenWrapper
                    LHCb::FTDetLib
                    LHCb::RecEvent
                    LHCb::MCEvent
+		   LHCb::RecEvent
                    Rec::PrKernel)
 
 target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
