@@ -1007,6 +1007,8 @@ loop_error:
               << output_handler->connection() << "\n";
   }
 
+  input_provider.reset();
+
   // Reset device
   Allen::device_reset();
 
