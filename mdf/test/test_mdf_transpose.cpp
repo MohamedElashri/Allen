@@ -207,9 +207,14 @@ int main(int argc, char* argv[])
   s_config.run = !mdf_file.empty();
 
   if (!mdf_file.empty()) {
-    auto const p = fs::path(mdf_file);
-    if (fs::is_regular_file(p) && mdf_file.rfind(".mdf") == mdf_file.size() - 4) {
-      s_config.mdf_files.push_back(p.string());
+    if (mdf_file.find("root://") == 0) {
+      s_config.mdf_files.push_back(mdf_file);
+    }
+    else {
+      auto const p = fs::path(mdf_file);
+      if (fs::is_regular_file(p) && p.extension() == ".mdf") {
+        s_config.mdf_files.push_back(p.string());
+      }
     }
   }
 
