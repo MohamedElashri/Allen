@@ -49,7 +49,7 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
   // Buffer for saving dec reports to the host.
   uint32_t* dec_reports = nullptr;
   size_t const dec_reports_size = max_number_of_events * (n_lines + 2);
-  size_t const dec_reports_size_bytes = dec_reports_size * sizeof(uint32_t); 
+  size_t const dec_reports_size_bytes = dec_reports_size * sizeof(uint32_t);
   Allen::malloc_host((void**) &dec_reports, dec_reports_size_bytes);
   ::memset(dec_reports, 0, dec_reports_size_bytes);
   host_dec_reports = {dec_reports, dec_reports_size};
@@ -62,12 +62,12 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
   // chosen as a reasonable safe value for the maximum average
   // SelReport size for all events.
   size_t const max_average_sel_report_size = 300;
-  size_t const sel_reports_size = max_number_of_events * max_average_sel_report_size; 
+  size_t const sel_reports_size = max_number_of_events * max_average_sel_report_size;
   size_t const sel_reports_size_bytes = sel_reports_size * sizeof(uint32_t);
   Allen::malloc_host((void**) &sel_reports, sel_reports_size_bytes);
   ::memset(sel_reports, 0, sel_reports_size_bytes);
   host_sel_reports = {sel_reports, sel_reports_size};
-  
+
   uint32_t* sel_report_offsets = nullptr;
   Allen::malloc_host((void**) &sel_report_offsets, (max_number_of_events + 1) * sizeof(uint32_t));
   ::memset(sel_report_offsets, 0, (max_number_of_events + 1) * sizeof(uint32_t));
