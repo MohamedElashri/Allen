@@ -35,13 +35,13 @@ namespace gather_selections {
     DEVICE_OUTPUT(dev_post_scale_hashes_t, uint32_t) dev_post_scale_hashes;
     DEVICE_OUTPUT(dev_lhcbid_containers_t, uint8_t) dev_lhcbid_containers;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_particle_containers_t, 
+      dev_particle_containers_t,
       DEPENDENCIES(dev_particle_containers_agg_t),
       Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_containers;
     HOST_OUTPUT(host_lhcbid_containers_t, uint8_t) host_lhcbid_containers;
     HOST_OUTPUT_WITH_DEPENDENCIES(
-      host_particle_containers_t, 
+      host_particle_containers_t,
       DEPENDENCIES(host_particle_containers_agg_t),
       Allen::Views::Physics::IMultiEventParticleContainer*)
     host_particle_containers;

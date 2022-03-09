@@ -29,7 +29,7 @@ namespace displaced_leptons_line {
     HOST_OUTPUT(host_particle_container_ptr_t, Allen::Views::Physics::IMultiEventParticleContainer*)
     host_particle_container_ptr;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_particle_container_ptr_t, 
+      dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
       Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_container_ptr;
