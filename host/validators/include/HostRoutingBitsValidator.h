@@ -5,6 +5,7 @@
 
 #include "BackendCommon.h"
 #include "AlgorithmTypes.cuh"
+#include "RoutingBitsDefinition.h"
 
 namespace host_routingbits_validator {
   struct Parameters {
@@ -13,6 +14,11 @@ namespace host_routingbits_validator {
     HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_INPUT(host_dec_reports_t, unsigned) host_dec_reports;
     HOST_INPUT(host_routingbits_t, unsigned) host_routingbits;
+    PROPERTY(
+      routingbit_map_t,
+      "routingbit_map",
+      "mapping of expressions to routing bits",
+      std::map<uint32_t, std::string>);
   };
 
   struct host_routingbits_validator_t : public HostAlgorithm, Parameters {
@@ -29,5 +35,8 @@ namespace host_routingbits_validator {
       const Constants&,
       HostBuffers&,
       const Allen::Context&) const;
+
+  private:
+    Property<routingbit_map_t> m_routingbit_map {this, RoutingBitsDefinition::default_routingbit_map};
   };
 } // namespace host_routingbits_validator

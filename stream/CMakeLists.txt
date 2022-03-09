@@ -23,7 +23,7 @@ target_link_libraries(Stream
     PV_beamline
     HostClustering
     HostPrefixSum
-    HostRoutingBitsConfiguration
+    HostRoutingBits
     UT
     Kalman
     VertexFitter
