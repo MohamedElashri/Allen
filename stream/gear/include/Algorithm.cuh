@@ -12,6 +12,7 @@
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
+#include "nlohmann/json.hpp"
 #include <any>
 
 namespace {
@@ -86,8 +87,8 @@ namespace Allen {
         *invoke)(void const*, std::any&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&) =
         nullptr;
       void (*init)(void*) = nullptr;
-      void (*set_properties)(void*, const std::map<std::string, std::string>&) = nullptr;
-      std::map<std::string, std::string> (*get_properties)(void const*) = nullptr;
+      void (*set_properties)(void*, const std::map<std::string, nlohmann::json>&) = nullptr;
+      std::map<std::string, nlohmann::json> (*get_properties)(void const*) = nullptr;
       std::string (*scope)() = nullptr;
       void (*dtor)(void*) = nullptr;
       void (*run_preconditions)(
@@ -160,7 +161,7 @@ namespace Allen {
             _unused(p);
           }
         },
-        [](void* p, const std::map<std::string, std::string>& algo_config) {
+        [](void* p, const std::map<std::string, nlohmann::json>& algo_config) {
           static_cast<ALGORITHM*>(p)->set_properties(algo_config);
         },
         [](void const* p) { return static_cast<ALGORITHM const*>(p)->get_properties(); },
@@ -245,11 +246,11 @@ namespace Allen {
       (table.invoke)(instance, arg_ref_manager, runtime_options, constants, host_buffers, context);
     }
     void init() { (table.init)(instance); }
-    void set_properties(const std::map<std::string, std::string>& algo_config)
+    void set_properties(const std::map<std::string, nlohmann::json>& algo_config)
     {
       (table.set_properties)(instance, algo_config);
     }
-    std::map<std::string, std::string> get_properties() const { return (table.get_properties)(instance); }
+    std::map<std::string, nlohmann::json> get_properties() const { return (table.get_properties)(instance); }
     std::string scope() const { return (table.scope)(); }
     void run_preconditions(
       std::any& arg_ref_manager,
@@ -307,7 +308,7 @@ namespace Allen {
     Algorithm(Algorithm&&) = delete;
     Algorithm& operator=(Algorithm&&) = delete;
 
-    void set_properties(const std::map<std::string, std::string>& algo_config) override
+    void set_properties(const std::map<std::string, nlohmann::json>& algo_config) override
     {
       for (auto kv : algo_config) {
         auto it = m_properties.find(kv.first);
@@ -318,7 +319,12 @@ namespace Allen {
           throw std::runtime_error {error_message};
         }
         else {
-          it->second->from_string(kv.second);
+          try {
+            it->second->from_json(kv.second);
+          } catch (nlohmann::detail::type_error& e) {
+            std::cerr << "json type error processing property " << kv.first << " of algorithm " << name() << "\n";
+            throw e;
+          }
         }
       }
     }
@@ -344,11 +350,11 @@ namespace Allen {
       return prop->get_value();
     }
 
-    std::map<std::string, std::string> get_properties() const override
+    std::map<std::string, nlohmann::json> get_properties() const override
     {
-      std::map<std::string, std::string> properties;
+      std::map<std::string, nlohmann::json> properties;
       for (const auto& kv : m_properties) {
-        properties.emplace(kv.first, kv.second->to_string());
+        properties.emplace(kv.first, kv.second->to_json());
       }
       return properties;
     }

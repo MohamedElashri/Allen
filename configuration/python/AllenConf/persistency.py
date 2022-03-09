@@ -41,7 +41,7 @@ def make_gather_selections(lines):
 
 
 @configurable
-def make_dec_reporter(lines, TCK="0"):
+def make_dec_reporter(lines, TCK=0):
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 

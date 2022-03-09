@@ -154,19 +154,22 @@ private:
 
 struct ConfigurationReader {
   ConfigurationReader(const std::string& file_name);
-  ConfigurationReader(const std::map<std::string, std::map<std::string, std::string>>& params) : m_params(params) {}
+  ConfigurationReader(const std::map<std::string, std::map<std::string, nlohmann::json>>& params) : m_params(params) {}
 
-  std::map<std::string, std::string> params(std::string key) const
+  std::map<std::string, nlohmann::json> params(std::string key) const
   {
-    return (m_params.count(key) > 0 ? m_params.at(key) : std::map<std::string, std::string>());
+    return (m_params.count(key) > 0 ? m_params.at(key) : std::map<std::string, nlohmann::json>());
   }
-  std::map<std::string, std::map<std::string, std::string>> params() const { return m_params; }
+  std::map<std::string, std::map<std::string, nlohmann::json>> params() const { return m_params; }
   ConfiguredSequence configured_sequence() const { return m_configured_sequence; }
 
   void save(std::string file_name);
 
+  std::map<std::string, nlohmann::json> get_sequence() const;
+
 private:
-  std::map<std::string, std::map<std::string, std::string>> m_params;
+  std::map<std::string, std::map<std::string, nlohmann::json>> m_params;
+  std::map<std::string, nlohmann::json> m_sequence;
   ConfiguredSequence m_configured_sequence;
 };
 

@@ -186,21 +186,26 @@ ConfigurationReader::ConfigurationReader(const std::string& file_name)
   for (auto& el : j.items()) {
     std::string component = el.key();
     if (component == "sequence") {
+      m_sequence = {};
       for (auto& el2 : el.value().items()) {
         if (el2.key() == "configured_algorithms") {
+          m_sequence[el2.key()] = el2.value();
           m_configured_sequence.configured_algorithms = ParsedSequence::to_configured<ConfiguredAlgorithm>(
             el2.value().get<ParsedSequence::configured_algorithm_parse_t>());
         }
         else if (el2.key() == "configured_arguments") {
+          m_sequence[el2.key()] = el2.value();
           m_configured_sequence.configured_arguments = ParsedSequence::to_configured<ConfiguredArgument>(
             el2.value().get<ParsedSequence::configured_argument_parse_t>());
         }
         else if (el2.key() == "configured_sequence_arguments") {
+          m_sequence[el2.key()] = el2.value();
           m_configured_sequence.configured_algorithm_arguments =
             ParsedSequence::to_configured<ConfiguredAlgorithmArguments>(
               el2.value().get<ParsedSequence::configured_algorithm_argument_parse_t>());
         }
         else if (el2.key() == "argument_dependencies") {
+          m_sequence[el2.key()] = el2.value();
           m_configured_sequence.argument_dependencies =
             el2.value().get<ParsedSequence::argument_dependencies_parse_t>();
         }
@@ -209,13 +214,7 @@ ConfigurationReader::ConfigurationReader(const std::string& file_name)
     else {
       for (auto& el2 : el.value().items()) {
         std::string property = el2.key();
-        std::string value = "";
-        if (el2.value().is_string()) {
-          value = el2.value().get<std::string>();
-        }
-        else
-          throw StrException("Configuration JSON file " + file_name + " contains non-string parameter values.");
-        m_params[component][property] = value;
+        m_params[component][property] = el2.value();
       }
     }
   }
@@ -229,10 +228,14 @@ ConfigurationReader::ConfigurationReader(const std::string& file_name)
   }
 }
 
+std::map<std::string, nlohmann::json> ConfigurationReader::get_sequence() const {
+  return m_sequence;
+}
+
 void ConfigurationReader::save(std::string file_name)
 {
   nlohmann::json j(m_params);
   std::ofstream o(file_name);
-  o << std::setw(4) << j;
+  o << j.dump(4);
   o.close();
 }

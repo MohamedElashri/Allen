@@ -10,12 +10,12 @@ from AllenCore.generator import make_algorithm
 
 def make_beam_line(pre_scaler_hash_string="beam_line_pre",
                    post_scaler_hash_string="beam_line_post",
-                   beam_crossing_type="0"):
+                   beam_crossing_type=0):
     name_map = {
-        "0": "Hlt1NoBeam",
-        "1": "Hlt1BeamOne",
-        "2": "Hlt1BeamTwo",
-        "3": "Hlt1BothBeams",
+        0: "Hlt1NoBeam",
+        1: "Hlt1BeamOne",
+        2: "Hlt1BeamTwo",
+        3: "Hlt1BothBeams",
     }
     number_of_events = initialize_number_of_events()
     odin = decode_odin()

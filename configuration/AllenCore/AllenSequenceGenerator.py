@@ -31,7 +31,7 @@ def generate_json_configuration(algorithms, filename):
         if len(algorithm.properties):
             sequence_json[algorithm.name] = {}
             for k, v in algorithm.properties.items():
-                sequence_json[algorithm.name][str(k)] = str(v)
+                sequence_json[algorithm.name][str(k)] = v
 
     # Generate list of configured algorithms
     configured_algorithms = [[f"{algorithm.type.namespace()}::{algorithm.typename}", algorithm.name] for algorithm in algorithms]

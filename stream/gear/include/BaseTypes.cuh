@@ -5,6 +5,7 @@
 
 #include <map>
 #include <string>
+#include "nlohmann/json.hpp"
 
 namespace Allen {
   /**
@@ -14,7 +15,9 @@ namespace Allen {
    */
   class BaseProperty {
   public:
-    virtual bool from_string(const std::string& value) = 0;
+    virtual void from_json(const nlohmann::json& value) = 0;
+
+    virtual nlohmann::json to_json() const = 0;
 
     virtual std::string to_string() const = 0;
 
@@ -28,9 +31,9 @@ namespace Allen {
    *
    */
   struct BaseAlgorithm {
-    virtual void set_properties(const std::map<std::string, std::string>& algo_config) = 0;
+    virtual void set_properties(const std::map<std::string, nlohmann::json>& algo_config) = 0;
 
-    virtual std::map<std::string, std::string> get_properties() const = 0;
+    virtual std::map<std::string, nlohmann::json> get_properties() const = 0;
 
     virtual bool register_property(const std::string& name, BaseProperty* property) = 0;
 

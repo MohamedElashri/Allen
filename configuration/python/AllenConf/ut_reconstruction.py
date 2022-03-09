@@ -100,18 +100,18 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
             "dev_velo_kalman_beamline_states_view"],
         dev_accepted_velo_tracks_t=dev_accepted_velo_tracks_t)
 
-    ut_search_windows_min_momentum = "1250.0"
-    ut_search_windows_min_pt = "275.0"
-    compass_ut_max_considered_before_found = "6"
-    compass_ut_min_momentum_final = "1500.0"
-    compass_ut_min_pt_final = "400.0"
+    ut_search_windows_min_momentum = 1250.0
+    ut_search_windows_min_pt = 275.0
+    compass_ut_max_considered_before_found = 6
+    compass_ut_min_momentum_final = 1500.0
+    compass_ut_min_pt_final = 400.0
 
     if not restricted:
-        ut_search_windows_min_momentum = "1250.0"
-        ut_search_windows_min_pt = "200.0"
-        compass_ut_max_considered_before_found = "6"
-        compass_ut_min_momentum_final = "1500.0"
-        compass_ut_min_pt_final = "250.0"
+        ut_search_windows_min_momentum = 1250.0
+        ut_search_windows_min_pt = 200.0
+        compass_ut_max_considered_before_found = 6
+        compass_ut_min_momentum_final = 1500.0
+        compass_ut_min_pt_final = 250.0
 
     ut_search_windows = make_algorithm(
         ut_search_windows_t,

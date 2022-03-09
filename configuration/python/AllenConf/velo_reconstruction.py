@@ -166,6 +166,7 @@ def make_velo_tracks(decoded_velo):
         dev_module_cluster_num_t=dev_module_cluster_num,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_velo_clusters_t=dev_velo_clusters,
+        max_skipped_modules=1,
     )
 
     prefix_sum_offsets_velo_tracks = make_algorithm(

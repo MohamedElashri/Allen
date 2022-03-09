@@ -20,75 +20,6 @@
 
 namespace Allen {
   namespace Configuration {
-    namespace Detail {
-      std::regex const array_expr {"\\[(?:\\s*(\\d+)\\s*,?)+\\]"};
-      std::regex const digit_expr {"(\\d+)"};
-    } // namespace Detail
-
-    template<typename T>
-    struct ConvertorFromString {
-      static auto convert(const std::string& s)
-      {
-        if constexpr (std::is_same_v<T, std::string>) {
-          return s;
-        }
-        else if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
-          return atof(s.c_str());
-        }
-        else if constexpr (std::is_same_v<T, int8_t> || std::is_same_v<T, int16_t> || std::is_same_v<T, int32_t>) {
-          return strtol(s.c_str(), 0, 0);
-        }
-        else if constexpr (std::is_same_v<T, int64_t>) {
-          return strtoll(s.c_str(), 0, 0);
-        }
-        else if constexpr (std::is_same_v<T, uint8_t> || std::is_same_v<T, uint16_t> || std::is_same_v<T, uint32_t>) {
-          return strtoul(s.c_str(), 0, 0);
-        }
-        else if constexpr (std::is_same_v<T, uint64_t>) {
-          return strtoull(s.c_str(), 0, 0);
-        }
-        if constexpr (std::is_same_v<T, bool>) {
-          return atoi(s.c_str());
-        }
-        if constexpr (std::is_same_v<T, char>) {
-          return s.at(0);
-        }
-        else if constexpr (std::is_same_v<T, BankTypes>) {
-          auto bt = bank_type(s);
-          if (bt == BankTypes::Unknown) {
-            throw StrException {"Failed to parse " + s + " into a BankType."};
-          }
-          return bt;
-        }
-        else {
-          throw StrException {"ConvertorFromString instantiated with unsupported type."};
-        }
-      }
-    };
-
-    template<typename T, std::size_t N>
-    struct ConvertorFromString<std::array<T, N>> {
-      static std::array<T, N> convert(const std::string& s)
-      {
-        std::array<T, N> output;
-        std::smatch matches;
-        auto r = std::regex_match(s, matches, Detail::array_expr);
-        if (!r) {
-          throw std::exception {};
-        }
-        auto digits_begin = std::sregex_iterator(s.begin(), s.end(), Detail::digit_expr);
-        auto digits_end = std::sregex_iterator();
-        if (std::distance(digits_begin, digits_end) != N) {
-          throw StrException {"Failed to parse from string, array size mismatch."};
-        }
-        auto i = digits_begin;
-        for (std::size_t idx = 0; idx < N; ++idx, ++i) {
-          output[idx] = ConvertorFromString<T>::convert(i->str());
-        }
-        return output;
-      }
-    };
-
     template<typename T>
     struct ConvertorToString {
       static std::string convert(const T& holder)
@@ -106,7 +37,7 @@ namespace Allen {
 
     template<typename T, std::size_t N>
     struct ConvertorToString<std::array<T, N>> {
-      static std::string convert(const std::array<T, N> holder)
+      static std::string convert(const std::array<T, N>& holder)
       {
         std::stringstream s;
         s << "[";
@@ -121,19 +52,23 @@ namespace Allen {
       }
     };
 
-    // General template
-    template<typename T>
-    bool from_string(T& holder, const std::string& value)
-    {
-      try {
-        holder = ConvertorFromString<typename T::t>::convert(value);
-      } catch (const std::exception&) {
-        std::cerr << "Could not parse JSON string from value \"" << value << "\"\n";
-        return false;
+    template<typename T, typename U>
+    struct ConvertorToString<std::map<T, U>> {
+      static std::string convert(const std::map<T, U>& holder) {
+        std::stringstream s;
+        s << "{";
+        unsigned i = 0;
+        for (const auto& elem : holder) {
+          s << holder.first << ": " << holder.second;
+          if (i != holder.size() - 1) {
+            s << ", ";
+          }
+          ++i;
+        }
+        s << "}";
+        return s.str();
       }
-
-      return true;
-    }
+    };
   } // namespace Configuration
 
   /**
@@ -155,12 +90,13 @@ namespace Allen {
 
     V get_value() const { return m_cached_value; }
 
-    virtual bool from_string(const std::string& value) override
+    void from_json(const nlohmann::json& value) override
     {
-      V holder;
-      if (!Configuration::from_string<V>(holder, value)) return false;
-      set_value(holder);
-      return true;
+      set_value(value);
+    }
+
+    nlohmann::json to_json() const override {
+      return m_cached_value.get();
     }
 
     std::string to_string() const override
@@ -176,7 +112,7 @@ namespace Allen {
       return s.str();
     }
 
-    void set_value(V value) { m_cached_value = value; }
+    void set_value(typename V::t value) { m_cached_value = V{value}; }
 
   private:
     BaseAlgorithm* m_algo = nullptr;
