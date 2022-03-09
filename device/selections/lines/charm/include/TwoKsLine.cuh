@@ -40,8 +40,6 @@ namespace two_ks_line {
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
-    HOST_OUTPUT(host_particle_container_ptr_t, Allen::Views::Physics::IMultiEventParticleContainer*)
-    host_particle_container_ptr;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),

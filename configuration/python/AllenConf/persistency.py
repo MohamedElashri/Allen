@@ -34,9 +34,6 @@ def make_gather_selections(lines):
         host_lhcbid_containers_agg_t=[
             line.host_lhcbid_container_t for line in lines
         ],
-        host_particle_containers_agg_t=[
-            line.host_particle_container_ptr_t for line in lines
-        ],
         dev_particle_containers_agg_t=[
             line.dev_particle_container_ptr_t for line in lines
         ],

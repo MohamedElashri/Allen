@@ -20,8 +20,6 @@ namespace gather_selections {
     HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
     HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
     HOST_INPUT_AGGREGATE(host_lhcbid_containers_agg_t, uint8_t) host_lhcbid_containers_agg;
-    HOST_INPUT_AGGREGATE(host_particle_containers_agg_t, Allen::Views::Physics::IMultiEventParticleContainer*)
-    host_particle_containers_agg;
     DEVICE_INPUT_AGGREGATE(dev_particle_containers_agg_t, Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_containers_agg;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
@@ -40,11 +38,6 @@ namespace gather_selections {
       Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_containers;
     HOST_OUTPUT(host_lhcbid_containers_t, uint8_t) host_lhcbid_containers;
-    HOST_OUTPUT_WITH_DEPENDENCIES(
-      host_particle_containers_t,
-      DEPENDENCIES(host_particle_containers_agg_t),
-      Allen::Views::Physics::IMultiEventParticleContainer*)
-    host_particle_containers;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
     PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string);
   };
