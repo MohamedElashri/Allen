@@ -72,7 +72,6 @@ rate_validator validation:
 Hlt1KsToPiPi:                 43/  1000, ( 1290.00 +/-   192.45) kHz
 Hlt1TrackMVA:                259/  1000, ( 7770.00 +/-   415.60) kHz
 Hlt1TwoTrackMVA:             470/  1000, (14100.00 +/-   473.49) kHz
-Hlt1TwoTrackCatBoost:        635/  1000, (19050.00 +/-   456.72) kHz
 Hlt1TwoTrackKs:                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuon:          1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowPtMuon:               136/  1000, ( 4080.00 +/-   325.20) kHz
@@ -108,7 +107,6 @@ selreport_validator validation:
 Hlt1KsToPiPi:                 43          46
 Hlt1TrackMVA:                259         393
 Hlt1TwoTrackMVA:             470        1485
-Hlt1TwoTrackCatBoost:        635        3288
 Hlt1TwoTrackKs:                3           3
 Hlt1SingleHighPtMuon:          1           1
 Hlt1LowPtMuon:               136         158
@@ -137,9 +135,9 @@ Hlt1Passthrough:            1000           0
 Hlt1RICH1Alignment:            7           8
 Hlt1RICH2Alignment:            1           1
 
-Total decisions: 3791
-Total tracks:    3356
-Total SVs:       3585
-Total hits:      81985
-Total stdinfo:   44979
+Total decisions: 3156
+Total tracks:    2119
+Total SVs:       1661
+Total hits:      51741
+Total stdinfo:   26752
 
