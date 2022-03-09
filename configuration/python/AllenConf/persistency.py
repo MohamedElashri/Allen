@@ -4,7 +4,6 @@
 from AllenConf.algorithms import gather_selections_t, dec_reporter_t, global_decision_t
 from AllenConf.algorithms import host_prefix_sum_t, make_selrep_t
 from AllenConf.algorithms import make_selected_object_lists_t, make_subbanks_t
-from AllenConf.algorithms import particle_container_life_support_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
@@ -189,25 +188,10 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_rb_substr_t=make_subbanks.dev_rb_substr_t,
         dev_rb_stdinfo_t=make_subbanks.dev_rb_stdinfo_t)
 
-    basic_particle_life_support = make_algorithm(
-        particle_container_life_support_t,
-        name="basic_particle_life_support",
-        dev_particle_container_ptr_t=forward_tracks[
-            "dev_multi_event_basic_particles_ptr"],
-        dev_particle_container_user_t=make_subbanks.dev_rb_hits_t)
-
-    composite_particle_life_support = make_algorithm(
-        particle_container_life_support_t,
-        name="composite_particle_life_support",
-        dev_particle_container_ptr_t=secondary_vertices[
-            "dev_multi_event_composites_ptr"],
-        dev_particle_container_user_t=make_subbanks.dev_rb_hits_t)
-
     return {
         "algorithms": [
             make_selected_object_lists,
             make_subbanks,
-            # basic_particle_life_support, composite_particle_life_support,
             make_selreps
         ],
         "dev_sel_reports":
