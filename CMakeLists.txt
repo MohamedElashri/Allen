@@ -166,14 +166,6 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.18.0" OR ${CMAKE_VERSION} VERSION_EQUAL "
   cmake_policy(SET CMP0104 OLD)
 endif()
 
-# List of all expected submodules
-set(EXPECTED_SUBMODULES umesimd)
-foreach(SUBMODULE ${EXPECTED_SUBMODULES})
-  if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/${SUBMODULE}/CMakeLists.txt")
-    message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! Please update submodules and try again. You may need to run `git submodule update --init --recursive`.")
-  endif()
-endforeach()
-
 # Detect CUDA architecture
 if(TARGET_DEVICE STREQUAL "CUDA")
   if (NOT CMAKE_CUDA_COMPILER)

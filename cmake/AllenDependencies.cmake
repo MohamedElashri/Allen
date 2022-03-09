@@ -105,6 +105,8 @@ find_package(cppgsl REQUIRED)
 # std::filesytem detection
 find_package(Filesystem REQUIRED)
 
+find_package(umesimd REQUIRED)
+
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # We need a Python 3 interpreter
   find_package(Python 3 REQUIRED Interpreter)
