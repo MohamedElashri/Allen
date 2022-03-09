@@ -12,15 +12,9 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   list(APPEND backend_sources src/HIPBackend.cpp)
 endif()
 
-# Vectorization interface library
-add_library(Vectorization INTERFACE)
-target_include_directories(Vectorization INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external>)
-install(TARGETS Vectorization EXPORT Allen)
-
-
 # Backend library
 allen_add_host_library(Backend STATIC ${backend_sources})
-target_link_libraries(Backend PUBLIC Vectorization Gear AllenCommon)
+target_link_libraries(Backend PUBLIC Gear AllenCommon umesimd::umesimd)
 target_link_libraries(Backend PRIVATE HostCommon)
 target_include_directories(Backend PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
