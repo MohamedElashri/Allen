@@ -10,6 +10,7 @@
 #include "ODINBank.cuh"
 #include "LHCbIDContainer.cuh"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \
@@ -220,8 +221,14 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   __syncthreads();
 
   if (threadIdx.x == 0 && event_decision) {
-    const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
-    parameters.dev_selected_events[index] = mask_t {event_number};
+    if (event_decision) {
+      const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
+      parameters.dev_selected_events[index] = mask_t {event_number};
+    }
+    if (blockIdx.x == 0 && Derived::has_particle_container) {
+      const auto particle_container_ptr = static_cast<const Allen::Views::Physics::IMultiEventParticleContainer*>(&parameters.dev_particle_container[0]);
+      parameters.dev_particle_container_ptr[0] = const_cast<Allen::Views::Physics::IMultiEventParticleContainer*>(particle_container_ptr);
+    }
   }
 }
 
@@ -325,8 +332,6 @@ void Line<Derived, Parameters>::operator()(
   if constexpr (Derived::has_particle_container) {
     data<typename Parameters::host_particle_container_ptr_t>(arguments)[0] =
       data<typename Parameters::dev_particle_container_t>(arguments);
-    // data<typename Parameters::dev_particle_container_ptr_t>(arguments)[0] =
-    //   data<typename Parameters::dev_particle_container_t>(arguments);
   }
 
   const auto* derived_instance = static_cast<const Derived*>(this);

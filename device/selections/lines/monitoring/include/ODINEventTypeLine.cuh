@@ -27,6 +27,8 @@ namespace odin_event_type_line {
     host_particle_container_ptr;
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_container_ptr;
+    DEVICE_OUTPUT(dev_particle_container_t, Allen::Views::Physics::IMultiEventParticleContainer)
+    dev_particle_container;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);

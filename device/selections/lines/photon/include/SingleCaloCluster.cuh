@@ -33,6 +33,8 @@ namespace single_calo_cluster_line {
     host_particle_container_ptr;
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_container_ptr;
+    DEVICE_OUTPUT(dev_particle_container_t, Allen::Views::Physics::IMultiEventParticleContainer)
+    dev_particle_container;
 
     // monitoring
     DEVICE_OUTPUT(dev_clusters_x_t, float) dev_clusters_x;
