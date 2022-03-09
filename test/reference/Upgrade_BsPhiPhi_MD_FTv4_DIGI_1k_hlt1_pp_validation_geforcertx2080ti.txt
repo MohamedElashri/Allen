@@ -72,7 +72,6 @@ rate_validator validation:
 Hlt1KsToPiPi:                 26/  1000, (  780.00 +/-   150.97) kHz
 Hlt1TrackMVA:                208/  1000, ( 6240.00 +/-   385.05) kHz
 Hlt1TwoTrackMVA:             421/  1000, (12630.00 +/-   468.38) kHz
-Hlt1TwoTrackCatBoost:        547/  1000, (16410.00 +/-   472.24) kHz
 Hlt1TwoTrackKs:                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuon:          2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowPtMuon:               103/  1000, ( 3090.00 +/-   288.36) kHz
@@ -108,7 +107,6 @@ selreport_validator validation:
 Hlt1KsToPiPi:                 26          27
 Hlt1TrackMVA:                208         322
 Hlt1TwoTrackMVA:             421        1177
-Hlt1TwoTrackCatBoost:        547        2380
 Hlt1TwoTrackKs:                3           3
 Hlt1SingleHighPtMuon:          2           2
 Hlt1LowPtMuon:               103         117
