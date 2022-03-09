@@ -54,7 +54,8 @@ namespace Allen {
 
     template<typename T, typename U>
     struct ConvertorToString<std::map<T, U>> {
-      static std::string convert(const std::map<T, U>& holder) {
+      static std::string convert(const std::map<T, U>& holder)
+      {
         std::stringstream s;
         s << "{";
         unsigned i = 0;
@@ -90,14 +91,9 @@ namespace Allen {
 
     V get_value() const { return m_cached_value; }
 
-    void from_json(const nlohmann::json& value) override
-    {
-      set_value(value);
-    }
+    void from_json(const nlohmann::json& value) override { set_value(value); }
 
-    nlohmann::json to_json() const override {
-      return m_cached_value.get();
-    }
+    nlohmann::json to_json() const override { return m_cached_value.get(); }
 
     std::string to_string() const override
     {
@@ -112,7 +108,7 @@ namespace Allen {
       return s.str();
     }
 
-    void set_value(typename V::t value) { m_cached_value = V{value}; }
+    void set_value(typename V::t value) { m_cached_value = V {value}; }
 
   private:
     BaseAlgorithm* m_algo = nullptr;

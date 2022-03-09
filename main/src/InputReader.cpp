@@ -228,9 +228,7 @@ ConfigurationReader::ConfigurationReader(const std::string& file_name)
   }
 }
 
-std::map<std::string, nlohmann::json> ConfigurationReader::get_sequence() const {
-  return m_sequence;
-}
+std::map<std::string, nlohmann::json> ConfigurationReader::get_sequence() const { return m_sequence; }
 
 void ConfigurationReader::save(std::string file_name)
 {
