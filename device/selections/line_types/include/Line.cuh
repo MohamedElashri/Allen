@@ -226,8 +226,10 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
       parameters.dev_selected_events[index] = mask_t {event_number};
     }
     if (blockIdx.x == 0 && Derived::has_particle_container) {
-      const auto particle_container_ptr = static_cast<const Allen::Views::Physics::IMultiEventParticleContainer*>(&parameters.dev_particle_container[0]);
-      parameters.dev_particle_container_ptr[0] = const_cast<Allen::Views::Physics::IMultiEventParticleContainer*>(particle_container_ptr);
+      const auto particle_container_ptr =
+        static_cast<const Allen::Views::Physics::IMultiEventParticleContainer*>(&parameters.dev_particle_container[0]);
+      parameters.dev_particle_container_ptr[0] =
+        const_cast<Allen::Views::Physics::IMultiEventParticleContainer*>(particle_container_ptr);
     }
   }
 }
