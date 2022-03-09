@@ -189,13 +189,8 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_rb_stdinfo_t=make_subbanks.dev_rb_stdinfo_t)
 
     return {
-        "algorithms": [
-            make_selected_object_lists,
-            make_subbanks,
-            make_selreps
-        ],
-        "dev_sel_reports":
-        make_selreps.dev_sel_reports_t,
-        "dev_selrep_offsets":
-        prefix_sum_selrep_size.dev_output_buffer_t
+        "algorithms":
+        [make_selected_object_lists, make_subbanks, make_selreps],
+        "dev_sel_reports": make_selreps.dev_sel_reports_t,
+        "dev_selrep_offsets": prefix_sum_selrep_size.dev_output_buffer_t
     }

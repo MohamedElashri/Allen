@@ -25,7 +25,7 @@ namespace d2pipi_line {
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_particle_container_ptr_t, 
+      dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
       Allen::Views::Physics::IMultiEventParticleContainer*)
     dev_particle_container_ptr;
