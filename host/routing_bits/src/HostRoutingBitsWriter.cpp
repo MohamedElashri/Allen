@@ -4,6 +4,7 @@
 #include "HostRoutingBitsWriter.h"
 #include "ProgramOptions.h"
 #include "HltDecReport.cuh"
+#include "boost/regex.hpp"
 
 INSTANTIATE_ALGORITHM(host_routingbits_writer::host_routingbits_writer_t)
 
@@ -55,22 +56,26 @@ void host_routingbits_writer::host_routingbits_conf_impl(
     unsigned const* dec_reports = host_dec_reports + (2 + host_number_of_active_lines) * event;
     for (auto const& [bit, expr] : routingbit_map) {
       int result = 0;
+      boost::regex rb_regex(expr);
 
       for (unsigned line_index = 0; line_index < host_number_of_active_lines; line_index++) {
         HltDecReport dec_report;
         dec_report.setDecReport(dec_reports[2 + line_index]);
-        if (!dec_report.getDecision()) continue;
 
         auto line_name = line_names[line_index];
 
-        if (expr.find(line_name) == std::string::npos)
+        if (!dec_report.getDecision() || !boost::regex_match(line_name, rb_regex))
+          // if (expr.find(line_name) == std::string::npos)
           continue; // only works with OR logic so far. TODO: implement AND logic / * logic
         result = 1;
+        debug_cout << "line " << line_name << " fired, setting " << bit << " bit " << std::endl;
       }
       int word = bit / 32;
       if (result) bits[word] |= (0x01UL << (bit - 32 * word));
     }
-    debug_cout << " HostRoutingBits: Event n. " << event << ", routing bits: " << bits[0] << "   " << bits[1] << "   "
-               << bits[2] << "   " << bits[3] << std::endl;
+    if (logger::verbosity() >= logger::debug) {
+      debug_cout << " HostRoutingBits: Event n. " << event << ", routing bits: " << bits[0] << "   " << bits[1] << "   "
+                 << bits[2] << "   " << bits[3] << std::endl;
+    }
   }
 }

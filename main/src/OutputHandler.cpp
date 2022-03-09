@@ -194,7 +194,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         1 << 13,
         {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
          static_cast<events_size>(routing_bits_size)},
-        buffer_span.data() + header_size + event_sizes[i] + bank_header_size + dec_report_size);
+        event_span.data() + header_size + event_sizes[i] + bank_header_size + dec_report_size);
 
       // add the sel report
       if (sel_report_size > 0) {

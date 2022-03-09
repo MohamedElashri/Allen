@@ -9,49 +9,51 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
-rb_map = {
-    33:
-    "Hlt1ODINLumi",
-    # RB 35 Beam-Gas for Velo alignment
-    35:
-    "Hlt1NoBeam|Hlt1BeamOne|Hlt1BeamTwo|Hlt1BothBeams",
-    # Hlt1ODINBeamGas? RB 36 EXPRESS stream (bypasses Hlt2)
-    36:
-    "HLT_PASS_RE('Hlt1(Velo.*|BeamGas.*VeloOpen)Decision')",
-    #RB 37 Beam-Beam collisions for Velo alignment
-    37:
-    "Hlt1TrackMVATight|Hlt1TwoTrackMVATight|Hlt1TrackMuon|Hlt1TrackMuonMVA",
-    # RB 40 Velo (closing) monitoring
-    40:
-    "Hlt1VeloMicroBias",
-    #RB 46 HLT1 physics for monitoring and alignment
-    46:
-    "HLT_PASS_RE('Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*Decision')",
-    #RB 48 NoBias, prescaled
-    48:
-    "Hlt1ODINNoBias",
-    # RB 49 NoBias empty-empty events for Herschel time alignment
-    49:
-    "Hlt1NoBiasEmptyEmpty",
-    #RB 50 Passthrough for tests
-    50:
-    "Hlt1Passthrough",
-    # RB 53 Tracker alignment
-    53:
-    "Hlt1CalibTrackingKPiDetached|Hlt1CalibTrackingKPiDetachedHighPTLowMultTrks",
-    #RB 54 RICH mirror alignment
-    54:
-    "Hlt1CalibRICH",
-    #RB 56 Muon alignment
-    56:
-    "Hlt1CalibMuonAlignJpsi",
-    #RB 57 Tell1 Error events
-    57:
-    "Hlt1Tell1Error",
-    # RB 58 DiMuon monitoring events for Herschel
-    58:
-    "Hlt1LowMultDiMuonMonitor"
-}
+# Example routing bits map to be passed as routingbit_map=str(rb_map) in the host_routingbits_writer algorithm
+
+#rb_map = {
+#    33:
+#    "Hlt1ODINLumi",
+#    # RB 35 Beam-Gas for Velo alignment
+#    35:
+#    "Hlt1NoBeam|Hlt1BeamOne|Hlt1BeamTwo|Hlt1BothBeams",
+#    # Hlt1ODINBeamGas? RB 36 EXPRESS stream (bypasses Hlt2)
+#    36:
+#    "HLT_PASS_RE('Hlt1(Velo.*|BeamGas.*VeloOpen)Decision')",
+#    #RB 37 Beam-Beam collisions for Velo alignment
+#    37:
+#    "Hlt1TrackMVATight|Hlt1TwoTrackMVATight|Hlt1TrackMuon|Hlt1TrackMuonMVA",
+#    # RB 40 Velo (closing) monitoring
+#    40:
+#    "Hlt1VeloMicroBias",
+#    #RB 46 HLT1 physics for monitoring and alignment
+#    46:
+#    "HLT_PASS_RE('Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*Decision')",
+#    #RB 48 NoBias, prescaled
+#    48:
+#    "Hlt1ODINNoBias",
+#    # RB 49 NoBias empty-empty events for Herschel time alignment
+#    49:
+#    "Hlt1NoBiasEmptyEmpty",
+#    #RB 50 Passthrough for tests
+#    50:
+#    "Hlt1Passthrough",
+#    # RB 53 Tracker alignment
+#    53:
+#    "Hlt1CalibTrackingKPiDetached|Hlt1CalibTrackingKPiDetachedHighPTLowMultTrks",
+#    #RB 54 RICH mirror alignment
+#    54:
+#    "Hlt1CalibRICH",
+#    #RB 56 Muon alignment
+#    56:
+#    "Hlt1CalibMuonAlignJpsi",
+#    #RB 57 Tell1 Error events
+#    57:
+#    "Hlt1Tell1Error",
+#    # RB 58 DiMuon monitoring events for Herschel
+#    58:
+#    "Hlt1LowMultDiMuonMonitor"
+#}
 
 
 def make_gather_selections(lines):
@@ -106,8 +108,7 @@ def make_routingbits_writer(lines):
         host_number_of_active_lines_t,
         host_names_of_active_lines_t=gather_selections.
         host_names_of_active_lines_t,
-        host_dec_reports_t=dec_reporter.host_dec_reports_t,
-        routingbit_map=str(rb_map))
+        host_dec_reports_t=dec_reporter.host_dec_reports_t)
 
 
 def make_global_decision(lines):
