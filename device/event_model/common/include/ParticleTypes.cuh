@@ -326,12 +326,7 @@ namespace Allen {
           cov11 += ty * ty * m_pv->cov22 - 2 * ty * m_pv->cov21;
 
           // invert the covariance matrix
-          float invdet = 1.0f / (cov00 * cov11 - cov10 * cov10);
-          float invcov00 = cov11 * invdet;
-          float invcov10 = -cov10 * invdet;
-          float invcov11 = cov00 * invdet;
-
-          return dx * dx * invcov00 + 2 * dx * dy * invcov10 + dy * dy * invcov11;
+          return (dx * dx * cov11 - 2 * dx * dy * cov10 + dy * dy * cov00)/(cov00 * cov11 - cov10 * cov10);
         }
 
         // Note this is not the minimum IP, but the IP relative to the "best" PV,
