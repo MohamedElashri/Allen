@@ -91,14 +91,10 @@ check-formatting:
     expire_in: 1 week
   needs: []
 
-pages:
-  <<: *active_branches
-  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
-  tags:
-    - cvmfs
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  script:
+# On the master branch: compile docs, copy to public directory and deploy from there with gitlab pages
+# on any other branch: compile docs, copy to test directory, don't deploy
+# commands in before_script are executed in both the pages and test_pages jobs
+before_script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     # use nightly build for python environment, needed for API reference of python selection functions
     # if today's nightly build does not exist, use yesterday's
@@ -114,7 +110,15 @@ pages:
   
     - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
     - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
-          
+
+pages:
+  stage: docs
+  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
+  tags:
+    - cvmfs
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  script:
     - mv doc/_build/html public
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:
@@ -126,6 +130,30 @@ pages:
     key: "$CI_JOB_NAME"
     paths:
       - .cache/pip
-  needs: []
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+
+
+test_pages:
+  stage: docs
+  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
+  tags:
+    - cvmfs
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  script:
+    - mv doc/_build/html test
+    - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
+  allow_failure:
+    exit_codes: 77
+  artifacts:
+    paths:
+      - test
+  cache:
+    key: "$CI_JOB_NAME"
+    paths:
+      - .cache/pip
+  rules:
+    - if: '$CI_COMMIT_BRANCH != "master"'
 
 include: "scripts/ci/config/main.yaml"
