@@ -7,6 +7,7 @@
 #include "AlgorithmTypes.cuh"
 #include "GenericContainerContracts.h"
 #include "RoutingBitsDefinition.h"
+#include "boost/regex.hpp"
 
 namespace host_routingbits_writer {
   struct Parameters {
@@ -32,7 +33,7 @@ namespace host_routingbits_writer {
     char* names_of_active_lines,
     unsigned* host_dec_reports,
     unsigned* host_routing_bits,
-    const std::map<uint32_t, std::string>& routingbit_map);
+    const std::map<uint32_t, boost::regex>& routingbit_map);
 
   struct host_routingbits_writer_t : public HostAlgorithm, Parameters {
 

@@ -4,7 +4,6 @@
 #include "HostRoutingBitsWriter.h"
 #include "ProgramOptions.h"
 #include "HltDecReport.cuh"
-#include "boost/regex.hpp"
 
 INSTANTIATE_ALGORITHM(host_routingbits_writer::host_routingbits_writer_t)
 
@@ -26,8 +25,14 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
   const Allen::Context& context) const
 {
   const auto map = m_routingbit_map.get_value().get();
+
   for (auto const& pair : m_routingbit_map.get_value().get()) {
     debug_cout << "{" << pair.first << ": " << pair.second << "}\n";
+  }
+  std::map<uint32_t, boost::regex> regex_map;
+  for (auto const& [bit, expr] : map) {
+    boost::regex rb_regex(expr);
+    regex_map[bit] = rb_regex;
   }
   host_routingbits_conf_impl(
     first<host_number_of_events_t>(arguments),
@@ -35,7 +40,7 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
     data<host_names_of_active_lines_t>(arguments),
     data<host_dec_reports_t>(arguments),
     data<host_routingbits_t>(arguments),
-    map);
+    regex_map);
   // Copy routing bit info to the host buffer
   safe_assign_to_host_buffer<host_routingbits_t>(host_buffers.host_routingbits, arguments, context);
 }
@@ -46,9 +51,10 @@ void host_routingbits_writer::host_routingbits_conf_impl(
   char* host_names_of_active_lines,
   unsigned* host_dec_reports,
   unsigned* host_routing_bits,
-  const std::map<uint32_t, std::string>& routingbit_map)
+  const std::map<uint32_t, boost::regex>& routingbit_map)
 {
   auto line_names = split_string(static_cast<char const*>(host_names_of_active_lines), ",");
+
 
   for (unsigned event = 0; event < host_number_of_events; ++event) {
 
@@ -56,16 +62,15 @@ void host_routingbits_writer::host_routingbits_conf_impl(
     unsigned const* dec_reports = host_dec_reports + (2 + host_number_of_active_lines) * event;
     for (auto const& [bit, expr] : routingbit_map) {
       int result = 0;
-      boost::regex rb_regex(expr);
 
       for (unsigned line_index = 0; line_index < host_number_of_active_lines; line_index++) {
         HltDecReport dec_report;
         dec_report.setDecReport(dec_reports[2 + line_index]);
 
+        if (!dec_report.getDecision()) continue;
         auto line_name = line_names[line_index];
 
-        if (!dec_report.getDecision() || !boost::regex_match(line_name, rb_regex))
-          // if (expr.find(line_name) == std::string::npos)
+        if (!boost::regex_match(line_name, expr))
           continue; // only works with OR logic so far. TODO: implement AND logic / * logic
         result = 1;
         debug_cout << "line " << line_name << " fired, setting " << bit << " bit " << std::endl;

@@ -21,25 +21,25 @@ void RoutingBitsChecker::accumulate(
   }
   const auto number_of_lines = m_line_names.size();
 
-  for (auto i = 0u; i < number_of_events; ++i) {
-    bool any_line_fired = false;
-    auto const* decs = dec_reports + (2 + number_of_lines) * i;
-    auto const* rbs = routing_bits + 4 * i;
-    for (auto j = 0u; j < 4; ++j) {
-      uint32_t rb = rbs[j];
-      debug_cout << "Event n. " << i << ", routing bits checker word " << j << "  " << rb << std::endl;
-    }
-    for (auto j = 0u; j < number_of_lines; ++j) {
-      HltDecReport dec_report(decs[2 + j]);
-      if (dec_report.decision()) {
-        ++m_counters[j];
-        any_line_fired = true;
-      }
-    }
-    if (any_line_fired) {
-      ++m_tot;
-    }
-  }
+  //for (auto i = 0u; i < number_of_events; ++i) {
+  //  bool any_line_fired = false;
+  //  auto const* decs = dec_reports + (2 + number_of_lines) * i;
+  //  auto const* rbs = routing_bits + 4 * i;
+  //  for (auto j = 0u; j < 4; ++j) {
+  //    uint32_t rb = rbs[j];
+  //    debug_cout << "Event n. " << i << ", routing bits checker word " << j << "  " << rb << std::endl;
+  //  }
+  //  for (auto j = 0u; j < number_of_lines; ++j) {
+  //    HltDecReport dec_report(decs[2 + j]);
+  //    if (dec_report.decision()) {
+  //      ++m_counters[j];
+  //      any_line_fired = true;
+  //    }
+  //  }
+  //  if (any_line_fired) {
+  //    ++m_tot;
+  //  }
+  //}
 }
 
 void RoutingBitsChecker::report(size_t) const
