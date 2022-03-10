@@ -89,13 +89,16 @@ check-formatting:
     when: on_failure
     expire_in: 1 week
   needs: []
-
-include: "scripts/ci/config/main.yaml"
-
+    
 # On the master branch: compile docs, copy to public directory and deploy from there with gitlab pages
-# on any other branch: compile docs, copy to test directory, don't deploy
-# commands in before_script are executed in both the pages and test_pages jobs
-before_script:
+pages:
+  stage: publish
+  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
+  tags:
+    - cvmfs
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     # use nightly build for python environment, needed for API reference of python selection functions
     # if today's nightly build does not exist, use yesterday's
@@ -111,15 +114,6 @@ before_script:
   
     - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
     - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
-
-pages:
-  stage: publish
-  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
-  tags:
-    - cvmfs
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  script:
     - mv doc/_build/html public
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:
@@ -134,7 +128,7 @@ pages:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
 
-
+# on any branch except for master: compile docs, copy to test directory, don't deploy
 test_pages:
   stage: test
   image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
@@ -143,6 +137,21 @@ test_pages:
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   script:
+    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
+    # use nightly build for python environment, needed for API reference of python selection functions
+    # if today's nightly build does not exist, use yesterday's
+    - |
+      nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/"$BINARY_TAG
+      if [ -d $nightly_installation_path ] ; then
+      	export DAY=Today
+        echo "Using today's nightly"
+      else
+        export DAY=Yesterday
+        echo "Using yesterday's nightly"
+      fi
+  
+    - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html test
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:
@@ -156,3 +165,5 @@ test_pages:
       - .cache/pip
   rules:
     - if: '$CI_COMMIT_BRANCH != "master"'
+
+include: "scripts/ci/config/main.yaml"
