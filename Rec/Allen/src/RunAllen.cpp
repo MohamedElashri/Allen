@@ -80,17 +80,6 @@ StatusCode RunAllen::initialize()
     muon_catboost_model_reader->split_border(),
     muon_catboost_model_reader->split_feature());
 
-  std::unique_ptr<CatboostModelReader> two_track_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(params_path + "/two_track_catboost_model_small.json");
-  m_constants.initialize_two_track_catboost_model_constants(
-    two_track_catboost_model_reader->n_trees(),
-    two_track_catboost_model_reader->tree_depths(),
-    two_track_catboost_model_reader->tree_offsets(),
-    two_track_catboost_model_reader->leaf_values(),
-    two_track_catboost_model_reader->leaf_offsets(),
-    two_track_catboost_model_reader->split_border(),
-    two_track_catboost_model_reader->split_feature());
-
   std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader =
     std::make_unique<TwoTrackMVAModelReader>(params_path + "/two_track_mva_model.json");
   m_constants.initialize_two_track_mva_model_constants(
