@@ -30,7 +30,6 @@ stages:
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software
   - publish          # Publishes the results of the tests and runs in channels and grafana
-  - docs             # Build Sphinx documentation
 
   - manual trigger   # Blocks full pipeline from running in merge requests
   - build full
@@ -112,7 +111,7 @@ before_script:
     - lb-run --nightly lhcb-head/$DAY Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
 
 pages:
-  stage: docs
+  stage: publish
   image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
   tags:
     - cvmfs
@@ -135,7 +134,7 @@ pages:
 
 
 test_pages:
-  stage: docs
+  stage: test
   image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
   tags:
     - cvmfs
