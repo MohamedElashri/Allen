@@ -31,9 +31,11 @@ void FilterTracks::filter_tracks_t::operator()(
 {
   initialize<dev_sv_atomics_t>(arguments, 0, context);
 
-  global_function(prefilter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_prefilter_t>(), context)(arguments);
+  global_function(prefilter_tracks)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_prefilter_t>(), context)(arguments);
 
-  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(arguments);
+  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
+    arguments);
 }
 
 __global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters parameters)
@@ -48,9 +50,9 @@ __global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters paramete
     const float pt = track.pt();
     const float ipchi2 = track.ip_chi2();
     const float chi2ndof = track.chi2() / track.ndof();
-    const bool dec =
-      pt > parameters.track_min_pt && (ipchi2 > parameters.track_min_ipchi2 || track.is_lepton()) &&
-      ((chi2ndof < parameters.track_max_chi2ndof && !track.is_lepton()) || (chi2ndof < parameters.track_muon_max_chi2ndof && track.is_lepton()));
+    const bool dec = pt > parameters.track_min_pt && (ipchi2 > parameters.track_min_ipchi2 || track.is_lepton()) &&
+                     ((chi2ndof < parameters.track_max_chi2ndof && !track.is_lepton()) ||
+                      (chi2ndof < parameters.track_muon_max_chi2ndof && track.is_lepton()));
     event_prefilter_result[i_track] = dec ? ipchi2 : -1.f;
   }
 }

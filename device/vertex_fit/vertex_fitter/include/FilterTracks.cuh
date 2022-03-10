@@ -41,12 +41,14 @@ namespace FilterTracks {
     PROPERTY(track_muon_max_chi2ndof_t, "track_muon_max_chi2ndof", "max muon chi2/ndof", float)
     track_muon_max_chi2ndof;
     PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;
-    PROPERTY(block_dim_prefilter_t, "block_dim_prefilter", "block dimensions for prefilter step", DeviceDimensions) block_dim_prefilter;
-    PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions) block_dim_filter;
+    PROPERTY(block_dim_prefilter_t, "block_dim_prefilter", "block dimensions for prefilter step", DeviceDimensions)
+    block_dim_prefilter;
+    PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
+    block_dim_filter;
   };
 
   __global__ void prefilter_tracks(Parameters);
-  
+
   __global__ void filter_tracks(Parameters);
 
   struct filter_tracks_t : public DeviceAlgorithm, Parameters {
