@@ -19,59 +19,6 @@
 #include <iostream>
 
 namespace Allen {
-  namespace Configuration {
-    template<typename T>
-    struct ConvertorToString {
-      static std::string convert(const T& holder)
-      {
-        if constexpr (std::is_same_v<T, BankTypes>) {
-          return bank_name(holder);
-        }
-        else {
-          std::stringstream s;
-          s << holder;
-          return s.str();
-        }
-      }
-    };
-
-    template<typename T, std::size_t N>
-    struct ConvertorToString<std::array<T, N>> {
-      static std::string convert(const std::array<T, N>& holder)
-      {
-        std::stringstream s;
-        s << "[";
-        for (size_t i = 0; i < N; ++i) {
-          s << holder[i];
-          if (i != N - 1) {
-            s << ", ";
-          }
-        }
-        s << "]";
-        return s.str();
-      }
-    };
-
-    template<typename T, typename U>
-    struct ConvertorToString<std::map<T, U>> {
-      static std::string convert(const std::map<T, U>& holder)
-      {
-        std::stringstream s;
-        s << "{";
-        unsigned i = 0;
-        for (const auto& elem : holder) {
-          s << holder.first << ": " << holder.second;
-          if (i != holder.size() - 1) {
-            s << ", ";
-          }
-          ++i;
-        }
-        s << "}";
-        return s.str();
-      }
-    };
-  } // namespace Configuration
-
   /**
    * @brief      Store and readout the value of a single configurable algorithm property
    *
@@ -97,7 +44,8 @@ namespace Allen {
 
     std::string to_string() const override
     {
-      return Configuration::ConvertorToString<typename V::t>::convert(m_cached_value.get());
+      nlohmann::json j = m_cached_value.get();
+      return j.dump();
     }
 
     std::string print() const override
