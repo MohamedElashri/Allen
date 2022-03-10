@@ -331,9 +331,11 @@ namespace VertexFit {
 
     // Dimuon mass.
     if (sv.is_dimuon) {
-      const float mdimu2 =
-        2.f * Allen::mMu * Allen::mMu + 2.f * (sqrtf((trackA.p() * trackA.p() + Allen::mMu * Allen::mMu) * (trackB.p() * trackB.p() + Allen::mMu * Allen::mMu)) -
-                                 trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+      const float mdimu2 = 2.f * Allen::mMu * Allen::mMu +
+                           2.f * (sqrtf(
+                                    (trackA.p() * trackA.p() + Allen::mMu * Allen::mMu) *
+                                    (trackB.p() * trackB.p() + Allen::mMu * Allen::mMu)) -
+                                  trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
       sv.mdimu = sqrtf(mdimu2);
     }
     else {
@@ -425,8 +427,11 @@ namespace VertexFit {
     const float py = trackA.py() + trackB.py();
     const float pz = trackA.pz() + trackB.pz();
     const float mvis2 =
-      2.f * Allen::mPi * Allen::mPi + 2.f * (sqrtf((trackA.p() * trackA.p() + Allen::mPi * Allen::mPi) * (trackB.p() * trackB.p() + Allen::mPi * Allen::mPi)) -
-                               trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+      2.f * Allen::mPi * Allen::mPi +
+      2.f *
+        (sqrtf(
+           (trackA.p() * trackA.p() + Allen::mPi * Allen::mPi) * (trackB.p() * trackB.p() + Allen::mPi * Allen::mPi)) -
+         trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
     const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) + (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) /
                          fd / fd;

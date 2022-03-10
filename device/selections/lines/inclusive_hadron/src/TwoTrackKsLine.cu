@@ -23,7 +23,7 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
 
   const bool decision =
     vertex.chi2 < parameters.maxVertexChi2 && vertex.eta > parameters.minEta_Ks && vertex.eta < parameters.maxEta_Ks &&
-												vertex.minipchi2 > parameters.minTrackIPChi2_Ks && vertex.m(Allen::mPi, Allen::mPi) > parameters.minM_Ks &&
+    vertex.minipchi2 > parameters.minTrackIPChi2_Ks && vertex.m(Allen::mPi, Allen::mPi) > parameters.minM_Ks &&
     vertex.m(Allen::mPi, Allen::mPi) < parameters.maxM_Ks && vertex.pt() > parameters.minComboPt_Ks &&
     vertex.cos > parameters.minCosOpening && vertex.dira > parameters.minCosDira &&
     vertex.p1 > parameters.minTrackP_piKs && vertex.p2 > parameters.minTrackP_piKs &&
