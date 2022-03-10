@@ -175,7 +175,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1ODINLumi",
             make_odin_event_type_line(
-                odin_event_type="0x8",
+                odin_event_type=0x8,
                 pre_scaler_hash_string="odin_lumi_line_pre",
                 post_scaler_hash_string="odin_lumi_line_post"),
             enableGEC=False))
@@ -183,7 +183,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1ODINNoBias",
             make_odin_event_type_line(
-                odin_event_type="0x4",
+                odin_event_type=0x4,
                 pre_scaler_hash_string="odin_no_bias_pre",
                 post_scaler_hash_string="odin_no_bias_post"),
             enableGEC=False))
