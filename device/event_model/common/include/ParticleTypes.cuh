@@ -364,7 +364,7 @@ namespace Allen {
 
         __host__ __device__ const BasicParticle& particle(const unsigned index) const
         {
-          return static_cast<const BasicParticle*>(m_particle)[index];
+          return *particle_pointer(index);
         }
 
         __host__ __device__ const BasicParticle* particle_pointer(const unsigned index) const
