@@ -99,9 +99,6 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const D
 
 
 
-
-
-
   // Detector and mat geometry
   
   // SourceID to feCards: tell1ToCards for 0 - det.nTell1s   Returns tell1Param which has .feCards int vector.
