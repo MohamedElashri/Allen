@@ -51,12 +51,15 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 
     // Filter first track.
     const auto trackA = long_track_particles.particle(i_track);
+    const float ptA = trackA.pt();
+    const float ipchi2A = trackA.ip_chi2();
+    const float chi2ndofA = trackA.chi2() / trackA.ndof();
 
     if (
-      trackA.pt() < parameters.track_min_pt ||
-      (trackA.ip_chi2() < parameters.track_min_ipchi2 && !trackA.is_lepton()) ||
-      (trackA.chi2() / trackA.ndof() > parameters.track_max_chi2ndof && !trackA.is_lepton()) ||
-      (trackA.chi2() / trackA.ndof() > parameters.track_muon_max_chi2ndof && trackA.is_lepton())) {
+      ptA < parameters.track_min_pt ||
+      (ipchi2A < parameters.track_min_ipchi2 && !trackA.is_lepton()) ||
+      (chi2ndofA > parameters.track_max_chi2ndof && !trackA.is_lepton()) ||
+      (chi2ndofA > parameters.track_muon_max_chi2ndof && trackA.is_lepton())) {
       continue;
     }
 
@@ -64,18 +67,21 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 
       // Filter second track.
       const auto trackB = long_track_particles.particle(j_track);
+      const float ptB = trackB.pt();
+      const float ipchi2B = trackB.ip_chi2();
+      const float chi2ndofB = trackB.chi2() / trackB.ndof();
       if (
-        trackB.pt() < parameters.track_min_pt ||
-        (trackB.ip_chi2() < parameters.track_min_ipchi2 && !trackB.is_lepton()) ||
-        (trackB.chi2() / trackB.ndof() > parameters.track_max_chi2ndof && !trackB.is_lepton()) ||
-        (trackB.chi2() / trackB.ndof() > parameters.track_muon_max_chi2ndof && trackB.is_lepton())) {
+        ptB < parameters.track_min_pt ||
+        (ipchi2B < parameters.track_min_ipchi2 && !trackB.is_lepton()) ||
+        (chi2ndofB > parameters.track_max_chi2ndof && !trackB.is_lepton()) ||
+        (chi2ndofB > parameters.track_muon_max_chi2ndof && trackB.is_lepton())) {
         continue;
       }
 
       // Same PV cut for non-muons.
       if (
-        trackA.get_pv() != trackB.get_pv() && trackA.ip_chi2() < parameters.max_assoc_ipchi2 &&
-        trackB.ip_chi2() < parameters.max_assoc_ipchi2 && (!trackA.is_lepton() || !trackB.is_lepton())) {
+        trackA.get_pv() != trackB.get_pv() && ipchi2A < parameters.max_assoc_ipchi2 &&
+        ipchi2B < parameters.max_assoc_ipchi2 && (!trackA.is_lepton() || !trackB.is_lepton())) {
         continue;
       }
 
