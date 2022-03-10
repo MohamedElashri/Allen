@@ -25,7 +25,7 @@ The results of the tests are published in this |mattermost_channel_throughput|.
 
 For local throughput measurements, we recommend the following settings in Allen standalone mode::
 
-  ./Allen --sequence hlt1_pp_default --mdf /scratch/allen_data/mdf_input/upgrade_mc_minbias_scifi_v5_000.mdf -n 500 -m 500 -r 1000 -t 16
+  ./Allen --sequence hlt1_pp_default --mdf /scratch/allen_data/mdf_input/upgrade_mc_minbias_scifi_v5_retinacluster_000.mdf -n 500 -m 500 -r 1000 -t 16
 
 For other input files, please see the section on :ref:`input_files`. 
 
@@ -60,13 +60,13 @@ Scripts in Moore
 -------------------
 Call the executable from within the stack directory as in the following example: ::
 
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
+  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
 
 This will call the configured Allen sequence, convert reconstructed tracks to Rec objects and run the MC checkers for track reconstruction efficiencies.
 
 If you want to run the PV checker, you need to use |moore_pv_branch| in Rec and the following executable::
 
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_pvchecker.py
+  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_pvchecker.py
 
 .. |moore_pv_branch| raw:: html
 
@@ -74,15 +74,15 @@ If you want to run the PV checker, you need to use |moore_pv_branch| in Rec and 
 
 To check the IP resolution::
 
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_IPresolution.py
+  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_IPresolution.py
 
 To check the track momentum resolution::
 
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_trackresolution.py
+  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_trackresolution.py
 
 To check the muon identification efficiency and misID efficiency::
 
-  ./Moore/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/RecoConf/options/Moore/hlt1_reco_allen_muonid_efficiency.py
+  ./Moore/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/Moore/hlt1_reco_allen_muonid_efficiency.py
 
 The scripts in |moore_scripts| can be used to produce plots of the various efficiencies and resolutions from the ROOT files produced by one of the previous calls to Moore.
 
@@ -101,11 +101,11 @@ efficiencies. To get `MooreAnalysis`, you can use the nightlies or do `make Moor
 
 To get the efficiencies of all the Allen lines, from the top-level directory do::
 
-  ./MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_eff_example.yaml
+  ./MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_eff_default_retinacluster.yaml
 
 and to get the rates::
 
-  MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_rate_example.yaml
+  MooreAnalysis/run MooreAnalysis/HltEfficiencyChecker/scripts/hlt_eff_checker.py MooreAnalysis/HltEfficiencyChecker/options/hlt1_rate_example_retinacluster.yaml
 
 Full documentation for the `HltEfficiencyChecker` tool, including a walk-through example for HLT1 efficiencies with Allen, is given |hltefficiencychecker_tutorial|.
 

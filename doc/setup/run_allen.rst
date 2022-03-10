@@ -7,7 +7,7 @@ Standalone Allen
 
 Some input files are included with the project for testing:
 
-* `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI TestFile DB entry. Includes raw banks with MC information.
+* `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster TestFile DB entry. Includes raw banks with MC information.
 * the directory `input/detector_configuration/down` contains the dumped geometry files for the above listed three data sets (they all have the same geometry version)
 * other dumped geometries shipped with Allen are located in `input/detector_configuration` and used for other data sets in the CI tests
 
@@ -49,7 +49,7 @@ A run of the Allen program with the help option `-h` will let you know the basic
 Here are some examples for run options::
 
     # Run on an MDF input file shipped with Allen once
-    ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI.mdf
+    ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf
 
     # Run a total of 1000 events once with validation
     ./Allen --sequence hlt1_pp_validation -n 1000 --mdf /path/to/mdf/input/file
@@ -66,7 +66,7 @@ As Gaudi project, event loop steered by Moore (offline)
 
 Use Gaudi to update non-event data such as alignment and configuration constants and use Moore to steer the event loop and call Allen one event at a time (this method will be used for the offline workflow).
 To run Allen as the HLT1 trigger application, call the following options script from within the stack directory::
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Moore/Hlt/Hlt1Conf/options/allen_hlt1_pp_default.py
+  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/Hlt1Conf/options/allen_hlt1_pp_default.py
 
 To run a different sequence, the function call that sets up the
 control flow can be wrapped using a `with` statement::
