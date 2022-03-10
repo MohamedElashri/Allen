@@ -90,6 +90,8 @@ check-formatting:
     expire_in: 1 week
   needs: []
 
+include: "scripts/ci/config/main.yaml"
+
 # On the master branch: compile docs, copy to public directory and deploy from there with gitlab pages
 # on any other branch: compile docs, copy to test directory, don't deploy
 # commands in before_script are executed in both the pages and test_pages jobs
@@ -154,5 +156,3 @@ test_pages:
       - .cache/pip
   rules:
     - if: '$CI_COMMIT_BRANCH != "master"'
-
-include: "scripts/ci/config/main.yaml"
