@@ -13,6 +13,7 @@
 #include "AlgorithmTypes.cuh"
 #include "Line.cuh"
 #include "VertexDefinitions.cuh"
+#include "MassDefinitions.h"
 
 namespace two_ks_line {
   struct Parameters {

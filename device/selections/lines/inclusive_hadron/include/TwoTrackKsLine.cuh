@@ -12,6 +12,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
+#include "MassDefinitions.h"
 
 namespace two_track_line_ks {
   struct Parameters {

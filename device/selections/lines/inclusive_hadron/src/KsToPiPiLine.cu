@@ -25,8 +25,8 @@ __device__ bool kstopipi_line::kstopipi_line_t::select(
   std::tuple<const VertexFit::TrackMVAVertex&> input)
 {
   const auto& vertex = std::get<0>(input);
-  return vertex.minipchi2 > 100 && vertex.chi2 < 10 && vertex.vertex_ip < 0.3f && vertex.m(139.57, 139.57) > 400 &&
-         vertex.m(139.57, 139.57) < 600;
+  return vertex.minipchi2 > 100 && vertex.chi2 < 10 && vertex.vertex_ip < 0.3f && vertex.m(Allen::mPi, Allen::mPi) > 400 &&
+						 vertex.m(Allen::mPi, Allen::mPi) < 600;
 }
 
 #ifdef WITH_ROOT
@@ -47,7 +47,7 @@ __device__ void kstopipi_line::kstopipi_line_t::monitor(
   const auto& vertex = std::get<0>(input);
   if (sel) {
     // printf("Event selected!! \n");
-    parameters.dev_sv_masses[index] = vertex.m(139.57, 139.57);
+    parameters.dev_sv_masses[index] = vertex.m(Allen::mPi, Allen::mPi);
     parameters.dev_pt[index] = vertex.pt();
   }
 }

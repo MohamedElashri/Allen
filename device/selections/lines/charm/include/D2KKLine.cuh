@@ -5,6 +5,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
+#include "MassDefinitions.h"
 
 namespace d2kk_line {
   struct Parameters {
@@ -29,8 +30,6 @@ namespace d2kk_line {
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
-    PROPERTY(mK_t, "mK", "mK description", float) mK;
-    PROPERTY(mD_t, "mD", "mD description", float) mD;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(maxDOCA_t, "maxDOCA", "maxDOCA description", float) maxDOCA;
     PROPERTY(minEta_t, "minEta", "minEta description", float) minEta;
@@ -49,8 +48,6 @@ namespace d2kk_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<minComboPt_t> m_minComboPt {this, 2000.0f * Gaudi::Units::MeV};
-    Property<mK_t> m_mK {this, 493.667f * Gaudi::Units::MeV};
-    Property<mD_t> m_mD {this, 1864.83f * Gaudi::Units::MeV};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 10.f};
     Property<maxDOCA_t> m_maxDOCA {this, 0.15f * Gaudi::Units::mm};
     Property<minEta_t> m_minEta {this, 2.0f};

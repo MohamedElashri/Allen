@@ -17,6 +17,6 @@ __device__ bool d2pipi_line::d2pipi_line_t::select(
                         vertex.doca < parameters.maxDOCA && vertex.eta > parameters.minEta &&
                         vertex.eta < parameters.maxEta && vertex.minpt > parameters.minTrackPt &&
                         vertex.minip > parameters.minTrackIP &&
-                        fabsf(vertex.m(parameters.mPi, parameters.mPi) - parameters.mD) < parameters.massWindow;
+                        fabsf(vertex.m(Allen::mPi, Allen::mPi) - Allen::mDz) < parameters.massWindow;
   return decision;
 }

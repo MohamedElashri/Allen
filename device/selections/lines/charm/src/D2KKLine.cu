@@ -17,6 +17,6 @@ __device__ bool d2kk_line::d2kk_line_t::select(
                         vertex.doca < parameters.maxDOCA && vertex.eta > parameters.minEta &&
                         vertex.eta < parameters.maxEta && vertex.minpt > parameters.minTrackPt &&
                         vertex.minip > parameters.minTrackIP &&
-                        fabsf(vertex.m(parameters.mK, parameters.mK) - parameters.mD) < parameters.massWindow;
+                        fabsf(vertex.m(Allen::mK, Allen::mK) - Allen::mDz) < parameters.massWindow;
   return decision;
 }
