@@ -488,7 +488,7 @@ namespace Allen {
 
         __host__ __device__ float fdchi2() const
         {
-          if (m_pv == nullptr) return 0.f;
+          if (m_pv == nullptr) return -1.f;
           const auto primary = get_pv();
           const auto vrt = vertex();
           const float dx = vrt.x() - primary->position.x;
@@ -514,7 +514,7 @@ namespace Allen {
 
         __host__ __device__ float fd() const
         {
-          if (m_pv == nullptr) return 0.f;
+          if (m_pv == nullptr) return -1.f;
           const auto primary = get_pv();
           const auto vrt = vertex();
           const float dx = vrt.x() - primary->position.x;
@@ -727,7 +727,7 @@ namespace Allen {
 
         __host__ __device__ float ip() const
         {
-          if (m_pv == nullptr) return 0.f;
+          if (m_pv == nullptr) return -1.f;
           const auto vrt = vertex();
           const auto primary = get_pv();
           float tx = vrt.px() / vrt.pz();
