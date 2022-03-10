@@ -56,8 +56,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
     const float chi2ndofA = trackA.chi2() / trackA.ndof();
 
     if (
-      ptA < parameters.track_min_pt ||
-      (ipchi2A < parameters.track_min_ipchi2 && !trackA.is_lepton()) ||
+      ptA < parameters.track_min_pt || (ipchi2A < parameters.track_min_ipchi2 && !trackA.is_lepton()) ||
       (chi2ndofA > parameters.track_max_chi2ndof && !trackA.is_lepton()) ||
       (chi2ndofA > parameters.track_muon_max_chi2ndof && trackA.is_lepton())) {
       continue;
@@ -71,8 +70,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       const float ipchi2B = trackB.ip_chi2();
       const float chi2ndofB = trackB.chi2() / trackB.ndof();
       if (
-        ptB < parameters.track_min_pt ||
-        (ipchi2B < parameters.track_min_ipchi2 && !trackB.is_lepton()) ||
+        ptB < parameters.track_min_pt || (ipchi2B < parameters.track_min_ipchi2 && !trackB.is_lepton()) ||
         (chi2ndofB > parameters.track_max_chi2ndof && !trackB.is_lepton()) ||
         (chi2ndofB > parameters.track_muon_max_chi2ndof && trackB.is_lepton())) {
         continue;
