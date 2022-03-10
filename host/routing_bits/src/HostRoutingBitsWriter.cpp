@@ -17,6 +17,16 @@ void host_routingbits_writer::host_routingbits_writer_t::set_arguments_size(
   set_size<host_routingbits_t>(arguments, RoutingBitsDefinition::n_words * first<host_number_of_events_t>(arguments));
 }
 
+void host_routingbits_writer::host_routingbits_writer_t::init() const
+{
+
+  const auto map = m_routingbit_map.get_value().get();
+  for (auto const& [bit, expr] : map) {
+    boost::regex rb_regex(expr);
+    m_regex_map[bit] = rb_regex;
+  }
+}
+
 void host_routingbits_writer::host_routingbits_writer_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
@@ -24,15 +34,12 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  const auto map = m_routingbit_map.get_value().get();
 
-  for (auto const& pair : m_routingbit_map.get_value().get()) {
-    debug_cout << "{" << pair.first << ": " << pair.second << "}\n";
-  }
-  std::map<uint32_t, boost::regex> regex_map;
-  for (auto const& [bit, expr] : map) {
-    boost::regex rb_regex(expr);
-    regex_map[bit] = rb_regex;
+  const auto map = m_routingbit_map.get_value().get();
+  if (logger::verbosity() >= logger::debug) {
+    for (auto const& pair : m_routingbit_map.get_value().get()) {
+      debug_cout << "{" << pair.first << ": " << pair.second << "}\n";
+    }
   }
   host_routingbits_conf_impl(
     first<host_number_of_events_t>(arguments),
@@ -40,7 +47,7 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
     data<host_names_of_active_lines_t>(arguments),
     data<host_dec_reports_t>(arguments),
     data<host_routingbits_t>(arguments),
-    regex_map);
+    m_regex_map);
   // Copy routing bit info to the host buffer
   safe_assign_to_host_buffer<host_routingbits_t>(host_buffers.host_routingbits, arguments, context);
 }
@@ -54,7 +61,6 @@ void host_routingbits_writer::host_routingbits_conf_impl(
   const std::map<uint32_t, boost::regex>& routingbit_map)
 {
   auto line_names = split_string(static_cast<char const*>(host_names_of_active_lines), ",");
-
 
   for (unsigned event = 0; event < host_number_of_events; ++event) {
 

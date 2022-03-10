@@ -27,6 +27,8 @@ namespace host_routingbits_writer {
   /**
    * @brief Implementation of routing bits writer on the host.
    */
+  std::map<uint32_t, boost::regex> m_regex_map;
+
   void host_routingbits_conf_impl(
     unsigned host_number_of_events,
     unsigned number_of_active_lines,
@@ -36,6 +38,7 @@ namespace host_routingbits_writer {
     const std::map<uint32_t, boost::regex>& routingbit_map);
 
   struct host_routingbits_writer_t : public HostAlgorithm, Parameters {
+    void init() const;
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

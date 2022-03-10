@@ -21,7 +21,7 @@ void RoutingBitsChecker::accumulate(
   }
   const auto number_of_lines = m_line_names.size();
 
-  //for (auto i = 0u; i < number_of_events; ++i) {
+  // for (auto i = 0u; i < number_of_events; ++i) {
   //  bool any_line_fired = false;
   //  auto const* decs = dec_reports + (2 + number_of_lines) * i;
   //  auto const* rbs = routing_bits + 4 * i;
