@@ -121,6 +121,8 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
         filter_tracks_t,
         name="filter_tracks",
         host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_tracks_t=forward_tracks[
+            "host_number_of_reconstructed_scifi_tracks"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_long_track_particles_t=long_track_particles[
             "dev_long_track_particles"])
