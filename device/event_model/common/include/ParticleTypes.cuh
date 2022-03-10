@@ -13,7 +13,6 @@
 #include <cassert>
 #include "BackendCommon.h"
 #include "Common.h"
-//#include "ConsolidatedTypes.cuh"
 #include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "SciFiEventModel.cuh"
@@ -235,8 +234,6 @@ namespace Allen {
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
 
-        __host__ __device__ const PV::Vertex pv() const { return *m_pv; }
-
         __host__ __device__ float px() const
         {
           assert(m_states != nullptr);
@@ -415,8 +412,6 @@ namespace Allen {
 
         __host__ __device__ SecondaryVertex vertex() const { return m_vertices->vertex(m_index); }
 
-        __host__ __device__ PV::Vertex pv() const { return *m_pv; }
-
         __host__ __device__ float x() const { return vertex().x(); }
 
         __host__ __device__ float y() const { return vertex().y(); }
@@ -499,17 +494,17 @@ namespace Allen {
         __host__ __device__ float fdchi2() const
         {
           if (m_pv == nullptr) return 0.f;
-          const auto primary = pv();
+          const auto primary = get_pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary.position.x;
-          const float dy = vrt.y() - primary.position.y;
-          const float dz = vrt.z() - primary.position.z;
-          const float c00 = vrt.c00() + primary.cov00;
-          const float c10 = vrt.c10() + primary.cov10;
-          const float c11 = vrt.c11() + primary.cov11;
-          const float c20 = vrt.c20() + primary.cov20;
-          const float c21 = vrt.c21() + primary.cov21;
-          const float c22 = vrt.c22() + primary.cov22;
+          const float dx = vrt.x() - primary->position.x;
+          const float dy = vrt.y() - primary->position.y;
+          const float dz = vrt.z() - primary->position.z;
+          const float c00 = vrt.c00() + primary->cov00;
+          const float c10 = vrt.c10() + primary->cov10;
+          const float c11 = vrt.c11() + primary->cov11;
+          const float c20 = vrt.c20() + primary->cov20;
+          const float c21 = vrt.c21() + primary->cov21;
+          const float c22 = vrt.c22() + primary->cov22;
           const float invdet =
             1.f / (2.f * c10 * c20 * c21 - c11 * c20 * c20 - c00 * c21 * c21 + c00 * c11 * c22 - c22 * c10 * c10);
           const float invc00 = (c11 * c22 - c21 * c21) * invdet;
@@ -525,18 +520,18 @@ namespace Allen {
         __host__ __device__ float fd() const
         {
           if (m_pv == nullptr) return 0.f;
-          const auto primary = pv();
+          const auto primary = get_pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary.position.x;
-          const float dy = vrt.y() - primary.position.y;
-          const float dz = vrt.z() - primary.position.z;
+          const float dx = vrt.x() - primary->position.x;
+          const float dy = vrt.y() - primary->position.y;
+          const float dz = vrt.z() - primary->position.z;
           return sqrtf(dx * dx + dy * dy + dz * dz);
         }
 
         __host__ __device__ float dz() const
         {
           if (m_pv == nullptr) return 0.f;
-          return vertex().z() - pv().position.z;
+          return vertex().z() - get_pv()->position.z;
         }
 
         __host__ __device__ float eta() const
@@ -549,11 +544,11 @@ namespace Allen {
         {
           if (m_pv == nullptr) return 0.f;
           const float mvis = m();
-          const auto primary = pv();
+          const auto primary = get_pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary.position.x;
-          const float dy = vrt.y() - primary.position.y;
-          const float dz = vrt.z() - primary.position.z;
+          const float dx = vrt.x() - primary->position.x;
+          const float dy = vrt.y() - primary->position.y;
+          const float dz = vrt.z() - primary->position.z;
           const float loc_fd = sqrtf(dx * dx + dy * dy + dz * dz);
           const float pperp2 = ((vrt.py() * dz - dy * vrt.pz()) * (vrt.py() * dz - dy * vrt.pz()) +
                                 (vrt.pz() * dx - dz * vrt.px()) * (vrt.pz() * dx - dz * vrt.px()) +
@@ -641,11 +636,11 @@ namespace Allen {
         __host__ __device__ float dira() const
         {
           if (m_pv == nullptr) return 0.f;
-          const auto primary = pv();
+          const auto primary = get_pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary.position.x;
-          const float dy = vrt.y() - primary.position.y;
-          const float dz = vrt.z() - primary.position.z;
+          const float dx = vrt.x() - primary->position.x;
+          const float dy = vrt.y() - primary->position.y;
+          const float dz = vrt.z() - primary->position.z;
           const float loc_fd = sqrtf(dx * dx + dy * dy + dz * dz);
           return (dx * vrt.px() + dy * vrt.py() + dz * vrt.pz()) / (vrt.p() * loc_fd);
         }
@@ -739,12 +734,12 @@ namespace Allen {
         {
           if (m_pv == nullptr) return 0.f;
           const auto vrt = vertex();
-          const auto primary = pv();
+          const auto primary = get_pv();
           float tx = vrt.px() / vrt.pz();
           float ty = vrt.py() / vrt.pz();
-          float dz = primary.position.z - vrt.z();
-          float dx = vrt.x() + dz * tx - primary.position.x;
-          float dy = vrt.y() + dz * ty - primary.position.y;
+          float dz = primary->position.z - vrt.z();
+          float dx = vrt.x() + dz * tx - primary->position.x;
+          float dy = vrt.y() + dz * ty - primary->position.y;
           return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
         }
 
@@ -777,7 +772,6 @@ namespace Allen {
 
         __host__ __device__ float clone_sin2() const
         {
-          if (!is_dimuon()) return -1.f;
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
           const auto state1 = static_cast<const BasicParticle*>(substr1)->state();
