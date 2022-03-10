@@ -423,43 +423,48 @@ namespace Allen {
 
         __host__ __device__ float p() const { return vertex().p(); }
 
+        __host__ __device__ float transform_reduce(
+          float (*transformer)(const BasicParticle*),
+          float (*reducer)(float, float),
+          float initial_value) const
+        {
+          float value = initial_value;
+          for (unsigned i = 0; i < number_of_substructures(); i++) {
+            const auto substr = substructure(i);
+            if (substr->number_of_substructures() == 1) {
+              float tmp = transformer(static_cast<const BasicParticle*>(substr));
+              value = reducer(value, tmp);
+            }
+            else {
+              const auto composite_substr = static_cast<const CompositeParticle*>(substr);
+              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
+                const auto subsubstr = composite_substr->substructure(j);
+                float tmp = transformer(static_cast<const BasicParticle*>(subsubstr));
+                value = reducer(value, tmp);
+              }
+            }
+          }
+          return value;
+        }
+
         // TODO: Some of these quantities are expensive to calculate, so it
         // might be a good idea to store them in an "extra info" array. Need to
         // see how the timing shakes out.
         __host__ __device__ float e() const
         {
-          float energy = 0.f;
-          for (unsigned i = 0; i < number_of_substructures(); i++) {
-            const auto substr = substructure(i);
-            if (substr->number_of_substructures() == 1) {
-              energy += static_cast<const BasicParticle*>(substr)->e(mPi);
-            }
-            // Assume at most one level of recursion. Needed for the HIP build.
-            else {
-              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
-                const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
-                energy += static_cast<const BasicParticle*>(subsubstr)->e(mPi);
-              }
-            }
-          }
+          float energy = transform_reduce(
+            [](const BasicParticle* p) { return p->e(mPi); },
+            [](float f1, float f2) { return f1 + f2; },
+            0.f);
           return energy;
         }
 
         __host__ __device__ float sumpt() const
         {
-          float sum = 0.f;
-          for (unsigned i = 0; i < number_of_substructures(); i++) {
-            const auto substr = substructure(i);
-            if (substr->number_of_substructures() == 1) {
-              sum += static_cast<const BasicParticle*>(substr)->pt();
-            }
-            else {
-              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
-                const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
-                sum += static_cast<const BasicParticle*>(subsubstr)->pt();
-              }
-            }
-          }
+          float sum = transform_reduce(
+            [](const BasicParticle* p) { return p->pt(); },
+            [](float f1, float f2) { return f1 + f2; },
+            0.f);
           return sum;
         }
 
@@ -554,77 +559,37 @@ namespace Allen {
 
         __host__ __device__ float minipchi2() const
         {
-          float val = -1;
-          for (unsigned i = 0; i < number_of_substructures(); i++) {
-            float tmp = -1;
-            const auto substr = substructure(i);
-            if (substr->m_number_of_substructures == 1) {
-              tmp = static_cast<const BasicParticle*>(substr)->ip_chi2();
-            }
-            else {
-              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
-                const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
-                const auto tmptmp = static_cast<const BasicParticle*>(subsubstr)->ip_chi2();
-                if (tmptmp < tmp || tmp < 0) tmp = tmptmp;
-              }
-            }
-            if (tmp < val || val < 0) val = tmp;
-          }
+          float val = transform_reduce(
+            [](const BasicParticle* p) { return p->ip_chi2(); },
+            [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
+            -1.f);
           return val;
         }
 
         __host__ __device__ float minip() const
         {
-          float val = -1;
-          for (unsigned i = 0; i < number_of_substructures(); i++) {
-            float tmp = -1;
-            const auto substr = substructure(i);
-            if (substr->number_of_substructures() == 1) {
-              tmp = static_cast<const BasicParticle*>(substr)->ip();
-            }
-            else {
-              for (unsigned j = 0; j < substr->number_of_substructures(); j++) {
-                const auto subsubstr = static_cast<const CompositeParticle*>(substr)->substructure(j);
-                const auto tmptmp = static_cast<const BasicParticle*>(subsubstr)->ip();
-                if (tmptmp < tmp || tmp < 0) tmp = tmptmp;
-              }
-            }
-            if (tmp < val || val < 0) val = tmp;
-          }
+          float val = transform_reduce(
+            [](const BasicParticle* p) { return p->ip(); },
+            [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
+            -1.f);
           return val;
         }
 
         __host__ __device__ float minp() const
         {
-          float val = -1;
-          for (unsigned i = 0; i < number_of_substructures(); i++) {
-            float tmp = -1;
-            const auto substr = substructure(i);
-            if (substr->number_of_substructures() == 1) {
-              tmp = static_cast<const BasicParticle*>(substr)->p();
-            }
-            else {
-              tmp = static_cast<const CompositeParticle*>(substr)->p();
-            }
-            if (tmp < val || val < 0) val = tmp;
-          }
+          float val = transform_reduce(
+            [](const BasicParticle* p) { return p->p(); },
+            [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
+            -1.f);
           return val;
         }
 
         __host__ __device__ float minpt() const
         {
-          float val = -1;
-          for (unsigned i = 0; i < number_of_substructures(); i++) {
-            float tmp = -1;
-            const auto substr = substructure(i);
-            if (substr->number_of_substructures() == 1) {
-              tmp = static_cast<const BasicParticle*>(substr)->pt();
-            }
-            else {
-              tmp = static_cast<const CompositeParticle*>(substr)->pt();
-            }
-            if (tmp < val || val < 0) val = tmp;
-          }
+          float val = transform_reduce(
+            [](const BasicParticle* p){ return p->pt(); },
+            [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
+            -1.f);
           return val;
         }
 
