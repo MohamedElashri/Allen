@@ -453,18 +453,14 @@ namespace Allen {
         __host__ __device__ float e() const
         {
           float energy = transform_reduce(
-            [](const BasicParticle* p) { return p->e(mPi); },
-            [](float f1, float f2) { return f1 + f2; },
-            0.f);
+            [](const BasicParticle* p) { return p->e(mPi); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
           return energy;
         }
 
         __host__ __device__ float sumpt() const
         {
           float sum = transform_reduce(
-            [](const BasicParticle* p) { return p->pt(); },
-            [](float f1, float f2) { return f1 + f2; },
-            0.f);
+            [](const BasicParticle* p) { return p->pt(); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
           return sum;
         }
 
@@ -587,7 +583,7 @@ namespace Allen {
         __host__ __device__ float minpt() const
         {
           float val = transform_reduce(
-            [](const BasicParticle* p){ return p->pt(); },
+            [](const BasicParticle* p) { return p->pt(); },
             [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
             -1.f);
           return val;
