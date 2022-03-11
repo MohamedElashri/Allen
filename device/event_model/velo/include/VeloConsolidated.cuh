@@ -240,6 +240,8 @@ namespace Allen {
         };
 
         struct Tracks : Allen::ILHCbIDContainer {
+          constexpr static auto TypeID = Allen::TypeIDs::VeloTracks;
+
         private:
           unsigned m_offset = 0;
 

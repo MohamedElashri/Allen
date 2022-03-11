@@ -88,26 +88,21 @@ namespace Allen {
         struct Track : Allen::ILHCbIDSequence {
         private:
           const Hits* m_hits = nullptr;
-          const Allen::ILHCbIDSequence* m_base_track = nullptr;
           const float* m_qop = nullptr;
           unsigned m_track_index = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
-          bool m_has_ut = true;
 
         public:
           __host__ __device__ Track(
             const Hits* hits,
-            const Allen::ILHCbIDSequence* base_track,
             const float* qop,
             const unsigned* offset_tracks,
             const unsigned* offset_track_hit_number,
             const unsigned track_index,
-            const unsigned event_number,
-            const bool has_ut) :
+            const unsigned event_number) :
             m_hits(hits + event_number),
-            m_base_track(base_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index),
-            m_has_ut(has_ut)
+            m_qop(qop + offset_tracks[event_number]), m_track_index(track_index)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
@@ -116,40 +111,40 @@ namespace Allen {
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
-          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const
-          {
-            assert(m_has_ut);
-            return *static_cast<const Allen::Views::UT::Consolidated::Track*>(m_base_track);
-          }
+          // __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const
+          // {
+          //   assert(m_has_ut);
+          //   return *static_cast<const Allen::Views::UT::Consolidated::Track*>(m_base_track);
+          // }
 
-          __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
-          {
-            if (m_has_ut) {
-              return ut_track().velo_track();
-            }
-            else {
-              return *static_cast<const Allen::Views::Velo::Consolidated::Track*>(m_base_track);
-            }
-          }
+          // __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
+          // {
+          //   if (m_has_ut) {
+          //     return ut_track().velo_track();
+          //   }
+          //   else {
+          //     return *static_cast<const Allen::Views::Velo::Consolidated::Track*>(m_base_track);
+          //   }
+          // }
 
           __host__ __device__ unsigned number_of_scifi_hits() const { return m_number_of_hits; }
 
-          __host__ __device__ unsigned number_of_ut_hits() const
-          {
-            if (m_has_ut) {
-              return ut_track().number_of_ut_hits();
-            }
-            else {
-              return 0;
-            }
-          }
+          // __host__ __device__ unsigned number_of_ut_hits() const
+          // {
+          //   if (m_has_ut) {
+          //     return ut_track().number_of_ut_hits();
+          //   }
+          //   else {
+          //     return 0;
+          //   }
+          // }
 
-          __host__ __device__ unsigned number_of_velo_hits() const { return velo_track().number_of_hits(); }
+          // __host__ __device__ unsigned number_of_velo_hits() const { return velo_track().number_of_hits(); }
 
-          __host__ __device__ unsigned number_of_total_hits() const
-          {
-            return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
-          }
+          // __host__ __device__ unsigned number_of_total_hits() const
+          // {
+          //   return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
+          // }
 
           __host__ __device__ float qop() const { return m_qop[m_track_index]; }
 
@@ -163,6 +158,76 @@ namespace Allen {
           __host__ __device__ unsigned number_of_ids() const { return number_of_scifi_hits(); }
 
           __host__ __device__ unsigned id(const unsigned index) const { return hit(index).id(); }
+        };
+
+        struct VeloUTSciFiTrack : Track {
+        private:
+          Allen::Views::UT::Consolidated::Track* m_base_track = nullptr;
+
+        public:
+          __host__ __device__ VeloUTSciFiTrack(
+            const Hits* hits,
+            const Allen::Views::UT::Consolidated::Track* base_track,
+            const float* qop,
+            const unsigned* offset_tracks,
+            const unsigned* offset_track_hit_number,
+            const unsigned track_index,
+            const unsigned event_number) :
+            Track {hits, qop, offset_tracks, offset_track_hit_number, track_index, event_number},
+            m_base_track(base_track)
+          {}
+
+          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const
+          {
+            return *m_base_track;
+          }
+
+          __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
+          {
+            return ut_track().velo_track();
+          }
+
+          __host__ __device__ unsigned number_of_ut_hits() const
+          {
+            return ut_track().number_of_ut_hits();
+          }
+
+          __host__ __device__ unsigned number_of_velo_hits() const { return velo_track().number_of_hits(); }
+
+          __host__ __device__ unsigned number_of_total_hits() const
+          {
+            return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
+          }            
+        };
+
+        struct VeloSciFiTrack : Track {
+        private:
+          Allen::Views::Velo::Consolidated::Track* m_base_track = nullptr;
+
+        public:
+          __host__ __device__ VeloUTSciFiTrack(
+            const Hits* hits,
+            const Allen::Views::Velo::Consolidated::Track* base_track,
+            const float* qop,
+            const unsigned* offset_tracks,
+            const unsigned* offset_track_hit_number,
+            const unsigned track_index,
+            const unsigned event_number) :
+            Track {hits, qop, offset_tracks, offset_track_hit_number, track_index, event_number},
+            m_base_track(base_track)
+          {}
+
+          __host__ __device__ const Allen::Views::UT::Consolidated::Track& velo_track() const
+          {
+            return *m_base_track;
+          }
+
+          __host__ __device__ unsigned number_of_velo_hits() const { return velo_track().number_of_hits(); }
+
+          __host__ __device__ unsigned number_of_total_hits() const { 
+            return number_of_velo_hits() + number_of_scifi_hits();
+          }
+
         };
 
         struct Tracks : Allen::ILHCbIDContainer {
@@ -187,7 +252,38 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
-        using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;
+        struct VeloUTSciFiTracks : Tracks {
+          constexpr static auto TypeID = Allen::TypeIDs::VeloUTSciFiTracks;
+
+        public:
+          __host__ __device__ VeloUTSciFiTracks(const VeloUTSciFiTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
+            Tracks {track, oeffset_tracks, event_number}
+          {}
+
+          __host__ __device__ const VeloUTSciFiTrack& track(const unsigned index) const
+          {
+            assert(index < m_size);
+            return static_cast<const VeloUTSciFiTrack*>(m_structure)[index];
+          }
+        };
+
+        struct VeloSciFiTracks : Tracks {
+          constexpr static auto TypeID = Allen::TypeIDs::VeloUTSciFiTracks;
+
+        public:
+          __host__ __device__ VeloSciFiTracks(const VeloSciFiTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
+            Tracks {track, oeffset_tracks, event_number}
+          {}
+
+          __host__ __device__ const VeloSciFiTrack& track(const unsigned index) const
+          {
+            assert(index < m_size);
+            return static_cast<const VeloSciFiTrack*>(m_structure)[index];
+          }
+        };
+
+        using MultiEventVeloUTSciFiTracks = Allen::MultiEventLHCbIDContainer<VeloUTSciFiTracks>;
+        using MultiEventVeloSciFiTracks = Allen::MultiEventLHCbIDContainer<VeloSciFiTracks>;
       } // namespace Consolidated
     }   // namespace SciFi
   }     // namespace Views

@@ -11,6 +11,20 @@
 #include "PV_Definitions.cuh"
 
 namespace Allen {
+  enum class TypeIDs {
+    VeloTracks,
+    UTTracks,
+    SciFiTracks,
+    VeloSciFiTracks,
+    VeloUTSciFiTracks
+  };
+
+  template<typename T>
+  __host__ __device__ Allen::TypeIDs identify()
+  {
+    return T::TypeID;
+  }
+
   template<typename T>
   struct MultiEventContainer {
   private:
@@ -62,6 +76,7 @@ namespace Allen {
   };
 
   struct IMultiEventLHCbIDContainer {
+    virtual __host__ __device__ Allen::TypeIDs type_id() const = 0;
     virtual __host__ __device__ unsigned number_of_id_containers() const = 0;
     virtual __host__ __device__ const ILHCbIDContainer& id_container(const unsigned) const = 0;
     virtual __host__ __device__ ~IMultiEventLHCbIDContainer() {}
@@ -78,6 +93,7 @@ namespace Allen {
     {
       return MultiEventContainer<T>::container(event_number);
     }
+    __host__ __device__ Allen::TypeIDs type_id() const override { return Allen::identify<T>(); }
   };
 } // namespace Allen
 

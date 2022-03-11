@@ -161,6 +161,8 @@ namespace Allen {
         };
 
         struct Tracks : Allen::ILHCbIDContainer {
+          constexpr static auto TypeID = Allen::TypeIDs::UTTracks;
+
         private:
           unsigned m_offset = 0;
 
