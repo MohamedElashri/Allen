@@ -28,7 +28,7 @@ std::string routingbits_string(std::map<uint32_t, std::string> map)
 // regex to concert python routing bit dictionary (routing bit: exression) to std::map
 std::map<uint32_t, std::string> rb_map(std::string s)
 {
-  std::regex e("((?:\"[^\"]*\"|[^:{,])*):((?:\"[^\"]*\"|[^,}])*)");
+  std::regex e("((?:\"[^\"]*\"|[^:{,])*): '((?:\"[^\"]*\"|[^,}])*)'");
   std::smatch m;
   std::map<uint32_t, std::string> rb;
   while (std::regex_search(s, m, e)) {
