@@ -47,12 +47,21 @@ If you would like to dump a large amount of events into MDF files, it is conveni
 How to add RetinaClusters to existing DIGI files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To add RetinaClusters to a (X)DIGI file run the following command within Moore
-```
-./Moore/run gaudirun.py runLLAApp.py LLASequence.py
-```
-where [runLLAApp.py](https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/runLLAApp.py) and [LLASequence.py](https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/LLASequence.py) are option files available under `Hlt/RecoConf/options/` within the `add_veloclusters_to_digi` Moore branch.\
-Input (X)DIGI files, together with their DDDB and CondDB tags, should be specified within `runLLAApp.py`.\
-In the same option file an appropriate name for the output (X)DIGI file containing RetinaClusters should also be specified.\
-Starting from an (X)DIGI file containing RetinaClusters, the corresponding MDF file can be obtained with the [mdf_for_standalone_Allen](https://gitlab.cern.ch/lhcb/Moore/blob/master/Hlt/RecoConf/options/mdf_for_standalone_Allen.py) script (see instructions above).
+To add RetinaClusters to a (X)DIGI file call Moore in a _stack_setup like so::
+
+  ./Moore/run gaudirun.py runLLAApp.py LLASequence.py
+
+where |runLLAApp.py| and |LLASequence.py| are option files available under `Hlt/RecoConf/options/` within the `add_veloclusters_to_digi` Moore branch.
+
+.. |runLLAApp.py| raw:: html
+
+   <a href="https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/runLLAApp.py" target="_blank">runLLAApp.py</a>
+   
+.. |LLASequence.py| raw:: html
+
+   <a href="https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/LLASequence.py" target="_blank">runLLAApp.py</a> 
+   
+Input (X)DIGI files, together with their DDDB and CondDB tags, should be specified within `runLLAApp.py`.
+In the same option file an appropriate name for the output (X)DIGI file containing RetinaClusters should also be specified.
+Starting from an (X)DIGI file containing RetinaClusters, the corresponding MDF file can be obtained with the `mdf_for_standalone_Allen.py` script.
 
