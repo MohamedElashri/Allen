@@ -13,6 +13,7 @@
 #include <Event/RawEvent.h>
 #include <GaudiAlg/GaudiHistoAlg.h>
 #include <Dumpers/Utils.h>
+#include <GaudiKernel/GaudiException.h>
 
 template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;
@@ -95,7 +96,12 @@ std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()> Tr
   for (auto const* rawEvent : rawEvents) {
     std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
-      if (!banks.empty()) rawBanks[bt] = banks;
+      if (!banks.empty()) {
+        rawBanks[bt] = banks;
+      }
+      else {
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      }
     });
   }
 
