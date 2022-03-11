@@ -267,8 +267,8 @@ namespace Allen {
           }
         };
 
-        struct VeloSciFiTracks : Tracks {
-          constexpr static auto TypeID = Allen::TypeIDs::VeloUTSciFiTracks;
+        struct VeloSciFiTracks {
+          constexpr static auto TypeID = Allen::TypeIDs::VeloSciFiTracks;
 
         public:
           __host__ __device__ VeloSciFiTracks(const VeloSciFiTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
