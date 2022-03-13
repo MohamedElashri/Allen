@@ -488,7 +488,6 @@ endforeach()
 set(EXTERNAL_DIR "external")
 
 if(BUILD_TESTING)
-  add_subdirectory(external/Catch2)
   add_subdirectory(test/unit_tests)
 endif()
 

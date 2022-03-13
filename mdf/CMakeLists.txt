@@ -5,8 +5,6 @@
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
 
-include_directories(${PROJECT_SOURCE_DIR}/external/Catch2/single_include/catch2)
-
 set(mdf_sources
     src/raw_helpers.cpp
     src/read_mdf.cpp
@@ -68,7 +66,7 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Transpose Threads::Threads EventModel AllenZMQ)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Transpose Threads::Threads EventModel AllenZMQ Catch2::Catch2)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
     target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
