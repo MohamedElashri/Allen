@@ -25,7 +25,7 @@
 #endif
 
 #define CATCH_CONFIG_RUNNER
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 #ifdef USE_BOOST_FILESYSTEM
 namespace fs = boost::filesystem;

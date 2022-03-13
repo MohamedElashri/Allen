@@ -38,7 +38,7 @@
 #endif
 
 #define CATCH_CONFIG_RUNNER
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 using namespace std;
 using namespace std::string_literals;
