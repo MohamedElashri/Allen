@@ -42,6 +42,9 @@ __global__ void velo_calculate_permutations(decode_retinaclusters::Parameters pa
     const auto hit_start = module_pair_hit_start[module_pair];
     const auto hit_num = module_pair_hit_num[module_pair];
 
+    // Decrease divergences
+    __syncthreads();
+
     // Find the permutations with sorting key
     // Use insertion sort
     for (unsigned hit_rel_id = threadIdx.y; hit_rel_id < hit_num; hit_rel_id += blockDim.y) {
@@ -61,7 +64,7 @@ __global__ void velo_calculate_permutations(decode_retinaclusters::Parameters pa
 
       // Store it in hit permutations
       const auto global_position = hit_start + position;
-      parameters.dev_hit_permutations[global_position] = hit_index;
+      parameters.dev_hit_permutations[hit_index] = global_position;
     }
   }
 }
@@ -241,7 +244,7 @@ __global__ void decode_retinaclusters_sorted(
     sensor_offsets[Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module] - event_clusters_offset;
 
   for (unsigned i = threadIdx.x; i < number_of_clusters_in_event; i += blockDim.x) {
-    const auto cluster_number = parameters.dev_hit_permutations[event_clusters_offset + i];
+    const auto cluster_number = event_clusters_offset + i;
     const unsigned raw_bank_number = binary_search_rightmost(
       sensor_offsets, Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module, cluster_number);
     unsigned index_within_raw_bank = cluster_number - sensor_offsets[raw_bank_number];
@@ -250,7 +253,7 @@ __global__ void decode_retinaclusters_sorted(
     populate_retinacluster(
       velo_cluster_container,
       g,
-      event_clusters_offset + i,
+      parameters.dev_hit_permutations[cluster_number],
       raw_bank.sensor_index,
       raw_bank.word[index_within_raw_bank],
       raw_bank_version);
