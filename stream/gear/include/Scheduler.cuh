@@ -10,6 +10,7 @@
 #include <utility>
 #include <type_traits>
 #include <AlgorithmDB.h>
+#include "nlohmann/json.hpp"
 
 // use constexpr flag to enable/disable contracts
 #ifdef ENABLE_CONTRACTS
@@ -140,7 +141,7 @@ public:
   }
 
   // Configure constants for algorithms in the sequence
-  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
+  void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
   {
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       configure(m_sequence[i], config);
@@ -150,7 +151,7 @@ public:
   // Return constants for algorithms in the sequence
   auto get_algorithm_configuration() const
   {
-    std::map<std::string, std::map<std::string, std::string>> config;
+    std::map<std::string, std::map<std::string, nlohmann::json>> config;
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       get_configuration(m_sequence[i], config);
     }
@@ -203,7 +204,7 @@ public:
 private:
   static void configure(
     Allen::TypeErasedAlgorithm& algorithm,
-    const std::map<std::string, std::map<std::string, std::string>>& config)
+    const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
   {
     auto c = config.find(algorithm.name());
     if (c != config.end()) algorithm.set_properties(c->second);
@@ -213,7 +214,7 @@ private:
 
   static void get_configuration(
     const Allen::TypeErasedAlgorithm& algorithm,
-    std::map<std::string, std::map<std::string, std::string>>& config)
+    std::map<std::string, std::map<std::string, nlohmann::json>>& config)
   {
     config.emplace(algorithm.name(), algorithm.get_properties());
   }

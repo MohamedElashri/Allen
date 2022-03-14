@@ -330,10 +330,10 @@ int allen(
 
   // TODO: Test this
   if (print_config || write_config) {
-    auto algo_config = streams.front()->get_algorithm_configuration();
+    auto algorithm_configuration = streams.front()->get_algorithm_configuration();
     if (print_config) {
       info_cout << "Algorithm configuration\n";
-      for (auto kv : algo_config) {
+      for (auto kv : algorithm_configuration) {
         for (auto kv2 : kv.second) {
           info_cout << " " << kv.first << ":" << kv2.first << " = " << kv2.second << "\n";
         }
@@ -341,7 +341,9 @@ int allen(
     }
     if (write_config) {
       info_cout << "Write full configuration\n";
-      ConfigurationReader saveToJson(algo_config);
+      // Add sequence - this makes the generated json fully operational
+      algorithm_configuration["sequence"] = configuration_reader->get_sequence();
+      ConfigurationReader saveToJson(algorithm_configuration);
       saveToJson.save("config.json");
       return 0;
     }

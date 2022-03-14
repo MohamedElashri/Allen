@@ -93,12 +93,12 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
  */
 void Stream::print_configured_sequence() { scheduler->print_sequence(); }
 
-void Stream::configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
+void Stream::configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
 {
   scheduler->configure_algorithms(config);
 }
 
-std::map<std::string, std::map<std::string, std::string>> Stream::get_algorithm_configuration() const
+std::map<std::string, std::map<std::string, nlohmann::json>> Stream::get_algorithm_configuration() const
 {
   return scheduler->get_algorithm_configuration();
 }

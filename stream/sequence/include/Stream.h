@@ -20,6 +20,7 @@
 #include "HostBuffersManager.cuh"
 #include "CheckerInvoker.h"
 #include "Configuration.cuh"
+#include "nlohmann/json.hpp"
 
 struct HostBuffers;
 struct HostBuffersManager;
@@ -58,11 +59,11 @@ public:
 
   Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
-  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config);
+  void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config);
 
   void print_configured_sequence();
 
-  std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration() const;
+  std::map<std::string, std::map<std::string, nlohmann::json>> get_algorithm_configuration() const;
 
   bool contains_validation_algorithms() const;
 };

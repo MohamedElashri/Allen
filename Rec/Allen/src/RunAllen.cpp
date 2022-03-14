@@ -129,9 +129,9 @@ StatusCode RunAllen::initialize()
     error() << "Failed to obtain names_of_active_lines from gather_selections " << endmsg;
     return StatusCode::FAILURE;
   }
-  boost::split(m_line_names, selection_names->second, boost::is_any_of(","));
+  boost::split(m_line_names, selection_names->second.get<std::string>(), boost::is_any_of(","));
   if (m_line_names.empty()) {
-    error() << "Failed to obtain any line names from " << selection_names->second << endmsg;
+    error() << "Failed to obtain any line names from " << selection_names->second.get<std::string>() << endmsg;
     return StatusCode::FAILURE;
   }
   else {

@@ -43,3 +43,14 @@ BankTypes bank_type(std::string bank_name)
     return BankTypes::Unknown;
   }
 }
+
+void from_json(const nlohmann::json& j, BankTypes& b)
+{
+  std::string s = j.get<std::string>();
+  b = bank_type(s);
+  if (b == BankTypes::Unknown) {
+    throw StrException {"Failed to parse BankType " + s + "."};
+  }
+}
+
+void to_json(nlohmann::json& j, const BankTypes& b) { j = bank_name(b); }

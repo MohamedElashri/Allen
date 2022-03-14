@@ -11,6 +11,8 @@
 #include <vector>
 #include <cassert>
 #include <gsl/span>
+#include "nlohmann/json.hpp"
+#include "Common.h"
 
 constexpr auto NBankTypes = 11;
 enum class BankTypes { VP, VPRetinaCluster, UT, FT, MUON, ODIN, OTRaw, OTError, Rich, ECal, HCal, Unknown };
@@ -64,5 +66,10 @@ std::unordered_set<BankTypes> banks_set()
 {
   return std::unordered_set<BankTypes> {BANKS...};
 }
+
+// Conversion functions from and to json
+void from_json(const nlohmann::json& j, BankTypes& b);
+
+void to_json(nlohmann::json& j, const BankTypes& b);
 
 #endif

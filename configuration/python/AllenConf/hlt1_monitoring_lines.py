@@ -10,12 +10,12 @@ from AllenCore.generator import make_algorithm
 
 def make_beam_line(pre_scaler_hash_string="beam_line_pre",
                    post_scaler_hash_string="beam_line_post",
-                   beam_crossing_type="0"):
+                   beam_crossing_type=0):
     name_map = {
-        "0": "Hlt1NoBeam",
-        "1": "Hlt1BeamOne",
-        "2": "Hlt1BeamTwo",
-        "3": "Hlt1BothBeams",
+        0: "Hlt1NoBeam",
+        1: "Hlt1BeamOne",
+        2: "Hlt1BeamTwo",
+        3: "Hlt1BothBeams",
     }
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -59,17 +59,16 @@ def make_velo_micro_bias_line(
 def make_odin_event_type_line(
         pre_scaler_hash_string="odin_event_type_line_pre",
         post_scaler_hash_string="odin_event_type_line_post",
-        odin_event_type="0x8"):
+        odin_event_type=0x8):
     name_map = {0x8: "Hlt1ODINLumi", 0x4: "Hlt1ODINNoBias"}
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
-    odin_event_type_int = int(odin_event_type, 0)
 
     return make_algorithm(
         odin_event_type_line_t,
-        name=name_map[odin_event_type_int],
-        odin_event_type=odin_event_type_int,
+        name=name_map[odin_event_type],
+        odin_event_type=odin_event_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],

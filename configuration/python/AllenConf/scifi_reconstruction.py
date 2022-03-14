@@ -62,7 +62,7 @@ def decode_scifi():
 
 
 @configurable
-def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size="32"):
+def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
     number_of_events = initialize_number_of_events()
 
     velo_tracks = ut_tracks["velo_tracks"]

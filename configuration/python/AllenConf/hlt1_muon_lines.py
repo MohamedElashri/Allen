@@ -60,12 +60,12 @@ def make_di_muon_mass_line(forward_tracks,
                            secondary_vertices,
                            pre_scaler_hash_string="di_muon_mass_line_pre",
                            post_scaler_hash_string="di_muon_mass_line_post",
-                           minHighMassTrackPt="300.",
-                           minHighMassTrackP="6000.",
-                           minMass="2700.",
-                           maxDoca="0.2",
-                           maxVertexChi2="25.",
-                           minIPChi2="0.",
+                           minHighMassTrackPt=300.,
+                           minHighMassTrackP=6000.,
+                           minMass=2700.,
+                           maxDoca=0.2,
+                           maxVertexChi2=25.,
+                           minIPChi2=0.,
                            name="Hlt1DiMuonHighMass"):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()

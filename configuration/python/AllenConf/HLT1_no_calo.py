@@ -99,12 +99,12 @@ def default_physics_lines(forward_tracks, kalman_velo_only,
                 name="Hlt1DiMuonLowMass",
                 pre_scaler_hash_string="di_muon_low_mass_line_pre",
                 post_scaler_hash_string="di_muon_low_mass_line_post",
-                minHighMassTrackPt="500.",
-                minHighMassTrackP="3000.",
-                minMass="0.",
-                maxDoca="0.2",
-                maxVertexChi2="25.",
-                minIPChi2="4."),
+                minHighMassTrackPt=500.,
+                minHighMassTrackP=3000.,
+                minMass=0.,
+                maxDoca=0.2,
+                maxVertexChi2=25.,
+                minIPChi2=4.),
             enableGEC=True))
     lines.append(
         line_maker(
@@ -139,7 +139,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1NoBeam",
             make_beam_line(
-                beam_crossing_type="0",
+                beam_crossing_type=0,
                 pre_scaler_hash_string="no_beam_line_pre",
                 post_scaler_hash_string="no_beam_line_post"),
             enableGEC=False))
@@ -147,7 +147,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1BeamOne",
             make_beam_line(
-                beam_crossing_type="1",
+                beam_crossing_type=1,
                 pre_scaler_hash_string="beam_one_line_pre",
                 post_scaler_hash_string="beam_one_line_post"),
             enableGEC=False))
@@ -155,7 +155,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1BeamTwo",
             make_beam_line(
-                beam_crossing_type="2",
+                beam_crossing_type=2,
                 pre_scaler_hash_string="beam_two_line_pre",
                 post_scaler_hash_string="beam_two_line_post"),
             enableGEC=False))
@@ -163,7 +163,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1BothBeams",
             make_beam_line(
-                beam_crossing_type="3",
+                beam_crossing_type=3,
                 pre_scaler_hash_string="both_beams_line_pre",
                 post_scaler_hash_string="both_beams_line_post"),
             enableGEC=False))
@@ -176,7 +176,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1ODINLumi",
             make_odin_event_type_line(
-                odin_event_type="0x8",
+                odin_event_type=0x8,
                 pre_scaler_hash_string="odin_lumi_line_pre",
                 post_scaler_hash_string="odin_lumi_line_post"),
             enableGEC=False))
@@ -184,7 +184,7 @@ def default_monitoring_lines(velo_tracks):
         line_maker(
             "Hlt1ODINNoBias",
             make_odin_event_type_line(
-                odin_event_type="0x4",
+                odin_event_type=0x4,
                 pre_scaler_hash_string="odin_no_bias_pre",
                 post_scaler_hash_string="odin_no_bias_post"),
             enableGEC=False))
