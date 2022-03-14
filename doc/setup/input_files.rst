@@ -44,9 +44,16 @@ If you would like to dump a large amount of events into MDF files, it is conveni
 
   ./Moore/run gaudirun.py Moore/Hlt/RecoConf/scripts/mdf_split_for_standalone_Allen.py
 
+DIGI files containing RetinaClusters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+DIGI files containing RetinaClusters are available here:
+
+  /eos/lhcb/wg/rta/WP6/Allen/digi_input/RetinaCluster_samples/
+  
+These files can be called within option files using the corresponding entries in the TestFileDB.  
+
 How to add RetinaClusters to existing DIGI files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 To add RetinaClusters to a (X)DIGI file call Moore in a _stack_setup like so::
 
   ./Moore/run gaudirun.py runLLAApp.py LLASequence.py
@@ -59,9 +66,19 @@ where |runLLAApp.py| and |LLASequence.py| are option files available under `Hlt/
    
 .. |LLASequence.py| raw:: html
 
-   <a href="https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/LLASequence.py" target="_blank">runLLAApp.py</a> 
+   <a href="https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/LLASequence.py" target="_blank">LLASequence.py</a> 
    
 Input (X)DIGI files, together with their DDDB and CondDB tags, should be specified within `runLLAApp.py`.
 In the same option file an appropriate name for the output (X)DIGI file containing RetinaClusters should also be specified.
 Starting from an (X)DIGI file containing RetinaClusters, the corresponding MDF file can be obtained with the `mdf_for_standalone_Allen.py` script.
 
+Run Allen without RetinaClusters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+If XDIGI or MDF input files containing RetinaClusters are not available for a specific use case or RetinaCluster cannot be added to pre-existing files, it is still possible to run the reconstruction using the `hlt1_pp_veloSP` sequence.
+This sequence performs VELO clustering within Allen, not requiring the VPRetinaCluster RawBank to be present in the input file.
+The `hlt1_pp_veloSP` sequence can be set in the option file using the following lines::
+
+from RecoConf.hlt1_allen import sequence, make_transposed_raw_banks
+
+with sequence.bind(sequence="hlt1_pp_veloSP"):
+  #call reconstruction as before
