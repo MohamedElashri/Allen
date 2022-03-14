@@ -23,6 +23,8 @@ namespace decode_retinaclusters {
     DEVICE_OUTPUT(dev_module_cluster_num_t, unsigned) dev_module_pair_cluster_num;
     DEVICE_OUTPUT(dev_offsets_module_pair_cluster_t, unsigned) dev_offsets_module_pair_cluster;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
+    DEVICE_OUTPUT(dev_hit_permutations_t, unsigned) dev_hit_permutations;
+    DEVICE_OUTPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_clusters_t,
       DEPENDENCIES(
