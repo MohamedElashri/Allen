@@ -9,7 +9,7 @@
  * or submit itself to any jurisdiction.                                       *
  \*****************************************************************************/
 
-#define BOOST_TEST_MODULE example
+#define BOOST_TEST_MODULE mass_definitions
 #include <boost/test/unit_test.hpp>
 
 #include "MassDefinitions.h"
