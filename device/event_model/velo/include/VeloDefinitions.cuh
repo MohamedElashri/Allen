@@ -36,6 +36,7 @@ namespace Velo {
     static constexpr unsigned max_h0_candidates = 8;
     static constexpr unsigned initial_seeding_h0_candidates = 8;
     static constexpr unsigned seeding_h0_candidates = 4;
+    static constexpr unsigned block_dim_x_populate_module_pair_offsets_and_sizes = 256;
     // Atomics
     namespace atomics {
       enum atomic_types { number_of_three_hit_tracks, tracks_to_follow, local_number_of_hits };

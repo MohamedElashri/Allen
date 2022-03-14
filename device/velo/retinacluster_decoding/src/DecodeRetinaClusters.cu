@@ -16,42 +16,21 @@ __global__ void populate_module_pair_offsets_and_sizes(
     (Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module) / Velo::Constants::n_module_pairs;
   auto offsets = parameters.dev_offsets_each_sensor_size;
 
-  for (unsigned element = threadIdx.x; element < module_pair_cluster_num_size; element += blockDim.x) {
-    const auto current_offset_index = element * step_size;
-    const auto next_offset_index = (element + 1) * step_size;
+  for (unsigned i = threadIdx.x; i < Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes;
+       i += blockDim.x) {
+    const auto element = blockIdx.x * Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes + i;
+    if (element < module_pair_cluster_num_size) {
+      const auto current_offset_index = element * step_size;
+      const auto next_offset_index = (element + 1) * step_size;
 
-    parameters.dev_offsets_module_pair_cluster[element + 1] = offsets[next_offset_index];
-    parameters.dev_module_pair_cluster_num[element] = offsets[next_offset_index] - offsets[current_offset_index];
+      parameters.dev_offsets_module_pair_cluster[element + 1] = offsets[next_offset_index];
+      parameters.dev_module_pair_cluster_num[element] = offsets[next_offset_index] - offsets[current_offset_index];
+    }
   }
 }
 
-template<typename T>
-__device__ unsigned fetch_lhcb_id(
-  const T& velo_raw_event,
-  const unsigned* sensor_offsets,
-  const unsigned event_clusters_offset,
-  const unsigned cluster_number)
-{
-  // Get raw bank from cluster number
-  const unsigned raw_bank_number = binary_search_rightmost(
-    sensor_offsets,
-    Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module,
-    cluster_number + event_clusters_offset);
-  unsigned index_within_raw_bank = cluster_number - (sensor_offsets[raw_bank_number] - event_clusters_offset);
-  const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-  const auto raw_bank_sensor_index = raw_bank.sensor_index;
-  const auto raw_bank_word = raw_bank.word[index_within_raw_bank];
-
-  // Calculate LHCb ID from raw_bank_word
-  const uint32_t cx = (raw_bank_word >> 14) & 0x3FF;
-  const uint32_t cy = (raw_bank_word >> 3) & 0xFF;
-  const uint32_t chip = cx >> VP::ChipColumns_division;
-  const unsigned cid = get_channel_id(raw_bank_sensor_index, chip, cx & VP::ChipColumns_mask, cy);
-  return get_lhcb_id(cid);
-}
-
 template<bool mep_layout>
-__global__ void calculate_permutations(decode_retinaclusters::Parameters parameters)
+__global__ void velo_calculate_permutations(decode_retinaclusters::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned* module_pair_hit_start =
@@ -59,36 +38,25 @@ __global__ void calculate_permutations(decode_retinaclusters::Parameters paramet
   const unsigned* module_pair_hit_num =
     parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
-  const unsigned* sensor_offsets = parameters.dev_offsets_each_sensor_size +
-                                   event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
-  const auto event_clusters_offset = sensor_offsets[0];
-  const auto velo_raw_event = Velo::RawEvent<mep_layout> {
-    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, event_number};
-
   for (unsigned module_pair = threadIdx.x; module_pair < Velo::Constants::n_module_pairs; module_pair += blockDim.x) {
     const auto hit_start = module_pair_hit_start[module_pair];
     const auto hit_num = module_pair_hit_num[module_pair];
 
-    // Synchronize to increase chances of coalesced accesses
-    __syncthreads();
-
-    // Find the permutations with phi
+    // Find the permutations with sorting key
+    // Use insertion sort
     for (unsigned hit_rel_id = threadIdx.y; hit_rel_id < hit_num; hit_rel_id += blockDim.y) {
       const auto hit_index = hit_start + hit_rel_id;
-      const auto phi = parameters.dev_hit_phi[hit_index];
+      const auto key = parameters.dev_hit_sorting_key[hit_index];
 
-      // Find out local position
       unsigned position = 0;
       for (unsigned j = 0; j < hit_num; ++j) {
+        if (hit_rel_id == j) continue;
+
         const auto other_hit_index = hit_start + j;
-        const auto other_phi = parameters.dev_hit_phi[other_hit_index];
+        const auto other_key = parameters.dev_hit_sorting_key[other_hit_index];
 
         // Ensure sorting is reproducible
-        position +=
-          phi > other_phi ||
-          (hit_index != other_hit_index && phi == other_phi &&
-           fetch_lhcb_id(velo_raw_event, sensor_offsets, event_clusters_offset, hit_index - event_clusters_offset) >
-             fetch_lhcb_id(velo_raw_event, sensor_offsets, event_clusters_offset, other_hit_index - event_clusters_offset));
+        position += key > other_key;
       }
 
       // Store it in hit permutations
@@ -98,8 +66,8 @@ __global__ void calculate_permutations(decode_retinaclusters::Parameters paramet
   }
 }
 
-__device__ void populate_phi(
-  int16_t* hit_phi,
+__device__ void populate_sorting_key(
+  int64_t* hit_sorting_key,
   VeloGeometry const& g,
   unsigned const cluster_index,
   const unsigned raw_bank_sensor_index,
@@ -107,20 +75,29 @@ __device__ void populate_phi(
 {
   const float* ltg = g.ltg + g.n_trans * raw_bank_sensor_index;
 
-  // Decode cluster
+  // Decode ID
   const uint32_t cx = (raw_bank_word >> 14) & 0x3FF;
+  const uint32_t cy = (raw_bank_word >> 3) & 0xFF;
+  const uint32_t chip = cx >> VP::ChipColumns_division;
+  const unsigned cid = get_channel_id(raw_bank_sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+  const uint32_t id = get_lhcb_id(cid);
+
+  // Calculate phi
   const float fx = ((raw_bank_word >> 11) & 0x7) / 8.f;
   const float fy = (raw_bank_word & 0x7FF) / 8.f;
   const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
   const float local_y = (0.5f + fy) * Velo::Constants::pixel_size;
   const float gx = (ltg[0] * local_x + ltg[1] * local_y + ltg[9]);
   const float gy = (ltg[3] * local_x + ltg[4] * local_y + ltg[10]);
+  const int16_t phi = hit_phi_16(gx, gy);
 
-  hit_phi[cluster_index] = hit_phi_16(gx, gy);
+  // Create sorting key
+  const int64_t sorting_key = static_cast<int64_t>(phi) << 32 | id;
+  hit_sorting_key[cluster_index] = sorting_key;
 }
 
 template<bool mep_layout>
-__global__ void velo_populate_phi(
+__global__ void velo_calculate_sorting_key(
   decode_retinaclusters::Parameters parameters,
   const VeloGeometry* dev_velo_geometry)
 {
@@ -156,8 +133,8 @@ __global__ void velo_populate_phi(
     unsigned index_within_raw_bank = cluster_number - (sensor_offsets[raw_bank_number] - event_clusters_offset);
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
 
-    populate_phi(
-      parameters.dev_hit_phi,
+    populate_sorting_key(
+      parameters.dev_hit_sorting_key,
       g,
       event_clusters_offset + cluster_number,
       raw_bank.sensor_index,
@@ -254,13 +231,10 @@ __global__ void decode_retinaclusters_sorted(
   const auto number_of_clusters_in_event =
     sensor_offsets[Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module] - event_clusters_offset;
 
-  for (unsigned i = threadIdx.x; i < number_of_clusters_in_event;
-       i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < number_of_clusters_in_event; i += blockDim.x) {
     const auto cluster_number = parameters.dev_hit_permutations[event_clusters_offset + i];
     const unsigned raw_bank_number = binary_search_rightmost(
-      sensor_offsets,
-      Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module,
-      cluster_number);
+      sensor_offsets, Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module, cluster_number);
     unsigned index_within_raw_bank = cluster_number - sensor_offsets[raw_bank_number];
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
 
@@ -288,7 +262,7 @@ void decode_retinaclusters::decode_retinaclusters_t::set_arguments_size(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs + 1);
   set_size<dev_velo_clusters_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_hit_permutations_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
-  set_size<dev_hit_phi_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+  set_size<dev_hit_sorting_key_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
 }
 
 void decode_retinaclusters::decode_retinaclusters_t::operator()(
@@ -309,19 +283,24 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
   initialize<dev_module_cluster_num_t>(arguments, 0, context);
   initialize<dev_offsets_module_pair_cluster_t>(arguments, 0, context);
 
-  global_function(populate_module_pair_offsets_and_sizes)(1, 1024, context)(
+  const auto grid_dim_x = (size<dev_module_cluster_num_t>(arguments) +
+                           Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes - 1) /
+                          Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes;
+  global_function(populate_module_pair_offsets_and_sizes)(
+    grid_dim_x, Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes, context)(
     arguments, size<dev_module_cluster_num_t>(arguments));
 
-  global_function(
-    runtime_options.mep_layout ? velo_populate_phi<true> : velo_populate_phi<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_velo_geometry);
+  global_function(runtime_options.mep_layout ? velo_calculate_sorting_key<true> : velo_calculate_sorting_key<false>)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_calculate_key_t>().get(), context)(
+    arguments, constants.dev_velo_geometry);
 
-  global_function(runtime_options.mep_layout ? calculate_permutations<true> : calculate_permutations<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(runtime_options.mep_layout ? velo_calculate_permutations<true> : velo_calculate_permutations<false>)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_calculate_permutations_t>(), context)(arguments);
 
   global_function(
     runtime_options.mep_layout ? decode_retinaclusters_sorted<true> : decode_retinaclusters_sorted<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_velo_geometry);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_decode_retina_t>().get(), context)(
+    arguments, constants.dev_velo_geometry);
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO clusters after decode_retina_clusters:\n";

@@ -24,7 +24,7 @@ namespace decode_retinaclusters {
     DEVICE_OUTPUT(dev_offsets_module_pair_cluster_t, unsigned) dev_offsets_module_pair_cluster;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutations_t, unsigned) dev_hit_permutations;
-    DEVICE_OUTPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
+    DEVICE_OUTPUT(dev_hit_sorting_key_t, int64_t) dev_hit_sorting_key;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_clusters_t,
       DEPENDENCIES(
@@ -34,7 +34,9 @@ namespace decode_retinaclusters {
         dev_offsets_module_pair_cluster_t),
       Velo::Clusters)
     dev_velo_clusters;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim_prop;
+    PROPERTY(block_dim_x_calculate_key_t, "block_dim_x_calculate_key", "block dim x of calculate_key", unsigned) block_dim_x_calculate_key;
+    PROPERTY(block_dim_calculate_permutations_t, "block_dim_calculate_permutations", "block dims of calculate permutations", DeviceDimensions) block_dim_calculate_permutations;
+    PROPERTY(block_dim_x_decode_retina_t, "block_dim_x_decode_retina", "block dim x of decode retina sorted", unsigned) block_dim_x_decode_retina;
   };
 
   // Define postconditions
@@ -64,6 +66,8 @@ namespace decode_retinaclusters {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{1024, 1, 1}}};
+    Property<block_dim_x_calculate_key_t> m_block_dim_x_calculate_key {this, 256};
+    Property<block_dim_calculate_permutations_t> m_block_dim_calculate_permutations {this, {{2, 256, 1}}};
+    Property<block_dim_x_decode_retina_t> m_block_dim_x_decode_retina {this, 256};
   };
 } // namespace decode_retinaclusters
