@@ -63,8 +63,7 @@ namespace Allen {
     UTTracks,
     SciFiTracks,
     VeloUTTracks,
-    VeloSciFiTracks,
-    VeloUTSciFiTracks
+    LongTracks
   };
 
   template<typename T>
@@ -73,6 +72,8 @@ namespace Allen {
     return T::TypeID;
   }
 
+  // If we want to do this with CRTP, we could get rid of the virtual type_id()
+  // and just keep the virtual destructor.
   struct IMultiEventContainer {
     virtual __host__ __device__ Allen::TypeIDs type_id() const = 0;
     virtual __host__ __device__ ~IMultiEventContainer() {}
@@ -119,57 +120,19 @@ namespace Allen {
     }
   };
 
-  template<typename T>
-  struct IMultiEventLHCbIDContainer {
-    __host__ __device__ unsigned number_of_id_containers() const {
-      return static_cast<const T*>(this)->number_of_id_containers_impl();
-    }
-    __host__ __device__ const auto& id_container(const unsigned) const {
-      return static_cast<const T*>(this)->id_container_impl();
-    }
-  };
+  // I think it's necessary to use CRTP for the MultiEventLHCbIDContainer.
+  // template<typename T>
+  // struct IMultiEventLHCbIDContainer {
+  //   __host__ __device__ unsigned number_of_id_containers() const {
+  //     return static_cast<const T*>(this)->number_of_id_containers_impl();
+  //   }
+  //   __host__ __device__ const auto& id_container(const unsigned) const {
+  //     return static_cast<const T*>(this)->id_container_impl();
+  //   }
+  // };
 
-  // track;
-  // track? track->velo_segment(); track->ut_segment(); track->scifi_segment();
 
-  template<typename T>
-  struct IVeloTrack {
-    __host__ __device__ Allen::Views::Velo::Consolidated::Segment velo_segment() const {
-      return static_cast<const T*>(this)->velo_segment_impl();
-    }
-  };
-
-  template<typename T>
-  struct IUTTrack {
-    __host__ __device__ Allen::Views::UT::Consolidated::Segment ut_segment() const {
-      return static_cast<const T*>(this)->ut_segment_impl();
-    }
-  };
-
-  template<typename T>
-  struct ISciFiTrack {
-    __host__ __device__ Allen::Views::Velo::Consolidated::Segment scifi_segment() const {
-      return static_cast<const T*>(this)->scifi_segment_impl();
-    }
-  };
 } // namespace Allen
-
-template<typename T>
-void ut_bar(const T& mec) {
-  // Do stuff
-}
-
-template<typename T>
-void velo_bar(const T& mec) {
-  // Do stuff
-}
-
-void foo(const IMultiEventContainer* mec) {
-  if (mec->type_id() == VeloTracks) {
-    velo_bar()
-  }
-  
-}
 
 namespace Consolidated {
 

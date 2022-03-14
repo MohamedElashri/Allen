@@ -195,12 +195,18 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
-        struct Track : Allen::ILHCbIDSequence {
+        struct Track : Allen::ILHCbIDSequence<Track> {
+          friend Allen::ILHCbIDSequence<Track>;
+
         private:
           const Hits* m_hits = nullptr;
           unsigned m_track_index = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
+
+          __host__ __device__ unsigned number_of_ids_impl() const { return m_number_of_hits; }
+
+          __host__ __device__ unsigned id_impl(const unsigned index) const { return hit(index).id(); }
 
         public:
           __host__ __device__ Track(
@@ -234,21 +240,31 @@ namespace Allen {
             return states_view.state(m_track_index);
           }
 
-          __host__ __device__ unsigned number_of_ids() const { return number_of_hits(); }
-
-          __host__ __device__ unsigned id(const unsigned index) const { return hit(index).id(); }
         };
 
-        struct Tracks : Allen::ILHCbIDContainer {
+        struct Tracks : Allen::ILHCbIDContainer<Tracks> {
+          friend Allen::ILHCbIDContainer<Tracks>;
           constexpr static auto TypeID = Allen::TypeIDs::VeloTracks;
 
         private:
+          const Track* m_track;
+          unsigned m_size = 0;
           unsigned m_offset = 0;
+
+          __host__ __device__ unsigned number_of_id_sequences_impl() const {
+            return m_size;
+          }
+
+          __host__ __device__ const Track& id_sequence_impl(const unsigned index) {
+            assert(index < number_of_id_sequences_impl());
+            return m_track[index];
+          }
+
 
         public:
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
-            Allen::ILHCbIDContainer {track + offset_tracks[event_number],
-                                     offset_tracks[event_number + 1] - offset_tracks[event_number]},
+            m_track(track + offset_tracks[event_number]),
+            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]),
             m_offset(offset_tracks[event_number])
           {}
 
@@ -257,7 +273,7 @@ namespace Allen {
           __host__ __device__ const Track& track(const unsigned index) const
           {
             assert(index < size());
-            return static_cast<const Track*>(m_structure)[index];
+            return m_track[index];
           }
 
           /**
@@ -267,7 +283,7 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
-        using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;
+        using MultiEventTracks = Allen::MultiEventContainer<Tracks>;
       } // namespace Consolidated
     }   // namespace Velo
   }     // namespace Views

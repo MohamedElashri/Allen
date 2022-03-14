@@ -577,7 +577,7 @@ __global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters 
 
   // Forward tracks.
   const unsigned total_number_of_tracks = parameters.dev_atomics_scifi[number_of_events];
-  const auto scifi_tracks_view = parameters.dev_scifi_tracks_view[event_number];
+  const auto event_scifi_tracks = parameters.dev_scifi_tracks_view[0].container(event_number);
 
   parameters.dev_kalman_states_view[event_number] = Allen::Views::Physics::KalmanStates {
     parameters.dev_kalman_fit_results, parameters.dev_atomics_scifi, event_number, number_of_events};
@@ -585,16 +585,16 @@ __global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters 
   Velo::Consolidated::States kalman_states {parameters.dev_kalman_fit_results, total_number_of_tracks};
 
   // Loop over SciFi tracks and get associated UT and VELO tracks.
-  const unsigned n_scifi_tracks = scifi_tracks_view.size();
+  const unsigned n_scifi_tracks = event_scifi_tracks.size();
   for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
-    const auto scifi_track = scifi_tracks_view.track(i_scifi_track);
+    const auto scifi_track = event_scifi_tracks.track(i_scifi_track);
     const auto velo_track = scifi_track.velo_track();
     const KalmanFloat init_qop = (KalmanFloat) scifi_track.qop();
     ParKalmanFilter::FittedTrack kalman_track;
 
     simplified_fit(velo_track, init_qop, kalman_track);
 
-    set_fit_result(scifi_tracks_view.offset() + i_scifi_track, kalman_track, kalman_states);
-    parameters.dev_kf_tracks[scifi_tracks_view.offset() + i_scifi_track] = kalman_track;
+    set_fit_result(event_scifi_tracks.offset() + i_scifi_track, kalman_track, kalman_states);
+    parameters.dev_kf_tracks[event_scifi_tracks.offset() + i_scifi_track] = kalman_track;
   }
 }

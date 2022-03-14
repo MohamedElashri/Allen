@@ -10,6 +10,7 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 #include "LookingForwardConstants.cuh"
+#include "ParticleTypes.cuh"
 
 namespace scifi_consolidate_tracks {
   struct Parameters {
@@ -52,6 +53,23 @@ namespace scifi_consolidate_tracks {
       DEPENDENCIES(dev_scifi_tracks_view_t),
       Allen::Views::SciFi::Consolidated::MultiEventTracks)
     dev_scifi_multi_event_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_long_track_view_t,
+      DEPENDENCIES(
+        dev_scifi_multi_event_tracks_view_t, 
+        dev_ut_tracks_view_t),
+      Allen::Views::Physics::LongTrack)
+    dev_long_track_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_long_tracks_view_t,
+      DEPENDENCIES(dev_long_track_view_t),
+      Allen::Views::Physics::LongTracks)
+    dev_long_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_multi_event_long_tracks_view_t,
+      DEPENDENCIES(dev_long_tracks_view_t),
+      Allen::Views::Physics::MultiEventLongTracks)
+    dev_multi_event_long_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

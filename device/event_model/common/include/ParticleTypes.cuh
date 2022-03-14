@@ -56,10 +56,12 @@ namespace Allen {
       };
 
       struct Track {
-      private:
+      protected:
         const Allen::Views::Velo::Consolidated::Track* m_velo_segment = nullptr;
         const Allen::Views::UT::Consolidated::Track* m_ut_segment = nullptr;
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
+
+
 
       public:
         __host__ __device__ Track(
@@ -111,7 +113,7 @@ namespace Allen {
           return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
         }
 
-        __host__ __device__ unsigned id(const unsigned index) const
+        __host__ __device__ unsigned get_id(const unsigned index) const
         {
           assert(index < number_of_hits());
           if (index < number_of_velo_hits()) {
@@ -124,7 +126,102 @@ namespace Allen {
             return m_scifi_segment->id(index - number_of_velo_hits() - number_of_ut_hits());
           }
         }
+
+        __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const {
+          assert(has_velo());
+          return *m_velo_segment;
+        }
+
+        __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const {
+          assert(has_ut());
+          return *m_ut_segment;
+        }
+
+        __host__ __device__ const Allen::Views::SciFi::Consolidated::Track& scifi_track() const {
+          assert(has_scifi());
+          return *m_scifi_segment;
+        }
+        
       };
+
+      struct LongTrack : ILHCbIDSequence<LongTrack>, Track {
+        friend ILHCbIDSequence<LongTrack>;
+
+      private:
+        __host__ __device__ unsigned number_of_ids_impl() const {
+          return number_of_hits();
+        }
+
+        __host__ __device__ unsigned id_impl(const unsigned index) const {
+          return get_id(index);
+        }
+
+      public:
+        __host__ __device__ LongTrack(
+          const Allen::Views::Velo::Consolidated::Track* velo_segment,
+          const Allen::Views::UT::Consolidated::Track* ut_segment,
+          const Allen::Views::SciFi::Consolidated::Track* scifi_segment) :
+          Track {velo_segment, ut_segment, scifi_segment}
+        {}
+
+        __host__ __device__ unsigned qop() const {
+          return m_scifi_segment->qop();
+        }
+      };
+
+      struct LongTracks : ILHCbIDContainer<LongTracks> {
+        friend Allen::ILHCbIDContainer<LongTracks>;
+        constexpr static auto TypeID = Allen::TypeIDs::LongTracks;
+
+      private:
+        const LongTrack* m_track;
+        unsigned m_size = 0;
+        unsigned m_offset = 0;
+
+        __host__ __device__ unsigned number_of_id_sequences_impl() const {
+          return m_size;
+        }
+
+        __host__ __device__ const LongTrack& id_sequence_impl(const unsigned index) const {
+          assert(index < number_of_id_sequences_impl());
+          return m_track[index];
+        }
+
+      public:
+        __host__ __device__ LongTracks(const LongTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
+          m_track(track + offset_tracks[event_number]),
+          m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]),
+          m_offset(offset_tracks[event_number])
+        {}
+
+        __host__ __device__ unsigned size() const { return m_size; }
+
+        __host__ __device__ const LongTrack& track(const unsigned index) const {
+          return id_sequence_impl(index);
+        }
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
+      };
+
+
+      using MultiEventLongTracks = Allen::MultiEventContainer<LongTracks>;
+
+      struct TrackContainer {
+      private:
+        const Track* m_track = nullptr;
+        unsigned m_size = 0;
+
+      public:
+        __host__ __device__ TrackContainer(const Track* track, const unsigned size) :
+          m_track(track), m_size(size)
+        {}
+
+        __host__ __device__ unsigned size() const { return m_size; }
+
+        
+
+        virtual __host__ __device__ ~TrackContainer() {}
+      };  
 
       struct SecondaryVertices {
       private:
@@ -230,7 +327,7 @@ namespace Allen {
 
         __host__ __device__ unsigned number_of_ids() const { return m_track->number_of_hits(); }
 
-        __host__ __device__ unsigned id(const unsigned index) const { return m_track->id(index); }
+        __host__ __device__ unsigned id(const unsigned index) const { return m_track->get_id(index); }
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
 

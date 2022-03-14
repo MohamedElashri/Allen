@@ -214,20 +214,17 @@ void velo_consolidate_tracks::lhcb_id_container_checks::operator()(
   std::vector<Allen::Views::Velo::Consolidated::MultiEventTracks> velo_multi_event_tracks_view;
   velo_multi_event_tracks_view.emplace_back(
     Allen::Views::Velo::Consolidated::MultiEventTracks {velo_tracks_view.data(), number_of_events});
-  const Allen::IMultiEventLHCbIDContainer* multiev_id_cont =
-    reinterpret_cast<const Allen::IMultiEventLHCbIDContainer*>(velo_multi_event_tracks_view.data());
+  const Allen::Views::Velo::Consolidated::MultiEventTracks* multiev_id_cont = velo_multi_event_tracks_view.data();
 
   // Conditions to check
-  const bool size_is_number_of_events =
-    velo_multi_event_tracks_view[0].number_of_events() == multiev_id_cont->number_of_id_containers();
   bool equal_number_of_tracks_and_sequences = true;
   bool lhcb_ids_never_zero = true;
   bool lhcb_ids_have_velo_preamble = true;
 
   for (unsigned event_number = 0; event_number < velo_multi_event_tracks_view[0].number_of_events(); ++event_number) {
     const auto& tracks = velo_multi_event_tracks_view[0].container(event_number);
-    const auto& id_cont = multiev_id_cont->id_container(event_number);
-    equal_number_of_tracks_and_sequences &= tracks.size() == id_cont.number_of_id_structures();
+    const auto& id_cont = multiev_id_cont->container(event_number);
+    equal_number_of_tracks_and_sequences &= tracks.size() == id_cont.number_of_id_sequences();
 
     for (unsigned sequence_index = 0; sequence_index < tracks.size(); ++sequence_index) {
       const auto& track = tracks.track(sequence_index);
@@ -238,7 +235,6 @@ void velo_consolidate_tracks::lhcb_id_container_checks::operator()(
     }
   }
 
-  require(size_is_number_of_events, "Require that number of events is equal to MultiEventLHCbIDContainer size");
   require(
     equal_number_of_tracks_and_sequences,
     "Require that the number of tracks equals the number of LHCb ID sequences for all events");

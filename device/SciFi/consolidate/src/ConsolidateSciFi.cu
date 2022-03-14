@@ -15,15 +15,18 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
   const auto event_scifi_track_ut_indices = parameters.dev_scifi_track_ut_indices + event_tracks_offset;
   for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
     const auto ut_track_index = event_scifi_track_ut_indices[track_index];
+    const auto* ut_track = &parameters.dev_ut_tracks_view[event_number].track(ut_track_index);
+    const auto* velo_track = &ut_track->velo_track();
     new (parameters.dev_scifi_track_view + event_tracks_offset + track_index)
       Allen::Views::SciFi::Consolidated::Track {parameters.dev_scifi_hits_view,
-                                                &parameters.dev_ut_tracks_view[event_number].track(ut_track_index),
                                                 parameters.dev_scifi_qop,
                                                 parameters.dev_atomics_scifi,
                                                 parameters.dev_scifi_track_hit_number,
                                                 track_index,
-                                                event_number,
-                                                true};
+                                                event_number};
+    new (parameters.dev_long_track_view + event_tracks_offset + track_index)
+      Allen::Views::Physics::LongTrack {velo_track, ut_track, 
+                                        parameters.dev_scifi_track_view + event_tracks_offset + track_index};
   }
 
   if (threadIdx.x == 0) {
@@ -36,11 +39,16 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
 
     new (parameters.dev_scifi_tracks_view + event_number) Allen::Views::SciFi::Consolidated::Tracks {
       parameters.dev_scifi_track_view, parameters.dev_atomics_scifi, event_number};
+
+    new (parameters.dev_long_tracks_view + event_number) Allen::Views::Physics::LongTracks {
+      parameters.dev_long_track_view, parameters.dev_atomics_scifi, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_scifi_multi_event_tracks_view)
       Allen::Views::SciFi::Consolidated::MultiEventTracks {parameters.dev_scifi_tracks_view, number_of_events};
+    new (parameters.dev_multi_event_long_tracks_view)
+      Allen::Views::Physics::MultiEventLongTracks {parameters.dev_long_tracks_view, number_of_events};
   }
 }
 
