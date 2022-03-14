@@ -74,7 +74,7 @@ namespace decode_retinaclusters {
 
   private:
     Property<block_dim_x_calculate_key_t> m_block_dim_x_calculate_key {this, 256};
-    Property<block_dim_calculate_permutations_t> m_block_dim_calculate_permutations {this, {{2, 256, 1}}};
+    Property<block_dim_calculate_permutations_t> m_block_dim_calculate_permutations {this, {{2, 128, 1}}};
     Property<block_dim_x_decode_retina_t> m_block_dim_x_decode_retina {this, 256};
   };
 } // namespace decode_retinaclusters
