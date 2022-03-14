@@ -96,7 +96,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       const unsigned sv_index = event_unique_sv_list[i_sv];
       const Allen::Views::Physics::CompositeParticle* sv =
         static_cast<const Allen::Views::Physics::CompositeParticle*>(event_sv_ptrs[sv_index]);
-      const unsigned n_substr = sv->number_of_substructures();
+      const unsigned n_substr = sv->number_of_children();
       const unsigned sv_struct = ((n_substr & 0xFFFF) << 1) | 0;
       if (i_part == 0) {
         event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | sv_struct;
@@ -107,9 +107,9 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       for (unsigned i_substr = 0; i_substr < n_substr; i_substr++) {
 
         // Find the location of the substructure in the bank.
-        const auto substr = sv->substructure(i_substr);
+        const auto substr = sv->child(i_substr);
         unsigned substr_loc;
-        if (substr->number_of_substructures() == 1) {
+        if (substr->type_id() == Allen::TypeIDs::BasicParticle) {
           const auto basic_substr = static_cast<const Allen::Views::Physics::BasicParticle*>(substr);
           for (unsigned i_track = 0; i_track < n_tracks; i_track++) {
             const unsigned track_index = event_unique_track_list[i_track];

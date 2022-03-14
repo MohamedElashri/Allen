@@ -16,7 +16,7 @@ __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const unsi
 two_ks_line::two_ks_line_t::get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
 {
   const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].particle_container(event_number));
+    parameters.dev_particle_container[0].container(event_number));
   const auto particle = particles.particle(i);
   return std::forward_as_tuple(particle, event_number, i);
 }
@@ -31,7 +31,7 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   const auto& vertex1_id = std::get<2>(input);
 
   const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].particle_container(event_number));
+    parameters.dev_particle_container[0].container(event_number));
   unsigned n_svs = particles.size();
 
   // Get the first vertex decision.
@@ -51,8 +51,8 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   dec1 &= vertex1.dira() > parameters.minCosDira;
   if (!dec1) return false;
   // Cuts that need constituent tracks.
-  const auto v1track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(0));
-  const auto v1track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.substructure(1));
+  const auto v1track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.child(0));
+  const auto v1track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.child(1));
   const float cos1 =
     (v1track1->px() * v1track2->px() + v1track1->py() * v1track2->py() + v1track1->pz() * v1track2->pz()) /
     (v1track1->p() * v1track2->p());
@@ -70,8 +70,8 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     // Make this selection first as it is will initially reject the
     // largest amount of combinations.
     if (
-      vertex1.substructure(0) == vertex2.substructure(0) || vertex1.substructure(0) == vertex2.substructure(1) ||
-      vertex1.substructure(1) == vertex2.substructure(0) || vertex1.substructure(1) == vertex2.substructure(1)) {
+      vertex1.child(0) == vertex2.child(0) || vertex1.child(0) == vertex2.child(1) ||
+      vertex1.child(1) == vertex2.child(0) || vertex1.child(1) == vertex2.child(1)) {
       continue;
     }
 
@@ -96,8 +96,8 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     dec2 &= vertex2.dira() > parameters.minCosDira;
     if (!dec2) continue;
     // Cuts that need constituent tracks.
-    const auto v2track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(0));
-    const auto v2track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.substructure(1));
+    const auto v2track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.child(0));
+    const auto v2track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.child(1));
     const float cos2 =
       (v2track1->px() * v2track2->px() + v2track1->py() * v2track2->py() + v2track1->pz() * v2track2->pz()) /
       (v2track1->p() * v2track2->p());

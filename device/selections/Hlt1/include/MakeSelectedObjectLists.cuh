@@ -21,7 +21,7 @@ namespace make_selected_object_lists {
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_multi_event_particle_containers_t, Allen::Views::Physics::IMultiEventParticleContainer*)
+    DEVICE_INPUT(dev_multi_event_particle_containers_t, Allen::IMultiEventContainer*)
     dev_multi_event_particle_containers;
     // Need the LHCbID container type because we can't dynamic_cast in device code.
     DEVICE_INPUT(dev_lhcbid_containers_t, uint8_t) dev_lhcbid_containers;

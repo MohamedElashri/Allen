@@ -28,7 +28,7 @@ namespace kstopipi_line {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
-      Allen::Views::Physics::IMultiEventParticleContainer*)
+      Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
     DEVICE_OUTPUT(dev_sv_masses_t, float) dev_sv_masses;
     HOST_OUTPUT(host_sv_masses_t, float) host_sv_masses;

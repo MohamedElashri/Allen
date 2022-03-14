@@ -63,7 +63,11 @@ namespace Allen {
     UTTracks,
     SciFiTracks,
     VeloUTTracks,
-    LongTracks
+    LongTracks,
+    BasicParticle,
+    CompositeParticle,
+    BasicParticles,
+    CompositeParticles
   };
 
   template<typename T>
@@ -120,7 +124,7 @@ namespace Allen {
     }
   };
 
-  // I think it's necessary to use CRTP for the MultiEventLHCbIDContainer.
+  // I don't think it's necessary to use CRTP for the MultiEventLHCbIDContainer.
   // template<typename T>
   // struct IMultiEventLHCbIDContainer {
   //   __host__ __device__ unsigned number_of_id_containers() const {

@@ -21,8 +21,8 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
     return false;
   }
 
-  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.substructure(0));
-  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.substructure(1));
+  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
   const float cos =
     (trk1->px() * trk2->px() + trk1->py() * trk2->py() + trk1->pz() * trk2->pz()) / (trk1->p() * trk2->p());
   const bool decision =

@@ -135,7 +135,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
       const auto multi_event_track_container = static_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(
         parameters.dev_multi_event_particle_containers[line_index]);
       const auto event_tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(
-        multi_event_track_container->particle_container(event_number));
+        multi_event_track_container->container(event_number));
       for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
         if (decs[track_index]) {
           const unsigned track_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
@@ -155,7 +155,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
       const auto multi_event_sv_container = static_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(
         parameters.dev_multi_event_particle_containers[line_index]);
       const auto event_svs = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-        multi_event_sv_container->particle_container(event_number));
+        multi_event_sv_container->container(event_number));
       for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
         if (decs[sv_index]) {
           const unsigned sv_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
@@ -167,11 +167,11 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
 
           // Parse the substructure.
           const auto sv = event_svs.particle(sv_index);
-          const auto n_substr = sv.number_of_substructures();
+          const auto n_substr = sv.number_of_children();
           for (unsigned i_substr = 0; i_substr < n_substr; i_substr++) {
-            const auto substr = sv.substructure(i_substr);
+            const auto substr = sv.child(i_substr);
 
-            if (substr->number_of_substructures() == 1) { // Handle track substructures.
+            if (substr->type_id() == Allen::TypeIDs::BasicParticle) { // Handle track substructures.
               const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
               const auto basic_substr = static_cast<const Allen::Views::Physics::BasicParticle*>(substr);
               parameters.dev_selected_basic_particle_ptrs[selected_track_offset + track_insert_index] =
@@ -184,12 +184,12 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
                 const_cast<Allen::Views::Physics::CompositeParticle*>(composite_substr);
 
               // Manually handle sub-substructure to avoid recursion.
-              const auto n_subsubstr = composite_substr->number_of_substructures();
+              const auto n_subsubstr = composite_substr->number_of_children();
               for (unsigned i_subsubstr = 0; i_subsubstr < n_subsubstr; i_subsubstr++) {
                 const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
                 // Assume all sub-substructures are BasicParticles.
                 const auto basic_subsubstr =
-                  static_cast<const Allen::Views::Physics::BasicParticle*>(composite_substr->substructure(i_subsubstr));
+                  static_cast<const Allen::Views::Physics::BasicParticle*>(composite_substr->child(i_subsubstr));
                 parameters.dev_selected_basic_particle_ptrs[selected_sv_offset + track_insert_index] =
                   const_cast<Allen::Views::Physics::BasicParticle*>(basic_subsubstr);
               } // End sub-substructure loop.
@@ -287,8 +287,8 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     const Allen::Views::Physics::CompositeParticle* sv = event_sv_ptrs[sv_index];
     // Each SV structure consists of 1 short that gives the size and 1 short for
     // each substructure.
-    atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + sv->number_of_substructures());
-    atomicAdd(parameters.dev_substr_sv_size + event_number, 1 + sv->number_of_substructures());
+    atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + sv->number_of_children());
+    atomicAdd(parameters.dev_substr_sv_size + event_number, 1 + sv->number_of_children());
   }
 
   __syncthreads();

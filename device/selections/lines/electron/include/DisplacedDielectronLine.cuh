@@ -32,7 +32,7 @@ namespace displaced_dielectron_line {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
-      Allen::Views::Physics::IMultiEventParticleContainer*)
+      Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
     // Properties
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;

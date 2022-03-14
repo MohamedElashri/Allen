@@ -17,7 +17,7 @@ __device__ unsigned two_track_mva_line::two_track_mva_line_t::offset(
   const unsigned event_number)
 {
   const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].particle_container(event_number));
+    parameters.dev_particle_container[0].container(event_number));
   return particles.offset();
 }
 
@@ -26,7 +26,7 @@ __device__ unsigned two_track_mva_line::two_track_mva_line_t::input_size(
   const unsigned event_number)
 {
   const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].particle_container(event_number));
+    parameters.dev_particle_container[0].container(event_number));
   return particles.size();
 }
 
@@ -42,7 +42,7 @@ two_track_mva_line::two_track_mva_line_t::get_input(
   const unsigned i)
 {
   const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].particle_container(event_number));
+    parameters.dev_particle_container[0].container(event_number));
   const unsigned sv_index = i + particles.offset();
   const auto particle = particles.particle(i);
   return std::forward_as_tuple(particle, parameters.dev_two_track_mva_evaluation[sv_index]);

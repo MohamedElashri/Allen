@@ -44,7 +44,7 @@ namespace rich_2_line {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
-      Allen::Views::Physics::IMultiEventParticleContainer*)
+      Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
 
     // Monitoring

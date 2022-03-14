@@ -41,7 +41,7 @@ namespace two_track_line_ks {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
-      Allen::Views::Physics::IMultiEventParticleContainer*)
+      Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minComboPt_Ks_t, "minComboPt_Ks", "minComboPt Ks description", float) minComboPt_Ks;

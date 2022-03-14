@@ -12,10 +12,10 @@ displaced_dielectron_line::displaced_dielectron_line_t::get_input(
   const unsigned i)
 {
   const auto event_vertices = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].particle_container(event_number));
+    parameters.dev_particle_container[0].container(event_number));
   const auto vertex = event_vertices.particle(i);
-  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.substructure(0));
-  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.substructure(1));
+  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
   const bool is_dielectron = vertex.is_dielectron();
 
   const float brem_corrected_minpt = min(

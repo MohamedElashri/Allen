@@ -26,7 +26,7 @@ namespace low_pt_di_muon_line {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
-      Allen::Views::Physics::IMultiEventParticleContainer*)
+      Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
