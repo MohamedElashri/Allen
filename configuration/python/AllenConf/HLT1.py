@@ -249,7 +249,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     if EnableGEC:
         gec = make_gec()
         pp_prefilters += [gec]
-        if withSMOG2: prefilter_suffix += '_gec'
+        prefilter_suffix += '_gec'
 
     if withSMOG2:
         pp_checkPV = make_checkPV(
@@ -281,10 +281,11 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
 
     if EnableGEC:
         with line_maker.bind(prefilter=gec):
+            prefilter_suffix = '_gec' 
             physics_lines += [
-                line_maker(make_passthrough_line(name="Hlt1Passthrough_gec")) ]
+                line_maker(make_passthrough_line(name="Hlt1Passthrough" + prefilter_suffix))
+            ]
 
-            prefilter_suffix = '_gec' if withSMOG2 else ''
             monitoring_lines.append(
                 line_maker(
                     make_velo_micro_bias_line(
