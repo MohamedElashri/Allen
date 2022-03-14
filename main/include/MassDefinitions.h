@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 
 namespace Allen {
