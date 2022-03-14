@@ -97,11 +97,10 @@ __device__ void populate_sorting_key(
   //       sorting can be reliably obtained with phi and id.
   const half_t gx_half = gx;
   const half_t gy_half = gy;
-  const uint16_t additional_bits = (*reinterpret_cast<const int16_t*>(&gx_half) & 0xFF00)
-    | (*reinterpret_cast<const int16_t*>(&gy_half) & 0xFF);
+  const uint16_t additional_bits =
+    (*reinterpret_cast<const int16_t*>(&gx_half) & 0xFF00) | (*reinterpret_cast<const int16_t*>(&gy_half) & 0xFF);
 
-  const int64_t sorting_key = static_cast<int64_t>(phi) << 48 | static_cast<int64_t>(id) << 16
-    | additional_bits;
+  const int64_t sorting_key = static_cast<int64_t>(phi) << 48 | static_cast<int64_t>(id) << 16 | additional_bits;
 
   hit_sorting_key[cluster_index] = sorting_key;
 }

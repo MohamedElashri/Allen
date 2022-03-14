@@ -34,9 +34,16 @@ namespace decode_retinaclusters {
         dev_offsets_module_pair_cluster_t),
       Velo::Clusters)
     dev_velo_clusters;
-    PROPERTY(block_dim_x_calculate_key_t, "block_dim_x_calculate_key", "block dim x of calculate_key", unsigned) block_dim_x_calculate_key;
-    PROPERTY(block_dim_calculate_permutations_t, "block_dim_calculate_permutations", "block dims of calculate permutations", DeviceDimensions) block_dim_calculate_permutations;
-    PROPERTY(block_dim_x_decode_retina_t, "block_dim_x_decode_retina", "block dim x of decode retina sorted", unsigned) block_dim_x_decode_retina;
+    PROPERTY(block_dim_x_calculate_key_t, "block_dim_x_calculate_key", "block dim x of calculate_key", unsigned)
+    block_dim_x_calculate_key;
+    PROPERTY(
+      block_dim_calculate_permutations_t,
+      "block_dim_calculate_permutations",
+      "block dims of calculate permutations",
+      DeviceDimensions)
+    block_dim_calculate_permutations;
+    PROPERTY(block_dim_x_decode_retina_t, "block_dim_x_decode_retina", "block dim x of decode retina sorted", unsigned)
+    block_dim_x_decode_retina;
   };
 
   // Define postconditions

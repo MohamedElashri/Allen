@@ -123,10 +123,14 @@ def decode_velo(retina_decoding=True):
             velo_sort_by_phi_t,
             name="velo_sort_by_phi",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            host_total_number_of_velo_clusters_t=prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
-            dev_offsets_estimated_input_size_t=prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
-            dev_module_cluster_num_t=velo_masked_clustering.dev_module_cluster_num_t,
-            dev_velo_cluster_container_t=velo_masked_clustering.dev_velo_cluster_container_t,
+            host_total_number_of_velo_clusters_t=
+            prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
+            dev_offsets_estimated_input_size_t=
+            prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            dev_module_cluster_num_t=velo_masked_clustering.
+            dev_module_cluster_num_t,
+            dev_velo_cluster_container_t=velo_masked_clustering.
+            dev_velo_cluster_container_t,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
             dev_velo_clusters_t=velo_masked_clustering.dev_velo_clusters_t,
         )
@@ -147,7 +151,8 @@ def decode_velo(retina_decoding=True):
 
 def make_velo_tracks(decoded_velo):
     number_of_events = initialize_number_of_events()
-    dev_sorted_velo_cluster_container = decoded_velo["dev_sorted_velo_cluster_container"]
+    dev_sorted_velo_cluster_container = decoded_velo[
+        "dev_sorted_velo_cluster_container"]
     dev_module_cluster_num = decoded_velo["dev_module_cluster_num"]
     dev_offsets_estimated_input_size = decoded_velo[
         "dev_offsets_estimated_input_size"]
