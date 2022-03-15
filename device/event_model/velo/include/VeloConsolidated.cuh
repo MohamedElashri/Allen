@@ -255,7 +255,7 @@ namespace Allen {
             return m_size;
           }
 
-          __host__ __device__ const Track& id_sequence_impl(const unsigned index) {
+          __host__ __device__ const Track& id_sequence_impl(const unsigned index) const {
             assert(index < number_of_id_sequences_impl());
             return m_track[index];
           }

@@ -61,8 +61,6 @@ namespace Allen {
         const Allen::Views::UT::Consolidated::Track* m_ut_segment = nullptr;
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
 
-
-
       public:
         __host__ __device__ Track(
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
@@ -127,34 +125,32 @@ namespace Allen {
           }
         }
 
-        __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const {
+        __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
+        {
           assert(has_velo());
           return *m_velo_segment;
         }
 
-        __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const {
+        __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const
+        {
           assert(has_ut());
           return *m_ut_segment;
         }
 
-        __host__ __device__ const Allen::Views::SciFi::Consolidated::Track& scifi_track() const {
+        __host__ __device__ const Allen::Views::SciFi::Consolidated::Track& scifi_track() const
+        {
           assert(has_scifi());
           return *m_scifi_segment;
         }
-        
       };
 
       struct LongTrack : ILHCbIDSequence<LongTrack>, Track {
         friend ILHCbIDSequence<LongTrack>;
 
       private:
-        __host__ __device__ unsigned number_of_ids_impl() const {
-          return number_of_hits();
-        }
+        __host__ __device__ unsigned number_of_ids_impl() const { return number_of_hits(); }
 
-        __host__ __device__ unsigned id_impl(const unsigned index) const {
-          return get_id(index);
-        }
+        __host__ __device__ unsigned id_impl(const unsigned index) const { return get_id(index); }
 
       public:
         __host__ __device__ LongTrack(
@@ -164,9 +160,7 @@ namespace Allen {
           Track {velo_segment, ut_segment, scifi_segment}
         {}
 
-        __host__ __device__ float qop() const {
-          return m_scifi_segment->qop();
-        }
+        __host__ __device__ float qop() const { return m_scifi_segment->qop(); }
       };
 
       struct LongTracks : ILHCbIDContainer<LongTracks> {
@@ -178,50 +172,42 @@ namespace Allen {
         unsigned m_size = 0;
         unsigned m_offset = 0;
 
-        __host__ __device__ unsigned number_of_id_sequences_impl() const {
-          return m_size;
-        }
+        __host__ __device__ unsigned number_of_id_sequences_impl() const { return m_size; }
 
-        __host__ __device__ const LongTrack& id_sequence_impl(const unsigned index) const {
+        __host__ __device__ const LongTrack& id_sequence_impl(const unsigned index) const
+        {
           assert(index < number_of_id_sequences_impl());
           return m_track[index];
         }
 
       public:
-        __host__ __device__ LongTracks(const LongTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
+        __host__ __device__
+        LongTracks(const LongTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
           m_track(track + offset_tracks[event_number]),
-          m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]),
-          m_offset(offset_tracks[event_number])
+          m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])
         {}
 
         __host__ __device__ unsigned size() const { return m_size; }
 
-        __host__ __device__ const LongTrack& track(const unsigned index) const {
-          return id_sequence_impl(index);
-        }
+        __host__ __device__ const LongTrack& track(const unsigned index) const { return id_sequence_impl(index); }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
-
 
       using MultiEventLongTracks = Allen::MultiEventContainer<LongTracks>;
 
       struct TrackContainer {
       private:
-        const Track* m_track = nullptr;
-        unsigned m_size = 0;
+        [[maybe_unused]] const Track* m_track = nullptr;
+        [[maybe_unused]] unsigned m_size = 0;
 
       public:
-        __host__ __device__ TrackContainer(const Track* track, const unsigned size) :
-          m_track(track), m_size(size)
-        {}
+        __host__ __device__ TrackContainer(const Track* track, const unsigned size) : m_track(track), m_size(size) {}
 
         __host__ __device__ unsigned size() const { return m_size; }
 
-        
-
         virtual __host__ __device__ ~TrackContainer() {}
-      };  
+      };
 
       struct SecondaryVertices {
       private:
@@ -259,23 +245,24 @@ namespace Allen {
 
       template<typename T>
       struct IParticle : Particle {
-        __host__ __device__ unsigned number_of_children() const {
+        __host__ __device__ unsigned number_of_children() const
+        {
           return static_cast<const T*>(this)->number_of_children_impl();
         }
 
-        __host__ __device__ const Particle* child(const unsigned i) const {
+        __host__ __device__ const Particle* child(const unsigned i) const
+        {
           return static_cast<const T*>(this)->child_impl(i);
         }
 
-        __host__ __device__ Allen::TypeIDs type_id() const override { return Allen::identify<T>(); }
+        __host__ __device__ Allen::TypeIDs type_id() const override { return T::TypeID; }
       };
 
       template<typename T>
       struct IParticleContainer {
-        __host__ __device__ unsigned size() const { 
-          return static_cast<const T*>(this)->size_impl();
-        }
-        __host__ __device__ const auto& particle(const unsigned i) const {
+        __host__ __device__ unsigned size() const { return static_cast<const T*>(this)->size_impl(); }
+        __host__ __device__ const auto& particle(const unsigned i) const
+        {
           return static_cast<const T*>(this)->particle_impl(i);
         }
       };
@@ -308,13 +295,9 @@ namespace Allen {
         const uint8_t* m_lepton_id = nullptr;
         unsigned m_index = 0;
 
-        __host__ __device__ unsigned number_of_children_impl() const {
-          return 1;
-        }
+        __host__ __device__ unsigned number_of_children_impl() const { return 1; }
 
-        __host__ __device__ const Particle* child_impl(const unsigned) const {
-          return this;
-        }
+        __host__ __device__ const Particle* child_impl(const unsigned) const { return this; }
 
       public:
         __host__ __device__ BasicParticle(
@@ -323,7 +306,8 @@ namespace Allen {
           const PV::Vertex* pv,
           const uint8_t* lepton_id,
           const unsigned index) :
-          m_track(track), m_states(states), m_pv(pv), m_lepton_id(lepton_id), m_index(index)
+          m_track(track),
+          m_states(states), m_pv(pv), m_lepton_id(lepton_id), m_index(index)
         {}
 
         // Accessors to allow copying. Is there a better way to handle this?
@@ -462,11 +446,10 @@ namespace Allen {
         unsigned m_size = 0;
         unsigned m_offset = 0;
 
-        __host__ __device__ unsigned size_impl() const {
-          return m_size;
-        }
+        __host__ __device__ unsigned size_impl() const { return m_size; }
 
-        __host__ __device__ const BasicParticle& particle_impl(const unsigned i) const {
+        __host__ __device__ const BasicParticle& particle_impl(const unsigned i) const
+        {
           assert(i < m_size);
           return m_particle[i];
         }
@@ -475,8 +458,7 @@ namespace Allen {
         __host__ __device__
         BasicParticles(const BasicParticle* track, const unsigned* track_offsets, const unsigned event_number) :
           m_particle(track + track_offsets[event_number]),
-          m_size(track_offsets[event_number + 1] - track_offsets[event_number]),
-          m_offset(track_offsets[event_number])
+          m_size(track_offsets[event_number + 1] - track_offsets[event_number]), m_offset(track_offsets[event_number])
         {}
 
         __host__ __device__ const BasicParticle* particle_pointer(const unsigned index) const
@@ -499,14 +481,13 @@ namespace Allen {
         const SecondaryVertices* m_vertices = nullptr;
         const PV::Vertex* m_pv = nullptr;
         unsigned m_number_of_children = 0;
-        unsigned m_total_number_of_composites = 0;
+        [[maybe_unused]] unsigned m_total_number_of_composites = 0;
         unsigned m_index = 0;
 
-        __host__ __device__ unsigned number_of_children_impl() const {
-          return m_number_of_children;
-        }
+        __host__ __device__ unsigned number_of_children_impl() const { return m_number_of_children; }
 
-        __host__ __device__ const Particle* child_impl(const unsigned i) const {
+        __host__ __device__ const Particle* child_impl(const unsigned i) const
+        {
           assert(i < number_of_children());
           return m_children[i];
         }
@@ -520,8 +501,7 @@ namespace Allen {
           unsigned total_number_of_composites,
           unsigned index) :
           m_children(children),
-          m_vertices(vertices), m_pv(pv),
-          m_number_of_children(number_of_children),
+          m_vertices(vertices), m_pv(pv), m_number_of_children(number_of_children),
           m_total_number_of_composites(total_number_of_composites), m_index(index)
         {}
 
@@ -599,8 +579,9 @@ namespace Allen {
           float energy = 0.f;
           const auto substr1 = child(0);
           const auto substr2 = child(1);
-          if (substr1->type_id() != Allen::TypeIDs::BasicParticle || 
-              substr2->type_id() != Allen::TypeIDs::BasicParticle) {
+          if (
+            substr1->type_id() != Allen::TypeIDs::BasicParticle ||
+            substr2->type_id() != Allen::TypeIDs::BasicParticle) {
             return 0.f;
           }
           energy += static_cast<const BasicParticle*>(substr1)->e(m1);
@@ -828,8 +809,9 @@ namespace Allen {
         {
           const auto substr1 = child(0);
           const auto substr2 = child(1);
-          if (substr1->type_id() != Allen::TypeIDs::BasicParticle || 
-              substr2->type_id() != Allen::TypeIDs::BasicParticle) return false;
+          if (
+            substr1->type_id() != Allen::TypeIDs::BasicParticle || substr2->type_id() != Allen::TypeIDs::BasicParticle)
+            return false;
           return static_cast<const BasicParticle*>(substr1)->is_muon() &&
                  static_cast<const BasicParticle*>(substr2)->is_muon();
         }
@@ -838,8 +820,9 @@ namespace Allen {
         {
           const auto substr1 = child(0);
           const auto substr2 = child(1);
-          if (substr1->type_id() != Allen::TypeIDs::BasicParticle || 
-              substr2->type_id() != Allen::TypeIDs::BasicParticle) return false;
+          if (
+            substr1->type_id() != Allen::TypeIDs::BasicParticle || substr2->type_id() != Allen::TypeIDs::BasicParticle)
+            return false;
           return static_cast<const BasicParticle*>(substr1)->is_electron() &&
                  static_cast<const BasicParticle*>(substr2)->is_electron();
         }
@@ -848,8 +831,9 @@ namespace Allen {
         {
           const auto substr1 = child(0);
           const auto substr2 = child(1);
-          if (substr1->type_id() != Allen::TypeIDs::BasicParticle || 
-              substr2->type_id() != Allen::TypeIDs::BasicParticle) return false;
+          if (
+            substr1->type_id() != Allen::TypeIDs::BasicParticle || substr2->type_id() != Allen::TypeIDs::BasicParticle)
+            return false;
           return static_cast<const BasicParticle*>(substr1)->is_lepton() &&
                  static_cast<const BasicParticle*>(substr2)->is_lepton();
         }
@@ -880,11 +864,10 @@ namespace Allen {
         unsigned m_size = 0;
         unsigned m_offset = 0;
 
-        __host__ __device__ unsigned size_impl() const {
-          return m_size;
-        }
+        __host__ __device__ unsigned size_impl() const { return m_size; }
 
-        __host__ __device__ const CompositeParticle& particle_impl(const unsigned i) {
+        __host__ __device__ const CompositeParticle& particle_impl(const unsigned i)
+        {
           assert(i < m_size);
           return m_particle[i];
         }
@@ -892,9 +875,8 @@ namespace Allen {
       public:
         __host__ __device__
         CompositeParticles(const CompositeParticle* composite, const unsigned* offsets, unsigned event_number) :
-          m_particle(composite + offsets[event_number]), 
-          m_size(offsets[event_number + 1] - offsets[event_number]),
-          m_offset(offsets[event_number])
+          m_particle(composite + offsets[event_number]),
+          m_size(offsets[event_number + 1] - offsets[event_number]), m_offset(offsets[event_number])
         {}
 
         __host__ __device__ const CompositeParticle& particle(unsigned particle_index) const
@@ -923,7 +905,8 @@ namespace Allen {
       //   const BasicParticles* m_container = nullptr;
 
       // public:
-      //   __host__ __device__ MultiEventBasicParticles(const BasicParticles* container, const unsigned number_of_events) :
+      //   __host__ __device__ MultiEventBasicParticles(const BasicParticles* container, const unsigned
+      //   number_of_events) :
       //     IMultiEventParticleContainer {number_of_events}, m_container(container)
       //   {}
 

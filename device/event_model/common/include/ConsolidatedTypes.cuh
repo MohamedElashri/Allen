@@ -7,9 +7,6 @@
 #include "BackendCommon.h"
 #include "Common.h"
 
-// TODO: Really need to get rid of this.
-#include "PV_Definitions.cuh"
-
 // Let's use CRTP:
 
 // // Interface
@@ -57,7 +54,11 @@
 // }
 
 namespace Allen {
-  // TypeID functionality - Allows dynamic_casting on the device
+  /**
+   * @brief Identifiable Type IDs.
+   * @details CUDA does not support RTTI: typeid, dynamic_cast or std::type_info.
+   *          TypeIDs provides a list of identifiable type ids for Allen datatypes.
+   */
   enum class TypeIDs {
     VeloTracks,
     UTTracks,
@@ -70,19 +71,27 @@ namespace Allen {
     CompositeParticles
   };
 
-  template<typename T>
-  __host__ __device__ Allen::TypeIDs identify()
-  {
-    return T::TypeID;
-  }
-
-  // If we want to do this with CRTP, we could get rid of the virtual type_id()
-  // and just keep the virtual destructor.
+  /**
+   * @brief Interface for any multi event container.
+   * @details Each multi event container should be identifiable with a type ID,
+   *          which should be implemented in the inheriting class.
+   *          IMultiEventContainer acts as a generic type that can hold various
+   *          kinds of containers.
+   */
   struct IMultiEventContainer {
-    virtual __host__ __device__ Allen::TypeIDs type_id() const = 0;
+    virtual __host__ __device__ Allen::TypeIDs contained_type_id() const = 0;
     virtual __host__ __device__ ~IMultiEventContainer() {}
   };
 
+  /**
+   * @brief A multi event container of type T.
+   * @details MultiEventContainers is a read-only datatype that holds
+   *          the information of several events for type T.
+   *          The contents of the container can be accessed through
+   *          number_of_events() and container(). The contained type id
+   *          is also accessible, and provides a specialization
+   *          of IMultiEventContainer's contained_type_id().
+   */
   template<typename T>
   struct MultiEventContainer : IMultiEventContainer {
   private:
@@ -90,6 +99,7 @@ namespace Allen {
     unsigned m_number_of_events = 0;
 
   public:
+    using contained_type = T;
     MultiEventContainer() = default;
     __host__ __device__ MultiEventContainer(const T* container, const unsigned number_of_events) :
       m_container(container), m_number_of_events(number_of_events)
@@ -100,10 +110,31 @@ namespace Allen {
       assert(event_number < m_number_of_events);
       return m_container[event_number];
     }
-    __host__ __device__ Allen::TypeIDs type_id() const override { return Allen::identify<T>(); }
+    __host__ __device__ Allen::TypeIDs contained_type_id() const override { return T::TypeID; }
   };
 
-  // ID interfaces (using CRTP)
+  /**
+   * @brief Allen host / device dynamic cast.
+   * @details This dynamic cast implementation works for both
+   *          host and device. It allows to identify and cast
+   *          IMultiEventContainer* into a requested MultiEventContainer*.
+   */
+  template<typename T>
+  __host__ __device__ auto dyn_cast(IMultiEventContainer* t) {
+    using base_t = std::decay_t<std::remove_pointer_t<T>>;
+    static_assert(std::is_base_of_v<base_t, IMultiEventContainer>);
+    if (t->contained_type_id() == base_t::contained_type::TypeID) {
+      return static_cast<T>(t);
+    } else {
+      return nullptr;
+    }
+  }
+
+  /**
+   * @brief Interface of LHCbID sequence (CRTP).
+   * @details An LHCb ID sequence should provide an implementation
+   *          to access its number of ids and each individual id.
+   */
   template<typename T>
   struct ILHCbIDSequence {
     __host__ __device__ unsigned number_of_ids() const {
@@ -114,6 +145,12 @@ namespace Allen {
     }
   };
 
+  /**
+   * @brief Interface of LHCb ID container (CRTP).
+   * @details An LHCb ID container should implement a method
+   *          to provide the number of id sequences it contains,
+   *          and each individual id sequence.
+   */
   template<typename T>
   struct ILHCbIDContainer {
     __host__ __device__ unsigned number_of_id_sequences() const {
@@ -123,21 +160,9 @@ namespace Allen {
       return static_cast<const T*>(this)->id_sequence_impl(i);
     }
   };
-
-  // I don't think it's necessary to use CRTP for the MultiEventLHCbIDContainer.
-  // template<typename T>
-  // struct IMultiEventLHCbIDContainer {
-  //   __host__ __device__ unsigned number_of_id_containers() const {
-  //     return static_cast<const T*>(this)->number_of_id_containers_impl();
-  //   }
-  //   __host__ __device__ const auto& id_container(const unsigned) const {
-  //     return static_cast<const T*>(this)->id_container_impl();
-  //   }
-  // };
-
-
 } // namespace Allen
 
+// Deprecated
 namespace Consolidated {
 
   // base_pointer contains first: an array with the number of tracks in every event
