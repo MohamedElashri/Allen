@@ -164,7 +164,7 @@ namespace Allen {
           Track {velo_segment, ut_segment, scifi_segment}
         {}
 
-        __host__ __device__ unsigned qop() const {
+        __host__ __device__ float qop() const {
           return m_scifi_segment->qop();
         }
       };
