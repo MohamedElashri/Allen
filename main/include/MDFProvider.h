@@ -690,12 +690,6 @@ private:
         std::tie(eof, error, bytes_read) =
           read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
 
-        auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
-        if (m_is_mc && *m_is_mc != is_mc) {
-          throw std::out_of_range {"The next batch of events is different from the previous events"s +
-                                   (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
-        }
-
         size_t n_read = std::get<0>(read_buffer) - read;
         if (to_read) {
           *to_read -= std::min(*to_read, n_read);
@@ -740,6 +734,14 @@ private:
 
       this->debug_output(
         "Read " + std::to_string(std::get<0>(read_buffer)) + " events into " + std::to_string(i_buffer));
+
+      if (m_is_mc) {
+        auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
+        if (*m_is_mc != is_mc) {
+        throw std::out_of_range {"The next batch of events is different from the previous events"s +
+              (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
+        }
+      }
 
       // Notify a transpose thread that a new buffer of events is
       // ready. If prefetching is done, wake up all threads
