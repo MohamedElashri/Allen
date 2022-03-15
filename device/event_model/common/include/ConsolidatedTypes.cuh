@@ -7,52 +7,6 @@
 #include "BackendCommon.h"
 #include "Common.h"
 
-// Let's use CRTP:
-
-// // Interface
-// template <typename T>
-// struct interface {
-//     __device__ void velo_track(int arg) const {
-//         static_cast<const T*>(this)->velo_track_impl(arg);
-//     }
-// };
-// // Implementation
-// struct derived : interface<derived> {
-//     friend class interface;
-//     private:
-//     __device__ void velo_track_impl(int arg) const {
-//         printf("%i\n", arg);
-//     }
-// };
-// template<typename T>
-// __device__ void bar(const T& i) {
-//     i.velo_track(3);
-// }
-// __global__ void foo () {
-//     derived a;
-//     bar(a);
-// }
-
-// Some ideas (brainstorming)
-// 1. Interfaces:
-// - LHCbIDSequence, LHCbIDContainer
-// - Velo track, UT track, scifi track
-// 2. Function that returns a generic view
-// - velo_track (interface) that returns a velo track view.
-// 3. Track containers are stored in "segments"
-
-// struct IVeloTrackContainer {
-//   static bool is_velo_track_container(const IMultiEventContainer& mec) {
-//     return mec.type_id() == VeloTracks || mec.type_id() == VeloSciFiTracks;
-//   }
-//   virtual Allen::Views::Velo::Consolidated::Track velo_track() const = 0;
-// };
-
-// template<typename T>
-// __device__ foo(T& t) {
-//   t.velo_track();
-// }
-
 namespace Allen {
   /**
    * @brief Identifiable Type IDs.
@@ -107,6 +61,7 @@ namespace Allen {
     __host__ __device__ unsigned number_of_events() const { return m_number_of_events; }
     __host__ __device__ const T& container(const unsigned event_number) const
     {
+      assert(m_container != nullptr);
       assert(event_number < m_number_of_events);
       return m_container[event_number];
     }

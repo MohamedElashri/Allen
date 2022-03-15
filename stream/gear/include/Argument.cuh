@@ -55,6 +55,7 @@ struct input_datatype : datatype<T> {
   __host__ __device__ input_datatype(type* value) : datatype<T>(value) {}
   __host__ __device__ operator const type*() const { return const_cast<const type*>(this->m_value); }
   __host__ __device__ const type* get() const { return const_cast<const type*>(this->m_value); }
+  __host__ __device__ const type* operator->() const { return this->m_value; }
 };
 
 // Output datatypes return pointers that can be modified.
@@ -65,6 +66,7 @@ struct output_datatype : datatype<T> {
   __host__ __device__ output_datatype(type* value) : datatype<T>(value) {}
   __host__ __device__ operator type*() const { return this->m_value; }
   __host__ __device__ type* get() const { return this->m_value; }
+  __host__ __device__ type* operator->() const { return this->m_value; }
 };
 
 // Inputs / outputs have an additional parsable method required for libclang parsing.

@@ -289,6 +289,7 @@ namespace Allen {
   }     // namespace Views
 } // namespace Allen
 
+// Deprecated
 namespace Velo {
   namespace Consolidated {
     /**

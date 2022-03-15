@@ -6,10 +6,6 @@
 #include "BackendCommon.h"
 #include "Common.h"
 
-#if !defined(__NVCC__) && !defined(__CUDACC__)
-#include <cmath>
-#endif
-
 /**
  * @brief A simplified state for the Velo
  *
