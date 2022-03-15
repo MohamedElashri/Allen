@@ -185,25 +185,25 @@ def default_smog2_lines(velo_tracks,
         line_maker(
             make_SMOG2_ditrack_line(
                 secondary_vertices,
-                m1="139.57f",
-                m2="493.67f",
-                mMother="1864.83f",
+                m1=139.57,
+                m2=493.67,
+                mMother=1864.83,
                 name="HLT1_SMOG2_D2Kpi" + prefilter_suffix)))
 
     smog2_lines.append(
         line_maker(
             make_SMOG2_ditrack_line(
                 secondary_vertices,
-                m1="938.27f",
-                m2="938.27f",
-                mMother="2983.6",
+                m1=938.27,
+                m2=938.27,
+                mMother=2983.6,
                 name="HLT1_SMOG2_eta2pp" + prefilter_suffix)))
 
     smog2_lines.append(
         line_maker(
             make_SMOG2_ditrack_line(
                 secondary_vertices,
-                minTrackPt=800,
+                minTrackPt=800.,
                 name="HLT1_SMOG2_2BodyGeneric" + prefilter_suffix)))
 
     smog2_lines.append(
@@ -229,8 +229,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     pp_checkPV = make_checkPV(
         reconstructed_objects['pvs'],
         name='pp_checkPV',
-        minZ='-300',  #mm
-        maxZ='+300'   #mm
+        minZ=-300,  #mm
+        maxZ=+300  #mm
     )
 
     pp_prefilters    += [pp_checkPV]
@@ -282,7 +282,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         SMOG2_prefilters, SMOG2_lines, prefilter_suffix = [], [], ''
 
         lowOcc_5 = make_lowocc(
-            reconstructed_objects['velo_tracks'], minTracks='1', maxTracks='5')
+            reconstructed_objects['velo_tracks'], minTracks=1, maxTracks=5)
         with line_maker.bind(prefilter=lowOcc_5):
             SMOG2_lines += [
                 line_maker(
@@ -296,8 +296,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             make_checkPV(
                 reconstructed_objects['pvs'],
                 name='check_SMOG2_PV',
-                minZ='-550',  #mm
-                maxZ='-300'  #mm
+                minZ=-550,  #mm
+                maxZ=-300  #mm
             )
         ]
 

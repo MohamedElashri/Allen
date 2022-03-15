@@ -57,15 +57,15 @@ def make_SMOG2_dimuon_highmass_line(secondary_vertices,
 
 
 def make_SMOG2_ditrack_line(secondary_vertices,
-                            m1="0.f",
-                            m2="0.f",
-                            mMother="0.f",
+                            m1=0.,
+                            m2=0.,
+                            mMother=0.,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None,
                             name="Hlt1_SMOG2_DiTrack",
-                            mWindow="150.f",
-                            minTrackP="3000.f",
-                            minTrackPt="400.f"):
+                            mWindow=150.,
+                            minTrackP=3000.,
+                            minTrackPt=400.):
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()

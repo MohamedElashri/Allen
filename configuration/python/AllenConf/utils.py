@@ -30,20 +30,20 @@ def line_maker(line_algorithm, prefilter=None):
 
 @configurable
 def make_gec(gec_name='gec',
-             min_scifi_ut_clusters="0",
-             max_scifi_ut_clusters="9750"):
+             min_scifi_ut_clusters=0,
+             max_scifi_ut_clusters=9750):
     return gec(
         name=gec_name,
         min_scifi_ut_clusters=min_scifi_ut_clusters,
         max_scifi_ut_clusters=max_scifi_ut_clusters)
 
 @configurable
-def make_checkPV(pvs, name='check_PV', minZ='-9999999', maxZ='99999999'):
+def make_checkPV(pvs, name='check_PV', minZ=-9999999, maxZ=99999999):
     return checkPV(pvs, name=name, minZ=minZ, maxZ=maxZ)
 
 
 @configurable
-def make_lowocc(velo_tracks, minTracks='0', maxTracks='9999999'):
+def make_lowocc(velo_tracks, minTracks=0, maxTracks=9999999):
     return lowOcc(velo_tracks, minTracks=minTracks, maxTracks=maxTracks)
 >>>>>>> 34ca63d1e (Solve MR first comments)
 
@@ -90,7 +90,7 @@ def mep_layout():
     }
 
 
-def checkPV( pvs, name = 'checkPV', minZ = "-999999", maxZ = "99999" ):
+def checkPV(pvs, name='checkPV', minZ=-999999, maxZ=99999):
 
     number_of_events = initialize_number_of_events()
     return make_algorithm(
@@ -103,7 +103,7 @@ def checkPV( pvs, name = 'checkPV', minZ = "-999999", maxZ = "99999" ):
         minZ = minZ, maxZ = maxZ )
 
 
-def lowMult( velo_tracks, name = 'LowMult', minTracks = "0", maxTracks = "99999" ):
+def lowMult( velo_tracks, name='LowMult', minTracks=0, maxTracks=99999):
 
     number_of_events = initialize_number_of_events()
     return make_algorithm(
@@ -118,7 +118,7 @@ def lowMult( velo_tracks, name = 'LowMult', minTracks = "0", maxTracks = "99999"
         maxTracks=maxTracks)
 
 
-def ODIN_BeamXtype( name = 'ODIN_BeamXType', beam_type = "3"  ):
+def ODIN_BeamXtype(name='ODIN_BeamXType', beam_type=3):
 
     number_of_events = initialize_number_of_events()
     layout = mep_layout()

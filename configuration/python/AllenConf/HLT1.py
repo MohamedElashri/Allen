@@ -214,29 +214,37 @@ def default_smog2_lines(velo_tracks,
 
     smog2_lines.append(
         line_maker( 
-            make_SMOG2_ditrack_line( 
-                secondary_vertices, m1 = "139.57f", m2 = "493.67f",
-                mMother = "1864.83f", name = "HLT1_SMOG2_D2Kpi" + prefilter_suffix ),
-        ))
-
-    smog2_lines.append(
-        line_maker( 
-            make_SMOG2_ditrack_line( 
-                secondary_vertices, m1 = "938.27f", m2 = "938.27f",
-                mMother = "2983.6", name = "HLT1_SMOG2_eta2pp" + prefilter_suffix ),
-        ))
-
-    smog2_lines.append(
-        line_maker( 
             make_SMOG2_ditrack_line(
-                secondary_vertices, minTrackPt = 800, name = "HLT1_SMOG2_2BodyGeneric" + prefilter_suffix ),
-                   ))
+                secondary_vertices,
+                m1=139.57,
+                m2=493.67,
+                mMother=1864.83,
+                mWindow=150.,
+                name="HLT1_SMOG2_D2Kpi" + prefilter_suffix)))
 
     smog2_lines.append(
-        line_maker( 
-            make_SMOG2_singletrack_line( 
-                forward_tracks, long_track_particles, name = "HLT1_SMOG2_SingleTrack" + prefilter_suffix ),
-        ))
+        line_maker(
+            make_SMOG2_ditrack_line(
+                secondary_vertices,
+                m1=938.27,
+                m2=938.27,
+                mMother=2983.6,
+                mWindow=150.,
+                name="HLT1_SMOG2_eta2pp" + prefilter_suffix)))
+
+    smog2_lines.append(
+        line_maker(
+            make_SMOG2_ditrack_line(
+                secondary_vertices,
+                minTrackPt=800.,
+                name="HLT1_SMOG2_2BodyGeneric" + prefilter_suffix)))
+
+    smog2_lines.append(
+        line_maker(
+            make_SMOG2_singletrack_line(
+                forward_tracks,
+                kalman_velo_only,
+                name="HLT1_SMOG2_SingleTrack" + prefilter_suffix)))
 
     return smog2_lines
 
@@ -255,8 +263,13 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         pp_checkPV = make_checkPV(
             reconstructed_objects['pvs'],
             name='pp_checkPV',
+<<<<<<< HEAD
             minZ='-300' ,  
             maxZ='+300' )
+=======
+            minZ=-300,
+            maxZ=+300)
+>>>>>>> 10bbc3440 (Fixes after rebase)
 
         pp_prefilters += [pp_checkPV]
         prefilter_suffix += '_pp_checkPV'
@@ -309,7 +322,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         SMOG2_prefilters, SMOG2_lines, prefilter_suffix = [], [], ''
 
         lowOcc_5 = make_lowocc(
-            reconstructed_objects['velo_tracks'], minTracks='1', maxTracks='5')
+            reconstructed_objects['velo_tracks'], minTracks=1, maxTracks=5)
         with line_maker.bind(prefilter=lowOcc_5):
             SMOG2_lines += [
                 line_maker(
@@ -323,6 +336,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             make_checkPV(
                 reconstructed_objects['pvs'],
                 name='check_SMOG2_PV',
+<<<<<<< HEAD
                 minZ='-500',  #mm
                 maxZ='-300'   #mm
             )]
@@ -330,6 +344,12 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         if EnableGEC: 
             SMOG2_prefilters += [ gec ]
             prefilter_suffix += '_gec' 
+=======
+                minZ=-550,  #mm
+                maxZ=-300  #mm
+            ) 
+        ]
+>>>>>>> 10bbc3440 (Fixes after rebase)
 
         lowMult_5 = make_lowmult( reconstructed_objects['velo_tracks'], minTracks = '1', maxTracks = '5') 
         with line_maker.bind( prefilter = lowMult_5):
