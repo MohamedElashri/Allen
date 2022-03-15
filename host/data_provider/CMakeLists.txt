@@ -8,6 +8,5 @@ allen_add_host_library(HostDataProvider STATIC
 )
 
 target_link_libraries(HostDataProvider PRIVATE HostEventModel EventModel Gear AllenCommon Backend)
-target_compile_definitions(HostDataProvider PRIVATE ODIN_WITHOUT_GAUDI)
 
 target_include_directories(HostDataProvider PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
