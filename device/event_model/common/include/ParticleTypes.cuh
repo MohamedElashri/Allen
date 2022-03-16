@@ -72,7 +72,7 @@ namespace Allen {
         enum struct segment { velo, ut, scifi };
 
         template<segment t>
-        bool has() const
+        __host__ __device__ bool has() const
         {
           if constexpr (t == segment::velo) {
             return m_velo_segment != nullptr;
@@ -86,7 +86,7 @@ namespace Allen {
         }
 
         template<segment t>
-        auto track_segment() const
+        __host__ __device__ auto track_segment() const
         {
           assert(has<t>());
           if constexpr (t == segment::velo) {
@@ -101,7 +101,7 @@ namespace Allen {
         }
 
         template<segment t>
-        unsigned number_of_segment_hits() const
+        __host__ __device__ unsigned number_of_segment_hits() const
         {
           if (!has<t>()) return 0;
           if constexpr (t == segment::velo) {
