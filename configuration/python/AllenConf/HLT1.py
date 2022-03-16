@@ -89,12 +89,6 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                 name="Hlt1DiMuonHighMass" + prefilter_suffix)))
     lines.append(
         line_maker(
-            make_two_ks_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1TwoKs" + prefilter_suffix)))
-    lines.append(
-        line_maker(
             make_di_muon_mass_line(
                 forward_tracks,
                 secondary_vertices,
@@ -263,13 +257,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         pp_checkPV = make_checkPV(
             reconstructed_objects['pvs'],
             name='pp_checkPV',
-<<<<<<< HEAD
-            minZ='-300' ,  
-            maxZ='+300' )
-=======
             minZ=-300,
             maxZ=+300)
->>>>>>> 10bbc3440 (Fixes after rebase)
 
         pp_prefilters += [pp_checkPV]
         prefilter_suffix += '_pp_checkPV'
@@ -336,20 +325,10 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             make_checkPV(
                 reconstructed_objects['pvs'],
                 name='check_SMOG2_PV',
-<<<<<<< HEAD
-                minZ='-500',  #mm
-                maxZ='-300'   #mm
-            )]
-        prefilter_suffix = '_SMOG2_checkPV'
-        if EnableGEC: 
-            SMOG2_prefilters += [ gec ]
-            prefilter_suffix += '_gec' 
-=======
                 minZ=-550,  #mm
                 maxZ=-300  #mm
             ) 
         ]
->>>>>>> 10bbc3440 (Fixes after rebase)
 
         lowMult_5 = make_lowmult( reconstructed_objects['velo_tracks'], minTracks = '1', maxTracks = '5') 
         with line_maker.bind( prefilter = lowMult_5):
