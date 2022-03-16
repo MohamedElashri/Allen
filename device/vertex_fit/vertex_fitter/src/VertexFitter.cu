@@ -150,8 +150,6 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   parameters.dev_sv_fit_results_view[event_number] = Allen::Views::Physics::SecondaryVertices {
     parameters.dev_sv_fit_results, parameters.dev_sv_offsets, event_number, number_of_events};
 
-  printf("Number of SVs: %u\n", n_svs);
-
   // Loop over svs.
   for (unsigned i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
     VertexFit::TrackMVAVertex tmp_sv;
