@@ -49,7 +49,6 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
-  const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
   const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   const int ut_event_number_of_tracks = ut_tracks_view.size();

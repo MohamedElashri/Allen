@@ -27,7 +27,6 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
     new (parameters.dev_long_track_view + event_tracks_offset + track_index)
       Allen::Views::Physics::LongTrack {velo_track, ut_track, 
                                         parameters.dev_scifi_track_view + event_tracks_offset + track_index};
-    const auto scifi_track = parameters.dev_long_track_view[event_tracks_offset + track_index];
   }
 
   if (threadIdx.x == 0) {
