@@ -225,6 +225,7 @@ namespace Allen {
       struct BasicParticle : ILHCbIDSequence<BasicParticle>, IParticle {
         friend ILHCbIDSequence<BasicParticle>;
         constexpr static auto TypeID = Allen::TypeIDs::BasicParticle;
+        __host__ __device__ TypeIDs type_id() const override { return TypeID; }
 
       private:
         const Track* m_track = nullptr;
@@ -253,8 +254,6 @@ namespace Allen {
         }
 
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }
-
-        __host__ __device__ TypeIDs type_id() const override { return TypeID; }
 
         __host__ __device__ const Track& track() const { return *m_track; }
 
@@ -368,6 +367,7 @@ namespace Allen {
         static constexpr float mPi = 139.57f;
         static constexpr float mMu = 105.66f;
         constexpr static auto TypeID = Allen::TypeIDs::CompositeParticle;
+        __host__ __device__ TypeIDs type_id() const override { return TypeID; }
 
       private:
         std::array<const IParticle*, 2> m_children = {nullptr, nullptr};
@@ -424,8 +424,6 @@ namespace Allen {
           assert(has_pv());
           return *m_pv;
         }
-
-        __host__ __device__ TypeIDs type_id() const override { return TypeID; }
 
         __host__ __device__ unsigned number_of_children() const { return m_children.size(); }
 

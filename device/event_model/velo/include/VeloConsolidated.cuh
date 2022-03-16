@@ -8,6 +8,7 @@
 #include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidatedTypes.cuh"
+#include "MultiEventContainer.cuh"
 #include "BackendCommon.h"
 
 namespace Allen {
