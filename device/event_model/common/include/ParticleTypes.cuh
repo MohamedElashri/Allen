@@ -195,19 +195,6 @@ namespace Allen {
 
       using MultiEventLongTracks = Allen::MultiEventContainer<LongTracks>;
 
-      struct TrackContainer {
-      private:
-        [[maybe_unused]] const Track* m_track = nullptr;
-        [[maybe_unused]] unsigned m_size = 0;
-
-      public:
-        __host__ __device__ TrackContainer(const Track* track, const unsigned size) : m_track(track), m_size(size) {}
-
-        __host__ __device__ unsigned size() const { return m_size; }
-
-        virtual __host__ __device__ ~TrackContainer() {}
-      };
-
       struct IParticle {
         virtual __host__ __device__ TypeIDs type_id() const = 0;
         virtual __host__ __device__ ~IParticle() {}
@@ -370,9 +357,10 @@ namespace Allen {
         __host__ __device__ TypeIDs type_id() const override { return TypeID; }
 
       private:
-        std::array<const IParticle*, 2> m_children = {nullptr, nullptr};
+        std::array<const IParticle*, 4> m_children = {nullptr, nullptr, nullptr, nullptr};
         const SecondaryVertices* m_vertices = nullptr;
         const PV::Vertex* m_pv = nullptr;
+        unsigned m_size = 0;
         unsigned m_index = 0;
 
         template<typename T>
@@ -409,12 +397,16 @@ namespace Allen {
 
       public:
         __host__ __device__ CompositeParticle(
-          const std::array<const IParticle*, 2>& children,
+          const std::array<const IParticle*, 4>& children,
           const SecondaryVertices* vertices,
           const PV::Vertex* pv,
+          unsigned size,
           unsigned index) :
           m_children(children),
-          m_vertices(vertices), m_pv(pv), m_index(index)
+          m_vertices(vertices), 
+          m_pv(pv), 
+          m_size(size),
+          m_index(index)
         {}
 
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }
@@ -425,7 +417,7 @@ namespace Allen {
           return *m_pv;
         }
 
-        __host__ __device__ unsigned number_of_children() const { return m_children.size(); }
+        __host__ __device__ unsigned number_of_children() const { return m_size; }
 
         __host__ __device__ const IParticle* child(const unsigned i) const
         {

@@ -50,7 +50,7 @@ namespace VertexFit {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_two_track_sv_track_pointers_t,
       DEPENDENCIES(dev_long_track_particles_t),
-      std::array<const Allen::Views::Physics::IParticle*, 2>)
+      std::array<const Allen::Views::Physics::IParticle*, 4>)
     dev_two_track_sv_track_pointers;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_two_track_composite_view_t,
