@@ -48,6 +48,7 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
       Allen::Views::SciFi::Consolidated::MultiEventTracks {parameters.dev_scifi_tracks_view, number_of_events};
     new (parameters.dev_multi_event_long_tracks_view)
       Allen::Views::Physics::MultiEventLongTracks {parameters.dev_long_tracks_view, number_of_events};
+    parameters.dev_multi_event_long_tracks_ptr[0] = parameters.dev_multi_event_long_tracks_view.get();
   }
 }
 
@@ -69,6 +70,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   set_size<dev_long_track_view_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_long_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_multi_event_long_tracks_view_t>(arguments, 1);
+  set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
 }
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(

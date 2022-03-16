@@ -41,7 +41,7 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
   const auto* mec =
-    static_cast<const Allen::Views::Physics::MultiEventLongTracks*>(&parameters.dev_multi_event_long_tracks[0]);
+    static_cast<const Allen::Views::Physics::MultiEventLongTracks*>(parameters.dev_multi_event_long_tracks[0]);
   const auto event_long_tracks = mec->container(event_number);
   const unsigned offset = event_long_tracks.offset();
   const unsigned number_of_tracks = event_long_tracks.size();

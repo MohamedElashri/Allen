@@ -32,7 +32,7 @@ namespace calo_digits_minADC {
     HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
-    DEVICE_OUTPUT(dev_particle_container_t, Allen::IMultiEventContainer)
+    DEVICE_OUTPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles)
     dev_particle_container;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;

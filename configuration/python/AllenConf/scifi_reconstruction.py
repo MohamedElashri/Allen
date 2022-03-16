@@ -232,6 +232,8 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
         scifi_consolidate_tracks.dev_scifi_tracks_view_t,
         "dev_multi_event_long_tracks_view":
         scifi_consolidate_tracks.dev_multi_event_long_tracks_view_t,
+        "dev_multi_event_long_tracks_ptr":
+        scifi_consolidate_tracks.dev_multi_event_long_tracks_ptr_t,
 
         # Needed for long track particle dependencies.
         "dev_scifi_track_view":

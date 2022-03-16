@@ -68,6 +68,11 @@ namespace scifi_consolidate_tracks {
       DEPENDENCIES(dev_long_tracks_view_t),
       Allen::Views::Physics::MultiEventLongTracks)
     dev_multi_event_long_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_multi_event_long_tracks_ptr_t,
+      DEPENDENCIES(dev_multi_event_long_tracks_view_t),
+      Allen::Views::Physics::MultiEventLongTracks*)
+    dev_multi_event_long_tracks_ptr;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

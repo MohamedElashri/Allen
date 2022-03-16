@@ -26,7 +26,7 @@ namespace make_long_track_particles {
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_kalman_states_view_t, Allen::Views::Physics::KalmanStates) dev_kalman_states_view;
     DEVICE_INPUT(dev_kalman_pv_tables_t, Allen::Views::Physics::PVTable) dev_kalman_pv_tables;
-    DEVICE_INPUT(dev_multi_event_long_tracks_t, Allen::IMultiEventContainer) dev_multi_event_long_tracks;
+    DEVICE_INPUT(dev_multi_event_long_tracks_t, Allen::IMultiEventContainer*) dev_multi_event_long_tracks;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_long_track_particle_view_t,
       DEPENDENCIES(

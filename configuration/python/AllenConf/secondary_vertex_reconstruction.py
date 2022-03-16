@@ -94,7 +94,7 @@ def make_basic_particles(kalman_velo_only,
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_multi_event_long_tracks_t=forward_tracks[
-            "dev_multi_event_long_tracks_view"],
+            "dev_multi_event_long_tracks_ptr"],
         dev_offsets_forward_tracks_t=forward_tracks[
             "dev_offsets_forward_tracks"],
         dev_kalman_states_view_t=kalman_velo_only["dev_kalman_states_view"],
