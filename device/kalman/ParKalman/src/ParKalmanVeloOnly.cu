@@ -588,7 +588,7 @@ __global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters 
   const unsigned n_scifi_tracks = event_scifi_tracks.size();
   for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
     const auto scifi_track = event_scifi_tracks.track(i_scifi_track);
-    const auto velo_track = scifi_track.velo_track();
+    const auto velo_track = scifi_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
     const KalmanFloat init_qop = (KalmanFloat) scifi_track.qop();
     ParKalmanFilter::FittedTrack kalman_track;
 

@@ -69,77 +69,67 @@ namespace Allen {
           m_ut_segment(ut_segment), m_scifi_segment(scifi_segment)
         {}
 
-        __host__ __device__ bool has_velo() const { return m_velo_segment != nullptr; }
+        enum struct segment {
+          velo,
+          ut,
+          scifi
+        };
 
-        __host__ __device__ bool has_ut() const { return m_ut_segment != nullptr; }
-
-        __host__ __device__ bool has_scifi() const { return m_scifi_segment != nullptr; }
-
-        __host__ __device__ unsigned number_of_scifi_hits() const
-        {
-          if (m_scifi_segment == nullptr) {
-            return 0;
-          }
-          else {
-            return m_scifi_segment->number_of_scifi_hits();
-          }
-        }
-
-        __host__ __device__ unsigned number_of_ut_hits() const
-        {
-          if (m_ut_segment == nullptr) {
-            return 0;
-          }
-          else {
-            return m_ut_segment->number_of_ut_hits();
+        template<segment t>
+        bool has() const {
+          if constexpr (t == segment::velo) {
+            return m_velo_segment != nullptr;
+          } else if constexpr (t == segment::ut) {
+            return m_ut_segment != nullptr;
+          } else {
+            return m_scifi_segment != nullptr;
           }
         }
 
-        __host__ __device__ unsigned number_of_velo_hits() const
-        {
-          if (m_velo_segment == nullptr) {
-            return 0;
+        template<segment t>
+        auto track_segment() const {
+          assert(has<t>());
+          if constexpr (t == segment::velo) {
+            return *m_velo_segment;
+          } else if constexpr (t == segment::ut) {
+            return *m_ut_segment;
+          } else {
+            return *m_scifi_segment;
           }
-          else {
+        }
+
+        template<segment t>
+        unsigned number_of_segment_hits() const {
+          if (!has<t>()) return 0;
+          if constexpr (t == segment::velo) {
             return m_velo_segment->number_of_hits();
+          } else if constexpr (t == segment::ut) {
+            return m_ut_segment->number_of_ut_hits();
+          } else {
+            return m_scifi_segment->number_of_scifi_hits();
           }
         }
 
         __host__ __device__ unsigned number_of_hits() const
         {
-          return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
+          return number_of_segment_hits<segment::velo>() + 
+                 number_of_segment_hits<segment::ut>() + 
+                 number_of_segment_hits<segment::scifi>();
         }
 
         __host__ __device__ unsigned get_id(const unsigned index) const
         {
           assert(index < number_of_hits());
-          if (index < number_of_velo_hits()) {
+          if (index < number_of_segment_hits<segment::velo>()) {
             return m_velo_segment->id(index);
           }
-          else if (index < number_of_ut_hits() + number_of_velo_hits()) {
-            return m_ut_segment->id(index - number_of_velo_hits());
+          else if (index < number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>()) {
+            return m_ut_segment->id(index - number_of_segment_hits<segment::velo>());
           }
           else {
-            return m_scifi_segment->id(index - number_of_velo_hits() - number_of_ut_hits());
+            return m_scifi_segment->id(
+              index - number_of_segment_hits<segment::velo>() - number_of_segment_hits<segment::ut>());
           }
-        }
-
-        __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
-        {
-          assert(has_velo());
-          return *m_velo_segment;
-        }
-
-        __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const
-        {
-          assert(has_ut());
-          return *m_ut_segment;
-        }
-
-        __host__ __device__ const Allen::Views::SciFi::Consolidated::Track& scifi_track() const
-        {
-          assert(has_scifi());
-          return *m_scifi_segment;
         }
       };
 
