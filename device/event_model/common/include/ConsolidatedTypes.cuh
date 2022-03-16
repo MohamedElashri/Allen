@@ -79,11 +79,13 @@ namespace Allen {
   __host__ __device__ T dyn_cast(U* t) {
     using base_t = std::decay_t<std::remove_pointer_t<T>>;
     static_assert(std::is_base_of_v<std::decay_t<U>, base_t>);
-    if (t->type_id() == base_t::TypeID) {
-      return static_cast<T>(t);
-    } else {
+    if (t == nullptr) {
       return nullptr;
     }
+    else if (t->type_id() == base_t::TypeID) {
+      return static_cast<T>(t);
+    }
+    return nullptr;
   }
 
   /**
