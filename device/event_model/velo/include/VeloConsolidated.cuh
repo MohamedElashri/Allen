@@ -240,7 +240,6 @@ namespace Allen {
           {
             return states_view.state(m_track_index);
           }
-
         };
 
         struct Tracks : Allen::ILHCbIDContainer<Tracks> {
@@ -252,21 +251,18 @@ namespace Allen {
           unsigned m_size = 0;
           unsigned m_offset = 0;
 
-          __host__ __device__ unsigned number_of_id_sequences_impl() const {
-            return m_size;
-          }
+          __host__ __device__ unsigned number_of_id_sequences_impl() const { return m_size; }
 
-          __host__ __device__ const Track& id_sequence_impl(const unsigned index) const {
+          __host__ __device__ const Track& id_sequence_impl(const unsigned index) const
+          {
             assert(index < number_of_id_sequences_impl());
             return m_track[index];
           }
 
-
         public:
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
             m_track(track + offset_tracks[event_number]),
-            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]),
-            m_offset(offset_tracks[event_number])
+            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])
           {}
 
           __host__ __device__ unsigned size() const { return m_size; }

@@ -198,7 +198,6 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
   const Allen::Views::UT::Consolidated::MultiEventTracks* multiev_id_cont =
     reinterpret_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(ut_multi_event_tracks_view.data());
 
-
   // Conditions to check
   const bool size_is_number_of_events =
     ut_multi_event_tracks_view[0].number_of_events() == multiev_id_cont->number_of_events();

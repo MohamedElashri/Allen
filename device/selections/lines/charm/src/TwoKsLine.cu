@@ -55,9 +55,8 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   const auto v1track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex1.child(1));
   const auto v1state1 = v1track1->state();
   const auto v1state2 = v1track2->state();
-  const float cos1 =
-    (v1state1.px() * v1state2.px() + v1state1.py() * v1state2.py() + v1state1.pz() * v1state2.pz()) /
-    (v1state1.p() * v1state2.p());
+  const float cos1 = (v1state1.px() * v1state2.px() + v1state1.py() * v1state2.py() + v1state1.pz() * v1state2.pz()) /
+                     (v1state1.p() * v1state2.p());
   dec1 &= cos1 > parameters.minCosOpening;
   const float v1ip1 = v1track1->ip();
   const float v1ip2 = v1track2->ip();
@@ -102,9 +101,8 @@ __device__ bool two_ks_line::two_ks_line_t::select(
     const auto v2track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex2.child(1));
     const auto v2state1 = v2track1->state();
     const auto v2state2 = v2track2->state();
-    const float cos2 =
-      (v2state1.px() * v2state2.px() + v2state1.py() * v2state2.py() + v2state1.pz() * v2state2.pz()) /
-      (v2state1.p() * v2state2.p());
+    const float cos2 = (v2state1.px() * v2state2.px() + v2state1.py() * v2state2.py() + v2state1.pz() * v2state2.pz()) /
+                       (v2state1.p() * v2state2.p());
 
     dec2 &= cos2 > parameters.minCosOpening;
     const float v2ip1 = v2track1->ip();

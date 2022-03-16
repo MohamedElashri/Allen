@@ -227,8 +227,7 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
     if (blockIdx.x == 0 && Derived::has_particle_container) {
       const auto particle_container_ptr =
         static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-      parameters.dev_particle_container_ptr[0] =
-        const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
     }
   }
 }
@@ -283,8 +282,7 @@ __global__ void process_line_iterate_events(
   if (threadIdx.x == 0 && blockIdx.x == 0 && Derived::has_particle_container) {
     const auto particle_container_ptr =
       static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-    parameters.dev_particle_container_ptr[0] =
-      const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+    parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
   }
 }
 

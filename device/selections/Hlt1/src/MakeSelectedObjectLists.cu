@@ -134,8 +134,8 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
       auto decs = selections.get_span(line_index, event_number);
       const auto multi_event_track_container = static_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(
         parameters.dev_multi_event_particle_containers[line_index]);
-      const auto event_tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(
-        multi_event_track_container->container(event_number));
+      const auto event_tracks =
+        static_cast<const Allen::Views::Physics::BasicParticles&>(multi_event_track_container->container(event_number));
       for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
         if (decs[track_index]) {
           const unsigned track_candidate_index = atomicAdd(event_candidate_count + line_index, 1);

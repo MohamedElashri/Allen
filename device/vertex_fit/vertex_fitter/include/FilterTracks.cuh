@@ -28,7 +28,7 @@ namespace FilterTracks {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     // TODO: Choose a better name for this, because these don't need to be long
     // tracks.
-    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::MultiEventBasicParticles) 
+    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::MultiEventBasicParticles)
     dev_long_track_particles;
     DEVICE_OUTPUT(dev_track_prefilter_result_t, float) dev_track_prefilter_result;
     DEVICE_OUTPUT(dev_sv_atomics_t, unsigned) dev_sv_atomics;

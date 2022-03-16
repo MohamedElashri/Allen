@@ -54,12 +54,8 @@ namespace Allen {
    */
   template<typename T>
   struct ILHCbIDSequence {
-    __host__ __device__ unsigned number_of_ids() const {
-      return static_cast<const T*>(this)->number_of_ids_impl();
-    }
-    __host__ __device__ unsigned id(const unsigned i) const {
-      return static_cast<const T*>(this)->id_impl(i);
-    }
+    __host__ __device__ unsigned number_of_ids() const { return static_cast<const T*>(this)->number_of_ids_impl(); }
+    __host__ __device__ unsigned id(const unsigned i) const { return static_cast<const T*>(this)->id_impl(i); }
   };
 
   /**
@@ -70,10 +66,12 @@ namespace Allen {
    */
   template<typename T>
   struct ILHCbIDContainer {
-    __host__ __device__ unsigned number_of_id_sequences() const {
+    __host__ __device__ unsigned number_of_id_sequences() const
+    {
       return static_cast<const T*>(this)->number_of_id_sequences_impl();
     }
-    __host__ __device__ const auto& id_sequence(const unsigned i) const {
+    __host__ __device__ const auto& id_sequence(const unsigned i) const
+    {
       return static_cast<const T*>(this)->id_sequence_impl(i);
     }
   };

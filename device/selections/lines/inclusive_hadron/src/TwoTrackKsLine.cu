@@ -27,13 +27,14 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
   const auto& state1 = trk1->state();
   const auto& state2 = trk2->state();
   const float cos =
-    (state1.px() * state2.px() + state1.py() * state2.py() + state1.pz() * state2.pz()) / (state1.p() * state2.p());    
-  const bool decision =
-    vertex.chi2() < parameters.maxVertexChi2 && particle.eta() > parameters.minEta_Ks &&
-    particle.eta() < parameters.maxEta_Ks && particle.minipchi2() > parameters.minTrackIPChi2_Ks &&
-    particle.m12(Allen::mPi, Allen::mPi) > parameters.minM_Ks && particle.m12(Allen::mPi, Allen::mPi) < parameters.maxM_Ks &&
-    vertex.pt() > parameters.minComboPt_Ks && cos > parameters.minCosOpening && particle.dira() > parameters.minCosDira &&
-    particle.minp() > parameters.minTrackP_piKs && trk1->ip() * trk2->ip() / particle.ip() > parameters.min_combip &&
-    particle.minpt() > parameters.minTrackPt_piKs;
+    (state1.px() * state2.px() + state1.py() * state2.py() + state1.pz() * state2.pz()) / (state1.p() * state2.p());
+  const bool decision = vertex.chi2() < parameters.maxVertexChi2 && particle.eta() > parameters.minEta_Ks &&
+                        particle.eta() < parameters.maxEta_Ks && particle.minipchi2() > parameters.minTrackIPChi2_Ks &&
+                        particle.m12(Allen::mPi, Allen::mPi) > parameters.minM_Ks &&
+                        particle.m12(Allen::mPi, Allen::mPi) < parameters.maxM_Ks &&
+                        vertex.pt() > parameters.minComboPt_Ks && cos > parameters.minCosOpening &&
+                        particle.dira() > parameters.minCosDira && particle.minp() > parameters.minTrackP_piKs &&
+                        trk1->ip() * trk2->ip() / particle.ip() > parameters.min_combip &&
+                        particle.minpt() > parameters.minTrackPt_piKs;
   return decision;
 }

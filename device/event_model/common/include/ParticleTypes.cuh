@@ -69,51 +69,55 @@ namespace Allen {
           m_ut_segment(ut_segment), m_scifi_segment(scifi_segment)
         {}
 
-        enum struct segment {
-          velo,
-          ut,
-          scifi
-        };
+        enum struct segment { velo, ut, scifi };
 
         template<segment t>
-        bool has() const {
+        bool has() const
+        {
           if constexpr (t == segment::velo) {
             return m_velo_segment != nullptr;
-          } else if constexpr (t == segment::ut) {
+          }
+          else if constexpr (t == segment::ut) {
             return m_ut_segment != nullptr;
-          } else {
+          }
+          else {
             return m_scifi_segment != nullptr;
           }
         }
 
         template<segment t>
-        auto track_segment() const {
+        auto track_segment() const
+        {
           assert(has<t>());
           if constexpr (t == segment::velo) {
             return *m_velo_segment;
-          } else if constexpr (t == segment::ut) {
+          }
+          else if constexpr (t == segment::ut) {
             return *m_ut_segment;
-          } else {
+          }
+          else {
             return *m_scifi_segment;
           }
         }
 
         template<segment t>
-        unsigned number_of_segment_hits() const {
+        unsigned number_of_segment_hits() const
+        {
           if (!has<t>()) return 0;
           if constexpr (t == segment::velo) {
             return m_velo_segment->number_of_hits();
-          } else if constexpr (t == segment::ut) {
+          }
+          else if constexpr (t == segment::ut) {
             return m_ut_segment->number_of_ut_hits();
-          } else {
+          }
+          else {
             return m_scifi_segment->number_of_scifi_hits();
           }
         }
 
         __host__ __device__ unsigned number_of_hits() const
         {
-          return number_of_segment_hits<segment::velo>() + 
-                 number_of_segment_hits<segment::ut>() + 
+          return number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>() +
                  number_of_segment_hits<segment::scifi>();
         }
 
@@ -393,10 +397,7 @@ namespace Allen {
           unsigned size,
           unsigned index) :
           m_children(children),
-          m_vertices(vertices), 
-          m_pv(pv), 
-          m_size(size),
-          m_index(index)
+          m_vertices(vertices), m_pv(pv), m_size(size), m_index(index)
         {}
 
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }

@@ -24,9 +24,8 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
                                                 parameters.dev_scifi_track_hit_number,
                                                 track_index,
                                                 event_number};
-    new (parameters.dev_long_track_view + event_tracks_offset + track_index)
-      Allen::Views::Physics::LongTrack {velo_track, ut_track, 
-                                        parameters.dev_scifi_track_view + event_tracks_offset + track_index};
+    new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
+      velo_track, ut_track, parameters.dev_scifi_track_view + event_tracks_offset + track_index};
   }
 
   if (threadIdx.x == 0) {
@@ -40,8 +39,8 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
     new (parameters.dev_scifi_tracks_view + event_number) Allen::Views::SciFi::Consolidated::Tracks {
       parameters.dev_scifi_track_view, parameters.dev_atomics_scifi, event_number};
 
-    new (parameters.dev_long_tracks_view + event_number) Allen::Views::Physics::LongTracks {
-      parameters.dev_long_track_view, parameters.dev_atomics_scifi, event_number};
+    new (parameters.dev_long_tracks_view + event_number)
+      Allen::Views::Physics::LongTracks {parameters.dev_long_track_view, parameters.dev_atomics_scifi, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
