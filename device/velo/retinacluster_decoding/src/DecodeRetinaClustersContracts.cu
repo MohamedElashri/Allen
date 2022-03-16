@@ -42,7 +42,7 @@ void decode_retinaclusters::cluster_container_checks::operator()(
           for (unsigned hit_number = 0; hit_number < module_hit_num; ++hit_number) {
             const auto hit_index = module_hit_start + hit_number;
 
-            valid_id_hit = lhcb_id::is_velo(velo_container_view.id(hit_index));
+            valid_id_hit &= lhcb_id::is_velo(velo_container_view.id(hit_index));
 
             x_greater_than_min_value &= velo_container_view.x(hit_index) > velo_cluster_min_x;
             x_lower_than_max_value &= velo_container_view.x(hit_index) < velo_cluster_max_x;
