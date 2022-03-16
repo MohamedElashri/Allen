@@ -386,7 +386,7 @@ namespace Allen {
         const SecondaryVertices* m_vertices = nullptr;
         const PV::Vertex* m_pv = nullptr;
         unsigned m_number_of_children = 0;
-        [[maybe_unused]] unsigned m_total_number_of_composites = 0;
+        unsigned m_total_number_of_composites = 0;
         unsigned m_index = 0;
 
         template<typename T>
@@ -453,7 +453,7 @@ namespace Allen {
         __host__ __device__ const IParticle* child(const unsigned i) const
         {
           assert(i < number_of_children());
-          return m_children[i];
+          return m_children[m_total_number_of_composites * i + m_index];
         }
 
         __host__ __device__ SecondaryVertex vertex() const { return m_vertices->vertex(m_index); }

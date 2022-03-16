@@ -126,7 +126,7 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_long_track_particles_t=long_track_particles[
-            "dev_long_track_particles"])
+            "dev_multi_event_basic_particles"])
 
     prefix_sum_secondary_vertices = make_algorithm(
         host_prefix_sum_t,
@@ -142,7 +142,7 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
         host_number_of_svs_t=prefix_sum_secondary_vertices.
         host_total_sum_holder_t,
         dev_long_track_particles_t=long_track_particles[
-            "dev_long_track_particles"],
+            "dev_multi_event_basic_particles"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"],
