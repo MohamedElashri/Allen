@@ -70,7 +70,9 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     const bool trackA_is_lepton = trackA.is_muon || trackA.is_electron;
     if (
-      trackA.pt() < parameters.track_min_pt || (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA_is_lepton) ||
+      trackA.pt() < parameters.track_min_pt ||
+      (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA_is_lepton &&
+       (trackA.ip < parameters.track_min_ip || trackA.pt() < parameters.track_min_pt_charm)) ||
       (trackA.chi2 / trackA.ndof > parameters.track_max_chi2ndof && !trackA_is_lepton) ||
       (trackA.chi2 / trackA.ndof > parameters.track_muon_max_chi2ndof && trackA_is_lepton)) {
       continue;
@@ -82,7 +84,9 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
       const bool trackB_is_lepton = trackB.is_muon || trackB.is_electron;
       if (
-        trackB.pt() < parameters.track_min_pt || (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB_is_lepton) ||
+        trackB.pt() < parameters.track_min_pt ||
+        (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB_is_lepton &&
+         (trackB.ip < parameters.track_min_ip || trackB.pt() < parameters.track_min_pt_charm)) ||
         (trackB.chi2 / trackB.ndof > parameters.track_max_chi2ndof && !trackB_is_lepton) ||
         (trackB.chi2 / trackB.ndof > parameters.track_muon_max_chi2ndof && trackB_is_lepton)) {
         continue;
