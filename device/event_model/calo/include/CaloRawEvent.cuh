@@ -59,7 +59,7 @@ struct RawEvent {
     }
   }
 
-  __device__ __host__ RawBank bank(unsigned const n) const
+  __device__ __host__ RawBank raw_bank(unsigned const n) const
   {
     if constexpr (mep_layout) {
       return MEP::raw_bank<RawBank>(data, offsets, sizes, event, n);

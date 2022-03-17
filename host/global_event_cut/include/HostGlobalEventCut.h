@@ -36,6 +36,7 @@ namespace host_global_event_cut {
     const auto number_of_events = parameters.host_number_of_events[0];
 
     auto const ut_offsets = *parameters.ut_offsets;
+    auto const ut_sizes = *parameters.ut_sizes;
     auto const ut_raw_bank_version = *parameters.ut_raw_bank_version;
     auto const scifi_offsets = *parameters.scifi_offsets;
     auto const scifi_sizes = *parameters.scifi_sizes;
@@ -71,7 +72,7 @@ namespace host_global_event_cut {
           auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
           auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
           char const* bank_data = parameters.ut_banks[i].data() + fragment_offset;
-          auto const bank_size = MEP::bank_size(bank_data, parameters.ut_sizes[0].data(), event_number, i);
+          auto const bank_size = MEP::bank_size(bank_data, ut_sizes.data(), event_number, i);
           if (ut_raw_bank_version == 4)
             n_UT_clusters += UTRawBank<4> {sourceID, bank_data, bank_size}.get_n_hits();
           else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
@@ -81,14 +82,13 @@ namespace host_global_event_cut {
         }
       }
       else {
-        const uint32_t ut_event_offset = ut_offsets[event_number];
-        const UTRawEvent ut_event(parameters.ut_banks[0].data() + ut_event_offset, Allen::bank_sizes(parameters.ut_sizes[0].data(), event_number));
+        const UTRawEvent<false> ut_event(parameters.ut_banks[0].data(), ut_offsets.data(), ut_sizes.data(), event_number);
 
-        for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i) {
+        for (unsigned i = 0; i < ut_event.number_of_raw_banks(); ++i) {
           if (ut_raw_bank_version == 4)
-            n_UT_clusters += ut_event.getUTRawBank<4>(i).get_n_hits();
+            n_UT_clusters += ut_event.raw_bank<4>(i).get_n_hits();
           else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
-            n_UT_clusters += ut_event.getUTRawBank<3>(i).get_n_hits();
+            n_UT_clusters += ut_event.raw_bank<3>(i).get_n_hits();
           else
             throw std::runtime_error("Unknown UT raw bank version " + std::to_string(ut_raw_bank_version));
         }

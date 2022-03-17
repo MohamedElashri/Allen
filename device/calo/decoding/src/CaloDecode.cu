@@ -24,7 +24,7 @@ namespace {
   {
     auto raw_event = Calo::RawEvent<mep_layout> {data, offsets, sizes, event_number};
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
-      auto raw_bank = raw_event.bank(bank_number);
+      auto raw_bank = raw_event.raw_bank(bank_number);
       while (raw_bank.data < raw_bank.end) {
         uint32_t word = *raw_bank.data;
         uint16_t trig_size = word & 0x7F;

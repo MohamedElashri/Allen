@@ -12,7 +12,7 @@ using ODINData = std::array<uint32_t, std::tuple_size_v<decltype(LHCb::ODIN::dat
 
 struct ODINRawBank {
 
-  uint32_t const* data;
+  uint32_t const* data = nullptr;
   unsigned short size = 0;
 
   /// Constructor from Allen layout
