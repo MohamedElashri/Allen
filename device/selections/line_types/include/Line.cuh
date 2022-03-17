@@ -131,7 +131,6 @@ public:
     if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
       return size<typename Parameters::dev_event_list_t>(arguments);
     }
-    // else if (std::is_same<typename Derived::iteration_t, LineIteration::event_iteration_tag>::value) {
     return 1;
   }
 
@@ -143,11 +142,6 @@ public:
   /**
    * @brief Default monitor function.
    */
-  // template<typename... Args>
-  // static __device__  void monitor(Args...) {}
-
-  // template<typename... Args>
-  // static __host__ void output_monitor(Args...) {}
   static void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) {}
   template<typename INPUT>
   static __device__ void monitor(const Parameters&, INPUT, unsigned, bool)
@@ -168,8 +162,6 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
 {
   __shared__ int event_decision;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  // const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters,
-  // event_number);
   const unsigned input_size = Derived::input_size(parameters, event_number);
 
   if (threadIdx.x == 0) {
@@ -330,6 +322,10 @@ void Line<Derived, Parameters>::operator()(
   initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
   initialize<typename Parameters::dev_selected_events_size_t>(arguments, 0, context);
+
+  if constexpr (Allen::has_dev_particle_container<Derived>::value) {
+    initialize<typename Parameters::dev_particle_container_ptr_t>(arguments, 0, context);
+  }
 
   // Populate container with tag.
   data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);

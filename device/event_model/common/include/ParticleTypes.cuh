@@ -442,15 +442,13 @@ namespace Allen {
         __host__ __device__ float m12(const float m1, const float m2) const
         {
           float energy = 0.f;
-          const auto substr1 = child(0);
-          const auto substr2 = child(1);
-          if (
-            substr1->type_id() != Allen::TypeIDs::BasicParticle ||
-            substr2->type_id() != Allen::TypeIDs::BasicParticle) {
+          const auto a = dyn_cast<const BasicParticle*>(child(0));
+          const auto b = dyn_cast<const BasicParticle*>(child(1));
+          if (!a || !b) {
             return 0.f;
           }
-          energy += static_cast<const BasicParticle*>(substr1)->state().e(m1);
-          energy += static_cast<const BasicParticle*>(substr2)->state().e(m2);
+          energy += a->state().e(m1);
+          energy += b->state().e(m2);
           return sqrtf(energy * energy - vertex().p2());
         }
 

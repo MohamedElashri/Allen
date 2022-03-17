@@ -32,6 +32,8 @@ void make_long_track_particles::make_long_track_particles_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
+  initialize<dev_long_track_particle_view_t>(arguments, 0, context);
+
   global_function(make_particles)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 }
@@ -49,10 +51,11 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
 
   for (unsigned i = threadIdx.x; i < number_of_tracks; i++) {
     const auto* long_track = &(event_long_tracks.track(i));
+    const int i_pv = pv_table.pv(i);
     new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
       long_track,
       parameters.dev_kalman_states_view + event_number,
-      parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i),
+      i_pv ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i) : nullptr,
       i,
       parameters.dev_lepton_id[offset + i]};
   }

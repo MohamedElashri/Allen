@@ -16,22 +16,12 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
 
   for (unsigned i = threadIdx.x; i < n_svs; i += blockDim.x) {
     const int i_pv = pv_table.pv(i);
-    if (i_pv >= 0) {
-      new (parameters.dev_two_track_composite_view + offset + i) Allen::Views::Physics::CompositeParticle {
-        parameters.dev_two_track_sv_track_pointers[offset + i],
-        parameters.dev_sv_fit_results_view + event_number,
-        parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + i_pv,
-        2,
-        i};
-    }
-    else {
-      new (parameters.dev_two_track_composite_view + offset + i)
-        Allen::Views::Physics::CompositeParticle {parameters.dev_two_track_sv_track_pointers[offset + i],
-                                                  parameters.dev_sv_fit_results_view + event_number,
-                                                  nullptr,
-                                                  2,
-                                                  i};
-    }
+    new (parameters.dev_two_track_composite_view + offset + i) Allen::Views::Physics::CompositeParticle {
+      parameters.dev_two_track_sv_track_pointers[offset + i],
+      parameters.dev_sv_fit_results_view + event_number,
+      i_pv ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + i_pv : nullptr,
+      2,
+      i};
   }
 
   if (threadIdx.x == 0) {
