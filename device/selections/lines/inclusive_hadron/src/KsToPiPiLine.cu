@@ -44,10 +44,11 @@ __device__ void kstopipi_line::kstopipi_line_t::monitor(
   unsigned index,
   bool sel)
 {
-  const auto vertex = std::get<0>(input);
+  const auto ks = std::get<0>(input);
   if (sel) {
-    parameters.dev_sv_masses[index] = vertex.m12(Allen::mPi, Allen::mPi);
-    parameters.dev_pt[index] = vertex.pt();
+    // printf("Event selected!! \n");
+    parameters.dev_sv_masses[index] = ks.m12(Allen::mPi, Allen::mPi);
+    parameters.dev_pt[index] = ks.vertex().pt();
   }
 }
 
