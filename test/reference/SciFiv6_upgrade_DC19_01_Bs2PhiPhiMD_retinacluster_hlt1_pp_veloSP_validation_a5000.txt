@@ -75,9 +75,9 @@ Hlt1TwoTrackMVA:             470/  1000, (14100.00 +/-   473.49) kHz
 Hlt1TwoTrackKs:                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuon:          1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowPtMuon:               136/  1000, ( 4080.00 +/-   325.20) kHz
-Hlt1D2KK:                     28/  1000, (  840.00 +/-   156.51) kHz
-Hlt1D2KPi:                    51/  1000, ( 1530.00 +/-   208.71) kHz
-Hlt1D2PiPi:                   42/  1000, ( 1260.00 +/-   190.30) kHz
+Hlt1D2KK:                     24/  1000, (  720.00 +/-   145.20) kHz
+Hlt1D2KPi:                    44/  1000, ( 1320.00 +/-   194.57) kHz
+Hlt1D2PiPi:                   29/  1000, (  870.00 +/-   159.20) kHz
 Hlt1DiMuonHighMass:           23/  1000, (  690.00 +/-   142.21) kHz
 Hlt1DiMuonLowMass:            31/  1000, (  930.00 +/-   164.42) kHz
 Hlt1DiMuonSoft:                0/  1000, (    0.00 +/-     0.00) kHz
@@ -106,13 +106,13 @@ selreport_validator validation:
                           Events  Candidates
 Hlt1KsToPiPi:                 43          46
 Hlt1TrackMVA:                259         393
-Hlt1TwoTrackMVA:             470        1485
+Hlt1TwoTrackMVA:             470        1488
 Hlt1TwoTrackKs:                3           3
 Hlt1SingleHighPtMuon:          1           1
 Hlt1LowPtMuon:               136         158
-Hlt1D2KK:                     28          35
-Hlt1D2KPi:                    51          59
-Hlt1D2PiPi:                   42          45
+Hlt1D2KK:                     24          28
+Hlt1D2KPi:                    44          48
+Hlt1D2PiPi:                   29          33
 Hlt1DiMuonHighMass:           23          28
 Hlt1DiMuonLowMass:            31          41
 Hlt1DiMuonSoft:                0           0
@@ -135,9 +135,9 @@ Hlt1Passthrough:            1000           0
 Hlt1RICH1Alignment:            7           8
 Hlt1RICH2Alignment:            1           1
 
-Total decisions: 3156
-Total tracks:    2119
-Total SVs:       1661
-Total hits:      51741
-Total stdinfo:   26752
+Total decisions: 3132
+Total tracks:    2131
+Total SVs:       1668
+Total hits:      52066
+Total stdinfo:   26852
 

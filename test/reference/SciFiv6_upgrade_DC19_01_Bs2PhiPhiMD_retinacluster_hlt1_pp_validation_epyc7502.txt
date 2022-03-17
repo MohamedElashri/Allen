@@ -71,13 +71,13 @@ Ghost tracks identified as muon with isMuon:                              104/  
 rate_validator validation:
 Hlt1KsToPiPi:                 41/  1000, ( 1230.00 +/-   188.11) kHz
 Hlt1TrackMVA:                257/  1000, ( 7710.00 +/-   414.56) kHz
-Hlt1TwoTrackMVA:             477/  1000, (14310.00 +/-   473.84) kHz
+Hlt1TwoTrackMVA:             478/  1000, (14340.00 +/-   473.88) kHz
 Hlt1TwoTrackKs:                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuon:          2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowPtMuon:               134/  1000, ( 4020.00 +/-   323.17) kHz
-Hlt1D2KK:                     29/  1000, (  870.00 +/-   159.20) kHz
-Hlt1D2KPi:                    52/  1000, ( 1560.00 +/-   210.63) kHz
-Hlt1D2PiPi:                   39/  1000, ( 1170.00 +/-   183.66) kHz
+Hlt1D2KK:                     22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1D2KPi:                    38/  1000, ( 1140.00 +/-   181.38) kHz
+Hlt1D2PiPi:                   26/  1000, (  780.00 +/-   150.97) kHz
 Hlt1DiMuonHighMass:           23/  1000, (  690.00 +/-   142.21) kHz
 Hlt1DiMuonLowMass:            28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1DiMuonSoft:                0/  1000, (    0.00 +/-     0.00) kHz
@@ -106,13 +106,13 @@ selreport_validator validation:
                           Events  Candidates
 Hlt1KsToPiPi:                 41          46
 Hlt1TrackMVA:                257         398
-Hlt1TwoTrackMVA:             477        1522
+Hlt1TwoTrackMVA:             478        1528
 Hlt1TwoTrackKs:                3           3
 Hlt1SingleHighPtMuon:          2           2
 Hlt1LowPtMuon:               134         156
-Hlt1D2KK:                     29          35
-Hlt1D2KPi:                    52          57
-Hlt1D2PiPi:                   39          41
+Hlt1D2KK:                     22          25
+Hlt1D2KPi:                    38          41
+Hlt1D2PiPi:                   26          30
 Hlt1DiMuonHighMass:           23          29
 Hlt1DiMuonLowMass:            28          40
 Hlt1DiMuonSoft:                0           0
@@ -135,9 +135,9 @@ Hlt1Passthrough:            1000           0
 Hlt1RICH1Alignment:            7           7
 Hlt1RICH2Alignment:            1           1
 
-Total decisions: 3152
-Total tracks:    2124
-Total SVs:       1689
-Total hits:      51923
-Total stdinfo:   26900
+Total decisions: 3119
+Total tracks:    2133
+Total SVs:       1696
+Total hits:      52152
+Total stdinfo:   26967
 

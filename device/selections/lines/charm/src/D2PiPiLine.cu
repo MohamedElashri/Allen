@@ -14,8 +14,9 @@ __device__ bool d2pipi_line::d2pipi_line_t::select(
     return false;
   }
   const bool decision = vertex.pt() > parameters.minComboPt && vertex.chi2 < parameters.maxVertexChi2 &&
-                        vertex.eta > parameters.minEta && vertex.eta < parameters.maxEta &&
-                        vertex.minpt > parameters.minTrackPt && vertex.minipchi2 > parameters.minTrackIPChi2 &&
+                        vertex.doca < parameters.maxDOCA && vertex.eta > parameters.minEta &&
+                        vertex.eta < parameters.maxEta && vertex.minpt > parameters.minTrackPt &&
+                        vertex.minip > parameters.minTrackIP &&
                         fabsf(vertex.m(parameters.mPi, parameters.mPi) - parameters.mD) < parameters.massWindow;
   return decision;
 }
