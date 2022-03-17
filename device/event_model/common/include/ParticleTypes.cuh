@@ -398,7 +398,12 @@ namespace Allen {
           unsigned index) :
           m_children(children),
           m_vertices(vertices), m_pv(pv), m_size(size), m_index(index)
-        {}
+        {
+          for (unsigned i = 0; i < m_children.size(); i++) {
+            if (i < m_size) assert(m_children[i] != nullptr);
+            else assert(m_children[i] == nullptr);
+          }
+        }
 
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }
 
