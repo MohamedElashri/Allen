@@ -113,6 +113,8 @@ namespace Allen {
           __host__ __device__ unsigned id_impl(const unsigned index) const { return hit(index).id(); }
 
         public:
+          Track() = default;
+
           __host__ __device__ Track(
             const Hits* hits,
             const Allen::Views::Velo::Consolidated::Track* velo_track,
@@ -167,7 +169,7 @@ namespace Allen {
           constexpr static auto TypeID = Allen::TypeIDs::VeloUTTracks;
 
         private:
-          const Track* m_track;
+          const Track* m_track = nullptr;
           unsigned m_size = 0;
           unsigned m_offset = 0;
 
@@ -180,6 +182,8 @@ namespace Allen {
           }
 
         public:
+          Tracks() = default;
+
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
             m_track(track + offset_tracks[event_number]),
             m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])

@@ -114,6 +114,8 @@ namespace Allen {
         unsigned m_total_number_of_tracks = 0;
 
       public:
+        KalmanState() = default;
+
         __host__ __device__
         KalmanState(const char* base_pointer, const unsigned index, const unsigned total_number_of_tracks) :
           m_base_pointer(reinterpret_cast<const float*>(base_pointer)),
@@ -207,6 +209,8 @@ namespace Allen {
         unsigned m_total_number_of_tracks = 0;
 
       public:
+        KalmanStates() = default;
+
         __host__ __device__ KalmanStates(
           const char* base_pointer,
           const unsigned* offset_tracks,
@@ -316,6 +320,8 @@ namespace Allen {
         unsigned m_total_number_of_vrts = 0;
 
       public:
+        SecondaryVertices() = default;
+
         __host__ __device__ SecondaryVertices(
           const char* base_pointer,
           const unsigned* offset_svs,

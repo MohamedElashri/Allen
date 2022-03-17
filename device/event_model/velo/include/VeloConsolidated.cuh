@@ -210,6 +210,8 @@ namespace Allen {
           __host__ __device__ unsigned id_impl(const unsigned index) const { return hit(index).id(); }
 
         public:
+          Track() = default;
+
           __host__ __device__ Track(
             const Hits* hits,
             const unsigned* offset_tracks,
@@ -260,6 +262,8 @@ namespace Allen {
           }
 
         public:
+          Tracks() = default;
+
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
             m_track(track + offset_tracks[event_number]),
             m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])

@@ -36,6 +36,8 @@ namespace Allen {
         unsigned m_size = 0;
 
       public:
+        PVTable() = default;
+
         __host__ __device__
         PVTable(const char* base_pointer, const unsigned offset, const unsigned total_number, const unsigned size) :
           m_base_pointer(reinterpret_cast<const int*>(base_pointer)),
@@ -61,6 +63,8 @@ namespace Allen {
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
 
       public:
+        Track() = default;
+
         __host__ __device__ Track(
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
@@ -146,6 +150,8 @@ namespace Allen {
         __host__ __device__ unsigned id_impl(const unsigned index) const { return get_id(index); }
 
       public:
+        LongTrack() = default;
+
         __host__ __device__ LongTrack(
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
@@ -174,6 +180,8 @@ namespace Allen {
         }
 
       public:
+        LongTracks() = default;
+
         __host__ __device__
         LongTracks(const LongTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
           m_track(track + offset_tracks[event_number]),
@@ -222,6 +230,8 @@ namespace Allen {
         __host__ __device__ unsigned id_impl(const unsigned index) const { return m_track->get_id(index); }
 
       public:
+        BasicParticle() = default;
+
         __host__ __device__ BasicParticle(
           const Track* track,
           const KalmanStates* states,
@@ -329,6 +339,8 @@ namespace Allen {
         }
 
       public:
+        BasicParticles() = default;
+
         __host__ __device__
         BasicParticles(const BasicParticle* track, const unsigned* track_offsets, const unsigned event_number) :
           m_particle(track + track_offsets[event_number]),
@@ -390,6 +402,8 @@ namespace Allen {
         }
 
       public:
+        CompositeParticle() = default;
+
         __host__ __device__ CompositeParticle(
           const std::array<const IParticle*, 4>& children,
           const SecondaryVertices* vertices,
@@ -685,6 +699,8 @@ namespace Allen {
         }
 
       public:
+        CompositeParticles() = default;
+
         __host__ __device__
         CompositeParticles(const CompositeParticle* composite, const unsigned* offsets, unsigned event_number) :
           m_particle(composite + offsets[event_number]),
