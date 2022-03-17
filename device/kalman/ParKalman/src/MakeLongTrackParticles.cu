@@ -22,7 +22,7 @@ void make_long_track_particles::make_long_track_particles_t::set_arguments_size(
   set_size<dev_long_track_particle_view_t>(arguments, n_scifi_tracks);
   set_size<dev_long_track_particles_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_multi_event_basic_particles_view_t>(arguments, 1);
-  set_size<dev_multi_event_basic_particles_ptr_t>(arguments, 1);
+  set_size<dev_multi_event_container_basic_particles_t>(arguments, 1);
 }
 
 void make_long_track_particles::make_long_track_particles_t::operator()(
@@ -65,6 +65,6 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_multi_event_basic_particles_view)
       Allen::Views::Physics::MultiEventBasicParticles {parameters.dev_long_track_particles_view, number_of_events};
-    parameters.dev_multi_event_basic_particles_ptr[0] = parameters.dev_multi_event_basic_particles_view;
+    parameters.dev_multi_event_container_basic_particles[0] = parameters.dev_multi_event_basic_particles_view;
   }
 }

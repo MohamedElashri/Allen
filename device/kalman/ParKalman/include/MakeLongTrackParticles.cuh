@@ -48,10 +48,10 @@ namespace make_long_track_particles {
       Allen::Views::Physics::MultiEventBasicParticles)
     dev_multi_event_basic_particles_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_multi_event_basic_particles_ptr_t,
+      dev_multi_event_container_basic_particles_t,
       DEPENDENCIES(dev_multi_event_basic_particles_view_t),
-      Allen::Views::Physics::MultiEventBasicParticles*)
-    dev_multi_event_basic_particles_ptr;
+      Allen::IMultiEventContainer*)
+    dev_multi_event_container_basic_particles;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

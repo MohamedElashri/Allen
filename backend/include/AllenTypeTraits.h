@@ -209,6 +209,13 @@ namespace Allen {
   struct has_init_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
   };
 
+  template<typename T, typename = void>
+  struct has_dev_particle_container : std::false_type {
+  };
+  template<typename T>
+  struct has_dev_particle_container<T, std::void_t<typename T::dev_particle_container_t>> : std::true_type {
+  };
+
   template<typename T>
   void initialize_algorithm(T& alg)
   {

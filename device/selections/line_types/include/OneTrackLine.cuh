@@ -24,7 +24,6 @@
 template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
   constexpr static auto lhcbid_container = LHCbIDContainer::track;
-  constexpr static auto has_particle_container = true;
 
   static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 64; }
 
@@ -35,23 +34,20 @@ struct OneTrackLine : public Line<Derived, Parameters> {
 
   __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
   {
-    const auto tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(
-      parameters.dev_particle_container[0].container(event_number));
+    const auto tracks = parameters.dev_particle_container->container(event_number);
     return tracks.offset();
   }
 
   __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
   {
-    const auto tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(
-      parameters.dev_particle_container[0].container(event_number));
+    const auto tracks = parameters.dev_particle_container->container(event_number);
     return tracks.size();
   }
 
   __device__ static std::tuple<const Allen::Views::Physics::BasicParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
-    const auto tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(
-      parameters.dev_particle_container[0].container(event_number));
+    const auto tracks = parameters.dev_particle_container->container(event_number);
     const auto track = tracks.particle(i);
     return std::forward_as_tuple(track);
   }

@@ -80,7 +80,6 @@ private:
 public:
   using iteration_t = LineIteration::default_iteration_tag;
   constexpr static auto lhcbid_container = LHCbIDContainer::none;
-  constexpr static auto has_particle_container = false;
 
   void init()
   {
@@ -177,6 +176,16 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
     event_decision = 0;
   }
 
+  // Populate IMultiEventContainer* if relevant
+  if constexpr (Allen::has_dev_particle_container<Derived>::value) {
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+      const auto particle_container_ptr =
+        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+      parameters.dev_particle_container_ptr[0] =
+        const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+    }
+  }
+
   __syncthreads();
 
   // ODIN data
@@ -219,15 +228,11 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   // Synchronize the event_decision
   __syncthreads();
 
+  // Populate event decision
   if (threadIdx.x == 0) {
     if (event_decision) {
       const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
       parameters.dev_selected_events[index] = mask_t {event_number};
-    }
-    if (blockIdx.x == 0 && Derived::has_particle_container) {
-      const auto particle_container_ptr =
-        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
     }
   }
 }
@@ -276,13 +281,6 @@ __global__ void process_line_iterate_events(
   // Populate offsets
   for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
     parameters.dev_decisions_offsets[event_number] = event_number;
-  }
-
-  // Note: Is there any situation where this will be true?
-  if (threadIdx.x == 0 && blockIdx.x == 0 && Derived::has_particle_container) {
-    const auto particle_container_ptr =
-      static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-    parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
   }
 }
 

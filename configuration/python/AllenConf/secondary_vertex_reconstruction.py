@@ -102,14 +102,10 @@ def make_basic_particles(kalman_velo_only,
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_lepton_id_t=lepton_id)
     return {
-        "dev_long_track_particles":
-        make_long_track_particles.dev_long_track_particles_view_t,
-        "dev_long_track_particle":
-        make_long_track_particles.dev_long_track_particle_view_t,
         "dev_multi_event_basic_particles":
         make_long_track_particles.dev_multi_event_basic_particles_view_t,
-        "dev_multi_event_basic_particles_ptr":
-        make_long_track_particles.dev_multi_event_basic_particles_ptr_t
+        "dev_multi_event_container_basic_particles":
+        make_long_track_particles.dev_multi_event_container_basic_particles_t
     }
 
 
