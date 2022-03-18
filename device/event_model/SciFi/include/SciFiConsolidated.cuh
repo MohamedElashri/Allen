@@ -103,6 +103,7 @@ namespace Allen {
             const unsigned* offset_track_hit_number,
             const unsigned track_index,
             const unsigned event_number) :
+            ILHCbIDSequence {1},
             m_hits(hits + event_number),
             m_ut_track(ut_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index)
           {
@@ -158,33 +159,26 @@ namespace Allen {
 
         struct Tracks : Allen::ILHCbIDContainer {
         private:
-          const Track* m_track = nullptr;
           unsigned m_offset = 0;
-          unsigned m_size = 0;
 
         public:
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
-            m_track(track + offset_tracks[event_number]), m_offset(offset_tracks[event_number]),
-            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
+            ILHCbIDContainer {
+              track + offset_tracks[event_number],
+              offset_tracks[event_number + 1] - offset_tracks[event_number]},
+            m_offset(offset_tracks[event_number])
           {}
 
           __host__ __device__ unsigned size() const { return m_size; }
 
           __host__ __device__ const Track& track(const unsigned index) const
           {
-            assert(m_track != nullptr);
             assert(index < m_size);
-            return m_track[index];
+            return static_cast<const Track*>(m_structure)[index];
           }
 
           __host__ __device__ unsigned offset() const { return m_offset; }
 
-          __host__ __device__ unsigned number_of_id_structures() const override { return size(); }
-
-          __host__ __device__ const ILHCbIDSequence& id_structure(const unsigned container_number) const override
-          {
-            return track(container_number);
-          }
         };
 
         using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;

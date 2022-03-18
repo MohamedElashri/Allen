@@ -304,6 +304,7 @@ namespace Allen {
           const PV::Vertex* pv,
           const bool* muon_id,
           const unsigned index) :
+          ILHCbIDSequence {1},
           m_track(track),
           m_states(states), m_pv(pv), m_muon_id(muon_id), m_index(index)
         {
@@ -431,31 +432,31 @@ namespace Allen {
 
       struct BasicParticles : ILHCbIDContainer {
       private:
-        const BasicParticle* m_track = nullptr;
-        unsigned m_offset = 0;
-        unsigned m_size = 0;
+        unsigned m_offset = 0;        
 
       public:
         __host__ __device__
         BasicParticles(const BasicParticle* track, const unsigned* track_offsets, const unsigned event_number) :
-          m_track(track + track_offsets[event_number]),
-          m_offset(track_offsets[event_number]), m_size(track_offsets[event_number + 1] - track_offsets[event_number])
+          ILHCbIDContainer {track + track_offsets[event_number], track_offsets[event_number + 1] - track_offsets[event_number]},
+          m_offset(track_offsets[event_number])
         {}
-
-        __host__ __device__ unsigned number_of_id_structures() const override { return m_size; }
 
         __host__ __device__ const ILHCbIDStructure& id_structure(const unsigned index) const override
         {
-          return m_track[index];
+          return m_structure[index];
         }
 
-        __host__ __device__ unsigned size() const { return m_size; }
+        __host__ __device__ unsigned size() const { 
+          return m_size; 
+        }
 
-        __host__ __device__ const BasicParticle& particle(const unsigned index) const { return m_track[index]; }
+        __host__ __device__ const BasicParticle& particle(const unsigned index) const { 
+          return static_cast<const BasicParticle*>(m_structure)[index];
+        }
 
         __host__ __device__ const BasicParticle* particle_pointer(const unsigned index) const
         {
-          return m_track + index;
+          return static_cast<const BasicParticle*>(m_structure) + index;
         }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
@@ -478,7 +479,7 @@ namespace Allen {
           unsigned number_of_children,
           unsigned total_number_of_composites,
           unsigned index) :
-          ILHCbIDComposite {children, number_of_children, index, total_number_of_composites},
+          ILHCbIDComposite {number_of_children, children, index, total_number_of_composites},
           m_vertices(vertices), m_pv(pv)
         {}
 

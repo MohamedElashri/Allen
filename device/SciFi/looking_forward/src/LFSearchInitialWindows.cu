@@ -67,7 +67,6 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const auto event_offset = scifi_hit_count.event_offset();
 
   MiniState* ut_states = parameters.dev_ut_states + ut_event_tracks_offset;
-
   for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     const unsigned ut_track_index = ut_tracks_view.offset() + i;
     const auto ut_track = ut_tracks_view.track(i);
