@@ -42,9 +42,8 @@ namespace displaced_leptons_line {
   struct displaced_leptons_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     EventLine<displaced_leptons_line_t, Parameters> {
-    __device__ static std::
-      tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
-      get_input(const Parameters& parameters, const unsigned event_number);
+    __device__ static std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
+    get_input(const Parameters& parameters, const unsigned event_number);
 
     __device__ static bool select(
       const Parameters& parameters,

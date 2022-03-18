@@ -55,7 +55,8 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
     new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
       long_track,
       parameters.dev_kalman_states_view + event_number,
-      i_pv >= 0 ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i) : nullptr,
+      i_pv >= 0 ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i) :
+                  nullptr,
       i,
       parameters.dev_lepton_id[offset + i]};
   }

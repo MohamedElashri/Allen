@@ -40,7 +40,7 @@ namespace Allen {
    *          Propertly identifiable classes must extend Identifiable,
    *          provide the TypeID at initialization, and by convention have
    *          a publicly available TypeID. Eg.
-   *          
+   *
    *          struct SomeIdentifiableClass : Identifiable {
    *            constexpr static auto TypeID = Allen::TypeIDs::<some_id>;
    *            SomeIdentifiableClass() : Identifiable(TypeID) {}
