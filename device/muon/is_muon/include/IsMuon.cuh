@@ -18,7 +18,7 @@ namespace is_muon {
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
-    DEVICE_OUTPUT(dev_is_muon_t, bool) dev_is_muon;
+    DEVICE_OUTPUT(dev_is_muon_t, uint8_t) dev_is_muon;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 
