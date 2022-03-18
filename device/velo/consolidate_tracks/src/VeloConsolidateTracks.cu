@@ -232,7 +232,8 @@ void velo_consolidate_tracks::lhcb_id_container_checks::operator()(
 
     for (unsigned sequence_index = 0; sequence_index < tracks.size(); ++sequence_index) {
       const auto& track = tracks.track(sequence_index);
-      const auto& id_seq = dynamic_cast<const Allen::Views::Velo::Consolidated::Track&>(id_cont.id_structure(sequence_index));
+      const auto& id_seq =
+        dynamic_cast<const Allen::Views::Velo::Consolidated::Track&>(id_cont.id_structure(sequence_index));
       equal_number_of_hits_and_ids &= track.number_of_hits() == id_seq.number_of_ids();
 
       for (unsigned id_index = 0; id_index < id_seq.number_of_ids(); ++id_index) {

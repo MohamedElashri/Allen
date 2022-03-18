@@ -66,7 +66,7 @@ __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
     event_mf_svs[i_sv].trk1 = i_track;
     event_mf_svs[i_sv].trk2 = j_track;
 
-    // Fill extra info. Don't worry about PVs. 
+    // Fill extra info. Don't worry about PVs.
     fill_extra_info(event_mf_svs[i_sv], trackA, trackB);
   }
 }

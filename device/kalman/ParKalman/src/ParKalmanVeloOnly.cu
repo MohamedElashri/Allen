@@ -13,20 +13,17 @@ void __global__ create_views(kalman_velo_only::Parameters parameters)
   const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
 
   for (unsigned i = threadIdx.x; i < number_of_tracks; i++) {
-    new (parameters.dev_long_track_particle_view + offset + i)
-      Allen::Views::Physics::BasicParticle {
-        &parameters.dev_scifi_tracks_view[event_number].track(i),
-        parameters.dev_kalman_states_view + event_number,
-        parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i),
-        parameters.dev_is_muon + offset,
-        i};
+    new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
+      &parameters.dev_scifi_tracks_view[event_number].track(i),
+      parameters.dev_kalman_states_view + event_number,
+      parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i),
+      parameters.dev_is_muon + offset,
+      i};
   }
 
   if (threadIdx.x == 0) {
-    new (parameters.dev_long_track_particles_view + event_number)
-      Allen::Views::Physics::BasicParticles {parameters.dev_long_track_particle_view,
-                                             parameters.dev_atomics_scifi,
-                                             event_number};
+    new (parameters.dev_long_track_particles_view + event_number) Allen::Views::Physics::BasicParticles {
+      parameters.dev_long_track_particle_view, parameters.dev_atomics_scifi, event_number};
   }
 }
 
@@ -59,9 +56,8 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  global_function(create_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
-  
+  global_function(create_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+
   if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
   }
@@ -539,7 +535,7 @@ __device__ void simplified_fit(
 }
 
 __host__ __device__ void set_fit_result(
-  const unsigned track_number, 
+  const unsigned track_number,
   const ParKalmanFilter::FittedTrack& track,
   Velo::Consolidated::States& states)
 {
@@ -551,10 +547,10 @@ __host__ __device__ void set_fit_result(
   states.z(track_number) = track.z;
 
   states.c00(track_number) = track.cov(0, 0);
-  //states.c10(track_number) = track.cov(1, 0);
+  // states.c10(track_number) = track.cov(1, 0);
   states.c11(track_number) = track.cov(1, 1);
   states.c20(track_number) = track.cov(2, 0);
-  //states.c21(track_number) = track.cov(2, 1);
+  // states.c21(track_number) = track.cov(2, 1);
   states.c22(track_number) = track.cov(2, 2);
   states.c31(track_number) = track.cov(3, 1);
   states.c33(track_number) = track.cov(3, 3);
@@ -563,8 +559,7 @@ __host__ __device__ void set_fit_result(
   return;
 }
 
-__global__ void kalman_velo_only::kalman_velo_only(
-  kalman_velo_only::Parameters parameters)
+__global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];

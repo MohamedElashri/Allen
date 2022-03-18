@@ -62,8 +62,8 @@ __global__
   const auto ut_event_number_of_tracks = ut_tracks_view.size();
   const auto ut_event_tracks_offset = ut_tracks_view.offset();
   // TODO: Don't do this. Will be replaced when SciFi EM is updated.
-  const auto ut_total_number_of_tracks = 
-    parameters.dev_ut_tracks_view[number_of_events-1].offset() + parameters.dev_ut_tracks_view[number_of_events-1].size();
+  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
+                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
 
   // SciFi hits
   const unsigned total_number_of_hits =

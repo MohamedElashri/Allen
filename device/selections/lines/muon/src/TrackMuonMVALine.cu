@@ -24,7 +24,7 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
     ((ptShift > parameters.maxPt && track.ip_chi2() > parameters.minIPChi2) ||
      (ptShift > parameters.minPt && ptShift < parameters.maxPt &&
       logf(track.ip_chi2()) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
-                             parameters.param3 / parameters.maxPt * (parameters.maxPt - ptShift) +
-                             logf(parameters.minIPChi2)));
+                                parameters.param3 / parameters.maxPt * (parameters.maxPt - ptShift) +
+                                logf(parameters.minIPChi2)));
   return decision;
 }

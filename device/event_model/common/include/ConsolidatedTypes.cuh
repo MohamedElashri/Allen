@@ -49,14 +49,11 @@ namespace Allen {
       unsigned index,
       unsigned total_number_of_composites) :
       m_substructures(substructures),
-      m_number_of_substructures(number_of_substructures),
-      m_index(index),
+      m_number_of_substructures(number_of_substructures), m_index(index),
       m_total_number_of_composites(total_number_of_composites)
     {}
 
-    __host__ __device__ unsigned number_of_substructures() const override { 
-      return m_number_of_substructures; 
-    }
+    __host__ __device__ unsigned number_of_substructures() const override { return m_number_of_substructures; }
 
     __host__ __device__ const ILHCbIDStructure* substructure(const unsigned substructure_index) const
     {

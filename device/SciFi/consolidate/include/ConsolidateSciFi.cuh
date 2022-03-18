@@ -34,28 +34,22 @@ namespace scifi_consolidate_tracks {
     DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_hits_view_t,
-      DEPENDENCIES(
-        dev_scifi_hits_t),
+      DEPENDENCIES(dev_scifi_hits_t),
       Allen::Views::SciFi::Consolidated::Hits)
     dev_scifi_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_track_view_t,
-      DEPENDENCIES(
-        dev_scifi_hits_view_t,
-        dev_ut_tracks_view_t,
-        dev_scifi_qop_t),
+      DEPENDENCIES(dev_scifi_hits_view_t, dev_ut_tracks_view_t, dev_scifi_qop_t),
       Allen::Views::SciFi::Consolidated::Track)
     dev_scifi_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_tracks_view_t,
-      DEPENDENCIES(
-        dev_scifi_track_view_t),
+      DEPENDENCIES(dev_scifi_track_view_t),
       Allen::Views::SciFi::Consolidated::Tracks)
     dev_scifi_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_multi_event_tracks_view_t,
-      DEPENDENCIES(
-        dev_scifi_tracks_view_t),
+      DEPENDENCIES(dev_scifi_tracks_view_t),
       Allen::Views::SciFi::Consolidated::MultiEventTracks)
     dev_scifi_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

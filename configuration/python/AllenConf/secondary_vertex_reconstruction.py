@@ -49,20 +49,30 @@ def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):
     )
 
     return {
-        "forward_tracks": forward_tracks,
-        "pvs": pvs,
-        "dev_kf_tracks": kalman_velo_only.dev_kf_tracks_t,
-        "dev_kalman_pv_ipchi2": kalman_velo_only.dev_kalman_pv_ipchi2_t,
-        "dev_kalman_pv_tables": kalman_velo_only.dev_kalman_pv_tables_t,
-        "dev_long_track_particles": kalman_velo_only.dev_long_track_particles_view_t,
+        "forward_tracks":
+        forward_tracks,
+        "pvs":
+        pvs,
+        "dev_kf_tracks":
+        kalman_velo_only.dev_kf_tracks_t,
+        "dev_kalman_pv_ipchi2":
+        kalman_velo_only.dev_kalman_pv_ipchi2_t,
+        "dev_kalman_pv_tables":
+        kalman_velo_only.dev_kalman_pv_tables_t,
+        "dev_long_track_particles":
+        kalman_velo_only.dev_long_track_particles_view_t,
         # Needed for passing SV dependencies.
-        "dev_long_track_particle" : kalman_velo_only.dev_long_track_particle_view_t,
-        "dev_kalman_fit_results" : kalman_velo_only.dev_kalman_fit_results_t,
-        "dev_kalman_states_view" : kalman_velo_only.dev_kalman_states_view_t
+        "dev_long_track_particle":
+        kalman_velo_only.dev_long_track_particle_view_t,
+        "dev_kalman_fit_results":
+        kalman_velo_only.dev_kalman_fit_results_t,
+        "dev_kalman_states_view":
+        kalman_velo_only.dev_kalman_states_view_t
     }
 
 
-def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only, is_muon_result):
+def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
+                           is_muon_result):
     number_of_events = initialize_number_of_events()
     ut_tracks = forward_tracks["veloUT_tracks"]
     velo_tracks = ut_tracks["velo_tracks"]
@@ -86,10 +96,13 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only, is_muon_result
         name="fit_secondary_vertices",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_svs_t=prefix_sum_secondary_vertices.host_total_sum_holder_t,
-        dev_long_track_particles_t=kalman_velo_only["dev_long_track_particles"],
+        host_number_of_svs_t=prefix_sum_secondary_vertices.
+        host_total_sum_holder_t,
+        dev_long_track_particles_t=kalman_velo_only[
+            "dev_long_track_particles"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
-        dev_number_of_multi_final_vertices_t=pvs["dev_number_of_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t,
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t,
         dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t,

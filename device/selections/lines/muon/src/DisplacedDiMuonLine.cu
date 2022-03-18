@@ -16,7 +16,8 @@ __device__ bool displaced_di_muon_line::displaced_di_muon_line_t::select(
   // TODO temporary hardcoded mass cut to reduce CPU-GPU differences
   if (vertex.mdimu() < 215.f) return false;
 
-  bool decision = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.eta() > parameters.dispMinEta &&
-                  vertex.eta() < parameters.dispMaxEta && vertex.minpt() > parameters.minDispTrackPt;
+  bool decision = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2 &&
+                  vertex.eta() > parameters.dispMinEta && vertex.eta() < parameters.dispMaxEta &&
+                  vertex.minpt() > parameters.minDispTrackPt;
   return decision;
 }

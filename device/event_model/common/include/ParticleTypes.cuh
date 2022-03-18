@@ -32,23 +32,15 @@ namespace Allen {
         unsigned m_size = 0;
 
       public:
-        __host__ __device__ PVTable (
-          const char* base_pointer,
-          const unsigned offset,
-          const unsigned total_number,
-          const unsigned size) :
+        __host__ __device__
+        PVTable(const char* base_pointer, const unsigned offset, const unsigned total_number, const unsigned size) :
           m_base_pointer(reinterpret_cast<const unsigned*>(base_pointer)),
-          m_offset(offset),
-          m_total_number(total_number),
-          m_size(size)
+          m_offset(offset), m_total_number(total_number), m_size(size)
         {}
 
         __host__ __device__ unsigned total_number() const { return m_total_number; }
 
-        __host__ __device__ int pv(const unsigned index) const
-        {
-          return *(m_base_pointer + 2 + m_offset + index);
-        }
+        __host__ __device__ int pv(const unsigned index) const { return *(m_base_pointer + 2 + m_offset + index); }
 
         __host__ __device__ float value(const unsigned index) const
         {
@@ -70,11 +62,10 @@ namespace Allen {
         unsigned m_total_number_of_tracks = 0;
 
       public:
-        __host__ __device__ 
+        __host__ __device__
         KalmanState(const char* base_pointer, const unsigned index, const unsigned total_number_of_tracks) :
           m_base_pointer(reinterpret_cast<const float*>(base_pointer)),
-          m_index(index),
-          m_total_number_of_tracks(total_number_of_tracks)
+          m_index(index), m_total_number_of_tracks(total_number_of_tracks)
         {}
 
         __host__ __device__ float x() const { return m_base_pointer[nb_elements_state * m_index]; }
@@ -89,76 +80,62 @@ namespace Allen {
 
         __host__ __device__ float qop() const { return m_base_pointer[nb_elements_state * m_index + 5]; }
 
-        __host__ __device__ float c00() const 
+        __host__ __device__ float c00() const
         {
           return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index];
         }
 
-        __host__ __device__ float c20() const 
+        __host__ __device__ float c20() const
         {
           return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 1];
         }
 
-        __host__ __device__ float c22() const 
+        __host__ __device__ float c22() const
         {
           return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 2];
         }
 
-        __host__ __device__ float c11() const 
+        __host__ __device__ float c11() const
         {
           return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 3];
         }
 
-        __host__ __device__ float c31() const 
+        __host__ __device__ float c31() const
         {
           return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 4];
         }
 
-        __host__ __device__ float c33() const 
+        __host__ __device__ float c33() const
         {
           return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 5];
         }
 
-        __host__ __device__ float chi2() const 
+        __host__ __device__ float chi2() const
         {
           return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 6];
         }
 
-        __host__ __device__ unsigned ndof() const 
+        __host__ __device__ unsigned ndof() const
         {
-          return reinterpret_cast<const unsigned*>(m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 7];
+          return reinterpret_cast<const unsigned*>(
+            m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * m_index + 7];
         }
 
-        __host__ __device__ float px() const 
+        __host__ __device__ float px() const { return (tx() / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty()); }
+
+        __host__ __device__ float py() const { return (ty() / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty()); }
+
+        __host__ __device__ float pz() const { return (1.0f / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty()); }
+
+        __host__ __device__ float pt() const
         {
-          return (tx() / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty());
-        }
-
-        __host__ __device__ float py() const 
-        { 
-          return (ty() / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty()); 
-        }
-
-        __host__ __device__ float pz() const 
-        {
-          return (1.0f / fabsf(qop())) / sqrtf(1.0f + tx() * tx() + ty() * ty());
-        }
-
-        __host__ __device__ float pt() const 
-        { 
           const float sumt2 = tx() * tx() + ty() * ty();
           return (sqrtf(sumt2) / fabsf(qop())) / sqrtf(1.0f + sumt2);
         }
-        
-        __host__ __device__ float p() const 
-        {
-          return 1.0f / fabsf(qop());
-        }
 
-        __host__ __device__ float e(const float mass) const 
-        { 
-          return sqrtf(p() * p() + mass * mass);
-        }
+        __host__ __device__ float p() const { return 1.0f / fabsf(qop()); }
+
+        __host__ __device__ float e(const float mass) const { return sqrtf(p() * p() + mass * mass); }
 
         __host__ __device__ float eta() const { return atanhf(pz() / p()); }
 
@@ -168,7 +145,6 @@ namespace Allen {
         {
           return KalmanVeloState {x(), y(), z(), tx(), ty(), c00(), c20(), c22(), c11(), c31(), c33()};
         }
-
       };
 
       struct KalmanStates {
@@ -185,8 +161,7 @@ namespace Allen {
           const unsigned event_number,
           const unsigned number_of_events) :
           m_base_pointer(base_pointer),
-          m_offset(offset_tracks[event_number]),
-          m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]),
+          m_offset(offset_tracks[event_number]), m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]),
           m_total_number_of_tracks(offset_tracks[number_of_events])
         {}
 
@@ -216,8 +191,7 @@ namespace Allen {
         __host__ __device__
         SecondaryVertex(const char* base_pointer, const unsigned index, const unsigned total_number_of_vrts) :
           m_base_pointer(reinterpret_cast<const float*>(base_pointer)),
-          m_index(index),
-          m_total_number_of_vrts(total_number_of_vrts)
+          m_index(index), m_total_number_of_vrts(total_number_of_vrts)
         {}
 
         __host__ __device__ float x() const { return m_base_pointer[nb_elements_vrt * m_index]; }
@@ -231,37 +205,37 @@ namespace Allen {
         __host__ __device__ float py() const { return m_base_pointer[nb_elements_vrt * m_index + 4]; }
 
         __host__ __device__ float pz() const { return m_base_pointer[nb_elements_vrt * m_index + 5]; }
-        
-        __host__ __device__ float c00() const 
+
+        __host__ __device__ float c00() const
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index];
         }
 
-        __host__ __device__ float c11() const 
+        __host__ __device__ float c11() const
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 1];
         }
 
-        __host__ __device__ float c10() const 
+        __host__ __device__ float c10() const
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 2];
         }
 
-        __host__ __device__ float c22() const 
+        __host__ __device__ float c22() const
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 3];
         }
 
-        __host__ __device__ float c21() const 
+        __host__ __device__ float c21() const
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 4];
         }
 
-        __host__ __device__ float c20() const 
+        __host__ __device__ float c20() const
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 5];
         }
-        
+
         __host__ __device__ float chi2() const
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 6];
@@ -269,7 +243,8 @@ namespace Allen {
 
         __host__ __device__ unsigned ndof() const
         {
-          return reinterpret_cast<const unsigned*>(m_base_pointer)[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 7];
+          return reinterpret_cast<const unsigned*>(
+            m_base_pointer)[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 7];
         }
 
         __host__ __device__ float pt2() const { return px() * px() + py() * py(); }
@@ -279,7 +254,6 @@ namespace Allen {
         __host__ __device__ float p2() const { return pt2() + pz() * pz(); }
 
         __host__ __device__ float p() const { return sqrtf(p2()); }
-
       };
 
       struct SecondaryVertices {
@@ -296,8 +270,7 @@ namespace Allen {
           const unsigned event_number,
           const unsigned number_of_events) :
           m_base_pointer(base_pointer),
-          m_offset(offset_svs[event_number]),
-          m_size(offset_svs[event_number + 1] - offset_svs[event_number]),
+          m_offset(offset_svs[event_number]), m_size(offset_svs[event_number + 1] - offset_svs[event_number]),
           m_total_number_of_vrts(offset_svs[number_of_events])
         {}
 
@@ -324,7 +297,6 @@ namespace Allen {
         const bool* m_muon_id = nullptr;
         unsigned m_index = 0;
 
-
       public:
         __host__ __device__ BasicParticle(
           const ILHCbIDSequence* track,
@@ -332,12 +304,12 @@ namespace Allen {
           const PV::Vertex* pv,
           const bool* muon_id,
           const unsigned index) :
-          m_track(track), m_states(states), m_pv(pv), 
-          m_muon_id(muon_id), m_index(index)
+          m_track(track),
+          m_states(states), m_pv(pv), m_muon_id(muon_id), m_index(index)
         {
           // Make sure this isn't a composite ID structure.
           // TODO: Is this sensible at all?
-          assert(m_track->number_of_substructures()==1);
+          assert(m_track->number_of_substructures() == 1);
         }
 
         // Accessors to allow copying. Is there a better way to handle this?
@@ -347,75 +319,67 @@ namespace Allen {
         __host__ __device__ const bool* get_muon_id() const { return m_muon_id; }
         __host__ __device__ unsigned get_index() const { return m_index; }
 
-        __host__ __device__ unsigned number_of_ids() const override
-        {
-          return m_track->number_of_ids();
-        }
+        __host__ __device__ unsigned number_of_ids() const override { return m_track->number_of_ids(); }
 
-        __host__ __device__ unsigned id(const unsigned index) const override
-        {
-          return m_track->id(index);
-        }
+        __host__ __device__ unsigned id(const unsigned index) const override { return m_track->id(index); }
 
-        __host__ __device__ KalmanState state() const
-        {
-          return m_states->state(m_index);
-        }
+        __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
 
         __host__ __device__ const PV::Vertex pv() const { return *m_pv; }
 
-        __host__ __device__ float px() const 
-        { 
-          assert(m_state != nullptr);
-          return state().px(); 
-        }
-
-        __host__ __device__ float py() const 
-        { 
-          assert(m_state != nullptr);
-          return state().py(); 
-        }
-
-        __host__ __device__ float pz() const 
-        { 
-          assert(m_state != nullptr);
-          return state().pz(); 
-        }
-
-        __host__ __device__ float p() const 
-        { 
-          assert(m_state != nullptr);
-          return state().p(); 
-        }
-
-        __host__ __device__ float e(const float mass) const 
+        __host__ __device__ float px() const
         {
           assert(m_state != nullptr);
-          return state().e(mass); 
+          return state().px();
         }
 
-        __host__ __device__ float pt() const 
-        { 
+        __host__ __device__ float py() const
+        {
           assert(m_state != nullptr);
-          return state().pt(); 
+          return state().py();
         }
 
-        __host__ __device__ float eta() const 
-        { 
+        __host__ __device__ float pz() const
+        {
           assert(m_state != nullptr);
-          return state().eta(); 
+          return state().pz();
         }
 
-        __host__ __device__ bool is_muon() const {
+        __host__ __device__ float p() const
+        {
+          assert(m_state != nullptr);
+          return state().p();
+        }
+
+        __host__ __device__ float e(const float mass) const
+        {
+          assert(m_state != nullptr);
+          return state().e(mass);
+        }
+
+        __host__ __device__ float pt() const
+        {
+          assert(m_state != nullptr);
+          return state().pt();
+        }
+
+        __host__ __device__ float eta() const
+        {
+          assert(m_state != nullptr);
+          return state().eta();
+        }
+
+        __host__ __device__ bool is_muon() const
+        {
           assert(m_muon_id != nullptr);
-          return m_muon_id[m_index]; 
+          return m_muon_id[m_index];
         }
 
         __host__ __device__ float chi2() const { return state().chi2(); }
 
         __host__ __device__ unsigned ndof() const { return state().ndof(); }
 
-        __host__ __device__ float ip_chi2() const 
+        __host__ __device__ float ip_chi2() const
         {
           assert(m_pv != nullptr);
           assert(m_state != nullptr);
@@ -461,7 +425,7 @@ namespace Allen {
           const float dz = m_pv->position.z - state().z();
           const float dx = state().x() + dz * tx - m_pv->position.x;
           const float dy = state().y() + dz * ty - m_pv->position.y;
-          return sqrtf((dx * dx + dy * dy)/(1.0f + tx * tx + ty * ty));
+          return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
         }
       };
 
@@ -472,19 +436,13 @@ namespace Allen {
         unsigned m_size = 0;
 
       public:
-        __host__ __device__ BasicParticles(
-          const BasicParticle* track,
-          const unsigned* track_offsets,
-          const unsigned event_number) :
+        __host__ __device__
+        BasicParticles(const BasicParticle* track, const unsigned* track_offsets, const unsigned event_number) :
           m_track(track + track_offsets[event_number]),
-          m_offset(track_offsets[event_number]),
-          m_size(track_offsets[event_number + 1] - track_offsets[event_number])
+          m_offset(track_offsets[event_number]), m_size(track_offsets[event_number + 1] - track_offsets[event_number])
         {}
 
-        __host__ __device__ unsigned number_of_id_structures() const override
-        {
-          return m_size;
-        }
+        __host__ __device__ unsigned number_of_id_structures() const override { return m_size; }
 
         __host__ __device__ const ILHCbIDStructure& id_structure(const unsigned index) const override
         {
@@ -493,10 +451,7 @@ namespace Allen {
 
         __host__ __device__ unsigned size() const { return m_size; }
 
-        __host__ __device__ const BasicParticle& particle(const unsigned index) const
-        {
-          return m_track[index];
-        }
+        __host__ __device__ const BasicParticle& particle(const unsigned index) const { return m_track[index]; }
 
         __host__ __device__ const BasicParticle* particle_pointer(const unsigned index) const
         {
@@ -504,7 +459,6 @@ namespace Allen {
         }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
-
       };
 
       struct CompositeParticle : ILHCbIDComposite {
@@ -524,26 +478,16 @@ namespace Allen {
           unsigned number_of_children,
           unsigned total_number_of_composites,
           unsigned index) :
-          ILHCbIDComposite {children,
-                            number_of_children,
-                            index,
-                            total_number_of_composites},
-          m_vertices(vertices),
-          m_pv(pv)
+          ILHCbIDComposite {children, number_of_children, index, total_number_of_composites},
+          m_vertices(vertices), m_pv(pv)
         {}
 
         __host__ __device__ const PV::Vertex* get_pv() const { return m_pv; }
         __host__ __device__ const SecondaryVertices* get_vertices() const { return m_vertices; }
 
-        __host__ __device__ SecondaryVertex vertex() const 
-        {
-          return m_vertices->vertex(m_index);
-        }
+        __host__ __device__ SecondaryVertex vertex() const { return m_vertices->vertex(m_index); }
 
-        __host__ __device__ PV::Vertex pv() const
-        {
-          return *m_pv;
-        }
+        __host__ __device__ PV::Vertex pv() const { return *m_pv; }
 
         __host__ __device__ float x() const { return vertex().x(); }
 
@@ -571,7 +515,8 @@ namespace Allen {
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
               energy += dynamic_cast<const BasicParticle*>(substr)->e(mPi);
-            } else {
+            }
+            else {
               energy += dynamic_cast<const CompositeParticle*>(substr)->e();
             }
           }
@@ -585,7 +530,8 @@ namespace Allen {
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
               sum += dynamic_cast<const BasicParticle*>(substr)->pt();
-            } else {
+            }
+            else {
               sum += dynamic_cast<const CompositeParticle*>(substr)->pt();
             }
           }
@@ -593,7 +539,7 @@ namespace Allen {
         }
 
         __host__ __device__ float m() const
-        { 
+        {
           const float energy = e();
           return sqrtf(energy * energy - vertex().p2());
         }
@@ -605,12 +551,14 @@ namespace Allen {
           const auto substr2 = substructure(1);
           if (substr1->number_of_substructures() == 1) {
             energy += dynamic_cast<const BasicParticle*>(substr1)->e(m1);
-          } else {
+          }
+          else {
             energy += dynamic_cast<const CompositeParticle*>(substr1)->e();
           }
           if (substr2->number_of_substructures() == 1) {
             energy += dynamic_cast<const BasicParticle*>(substr2)->e(m2);
-          } else {
+          }
+          else {
             energy += dynamic_cast<const CompositeParticle*>(substr2)->e();
           }
           return sqrtf(energy * energy - vertex().p2());
@@ -620,8 +568,8 @@ namespace Allen {
 
         __host__ __device__ float mdimu() const { return m12(mMu, mMu); }
 
-        __host__ __device__ float fdchi2() const 
-        { 
+        __host__ __device__ float fdchi2() const
+        {
           if (m_pv == nullptr) return 0.f;
           const auto primary = pv();
           const auto vrt = vertex();
@@ -634,16 +582,16 @@ namespace Allen {
           const float c20 = vrt.c20() + primary.cov20;
           const float c21 = vrt.c21() + primary.cov21;
           const float c22 = vrt.c22() + primary.cov22;
-          const float invdet = 1.f / (2.f * c10 * c20 * c21 - c11 * c20 * c20 - c00 * c21 * c21 +
-                                      c00 * c11 * c22 - c22 * c10 * c10);
+          const float invdet =
+            1.f / (2.f * c10 * c20 * c21 - c11 * c20 * c20 - c00 * c21 * c21 + c00 * c11 * c22 - c22 * c10 * c10);
           const float invc00 = (c11 * c22 - c21 * c21) * invdet;
           const float invc10 = (c20 * c21 - c10 * c22) * invdet;
           const float invc11 = (c00 * c22 - c20 * c20) * invdet;
           const float invc20 = (c10 * c21 - c11 * c20) * invdet;
           const float invc21 = (c10 * c20 - c00 * c21) * invdet;
           const float invc22 = (c00 * c11 - c10 * c10) * invdet;
-          return invc00 * dx * dx + invc11 * dy * dy + invc22 * dz * dz +
-            2.f * invc20 * dx * dz + 2.f * invc21 * dy * dz + 2.f * invc10 * dx * dy;
+          return invc00 * dx * dx + invc11 * dy * dy + invc22 * dz * dz + 2.f * invc20 * dx * dz +
+                 2.f * invc21 * dy * dz + 2.f * invc10 * dx * dy;
         }
 
         __host__ __device__ float fd() const
@@ -657,18 +605,20 @@ namespace Allen {
           return sqrtf(dx * dx + dy * dy + dz * dz);
         }
 
-        __host__ __device__ float dz() const {
+        __host__ __device__ float dz() const
+        {
           if (m_pv == nullptr) return 0.f;
-          return vertex().z() - pv().position.z; 
+          return vertex().z() - pv().position.z;
         }
 
-        __host__ __device__ float eta() const {
+        __host__ __device__ float eta() const
+        {
           if (m_pv == nullptr) return 0.f;
-          return atanhf(dz() / fd()); 
+          return atanhf(dz() / fd());
         }
 
-        __host__ __device__ float mcor() const 
-        { 
+        __host__ __device__ float mcor() const
+        {
           if (m_pv == nullptr) return 0.f;
           const float mvis = m();
           const auto primary = pv();
@@ -679,20 +629,21 @@ namespace Allen {
           const float loc_fd = sqrtf(dx * dx + dy * dy + dz * dz);
           const float pperp2 = ((vrt.py() * dz - dy * vrt.pz()) * (vrt.py() * dz - dy * vrt.pz()) +
                                 (vrt.pz() * dx - dz * vrt.px()) * (vrt.pz() * dx - dz * vrt.px()) +
-                                (vrt.px() * dy - dx * vrt.py()) * (vrt.px() * dy - dx * vrt.py()))
-                                / (loc_fd * loc_fd);
+                                (vrt.px() * dy - dx * vrt.py()) * (vrt.px() * dy - dx * vrt.py())) /
+                               (loc_fd * loc_fd);
           return sqrtf(mvis * mvis + pperp2) + sqrtf(pperp2);
         }
 
-        __host__ __device__ float minipchi2() const 
-        { 
+        __host__ __device__ float minipchi2() const
+        {
           float val = -1;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
               tmp = dynamic_cast<const BasicParticle*>(substr)->ip_chi2();
-            } else {
+            }
+            else {
               tmp = dynamic_cast<const CompositeParticle*>(substr)->minipchi2();
             }
             if (tmp < val || val < 0) val = tmp;
@@ -700,15 +651,16 @@ namespace Allen {
           return val;
         }
 
-        __host__ __device__ float minip() const 
-        { 
+        __host__ __device__ float minip() const
+        {
           float val = -1;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
               tmp = dynamic_cast<const BasicParticle*>(substr)->ip();
-            } else {
+            }
+            else {
               tmp = dynamic_cast<const CompositeParticle*>(substr)->minip();
             }
             if (tmp < val || val < 0) val = tmp;
@@ -716,41 +668,42 @@ namespace Allen {
           return val;
         }
 
-        __host__ __device__ float minp() const 
-        { 
+        __host__ __device__ float minp() const
+        {
           float val = -1;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
               tmp = dynamic_cast<const BasicParticle*>(substr)->p();
-            } else {
+            }
+            else {
               tmp = dynamic_cast<const CompositeParticle*>(substr)->p();
             }
             if (tmp < val && val > 0) val = tmp;
           }
-          return val;        
+          return val;
         }
 
-        __host__ __device__ float minpt() const 
-        { 
+        __host__ __device__ float minpt() const
+        {
           float val = -1;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
             const auto substr = substructure(i);
             if (substr->number_of_substructures() == 1) {
               tmp = dynamic_cast<const BasicParticle*>(substr)->pt();
-            } else {
+            }
+            else {
               tmp = dynamic_cast<const CompositeParticle*>(substr)->pt();
             }
             if (tmp < val || val < 0) val = tmp;
           }
-          return val;        
+          return val;
         }
 
-
-        __host__ __device__ float dira() const 
-        { 
+        __host__ __device__ float dira() const
+        {
           if (m_pv == nullptr) return 0.f;
           const auto primary = pv();
           const auto vrt = vertex();
@@ -764,7 +717,7 @@ namespace Allen {
         __host__ __device__ float doca(const unsigned index1, const unsigned index2) const
         {
           float xA;
-          float yA; 
+          float yA;
           float zA;
           float txA;
           float tyA;
@@ -777,7 +730,8 @@ namespace Allen {
             zA = state.z();
             txA = state.tx();
             tyA = state.ty();
-          } else {
+          }
+          else {
             const auto sv1 = dynamic_cast<const CompositeParticle*>(substr1);
             xA = sv1->x();
             yA = sv1->y();
@@ -800,7 +754,8 @@ namespace Allen {
             zB = state.z();
             txB = state.tx();
             tyB = state.ty();
-          } else {
+          }
+          else {
             const auto sv2 = dynamic_cast<const CompositeParticle*>(substr2);
             xB = sv2->x();
             yB = sv2->y();
@@ -808,7 +763,7 @@ namespace Allen {
             txB = sv2->px() / sv2->pz();
             tyB = sv2->py() / sv2->pz();
           }
-          
+
           float secondAA = txA * txA + tyA * tyA + 1.0f;
           float secondBB = txB * txB + tyB * tyB + 1.0f;
           float secondAB = -txA * txB - tyA * tyB - 1.0f;
@@ -818,7 +773,7 @@ namespace Allen {
             float secondinvAA = secondBB / det;
             float secondinvBB = secondAA / det;
             float secondinvAB = -secondAB / det;
-            float firstA = txA * (xA -xB) + tyA * (yA - yB) + (zA - zB);
+            float firstA = txA * (xA - xB) + tyA * (yA - yB) + (zA - zB);
             float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
             float muA = -(secondinvAA * firstA + secondinvAB * firstB);
             float muB = -(secondinvBB * firstB + secondinvAB * firstA);
@@ -830,8 +785,8 @@ namespace Allen {
           return ret;
         }
 
-        __host__ __device__ float docamax() const 
-        { 
+        __host__ __device__ float docamax() const
+        {
           float val = -1.f;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             for (unsigned j = i + 1; j < number_of_substructures(); j++) {
@@ -844,8 +799,8 @@ namespace Allen {
 
         __host__ __device__ float doca12() const { return doca(0, 1); }
 
-        __host__ __device__ float ip() const 
-        { 
+        __host__ __device__ float ip() const
+        {
           if (m_pv == nullptr) return 0.f;
           const auto vrt = vertex();
           const auto primary = pv();
@@ -854,21 +809,20 @@ namespace Allen {
           float dz = primary.position.z - vrt.z();
           float dx = vrt.x() + dz * tx - primary.position.x;
           float dy = vrt.y() + dz * ty - primary.position.y;
-          return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty)); 
+          return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
         }
 
         __host__ __device__ bool is_dimuon() const
         {
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
-          if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1)
-            return false;
+          if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1) return false;
           return dynamic_cast<const BasicParticle*>(substr1)->is_muon() &&
-            dynamic_cast<const BasicParticle*>(substr2)->is_muon();
+                 dynamic_cast<const BasicParticle*>(substr2)->is_muon();
         }
 
-        __host__ __device__ float clone_sin2() const 
-        { 
+        __host__ __device__ float clone_sin2() const
+        {
           if (!is_dimuon()) return -1.f;
           const auto substr1 = substructure(0);
           const auto substr2 = substructure(1);
@@ -890,15 +844,12 @@ namespace Allen {
         const CompositeParticle* m_composite = nullptr;
         unsigned m_offset = 0;
         unsigned m_size = 0;
-        
+
       public:
-        __host__ __device__ CompositeParticles (
-          const CompositeParticle* composite,
-          const unsigned* offsets,
-          unsigned event_number) :
+        __host__ __device__
+        CompositeParticles(const CompositeParticle* composite, const unsigned* offsets, unsigned event_number) :
           m_composite(composite + offsets[event_number]),
-          m_offset(offsets[event_number]),
-          m_size(offsets[event_number + 1] - offsets[event_number])
+          m_offset(offsets[event_number]), m_size(offsets[event_number + 1] - offsets[event_number])
         {}
 
         __host__ __device__ const CompositeParticle& particle(unsigned particle_index) const
@@ -910,6 +861,6 @@ namespace Allen {
 
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
-    }
-  }
-}
+    } // namespace Physics
+  }   // namespace Views
+} // namespace Allen

@@ -85,7 +85,9 @@ namespace rich_2_line {
     __device__ static bool passes(const Allen::Views::Physics::BasicParticle& track, const Parameters& parameters);
 
     // Selection function.
-    __device__ static bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+    __device__ static bool select(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
 #ifdef WITH_ROOT

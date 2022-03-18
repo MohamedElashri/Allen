@@ -49,8 +49,11 @@ namespace kstopipi_line {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 #ifdef WITH_ROOT
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
-    __device__ static void
-    monitor(const Parameters& parameters, std::tuple<const Allen::Views::Physics::CompositeParticle> input, unsigned index, bool sel);
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      unsigned index,
+      bool sel);
     __host__ void
     output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 #endif

@@ -60,9 +60,8 @@ namespace VertexFit {
       Allen::Views::Physics::CompositeParticle)
     dev_two_track_composite_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_two_track_composites_view_t, 
-      DEPENDENCIES(
-        dev_two_track_composite_view_t),
+      dev_two_track_composites_view_t,
+      DEPENDENCIES(dev_two_track_composite_view_t),
       Allen::Views::Physics::CompositeParticles)
     dev_two_track_composites_view;
     PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;

@@ -24,9 +24,9 @@ __device__ bool kstopipi_line::kstopipi_line_t::select(
   const Parameters&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
-  const auto& particle = std::get<0>(input);
-  return particle.minipchi2 > 100 && particle.vertex().chi2 < 10 && particle.vertex_ip < 0.3f &&
-         particle.m(Allen::mPi, Allen::mPi) > 400 && particle.m(Allen::mPi, Allen::mPi) < 600;
+  const auto vertex = std::get<0>(input);
+  return vertex.minipchi2() > 100 && vertex.vertex().chi2() < 10 && vertex.ip() < 0.3f &&
+         vertex.m12(Allen::mPi, Allen::mPi) > 400 && vertex.m12(Allen::mPi, Allen::mPi) < 600;
 }
 
 #ifdef WITH_ROOT

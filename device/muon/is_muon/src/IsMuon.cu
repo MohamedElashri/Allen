@@ -105,7 +105,7 @@ __global__ void is_muon::is_muon(
 
   const auto scifi_tracks_view = parameters.dev_scifi_tracks_view[event_number];
   const auto scifi_states = parameters.dev_scifi_states + scifi_tracks_view.offset();
-  
+
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
   const unsigned number_of_tracks_event = scifi_tracks_view.size();

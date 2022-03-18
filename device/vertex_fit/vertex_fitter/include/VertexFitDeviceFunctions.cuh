@@ -64,10 +64,9 @@ namespace VertexFit {
     const float& halfD2Chi2_21,
     const float& halfD2Chi2_22);
 
-  __device__ inline void
-  doFit(
-    const Allen::Views::Physics::BasicParticle& trackA, 
-    const Allen::Views::Physics::BasicParticle& trackB, 
+  __device__ inline void doFit(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     TrackMVAVertex& vertex);
 
   __device__ inline void fill_extra_info(
@@ -243,10 +242,9 @@ namespace VertexFit {
 
   //----------------------------------------------------------------------
   // Perform a vertex fit assuming x and y are uncorrelated.
-  __device__ void
-  doFit(
-    const Allen::Views::Physics::BasicParticle& trackA, 
-    const Allen::Views::Physics::BasicParticle& trackB, 
+  __device__ void doFit(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     TrackMVAVertex& vertex)
   {
     float vertexweight00 = 0.f;
@@ -259,9 +257,7 @@ namespace VertexFit {
     float halfDChi2_2 = 0.f;
     /// Add DOCA
     const auto stateA = trackA.state();
-    vertex.doca =
-      2.f *
-      ip(vertex.x, vertex.y, vertex.z, stateA.x(), stateA.y(), stateA.z(), stateA.tx(), stateA.ty());
+    vertex.doca = 2.f * ip(vertex.x, vertex.y, vertex.z, stateA.x(), stateA.y(), stateA.z(), stateA.tx(), stateA.ty());
     vertex.chi2 = addToDerivatives(
       trackA,
       vertex.x,
@@ -340,7 +336,7 @@ namespace VertexFit {
     sv.ip2 = trackB.ip();
 
     // Minimum IP of constituent tracks.
-    //sv.minip = trackA.ip() < trackB.ip() ? trackA.ip() : trackB.ip();
+    // sv.minip = trackA.ip() < trackB.ip() ? trackA.ip() : trackB.ip();
 
     // Dimuon mass.
     if (sv.is_dimuon) {
@@ -365,7 +361,7 @@ namespace VertexFit {
   {
     // Number of tracks with ip chi2 < 16.
     sv.ntrks16 = (trackA.ip_chi2() < max_assoc_ipchi2) + (trackB.ip_chi2() < max_assoc_ipchi2);
-    
+
     const unsigned n_pvs = pvs.size();
     float minfdchi2 = -1.;
     int pv_idx = -1;

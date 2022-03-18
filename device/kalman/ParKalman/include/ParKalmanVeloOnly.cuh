@@ -100,9 +100,8 @@ namespace kalman_velo_only {
     DEVICE_OUTPUT(dev_kalman_fit_results_t, char) dev_kalman_fit_results;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_kalman_states_view_t,
-      DEPENDENCIES(
-        dev_kalman_fit_results_t),
-      Allen::Views::Physics::KalmanStates) 
+      DEPENDENCIES(dev_kalman_fit_results_t),
+      Allen::Views::Physics::KalmanStates)
     dev_kalman_states_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_kalman_pv_tables_t,
@@ -121,8 +120,7 @@ namespace kalman_velo_only {
     dev_long_track_particle_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_long_track_particles_view_t,
-      DEPENDENCIES(
-        dev_long_track_particle_view_t),
+      DEPENDENCIES(dev_long_track_particle_view_t),
       Allen::Views::Physics::BasicParticles)
     dev_long_track_particles_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

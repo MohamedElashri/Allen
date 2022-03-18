@@ -211,17 +211,20 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
 
     for (unsigned sequence_index = 0; sequence_index < tracks.size(); ++sequence_index) {
       const auto& track = tracks.track(sequence_index);
-      const auto& id_seq = dynamic_cast<const Allen::Views::UT::Consolidated::Track&>(id_cont.id_structure(sequence_index));
+      const auto& id_seq =
+        dynamic_cast<const Allen::Views::UT::Consolidated::Track&>(id_cont.id_structure(sequence_index));
       equal_number_of_hits_and_ids &= track.number_of_total_hits() == id_seq.number_of_ids();
 
       for (unsigned id_index = 0; id_index < track.number_of_total_hits() - track.number_of_ut_hits(); id_index++) {
         lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
-        velo_ids_have_velo_preamble &= lhcb_id::is_velo(id_seq.id(id_index));  
+        velo_ids_have_velo_preamble &= lhcb_id::is_velo(id_seq.id(id_index));
       }
 
-      for (unsigned id_index = track.number_of_total_hits() - track.number_of_ut_hits(); id_index < track.number_of_total_hits(); id_index++) {
-          lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
-          ut_ids_have_ut_preamble &= lhcb_id::is_ut(id_seq.id(id_index));
+      for (unsigned id_index = track.number_of_total_hits() - track.number_of_ut_hits();
+           id_index < track.number_of_total_hits();
+           id_index++) {
+        lhcb_ids_never_zero &= id_seq.id(id_index) != 0;
+        ut_ids_have_ut_preamble &= lhcb_id::is_ut(id_seq.id(id_index));
       }
     }
   }

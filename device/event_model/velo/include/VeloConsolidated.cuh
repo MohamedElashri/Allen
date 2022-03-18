@@ -231,9 +231,10 @@ namespace Allen {
             return m_hits->hit(m_offset + index);
           }
 
-          __host__ __device__ Allen::Views::Physics::KalmanState state(const Allen::Views::Physics::KalmanStates& states_view) const 
-          { 
-            return states_view.state(m_track_index); 
+          __host__ __device__ Allen::Views::Physics::KalmanState state(
+            const Allen::Views::Physics::KalmanStates& states_view) const
+          {
+            return states_view.state(m_track_index);
           }
 
           __host__ __device__ unsigned number_of_ids() const override { return number_of_hits(); }
@@ -546,13 +547,15 @@ namespace Velo {
       __host__ __device__ unsigned ndof(const unsigned index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return reinterpret_cast<const unsigned*>(m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
+        return reinterpret_cast<const unsigned*>(
+          m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
       }
 
       __host__ __device__ unsigned& ndof(const unsigned index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return reinterpret_cast<unsigned*>(m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
+        return reinterpret_cast<unsigned*>(
+          m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
       }
 
       __host__ __device__ void set(const unsigned track_number, const KalmanVeloState& state)

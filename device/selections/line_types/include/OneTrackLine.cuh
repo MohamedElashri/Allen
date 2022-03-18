@@ -18,7 +18,8 @@
  *  DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
  *
  * It also assumes the OneTrackLine will be defined as:
- *  __device__ bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input) const;
+ *  __device__ bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input)
+ * const;
  */
 template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {

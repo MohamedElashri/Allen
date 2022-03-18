@@ -95,7 +95,6 @@ def is_muon(decoded_muon, forward_tracks):
         "host_number_of_reconstructed_scifi_tracks"]
     dev_scifi_tracks_view = forward_tracks["dev_scifi_tracks_view"]
     dev_scifi_states = forward_tracks["dev_scifi_states"]
-    
 
     is_muon = make_algorithm(
         is_muon_t,

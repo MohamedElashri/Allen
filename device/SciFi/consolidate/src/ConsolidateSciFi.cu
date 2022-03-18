@@ -22,7 +22,7 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
                                                 parameters.dev_atomics_scifi,
                                                 parameters.dev_scifi_track_hit_number,
                                                 track_index,
-                                                event_number};  
+                                                event_number};
   }
 
   if (threadIdx.x == 0) {
@@ -33,10 +33,8 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
                                                event_number,
                                                number_of_events};
 
-    new (parameters.dev_scifi_tracks_view + event_number)
-      Allen::Views::SciFi::Consolidated::Tracks {parameters.dev_scifi_track_view, 
-                                                 parameters.dev_atomics_scifi,
-                                                 event_number};
+    new (parameters.dev_scifi_tracks_view + event_number) Allen::Views::SciFi::Consolidated::Tracks {
+      parameters.dev_scifi_track_view, parameters.dev_atomics_scifi, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {

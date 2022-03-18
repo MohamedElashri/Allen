@@ -24,18 +24,14 @@ namespace Allen {
           __host__ __device__
           Hit(const float* base_pointer, const unsigned index, const unsigned total_number_of_hits) :
             m_base_pointer(base_pointer),
-            m_index(index),
-            m_total_number_of_hits(total_number_of_hits)
+            m_index(index), m_total_number_of_hits(total_number_of_hits)
           {}
 
           __host__ __device__ float x0() const { return m_base_pointer[m_index]; }
 
           __host__ __device__ float z0() const { return m_base_pointer[m_total_number_of_hits + m_index]; }
 
-          __host__ __device__ float endPointY() const 
-          { 
-            return m_base_pointer[2 * m_total_number_of_hits + m_index]; 
-          }
+          __host__ __device__ float endPointY() const { return m_base_pointer[2 * m_total_number_of_hits + m_index]; }
 
           __host__ __device__ unsigned channel() const
           {
@@ -51,15 +47,9 @@ namespace Allen {
 
           __host__ __device__ unsigned mat() const { return assembled_datatype() & 0x7ff; }
 
-          __host__ __device__ unsigned pseudoSize() const 
-          {
-            return (assembled_datatype() >> 11) & 0xf;
-          }
+          __host__ __device__ unsigned pseudoSize() const { return (assembled_datatype() >> 11) & 0xf; }
 
-          __host__ __device__ unsigned planeCode() const
-          {
-            return (assembled_datatype() >> 15) & 0x1f;
-          }
+          __host__ __device__ unsigned planeCode() const { return (assembled_datatype() >> 15) & 0x1f; }
         };
 
         struct Hits {
@@ -114,9 +104,7 @@ namespace Allen {
             const unsigned track_index,
             const unsigned event_number) :
             m_hits(hits + event_number),
-            m_ut_track(ut_track),
-            m_qop(qop + offset_tracks[event_number]),
-            m_track_index(track_index)
+            m_ut_track(ut_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
@@ -125,10 +113,7 @@ namespace Allen {
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
-          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const 
-          {
-            return *m_ut_track;
-          }
+          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const { return *m_ut_track; }
 
           __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
           {
@@ -141,8 +126,8 @@ namespace Allen {
 
           __host__ __device__ unsigned number_of_velo_hits() const { return velo_track().number_of_hits(); }
 
-          __host__ __device__ unsigned number_of_total_hits() const 
-          { 
+          __host__ __device__ unsigned number_of_total_hits() const
+          {
             return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
           }
 
@@ -161,7 +146,7 @@ namespace Allen {
           {
             if (index < number_of_velo_hits()) {
               return velo_track().hit(index).id();
-            } 
+            }
             else if (index < number_of_ut_hits() + number_of_velo_hits()) {
               return m_ut_track->hit(index - number_of_velo_hits()).id();
             }
@@ -179,8 +164,7 @@ namespace Allen {
 
         public:
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
-            m_track(track + offset_tracks[event_number]),
-            m_offset(offset_tracks[event_number]),
+            m_track(track + offset_tracks[event_number]), m_offset(offset_tracks[event_number]),
             m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
           {}
 
@@ -205,8 +189,8 @@ namespace Allen {
 
         using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;
       } // namespace Consolidated
-    } // namespace SciFi
-  } // namespace Views
+    }   // namespace SciFi
+  }     // namespace Views
 } // namespace Allen
 
 namespace SciFi {
@@ -294,8 +278,7 @@ namespace SciFi {
         const SciFiGeometry* geom,
         const float* inv_clus_res) const
       {
-        return ExtendedHits {
-          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+        return ExtendedHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
       }
 
       __host__ __device__ ConstExtendedHits get_hits(
@@ -308,9 +291,8 @@ namespace SciFi {
           hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
       }
 
-      __host__ std::vector<unsigned> get_lhcbids_for_track(
-        const char* hits_base_pointer,
-        const unsigned track_number) const
+      __host__ std::vector<unsigned> get_lhcbids_for_track(const char* hits_base_pointer, const unsigned track_number)
+        const
       {
         std::vector<unsigned> ids;
         const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
