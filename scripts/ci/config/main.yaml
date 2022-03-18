@@ -8,6 +8,13 @@ include: "scripts/ci/config/common.yaml"
 
 # builds + runs tests
 
+test_build:
+  extends:
+    - .build_job
+    - .default_rules
+    - .build_test
+  stage: test build
+  
 build:
   extends: 
     - .build_job
