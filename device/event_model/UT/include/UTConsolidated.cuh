@@ -106,7 +106,6 @@ namespace Allen {
           unsigned m_track_index = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
-          
 
           __host__ __device__ unsigned number_of_ids_impl() const { return m_number_of_hits; }
 
@@ -139,7 +138,10 @@ namespace Allen {
 
           __host__ __device__ unsigned velo_track_index() const { return m_velo_track_indices[m_track_index]; }
 
-          __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const { return *m_velo_track; }
+          __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
+          {
+            return *m_velo_track;
+          }
 
           __host__ __device__ unsigned number_of_ut_hits() const { return m_number_of_hits; }
 

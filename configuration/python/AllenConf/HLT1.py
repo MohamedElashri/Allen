@@ -51,13 +51,13 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                    make_two_track_mva_line(forward_tracks,
                                            secondary_vertices)))
     lines.append(
-        line_maker(
-            "Hlt1TwoTrackKs",
-            make_two_track_line_ks(forward_tracks, secondary_vertices)))
+        line_maker("Hlt1TwoTrackKs",
+                   make_two_track_line_ks(forward_tracks, secondary_vertices)))
     lines.append(
         line_maker(
             "Hlt1SingleHighPtMuon",
-            make_single_high_pt_muon_line(forward_tracks, long_track_particles)))
+            make_single_high_pt_muon_line(forward_tracks,
+                                          long_track_particles)))
     lines.append(
         line_maker("Hlt1LowPtMuon",
                    make_low_pt_muon_line(forward_tracks,
@@ -97,8 +97,9 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
             "Hlt1LowPtDiMuon",
             make_low_pt_di_muon_line(forward_tracks, secondary_vertices)))
     lines.append(
-        line_maker("Hlt1TrackMuonMVA",
-                   make_track_muon_mva_line(forward_tracks, long_track_particles)))
+        line_maker(
+            "Hlt1TrackMuonMVA",
+            make_track_muon_mva_line(forward_tracks, long_track_particles)))
     lines.append(
         line_maker(
             "Hlt1TrackElectronMVA",
@@ -107,8 +108,8 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             "Hlt1SingleHighPtElectron",
-            make_single_high_pt_electron_line(forward_tracks, long_track_particles,
-                                              calo_matching_objects)))
+            make_single_high_pt_electron_line(
+                forward_tracks, long_track_particles, calo_matching_objects)))
     lines.append(
         line_maker(
             "Hlt1DisplacedDielectron",
