@@ -477,14 +477,6 @@ __device__ void simplified_fit(
   KalmanFloat qop = init_qop;
   KalmanFloat z = first_hit.z();
 
-  // Initialize the covariance.
-  KalmanFloat cXX = 100.0;
-  KalmanFloat cXTx = 0;
-  KalmanFloat cTxTx = 0.01;
-  KalmanFloat cYY = 100.0;
-  KalmanFloat cYTy = 0;
-  KalmanFloat cTyTy = 0.01;
-
   // Initialize the chi2.
   KalmanFloat chi2 = 0;
 
@@ -506,8 +498,12 @@ __device__ void simplified_fit(
     const auto hit_x = hit.x();
     const auto hit_y = hit.y();
     const auto hit_z = hit.z();
-    simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
-    simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
+
+    const KalmanFloat xprime = hit_x + hit_y;
+    const KalmanFloat yprime = hit_y - hit_x;
+    const bool infoil = (yprime > -15 && xprime >= 0 && xprime < 15) || (yprime < 15 && xprime > -15 && xprime <= 0);
+    simplified_step(z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2, infoil);
+    simplified_step(z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2, infoil);
     z = hit_z;
   }
   __syncthreads();

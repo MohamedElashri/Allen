@@ -37,8 +37,8 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
     return line_algorithm, node
 
 
-def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
-                          secondary_vertices, calo_matching_objects):
+def default_physics_lines(forward_tracks, long_track_particles,
+                          secondary_vertices):
     lines = []
     lines.append(
         line_maker(
@@ -121,35 +121,6 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
         line_maker(
             "Hlt1TrackMuonMVA",
             make_track_muon_mva_line(forward_tracks, long_track_particles),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1TrackElectronMVA",
-            make_track_electron_mva_line(forward_tracks, long_track_particles,
-                                         calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1SingleHighPtElectron",
-            make_single_high_pt_electron_line(
-                forward_tracks, long_track_particles, calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1DisplacedDielectron",
-            make_displaced_dielectron_line(forward_tracks, secondary_vertices,
-                                           calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1DisplacedLeptons",
-            make_displaced_leptons_line(forward_tracks, long_track_particles,
-                                        calo_matching_objects),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "Hlt1SingleHighEt",
-            make_single_high_et_line(velo_tracks, calo_matching_objects),
             enableGEC=True))
     lines.append(
         line_maker(
@@ -243,8 +214,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         physics_lines = default_physics_lines(
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
-            reconstructed_objects["secondary_vertices"],
-            reconstructed_objects["calo_matching_objects"])
+            reconstructed_objects["secondary_vertices"])
 
     monitoring_lines = default_monitoring_lines(
         reconstructed_objects["velo_tracks"])
@@ -266,7 +236,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
             rate_validation(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
-                forward_tracks=reconstructed_objects["forward_tracks"],
+                forward_tracks=reconstructed_objects["long_track_particles"],
                 secondary_vertices=reconstructed_objects["secondary_vertices"])
             ["algorithms"],
         ],

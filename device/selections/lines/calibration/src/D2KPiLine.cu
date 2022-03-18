@@ -18,7 +18,7 @@ __device__ bool d2kpi_line::d2kpi_line_t::select(
   const float m2 = particle.m12(Allen::mPi, Allen::mK);
   const bool decision = vertex.pt() > parameters.minComboPt && vertex.chi2() < parameters.maxVertexChi2 &&
                         particle.eta() > parameters.minEta && particle.eta() < parameters.maxEta &&
-                        particle.minpt() > parameters.minTrackPt && particle.minipchi2() > parameters.minTrackIPChi2 &&
+                        particle.minpt() > parameters.minTrackPt &&
                         min(fabsf(m1 - parameters.mD), fabsf(m2 - parameters.mD)) < parameters.massWindow;
   return decision;
 }
