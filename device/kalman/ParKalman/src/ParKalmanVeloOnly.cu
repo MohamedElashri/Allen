@@ -7,7 +7,8 @@ INSTANTIATE_ALGORITHM(kalman_velo_only::kalman_velo_only_t)
 
 void __global__ create_views(kalman_velo_only::Parameters parameters)
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  // const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = blockIdx.x; // Need to run on every event.
   const unsigned offset = parameters.dev_atomics_scifi[event_number];
   const unsigned number_of_tracks = parameters.dev_atomics_scifi[event_number + 1] - offset;
   const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
@@ -56,7 +57,8 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  global_function(create_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  // global_function(create_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(create_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
   if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);

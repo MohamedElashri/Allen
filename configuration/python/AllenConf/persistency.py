@@ -156,16 +156,12 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_long_track_particles_t=secondary_vertices["dev_long_track_particles"],
+        dev_two_track_particles_t=secondary_vertices["dev_two_track_particles"],
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
         dev_number_of_active_lines_t=gather_selections.
         dev_number_of_active_lines_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_svs_trk1_idx_t=secondary_vertices["dev_svs_trk1_idx"],
-        dev_svs_trk2_idx_t=secondary_vertices["dev_svs_trk2_idx"],
-        dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
-        dev_track_hits_offsets_t=prefix_sum_long_track_hits.
-        dev_output_buffer_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
         dev_lhcbid_containers_t=gather_selections.dev_lhcbid_containers_t)

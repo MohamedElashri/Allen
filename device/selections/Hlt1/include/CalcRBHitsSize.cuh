@@ -11,7 +11,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-//#include "ConfiguredInputAggregates.h"
+#include "ParticleTypes.cuh"
 #include "CandidateTable.cuh"
 
 namespace calc_rb_hits_size {
@@ -25,11 +25,8 @@ namespace calc_rb_hits_size {
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT_OPTIONAL(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;
-    DEVICE_INPUT_OPTIONAL(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
-    DEVICE_INPUT_OPTIONAL(dev_sv_offsets_t, unsigned) dev_sv_offsets;
-    DEVICE_INPUT_OPTIONAL(dev_track_offsets_t, unsigned) dev_track_offsets;
-    DEVICE_INPUT_OPTIONAL(dev_track_hits_offsets_t, unsigned) dev_track_hits_offsets;
+    DEVICE_INPUT_OPTIONAL(dev_long_track_particles_t, Allen::Views::Physics::BasicParticles) dev_long_track_particles;
+    DEVICE_INPUT_OPTIONAL(dev_two_track_particles_t, Allen::Views::Physics::CompositeParticles) dev_two_track_particles;
     DEVICE_INPUT(dev_selections_t, bool) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_INPUT(dev_lhcbid_containers_t, uint8_t) dev_lhcbid_containers;

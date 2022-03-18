@@ -53,13 +53,10 @@ void calc_rb_hits_size::calc_rb_hits_size_t::operator()(
 __global__ void calc_rb_hits_size::calc_size(calc_rb_hits_size::Parameters parameters, const unsigned total_events)
 {
   const auto event_number = blockIdx.x;
-  const unsigned track_offset = parameters.dev_track_offsets[event_number];
-  const unsigned n_tracks = parameters.dev_track_offsets[event_number + 1] - track_offset;
-  const unsigned sv_offset = parameters.dev_sv_offsets[event_number];
-  const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
-  const unsigned sv_idx_offset = 10 * VertexFit::max_svs * event_number;
-  const unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + sv_idx_offset;
-  const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + sv_idx_offset;
+  const auto event_tracks = parameters.dev_long_track_particles[event_number];
+  const unsigned track_offset = event_tracks.offset();
+  const auto event_svs = parameters.dev_two_track_particles[event_number];
+  const unsigned sv_offset = event_svs.offset();
   const uint32_t* event_dec_reports =
     parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_number;
   unsigned* event_candidate_count =
@@ -81,7 +78,7 @@ __global__ void calc_rb_hits_size::calc_size(calc_rb_hits_size::Parameters param
     // Handle 1-track lines.
     if (sel_type == to_integral(LHCbIDContainer::track)) {
       auto decs = selections.get_span(line_index, event_number);
-      for (unsigned track_index = threadIdx.x; track_index < n_tracks; track_index += blockDim.x) {
+      for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
         if (decs[track_index]) {
           parameters.dev_track_tags[track_offset + track_index] = 1;
           atomicAdd(event_candidate_count + line_index, 1);
@@ -92,10 +89,15 @@ __global__ void calc_rb_hits_size::calc_size(calc_rb_hits_size::Parameters param
     // Handle 2-track lines.
     if (sel_type == to_integral(LHCbIDContainer::sv)) {
       auto decs = selections.get_span(line_index, event_number);
-      for (unsigned sv_index = threadIdx.x; sv_index < n_svs; sv_index += blockDim.x) {
+      for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
         if (decs[sv_index]) {
-          const unsigned track1_index = event_svs_trk1_idx[sv_index];
-          const unsigned track2_index = event_svs_trk2_idx[sv_index];
+          const auto sv = event_svs.particle(sv_index);
+          const Allen::Views::Physics::BasicParticle* track1 = 
+            static_cast<const Allen::Views::Physics::BasicParticle*>(sv.substructure(0));
+          const Allen::Views::Physics::BasicParticle* track2 = 
+            static_cast<const Allen::Views::Physics::BasicParticle*>(sv.substructure(1));
+          const unsigned track1_index = track1->get_index();
+          const unsigned track2_index = track2->get_index();
           parameters.dev_sv_tags[sv_offset + sv_index] = 1;
           parameters.dev_track_tags[track_offset + track1_index] = 1;
           parameters.dev_track_tags[track_offset + track2_index] = 1;
@@ -108,11 +110,13 @@ __global__ void calc_rb_hits_size::calc_size(calc_rb_hits_size::Parameters param
   __syncthreads();
 
   // Populate the tagged track hit numbers, track count, and track list.
-  for (unsigned track_index = threadIdx.x; track_index < n_tracks; track_index += blockDim.x) {
+  for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
     if (parameters.dev_track_tags[track_offset + track_index] == 1) {
       const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
-      const unsigned n_hits = parameters.dev_track_hits_offsets[track_offset + track_index + 1] -
-                              parameters.dev_track_hits_offsets[track_offset + track_index];
+      // const unsigned n_hits = parameters.dev_track_hits_offsets[track_offset + track_index + 1] -
+      //                         parameters.dev_track_hits_offsets[track_offset + track_index];
+      const auto track = event_tracks.particle(track_index);
+      const unsigned n_hits = track.number_of_ids();
       parameters.dev_tag_hits_counts[track_offset + track_insert_index] = n_hits;
       atomicAdd(parameters.dev_hits_bank_size + event_number, n_hits);
       parameters.dev_sel_track_indices[track_offset + track_insert_index] = track_index;
@@ -123,7 +127,7 @@ __global__ void calc_rb_hits_size::calc_size(calc_rb_hits_size::Parameters param
   __syncthreads();
 
   // Populate the tagged SV count and list.
-  for (unsigned sv_index = threadIdx.x; sv_index < n_svs; sv_index += blockDim.x) {
+  for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
     if (parameters.dev_sv_tags[sv_offset + sv_index] == 1) {
       const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
       parameters.dev_sel_sv_indices[sv_offset + sv_insert_index] = sv_index;

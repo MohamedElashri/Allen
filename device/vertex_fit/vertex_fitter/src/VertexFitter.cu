@@ -7,7 +7,8 @@ INSTANTIATE_ALGORITHM(VertexFit::fit_secondary_vertices_t)
 
 __global__ void create_sv_views(VertexFit::Parameters parameters)
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  // const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = blockIdx.x;
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned offset = parameters.dev_sv_offsets[event_number];
   const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - offset;
@@ -70,8 +71,8 @@ void VertexFit::fit_secondary_vertices_t::operator()(
 {
   global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
-  
-  global_function(create_sv_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+
+  global_function(create_sv_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   if (runtime_options.fill_extra_host_buffers) {
