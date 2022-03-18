@@ -5,7 +5,7 @@
 
 INSTANTIATE_LINE(displaced_dielectron_line::displaced_dielectron_line_t, displaced_dielectron_line::Parameters)
 
-__device__ std::tuple<const Allen::Views::Physics::CompositeParticle&, const bool, const float>
+__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>
 displaced_dielectron_line::displaced_dielectron_line_t::get_input(
   const Parameters& parameters,
   const unsigned event_number,
@@ -26,7 +26,7 @@ displaced_dielectron_line::displaced_dielectron_line_t::get_input(
 
 __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle&, const bool, const float> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const bool is_dielectron = std::get<1>(input);

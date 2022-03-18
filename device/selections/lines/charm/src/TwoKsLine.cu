@@ -12,7 +12,7 @@
 
 INSTANTIATE_LINE(two_ks_line::two_ks_line_t, two_ks_line::Parameters)
 
-__device__ std::tuple<const Allen::Views::Physics::CompositeParticle&, const unsigned, const unsigned>
+__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned>
 two_ks_line::two_ks_line_t::get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
 {
   const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
@@ -23,7 +23,7 @@ two_ks_line::two_ks_line_t::get_input(const Parameters& parameters, const unsign
 
 __device__ bool two_ks_line::two_ks_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle&, const unsigned, const unsigned> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned> input)
 {
   // Unpack the tuple.
   const auto vertex1 = std::get<0>(input);

@@ -261,7 +261,7 @@ namespace VertexFit {
     float halfDChi2_2 = 0.f;
     /// Add DOCA
     const auto stateA = trackA.state();
-    vertex.doca = 2.f * ip(vertex.x, vertex.y, vertex.z, stateA.x(), stateA.y(), stateA.z(), stateA.tx(), stateA.ty());
+    vertex.doca = doca(trackA, trackB);
     vertex.chi2 = addToDerivatives(
       trackA,
       vertex.x,

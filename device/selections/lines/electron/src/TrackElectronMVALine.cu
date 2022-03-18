@@ -6,7 +6,7 @@
 // Explicit instantiation
 INSTANTIATE_LINE(track_electron_mva_line::track_electron_mva_line_t, track_electron_mva_line::Parameters)
 
-__device__ std::tuple<const Allen::Views::Physics::BasicParticle&, const bool, const float>
+__device__ std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
 track_electron_mva_line::track_electron_mva_line_t::get_input(
   const Parameters& parameters,
   const unsigned event_number,
@@ -25,7 +25,7 @@ track_electron_mva_line::track_electron_mva_line_t::get_input(
 
 __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle&, const bool, const float> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input)
 {
   const auto& track = std::get<0>(input);
   const auto& is_electron = std::get<1>(input);

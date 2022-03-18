@@ -93,7 +93,7 @@ namespace rich_1_line {
     // Selection function.
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::BasicParticle&> input);
+      std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
 #ifdef WITH_ROOT

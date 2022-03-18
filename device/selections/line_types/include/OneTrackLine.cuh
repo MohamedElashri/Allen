@@ -44,7 +44,7 @@ struct OneTrackLine : public Line<Derived, Parameters> {
     return tracks.size();
   }
 
-  __device__ static std::tuple<const Allen::Views::Physics::BasicParticle&>
+  __device__ static std::tuple<const Allen::Views::Physics::BasicParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
     const auto tracks = parameters.dev_particle_container->container(event_number);

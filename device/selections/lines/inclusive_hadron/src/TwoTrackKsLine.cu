@@ -14,7 +14,7 @@ INSTANTIATE_LINE(two_track_line_ks::two_track_line_ks_t, two_track_line_ks::Para
 
 __device__ bool two_track_line_ks::two_track_line_ks_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle&> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto& particle = std::get<0>(input);
   const auto& vertex = particle.vertex();

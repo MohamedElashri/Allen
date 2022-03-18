@@ -45,7 +45,7 @@ namespace track_muon_mva_line {
   struct track_muon_mva_line_t : public SelectionAlgorithm,
                                  Parameters,
                                  OneTrackLine<track_muon_mva_line_t, Parameters> {
-    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle&> input);
+    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

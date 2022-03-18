@@ -8,7 +8,7 @@ INSTANTIATE_LINE(track_mva_line::track_mva_line_t, track_mva_line::Parameters)
 
 __device__ bool track_mva_line::track_mva_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle&> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto track = std::get<0>(input);
   const auto ptShift = (track.state().pt() - parameters.alpha);

@@ -42,7 +42,7 @@ struct TwoTrackLine : public Line<Derived, Parameters> {
     return particles.size();
   }
 
-  __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle&>
+  __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
     const auto particles = parameters.dev_particle_container->container(event_number);

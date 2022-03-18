@@ -22,7 +22,7 @@ void kstopipi_line::kstopipi_line_t::set_arguments_size(
 }
 __device__ bool kstopipi_line::kstopipi_line_t::select(
   const Parameters&,
-  std::tuple<const Allen::Views::Physics::CompositeParticle&> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
   return vertex.minipchi2() > 100 && vertex.vertex().chi2() < 10 && vertex.ip() < 0.3f &&
@@ -40,7 +40,7 @@ void kstopipi_line::kstopipi_line_t::init_monitor(
 
 __device__ void kstopipi_line::kstopipi_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle&> input,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
 {

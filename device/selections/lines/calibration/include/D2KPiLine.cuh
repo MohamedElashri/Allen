@@ -44,7 +44,7 @@ namespace d2kpi_line {
   };
 
   struct d2kpi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<d2kpi_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle&>);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

@@ -8,7 +8,7 @@ INSTANTIATE_LINE(single_high_pt_muon_line::single_high_pt_muon_line_t, single_hi
 
 __device__ bool single_high_pt_muon_line::single_high_pt_muon_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle&> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto track = std::get<0>(input);
   const bool decision = track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&

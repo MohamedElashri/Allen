@@ -50,9 +50,9 @@ namespace displaced_dielectron_line {
                                        TwoTrackLine<displaced_dielectron_line_t, Parameters> {
     __device__ static bool select(
       const Parameters&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle&, const bool, const float>);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>);
 
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle&, const bool, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
   private:

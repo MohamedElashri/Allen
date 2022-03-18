@@ -68,12 +68,12 @@ namespace two_ks_line {
 
     // static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
 
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle&, const unsigned, const unsigned>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle&, const unsigned, const unsigned> input);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

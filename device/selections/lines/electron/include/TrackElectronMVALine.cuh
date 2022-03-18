@@ -49,9 +49,9 @@ namespace track_electron_mva_line {
                                      OneTrackLine<track_electron_mva_line_t, Parameters> {
     __device__ static bool select(
       const Parameters& ps,
-      std::tuple<const Allen::Views::Physics::BasicParticle&, const bool, const float> input);
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
 
-    __device__ static std::tuple<const Allen::Views::Physics::BasicParticle&, const bool, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
   private:

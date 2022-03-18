@@ -76,7 +76,7 @@ void rich_1_line::rich_1_line_t::init_monitor(
  */
 __device__ void rich_1_line::rich_1_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle&> input,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
   unsigned index,
   bool sel)
 {
@@ -194,7 +194,7 @@ __device__ bool rich_1_line::rich_1_line_t::passes(
 
 __device__ bool rich_1_line::rich_1_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle&> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto& track = std::get<0>(input);
 
