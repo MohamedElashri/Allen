@@ -112,7 +112,9 @@ __global__ void is_muon::is_muon(
   const unsigned event_offset = scifi_tracks_view.offset();
 
   for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
-    const float momentum = 1.f / fabsf(scifi_tracks.qop(track_id));
+    const auto scifi_track = scifi_tracks_view.track(track_id);
+    const float momentum = 1.f / fabsf(scifi_track.qop());
+
     if (momentum < dev_muon_momentum_cuts[0]) {
       parameters.dev_is_muon[event_offset + track_id] = false;
       continue;
