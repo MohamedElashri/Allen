@@ -15,10 +15,9 @@ __device__ bool d2kpi_line::d2kpi_line_t::select(
   }
   const float m1 = vertex.m(Allen::mK, Allen::mPi);
   const float m2 = vertex.m(Allen::mPi, Allen::mK);
-  const bool decision = vertex.pt() > parameters.minComboPt && vertex.chi2 < parameters.maxVertexChi2 &&
-                        vertex.doca < parameters.maxDOCA && vertex.eta > parameters.minEta &&
-                        vertex.eta < parameters.maxEta && vertex.minpt > parameters.minTrackPt &&
-                        vertex.minip > parameters.minTrackIP &&
-                        min(fabsf(m1 - Allen::mDz), fabsf(m2 - Allen::mDz)) < parameters.massWindow;
+  const bool decision =
+    vertex.pt() > parameters.minComboPt && vertex.chi2 < parameters.maxVertexChi2 && vertex.doca < parameters.maxDOCA &&
+    vertex.eta > parameters.minEta && vertex.eta < parameters.maxEta && vertex.minpt > parameters.minTrackPt &&
+    vertex.minip > parameters.minTrackIP && min(fabsf(m1 - Allen::mDz), fabsf(m2 - Allen::mDz)) < parameters.massWindow;
   return decision;
 }
