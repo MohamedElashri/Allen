@@ -34,10 +34,33 @@ namespace Allen {
   };
 
   /**
+   * @brief Interface for any identifiable object.
+   * @details Each identifiable object will have with a type ID,
+   *          which should be initialized in the inheriting class.
+   *          Propertly identifiable classes must extend Identifiable,
+   *          provide the TypeID at initialization, and by convention have
+   *          a publicly available TypeID. Eg.
+   *          
+   *          struct SomeIdentifiableClass : Identifiable {
+   *            constexpr static auto TypeID = Allen::TypeIDs::<some_id>;
+   *            SomeIdentifiableClass() : Identifiable(TypeID) {}
+   *          };
+   */
+  struct Identifiable {
+  private:
+    TypeIDs m_type_id = TypeIDs::Invalid;
+
+  public:
+    Identifiable() = default;
+    __host__ __device__ Identifiable(TypeIDs type_id) : m_type_id(type_id) {}
+    __host__ __device__ TypeIDs type_id() const { return m_type_id; }
+  };
+
+  /**
    * @brief Allen host / device dynamic cast.
    * @details This dynamic cast implementation works for both
    *          host and device. It allows to identify and cast
-   *          IMultiEventContainer* into a requested MultiEventContainer*.
+   *          objects inheriting from Identifiable.
    */
   template<typename T, typename U>
   __host__ __device__ T dyn_cast(U* t)
