@@ -307,6 +307,35 @@ namespace Allen {
 
         __host__ __device__ float p() const { return sqrtf(p2()); }
       };
+
+      struct SecondaryVertices {
+      private:
+        const char* m_base_pointer = nullptr;
+        unsigned m_offset = 0;
+        unsigned m_size = 0;
+        unsigned m_total_number_of_vrts = 0;
+
+      public:
+        __host__ __device__ SecondaryVertices(
+          const char* base_pointer,
+          const unsigned* offset_svs,
+          const unsigned event_number,
+          const unsigned number_of_events) :
+          m_base_pointer(base_pointer),
+          m_offset(offset_svs[event_number]), m_size(offset_svs[event_number + 1] - offset_svs[event_number]),
+          m_total_number_of_vrts(offset_svs[number_of_events])
+        {}
+
+        __host__ __device__ unsigned size() const { return m_size; }
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
+
+        __host__ __device__ const SecondaryVertex vertex(const unsigned sv_index) const
+        {
+          assert(sv_index < m_size);
+          return SecondaryVertex {m_base_pointer, m_offset + sv_index, m_total_number_of_vrts};
+        }
+      };
     } // namespace Physics
   }   // namespace Views
 } // namespace Allen

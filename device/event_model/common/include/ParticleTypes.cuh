@@ -20,7 +20,6 @@
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
-
 #include "PV_Definitions.cuh"
 
 namespace Allen {
@@ -165,7 +164,7 @@ namespace Allen {
 
       struct LongTracks : ILHCbIDContainer<LongTracks> {
         friend Allen::ILHCbIDContainer<LongTracks>;
-        constexpr static auto TypeID = Allen::TypeIDs::LongTracks;
+        constexpr static auto TypeID = TypeIDs::LongTracks;
 
       private:
         const LongTrack* m_track;
@@ -209,53 +208,9 @@ namespace Allen {
         virtual __host__ __device__ ~TrackContainer() {}
       };
 
-      struct SecondaryVertices {
-      private:
-        const char* m_base_pointer = nullptr;
-        unsigned m_offset = 0;
-        unsigned m_size = 0;
-        unsigned m_total_number_of_vrts = 0;
-
-      public:
-        __host__ __device__ SecondaryVertices(
-          const char* base_pointer,
-          const unsigned* offset_svs,
-          const unsigned event_number,
-          const unsigned number_of_events) :
-          m_base_pointer(base_pointer),
-          m_offset(offset_svs[event_number]), m_size(offset_svs[event_number + 1] - offset_svs[event_number]),
-          m_total_number_of_vrts(offset_svs[number_of_events])
-        {}
-
-        __host__ __device__ unsigned size() const { return m_size; }
-
-        __host__ __device__ unsigned offset() const { return m_offset; }
-
-        __host__ __device__ const SecondaryVertex vertex(const unsigned sv_index) const
-        {
-          assert(sv_index < m_size);
-          return SecondaryVertex {m_base_pointer, m_offset + sv_index, m_total_number_of_vrts};
-        }
-      };
-
-      struct Particle {
-        virtual __host__ __device__ Allen::TypeIDs type_id() const = 0;
-        virtual __host__ __device__ ~Particle() {}
-      };
-
-      template<typename T>
-      struct IParticle : Particle {
-        __host__ __device__ unsigned number_of_children() const
-        {
-          return static_cast<const T*>(this)->number_of_children_impl();
-        }
-
-        __host__ __device__ const Particle* child(const unsigned i) const
-        {
-          return static_cast<const T*>(this)->child_impl(i);
-        }
-
-        __host__ __device__ Allen::TypeIDs type_id() const override { return T::TypeID; }
+      struct IParticle {
+        virtual __host__ __device__ TypeIDs type_id() const = 0;
+        virtual __host__ __device__ ~IParticle() {}
       };
 
       template<typename T>
@@ -267,23 +222,8 @@ namespace Allen {
         }
       };
 
-      // template<typename T>
-      // struct MultiEventParticleContainer : MultiEventContainer<T>, IMultiEventParticleContainer {
-      //   using MultiEventContainer<T>::MultiEventContainer;
-      //   __host__ __device__ unsigned number_of_containers() const override
-      //   {
-      //     return MultiEventContainer<T>::number_of_events();
-      //   }
-      //   __host__ __device__ const ParticleContainer& particle_container(const unsigned event_number) const override
-      //   {
-      //     return MultiEventContainer<T>::container(event_number);
-      //   }
-      // };
-
-      // Is it necessary for BasicParticle to inherit from an ILHCbIDStructure to
-      // work with aggregates in the SelReport writer?
-      struct BasicParticle : IParticle<BasicParticle> {
-        friend IParticle<BasicParticle>;
+      struct BasicParticle : ILHCbIDSequence<BasicParticle>, IParticle {
+        friend ILHCbIDSequence<BasicParticle>;
         constexpr static auto TypeID = Allen::TypeIDs::BasicParticle;
 
       private:
@@ -292,100 +232,56 @@ namespace Allen {
         const PV::Vertex* m_pv = nullptr; // PV event model should be rebuilt too.
         // Could store muon and calo PID in a single array, but they're created by
         // different algorithms and might not always exist.
-        const uint8_t* m_lepton_id = nullptr;
         unsigned m_index = 0;
+        const uint8_t m_lepton_id = 0;
+        
+        __host__ __device__ unsigned number_of_ids_impl() const { return m_track->number_of_hits(); }
 
-        __host__ __device__ unsigned number_of_children_impl() const { return 1; }
-
-        __host__ __device__ const Particle* child_impl(const unsigned) const { return this; }
+        __host__ __device__ unsigned id_impl(const unsigned index) const { return m_track->get_id(index); }
 
       public:
         __host__ __device__ BasicParticle(
           const Track* track,
           const KalmanStates* states,
           const PV::Vertex* pv,
-          const uint8_t* lepton_id,
-          const unsigned index) :
+          const unsigned index,
+          const uint8_t lepton_id) :
           m_track(track),
-          m_states(states), m_pv(pv), m_lepton_id(lepton_id), m_index(index)
-        {}
+          m_states(states), m_pv(pv), m_index(index), m_lepton_id(lepton_id)
+        {
+          assert(m_states != nullptr);
+        }
 
-        // Accessors to allow copying. Is there a better way to handle this?
-        __host__ __device__ const Track* get_track() const { return m_track; }
+        __host__ __device__ bool has_pv() const {
+          return m_pv != nullptr;
+        }
 
-        __host__ __device__ const KalmanStates* get_states() const { return m_states; }
+        __host__ __device__ TypeIDs type_id() const override {
+          return TypeID;
+        }
 
-        __host__ __device__ const PV::Vertex* get_pv() const { return m_pv; }
+        __host__ __device__ const Track& track() const { return *m_track; }
 
-        //__host__ __device__ const bool* get_muon_id() const { return m_muon_id; }
-        __host__ __device__ const uint8_t* get_lepton_id() const { return m_lepton_id; }
-
-        __host__ __device__ unsigned get_index() const { return m_index; }
-
-        __host__ __device__ unsigned number_of_ids() const { return m_track->number_of_hits(); }
-
-        __host__ __device__ unsigned id(const unsigned index) const { return m_track->get_id(index); }
+        __host__ __device__ const PV::Vertex& pv() const {
+          assert(has_pv());
+          return *m_pv;
+        }
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
 
-        __host__ __device__ float px() const
-        {
-          assert(m_states != nullptr);
-          return state().px();
-        }
-
-        __host__ __device__ float py() const
-        {
-          assert(m_states != nullptr);
-          return state().py();
-        }
-
-        __host__ __device__ float pz() const
-        {
-          assert(m_states != nullptr);
-          return state().pz();
-        }
-
-        __host__ __device__ float p() const
-        {
-          assert(m_states != nullptr);
-          return state().p();
-        }
-
-        __host__ __device__ float e(const float mass) const
-        {
-          assert(m_states != nullptr);
-          return state().e(mass);
-        }
-
-        __host__ __device__ float pt() const
-        {
-          assert(m_states != nullptr);
-          return state().pt();
-        }
-
-        __host__ __device__ float eta() const
-        {
-          assert(m_states != nullptr);
-          return state().eta();
-        }
-
         __host__ __device__ bool is_muon() const
         {
-          if (m_lepton_id == nullptr) return false;
-          return (m_lepton_id[m_index] & 1);
+          return m_lepton_id & 1;
         }
 
         __host__ __device__ bool is_electron() const
         {
-          if (m_lepton_id == nullptr) return false;
-          return ((m_lepton_id[m_index] & (1 << 1)) >> 1);
+          return (m_lepton_id & 2) != 0;
         }
 
         __host__ __device__ bool is_lepton() const
         {
-          if (m_lepton_id == nullptr) return false;
-          return m_lepton_id[m_index];
+          return m_lepton_id;
         }
 
         __host__ __device__ float chi2() const { return state().chi2(); }
@@ -394,8 +290,9 @@ namespace Allen {
 
         __host__ __device__ float ip_chi2() const
         {
-          assert(m_pv != nullptr);
-          assert(m_states != nullptr);
+          if (!has_pv()) {
+            return -1.f;
+          }
 
           // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
           const float tx = state().tx();
@@ -427,7 +324,10 @@ namespace Allen {
         // which is determined with IP chi2.
         __host__ __device__ float ip() const
         {
-          assert(m_pv != nullptr);
+          if (!has_pv()) {
+            return -1.f;
+          }
+
           const float tx = state().tx();
           const float ty = state().ty();
           const float dz = m_pv->position.z - state().z();
@@ -469,32 +369,56 @@ namespace Allen {
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
 
-      struct CompositeParticle : IParticle<CompositeParticle> {
+      struct CompositeParticle : IParticle {
         // TODO: Get these masses from somewhere else.
         static constexpr float mPi = 139.57f;
         static constexpr float mMu = 105.66f;
-        friend IParticle<CompositeParticle>;
         constexpr static auto TypeID = Allen::TypeIDs::CompositeParticle;
 
       private:
-        const Particle** m_children = nullptr;
+        const IParticle** m_children = nullptr;
         const SecondaryVertices* m_vertices = nullptr;
         const PV::Vertex* m_pv = nullptr;
         unsigned m_number_of_children = 0;
         [[maybe_unused]] unsigned m_total_number_of_composites = 0;
         unsigned m_index = 0;
 
-        __host__ __device__ unsigned number_of_children_impl() const { return m_number_of_children; }
-
-        __host__ __device__ const Particle* child_impl(const unsigned i) const
-        {
-          assert(i < number_of_children());
-          return m_children[i];
+        template<typename T>
+        __host__ __device__ bool is_di(const T& fn) const {
+          const auto a = dyn_cast<const BasicParticle*>(child(0));
+          const auto b = dyn_cast<const BasicParticle*>(child(1));
+          if (!a || !b) {
+            return false;
+          }
+          return fn(a) && fn(b);
+        }
+        
+        template<typename T, typename U, typename R>
+        __host__ __device__ T transform_reduce(
+          const U& transformer,
+          const R& reducer,
+          const T initial_value
+        ) const {
+          T value = initial_value;
+          for (unsigned i = 0; i < number_of_children(); ++i) {
+            const auto c = child(i);
+            const auto basic_particle = dyn_cast<const BasicParticle*>(c);
+            if (basic_particle) {
+              value = reducer(value, transformer(basic_particle));
+            } else {
+              const auto composite_particle = static_cast<const CompositeParticle*>(c);
+              for (unsigned j = 0; j < composite_particle->number_of_children(); j++) {
+                const auto cc = composite_particle->child(j);
+                value = reducer(value, transformer(static_cast<const BasicParticle*>(cc)));
+              }
+            }
+          }
+          return value;
         }
 
       public:
         __host__ __device__ CompositeParticle(
-          const Particle** children,
+          const IParticle** children,
           const SecondaryVertices* vertices,
           const PV::Vertex* pv,
           unsigned number_of_children,
@@ -504,68 +428,43 @@ namespace Allen {
           m_vertices(vertices), m_pv(pv), m_number_of_children(number_of_children),
           m_total_number_of_composites(total_number_of_composites), m_index(index)
         {}
+        
+        __host__ __device__ bool has_pv() const {
+          return m_pv != nullptr;
+        }
 
-        __host__ __device__ const PV::Vertex* get_pv() const { return m_pv; }
+        __host__ __device__ const PV::Vertex& pv() const {
+          assert(has_pv());
+          return *m_pv;
+        }
 
-        __host__ __device__ const SecondaryVertices* get_vertices() const { return m_vertices; }
+        __host__ __device__ TypeIDs type_id() const override {
+          return TypeID;
+        }
+
+        __host__ __device__ unsigned number_of_children() const { return m_number_of_children; }
+
+        __host__ __device__ const IParticle* child(const unsigned i) const
+        {
+          assert(i < number_of_children());
+          return m_children[i];
+        }
 
         __host__ __device__ SecondaryVertex vertex() const { return m_vertices->vertex(m_index); }
-
-        __host__ __device__ float x() const { return vertex().x(); }
-
-        __host__ __device__ float y() const { return vertex().y(); }
-
-        __host__ __device__ float z() const { return vertex().z(); }
-
-        __host__ __device__ float px() const { return vertex().px(); }
-
-        __host__ __device__ float py() const { return vertex().py(); }
-
-        __host__ __device__ float pz() const { return vertex().pz(); }
-
-        __host__ __device__ float pt() const { return vertex().pt(); }
-
-        __host__ __device__ float p() const { return vertex().p(); }
-
-        __host__ __device__ float transform_reduce(
-          float (*transformer)(const BasicParticle*),
-          float (*reducer)(float, float),
-          float initial_value) const
-        {
-          float value = initial_value;
-          for (unsigned i = 0; i < number_of_children(); i++) {
-            const auto substr = child(i);
-            if (substr->type_id() == Allen::TypeIDs::BasicParticle) {
-              float tmp = transformer(static_cast<const BasicParticle*>(substr));
-              value = reducer(value, tmp);
-            }
-            else {
-              const auto composite_substr = static_cast<const CompositeParticle*>(substr);
-              for (unsigned j = 0; j < composite_substr->number_of_children(); j++) {
-                const auto subsubstr = composite_substr->child(j);
-                float tmp = transformer(static_cast<const BasicParticle*>(subsubstr));
-                value = reducer(value, tmp);
-              }
-            }
-          }
-          return value;
-        }
 
         // TODO: Some of these quantities are expensive to calculate, so it
         // might be a good idea to store them in an "extra info" array. Need to
         // see how the timing shakes out.
         __host__ __device__ float e() const
         {
-          float energy = transform_reduce(
-            [](const BasicParticle* p) { return p->e(mPi); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
-          return energy;
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().e(mPi); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
         }
 
         __host__ __device__ float sumpt() const
         {
-          float sum = transform_reduce(
-            [](const BasicParticle* p) { return p->pt(); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
-          return sum;
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().pt(); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
         }
 
         __host__ __device__ float m() const
@@ -584,8 +483,8 @@ namespace Allen {
             substr2->type_id() != Allen::TypeIDs::BasicParticle) {
             return 0.f;
           }
-          energy += static_cast<const BasicParticle*>(substr1)->e(m1);
-          energy += static_cast<const BasicParticle*>(substr2)->e(m2);
+          energy += static_cast<const BasicParticle*>(substr1)->state().e(m1);
+          energy += static_cast<const BasicParticle*>(substr2)->state().e(m2);
           return sqrtf(energy * energy - vertex().p2());
         }
 
@@ -595,18 +494,18 @@ namespace Allen {
 
         __host__ __device__ float fdchi2() const
         {
-          if (m_pv == nullptr) return -1.f;
-          const auto primary = get_pv();
+          if (!has_pv()) return -1.f;
+          const auto primary = pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary->position.x;
-          const float dy = vrt.y() - primary->position.y;
-          const float dz = vrt.z() - primary->position.z;
-          const float c00 = vrt.c00() + primary->cov00;
-          const float c10 = vrt.c10() + primary->cov10;
-          const float c11 = vrt.c11() + primary->cov11;
-          const float c20 = vrt.c20() + primary->cov20;
-          const float c21 = vrt.c21() + primary->cov21;
-          const float c22 = vrt.c22() + primary->cov22;
+          const float dx = vrt.x() - primary.position.x;
+          const float dy = vrt.y() - primary.position.y;
+          const float dz = vrt.z() - primary.position.z;
+          const float c00 = vrt.c00() + primary.cov00;
+          const float c10 = vrt.c10() + primary.cov10;
+          const float c11 = vrt.c11() + primary.cov11;
+          const float c20 = vrt.c20() + primary.cov20;
+          const float c21 = vrt.c21() + primary.cov21;
+          const float c22 = vrt.c22() + primary.cov22;
           const float invdet =
             1.f / (2.f * c10 * c20 * c21 - c11 * c20 * c20 - c00 * c21 * c21 + c00 * c11 * c22 - c22 * c10 * c10);
           const float invc00 = (c11 * c22 - c21 * c21) * invdet;
@@ -621,36 +520,36 @@ namespace Allen {
 
         __host__ __device__ float fd() const
         {
-          if (m_pv == nullptr) return -1.f;
-          const auto primary = get_pv();
+          if (!has_pv()) return -1.f;
+          const auto primary = pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary->position.x;
-          const float dy = vrt.y() - primary->position.y;
-          const float dz = vrt.z() - primary->position.z;
+          const float dx = vrt.x() - primary.position.x;
+          const float dy = vrt.y() - primary.position.y;
+          const float dz = vrt.z() - primary.position.z;
           return sqrtf(dx * dx + dy * dy + dz * dz);
         }
 
         __host__ __device__ float dz() const
         {
-          if (m_pv == nullptr) return 0.f;
-          return vertex().z() - get_pv()->position.z;
+          if (!has_pv()) return 0.f;
+          return vertex().z() - pv().position.z;
         }
 
         __host__ __device__ float eta() const
         {
-          if (m_pv == nullptr) return 0.f;
+          if (!has_pv()) return 0.f;
           return atanhf(dz() / fd());
         }
 
         __host__ __device__ float mcor() const
         {
-          if (m_pv == nullptr) return 0.f;
+          if (!has_pv()) return 0.f;
           const float mvis = m();
-          const auto primary = get_pv();
+          const auto primary = pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary->position.x;
-          const float dy = vrt.y() - primary->position.y;
-          const float dz = vrt.z() - primary->position.z;
+          const float dx = vrt.x() - primary.position.x;
+          const float dy = vrt.y() - primary.position.y;
+          const float dz = vrt.z() - primary.position.z;
           const float loc_fd = sqrtf(dx * dx + dy * dy + dz * dz);
           const float pperp2 = ((vrt.py() * dz - dy * vrt.pz()) * (vrt.py() * dz - dy * vrt.pz()) +
                                 (vrt.pz() * dx - dz * vrt.px()) * (vrt.pz() * dx - dz * vrt.px()) +
@@ -661,118 +560,81 @@ namespace Allen {
 
         __host__ __device__ float minipchi2() const
         {
-          float val = transform_reduce(
+          return transform_reduce(
             [](const BasicParticle* p) { return p->ip_chi2(); },
             [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
             -1.f);
-          return val;
         }
 
         __host__ __device__ float minip() const
         {
-          float val = transform_reduce(
+          return transform_reduce(
             [](const BasicParticle* p) { return p->ip(); },
             [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
             -1.f);
-          return val;
         }
 
         __host__ __device__ float minp() const
         {
-          float val = transform_reduce(
-            [](const BasicParticle* p) { return p->p(); },
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().p(); },
             [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
             -1.f);
-          return val;
         }
 
         __host__ __device__ float minpt() const
         {
-          float val = transform_reduce(
-            [](const BasicParticle* p) { return p->pt(); },
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().pt(); },
             [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
             -1.f);
-          return val;
         }
 
         __host__ __device__ float dira() const
         {
-          if (m_pv == nullptr) return 0.f;
-          const auto primary = get_pv();
+          if (!has_pv()) return 0.f;
+          const auto primary = pv();
           const auto vrt = vertex();
-          const float dx = vrt.x() - primary->position.x;
-          const float dy = vrt.y() - primary->position.y;
-          const float dz = vrt.z() - primary->position.z;
+          const float dx = vrt.x() - primary.position.x;
+          const float dy = vrt.y() - primary.position.y;
+          const float dz = vrt.z() - primary.position.z;
           const float loc_fd = sqrtf(dx * dx + dy * dy + dz * dz);
           return (dx * vrt.px() + dy * vrt.py() + dz * vrt.pz()) / (vrt.p() * loc_fd);
         }
 
         __host__ __device__ float doca(const unsigned index1, const unsigned index2) const
         {
-          float xA;
-          float yA;
-          float zA;
-          float txA;
-          float tyA;
-          const auto substr1 = child(index1);
-          if (substr1->type_id() == Allen::TypeIDs::BasicParticle) {
-            const auto track1 = static_cast<const BasicParticle*>(substr1);
-            const auto state1 = track1->state();
-            xA = state1.x();
-            yA = state1.y();
-            zA = state1.z();
-            txA = state1.tx();
-            tyA = state1.ty();
-          }
-          else {
-            const auto sv1 = static_cast<const CompositeParticle*>(substr1);
-            xA = sv1->x();
-            yA = sv1->y();
-            zA = sv1->z();
-            txA = sv1->px() / sv1->pz();
-            tyA = sv1->py() / sv1->pz();
-          }
+          auto get_state = [] (auto particle) -> MiniState {
+            auto basicp = dyn_cast<const BasicParticle*>(particle);
+            if (basicp) {
+              const auto s = basicp->state();
+              return {s.x(), s.y(), s.z(), s.tx(), s.ty()};
+            } else {
+              auto compp = static_cast<const CompositeParticle*>(particle);
+              const auto s = compp->vertex();
+              return {s.x(), s.y(), s.z(), s.px() / s.pz(), s.py() / s.pz()};
+            }
+          };
 
-          float xB;
-          float yB;
-          float zB;
-          float txB;
-          float tyB;
-          const auto substr2 = child(index2);
-          if (substr2->type_id() == Allen::TypeIDs::BasicParticle) {
-            const auto track2 = static_cast<const BasicParticle*>(substr2);
-            const auto state2 = track2->state();
-            xB = state2.x();
-            yB = state2.y();
-            zB = state2.z();
-            txB = state2.tx();
-            tyB = state2.ty();
-          }
-          else {
-            const auto sv2 = static_cast<const CompositeParticle*>(substr2);
-            xB = sv2->x();
-            yB = sv2->y();
-            zB = sv2->z();
-            txB = sv2->px() / sv2->pz();
-            tyB = sv2->py() / sv2->pz();
-          }
-
-          float secondAA = txA * txA + tyA * tyA + 1.0f;
-          float secondBB = txB * txB + tyB * tyB + 1.0f;
-          float secondAB = -txA * txB - tyA * tyB - 1.0f;
+          const auto sA = get_state(child(index1));
+          const auto sB = get_state(child(index2));
+          
+          float secondAA = sA.tx * sA.tx + sA.ty * sA.ty + 1.0f;
+          float secondBB = sB.tx * sB.tx + sB.ty * sB.ty + 1.0f;
+          float secondAB = -sA.tx * sB.tx - sA.ty * sB.ty - 1.0f;
           float det = secondAA * secondBB - secondAB * secondAB;
           float ret = -1;
           if (fabsf(det) > 0) {
             float secondinvAA = secondBB / det;
             float secondinvBB = secondAA / det;
             float secondinvAB = -secondAB / det;
-            float firstA = txA * (xA - xB) + tyA * (yA - yB) + (zA - zB);
-            float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
+            float firstA = sA.tx * (sA.x - sB.x) + sA.ty * (sA.y - sB.y) + (sA.z - sB.z);
+            float firstB = -sB.tx * (sA.x - sB.x) - sB.ty * (sA.y - sB.y) - (sA.z - sB.z);
             float muA = -(secondinvAA * firstA + secondinvAB * firstB);
             float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-            float dx = (xA + muA * txA) - (xB + muB * txB);
-            float dy = (yA + muA * tyA) - (yB + muB * tyB);
-            float dz = (zA + muA) - (zB + muB);
+            float dx = (sA.x + muA * sA.tx) - (sB.x + muB * sB.tx);
+            float dy = (sA.y + muA * sA.ty) - (sB.y + muB * sB.ty);
+            float dz = (sA.z + muA) - (sB.z + muB);
             ret = sqrtf(dx * dx + dy * dy + dz * dz);
           }
           return ret;
@@ -794,56 +656,42 @@ namespace Allen {
 
         __host__ __device__ float ip() const
         {
-          if (m_pv == nullptr) return -1.f;
+          if (!has_pv()) return -1.f;
           const auto vrt = vertex();
-          const auto primary = get_pv();
+          const auto primary = pv();
           float tx = vrt.px() / vrt.pz();
           float ty = vrt.py() / vrt.pz();
-          float dz = primary->position.z - vrt.z();
-          float dx = vrt.x() + dz * tx - primary->position.x;
-          float dy = vrt.y() + dz * ty - primary->position.y;
+          float dz = primary.position.z - vrt.z();
+          float dx = vrt.x() + dz * tx - primary.position.x;
+          float dy = vrt.y() + dz * ty - primary.position.y;
           return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
         }
 
         __host__ __device__ bool is_dimuon() const
         {
-          const auto substr1 = child(0);
-          const auto substr2 = child(1);
-          if (
-            substr1->type_id() != Allen::TypeIDs::BasicParticle || substr2->type_id() != Allen::TypeIDs::BasicParticle)
-            return false;
-          return static_cast<const BasicParticle*>(substr1)->is_muon() &&
-                 static_cast<const BasicParticle*>(substr2)->is_muon();
+          return is_di([](const BasicParticle* a) {
+            return a->is_muon();
+          });
         }
 
         __host__ __device__ bool is_dielectron() const
         {
-          const auto substr1 = child(0);
-          const auto substr2 = child(1);
-          if (
-            substr1->type_id() != Allen::TypeIDs::BasicParticle || substr2->type_id() != Allen::TypeIDs::BasicParticle)
-            return false;
-          return static_cast<const BasicParticle*>(substr1)->is_electron() &&
-                 static_cast<const BasicParticle*>(substr2)->is_electron();
+          return is_di([](const BasicParticle* a) {
+            return a->is_electron();
+          });
         }
 
         __host__ __device__ bool is_dilepton() const
         {
-          const auto substr1 = child(0);
-          const auto substr2 = child(1);
-          if (
-            substr1->type_id() != Allen::TypeIDs::BasicParticle || substr2->type_id() != Allen::TypeIDs::BasicParticle)
-            return false;
-          return static_cast<const BasicParticle*>(substr1)->is_lepton() &&
-                 static_cast<const BasicParticle*>(substr2)->is_lepton();
+          return is_di([](const BasicParticle* a) {
+            return a->is_lepton();
+          });
         }
 
         __host__ __device__ float clone_sin2() const
         {
-          const auto substr1 = child(0);
-          const auto substr2 = child(1);
-          const auto state1 = static_cast<const BasicParticle*>(substr1)->state();
-          const auto state2 = static_cast<const BasicParticle*>(substr2)->state();
+          const auto state1 = static_cast<const BasicParticle*>(child(0))->state();
+          const auto state2 = static_cast<const BasicParticle*>(child(1))->state();
           const float txA = state1.tx();
           const float tyA = state1.ty();
           const float txB = state2.tx();
@@ -887,57 +735,8 @@ namespace Allen {
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
 
-      // struct IMultiEventParticleContainer {
-      // private:
-      //   unsigned m_number_of_events = 0;
-
-      // public:
-      //   __host__ __device__ IMultiEventParticleContainer(const unsigned number_of_events) :
-      //     m_number_of_events(number_of_events)
-      //   {}
-
-      //   __host__ __device__ unsigned number_of_containers() const { return m_number_of_events; }
-      //   virtual __host__ __device__ ~IMultiEventParticleContainer() {}
-      // };
-
-      // struct MultiEventBasicParticles : IMultiEventParticleContainer {
-      // private:
-      //   const BasicParticles* m_container = nullptr;
-
-      // public:
-      //   __host__ __device__ MultiEventBasicParticles(const BasicParticles* container, const unsigned
-      //   number_of_events) :
-      //     IMultiEventParticleContainer {number_of_events}, m_container(container)
-      //   {}
-
-      //   __host__ __device__ const BasicParticles& particle_container(const unsigned event_number) const
-      //   {
-      //     assert(event_number < number_of_containers());
-      //     return m_container[event_number];
-      //   }
-      // };
-
-      // struct MultiEventCompositeParticles : IMultiEventParticleContainer {
-      // private:
-      //   const CompositeParticles* m_container = nullptr;
-
-      // public:
-      //   __host__ __device__
-      //   MultiEventCompositeParticles(const CompositeParticles* container, const unsigned number_of_events) :
-      //     IMultiEventParticleContainer {number_of_events},
-      //     m_container(container)
-      //   {}
-
-      //   __host__ __device__ const CompositeParticles& particle_container(const unsigned event_number) const
-      //   {
-      //     assert(event_number < number_of_containers());
-      //     return m_container[event_number];
-      //   }
-      // };
-
       using MultiEventBasicParticles = Allen::MultiEventContainer<BasicParticles>;
       using MultiEventCompositeParticles = Allen::MultiEventContainer<CompositeParticles>;
-
     } // namespace Physics
   }   // namespace Views
 } // namespace Allen

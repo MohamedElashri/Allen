@@ -81,12 +81,13 @@ __device__ void rich_1_line::rich_1_line_t::monitor(
   bool sel)
 {
   const auto& track = std::get<0>(input);
+  const auto state = track.state();
 
-  parameters.dev_pt[index] = track.pt();
-  parameters.dev_p[index] = track.p();
-  parameters.dev_track_chi2[index] = track.state().chi2() / track.state().ndof();
+  parameters.dev_pt[index] = state.pt();
+  parameters.dev_p[index] = state.p();
+  parameters.dev_track_chi2[index] = state.chi2() / state.ndof();
   // parameters.dev_ip_chi2[index] = track.ipChi2;
-  parameters.dev_eta[index] = track.eta();
+  parameters.dev_eta[index] = state.eta();
   parameters.dev_phi[index] = trackPhi(track);
 
   parameters.dev_decision[index] = sel;
@@ -164,20 +165,21 @@ __device__ bool rich_1_line::rich_1_line_t::passes(
   const Allen::Views::Physics::BasicParticle& track,
   const Parameters& parameters)
 {
+  const auto state = track.state();
 
   // Cut on momentum
-  if (track.p() < parameters.minP) return false;
+  if (state.p() < parameters.minP) return false;
 
   // Cut on track Chi2 (fiducial)
-  if (track.state().chi2() / track.state().ndof() > parameters.maxTrChi2) return false;
+  if (state.chi2() / state.ndof() > parameters.maxTrChi2) return false;
 
   // Cut on transverse momentum (fiducial)
-  if (track.pt() < parameters.minPt) return false;
+  if (state.pt() < parameters.minPt) return false;
 
   // For each eta/phi bin pair, check if our track falls in it
   // Put this last as we return true if the track falls within our allowed bins; otherwise return false
   for (unsigned j = 0; j < parameters.minPhi.get().size(); ++j) {
-    const auto eta {track.eta()};
+    const auto eta {state.eta()};
     const auto phi {trackPhi(track)};
 
     // For now, eta is a 1-length array

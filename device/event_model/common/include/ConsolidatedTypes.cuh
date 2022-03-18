@@ -33,7 +33,7 @@ namespace Allen {
    *          kinds of containers.
    */
   struct IMultiEventContainer {
-    virtual __host__ __device__ Allen::TypeIDs contained_type_id() const = 0;
+    virtual __host__ __device__ Allen::TypeIDs type_id() const = 0;
     virtual __host__ __device__ ~IMultiEventContainer() {}
   };
 
@@ -44,7 +44,7 @@ namespace Allen {
    *          The contents of the container can be accessed through
    *          number_of_events() and container(). The contained type id
    *          is also accessible, and provides a specialization
-   *          of IMultiEventContainer's contained_type_id().
+   *          of IMultiEventContainer's type_id().
    */
   template<typename T>
   struct MultiEventContainer : IMultiEventContainer {
@@ -53,7 +53,9 @@ namespace Allen {
     unsigned m_number_of_events = 0;
 
   public:
-    using contained_type = T;
+    constexpr static auto TypeID = T::TypeID;
+    __host__ __device__ TypeIDs type_id() const override { return TypeID; }
+
     MultiEventContainer() = default;
     __host__ __device__ MultiEventContainer(const T* container, const unsigned number_of_events) :
       m_container(container), m_number_of_events(number_of_events)
@@ -65,7 +67,6 @@ namespace Allen {
       assert(event_number < m_number_of_events);
       return m_container[event_number];
     }
-    __host__ __device__ Allen::TypeIDs contained_type_id() const override { return T::TypeID; }
   };
 
   /**
@@ -74,11 +75,11 @@ namespace Allen {
    *          host and device. It allows to identify and cast
    *          IMultiEventContainer* into a requested MultiEventContainer*.
    */
-  template<typename T>
-  __host__ __device__ auto dyn_cast(IMultiEventContainer* t) {
+  template<typename T, typename U>
+  __host__ __device__ T dyn_cast(U* t) {
     using base_t = std::decay_t<std::remove_pointer_t<T>>;
-    static_assert(std::is_base_of_v<base_t, IMultiEventContainer>);
-    if (t->contained_type_id() == base_t::contained_type::TypeID) {
+    static_assert(std::is_base_of_v<std::decay_t<U>, base_t>);
+    if (t->type_id() == base_t::TypeID) {
       return static_cast<T>(t);
     } else {
       return nullptr;

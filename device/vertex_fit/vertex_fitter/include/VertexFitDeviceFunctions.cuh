@@ -313,21 +313,24 @@ namespace VertexFit {
     const Allen::Views::Physics::BasicParticle& trackA,
     const Allen::Views::Physics::BasicParticle& trackB)
   {
+    const auto stateA = trackA.state();
+    const auto stateB = trackB.state();
+
     // SV momentum.
-    sv.px = trackA.px() + trackB.px();
-    sv.py = trackA.py() + trackB.py();
-    sv.pz = trackA.pz() + trackB.pz();
+    sv.px = stateA.px() + stateB.px();
+    sv.py = stateA.py() + stateB.py();
+    sv.pz = stateA.pz() + stateB.pz();
 
     // For calculating mass.
-    sv.p1 = trackA.p();
-    sv.p2 = trackB.p();
-    sv.cos = (trackA.px() * trackB.px() + trackA.py() * trackB.py() + trackA.pz() * trackB.pz()) / (sv.p1 * sv.p2);
+    sv.p1 = stateA.p();
+    sv.p2 = stateB.p();
+    sv.cos = (stateA.px() * stateB.px() + stateA.py() * stateB.py() + stateA.pz() * stateB.pz()) / (sv.p1 * sv.p2);
 
     // Sum of track pT.
-    sv.sumpt = trackA.pt() + trackB.pt();
+    sv.sumpt = stateA.pt() + stateB.pt();
 
     // Minimum pt of constituent tracks.
-    sv.minpt = trackA.pt() < trackB.pt() ? trackA.pt() : trackB.pt();
+    sv.minpt = stateA.pt() < stateB.pt() ? stateA.pt() : stateB.pt();
 
     // Muon ID.
     sv.is_dimuon = trackA.is_muon() && trackB.is_muon();
@@ -344,11 +347,9 @@ namespace VertexFit {
 
     // Dimuon mass.
     if (sv.is_dimuon) {
-      const float mdimu2 = 2.f * Allen::mMu * Allen::mMu +
-                           2.f * (sqrtf(
-                                    (trackA.p() * trackA.p() + Allen::mMu * Allen::mMu) *
-                                    (trackB.p() * trackB.p() + Allen::mMu * Allen::mMu)) -
-                                  trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+      const float mdimu2 =
+        2.f * Allen::mMu * Allen::mMu + 2.f * (sqrtf((stateA.p() * stateA.p() + Allen::mMu * Allen::mMu) * (stateB.p() * stateB.p() + Allen::mMu * Allen::mMu)) -
+                                 stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
       sv.mdimu = sqrtf(mdimu2);
     }
     else {
@@ -437,15 +438,14 @@ namespace VertexFit {
     }
 
     // Corrected mass.
-    const float px = trackA.px() + trackB.px();
-    const float py = trackA.py() + trackB.py();
-    const float pz = trackA.pz() + trackB.pz();
+    const auto stateA = trackA.state();
+    const auto stateB = trackB.state();
+    const float px = stateA.px() + stateB.px();
+    const float py = stateA.py() + stateB.py();
+    const float pz = stateA.pz() + stateB.pz();
     const float mvis2 =
-      2.f * Allen::mPi * Allen::mPi +
-      2.f *
-        (sqrtf(
-           (trackA.p() * trackA.p() + Allen::mPi * Allen::mPi) * (trackB.p() * trackB.p() + Allen::mPi * Allen::mPi)) -
-         trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+      2.f * Allen::mPi * Allen::mPi + 2.f * (sqrtf((stateA.p() * stateA.p() + Allen::mPi * Allen::mPi) * (stateB.p() * stateB.p() + Allen::mPi * Allen::mPi)) -
+                               stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
     const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) + (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) /
                          fd / fd;

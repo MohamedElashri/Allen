@@ -52,8 +52,8 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
       long_track,
       parameters.dev_kalman_states_view + event_number,
       parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i),
-      parameters.dev_lepton_id + offset,
-      i};
+      i,
+      parameters.dev_lepton_id[offset]};
   }
 
   if (threadIdx.x == 0) {

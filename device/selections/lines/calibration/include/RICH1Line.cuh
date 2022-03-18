@@ -83,7 +83,8 @@ namespace rich_1_line {
 
     __device__ static __host__ KalmanFloat trackPhi(const Allen::Views::Physics::BasicParticle& track)
     {
-      return atan2f(track.py(), track.px());
+      const auto state = track.state();
+      return atan2f(state.py(), state.px());
     }
 
     // Selection helper

@@ -47,7 +47,8 @@ __global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters paramete
 
   for (unsigned i_track = threadIdx.x; i_track < n_tracks; i_track += blockDim.x) {
     const auto track = long_track_particles.particle(i_track);
-    const float pt = track.pt();
+    const auto state = track.state();
+    const float pt = state.pt();
     const float ipchi2 = track.ip_chi2();
     const float chi2ndof = track.chi2() / track.ndof();
     const bool dec = pt > parameters.track_min_pt && (ipchi2 > parameters.track_min_ipchi2 || track.is_lepton()) &&
@@ -88,7 +89,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 
       // Same PV cut for non-muons.
       if (
-        trackA.get_pv() != trackB.get_pv() && ipchi2A < parameters.max_assoc_ipchi2 &&
+        trackA.pv().position != trackB.pv().position && ipchi2A < parameters.max_assoc_ipchi2 &&
         ipchi2B < parameters.max_assoc_ipchi2 && (!trackA.is_lepton() || !trackB.is_lepton())) {
         continue;
       }
