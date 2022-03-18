@@ -197,9 +197,8 @@ namespace Allen {
 
       using MultiEventLongTracks = Allen::MultiEventContainer<LongTracks>;
 
-      struct IParticle {
-        virtual __host__ __device__ TypeIDs type_id() const = 0;
-        virtual __host__ __device__ ~IParticle() {}
+      struct IParticle : Identifiable {
+        using Identifiable::Identifiable;
       };
 
       template<typename T>
@@ -214,7 +213,6 @@ namespace Allen {
       struct BasicParticle : ILHCbIDSequence<BasicParticle>, IParticle {
         friend ILHCbIDSequence<BasicParticle>;
         constexpr static auto TypeID = Allen::TypeIDs::BasicParticle;
-        __host__ __device__ TypeIDs type_id() const override { return TypeID; }
 
       private:
         const Track* m_track = nullptr;
@@ -238,6 +236,7 @@ namespace Allen {
           const PV::Vertex* pv,
           unsigned index,
           uint8_t lepton_id) :
+          IParticle(TypeID),
           m_track(track),
           m_states(states), m_pv(pv), m_index(index), m_lepton_id(lepton_id)
         {
@@ -360,7 +359,6 @@ namespace Allen {
         static constexpr float mPi = 139.57f;
         static constexpr float mMu = 105.66f;
         constexpr static auto TypeID = Allen::TypeIDs::CompositeParticle;
-        __host__ __device__ TypeIDs type_id() const override { return TypeID; }
 
       private:
         std::array<const IParticle*, 4> m_children = {nullptr, nullptr, nullptr, nullptr};
@@ -410,6 +408,7 @@ namespace Allen {
           const PV::Vertex* pv,
           unsigned size,
           unsigned index) :
+          IParticle(TypeID),
           m_children(children),
           m_vertices(vertices), m_pv(pv), m_size(size), m_index(index)
         {

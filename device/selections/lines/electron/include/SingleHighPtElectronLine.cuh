@@ -44,7 +44,7 @@ namespace single_high_pt_electron_line {
                                           OneTrackLine<single_high_pt_electron_line_t, Parameters> {
     __device__ static bool select(
       const Parameters& ps,
-      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
+      std::tuple<const Allen::Views::Physics::BasicParticle&, const bool, const float> input);
 
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);

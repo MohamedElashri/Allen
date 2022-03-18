@@ -25,7 +25,7 @@ single_high_pt_electron_line::single_high_pt_electron_line_t::get_input(
 
 __device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle&, const bool, const float> input)
 {
   const auto& track = std::get<0>(input);
   const auto& is_electron = std::get<1>(input);

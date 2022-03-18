@@ -7,7 +7,7 @@ INSTANTIATE_LINE(di_muon_soft_line::di_muon_soft_line_t, di_muon_soft_line::Para
 
 __device__ bool di_muon_soft_line::di_muon_soft_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle&> input)
 {
   const auto vertex = std::get<0>(input);
 

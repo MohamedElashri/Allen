@@ -21,6 +21,7 @@ namespace Allen {
    *          TypeIDs provides a list of identifiable type ids for Allen datatypes.
    */
   enum class TypeIDs {
+    Invalid,
     VeloTracks,
     UTTracks,
     SciFiTracks,

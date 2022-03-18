@@ -16,8 +16,7 @@ __device__ unsigned two_track_mva_line::two_track_mva_line_t::offset(
   const Parameters& parameters,
   const unsigned event_number)
 {
-  const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].container(event_number));
+  const auto particles = parameters.dev_particle_container->container(event_number);
   return particles.offset();
 }
 
@@ -25,8 +24,7 @@ __device__ unsigned two_track_mva_line::two_track_mva_line_t::input_size(
   const Parameters& parameters,
   const unsigned event_number)
 {
-  const auto particles = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-    parameters.dev_particle_container[0].container(event_number));
+  const auto particles = parameters.dev_particle_container->container(event_number);
   return particles.size();
 }
 
@@ -35,7 +33,7 @@ unsigned two_track_mva_line::two_track_mva_line_t::get_decisions_size(ArgumentRe
   return first<typename Parameters::host_number_of_svs_t>(arguments);
 }
 
-__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
+__device__ std::tuple<const Allen::Views::Physics::CompositeParticle&, const float>
 two_track_mva_line::two_track_mva_line_t::get_input(
   const Parameters& parameters,
   const unsigned event_number,
@@ -50,7 +48,7 @@ two_track_mva_line::two_track_mva_line_t::get_input(
 
 __device__ bool two_track_mva_line::two_track_mva_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle&, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto& response = std::get<1>(input);

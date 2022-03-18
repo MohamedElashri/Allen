@@ -58,12 +58,12 @@ namespace two_track_mva_line {
 
     static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
 
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle&, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
+      std::tuple<const Allen::Views::Physics::CompositeParticle&, const float> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

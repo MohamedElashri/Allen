@@ -50,7 +50,7 @@ namespace kstopipi_line {
   };
 
   struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle&>);
 #ifdef WITH_ROOT
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
     __device__ static void monitor(

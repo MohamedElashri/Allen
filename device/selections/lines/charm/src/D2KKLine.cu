@@ -7,7 +7,7 @@ INSTANTIATE_LINE(d2kk_line::d2kk_line_t, d2kk_line::Parameters)
 
 __device__ bool d2kk_line::d2kk_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle&> input)
 {
   const auto particle = std::get<0>(input);
   const auto vertex = particle.vertex();
