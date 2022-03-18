@@ -8,7 +8,6 @@
 #include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidatedTypes.cuh"
-#include "ParticleTypes.cuh"
 #include "BackendCommon.h"
 
 namespace Allen {
@@ -234,9 +233,9 @@ namespace Allen {
             return states_view.state(m_track_index);
           }
 
-          __host__ __device__ unsigned number_of_ids() const override { return number_of_hits(); }
+          __host__ __device__ unsigned number_of_ids() const { return number_of_hits(); }
 
-          __host__ __device__ unsigned id(const unsigned index) const override { return hit(index).id(); }
+          __host__ __device__ unsigned id(const unsigned index) const { return hit(index).id(); }
         };
 
         struct Tracks : Allen::ILHCbIDContainer {

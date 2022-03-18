@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ConsolidatedTypes.cuh"
+#include "VeloConsolidated.cuh"
 #include "UTEventModel.cuh"
 #include <stdint.h>
 #include <cassert>
@@ -154,9 +155,9 @@ namespace Allen {
             return m_hits->hit(m_offset + ut_hit_index);
           }
 
-          __host__ __device__ unsigned number_of_ids() const override { return number_of_total_hits(); }
+          __host__ __device__ unsigned number_of_ids() const { return number_of_total_hits(); }
 
-          __host__ __device__ unsigned id(const unsigned index) const override
+          __host__ __device__ unsigned id(const unsigned index) const
           {
             auto n_velo_hits = m_velo_track->number_of_hits();
             if (index < n_velo_hits) {

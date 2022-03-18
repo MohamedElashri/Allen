@@ -10,10 +10,8 @@
 \*****************************************************************************/
 #pragma once
 
-#include "SciFiConsolidated.cuh"
-#include "UTConsolidated.cuh"
-#include "VeloConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
+#include "ParticleTypes.cuh"
 #include "AlgorithmTypes.cuh"
 //#include "Argument.cuh"
 

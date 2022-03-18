@@ -44,8 +44,8 @@ namespace Allen {
 
   struct ILHCbIDSequence {
     __host__ __device__ ILHCbIDSequence() {}
-    virtual __host__ __device__ unsigned number_of_ids() const = 0;
-    virtual __host__ __device__ unsigned id(const unsigned) const = 0;
+    // virtual __host__ __device__ unsigned number_of_ids() const = 0;
+    // virtual __host__ __device__ unsigned id(const unsigned) const = 0;
     virtual __host__ __device__ ~ILHCbIDSequence() {}
   };
 

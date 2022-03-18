@@ -140,9 +140,9 @@ namespace Allen {
             return m_hits->hit(m_offset + scifi_hit_index);
           }
 
-          __host__ __device__ unsigned number_of_ids() const override { return number_of_total_hits(); }
+          __host__ __device__ unsigned number_of_ids() const  { return number_of_total_hits(); }
 
-          __host__ __device__ unsigned id(const unsigned index) const override
+          __host__ __device__ unsigned id(const unsigned index) const 
           {
             if (index < number_of_velo_hits()) {
               return velo_track().hit(index).id();
