@@ -4,6 +4,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
+#include "VeloConsolidated.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "CompassUTDefinitions.cuh"
 #include "AlgorithmTypes.cuh"

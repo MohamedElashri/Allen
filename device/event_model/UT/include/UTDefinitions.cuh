@@ -6,7 +6,8 @@
 #include "SystemOfUnits.h"
 #include "VeloEventModel.cuh"
 #include "VeloConsolidated.cuh"
-
+#include "UTRaw.cuh"
+#include "BackendCommon.h"
 #include <ostream>
 #include <stdint.h>
 #include <vector>
