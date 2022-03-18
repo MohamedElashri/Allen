@@ -42,6 +42,8 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_ut_multi_event_tracks_view)
       Allen::Views::UT::Consolidated::MultiEventTracks {parameters.dev_ut_tracks_view, number_of_events};
+
+    parameters.dev_ut_multi_event_lhcb_id_container[0] = parameters.dev_ut_multi_event_tracks_view;
   }
 }
 

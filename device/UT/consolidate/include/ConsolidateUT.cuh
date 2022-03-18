@@ -34,19 +34,31 @@ namespace ut_consolidate_tracks {
     dev_ut_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_track_view_t,
-      DEPENDENCIES(dev_ut_hits_view_t, dev_velo_tracks_view_t, dev_ut_track_velo_indices_t, dev_ut_track_params_t),
+      DEPENDENCIES(
+        dev_ut_hits_view_t,
+        dev_velo_tracks_view_t,
+        dev_ut_track_velo_indices_t,
+        dev_ut_track_params_t),
       Allen::Views::UT::Consolidated::Track)
     dev_ut_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_tracks_view_t,
-      DEPENDENCIES(dev_ut_track_view_t),
+      DEPENDENCIES(
+        dev_ut_track_view_t),
       Allen::Views::UT::Consolidated::Tracks)
     dev_ut_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_multi_event_tracks_view_t,
-      DEPENDENCIES(dev_ut_tracks_view_t),
+      DEPENDENCIES(
+        dev_ut_tracks_view_t),
       Allen::Views::UT::Consolidated::MultiEventTracks)
     dev_ut_multi_event_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_ut_multi_event_lhcb_id_container_t,
+      DEPENDENCIES(
+        dev_ut_multi_event_tracks_view_t),
+      Allen::IMultiEventLHCbIDContainer*)
+    dev_ut_multi_event_lhcb_id_container;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

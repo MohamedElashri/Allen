@@ -36,22 +36,26 @@ namespace velo_consolidate_tracks {
     dev_velo_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_track_view_t,
-      DEPENDENCIES(dev_velo_hits_view_t),
+      DEPENDENCIES(
+        dev_velo_hits_view_t),
       Allen::Views::Velo::Consolidated::Track)
     dev_velo_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_tracks_view_t,
-      DEPENDENCIES(dev_velo_track_view_t),
+      DEPENDENCIES(
+        dev_velo_track_view_t),
       Allen::Views::Velo::Consolidated::Tracks)
     dev_velo_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_multi_event_tracks_view_t,
-      DEPENDENCIES(dev_velo_tracks_view_t),
+      DEPENDENCIES(
+        dev_velo_tracks_view_t),
       Allen::Views::Velo::Consolidated::MultiEventTracks)
     dev_velo_multi_event_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_multi_event_lhcb_id_container_t,
-      DEPENDENCIES(dev_velo_multi_event_tracks_view_t),
+      DEPENDENCIES(
+        dev_velo_multi_event_tracks_view_t),
       Allen::IMultiEventLHCbIDContainer*)
     dev_velo_multi_event_lhcb_id_container;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
