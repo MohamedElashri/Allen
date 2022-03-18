@@ -61,7 +61,7 @@ __device__ void associate_and_muon_id(
 {
   for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
     float best_value = 0.f;
-    short best_index = 0;
+    short best_index = -1;
     bool first = true;
     for (unsigned j = 0; j < vertices.size(); ++j) {
       float val = fabsf(Distance::kalman_ipchi2(states.state(i), *(vertices.data() + j)));
