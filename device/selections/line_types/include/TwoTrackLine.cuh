@@ -5,6 +5,7 @@
 
 #include "Line.cuh"
 #include "VertexDefinitions.cuh"
+#include "ParticleTypes.cuh"
 #include "LHCbIDContainer.cuh"
 
 /**
@@ -13,7 +14,7 @@
  * It assumes an inheriting class will have the following inputs:
  *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
  *  HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
- *  DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+ *  DEVICE_INPUT(dev_svs_t, Allen::Views::Physics::CompositeParticles) dev_svs;
  *  DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
  *  DEVICE_OUTPUT(decisions_t, bool) decisions;
  *
@@ -34,11 +35,11 @@ struct TwoTrackLine : public Line<Derived, Parameters> {
     return parameters.dev_sv_offsets[event_number];
   }
 
-  __device__ static std::tuple<const VertexFit::TrackMVAVertex&>
+  __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
   {
-    const VertexFit::TrackMVAVertex* event_vertices = parameters.dev_svs + parameters.dev_sv_offsets[event_number];
-    const auto& vertex = event_vertices[i];
-    return std::forward_as_tuple(vertex);
+    const auto particles = parameters.dev_svs[event_number];
+    const auto particle = particles.particle(i);
+    return std::forward_as_tuple(particle);
   }
 };

@@ -37,14 +37,14 @@ namespace Allen {
 
   struct ILHCbIDComposite : ILHCbIDStructure {
   protected:
-    const ILHCbIDStructure* m_substructures = nullptr;
+    const ILHCbIDStructure** m_substructures = nullptr;
     unsigned m_number_of_substructures = 0;
     unsigned m_index = 0;
     unsigned m_total_number_of_composites = 0;
 
   public:
     __host__ __device__ ILHCbIDComposite(
-      const ILHCbIDStructure* substructures,
+      const ILHCbIDStructure** substructures,
       unsigned number_of_substructures,
       unsigned index,
       unsigned total_number_of_composites) :
@@ -58,7 +58,7 @@ namespace Allen {
       return m_number_of_substructures; 
     }
 
-    __host__ __device__ const ILHCbIDStructure& substructure(const unsigned substructure_index) const
+    __host__ __device__ const ILHCbIDStructure* substructure(const unsigned substructure_index) const
     {
       assert(substructure_index < m_number_of_substructures);
       return m_substructures[m_total_number_of_composites * substructure_index + m_index];

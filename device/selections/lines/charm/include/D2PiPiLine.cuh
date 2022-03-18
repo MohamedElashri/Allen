@@ -11,7 +11,7 @@ namespace d2pipi_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+    DEVICE_INPUT(dev_svs_t, Allen::Views::Physics::CompositeParticles) dev_svs;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
@@ -40,7 +40,7 @@ namespace d2pipi_line {
   };
 
   struct d2pipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<d2pipi_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

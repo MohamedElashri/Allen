@@ -457,59 +457,40 @@ namespace Allen {
 
       struct BasicParticles : ILHCbIDContainer {
       private:
-        const ILHCbIDContainer* m_track_container = nullptr;
-        const KalmanStates* m_states = nullptr;
-        const PV::Vertex* m_pvs = nullptr;
-        const PVTable* m_pv_table = nullptr;
-        const bool* m_muon_id = nullptr;
+        const BasicParticle* m_track = nullptr;
         unsigned m_offset = 0;
         unsigned m_size = 0;
 
       public:
         __host__ __device__ BasicParticles(
-          const ILHCbIDContainer* track_container, 
-          const KalmanStates* states,
-          const PV::Vertex* pvs,
-          const PVTable* pv_table,
-          const bool* muon_id,
-          const unsigned* track_offsets, 
-          const unsigned pv_offset,
+          const BasicParticle* track,
+          const unsigned* track_offsets,
           const unsigned event_number) :
-          m_track_container(track_container),
-          m_states(states),
-          // Need PVs and the association table. This doesn't make any sense without them.
-          m_pvs(pvs + pv_offset),
-          m_pv_table(pv_table + event_number),
-          m_muon_id(muon_id + track_offsets[event_number]),
+          m_track(track + track_offsets[event_number]),
           m_offset(track_offsets[event_number]),
           m_size(track_offsets[event_number + 1] - track_offsets[event_number])
         {}
 
         __host__ __device__ unsigned number_of_id_structures() const override
         {
-          return m_track_container->number_of_id_structures();
+          return m_size;
         }
 
         __host__ __device__ const ILHCbIDStructure& id_structure(const unsigned index) const override
         {
-          return m_track_container->id_structure(index);
+          return m_track[index];
         }
 
         __host__ __device__ unsigned size() const { return m_size; }
 
-        __host__ __device__ const BasicParticle particle(const unsigned index) const
+        __host__ __device__ const BasicParticle& particle(const unsigned index) const
         {
-          return BasicParticle {
-            dynamic_cast<const ILHCbIDSequence*>(&m_track_container->id_structure(index)),
-            m_states,
-            m_pvs != nullptr ? m_pvs + m_pv_table->pv(index) : nullptr,
-            m_muon_id,
-            index};
+          return m_track[index];
         }
 
-        __host__ __device__ const PVTable& pv_table() const
+        __host__ __device__ const BasicParticle* particle_pointer(const unsigned index) const
         {
-          return *m_pv_table;
+          return m_track + index;
         }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
@@ -527,7 +508,7 @@ namespace Allen {
 
       public:
         __host__ __device__ CompositeParticle(
-          const ILHCbIDStructure* children,
+          const ILHCbIDStructure** children,
           const SecondaryVertices* vertices,
           const PV::Vertex* pv,
           unsigned number_of_children,
@@ -577,11 +558,11 @@ namespace Allen {
         {
           float energy = 0.f;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
-            const auto& substr = substructure(i);
-            if (substr.number_of_substructures() == 1) {
-              energy += dynamic_cast<const BasicParticle*>(&substr)->e(mPi);
+            const auto substr = substructure(i);
+            if (substr->number_of_substructures() == 1) {
+              energy += dynamic_cast<const BasicParticle*>(substr)->e(mPi);
             } else {
-              energy += dynamic_cast<const CompositeParticle*>(&substr)->e();
+              energy += dynamic_cast<const CompositeParticle*>(substr)->e();
             }
           }
           return energy;
@@ -591,11 +572,11 @@ namespace Allen {
         {
           float sum = 0.f;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
-            const auto& substr = substructure(i);
-            if (substr.number_of_substructures() == 1) {
-              sum += dynamic_cast<const BasicParticle*>(&substr)->pt();
+            const auto substr = substructure(i);
+            if (substr->number_of_substructures() == 1) {
+              sum += dynamic_cast<const BasicParticle*>(substr)->pt();
             } else {
-              sum += dynamic_cast<const CompositeParticle*>(&substr)->pt();
+              sum += dynamic_cast<const CompositeParticle*>(substr)->pt();
             }
           }
           return sum;
@@ -610,17 +591,17 @@ namespace Allen {
         __host__ __device__ float m12(const float m1, const float m2) const
         {
           float energy = 0.f;
-          const auto& substr1 = substructure(0);
-          const auto& substr2 = substructure(1);
-          if (substr1.number_of_substructures() == 1) {
-            energy += dynamic_cast<const BasicParticle*>(&substr1)->e(m1);
+          const auto substr1 = substructure(0);
+          const auto substr2 = substructure(1);
+          if (substr1->number_of_substructures() == 1) {
+            energy += dynamic_cast<const BasicParticle*>(substr1)->e(m1);
           } else {
-            energy += dynamic_cast<const CompositeParticle*>(&substr1)->e();
+            energy += dynamic_cast<const CompositeParticle*>(substr1)->e();
           }
-          if (substr2.number_of_substructures() == 1) {
-            energy += dynamic_cast<const BasicParticle*>(&substr2)->e(m2);
+          if (substr2->number_of_substructures() == 1) {
+            energy += dynamic_cast<const BasicParticle*>(substr2)->e(m2);
           } else {
-            energy += dynamic_cast<const CompositeParticle*>(&substr2)->e();
+            energy += dynamic_cast<const CompositeParticle*>(substr2)->e();
           }
           return sqrtf(energy * energy - vertex().p2());
         }
@@ -689,13 +670,13 @@ namespace Allen {
           float val = -1;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
-            const auto& substr = substructure(i);
-            if (substr.number_of_substructures() == 1) {
-              tmp = dynamic_cast<const BasicParticle*>(&substr)->ip_chi2();
+            const auto substr = substructure(i);
+            if (substr->number_of_substructures() == 1) {
+              tmp = dynamic_cast<const BasicParticle*>(substr)->ip_chi2();
             } else {
-              tmp = dynamic_cast<const CompositeParticle*>(&substr)->minipchi2();
+              tmp = dynamic_cast<const CompositeParticle*>(substr)->minipchi2();
             }
-            if (tmp < val && val > 0) val = tmp;
+            if (tmp < val || val < 0) val = tmp;
           }
           return val;
         }
@@ -705,15 +686,31 @@ namespace Allen {
           float val = -1;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
-            const auto& substr = substructure(i);
-            if (substr.number_of_substructures() == 1) {
-              tmp = dynamic_cast<const BasicParticle*>(&substr)->ip();
+            const auto substr = substructure(i);
+            if (substr->number_of_substructures() == 1) {
+              tmp = dynamic_cast<const BasicParticle*>(substr)->ip();
             } else {
-              tmp = dynamic_cast<const CompositeParticle*>(&substr)->minip();
+              tmp = dynamic_cast<const CompositeParticle*>(substr)->minip();
+            }
+            if (tmp < val || val < 0) val = tmp;
+          }
+          return val;
+        }
+
+        __host__ __device__ float minp() const 
+        { 
+          float val = -1;
+          for (unsigned i = 0; i < number_of_substructures(); i++) {
+            float tmp = -1;
+            const auto substr = substructure(i);
+            if (substr->number_of_substructures() == 1) {
+              tmp = dynamic_cast<const BasicParticle*>(substr)->p();
+            } else {
+              tmp = dynamic_cast<const CompositeParticle*>(substr)->p();
             }
             if (tmp < val && val > 0) val = tmp;
           }
-          return val;
+          return val;        
         }
 
         __host__ __device__ float minpt() const 
@@ -721,16 +718,17 @@ namespace Allen {
           float val = -1;
           for (unsigned i = 0; i < number_of_substructures(); i++) {
             float tmp = -1;
-            const auto& substr = substructure(i);
-            if (substr.number_of_substructures() == 1) {
-              tmp = dynamic_cast<const BasicParticle*>(&substr)->pt();
+            const auto substr = substructure(i);
+            if (substr->number_of_substructures() == 1) {
+              tmp = dynamic_cast<const BasicParticle*>(substr)->pt();
             } else {
-              tmp = dynamic_cast<const CompositeParticle*>(&substr)->pt();
+              tmp = dynamic_cast<const CompositeParticle*>(substr)->pt();
             }
-            if (tmp < val && val > 0) val = tmp;
+            if (tmp < val || val < 0) val = tmp;
           }
           return val;        
         }
+
 
         __host__ __device__ float dira() const 
         { 
@@ -750,9 +748,9 @@ namespace Allen {
           float zA;
           float txA;
           float tyA;
-          const auto& substr1 = substructure(index1);
-          if (substr1.number_of_substructures() == 1) {
-            const auto track = dynamic_cast<const BasicParticle*>(&substr1);
+          const auto substr1 = substructure(index1);
+          if (substr1->number_of_substructures() == 1) {
+            const auto track = dynamic_cast<const BasicParticle*>(substr1);
             const auto state = track->state();
             xA = state.x();
             yA = state.y();
@@ -760,7 +758,7 @@ namespace Allen {
             txA = state.tx();
             tyA = state.ty();
           } else {
-            const auto sv1 = dynamic_cast<const CompositeParticle*>(&substr1);
+            const auto sv1 = dynamic_cast<const CompositeParticle*>(substr1);
             xA = sv1->x();
             yA = sv1->y();
             zA = sv1->z();
@@ -773,9 +771,9 @@ namespace Allen {
           float zB;
           float txB;
           float tyB;
-          const auto& substr2 = substructure(index2);
-          if (substr1.number_of_substructures() == 1) {
-            const auto track = dynamic_cast<const BasicParticle*>(&substr2);
+          const auto substr2 = substructure(index2);
+          if (substr1->number_of_substructures() == 1) {
+            const auto track = dynamic_cast<const BasicParticle*>(substr2);
             const auto state = track->state();
             xB = state.x();
             yB = state.y();
@@ -783,7 +781,7 @@ namespace Allen {
             txB = state.tx();
             tyB = state.ty();
           } else {
-            const auto sv2 = dynamic_cast<const CompositeParticle*>(&substr2);
+            const auto sv2 = dynamic_cast<const CompositeParticle*>(substr2);
             xB = sv2->x();
             yB = sv2->y();
             zB = sv2->z();
@@ -801,7 +799,7 @@ namespace Allen {
             float secondinvBB = secondAA / det;
             float secondinvAB = -secondAB / det;
             float firstA = txA * (xA -xB) + tyA * (yA - yB) + (zA - zB);
-            float firstB = -txB * (xA - xB) - tyB * (yA - yB) + (zA - zB);
+            float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
             float muA = -(secondinvAA * firstA + secondinvAB * firstB);
             float muB = -(secondinvBB * firstB + secondinvAB * firstA);
             float dx = (xA + muA * txA) - (xB + muB * txB);
@@ -838,17 +836,23 @@ namespace Allen {
           return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty)); 
         }
 
+        __host__ __device__ bool is_dimuon() const
+        {
+          const auto substr1 = substructure(0);
+          const auto substr2 = substructure(1);
+          if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1)
+            return false;
+          return dynamic_cast<const BasicParticle*>(substr1)->is_muon() &&
+            dynamic_cast<const BasicParticle*>(substr2)->is_muon();
+        }
+
         __host__ __device__ float clone_sin2() const 
         { 
-          const auto& substr1 = substructure(0);
-          const auto& substr2 = substructure(1);
-          if (substr1.number_of_substructures() != 1 || substr2.number_of_substructures() != 1)
-            return -1.f;
-          if (!dynamic_cast<const BasicParticle*>(&substr1)->is_muon() ||
-              !dynamic_cast<const BasicParticle*>(&substr2)->is_muon())
-            return -1.f;
-          const auto state1 = dynamic_cast<const BasicParticle*>(&substr1)->state();
-          const auto state2 = dynamic_cast<const BasicParticle*>(&substr2)->state();
+          if (!is_dimuon()) return -1.f;
+          const auto substr1 = substructure(0);
+          const auto substr2 = substructure(1);
+          const auto state1 = dynamic_cast<const BasicParticle*>(substr1)->state();
+          const auto state2 = dynamic_cast<const BasicParticle*>(substr2)->state();
           const float txA = state1.tx();
           const float tyA = state1.ty();
           const float txB = state2.tx();
@@ -862,41 +866,23 @@ namespace Allen {
 
       struct CompositeParticles {
       private:
-        const ILHCbIDStructure* m_children = nullptr;
-        const SecondaryVertices* m_vertices = nullptr;
-        const PV::Vertex* m_pvs = nullptr;
-        const PVTable* m_pv_table = nullptr;
+        const CompositeParticle* m_composite = nullptr;
         unsigned m_offset = 0;
         unsigned m_size = 0;
-        unsigned m_number_of_children = 0;
-
+        
       public:
         __host__ __device__ CompositeParticles (
-          const ILHCbIDStructure* children,
-          const SecondaryVertices* vertices,
-          const PV::Vertex* pvs,
-          const PVTable* pv_table,
+          const CompositeParticle* composite,
           const unsigned* offsets,
-          unsigned number_of_children,
           unsigned event_number) :
-          m_children(children + offsets[event_number] * number_of_children),
-          m_vertices(vertices),
-          m_pvs(pvs),
-          m_pv_table(pv_table),
+          m_composite(composite + offsets[event_number]),
           m_offset(offsets[event_number]),
-          m_size(offsets[event_number + 1] - offsets[event_number]),
-          m_number_of_children(number_of_children)
+          m_size(offsets[event_number + 1] - offsets[event_number])
         {}
 
-        __host__ __device__ const CompositeParticle particle(unsigned particle_index) const
+        __host__ __device__ const CompositeParticle& particle(unsigned particle_index) const
         {
-          return CompositeParticle {
-            m_children,
-            m_vertices,
-            m_pvs + m_pv_table->pv(particle_index),
-            m_number_of_children,
-            m_size,
-            particle_index};
+          return m_composite[particle_index];
         }
 
         __host__ __device__ unsigned size() const { return m_size; }

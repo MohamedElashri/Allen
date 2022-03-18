@@ -95,6 +95,7 @@ namespace kalman_velo_only {
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
+    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
     DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_OUTPUT(dev_kalman_fit_results_t, char) dev_kalman_fit_results;
@@ -110,8 +111,8 @@ namespace kalman_velo_only {
       dev_kalman_pv_ipchi2_t)
     dev_kalman_pv_tables;
     DEVICE_OUTPUT(
-      dev_long_track_particles_t,
-      Allen::Views::Physics::BasicParticles,
+      dev_long_track_particle_view_t,
+      Allen::Views::Physics::BasicParticle,
       dev_scifi_tracks_view_t,
       dev_kalman_states_view_t,
       dev_kalman_fit_results_t,
@@ -119,7 +120,19 @@ namespace kalman_velo_only {
       dev_kalman_pv_ipchi2_t,
       dev_kalman_pv_tables_t,
       dev_is_muon_t)
-    dev_long_track_particles;
+    dev_long_track_particle_view;
+    DEVICE_OUTPUT(
+      dev_long_track_particles_view_t,
+      Allen::Views::Physics::BasicParticles,
+      dev_long_track_particle_view_t,
+      dev_offsets_forward_tracks_t,
+      dev_kalman_states_view_t,
+      dev_kalman_fit_results_t,
+      dev_multi_final_vertices_t,
+      dev_kalman_pv_ipchi2_t,
+      dev_kalman_pv_tables_t,
+      dev_is_muon_t)
+    dev_long_track_particles_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

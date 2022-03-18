@@ -5,13 +5,13 @@
 
 #include "AlgorithmTypes.cuh"
 #include "Line.cuh"
-#include "VertexDefinitions.cuh"
+#include "ParticleTypes.cuh"
 
 namespace two_track_mva_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+    DEVICE_INPUT(dev_svs_t, Allen::Views::Physics::CompositeParticles) dev_svs;
     DEVICE_INPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
@@ -51,12 +51,12 @@ namespace two_track_mva_line {
 
     static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
 
-    __device__ static std::tuple<const VertexFit::TrackMVAVertex&, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const VertexFit::TrackMVAVertex&, const float> input);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

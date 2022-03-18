@@ -42,6 +42,16 @@ namespace Distance {
   }
 } // namespace Distance
 
+__device__ float kalman_ip(const Allen::Views::Physics::KalmanState& track, const PV::Vertex& vertex)
+{
+  const float tx = track.tx();
+  const float ty = track.ty();
+  const float dz = vertex.position.z - track.z();
+  const float dx = track.x() + dz * tx - vertex.position.x;
+  const float dy = track.y() + dz * ty - vertex.position.y;
+  return sqrtf((dx * dx + dy * dy)/(1.0f + tx * tx + ty * ty));
+}
+
 __device__ void associate_and_muon_id(
   ParKalmanFilter::FittedTrack* tracks,
   const Allen::Views::Physics::KalmanStates& states,
@@ -63,6 +73,7 @@ __device__ void associate_and_muon_id(
     table.value(i) = best_value;
     tracks[i].ipChi2 = best_value;
     tracks[i].is_muon = is_muon[i];
+    tracks[i].ip = kalman_ip(states.state(i), *(vertices.data() + best_index));
   }
 }
 
@@ -93,27 +104,4 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
 
   // Perform the association for this event.
   associate_and_muon_id(event_tracks, kalman_states_view, event_is_muon, vertices, pv_table);
-
-  if (threadIdx.x == 0) {
-    new (parameters.dev_long_track_particles + event_number) 
-      Allen::Views::Physics::BasicParticles {
-        parameters.dev_scifi_tracks_view + event_number,
-        parameters.dev_kalman_states_view + event_number,
-        parameters.dev_multi_final_vertices,
-        parameters.dev_kalman_pv_tables,
-        parameters.dev_is_muon,
-        parameters.dev_atomics_scifi,
-        event_number * PV::max_number_vertices,
-        event_number};
-  }
-
-  __syncthreads();
-
-  // TODO: This can be removed once BasicParticles are used in selections.
-  const auto particles = parameters.dev_long_track_particles[event_number];
-  for (uint i = 0; i < particles.size(); i++) {
-    const auto particle = particles.particle(i);
-    event_tracks[i].ip = particle.ip();
-  }
-
 }

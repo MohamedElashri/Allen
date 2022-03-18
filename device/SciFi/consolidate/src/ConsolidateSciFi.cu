@@ -22,7 +22,7 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
                                                 parameters.dev_atomics_scifi,
                                                 parameters.dev_scifi_track_hit_number,
                                                 track_index,
-                                                event_number};
+                                                event_number};  
   }
 
   if (threadIdx.x == 0) {

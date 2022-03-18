@@ -5,6 +5,31 @@
 
 INSTANTIATE_ALGORITHM(kalman_velo_only::kalman_velo_only_t)
 
+void __global__ create_views(kalman_velo_only::Parameters parameters)
+{
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned offset = parameters.dev_atomics_scifi[event_number];
+  const unsigned number_of_tracks = parameters.dev_atomics_scifi[event_number + 1] - offset;
+  const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
+
+  for (unsigned i = threadIdx.x; i < number_of_tracks; i++) {
+    new (parameters.dev_long_track_particle_view + offset + i)
+      Allen::Views::Physics::BasicParticle {
+        &parameters.dev_scifi_tracks_view[event_number].track(i),
+        parameters.dev_kalman_states_view + event_number,
+        parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i),
+        parameters.dev_is_muon + offset,
+        i};
+  }
+
+  if (threadIdx.x == 0) {
+    new (parameters.dev_long_track_particles_view + event_number)
+      Allen::Views::Physics::BasicParticles {parameters.dev_long_track_particle_view,
+                                             parameters.dev_atomics_scifi,
+                                             event_number};
+  }
+}
+
 void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -17,7 +42,8 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
   set_size<dev_kalman_fit_results_t>(arguments, n_scifi_tracks * Velo::Consolidated::States::size);
   set_size<dev_kalman_states_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_kalman_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_long_track_particles_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_long_track_particle_view_t>(arguments, n_scifi_tracks);
+  set_size<dev_long_track_particles_view_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void kalman_velo_only::kalman_velo_only_t::operator()(
@@ -33,6 +59,9 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
+  global_function(create_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments);
+  
   if (runtime_options.fill_extra_host_buffers) {
     assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
   }
@@ -558,6 +587,7 @@ __global__ void kalman_velo_only::kalman_velo_only(
     ParKalmanFilter::FittedTrack kalman_track;
 
     simplified_fit(velo_track, init_qop, kalman_track);
+
     set_fit_result(scifi_tracks_view.offset() + i_scifi_track, kalman_track, kalman_states);
     parameters.dev_kf_tracks[scifi_tracks_view.offset() + i_scifi_track] = kalman_track;
   }

@@ -9,6 +9,21 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned offset = parameters.dev_sv_offsets[event_number];
+  const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - offset;
+  const auto pv_table = parameters.dev_sv_pv_tables[event_number];
+
+  for (unsigned i = threadIdx.x; i < n_svs; i += blockDim.x) {
+    new (parameters.dev_two_track_composite_view + offset + i)
+      Allen::Views::Physics::CompositeParticle {
+        const_cast<const Allen::ILHCbIDStructure**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
+        parameters.dev_sv_fit_results_view + event_number,
+        parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i),
+        2,
+        n_svs,
+        i};
+  }
+
   if (threadIdx.x == 0) {
     new (parameters.dev_sv_fit_results_view + event_number) 
       Allen::Views::Physics::SecondaryVertices {
@@ -17,14 +32,10 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
         event_number,
         number_of_events};
 
-    new (parameters.dev_two_track_svs + event_number) 
+    new (parameters.dev_two_track_composites_view + event_number) 
       Allen::Views::Physics::CompositeParticles {
-        parameters.dev_two_track_svs_tracks,
-        parameters.dev_sv_fit_results_view + event_number,
-        parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number,
-        parameters.dev_sv_pv_tables + event_number,
+        parameters.dev_two_track_composite_view,
         parameters.dev_sv_offsets,
-        2,
         event_number};
   }
 }
@@ -36,12 +47,13 @@ void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_consolidated_svs_t>(arguments, first<host_number_of_svs_t>(arguments));
-  set_size<dev_two_track_svs_tracks_t>(arguments, 2 * first<host_number_of_svs_t>(arguments));
-  set_size<dev_two_track_svs_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_two_track_sv_track_pointers_t>(arguments, 2 * first<host_number_of_svs_t>(arguments));
+  set_size<dev_two_track_composite_view_t>(arguments, first<host_number_of_svs_t>(arguments));
+  set_size<dev_two_track_composites_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_sv_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(first<host_number_of_svs_t>(arguments)));
   set_size<dev_sv_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
   // TODO: Clean this up.
-  set_size<dev_sv_fit_results_view_t>(arguments, 2 * first<host_number_of_events_t>(arguments));
+  set_size<dev_sv_fit_results_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_sv_fit_results_t>(arguments, 14 * sizeof(uint32_t) * first<host_number_of_svs_t>(arguments));
 }
 
@@ -54,11 +66,10 @@ void VertexFit::fit_secondary_vertices_t::operator()(
 {
   global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
-
-  // TODO: Choose something more reasonable for the block dimension.
-  global_function(create_sv_views)(dim3(size<dev_event_list_t>(arguments)), 1, context)(
+  
+  global_function(create_sv_views)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
-
+  
   safe_assign_to_host_buffer<dev_consolidated_svs_t>(
     host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, context);
 }
@@ -109,12 +120,16 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_consolidated_svs + sv_offset;
 
   // SV -> PV table.
+  const auto kalman_pv_table = parameters.dev_kalman_pv_tables[event_number];
   const unsigned total_number_of_svs = parameters.dev_sv_offsets[number_of_events];
   // TODO: Don't use two different types of PV table.
   Associate::Consolidated::Table sv_pv_ipchi2 {parameters.dev_sv_pv_ipchi2, total_number_of_svs};
   Associate::Consolidated::EventTable pv_table = sv_pv_ipchi2.event_table(sv_offset, n_svs);
   parameters.dev_sv_pv_tables[event_number] = Allen::Views::Physics::PVTable {
     parameters.dev_sv_pv_ipchi2, sv_offset, total_number_of_svs, n_svs};
+
+  parameters.dev_sv_fit_results_view[event_number] = Allen::Views::Physics::SecondaryVertices {
+    parameters.dev_sv_fit_results, parameters.dev_sv_offsets, event_number, number_of_events};
 
   // Loop over svs.
   for (unsigned i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
@@ -129,21 +144,11 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     const auto trackA = long_track_particles.particle(i_track);
     const auto trackB = long_track_particles.particle(j_track);
 
-    // TODO: This works but feels extremely bad.
-    new (parameters.dev_two_track_svs_tracks + 2 * sv_offset + i_sv) 
-      Allen::Views::Physics::BasicParticle {
-        trackA.get_track(),
-        trackA.get_states(),
-        trackA.get_pv(),
-        trackA.get_muon_id(),
-        trackA.get_index()};
-    new (parameters.dev_two_track_svs_tracks + 2 * sv_offset + n_svs + i_sv)
-      Allen::Views::Physics::BasicParticle {
-        trackB.get_track(),
-        trackB.get_states(),
-        trackB.get_pv(),
-        trackB.get_muon_id(),
-        trackB.get_index()};
+    // TODO: This is the absolute ugliest thing I've ever seen.
+    parameters.dev_two_track_sv_track_pointers[2 * sv_offset + i_sv] = 
+      const_cast<Allen::Views::Physics::BasicParticle*>(long_track_particles.particle_pointer(i_track));
+    parameters.dev_two_track_sv_track_pointers[2 * sv_offset + n_svs + i_sv] = 
+      const_cast<Allen::Views::Physics::BasicParticle*>(long_track_particles.particle_pointer(j_track));
 
     VertexFit::TrackMVAVertex sv;
     // Do the fit.
@@ -152,9 +157,6 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
       sv.trk1 = i_track;
       sv.trk2 = j_track;
 
-      // Fill the SV fit result.
-      fill_sv_fit_result(parameters.dev_sv_fit_results, sv, sv_offset + i_sv, total_number_of_svs);
-
       // Fill extra info.
       fill_extra_info(sv, trackA, trackB);
       if (trackA.get_pv() != nullptr && trackB.get_pv() != nullptr) {
@@ -162,8 +164,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
         // cause issues on the GPU if the calculation is using too much memory.
         const float ipchi2A = trackA.ip_chi2();
         const float ipchi2B = trackB.ip_chi2();
-        const unsigned i_pv = ipchi2A < ipchi2B ?
-          long_track_particles.pv_table().pv(i_track) : long_track_particles.pv_table().pv(j_track);
+        const unsigned i_pv = ipchi2A < ipchi2B ? kalman_pv_table.pv(i_track) : kalman_pv_table.pv(j_track);
         pv_table.pv(i_sv) = i_pv;
 
         const PV::Vertex pv = ipchi2A < ipchi2B ? trackA.pv() : trackB.pv();
@@ -176,12 +177,10 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
         sv.minipchi2 = 0;
       }
       event_secondary_vertices[i_sv] = sv;
-    }
-    else {
-      // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
-      tmp_sv.minipchi2 = 0;
-    }
-    event_secondary_vertices[i_sv] = tmp_sv;
+
+      // Fill the SV fit result.
+      fill_sv_fit_result(parameters.dev_sv_fit_results, sv, sv_offset + i_sv, total_number_of_svs);
+    } 
   }
 }
 

@@ -22,11 +22,11 @@ void kstopipi_line::kstopipi_line_t::set_arguments_size(
 }
 __device__ bool kstopipi_line::kstopipi_line_t::select(
   const Parameters&,
-  std::tuple<const VertexFit::TrackMVAVertex&> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
-  const auto& vertex = std::get<0>(input);
-  return vertex.minipchi2 > 100 && vertex.chi2 < 10 && vertex.vertex_ip < 0.3f &&
-         vertex.m(Allen::mPi, Allen::mPi) > 400 && vertex.m(Allen::mPi, Allen::mPi) < 600;
+  const auto& particle = std::get<0>(input);
+  return particle.minipchi2 > 100 && particle.vertex().chi2 < 10 && particle.vertex_ip < 0.3f &&
+         particle.m(Allen::mPi, Allen::mPi) > 400 && particle.m(Allen::mPi, Allen::mPi) < 600;
 }
 
 #ifdef WITH_ROOT
@@ -40,14 +40,13 @@ void kstopipi_line::kstopipi_line_t::init_monitor(
 
 __device__ void kstopipi_line::kstopipi_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
 {
-  const auto& vertex = std::get<0>(input);
+  const auto vertex = std::get<0>(input);
   if (sel) {
-    // printf("Event selected!! \n");
-    parameters.dev_sv_masses[index] = vertex.m(Allen::mPi, Allen::mPi);
+    parameters.dev_sv_masses[index] = vertex.m12(Allen::mPi, Allen::mPi);
     parameters.dev_pt[index] = vertex.pt();
   }
 }
