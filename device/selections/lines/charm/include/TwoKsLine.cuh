@@ -60,14 +60,6 @@ namespace two_ks_line {
   };
 
   struct two_ks_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_ks_line_t, Parameters> {
-
-    // constexpr static auto lhcbid_container = LHCbIDContainer::sv;
-    // constexpr static auto has_particle_container = true;
-
-    // __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
-
-    // static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
-
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 

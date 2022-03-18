@@ -81,9 +81,6 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
 
-    # ut_tracks = forward_tracks["veloUT_tracks"]
-    # velo_tracks = ut_tracks["velo_tracks"]
-
     make_selected_object_lists = make_algorithm(
         make_selected_object_lists_t,
         name="make_selected_object_lists",

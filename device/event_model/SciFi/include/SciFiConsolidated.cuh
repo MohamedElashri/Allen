@@ -121,40 +121,7 @@ namespace Allen {
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
-          // __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const
-          // {
-          //   assert(m_has_ut);
-          //   return *static_cast<const Allen::Views::UT::Consolidated::Track*>(m_base_track);
-          // }
-
-          // __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
-          // {
-          //   if (m_has_ut) {
-          //     return ut_track().velo_track();
-          //   }
-          //   else {
-          //     return *static_cast<const Allen::Views::Velo::Consolidated::Track*>(m_base_track);
-          //   }
-          // }
-
           __host__ __device__ unsigned number_of_scifi_hits() const { return m_number_of_hits; }
-
-          // __host__ __device__ unsigned number_of_ut_hits() const
-          // {
-          //   if (m_has_ut) {
-          //     return ut_track().number_of_ut_hits();
-          //   }
-          //   else {
-          //     return 0;
-          //   }
-          // }
-
-          // __host__ __device__ unsigned number_of_velo_hits() const { return velo_track().number_of_hits(); }
-
-          // __host__ __device__ unsigned number_of_total_hits() const
-          // {
-          //   return number_of_velo_hits() + number_of_ut_hits() + number_of_scifi_hits();
-          // }
 
           __host__ __device__ float qop() const { return m_qop[m_track_index]; }
 

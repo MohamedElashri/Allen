@@ -380,9 +380,9 @@ namespace Velo {
       const unsigned m_offset;
 
     public:
-      constexpr static unsigned size = 14 * sizeof(uint32_t);
       constexpr static unsigned nb_elements_state = 6;
       constexpr static unsigned nb_elements_cov = 8;
+      constexpr static unsigned size = (nb_elements_state + nb_elements_cov) * sizeof(uint32_t);
 
       __host__ __device__ States_t(T* base_pointer, const unsigned total_number_of_tracks, const unsigned offset = 0) :
         m_base_pointer(reinterpret_cast<Allen::forward_type_t<T, float>*>(base_pointer)),
