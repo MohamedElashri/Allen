@@ -221,10 +221,10 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
-                       ] + [tup[0] for tup in monitoring_lines]
+                       ]# + [tup[0] for tup in monitoring_lines]
     # lost of line nodes, required to set up the CompositeNode
     line_nodes = [tup[1] for tup in physics_lines
-                  ] + [tup[1] for tup in monitoring_lines]
+                  ]# + [tup[1] for tup in monitoring_lines]
 
     lines = CompositeNode(
         "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
