@@ -28,6 +28,7 @@ namespace VertexFit {
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     DEVICE_INPUT(dev_kalman_pv_tables_t, Allen::Views::Physics::PVTable) dev_kalman_pv_tables;
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
+    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_INPUT(dev_sv_poca_t, float) dev_sv_poca;
     DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
     DEVICE_OUTPUT(dev_sv_pv_ipchi2_t, char) dev_sv_pv_ipchi2;

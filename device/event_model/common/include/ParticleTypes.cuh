@@ -35,7 +35,7 @@ namespace Allen {
 
         __host__ __device__ unsigned total_number() const { return m_total_number; }
 
-        __host__ __device__ unsigned pv(const unsigned index) const
+        __host__ __device__ int pv(const unsigned index) const
         {
           return *(m_base_pointer + 2 + m_offset + index);
         }
@@ -612,6 +612,7 @@ namespace Allen {
 
         __host__ __device__ float fdchi2() const 
         { 
+          if (m_pv == nullptr) return 0.f;
           const auto primary = pv();
           const auto vrt = vertex();
           const float dx = vrt.x() - primary.position.x;
@@ -637,6 +638,7 @@ namespace Allen {
 
         __host__ __device__ float fd() const
         {
+          if (m_pv == nullptr) return 0.f;
           const auto primary = pv();
           const auto vrt = vertex();
           const float dx = vrt.x() - primary.position.x;
@@ -645,12 +647,19 @@ namespace Allen {
           return sqrtf(dx * dx + dy * dy + dz * dz);
         }
 
-        __host__ __device__ float dz() const { return vertex().z() - pv().position.z; }
+        __host__ __device__ float dz() const {
+          if (m_pv == nullptr) return 0.f;
+          return vertex().z() - pv().position.z; 
+        }
 
-        __host__ __device__ float eta() const { return atanhf(dz() / fd()); }
+        __host__ __device__ float eta() const {
+          if (m_pv == nullptr) return 0.f;
+          return atanhf(dz() / fd()); 
+        }
 
         __host__ __device__ float mcor() const 
         { 
+          if (m_pv == nullptr) return 0.f;
           const float mvis = m();
           const auto primary = pv();
           const auto vrt = vertex();
@@ -732,6 +741,7 @@ namespace Allen {
 
         __host__ __device__ float dira() const 
         { 
+          if (m_pv == nullptr) return 0.f;
           const auto primary = pv();
           const auto vrt = vertex();
           const float dx = vrt.x() - primary.position.x;
@@ -826,6 +836,7 @@ namespace Allen {
 
         __host__ __device__ float ip() const 
         { 
+          if (m_pv == nullptr) return 0.f;
           const auto vrt = vertex();
           const auto primary = pv();
           float tx = vrt.px() / vrt.pz();

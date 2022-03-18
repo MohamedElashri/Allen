@@ -75,9 +75,9 @@ namespace VertexFit {
     const Allen::Views::Physics::BasicParticle& trackA,
     const Allen::Views::Physics::BasicParticle& trackB);
 
-  __device__ inline void fill_extra_pv_info(
+  __device__ inline int fill_extra_pv_info(
     TrackMVAVertex& sv,
-    const PV::Vertex& pv,
+    Allen::device::span<PV::Vertex const> pvs,
     const Allen::Views::Physics::BasicParticle& trackA,
     const Allen::Views::Physics::BasicParticle& trackB,
     const float max_assoc_ipchi2);
@@ -199,7 +199,7 @@ namespace VertexFit {
     halfD2Chi2_11 += invcov11;
     halfD2Chi2_20 += -invcov00 * state.tx();
     halfD2Chi2_21 += -invcov11 * state.ty();
-    halfD2Chi2_22 += invcov00 * state.x() * state.x() + invcov11 * state.y() * state.y();
+    halfD2Chi2_22 += invcov00 * state.tx() * state.tx() + invcov11 * state.ty() * state.ty();
     return invcov00 * rX * rX + invcov11 * rY * rY;
   }
 
@@ -356,16 +356,56 @@ namespace VertexFit {
     }
   }
 
-  __device__ void fill_extra_pv_info(
+  __device__ int fill_extra_pv_info(
     TrackMVAVertex& sv,
-    const PV::Vertex& pv,
+    Allen::device::span<PV::Vertex const> pvs,
     const Allen::Views::Physics::BasicParticle& trackA,
     const Allen::Views::Physics::BasicParticle& trackB,
     const float max_assoc_ipchi2)
   {
     // Number of tracks with ip chi2 < 16.
     sv.ntrks16 = (trackA.ip_chi2() < max_assoc_ipchi2) + (trackB.ip_chi2() < max_assoc_ipchi2);
+    
+    const unsigned n_pvs = pvs.size();
+    float minfdchi2 = -1.;
+    int pv_idx = -1;
+
+    for (unsigned ipv = 0; ipv < n_pvs; ipv++) {
+      auto pv = pvs[ipv];
+
+      // Get PV-SV separation.
+      const float dx = sv.x - pv.position.x;
+      const float dy = sv.y - pv.position.y;
+      const float dz = sv.z - pv.position.z;
+
+      // Get covariance and FD chi2.
+      const float cov00 = sv.cov00 + pv.cov00;
+      const float cov10 = sv.cov10 + pv.cov10;
+      const float cov11 = sv.cov11 + pv.cov11;
+      const float cov20 = sv.cov20 + pv.cov20;
+      const float cov21 = sv.cov21 + pv.cov21;
+      const float cov22 = sv.cov22 + pv.cov22;
+      const float invdet = 1.f / (2.f * cov10 * cov20 * cov21 - cov11 * cov20 * cov20 - cov00 * cov21 * cov21 +
+                                  cov00 * cov11 * cov22 - cov22 * cov10 * cov10);
+      const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
+      const float invcov10 = (cov20 * cov21 - cov10 * cov22) * invdet;
+      const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
+      const float invcov20 = (cov10 * cov21 - cov11 * cov20) * invdet;
+      const float invcov21 = (cov10 * cov20 - cov00 * cov21) * invdet;
+      const float invcov22 = (cov00 * cov11 - cov10 * cov10) * invdet;
+      const float fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
+                           2.f * invcov21 * dy * dz + 2.f * invcov10 * dx * dy;
+      if (fdchi2 < minfdchi2 || pv_idx < 0) {
+        minfdchi2 = fdchi2;
+        pv_idx = ipv;
+      }
+    }
+
+    if (pv_idx < 0) return -1;
+
     // Get PV-SV separation.
+    sv.fdchi2 = minfdchi2;
+    auto pv = pvs[pv_idx];
     const float dx = sv.x - pv.position.x;
     const float dy = sv.y - pv.position.y;
     const float dz = sv.z - pv.position.z;
@@ -418,6 +458,8 @@ namespace VertexFit {
     // cos DIRA.
     const float p = sqrtf(sv.px * sv.px + sv.py * sv.py + sv.pz * sv.pz);
     sv.dira = (sv.px * dx + sv.py * dy + sv.pz * dz) / (p * fd);
+
+    return pv_idx;
   }
 
 } // namespace VertexFit

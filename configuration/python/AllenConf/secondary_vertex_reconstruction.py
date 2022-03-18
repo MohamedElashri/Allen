@@ -141,6 +141,7 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only, is_muon_result
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
 
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs["dev_number_of_multi_final_vertices"],
         dev_kalman_pv_tables_t=kalman_velo_only["dev_kalman_pv_tables"],
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t,
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t,
