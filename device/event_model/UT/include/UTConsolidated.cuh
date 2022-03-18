@@ -157,16 +157,7 @@ namespace Allen {
 
           __host__ __device__ unsigned number_of_ids() const { return number_of_total_hits(); }
 
-          __host__ __device__ unsigned id(const unsigned index) const
-          {
-            auto n_velo_hits = m_velo_track->number_of_hits();
-            if (index < n_velo_hits) {
-              return m_velo_track->hit(index).id();
-            }
-            else {
-              return hit(index - n_velo_hits).id();
-            }
-          }
+          __host__ __device__ unsigned id(const unsigned index) const { return hit(index).id(); }
         };
 
         struct Tracks : Allen::ILHCbIDContainer {

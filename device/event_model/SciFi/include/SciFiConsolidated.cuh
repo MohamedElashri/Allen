@@ -88,23 +88,25 @@ namespace Allen {
         struct Track : Allen::ILHCbIDSequence {
         private:
           const Hits* m_hits = nullptr;
-          const Allen::Views::UT::Consolidated::Track* m_ut_track = nullptr;
+          const Allen::ILHCbIDSequence* m_base_track = nullptr;
           const float* m_qop = nullptr;
           unsigned m_track_index = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
+          bool m_has_ut = true;
 
         public:
           __host__ __device__ Track(
             const Hits* hits,
-            const Allen::Views::UT::Consolidated::Track* ut_track,
+            const Allen::ILHCbIDSequence* base_track,
             const float* qop,
             const unsigned* offset_tracks,
             const unsigned* offset_track_hit_number,
             const unsigned track_index,
-            const unsigned event_number) :
+            const unsigned event_number,
+            const bool has_ut) :
             m_hits(hits + event_number),
-            m_ut_track(ut_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index)
+            m_base_track(base_track), m_qop(qop + offset_tracks[event_number]), m_track_index(track_index), m_has_ut(has_ut)
           {
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
@@ -113,16 +115,29 @@ namespace Allen {
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
-          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const { return *m_ut_track; }
+          __host__ __device__ const Allen::Views::UT::Consolidated::Track& ut_track() const { 
+            assert(m_has_ut);
+            return *static_cast<const Allen::Views::UT::Consolidated::Track*>(m_base_track); 
+          }
 
           __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
           {
-            return m_ut_track->velo_track();
+            if (m_has_ut) {
+              return ut_track().velo_track();
+            } else {
+              return *static_cast<const Allen::Views::Velo::Consolidated::Track*>(m_base_track);
+            }
           }
 
           __host__ __device__ unsigned number_of_scifi_hits() const { return m_number_of_hits; }
 
-          __host__ __device__ unsigned number_of_ut_hits() const { return m_ut_track->number_of_ut_hits(); }
+          __host__ __device__ unsigned number_of_ut_hits() const { 
+            if (m_has_ut) {
+              return ut_track().number_of_ut_hits(); 
+            } else {
+              return 0;
+            }
+          }
 
           __host__ __device__ unsigned number_of_velo_hits() const { return velo_track().number_of_hits(); }
 
@@ -142,18 +157,7 @@ namespace Allen {
 
           __host__ __device__ unsigned number_of_ids() const { return number_of_total_hits(); }
 
-          __host__ __device__ unsigned id(const unsigned index) const
-          {
-            if (index < number_of_velo_hits()) {
-              return velo_track().hit(index).id();
-            }
-            else if (index < number_of_ut_hits() + number_of_velo_hits()) {
-              return m_ut_track->hit(index - number_of_velo_hits()).id();
-            }
-            else {
-              return hit(index - number_of_velo_hits() - number_of_ut_hits()).id();
-            }
-          }
+          __host__ __device__ unsigned id(const unsigned index) const { return hit(index).id(); }
         };
 
         struct Tracks : Allen::ILHCbIDContainer {
