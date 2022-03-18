@@ -74,7 +74,7 @@ void rich_2_line::rich_2_line_t::init_monitor(
  */
 __device__ void rich_2_line::rich_2_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
   unsigned index,
   bool sel)
 {
@@ -82,7 +82,7 @@ __device__ void rich_2_line::rich_2_line_t::monitor(
 
   parameters.dev_pt[index] = track.pt();
   parameters.dev_p[index] = track.p();
-  parameters.dev_track_chi2[index] = track.chi2 / track.ndof;
+  parameters.dev_track_chi2[index] = track.state().chi2() / track.state().ndof();
   parameters.dev_eta[index] = track.eta();
   parameters.dev_phi[index] = trackPhi(track);
 
@@ -159,7 +159,7 @@ void rich_2_line::rich_2_line_t::output_monitor(
 #endif
 
 __device__ bool rich_2_line::rich_2_line_t::passes(
-  const ParKalmanFilter::FittedTrack& track,
+  const Allen::Views::Physics::BasicParticle& track,
   const Parameters& parameters)
 {
 
@@ -167,7 +167,7 @@ __device__ bool rich_2_line::rich_2_line_t::passes(
   if (track.p() < parameters.minP) return false;
 
   // Cut on track Chi2 (fiducial)
-  if (track.chi2 / track.ndof > parameters.maxTrChi2) return false;
+  if (track.state().chi2() / track.state().ndof() > parameters.maxTrChi2) return false;
 
   // Cut on transverse momentum (fiducial)
   if (track.pt() < parameters.minPt) return false;
@@ -190,7 +190,7 @@ __device__ bool rich_2_line::rich_2_line_t::passes(
 
 __device__ bool rich_2_line::rich_2_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto& track = std::get<0>(input);
 

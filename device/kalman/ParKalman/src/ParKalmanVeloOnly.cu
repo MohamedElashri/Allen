@@ -48,7 +48,7 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
 
 void kalman_velo_only::kalman_velo_only_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
+  const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers& host_buffers,
   const Allen::Context& context) const

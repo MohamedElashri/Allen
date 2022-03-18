@@ -53,7 +53,8 @@ def make_kalman_velo_only(forward_tracks, pvs, is_muon_result):
         "pvs": pvs,
         "dev_kf_tracks": kalman_velo_only.dev_kf_tracks_t,
         "dev_kalman_pv_ipchi2": kalman_velo_only.dev_kalman_pv_ipchi2_t,
-        "dev_long_track_particles": kalman_velo_only.dev_long_track_particles_t
+        "dev_kalman_pv_tables": kalman_velo_only.dev_kalman_pv_tables_t,
+        "dev_long_track_particles": kalman_velo_only.dev_long_track_particles_view_t
     }
 
 
@@ -83,6 +84,7 @@ def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only):
         host_total_sum_holder_t,
         dev_long_track_particles_t=kalman_velo_only["dev_long_track_particles"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_kalman_pv_tables_t=kalman_velo_only["dev_kalman_pv_tables"],
         dev_svs_trk1_idx_t=filter_tracks.dev_svs_trk1_idx_t,
         dev_svs_trk2_idx_t=filter_tracks.dev_svs_trk2_idx_t,
         dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t,

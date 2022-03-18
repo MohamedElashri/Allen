@@ -40,7 +40,7 @@ namespace rich_1_line {
 
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
+    DEVICE_INPUT(dev_tracks_t, Allen::Views::Physics::BasicParticles) dev_tracks;
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
 
     // Monitoring
@@ -77,23 +77,23 @@ namespace rich_1_line {
   // SelectionAlgorithm definition
   struct rich_1_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<rich_1_line_t, Parameters> {
 
-    __device__ static __host__ KalmanFloat trackPhi(const ParKalmanFilter::FittedTrack& track)
+    __device__ static __host__ KalmanFloat trackPhi(const Allen::Views::Physics::BasicParticle& track)
     {
       return atan2f(track.py(), track.px());
     }
 
     // Selection helper
-    __device__ static bool passes(const ParKalmanFilter::FittedTrack& track, const Parameters& parameters);
+    __device__ static bool passes(const Allen::Views::Physics::BasicParticle& track, const Parameters& parameters);
 
     // Selection function.
-    __device__ static bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input);
+    __device__ static bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
 #ifdef WITH_ROOT
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const ParKalmanFilter::FittedTrack&> input,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
       bool sel);
     __host__ void output_monitor(

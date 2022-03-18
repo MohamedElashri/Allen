@@ -41,6 +41,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
   unsigned* event_sv_number = parameters.dev_sv_atomics + event_number;
   unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
+  float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
 
   const auto long_track_particles = parameters.dev_long_track_particles[event_number];
   const unsigned n_scifi_tracks = long_track_particles.size();
@@ -73,6 +74,14 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       if (
         trackA.get_pv() != trackB.get_pv() && trackA.ip_chi2() < parameters.max_assoc_ipchi2 &&
         trackB.ip_chi2() < parameters.max_assoc_ipchi2 && (!trackA.is_muon() || !trackB.is_muon())) {
+        continue;
+      }
+
+      // Check the POCA.
+      float x;
+      float y;
+      float z;
+      if (!VertexFit::poca(trackA, trackB, x, y, z)) {
         continue;
       }
 

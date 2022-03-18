@@ -37,7 +37,7 @@ namespace two_track_line_ks {
     post_scaler_hash_string;
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+    DEVICE_INPUT(dev_svs_t, Allen::Views::Physics::CompositeParticles) dev_svs;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minComboPt_Ks_t, "minComboPt_Ks", "minComboPt Ks description", float) minComboPt_Ks;
@@ -54,7 +54,7 @@ namespace two_track_line_ks {
   };
 
   struct two_track_line_ks_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_line_ks_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

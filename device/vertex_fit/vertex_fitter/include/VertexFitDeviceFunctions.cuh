@@ -14,14 +14,15 @@
 #include "ParKalmanFittedTrack.cuh"
 #include "ParKalmanMath.cuh"
 #include "VertexDefinitions.cuh"
+#include "ParticleTypes.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
 
 namespace VertexFit {
 
   __device__ inline bool poca(
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     float& x,
     float& y,
     float& z);
@@ -31,7 +32,7 @@ namespace VertexFit {
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
   __device__ inline float addToDerivatives(
-    const ParKalmanFilter::FittedTrack& track,
+    const Allen::Views::Physics::BasicParticle& track,
     const float& x,
     const float& y,
     const float& z,
@@ -64,18 +65,21 @@ namespace VertexFit {
     const float& halfD2Chi2_22);
 
   __device__ inline void
-  doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex);
+  doFit(
+    const Allen::Views::Physics::BasicParticle& trackA, 
+    const Allen::Views::Physics::BasicParticle& trackB, 
+    TrackMVAVertex& vertex);
 
   __device__ inline void fill_extra_info(
     TrackMVAVertex& sv,
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB);
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB);
 
   __device__ inline void fill_extra_pv_info(
     TrackMVAVertex& sv,
-    Allen::device::span<PV::Vertex const> pvs,
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
+    const PV::Vertex& pv,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     const float max_assoc_ipchi2);
 
   //----------------------------------------------------------------------
@@ -239,8 +243,11 @@ namespace VertexFit {
 
   //----------------------------------------------------------------------
   // Perform a vertex fit assuming x and y are uncorrelated.
-  __device__ bool
-  doFit(const Allen::Views::Physics::BasicParticle& trackA, const Allen::Views::Physics::BasicParticle& trackB, TrackMVAVertex& vertex)
+  __device__ void
+  doFit(
+    const Allen::Views::Physics::BasicParticle& trackA, 
+    const Allen::Views::Physics::BasicParticle& trackB, 
+    TrackMVAVertex& vertex)
   {
     float vertexweight00 = 0.f;
     float vertexweight11 = 0.f;
@@ -329,8 +336,8 @@ namespace VertexFit {
 
     // IP of constituent tracks
 
-    sv.ip1 = trackA.ip;
-    sv.ip2 = trackB.ip;
+    sv.ip1 = trackA.ip();
+    sv.ip2 = trackB.ip();
 
     // Minimum IP of constituent tracks.
     //sv.minip = trackA.ip() < trackB.ip() ? trackA.ip() : trackB.ip();
