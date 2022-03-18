@@ -60,7 +60,8 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
             make_single_high_pt_muon_line(forward_tracks, long_track_particles)))
     lines.append(
         line_maker("Hlt1LowPtMuon",
-                   make_low_pt_muon_line(forward_tracks, long_track_particles)))
+                   make_low_pt_muon_line(forward_tracks,
+                                         long_track_particles)))
     lines.append(
         line_maker("Hlt1D2KK",
                    make_d2kk_line(forward_tracks, secondary_vertices)))
