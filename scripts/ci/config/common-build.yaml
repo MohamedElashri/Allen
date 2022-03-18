@@ -15,9 +15,8 @@
   parallel:
     matrix:
       # build jobs (with tests)
-      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
-        BUILD_TYPE: Debug #[RelWithDebInfo, Debug]
-        SEQUENCE: hlt1_pp_default
+      - LCG_ARCHITECTURE: x86_64-centos7-clang12-opt
+        BUILD_TYPE: [RelWithDebInfo, Debug]
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS
 
@@ -26,34 +25,19 @@
           - x86_64-centos7-clang12-opt
         BUILD_TYPE: Debug
         OPTIONS:
-          - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT
-          - BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
-        SEQUENCE: hlt1_pp_default
+          - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT
+          - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
+          - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
 
-      # - LCG_ARCHITECTURE: [x86_64-centos7-clang10-opt]
-      #   OPTIONS: ["USE_ROOT"]
-      #   BUILD_TYPE: Debug
-      #   SEQUENCE: [hlt1_pp_validation]
+      - LCG_ARCHITECTURE:
+          - x86_64-centos7-gcc11-opt
+        BUILD_TYPE: Debug
+        OPTIONS:
+          - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
 
-      # # build job with sequence generation disabled
-      # - LCG_ARCHITECTURE:
-      #     - x86_64-centos7-clang10-opt
-      #   BUILD_TYPE: Debug
-      #   OPTIONS:
-      #     - "BUILD_TESTS+ENABLE_CONTRACTS+USE_ROOT+SEQUENCE_GENERATION=OFF"
-      #   SEQUENCE: hlt1_pp_default
-
-
-      # no_gec, scifiv6 and other builds
-      - LCG_ARCHITECTURE: x86_64-centos7-clang10-opt
-        BUILD_TYPE: RelWithDebInfo
-        SEQUENCE:
-          #- hlt1_pp_no_gec
-          #- hlt1_pp_no_gec_validation
-          - hlt1_pp_scifi_v6
-          - hlt1_pp_scifi_v6_validation
-          #- hlt1_complex_validation
-
+      - LCG_ARCHITECTURE: [x86_64-centos7-clang12-opt]
+        OPTIONS: ["USE_ROOT"]
+        BUILD_TYPE: Debug
 
 .build_job:
   extends: .base_job
