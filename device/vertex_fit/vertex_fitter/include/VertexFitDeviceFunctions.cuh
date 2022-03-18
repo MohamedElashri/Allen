@@ -27,7 +27,7 @@ namespace VertexFit {
     float& y,
     float& z);
 
-  __device__ inline float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB);
+  __device__ inline float doca(const Allen::Views::Physics::BasicParticle& trackA, const Allen::Views::Physics::BasicParticle& trackB);
 
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
@@ -133,18 +133,18 @@ namespace VertexFit {
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
   }
 
-  __device__ float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB)
+  __device__ float doca(const Allen::Views::Physics::BasicParticle& trackA, const Allen::Views::Physics::BasicParticle& trackB)
   {
-    const float xA = trackA.state[0];
-    const float yA = trackA.state[1];
-    const float zA = trackA.z;
-    const float txA = trackA.state[2];
-    const float tyA = trackA.state[3];
-    const float xB = trackB.state[0];
-    const float yB = trackB.state[1];
-    const float zB = trackB.z;
-    const float txB = trackB.state[2];
-    const float tyB = trackB.state[3];
+    const float xA = trackA.state().x();
+    const float yA = trackA.state().y();
+    const float zA = trackA.state().z();
+    const float txA = trackA.state().tx();
+    const float tyA = trackA.state().ty();
+    const float xB = trackB.state().x();
+    const float yB = trackB.state().y();
+    const float zB = trackB.state().z();
+    const float txB = trackB.state().tx();
+    const float tyB = trackB.state().ty();
     const float secondAA = txA * txA + tyA * tyA + 1.f;
     const float secondBB = txB * txB + tyB * tyB + 1.f;
     const float secondAB = -txA * txB - tyA * tyB - 1.f;
