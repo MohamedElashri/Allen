@@ -196,12 +196,12 @@ def default_monitoring_lines(velo_tracks):
     lines.append(
         line_maker(
             "Hlt1RICH1Alignment",
-            make_rich_1_line(hlt1_reconstruction(add_electron_id=True)),
+            make_rich_1_line(hlt1_reconstruction()),
             enableGEC=True))
     lines.append(
         line_maker(
             "HLt1RICH2Alignment",
-            make_rich_2_line(hlt1_reconstruction(add_electron_id=True)),
+            make_rich_2_line(hlt1_reconstruction()),
             enableGEC=True))
 
     return lines
