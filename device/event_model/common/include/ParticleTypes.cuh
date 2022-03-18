@@ -237,8 +237,7 @@ namespace Allen {
           unsigned index,
           uint8_t lepton_id) :
           IParticle(TypeID),
-          m_track(track),
-          m_states(states), m_pv(pv), m_index(index), m_lepton_id(lepton_id)
+          m_track(track), m_states(states), m_pv(pv), m_index(index), m_lepton_id(lepton_id)
         {
           assert(m_states != nullptr);
         }
@@ -409,12 +408,13 @@ namespace Allen {
           unsigned size,
           unsigned index) :
           IParticle(TypeID),
-          m_children(children),
-          m_vertices(vertices), m_pv(pv), m_size(size), m_index(index)
+          m_children(children), m_vertices(vertices), m_pv(pv), m_size(size), m_index(index)
         {
           for (unsigned i = 0; i < m_children.size(); i++) {
-            if (i < m_size) assert(m_children[i] != nullptr);
-            else assert(m_children[i] == nullptr);
+            if (i < m_size)
+              assert(m_children[i] != nullptr);
+            else
+              assert(m_children[i] == nullptr);
           }
         }
 

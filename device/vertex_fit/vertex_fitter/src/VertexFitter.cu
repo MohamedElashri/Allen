@@ -66,7 +66,7 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   const Allen::Context& context) const
 {
   initialize<dev_two_track_composite_view_t>(arguments, 0, context);
-  
+
   global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 

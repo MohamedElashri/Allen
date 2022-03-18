@@ -19,15 +19,13 @@ namespace Allen {
    *          which should be initialized in the inheriting class.
    */
   struct Identifiable {
-    private:
-      TypeIDs m_type_id = TypeIDs::Invalid;
+  private:
+    TypeIDs m_type_id = TypeIDs::Invalid;
 
-    public:
-      Identifiable() = default;
-      __host__ __device__ Identifiable(TypeIDs type_id) : m_type_id(type_id) {}
-      __host__ __device__ TypeIDs type_id() const {
-        return m_type_id;
-      }
+  public:
+    Identifiable() = default;
+    __host__ __device__ Identifiable(TypeIDs type_id) : m_type_id(type_id) {}
+    __host__ __device__ TypeIDs type_id() const { return m_type_id; }
   };
 
   /**
