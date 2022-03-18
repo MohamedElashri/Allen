@@ -36,10 +36,12 @@ def hlt1_reconstruction(add_electron_id=False):
         kalman_velo_only)
     # This block of code will not work with the new physics event model.
     if add_electron_id:
-        long_track_particles = make_basic_particles(kalman_velo_only, muonID, calo_matching_objects)
+        long_track_particles = make_basic_particles(kalman_velo_only, muonID,
+                                                    calo_matching_objects)
     else:
         long_track_particles = make_basic_particles(kalman_velo_only, muonID)
-    secondary_vertices = fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only, long_track_particles)
+    secondary_vertices = fit_secondary_vertices(
+        forward_tracks, pvs, kalman_velo_only, long_track_particles)
     return {
         "velo_tracks": velo_tracks,
         "pvs": pvs,

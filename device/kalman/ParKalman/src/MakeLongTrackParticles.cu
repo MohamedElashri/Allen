@@ -32,7 +32,7 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
   const unsigned offset = scifi_tracks.offset();
   const unsigned number_of_tracks = scifi_tracks.size();
   const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
-  
+
   for (unsigned i = threadIdx.x; i < number_of_tracks; i++) {
     parameters.dev_long_tracks[offset + i] =
       Allen::Views::Physics::Track {&parameters.dev_scifi_tracks_view[event_number].track(i).velo_track(),

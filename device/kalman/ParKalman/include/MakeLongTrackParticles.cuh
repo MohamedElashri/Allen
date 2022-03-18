@@ -48,7 +48,7 @@ namespace make_long_track_particles {
       const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const;
-      
+
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
@@ -60,4 +60,4 @@ namespace make_long_track_particles {
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 
-}
+} // namespace make_long_track_particles

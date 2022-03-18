@@ -53,7 +53,8 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
     const auto trackA = long_track_particles.particle(i_track);
 
     if (
-      trackA.pt() < parameters.track_min_pt || (trackA.ip_chi2() < parameters.track_min_ipchi2 && !trackA.is_lepton()) ||
+      trackA.pt() < parameters.track_min_pt ||
+      (trackA.ip_chi2() < parameters.track_min_ipchi2 && !trackA.is_lepton()) ||
       (trackA.chi2() / trackA.ndof() > parameters.track_max_chi2ndof && !trackA.is_lepton()) ||
       (trackA.chi2() / trackA.ndof() > parameters.track_muon_max_chi2ndof && trackA.is_lepton())) {
       continue;

@@ -63,7 +63,8 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             "Hlt1SingleHighPtMuon",
-            make_single_high_pt_muon_line(forward_tracks, long_track_particles),
+            make_single_high_pt_muon_line(forward_tracks,
+                                          long_track_particles),
             enableGEC=True))
     lines.append(
         line_maker(
@@ -130,8 +131,8 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             "Hlt1SingleHighPtElectron",
-            make_single_high_pt_electron_line(forward_tracks, long_track_particles,
-                                              calo_matching_objects),
+            make_single_high_pt_electron_line(
+                forward_tracks, long_track_particles, calo_matching_objects),
             enableGEC=True))
     lines.append(
         line_maker(

@@ -35,6 +35,7 @@ __device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::se
     return false;
   }
 
-  const bool decision = corrected_pt > parameters.singleMinPt && track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof;
+  const bool decision =
+    corrected_pt > parameters.singleMinPt && track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof;
   return decision;
 }

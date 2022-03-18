@@ -4,7 +4,7 @@ INSTANTIATE_ALGORITHM(make_lepton_id::make_lepton_id_t)
 
 void make_lepton_id::make_lepton_id_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&, 
+  const RuntimeOptions&,
   const Constants&,
   const HostBuffers&) const
 {
@@ -19,8 +19,7 @@ void make_lepton_id::make_lepton_id_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  global_function(make_lepton_id)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(make_lepton_id)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 __global__ void make_lepton_id::make_lepton_id(make_lepton_id::Parameters parameters)
