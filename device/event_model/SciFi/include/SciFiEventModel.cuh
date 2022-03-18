@@ -356,7 +356,6 @@ namespace SciFi {
     uint8_t hitsNum = 0;
 
     TrackHits() = default;
-    TrackHits(const TrackHits&) = default;
 
     __host__ __device__ TrackHits(const TrackCandidate& candidate) :
       quality(candidate.quality), qop(candidate.qop), ut_track_index(candidate.ut_track_index),
