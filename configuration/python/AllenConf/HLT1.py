@@ -37,7 +37,7 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
     return line_algorithm, node
 
 
-def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
+def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                           secondary_vertices, calo_matching_objects):
     lines = []
     lines.append(
@@ -45,7 +45,7 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
                    make_kstopipi_line(forward_tracks, secondary_vertices)))
     lines.append(
         line_maker("Hlt1TrackMVA",
-                   make_track_mva_line(forward_tracks, kalman_velo_only)))
+                   make_track_mva_line(forward_tracks, long_track_particles)))
     lines.append(
         line_maker("Hlt1TwoTrackMVA",
                    make_two_track_mva_line(forward_tracks,
@@ -57,10 +57,10 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
     lines.append(
         line_maker(
             "Hlt1SingleHighPtMuon",
-            make_single_high_pt_muon_line(forward_tracks, kalman_velo_only)))
+            make_single_high_pt_muon_line(forward_tracks, long_track_particles)))
     lines.append(
         line_maker("Hlt1LowPtMuon",
-                   make_low_pt_muon_line(forward_tracks, kalman_velo_only)))
+                   make_low_pt_muon_line(forward_tracks, long_track_particles)))
     lines.append(
         line_maker("Hlt1D2KK",
                    make_d2kk_line(forward_tracks, secondary_vertices)))
@@ -97,16 +97,16 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
             make_low_pt_di_muon_line(forward_tracks, secondary_vertices)))
     lines.append(
         line_maker("Hlt1TrackMuonMVA",
-                   make_track_muon_mva_line(forward_tracks, kalman_velo_only)))
+                   make_track_muon_mva_line(forward_tracks, long_track_particles)))
     lines.append(
         line_maker(
             "Hlt1TrackElectronMVA",
-            make_track_electron_mva_line(forward_tracks, kalman_velo_only,
+            make_track_electron_mva_line(forward_tracks, long_track_particles,
                                          calo_matching_objects)))
     lines.append(
         line_maker(
             "Hlt1SingleHighPtElectron",
-            make_single_high_pt_electron_line(forward_tracks, kalman_velo_only,
+            make_single_high_pt_electron_line(forward_tracks, long_track_particles,
                                               calo_matching_objects)))
     lines.append(
         line_maker(
@@ -116,7 +116,7 @@ def default_physics_lines(velo_tracks, forward_tracks, kalman_velo_only,
     lines.append(
         line_maker(
             "Hlt1DisplacedLeptons",
-            make_displaced_leptons_line(forward_tracks, kalman_velo_only,
+            make_displaced_leptons_line(forward_tracks, long_track_particles,
                                         calo_matching_objects)))
     lines.append(
         line_maker(
@@ -213,7 +213,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         physics_lines = default_physics_lines(
             reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
-            reconstructed_objects["kalman_velo_only"],
+            reconstructed_objects["long_track_particles"],
             reconstructed_objects["secondary_vertices"],
             reconstructed_objects["calo_matching_objects"])
 

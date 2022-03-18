@@ -106,7 +106,8 @@ __global__ void track_digit_selective_matching::track_digit_selective_matching(
     parameters.dev_track_inEcalAcc[track_index + scifi_tracks.tracks_offset(event_number)] = inAcc;
     parameters.dev_track_Eop[track_index + scifi_tracks.tracks_offset(event_number)] =
       sum_cell_E * fabsf(scifi_tracks.qop(track_index));
+    // Bit shift by 1 so this can be combined with the muon ID to create a single lepton ID object.
     parameters.dev_track_isElectron[track_index + scifi_tracks.tracks_offset(event_number)] =
-      (parameters.dev_track_Eop[track_index + scifi_tracks.tracks_offset(event_number)] > 0.7f);
+      (parameters.dev_track_Eop[track_index + scifi_tracks.tracks_offset(event_number)] > 0.7f) << 1;
   }
 }

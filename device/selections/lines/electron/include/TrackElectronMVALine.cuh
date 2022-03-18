@@ -10,7 +10,7 @@ namespace track_electron_mva_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
+    DEVICE_INPUT(dev_tracks_t, Allen::Views::Physics::BasicParticles) dev_tracks;
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
@@ -45,9 +45,9 @@ namespace track_electron_mva_line {
                                      OneTrackLine<track_electron_mva_line_t, Parameters> {
     __device__ static bool select(
       const Parameters& ps,
-      std::tuple<const ParKalmanFilter::FittedTrack&, const bool, const float> input);
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
 
-    __device__ static std::tuple<const ParKalmanFilter::FittedTrack&, const bool, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
   private:

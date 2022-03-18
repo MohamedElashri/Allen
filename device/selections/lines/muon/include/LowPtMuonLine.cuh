@@ -44,7 +44,7 @@ namespace low_pt_muon_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
     // NB: This pt cut is looser than default tracking threshold.
-    Property<minPt_t> m_minPt {this, 80.0f / Gaudi::Units::MeV};
+    Property<minPt_t> m_minPt {this, 80.0f * Gaudi::Units::MeV};
     Property<minIP_t> m_minIP {this, 4.f};
     Property<minIPChi2_t> m_minIPChi2 {this, 7.4f};
   };

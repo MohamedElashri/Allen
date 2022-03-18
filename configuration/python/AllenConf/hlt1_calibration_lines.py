@@ -57,7 +57,7 @@ def make_rich_line(line_type, reconstructed_objects, pre_scaler_hash_string,
     layout = mep_layout()
 
     forward_tracks = reconstructed_objects["forward_tracks"]
-    kalman_velo_only = reconstructed_objects["kalman_velo_only"]
+    long_track_particles = reconstructed_objects["long_track_particles"]
 
     return make_algorithm(
         line_type,
@@ -65,7 +65,7 @@ def make_rich_line(line_type, reconstructed_objects, pre_scaler_hash_string,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=kalman_velo_only["dev_long_track_particles"],
+        dev_tracks_t=long_track_particles["dev_long_track_particles"],
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],

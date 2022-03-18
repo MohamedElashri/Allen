@@ -7,7 +7,7 @@ from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
 from AllenConf.muon_reconstruction import decode_muon, is_muon
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters
 from AllenConf.primary_vertex_reconstruction import make_pvs
-from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, fit_secondary_vertices
+from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices
 from AllenConf.validators import (
     velo_validation, veloUT_validation, forward_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation, selreport_validation)
@@ -35,19 +35,11 @@ def hlt1_reconstruction(add_electron_id=False):
         decoded_calo, velo_tracks, velo_states, ut_tracks, forward_tracks,
         kalman_velo_only)
     # This block of code will not work with the new physics event model.
-    # if add_electron_id:
-    #     kalman_velo_only = {
-    #         "forward_tracks":
-    #         kalman_velo_only["forward_tracks"],
-    #         "pvs":
-    #         kalman_velo_only["pvs"],
-    #         "dev_kf_tracks":
-    #         calo_matching_objects["dev_kf_tracks_with_electron_id"],
-    #         "dev_kalman_pv_ipchi2":
-    #         kalman_velo_only["dev_kalman_pv_ipchi2"]
-    #     }
-    secondary_vertices = fit_secondary_vertices(forward_tracks, pvs,
-                                                kalman_velo_only, muonID)
+    if add_electron_id:
+        long_track_particles = make_basic_particles(kalman_velo_only, muonID, calo_matching_objects)
+    else:
+        long_track_particles = make_basic_particles(kalman_velo_only, muonID)
+    secondary_vertices = fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only, long_track_particles)
     return {
         "velo_tracks": velo_tracks,
         "pvs": pvs,
@@ -55,6 +47,7 @@ def hlt1_reconstruction(add_electron_id=False):
         "forward_tracks": forward_tracks,
         "muonID": muonID,
         "kalman_velo_only": kalman_velo_only,
+        "long_track_particles": long_track_particles,
         "secondary_vertices": secondary_vertices,
         "calo_matching_objects": calo_matching_objects,
         "ecal_clusters": ecal_clusters

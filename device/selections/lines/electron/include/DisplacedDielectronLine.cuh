@@ -10,7 +10,7 @@ namespace displaced_dielectron_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+    DEVICE_INPUT(dev_svs_t, Allen::Views::Physics::CompositeParticles) dev_svs;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
@@ -46,9 +46,9 @@ namespace displaced_dielectron_line {
                                        TwoTrackLine<displaced_dielectron_line_t, Parameters> {
     __device__ static bool select(
       const Parameters&,
-      std::tuple<const VertexFit::TrackMVAVertex&, const bool, const float>);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>);
 
-    __device__ static std::tuple<const VertexFit::TrackMVAVertex&, const bool, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
   private:

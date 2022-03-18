@@ -190,7 +190,7 @@ namespace Allen {
         const PV::Vertex* m_pv = nullptr; // PV event model should be rebuilt too.
         // Could store muon and calo PID in a single array, but they're created by
         // different algorithms and might not always exist.
-        const bool* m_muon_id = nullptr;
+        const uint8_t* m_lepton_id = nullptr;
         unsigned m_index = 0;
 
       public:
@@ -198,10 +198,10 @@ namespace Allen {
           const Track* track,
           const KalmanStates* states,
           const PV::Vertex* pv,
-          const bool* muon_id,
+          const uint8_t* lepton_id,
           const unsigned index) :
           Particle {1},
-          m_track(track), m_states(states), m_pv(pv), m_muon_id(muon_id), m_index(index)
+          m_track(track), m_states(states), m_pv(pv), m_lepton_id(lepton_id), m_index(index)
         {
           // Make sure this isn't a composite ID structure.
           // TODO: Is this sensible at all?
@@ -215,7 +215,8 @@ namespace Allen {
 
         __host__ __device__ const PV::Vertex* get_pv() const { return m_pv; }
 
-        __host__ __device__ const bool* get_muon_id() const { return m_muon_id; }
+        //__host__ __device__ const bool* get_muon_id() const { return m_muon_id; }
+        __host__ __device__ const uint8_t* get_lepton_id() const { return m_lepton_id; }
 
         __host__ __device__ unsigned get_index() const { return m_index; }
 
@@ -271,8 +272,20 @@ namespace Allen {
 
         __host__ __device__ bool is_muon() const
         {
-          assert(m_muon_id != nullptr);
-          return m_muon_id[m_index];
+          if (m_lepton_id == nullptr) return false;
+          return (m_lepton_id[m_index] & 1);
+        }
+
+        __host__ __device__ bool is_electron() const
+        {
+          if (m_lepton_id == nullptr) return false;
+          return ((m_lepton_id[m_index] & (1 << 1)) >> 1);
+        }
+
+        __host__ __device__ bool is_lepton() const
+        {
+          if (m_lepton_id == nullptr) return false;
+          return m_lepton_id[m_index];
         }
 
         __host__ __device__ float chi2() const { return state().chi2(); }
@@ -737,6 +750,24 @@ namespace Allen {
                  static_cast<const BasicParticle*>(substr2)->is_muon();
         }
 
+        __host__ __device__ bool is_dielectron() const
+        {
+          const auto substr1 = substructure(0);
+          const auto substr2 = substructure(1);
+          if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1) return false;
+          return static_cast<const BasicParticle*>(substr1)->is_electron() &&
+                 static_cast<const BasicParticle*>(substr2)->is_electron();
+        }
+
+        __host__ __device__ bool is_dilepton() const
+        {
+          const auto substr1 = substructure(0);
+          const auto substr2 = substructure(1);
+          if (substr1->number_of_substructures() != 1 || substr2->number_of_substructures() != 1) return false;
+          return static_cast<const BasicParticle*>(substr1)->is_lepton() &&
+                 static_cast<const BasicParticle*>(substr2)->is_lepton();
+        }
+
         __host__ __device__ float clone_sin2() const
         {
           if (!is_dimuon()) return -1.f;
@@ -757,7 +788,6 @@ namespace Allen {
 
       struct CompositeParticles : ParticleContainer {
       private:
-        // const CompositeParticle* m_composite = nullptr;
         unsigned m_offset = 0;
 
       public:
@@ -771,8 +801,6 @@ namespace Allen {
         {
           return static_cast<const CompositeParticle*>(m_particle)[particle_index];
         }
-
-        // __host__ __device__ unsigned size() const { return m_size; }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
       };

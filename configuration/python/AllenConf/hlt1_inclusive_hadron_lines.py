@@ -33,7 +33,7 @@ def make_kstopipi_line(forward_tracks,
 
 
 def make_track_mva_line(forward_tracks,
-                        kalman_velo_only,
+                        long_track_particles,
                         pre_scaler_hash_string="track_mva_line_pre",
                         post_scaler_hash_string="track_mva_line_post",
                         name="Hlt1TrackMVA"):
@@ -47,7 +47,7 @@ def make_track_mva_line(forward_tracks,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=kalman_velo_only["dev_long_track_particles"],
+        dev_tracks_t=long_track_particles["dev_long_track_particles"],
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],

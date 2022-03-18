@@ -53,9 +53,9 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
     const auto trackA = long_track_particles.particle(i_track);
 
     if (
-      trackA.pt() < parameters.track_min_pt || (trackA.ip_chi2() < parameters.track_min_ipchi2 && !trackA.is_muon()) ||
-      (trackA.chi2() / trackA.ndof() > parameters.track_max_chi2ndof && !trackA.is_muon()) ||
-      (trackA.chi2() / trackA.ndof() > parameters.track_muon_max_chi2ndof && trackA.is_muon())) {
+      trackA.pt() < parameters.track_min_pt || (trackA.ip_chi2() < parameters.track_min_ipchi2 && !trackA.is_lepton()) ||
+      (trackA.chi2() / trackA.ndof() > parameters.track_max_chi2ndof && !trackA.is_lepton()) ||
+      (trackA.chi2() / trackA.ndof() > parameters.track_muon_max_chi2ndof && trackA.is_lepton())) {
       continue;
     }
 
@@ -65,16 +65,16 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       const auto trackB = long_track_particles.particle(j_track);
       if (
         trackB.pt() < parameters.track_min_pt ||
-        (trackB.ip_chi2() < parameters.track_min_ipchi2 && !trackB.is_muon()) ||
-        (trackB.chi2() / trackB.ndof() > parameters.track_max_chi2ndof && !trackB.is_muon()) ||
-        (trackB.chi2() / trackB.ndof() > parameters.track_muon_max_chi2ndof && trackB.is_muon())) {
+        (trackB.ip_chi2() < parameters.track_min_ipchi2 && !trackB.is_lepton()) ||
+        (trackB.chi2() / trackB.ndof() > parameters.track_max_chi2ndof && !trackB.is_lepton()) ||
+        (trackB.chi2() / trackB.ndof() > parameters.track_muon_max_chi2ndof && trackB.is_lepton())) {
         continue;
       }
 
       // Same PV cut for non-muons.
       if (
         trackA.get_pv() != trackB.get_pv() && trackA.ip_chi2() < parameters.max_assoc_ipchi2 &&
-        trackB.ip_chi2() < parameters.max_assoc_ipchi2 && (!trackA.is_muon() || !trackB.is_muon())) {
+        trackB.ip_chi2() < parameters.max_assoc_ipchi2 && (!trackA.is_lepton() || !trackB.is_lepton())) {
         continue;
       }
 

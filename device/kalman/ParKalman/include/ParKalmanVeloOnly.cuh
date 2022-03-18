@@ -99,11 +99,6 @@ namespace kalman_velo_only {
     DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_OUTPUT(dev_kalman_fit_results_t, char) dev_kalman_fit_results;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_long_tracks_t,
-      DEPENDENCIES(dev_scifi_tracks_view_t),
-      Allen::Views::Physics::Track)
-    dev_long_tracks;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_kalman_states_view_t,
       DEPENDENCIES(dev_kalman_fit_results_t),
       Allen::Views::Physics::KalmanStates)
@@ -113,21 +108,6 @@ namespace kalman_velo_only {
       DEPENDENCIES(dev_kalman_pv_ipchi2_t),
       Allen::Views::Physics::PVTable)
     dev_kalman_pv_tables;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_long_track_particle_view_t,
-      DEPENDENCIES(
-        dev_long_tracks_t,
-        dev_kalman_states_view_t,
-        dev_multi_final_vertices_t,
-        dev_kalman_pv_tables_t,
-        dev_is_muon_t),
-      Allen::Views::Physics::BasicParticle)
-    dev_long_track_particle_view;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_long_track_particles_view_t,
-      DEPENDENCIES(dev_long_track_particle_view_t),
-      Allen::Views::Physics::BasicParticles)
-    dev_long_track_particles_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

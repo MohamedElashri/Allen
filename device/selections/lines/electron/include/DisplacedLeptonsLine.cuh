@@ -5,7 +5,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "EventLine.cuh"
-#include "ParKalmanFilter.cuh"
+#include "ParticleTypes.cuh"
 
 namespace displaced_leptons_line {
   struct Parameters {
@@ -15,7 +15,7 @@ namespace displaced_leptons_line {
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
     DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
-    DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
+    DEVICE_INPUT(dev_tracks_t, Allen::Views::Physics::BasicParticles) dev_tracks;
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
@@ -38,12 +38,12 @@ namespace displaced_leptons_line {
   struct displaced_leptons_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     EventLine<displaced_leptons_line_t, Parameters> {
-    __device__ static std::tuple<const ParKalmanFilter::FittedTrack*, const unsigned, const bool*, const float*>
+    __device__ static std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
     get_input(const Parameters& parameters, const unsigned event_number);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const ParKalmanFilter::FittedTrack*, const unsigned, const bool*, const float*> input);
+      std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
