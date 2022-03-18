@@ -18,7 +18,7 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
     const int i_pv = pv_table.pv(i);
     if (i_pv >= 0) {
       new (parameters.dev_two_track_composite_view + offset + i) Allen::Views::Physics::CompositeParticle {
-        const_cast<const Allen::Views::Physics::Particle**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
+        const_cast<const Allen::Views::Physics::IParticle**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
         parameters.dev_sv_fit_results_view + event_number,
         parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + i_pv,
         2,
@@ -27,7 +27,7 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
     }
     else {
       new (parameters.dev_two_track_composite_view + offset + i) Allen::Views::Physics::CompositeParticle {
-        const_cast<const Allen::Views::Physics::Particle**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
+        const_cast<const Allen::Views::Physics::IParticle**>(parameters.dev_two_track_sv_track_pointers + 2 * offset),
         parameters.dev_sv_fit_results_view + event_number,
         nullptr,
         2,
@@ -131,7 +131,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   const float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
 
   // Tracks.
-  const auto long_track_particles = parameters.dev_long_track_particles[event_number];
+  const auto long_track_particles = parameters.dev_long_track_particles->container(event_number);
 
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_consolidated_svs + sv_offset;
@@ -167,9 +167,9 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
 
     // TODO: Is there a better way to do this?
     parameters.dev_two_track_sv_track_pointers[2 * sv_offset + i_sv] =
-      const_cast<Allen::Views::Physics::BasicParticle*>(long_track_particles.particle_pointer(i_track));
+      const_cast<Allen::Views::Physics::BasicParticle*>(&trackA);
     parameters.dev_two_track_sv_track_pointers[2 * sv_offset + n_svs + i_sv] =
-      const_cast<Allen::Views::Physics::BasicParticle*>(long_track_particles.particle_pointer(j_track));
+      const_cast<Allen::Views::Physics::BasicParticle*>(&trackB);
 
     // Do the fit.
     doFit(trackA, trackB, tmp_sv);

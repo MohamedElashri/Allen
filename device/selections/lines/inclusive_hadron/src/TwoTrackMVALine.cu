@@ -56,7 +56,7 @@ __device__ bool two_track_mva_line::two_track_mva_line_t::select(
   const auto& response = std::get<1>(input);
   const bool presel =
     (vertex.minpt() > parameters.minPt && vertex.eta() > parameters.minEta && vertex.eta() < parameters.maxEta &&
-     vertex.mcor() > parameters.minMcor && vertex.pt() > parameters.minSVpt &&
+     vertex.mcor() > parameters.minMcor && vertex.vertex().pt() > parameters.minSVpt &&
      vertex.vertex().chi2() < parameters.maxSVchi2 && vertex.doca12() < parameters.maxDOCA);
   return presel && response > parameters.minMVA;
 }

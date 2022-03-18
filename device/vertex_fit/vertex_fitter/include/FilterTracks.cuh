@@ -26,7 +26,10 @@ namespace FilterTracks {
     HOST_INPUT(host_number_of_tracks_t, unsigned) host_number_of_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::BasicParticles) dev_long_track_particles;
+    // TODO: Choose a better name for this, because these don't need to be long
+    // tracks.
+    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::MultiEventBasicParticles) 
+    dev_long_track_particles;
     DEVICE_OUTPUT(dev_track_prefilter_result_t, float) dev_track_prefilter_result;
     DEVICE_OUTPUT(dev_sv_atomics_t, unsigned) dev_sv_atomics;
     DEVICE_OUTPUT(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;

@@ -14,8 +14,7 @@ __device__ bool d2pipi_line::d2pipi_line_t::select(
   if (vertex.chi2() < 0) {
     return false;
   }
-
-  const bool decision = particle.pt() > parameters.minComboPt && vertex.chi2() < parameters.maxparticleChi2 &&
+  const bool decision = vertex.pt() > parameters.minComboPt && vertex.chi2() < parameters.maxVertexChi2 &&
                         particle.eta() > parameters.minEta && particle.eta() < parameters.maxEta &&
                         particle.minpt() > parameters.minTrackPt &&
                         fabsf(particle.m12(Allen::mPi, Allen::mPi) - Allen::mDz) < parameters.massWindow;

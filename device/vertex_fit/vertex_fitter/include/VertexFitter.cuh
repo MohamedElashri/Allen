@@ -29,7 +29,10 @@ namespace VertexFit {
     DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_INPUT(dev_sv_poca_t, float) dev_sv_poca;
-    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::BasicParticles) dev_long_track_particles;
+    // TODO: Choose a better name for the input particles, because they don't
+    // necessarily need to be long tracks.
+    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::MultiEventBasicParticles) 
+    dev_long_track_particles;
     DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
     DEVICE_OUTPUT(dev_sv_pv_ipchi2_t, char) dev_sv_pv_ipchi2;
     DEVICE_OUTPUT(dev_sv_fit_results_t, char) dev_sv_fit_results;
@@ -47,7 +50,7 @@ namespace VertexFit {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_two_track_sv_track_pointers_t,
       DEPENDENCIES(dev_long_track_particles_t),
-      Allen::Views::Physics::Particle*)
+      Allen::Views::Physics::IParticle*)
     dev_two_track_sv_track_pointers;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_two_track_composite_view_t,

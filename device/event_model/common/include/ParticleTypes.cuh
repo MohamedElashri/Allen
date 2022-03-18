@@ -269,6 +269,12 @@ namespace Allen {
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
 
+        // TODO: For now, we need to access the particle index for electron
+        // lines that use bremsstrahlung-corrected momentum. In the longer term,
+        // this should be accessed with some view equivalent to the CPU-side
+        // CaloHypo.
+        __host__ __device__ unsigned get_index() const { return m_index; }
+
         __host__ __device__ bool is_muon() const
         {
           return m_lepton_id & 1;

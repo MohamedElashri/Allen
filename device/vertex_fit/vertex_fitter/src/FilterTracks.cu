@@ -41,7 +41,7 @@ void FilterTracks::filter_tracks_t::operator()(
 __global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const auto long_track_particles = parameters.dev_long_track_particles[event_number];
+  const auto long_track_particles = parameters.dev_long_track_particles->container(event_number);
   const unsigned n_tracks = long_track_particles.size();
   float* event_prefilter_result = parameters.dev_track_prefilter_result + long_track_particles.offset();
 
@@ -68,7 +68,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
   unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
   float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
 
-  const auto long_track_particles = parameters.dev_long_track_particles[event_number];
+  const auto long_track_particles = parameters.dev_long_track_particles->container(event_number);
   float* event_prefilter_result = parameters.dev_track_prefilter_result + long_track_particles.offset();
   const unsigned n_scifi_tracks = long_track_particles.size();
 
@@ -88,8 +88,10 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       const float ipchi2B = event_prefilter_result[j_track];
 
       // Same PV cut for non-muons.
+      // TODO: The comparison between float3s doesn't compile with clang12.
+      // Can't we just compare pointers?
       if (
-        trackA.pv().position != trackB.pv().position && ipchi2A < parameters.max_assoc_ipchi2 &&
+        &(trackA.pv()) != &(trackB.pv()) && ipchi2A < parameters.max_assoc_ipchi2 &&
         ipchi2B < parameters.max_assoc_ipchi2 && (!trackA.is_lepton() || !trackB.is_lepton())) {
         continue;
       }

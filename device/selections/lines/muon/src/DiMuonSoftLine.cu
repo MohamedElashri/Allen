@@ -20,7 +20,7 @@ __device__ bool di_muon_soft_line::di_muon_soft_line_t::select(
     (vertex.mdimu() < parameters.DMSoftM2) && vertex.eta() > 0 &&
     (vertex.vertex().x() * vertex.vertex().x() + vertex.vertex().y() * vertex.vertex().y()) >
       parameters.DMSoftMinRho2 &&
-    (vertex.z() > parameters.DMSoftMinZ) && (vertex.vertex().z() < parameters.DMSoftMaxZ) &&
+    (vertex.vertex().z() > parameters.DMSoftMinZ) && (vertex.vertex().z() < parameters.DMSoftMaxZ) &&
     vertex.doca12() < parameters.DMSoftMaxDOCA && vertex.ip() / vertex.dz() < parameters.DMSoftMaxIPDZ &&
     vertex.clone_sin2() > parameters.DMSoftGhost;
   return decision;

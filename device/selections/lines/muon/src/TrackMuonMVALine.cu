@@ -15,7 +15,7 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
     return false;
   }
 
-  const auto ptShift = (track.pt() - parameters.alpha);
+  const auto ptShift = (track.state().pt() - parameters.alpha);
   const bool decision =
     track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
     ((ptShift > parameters.maxPt && track.ip_chi2() > parameters.minIPChi2) ||
