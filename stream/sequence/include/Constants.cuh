@@ -109,15 +109,6 @@ struct Constants {
   float* dev_muon_catboost_leaf_values = nullptr;
   int* dev_muon_catboost_leaf_offsets = nullptr;
 
-  // Two-track catboost constants.
-  unsigned two_track_catboost_n_trees;
-  int* dev_two_track_catboost_tree_depths = nullptr;
-  int* dev_two_track_catboost_tree_offsets = nullptr;
-  int* dev_two_track_catboost_split_features = nullptr;
-  float* dev_two_track_catboost_split_borders = nullptr;
-  float* dev_two_track_catboost_leaf_values = nullptr;
-  int* dev_two_track_catboost_leaf_offsets = nullptr;
-
   // Two track mva constants
   float* dev_two_track_mva_weights = nullptr;
   float* dev_two_track_mva_biases = nullptr;
@@ -161,15 +152,6 @@ struct Constants {
   void initialize_ut_decoding_constants(const std::vector<char>& ut_geometry);
 
   void initialize_muon_catboost_model_constants(
-    const int n_trees,
-    const std::vector<int>& tree_depths,
-    const std::vector<int>& tree_offsets,
-    const std::vector<float>& leaf_values,
-    const std::vector<int>& leaf_offsets,
-    const std::vector<float>& split_borders,
-    const std::vector<int>& split_features);
-
-  void initialize_two_track_catboost_model_constants(
     const int n_trees,
     const std::vector<int>& tree_depths,
     const std::vector<int>& tree_offsets,

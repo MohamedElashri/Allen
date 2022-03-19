@@ -113,55 +113,6 @@ void Constants::initialize_muon_catboost_model_constants(
     dev_muon_catboost_leaf_offsets, leaf_offsets.data(), leaf_offsets.size() * sizeof(int), Allen::memcpyHostToDevice);
 }
 
-void Constants::initialize_two_track_catboost_model_constants(
-  const int n_trees,
-  const std::vector<int>& tree_depths,
-  const std::vector<int>& tree_offsets,
-  const std::vector<float>& leaf_values,
-  const std::vector<int>& leaf_offsets,
-  const std::vector<float>& split_borders,
-  const std::vector<int>& split_features)
-{
-  two_track_catboost_n_trees = n_trees;
-  Allen::malloc((void**) &dev_two_track_catboost_split_features, split_features.size() * sizeof(int));
-  Allen::malloc((void**) &dev_two_track_catboost_split_borders, split_borders.size() * sizeof(float));
-  Allen::malloc((void**) &dev_two_track_catboost_leaf_values, leaf_values.size() * sizeof(float));
-  Allen::malloc((void**) &dev_two_track_catboost_tree_depths, tree_depths.size() * sizeof(int));
-  Allen::malloc((void**) &dev_two_track_catboost_tree_offsets, tree_offsets.size() * sizeof(int));
-  Allen::malloc((void**) &dev_two_track_catboost_leaf_offsets, leaf_offsets.size() * sizeof(int));
-
-  Allen::memcpy(
-    dev_two_track_catboost_split_features,
-    split_features.data(),
-    split_features.size() * sizeof(int),
-    Allen::memcpyHostToDevice);
-  Allen::memcpy(
-    dev_two_track_catboost_split_borders,
-    split_borders.data(),
-    split_borders.size() * sizeof(float),
-    Allen::memcpyHostToDevice);
-  Allen::memcpy(
-    dev_two_track_catboost_leaf_values,
-    leaf_values.data(),
-    leaf_values.size() * sizeof(float),
-    Allen::memcpyHostToDevice);
-  Allen::memcpy(
-    dev_two_track_catboost_tree_depths,
-    tree_depths.data(),
-    tree_depths.size() * sizeof(int),
-    Allen::memcpyHostToDevice);
-  Allen::memcpy(
-    dev_two_track_catboost_tree_offsets,
-    tree_offsets.data(),
-    tree_offsets.size() * sizeof(int),
-    Allen::memcpyHostToDevice);
-  Allen::memcpy(
-    dev_two_track_catboost_leaf_offsets,
-    leaf_offsets.data(),
-    leaf_offsets.size() * sizeof(int),
-    Allen::memcpyHostToDevice);
-}
-
 void Constants::initialize_two_track_mva_model_constants(
   const std::vector<float>& weights,
   const std::vector<float>& biases,

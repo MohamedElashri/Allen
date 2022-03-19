@@ -203,7 +203,6 @@ int allen(
   std::unique_ptr<ConfigurationReader> configuration_reader;
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
-  std::unique_ptr<CatboostModelReader> two_track_catboost_model_reader;
   std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
 
   // items for 0MQ to poll
@@ -225,8 +224,6 @@ int allen(
 
   // Read the Muon catboost model
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_parameters + "muon_catboost_model.json");
-  two_track_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(folder_parameters + "two_track_catboost_model_small.json");
   // Two Track Model
   two_track_mva_model_reader = std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "two_track_mva_model.json");
 
@@ -244,15 +241,6 @@ int allen(
     muon_catboost_model_reader->leaf_offsets(),
     muon_catboost_model_reader->split_border(),
     muon_catboost_model_reader->split_feature());
-
-  constants.initialize_two_track_catboost_model_constants(
-    two_track_catboost_model_reader->n_trees(),
-    two_track_catboost_model_reader->tree_depths(),
-    two_track_catboost_model_reader->tree_offsets(),
-    two_track_catboost_model_reader->leaf_values(),
-    two_track_catboost_model_reader->leaf_offsets(),
-    two_track_catboost_model_reader->split_border(),
-    two_track_catboost_model_reader->split_feature());
 
   constants.initialize_two_track_mva_model_constants(
     two_track_mva_model_reader->weights(),
