@@ -27,7 +27,7 @@ void host_prefix_sum::host_prefix_sum_impl(
   }
 
   unsigned sum;
-  _mm_storeu_si32(&sum, offset);
+  _mm_store_ss((float*) &sum, _mm_castsi128_ps(offset));
   const auto first_element_remaining = size - (size % 4);
   for (unsigned i = 0; i < size % 4; ++i) {
     sum += host_prefix_sum_buffer[first_element_remaining + i];
