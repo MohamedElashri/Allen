@@ -47,8 +47,8 @@ struct Config {
   std::string mdf_files;
   std::string mep_files;
   size_t n_slices = 1;
-  size_t n_events = 10;
-  size_t eps = 0;
+  unsigned n_events = 10;
+  unsigned eps = 0;
   bool run = false;
   std::string sequence;
   bool transpose_mep = false;
@@ -122,6 +122,7 @@ IInputProvider* mep_provider(std::string json_file)
   sc &= provider_prop->setProperty("SplitByRun", "0");
   sc &= provider_prop->setProperty("Source", "\"Files\"");
   sc &= provider_prop->setProperty("BufferConfig", "(1, 1)");
+  sc &= provider_prop->setProperty("TransposeMEPs", std::to_string(s_config.transpose_mep));
   sc &= provider_prop->setProperty("OutputLevel", "2");
 
   auto mep_files = split_string(s_config.mep_files, ",");
@@ -153,6 +154,8 @@ int main(int argc, char* argv[])
                ["--mep"]("MEP files") |
              Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
                ["--nevents"]("number of events") |
+             Opt(s_config.transpose_mep) // bind variable to a new option, with a hint string
+               ["--transpose-mep"]("transpose MEPs") |
              Opt(s_config.eps, string {"#events-per-slice"}) // bind variable to a new option, with a hint string
                ["--eps"]("number of events per slice");
 
@@ -261,7 +264,7 @@ struct compare<BankTypes::ODIN, transpose_mep> {
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    size_t const i_event)
+    unsigned const i_event)
   {
     const auto allen_bank = odin_bank<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
     const auto mep_bank = odin_bank<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
@@ -283,7 +286,7 @@ struct compare<BankTypes::VP, transpose_mep> {
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    size_t const i_event)
+    unsigned const i_event)
   {
     const auto allen_raw_event = Velo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
     const auto mep_raw_event = Velo::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
@@ -315,7 +318,7 @@ struct compare<BankTypes::UT, transpose_mep> {
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    size_t const i_event)
+    unsigned const i_event)
   {
     const auto allen_raw_event = UTRawEvent<false>{allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event};
     const auto mep_raw_event = UTRawEvent<!transpose_mep>{mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event};
@@ -365,7 +368,7 @@ struct compare<BankTypes::FT, transpose_mep> {
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    size_t const i_event)
+    unsigned const i_event)
   {
     const auto allen_raw_event = SciFi::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
     const auto mep_raw_event = SciFi::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
@@ -398,7 +401,7 @@ struct compare<BankTypes::MUON, transpose_mep> {
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    size_t const i_event)
+    unsigned const i_event)
   {
 
     const auto allen_raw_event = Muon::RawEvent<false, 3>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
@@ -433,7 +436,7 @@ struct compare<BankTypes::ECal, transpose_mep> {
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    size_t const i_event)
+    unsigned const i_event)
   {
 
     const auto allen_raw_event = Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
@@ -474,7 +477,7 @@ using ECalTag = BTTag<BankTypes::ECal>;
  * @brief      Check banks
  */
 template<BankTypes BT, bool transpose_mep>
-void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_data, size_t const n_events)
+void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_data, unsigned const n_events)
 {
   // In MEP layout the fragmets are split into MFPs that are not
   // contiguous in memory. When the data is copied to the device the
@@ -508,8 +511,15 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
   // of banks, while in MEP layout the first uint32_t in the offsets
   // is the number of banks. Compare them to make sure things are
   // consistent
-  for (size_t i = 0; i < n_events; ++i) {
-    REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
+  for (unsigned i = 0; i < n_events; ++i) {
+    if constexpr (transpose_mep) {
+      for (size_t i = 0; i < allen_offsets.size(); ++i) {
+        REQUIRE(allen_offsets[i] == mep_offsets[i]);
+      }
+    }
+    else {
+      REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
+    }
     compare<BT, transpose_mep>{}(mep_data.version, mep_fragments, mep_offsets, mep_sizes, allen_banks[0], allen_offsets, allen_sizes, i);
   }
 }
