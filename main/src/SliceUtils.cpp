@@ -31,13 +31,11 @@ void reset_slice(
     auto ib = to_integral(bank_type);
     auto& slice = slices[ib][slice_index];
     std::fill(slice.offsets.begin(), slice.offsets.end(), 0);
+    std::fill(slice.sizes.begin(), slice.sizes.end(), 0);
     slice.n_offsets = 1;
     if (mep) {
       slice.fragments.clear();
       slice.fragments_mem_size = 0;
-    }
-    else {
-      std::fill(slice.sizes.begin(), slice.sizes.end(), 0);
     }
   }
   event_ids.clear();
@@ -66,6 +64,9 @@ Allen::Slices allocate_slices(
 
       for (size_t i = 0; i < n_offsets + 1; ++i) {
         offsets_mem[i] = 0;
+      }
+      for (size_t i = 0; i < n_sizes; ++i) {
+        sizes_mem[i] = 0;
       }
       std::vector<gsl::span<char>> bank_spans {};
       if (n_bytes) {
