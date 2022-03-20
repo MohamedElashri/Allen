@@ -77,6 +77,7 @@ function(test_program)
   find_package(Threads REQUIRED)
 
   target_link_libraries(${test_name} PRIVATE Transpose Threads::Threads EventModel AllenZMQ Catch2::Catch2)
+  target_compile_definitions(${test_name} PRIVATE ODIN_WITHOUT_GAUDI)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
     target_link_libraries(${test_name} PRIVATE fmt::fmt)
@@ -90,6 +91,7 @@ if (BUILD_TESTING)
     ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp
     ${PROJECT_SOURCE_DIR}/main/src/Provider.cpp
     ${PROJECT_SOURCE_DIR}/main/src/ZMQOutputSender.cpp)
+  target_compile_definitions(Transpose PRIVATE ODIN_WITHOUT_GAUDI)
   target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent AllenZMQ EventModel AllenFS)
 
   test_program(NAME mdf_dump_banks SOURCE test/dump_banks.cpp)
