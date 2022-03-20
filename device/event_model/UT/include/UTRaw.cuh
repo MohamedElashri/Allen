@@ -98,7 +98,7 @@ public:
     }
   }
 
-  uint32_t number_of_raw_banks() const { return m_number_of_raw_banks; }
+  __device__ __host__ uint32_t number_of_raw_banks() const { return m_number_of_raw_banks; }
 
   template<int decoding_version>
   __device__ __host__ UTRawBank<decoding_version> raw_bank(uint32_t const bank) const
