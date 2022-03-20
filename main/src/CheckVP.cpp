@@ -8,7 +8,6 @@
 bool check_velopix_events(const std::vector<char>& events, const std::vector<unsigned>& event_offsets, size_t n_events)
 {
   int error_count = 0;
-  int n_sps_all_events = 0;
   for (size_t i_event = 0; i_event < n_events; ++i_event) {
     const char* raw_input = events.data() + event_offsets[i_event];
 
@@ -24,10 +23,8 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uns
     p += sizeof(uint32_t);
 
     const auto raw_event = Velo::VeloRawEvent(raw_input);
-    int n_sps_event = 0;
     for (unsigned i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks(); i_raw_bank++) {
       const auto raw_bank = raw_event.raw_bank(i_raw_bank);
-      n_sps_event += raw_bank.count;
       if (i_raw_bank != raw_bank.sensor_index) {
         error_cout << "at raw bank " << i_raw_bank << ", but index = " << raw_bank.sensor_index << std::endl;
         ++error_count;
@@ -44,7 +41,6 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uns
         [[maybe_unused]] const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
       }
     }
-    n_sps_all_events += n_sps_event;
   }
 
   if (error_count > 0) {
