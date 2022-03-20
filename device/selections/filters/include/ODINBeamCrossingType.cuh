@@ -20,7 +20,7 @@ namespace odin_beamcrossingtype {
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
 
     PROPERTY(beam_crossing_type_t, "beam_crossing_type", "ODIN beam crossing type [0-3]", unsigned) beam_crossing_type;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
   __global__ void odin_beamcrossingtype(Parameters);
@@ -40,7 +40,7 @@ namespace odin_beamcrossingtype {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_x_t> m_block_dim_x {this, 256};
     Property<beam_crossing_type_t> m_beam_crossing_type {this, 0};
   }; // odin_beamcrossingtype_t
 

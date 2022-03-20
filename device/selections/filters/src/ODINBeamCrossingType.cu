@@ -30,7 +30,8 @@ void odin_beamcrossingtype::odin_beamcrossingtype_t::operator()(
   initialize<typename Parameters::host_number_of_selected_events_t>(arguments, 0, context);
   initialize<typename Parameters::dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(odin_beamcrossingtype)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(odin_beamcrossingtype)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), context)(
+    arguments);
 
   Allen::
     copy<typename Parameters::host_number_of_selected_events_t, typename Parameters::dev_number_of_selected_events_t>(

@@ -30,10 +30,13 @@ void low_occupancy::low_occupancy_t::operator()(
   initialize<typename Parameters::host_number_of_selected_events_t>(arguments, 0, context);
   initialize<typename Parameters::dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(low_occupancy)(dim3(size<typename Parameters::dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-  Allen::copy<typename Parameters::host_number_of_selected_events_t, typename Parameters::dev_number_of_selected_events_t>(arguments, context);
-  reduce_size<typename Parameters::dev_event_list_output_t>(arguments, first<typename Parameters::host_number_of_selected_events_t>(arguments));
-
+  global_function(low_occupancy)(
+				 size<typename Parameters::dev_event_list_t>(arguments), property<block_dim_x_t>().get(), context)(arguments);
+  Allen::
+    copy<typename Parameters::host_number_of_selected_events_t, typename Parameters::dev_number_of_selected_events_t>(
+      arguments, context);
+  reduce_size<typename Parameters::dev_event_list_output_t>(
+    arguments, first<typename Parameters::host_number_of_selected_events_t>(arguments));
 }
 
 __global__ void low_occupancy::low_occupancy(low_occupancy::Parameters parameters)

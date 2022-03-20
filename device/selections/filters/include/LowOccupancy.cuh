@@ -21,7 +21,7 @@ namespace low_occupancy {
 
     PROPERTY(minTracks_t, "minTracks", "minimum number of Velo tracks in the event", unsigned int) minTracks;
     PROPERTY(maxTracks_t, "maxTracks", "maximum number of Velo tracks in the event", unsigned int) maxTracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
   __global__ void low_occupancy(Parameters);
@@ -41,7 +41,7 @@ namespace low_occupancy {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_x_t> m_block_dim_x {this, 256};
     Property<minTracks_t> m_minTracks {this, 0};
     Property<maxTracks_t> m_maxTracks {this, 99999};
   }; // low_occupancy_t
