@@ -134,7 +134,8 @@ def default_physics_lines(forward_tracks, long_track_particles,
     return lines
 
 
-def default_monitoring_lines(velo_tracks, forward_tracks, long_track_particles):
+def default_monitoring_lines(velo_tracks, forward_tracks,
+                             long_track_particles):
     lines = []
     lines.append(
         line_maker(
