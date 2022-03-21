@@ -19,7 +19,7 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
     new (parameters.dev_two_track_composite_view + offset + i) Allen::Views::Physics::CompositeParticle {
       parameters.dev_two_track_sv_track_pointers[offset + i],
       parameters.dev_sv_fit_results_view + event_number,
-      i_pv ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + i_pv : nullptr,
+      i_pv >= 0 ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + i_pv : nullptr,
       2,
       i};
   }
