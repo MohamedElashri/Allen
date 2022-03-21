@@ -158,7 +158,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       // Handle lines that select BasicParticles.
       if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec)) {
         const unsigned* line_candidate_indices =
-          parameters.dev_sel_track_indices + (event_number*n_lines + line_id)*parameters.max_selected_tracks;
+          parameters.dev_sel_track_indices + (event_number * n_lines + line_id) * parameters.max_selected_tracks;
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
         unsigned i_word = insert_short / 2;
         unsigned i_part = insert_short % 2;
@@ -192,7 +192,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       // Handle lines that select CompositeParticles.
       else if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec)) {
         const unsigned* line_candidate_indices =
-          parameters.dev_sel_sv_indices + (event_number*n_lines + line_id)*parameters.max_selected_svs;
+          parameters.dev_sel_sv_indices + (event_number * n_lines + line_id) * parameters.max_selected_svs;
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
         unsigned i_word = insert_short / 2;
         unsigned i_part = insert_short % 2;
