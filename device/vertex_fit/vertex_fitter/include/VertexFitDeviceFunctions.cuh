@@ -260,7 +260,6 @@ namespace VertexFit {
     float halfDChi2_1 = 0.f;
     float halfDChi2_2 = 0.f;
     /// Add DOCA
-    const auto stateA = trackA.state();
     vertex.doca = doca(trackA, trackB);
     vertex.chi2 = addToDerivatives(
       trackA,
