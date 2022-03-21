@@ -22,13 +22,17 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-  if (argc != 3) {
-    cout << "usage: test_read file.mdf n_events" << endl;
+  if (argc != 3 && argc != 4) {
+    cout << "usage: test_read file.mdf n_events [n_skip]" << endl;
     return -1;
   }
 
   string filename = {argv[1]};
   size_t n_events = atol(argv[2]);
+  size_t n_skip = 0;
+  if (argc == 4) {
+    n_skip = atol(argv[3]);
+  }
 
   // Some storage for reading the events into
   LHCb::MDFHeader header;
@@ -49,11 +53,14 @@ int main(int argc, char* argv[])
   }
 
   size_t i_event = 0;
-  while (!eof && i_event++ < n_events) {
+  size_t skipped = 0;
+  while (!eof && i_event++ < (n_events + n_skip)) {
 
     std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, true);
     if (eof || error) {
       return -1;
+    } else if (skipped++ < n_skip) {
+      continue;
     }
 
     array<size_t, LHCb::RawBank::LastType + 1> bank_counts {0};
