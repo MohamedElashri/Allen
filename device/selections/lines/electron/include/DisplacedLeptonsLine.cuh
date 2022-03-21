@@ -15,7 +15,11 @@ namespace displaced_leptons_line {
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
     DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
-    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
+    // TODO: For now, this is called a "track" container instead of a "particle"
+    // container to trick the SelReport writer into not looking for individual
+    // selected candidates. This line needs to be reworked to save individual
+    // candidate information to the SelReport.
+    DEVICE_INPUT(dev_track_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_track_container;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -25,12 +29,7 @@ namespace displaced_leptons_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_particle_container_ptr_t,
-      DEPENDENCIES(dev_particle_container_t),
-      Allen::IMultiEventContainer*)
-    dev_particle_container_ptr;
+    DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*) dev_particle_container_ptr;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);

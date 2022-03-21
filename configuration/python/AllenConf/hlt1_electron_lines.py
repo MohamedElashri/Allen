@@ -111,7 +111,7 @@ def make_displaced_leptons_line(
         dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
-        dev_particle_container_t=long_track_particles[
+        dev_track_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
