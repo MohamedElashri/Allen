@@ -138,7 +138,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
           const unsigned track_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
           parameters
-            .dev_sel_track_indices[total_events * (event_number + n_lines * line_index) + track_candidate_index] =
+            .dev_sel_track_indices[(event_number*n_lines + line_index)*parameters.max_selected_tracks + track_candidate_index] =
             track_insert_index;
           parameters.dev_selected_basic_particle_ptrs[selected_track_offset + track_insert_index] =
             const_cast<Allen::Views::Physics::BasicParticle*>(event_tracks.particle_pointer(track_index));
@@ -156,7 +156,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
         if (decs[sv_index]) {
           const unsigned sv_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
-          parameters.dev_sel_sv_indices[total_events * (event_number + n_lines * line_index) + sv_candidate_index] =
+          parameters.dev_sel_sv_indices[(event_number*n_lines + line_index)*parameters.max_selected_svs + sv_candidate_index] =
             sv_insert_index;
           parameters.dev_selected_composite_particle_ptrs[selected_sv_offset + sv_insert_index] =
             const_cast<Allen::Views::Physics::CompositeParticle*>(&event_svs.particle(sv_index));
