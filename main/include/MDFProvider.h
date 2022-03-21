@@ -49,9 +49,6 @@ struct MDFProviderConfig {
   // check the MDF checksum if it is available
   bool check_checksum = false;
 
-  // number of prefetch buffers
-  size_t n_buffers = 10;
-
   // number of transpose threads
   size_t n_transpose_threads = 5;
 
@@ -101,12 +98,12 @@ public:
     std::unordered_set<BankTypes> const& bank_types,
     MDFProviderConfig config = MDFProviderConfig {}) :
     InputProvider {n_slices, events_per_slice, bank_types, IInputProvider::Layout::Allen, n_events},
-    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true),
+    m_buffer_status(n_slices), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true),
     m_mfp_count {0}, m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
-    m_buffers.resize(config.n_buffers);
+    m_buffers.resize(n_slices);
     for (auto& [n_filled, event_offsets, buffer, transpose_start] : m_buffers) {
       auto epb = config.events_per_buffer;
       buffer.resize((epb < 100 ? 100 : epb) * average_event_size * bank_size_fudge_factor * kB);
@@ -189,7 +186,7 @@ public:
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
 
-            auto n_sizes = allocate_events * ((Allen::max_fragments + 1) / 2 + 1);
+            auto n_sizes = allocate_events * ((Allen::max_fragments + 2) / 2 + 1);
 
             // When events are transposed from the read buffer into
             // the per-rawbank-type slices, a check is made each time
@@ -206,17 +203,11 @@ public:
       }
     }
 
-    // Sanity check on the number of buffers and threads
-    if (m_config.n_buffers <= 1) {
-      warning_cout << "too few read buffers requested, setting it to 2\n";
-      m_config.n_buffers = 2;
-    }
-
-    if (m_config.n_transpose_threads > m_config.n_buffers - 1) {
+    if (m_config.n_transpose_threads > n_slices - 1) {
       warning_cout << "too many transpose threads requested with respect "
                       "to the number of read buffers; reducing the number of threads to "
-                   << m_config.n_buffers - 1;
-      m_config.n_transpose_threads = m_config.n_buffers - 1;
+                   << n_slices - 1;
+      m_config.n_transpose_threads = n_slices - 1;
     }
 
     // Start the transpose threads

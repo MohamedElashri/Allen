@@ -9,6 +9,8 @@
 #include <unordered_set>
 #include <map>
 
+#include <boost/algorithm/string.hpp>
+
 #include <nlohmann/json.hpp>
 
 #include <TransposeTypes.h>
@@ -50,8 +52,9 @@ struct Config {
   unsigned n_events = 10;
   unsigned eps = 0;
   bool run = false;
-  std::string sequence;
   bool transpose_mep = false;
+  std::string subdetectors = "VP,UT,FT,ECal,Muon,ODIN";
+  bool debug = false;
 
   std::unordered_map<EventID, unsigned> mdf_slices;
   std::unordered_map<EventID, unsigned> mep_slices;
@@ -63,6 +66,7 @@ namespace {
   std::shared_ptr<IInputProvider> mdf;
   IInputProvider* mep;
 
+  namespace ba = boost::algorithm;
 #ifdef USE_BOOST_FILESYSTEM
   namespace fs = boost::filesystem;
 #else
@@ -123,7 +127,7 @@ IInputProvider* mep_provider(std::string json_file)
   sc &= provider_prop->setProperty("Source", "\"Files\"");
   sc &= provider_prop->setProperty("BufferConfig", "(1, 1)");
   sc &= provider_prop->setProperty("TransposeMEPs", std::to_string(s_config.transpose_mep));
-  sc &= provider_prop->setProperty("OutputLevel", "2");
+  sc &= provider_prop->setProperty("OutputLevel", s_config.debug ? "2" : "3");
 
   auto mep_files = split_string(s_config.mep_files, ",");
   std::stringstream ss;
@@ -156,6 +160,10 @@ int main(int argc, char* argv[])
                ["--nevents"]("number of events") |
              Opt(s_config.transpose_mep) // bind variable to a new option, with a hint string
                ["--transpose-mep"]("transpose MEPs") |
+             Opt(s_config.debug) // bind variable to a new option, with a hint string
+               ["--debug"]("debug output") |
+             Opt(s_config.subdetectors, string {"SDs"}) // bind variable to a new option, with a hint string
+               ["--subdetectors"]("subdetectors") |
              Opt(s_config.eps, string {"#events-per-slice"}) // bind variable to a new option, with a hint string
                ["--eps"]("number of events per slice");
 
@@ -174,19 +182,24 @@ int main(int argc, char* argv[])
   if (s_config.eps == 0) s_config.eps = s_config.n_events;
   s_config.n_slices = (s_config.n_events - 1) / s_config.eps + 1;
 
-  logger::setVerbosity(4);
+  logger::setVerbosity(s_config.debug ? 4 :3);
 
   if (s_config.run) {
-    // std::unordered_set<BankTypes> bank_types = {BankTypes::VP,
-    //                                             BankTypes::UT,
-    //                                             BankTypes::FT,
-    //                                             BankTypes::ODIN,
-    //                                             BankTypes::ECal,
-    //                                             BankTypes::HCal,
-    //                                             BankTypes::MUON};
-    std::unordered_set<BankTypes> bank_types = {
-      BankTypes::ODIN, BankTypes::ECal, BankTypes::Rich2, BankTypes::MUON};
-    auto json_file = write_json(bank_types);
+
+    std::unordered_set<BankTypes> sds{};
+    std::vector<std::string> s;
+    ba::split(s, s_config.subdetectors, ba::is_any_of(","));
+    for (auto sd : s) {
+      auto bt = bank_type(sd);
+      if (bt == BankTypes::Unknown) {
+        std::cerr << "Failed to obtain BankType for " << sd << "\n";
+        return 1;
+      }
+      else {
+        sds.emplace(bt);
+      }
+    }
+    auto json_file = write_json(sds);
 
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
@@ -531,7 +544,6 @@ TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ODINTag, ECalTag, MuonTag)
   if (!s_config.run) return;
 
   for (auto [event_id, slice_mdf] : s_config.mdf_slices) {
-
     auto it = s_config.mep_slices.find(event_id);
     REQUIRE(it != s_config.mep_slices.end());
 

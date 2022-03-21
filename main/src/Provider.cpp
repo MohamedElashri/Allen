@@ -227,13 +227,12 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
       }
     }
 
-    MDFProviderConfig config {false,                 // verify MDF checksums
-                              4,                     // number of read buffers
-                              3,                     // number of transpose threads
-                              events_per_slice + 1,  // maximum number of offsets in read buffer
-                              events_per_slice,      // number of events per read buffer
-                              io_conf.n_io_reps,     // number of loops over the input files
-                              !disable_run_changes}; // Whether to split slices by run number
+    MDFProviderConfig config {false,                     // verify MDF checksums
+                              2,                         // number of transpose threads
+                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
+                              events_per_slice,          // number of events per read buffer
+                              io_conf.n_io_reps,         // number of loops over the input files
+                              !disable_run_changes};     // Whether to split slices by run number
     return std::make_shared<MDFProvider>(
       io_conf.number_of_slices, events_per_slice, n_events, connections, bank_types, config);
   }
