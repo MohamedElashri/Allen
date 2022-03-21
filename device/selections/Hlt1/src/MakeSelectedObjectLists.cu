@@ -10,7 +10,6 @@
 \*****************************************************************************/
 #include "MakeSelectedObjectLists.cuh"
 #include "SelectionsEventModel.cuh"
-#include "LHCbIDContainer.cuh"
 #include "HltDecReport.cuh"
 
 INSTANTIATE_ALGORITHM(make_selected_object_lists::make_selected_object_lists_t)
@@ -124,18 +123,16 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     dec_report.setDecReport(event_dec_reports[2 + line_index]);
     if (!dec_report.getDecision()) continue;
 
-    uint8_t sel_type = parameters.dev_lhcbid_containers[line_index];
+    const auto mec = parameters.dev_multi_event_particle_containers[line_index];
 
     // Handle lines that do not select from a particle container.
-    if (sel_type == to_integral(LHCbIDContainer::none)) continue;
+    if (mec == nullptr) continue;
 
     // Handle lines that select BasicParticles.
-    if (sel_type == to_integral(LHCbIDContainer::track)) {
+    const auto  basic_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec);
+    if (basic_particle_mec) {
       auto decs = selections.get_span(line_index, event_number);
-      const auto multi_event_track_container = static_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(
-        parameters.dev_multi_event_particle_containers[line_index]);
-      const auto event_tracks =
-        static_cast<const Allen::Views::Physics::BasicParticles&>(multi_event_track_container->container(event_number));
+      const auto event_tracks = basic_particle_mec->container(event_number);
       for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
         if (decs[track_index]) {
           const unsigned track_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
@@ -150,12 +147,10 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     }
 
     // Handle lines that select CompositeParticles
-    if (sel_type == to_integral(LHCbIDContainer::sv)) {
+    const auto composite_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec);
+    if (composite_particle_mec) {
       auto decs = selections.get_span(line_index, event_number);
-      const auto multi_event_sv_container = static_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(
-        parameters.dev_multi_event_particle_containers[line_index]);
-      const auto event_svs = static_cast<const Allen::Views::Physics::CompositeParticles&>(
-        multi_event_sv_container->container(event_number));
+      const auto event_svs = composite_particle_mec->container(event_number);
       for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
         if (decs[sv_index]) {
           const unsigned sv_candidate_index = atomicAdd(event_candidate_count + line_index, 1);

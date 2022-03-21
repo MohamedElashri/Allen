@@ -66,8 +66,8 @@ void gather_selections::gather_selections_t::set_arguments_size(
     sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
   const auto host_input_post_scale_hashes =
     sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_hashes_t>(arguments));
-  const auto host_lhcbid_containers_agg = input_aggregate<host_lhcbid_containers_agg_t>(arguments);
-  const auto dev_particle_containers_agg = input_aggregate<dev_particle_containers_agg_t>(arguments);
+  const auto dev_particle_containers_agg =
+    input_aggregate<dev_particle_containers_agg_t>(arguments); 
 
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);
@@ -82,8 +82,6 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<host_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
   set_size<dev_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
   set_size<dev_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
-  set_size<dev_lhcbid_containers_t>(arguments, host_lhcbid_containers_agg.size_of_aggregate());
-  set_size<host_lhcbid_containers_t>(arguments, host_lhcbid_containers_agg.size_of_aggregate());
   set_size<dev_particle_containers_t>(arguments, dev_particle_containers_agg.size_of_aggregate());
 
   if (property<verbosity_t>() >= logger::debug) {
@@ -116,10 +114,6 @@ void gather_selections::gather_selections_t::operator()(
   for (size_t i = 0; i < dev_input_selections.size_of_aggregate(); ++i) {
     container[i + 1] = container[i] + dev_input_selections.size(i);
   }
-
-  // Populate the list of LHCbID container types
-  Allen::aggregate::store_contiguous_async<host_lhcbid_containers_t, host_lhcbid_containers_agg_t>(arguments, context);
-  Allen::copy_async<dev_lhcbid_containers_t, host_lhcbid_containers_t>(arguments, context);
 
   // Populate the list of particle containers
   Allen::aggregate::store_contiguous_async<dev_particle_containers_t, dev_particle_containers_agg_t>(

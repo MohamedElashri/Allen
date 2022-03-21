@@ -135,7 +135,7 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def default_monitoring_lines(velo_tracks):
+def default_monitoring_lines(velo_tracks, forward_tracks, long_track_particles):
     lines = []
     lines.append(
         line_maker(
@@ -196,12 +196,12 @@ def default_monitoring_lines(velo_tracks):
     lines.append(
         line_maker(
             "Hlt1RICH1Alignment",
-            make_rich_1_line(hlt1_reconstruction()),
+            make_rich_1_line(forward_tracks, long_track_particles),
             enableGEC=True))
     lines.append(
         line_maker(
             "HLt1RICH2Alignment",
-            make_rich_2_line(hlt1_reconstruction()),
+            make_rich_2_line(forward_tracks, long_track_particles),
             enableGEC=True))
 
     return lines
@@ -220,7 +220,9 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
             reconstructed_objects["calo_matching_objects"])
 
     monitoring_lines = default_monitoring_lines(
-        reconstructed_objects["velo_tracks"])
+        reconstructed_objects["velo_tracks"],
+        reconstructed_objects["forward_tracks"],
+        reconstructed_objects["long_track_particles"])
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines

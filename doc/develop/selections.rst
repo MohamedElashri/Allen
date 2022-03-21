@@ -129,10 +129,6 @@ Hash resulting from applying the hash function to the property "post_scaler_hash
 
   HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash;
 
-The LHCbIDContainer type selected by the line (`track`, `sv`, or `none`)::
-
-  HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
-
 Pre-scaling factor::
 
   PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler;
@@ -234,7 +230,6 @@ header.
       DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -311,7 +306,6 @@ secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We
       DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -398,7 +392,6 @@ The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhc
       DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -487,7 +480,6 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
       DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;
@@ -586,14 +578,6 @@ The source file looks as follows:
   }
 
 It is important that the return type of `get_input` is the same as the input type of `select`.
-
-LHCbIDContainer
-^^^^^^^^^^^^^^^^^^^^
-Each line must have a public data member `lhcbid_container` specifying the type of LHCbIDContainer the line selects. This tells the SelReport writer how to construct the SelReport for each line. Currently this can be a track, a secondary vertex, or none. For predefined line types, this has already been defined:
-
-* `OneTrackLine`: `constexpr static auto lhcbid_container = LHCbIDContainer::track;`
-* `TwoTrackLine`: `constexpr static auto lhcbid_container = LHCbIDContainer::sv;`
-* `EventLine`: `constexpr static auto lhcbid_container = LHCbIDContainer::none;`
 
 Adding your selection to the Allen sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -30,9 +30,6 @@ def make_gather_selections(lines):
         host_input_post_scale_hashes_t=[
             line.host_post_scaler_hash_t for line in lines
         ],
-        host_lhcbid_containers_agg_t=[
-            line.host_lhcbid_container_t for line in lines
-        ],
         dev_particle_containers_agg_t=[
             line.dev_particle_container_ptr_t for line in lines
         ],
@@ -94,8 +91,7 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_multi_event_particle_containers_t=gather_selections.
         dev_particle_containers_t,
         dev_selections_t=gather_selections.dev_selections_t,
-        dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
-        dev_lhcbid_containers_t=gather_selections.dev_lhcbid_containers_t)
+        dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
 
     prefix_sum_hits_size = make_algorithm(
         host_prefix_sum_t,
@@ -145,7 +141,6 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_sel_list_t=make_selected_object_lists.dev_sel_list_t,
         dev_candidate_count_t=make_selected_object_lists.dev_candidate_count_t,
         dev_candidate_offsets_t=prefix_sum_candidate_count.dev_output_buffer_t,
-        dev_lhcbid_containers_t=gather_selections.dev_lhcbid_containers_t,
         dev_unique_track_list_t=make_selected_object_lists.
         dev_unique_track_list_t,
         dev_unique_track_count_t=make_selected_object_lists.
@@ -159,6 +154,8 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_sel_track_indices_t=make_selected_object_lists.
         dev_sel_track_indices_t,
         dev_sel_sv_indices_t=make_selected_object_lists.dev_sel_sv_indices_t,
+        dev_multi_event_particle_containers_t=gather_selections.
+        dev_particle_containers_t,
         dev_basic_particle_ptrs_t=make_selected_object_lists.
         dev_selected_basic_particle_ptrs_t,
         dev_composite_particle_ptrs_t=make_selected_object_lists.

@@ -8,7 +8,6 @@
 #include <DeterministicScaler.cuh>
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
-#include "LHCbIDContainer.cuh"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
 
@@ -79,7 +78,6 @@ private:
 
 public:
   using iteration_t = LineIteration::default_iteration_tag;
-  constexpr static auto lhcbid_container = LHCbIDContainer::none;
 
   void init()
   {
@@ -110,7 +108,6 @@ public:
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-    set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
     set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
@@ -238,6 +235,15 @@ __global__ void process_line_iterate_events(
   const unsigned number_of_events,
   const unsigned pre_scaler_hash)
 {
+  // Populate IMultiEventContainer* if relevant
+  if constexpr (Allen::has_dev_particle_container<Derived>::value) {
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+      const auto particle_container_ptr =
+        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+    }
+  }
+
   // Do selection
   for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
     const auto event_number = parameters.dev_event_list[i];
@@ -322,13 +328,7 @@ void Line<Derived, Parameters>::operator()(
   initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
   initialize<typename Parameters::dev_selected_events_size_t>(arguments, 0, context);
-
-  if constexpr (Allen::has_dev_particle_container<Derived>::value) {
-    initialize<typename Parameters::dev_particle_container_ptr_t>(arguments, 0, context);
-  }
-
-  // Populate container with tag.
-  data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);
+  initialize<typename Parameters::dev_particle_container_ptr_t>(arguments, 0, context);
 
   const auto* derived_instance = static_cast<const Derived*>(this);
 

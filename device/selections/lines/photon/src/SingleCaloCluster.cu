@@ -30,8 +30,6 @@ void single_calo_cluster_line::single_calo_cluster_line_t::set_arguments_size(
 
   set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
 
-  set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
-
   set_size<typename Parameters::dev_clusters_x_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 

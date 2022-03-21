@@ -50,14 +50,11 @@ def make_passthrough_line(pre_scaler_hash_string="passthrough_line_pre",
         post_scaler_hash_string=post_scaler_hash_string)
 
 
-def make_rich_line(line_type, reconstructed_objects, pre_scaler_hash_string,
+def make_rich_line(line_type, forward_tracks, long_track_particles, pre_scaler_hash_string,
                    post_scaler_hash_string, name):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
-
-    forward_tracks = reconstructed_objects["forward_tracks"]
-    long_track_particles = reconstructed_objects["long_track_particles"]
 
     return make_algorithm(
         line_type,
@@ -74,19 +71,21 @@ def make_rich_line(line_type, reconstructed_objects, pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
 
-def make_rich_1_line(reconstructed_objects,
+def make_rich_1_line(forward_tracks,
+                     long_track_particles,
                      pre_scaler_hash_string="rich_1_line_pre",
                      post_scaler_hash_string="rich_1_line_post",
                      name="Hlt1RICH1Alignment"):
-    return make_rich_line(rich_1_line_t, reconstructed_objects,
+    return make_rich_line(rich_1_line_t, forward_tracks, long_track_particles,
                           pre_scaler_hash_string, post_scaler_hash_string,
                           name)
 
 
-def make_rich_2_line(reconstructed_objects,
+def make_rich_2_line(forward_tracks,
+                     long_track_particles,
                      pre_scaler_hash_string="rich_2_line_pre",
                      post_scaler_hash_string="rich_2_line_post",
                      name="Hlt1RICH2Alignment"):
-    return make_rich_line(rich_2_line_t, reconstructed_objects,
+    return make_rich_line(rich_2_line_t, forward_tracks, long_track_particles,
                           pre_scaler_hash_string, post_scaler_hash_string,
                           name)

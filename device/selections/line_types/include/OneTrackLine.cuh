@@ -23,7 +23,6 @@
  */
 template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
-  constexpr static auto lhcbid_container = LHCbIDContainer::track;
 
   static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 64; }
 

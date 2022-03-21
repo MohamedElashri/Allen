@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MakeSubBanks.cuh"
-#include "LHCbIDContainer.cuh"
 
 INSTANTIATE_ALGORITHM(make_subbanks::make_subbanks_t)
 
@@ -154,21 +153,10 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     unsigned insert_short = sels_start_short;
     for (unsigned i_line = 0; i_line < n_sels; i_line += 1) {
       unsigned line_id = event_sel_list[i_line];
-      uint8_t sel_type = parameters.dev_lhcbid_containers[line_id];
-
-      // If the line does not select particles, it contains 0 pointers to
-      // object-type substructures.
-      if (sel_type == to_integral(LHCbIDContainer::none)) {
-        unsigned i_word = insert_short / 2;
-        unsigned i_part = insert_short % 2;
-        unsigned bits = 16 * i_part;
-        unsigned mask = 0xFFFFL << bits;
-        event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | (0 << bits);
-        insert_short++;
-      }
+      const auto mec = parameters.dev_multi_event_particle_containers[line_id];
 
       // Handle lines that select BasicParticles.
-      if (sel_type == to_integral(LHCbIDContainer::track)) {
+      if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec)) {
         const unsigned* line_candidate_indices =
           parameters.dev_sel_track_indices + number_of_events * (event_number + n_lines * line_id);
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
@@ -201,9 +189,8 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
           insert_short++;
         }
       }
-
       // Handle lines that select CompositeParticles.
-      if (sel_type == to_integral(LHCbIDContainer::sv)) {
+      else if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec)) {
         const unsigned* line_candidate_indices =
           parameters.dev_sel_sv_indices + number_of_events * (event_number + n_lines * line_id);
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
@@ -236,6 +223,17 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
           insert_short++;
         }
       }
+      // If the line does not select particles, it contains 0 pointers to
+      // object-type substructures.
+      else {
+        unsigned i_word = insert_short / 2;
+        unsigned i_part = insert_short % 2;
+        unsigned bits = 16 * i_part;
+        unsigned mask = 0xFFFFL << bits;
+        event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | (0 << bits);
+        insert_short++;
+      }
+
     }
 
     // Create the ObjTyp subbank.
