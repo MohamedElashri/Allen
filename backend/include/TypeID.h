@@ -72,12 +72,6 @@ namespace Allen {
     static_assert(
       std::is_same_v<TypeIDs, std::decay_t<decltype(derived_t::TypeID)>> && "derived type has a valid TypeID");
 
-    if (t == nullptr) {
-      return nullptr;
-    }
-    else if (t->type_id() == derived_t::TypeID) {
-      return static_cast<T>(t);
-    }
-    return nullptr;
+    return (t && t->type_id() == derived_t::TypeID) ? static_cast<T>(t) : nullptr;
   }
 } // namespace Allen
