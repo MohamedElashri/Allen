@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "TypeID.cuh"
+#include "TypeID.h"
 
 namespace Allen {
   /**
