@@ -28,7 +28,7 @@ namespace single_calo_cluster_line {
 
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    
+
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
 

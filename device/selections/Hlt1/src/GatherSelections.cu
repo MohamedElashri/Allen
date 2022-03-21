@@ -66,8 +66,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
     sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
   const auto host_input_post_scale_hashes =
     sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_hashes_t>(arguments));
-  const auto dev_particle_containers_agg =
-    input_aggregate<dev_particle_containers_agg_t>(arguments); 
+  const auto dev_particle_containers_agg = input_aggregate<dev_particle_containers_agg_t>(arguments);
 
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);

@@ -50,8 +50,8 @@ def make_passthrough_line(pre_scaler_hash_string="passthrough_line_pre",
         post_scaler_hash_string=post_scaler_hash_string)
 
 
-def make_rich_line(line_type, forward_tracks, long_track_particles, pre_scaler_hash_string,
-                   post_scaler_hash_string, name):
+def make_rich_line(line_type, forward_tracks, long_track_particles,
+                   pre_scaler_hash_string, post_scaler_hash_string, name):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()

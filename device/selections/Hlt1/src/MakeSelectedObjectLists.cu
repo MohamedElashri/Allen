@@ -129,7 +129,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     if (mec == nullptr) continue;
 
     // Handle lines that select BasicParticles.
-    const auto  basic_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec);
+    const auto basic_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec);
     if (basic_particle_mec) {
       auto decs = selections.get_span(line_index, event_number);
       const auto event_tracks = basic_particle_mec->container(event_number);
@@ -147,7 +147,8 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     }
 
     // Handle lines that select CompositeParticles
-    const auto composite_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec);
+    const auto composite_particle_mec =
+      Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec);
     if (composite_particle_mec) {
       auto decs = selections.get_span(line_index, event_number);
       const auto event_svs = composite_particle_mec->container(event_number);

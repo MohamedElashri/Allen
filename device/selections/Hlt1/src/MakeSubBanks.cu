@@ -233,7 +233,6 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | (0 << bits);
         insert_short++;
       }
-
     }
 
     // Create the ObjTyp subbank.
