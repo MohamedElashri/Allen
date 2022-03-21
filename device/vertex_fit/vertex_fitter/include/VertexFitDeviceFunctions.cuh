@@ -346,9 +346,11 @@ namespace VertexFit {
 
     // Dimuon mass.
     if (sv.is_dimuon) {
-      const float mdimu2 =
-        2.f * Allen::mMu * Allen::mMu + 2.f * (sqrtf((stateA.p() * stateA.p() + Allen::mMu * Allen::mMu) * (stateB.p() * stateB.p() + Allen::mMu * Allen::mMu)) -
-                                 stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
+      const float mdimu2 = 2.f * Allen::mMu * Allen::mMu +
+                           2.f * (sqrtf(
+                                    (stateA.p() * stateA.p() + Allen::mMu * Allen::mMu) *
+                                    (stateB.p() * stateB.p() + Allen::mMu * Allen::mMu)) -
+                                  stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
       sv.mdimu = sqrtf(mdimu2);
     }
     else {
@@ -443,8 +445,11 @@ namespace VertexFit {
     const float py = stateA.py() + stateB.py();
     const float pz = stateA.pz() + stateB.pz();
     const float mvis2 =
-      2.f * Allen::mPi * Allen::mPi + 2.f * (sqrtf((stateA.p() * stateA.p() + Allen::mPi * Allen::mPi) * (stateB.p() * stateB.p() + Allen::mPi * Allen::mPi)) -
-                               stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
+      2.f * Allen::mPi * Allen::mPi +
+      2.f *
+        (sqrtf(
+           (stateA.p() * stateA.p() + Allen::mPi * Allen::mPi) * (stateB.p() * stateB.p() + Allen::mPi * Allen::mPi)) -
+         stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
     const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) + (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) /
                          fd / fd;
