@@ -9,12 +9,6 @@
 
 namespace VertexFit {
 
-  // Charged pion mass for calculating Mcor.
-  constexpr float mPi = 139.57f;
-
-  // Muon mass.
-  constexpr float mMu = 105.66f;
-
   constexpr unsigned max_svs = 1000;
 
   struct TrackMVAVertex {

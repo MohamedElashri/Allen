@@ -6,6 +6,7 @@
 #include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
 #include "ROOTService.h"
+#include "MassDefinitions.h"
 
 namespace kstopipi_line {
   struct Parameters {

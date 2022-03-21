@@ -5,6 +5,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
+#include "MassDefinitions.h"
 
 namespace d2pipi_line {
   struct Parameters {
@@ -28,8 +29,6 @@ namespace d2pipi_line {
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(mPi_t, "mPi", "mPi description", float) mPi;
-    PROPERTY(mD_t, "mD", "mD description", float) mD;
     PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(maxDOCA_t, "maxDOCA", "maxDOCA description", float) maxDOCA;
@@ -48,8 +47,6 @@ namespace d2pipi_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<mPi_t> m_mPi {this, 139.571f * Gaudi::Units::MeV};
-    Property<mD_t> m_mD {this, 1864.83f * Gaudi::Units::MeV};
     Property<minComboPt_t> m_minComboPt {this, 2000.0f * Gaudi::Units::MeV};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 10.f};
     Property<maxDOCA_t> m_maxDOCA {this, 0.15f * Gaudi::Units::mm};

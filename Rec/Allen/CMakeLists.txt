@@ -81,3 +81,13 @@ target_compile_definitions(AllenAlgorithms PRIVATE -D${TARGET_DEFINITION})
 gaudi_install(PYTHON)
 
 gaudi_add_tests(QMTest)
+
+gaudi_add_executable(test_mass_definitions
+    SOURCES
+        tests/src/test_mass_definitions.cpp
+    LINK
+        Boost::unit_test_framework
+	AllenLib
+	LHCb::LHCbKernel
+    TEST
+)
