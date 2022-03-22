@@ -166,8 +166,7 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   }
 
   // Populate IMultiEventContainer* if relevant
-  if constexpr (
-    Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+  if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
     if (blockIdx.x == 0 && threadIdx.x == 0) {
       const auto particle_container_ptr =
         static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
@@ -237,8 +236,7 @@ __global__ void process_line_iterate_events(
   const unsigned pre_scaler_hash)
 {
   // Populate IMultiEventContainer* if relevant
-  if constexpr (
-    Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+  if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
     if (blockIdx.x == 0 && threadIdx.x == 0) {
       const auto particle_container_ptr =
         static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);

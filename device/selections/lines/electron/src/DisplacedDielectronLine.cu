@@ -29,7 +29,7 @@ __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float> input)
 {
   const auto& [vertex, is_dielectron, brem_corrected_minpt] = input;
-  
+
   // Electron ID
   if (!is_dielectron) {
     return false;
