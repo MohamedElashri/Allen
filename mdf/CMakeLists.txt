@@ -94,7 +94,6 @@ if (BUILD_TESTING)
   target_compile_definitions(Transpose PRIVATE ODIN_WITHOUT_GAUDI)
   target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent AllenZMQ EventModel AllenFS)
 
-  test_program(NAME mdf_dump_banks SOURCE test/dump_banks.cpp)
   test_program(NAME mdf_test_read SOURCE test/test_read.cpp)
   test_program(NAME mdf_bench_read SOURCE test/bench_read.cpp)
   test_program(NAME mdf_bench_provider SOURCE test/bench_provider.cpp)

@@ -8,8 +8,8 @@ std::array<int, LHCb::NBankTypes> Allen::bank_ids()
   // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
   std::array<int, LHCb::NBankTypes> ids;
   for (auto bt : LHCb::RawBank::types()) {
-    auto it = Allen::bank_types.find(bt);
-    ids[bt] = (it != Allen::bank_types.end() ? to_integral(it->second) : -1);
+    auto it = Allen::bank_mapping.find(bt);
+    ids[bt] = (it != Allen::bank_mapping.end() ? to_integral(it->second) : -1);
   }
   return ids;
 }

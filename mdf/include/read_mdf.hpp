@@ -56,13 +56,6 @@ namespace MDF {
     bool checkChecksum = true,
     bool dbg = false);
 
-  std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> read_events(
-    size_t n,
-    const std::vector<std::string>& files,
-    const std::unordered_set<BankTypes>& types,
-    bool checkChecksum = true,
-    size_t offset = 0);
-
   LHCb::ODIN decode_odin(unsigned int version, unsigned int const* odinData);
 
 } // namespace MDF

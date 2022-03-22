@@ -7,16 +7,35 @@
 #include "BackendCommon.h"
 
 namespace Allen {
+  namespace detail {
+    template<typename R>
+    __host__ __device__ inline R const* offsets_to_content(unsigned int const* offsets, unsigned const event)
+    {
+      auto const offset = offsets[event];
+      return reinterpret_cast<R const*>(offsets) + offset;
+    }
+  }
+
   __host__ __device__ inline unsigned short const* bank_sizes(unsigned int const* sizes, unsigned const event)
   {
-    auto const offset = sizes[event];
-    return reinterpret_cast<unsigned short const*>(sizes) + offset;
+    return detail::offsets_to_content<unsigned short>(sizes, event);
   }
 
   __host__ __device__ inline unsigned short
   bank_size(unsigned int const* sizes, unsigned const event, unsigned const bank)
   {
     return bank_sizes(sizes, event)[bank];
+  }
+
+  __host__ __device__ inline unsigned char const* bank_types(unsigned int const* types, unsigned const event)
+  {
+    return detail::offsets_to_content<unsigned char>(types, event);
+  }
+
+  __host__ __device__ inline unsigned char
+  bank_type(unsigned int const* types, unsigned const event, unsigned const bank)
+  {
+    return bank_types(types, event)[bank];
   }
 } // namespace Allen
 
@@ -49,6 +68,22 @@ namespace MEP {
     // NOTE: Once we move to copying large chunks of the MEP into a
     // separate piece of device memory, this will have to change.
     return Allen::bank_size(sizes, bank, event);
+  }
+
+  __host__ __device__ inline unsigned char const*
+  bank_types(char const*, unsigned int const* types, unsigned const bank_number)
+  {
+    // NOTE: Once we move to copying large chunks of the MEP into a
+    // separate piece of device memory, this will have to change.
+    return Allen::bank_types(types, bank_number);
+  }
+
+  __host__ __device__ inline unsigned char
+  bank_type(char const*, unsigned int const* types, unsigned const event, unsigned const bank)
+  {
+    // NOTE: Once we move to copying large chunks of the MEP into a
+    // separate piece of device memory, this will have to change.
+    return Allen::bank_type(types, bank, event);
   }
 
   // Check if an algorithm has a check member function

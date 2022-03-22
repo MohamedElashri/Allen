@@ -35,7 +35,7 @@ std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& js
     auto it = props.find("bank_type");
     if (it != props.end()) {
       auto type = it->second;
-      auto const bt = bank_type(type);
+      auto const bt = ::bank_type(type);
       if (bt == BankTypes::Unknown) {
         error_cout << "Unknown bank type " << type << "requested.\n";
       }

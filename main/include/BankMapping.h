@@ -10,7 +10,7 @@
 #include "BankTypes.h"
 
 namespace Allen {
-  const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {
+  const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_mapping = {
     {LHCb::RawBank::VP, BankTypes::VP},
     {LHCb::RawBank::VPRetinaCluster, BankTypes::VP},
     {LHCb::RawBank::UT, BankTypes::UT},
