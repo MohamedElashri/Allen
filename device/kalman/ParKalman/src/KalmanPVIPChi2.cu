@@ -80,11 +80,10 @@ __device__ void associate_and_muon_id(
 __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const auto event_scifi_tracks = parameters.dev_scifi_tracks_view[0].container(event_number);
+  const auto event_scifi_tracks = parameters.dev_scifi_tracks_view->container(event_number);
   const auto kalman_states_view = parameters.dev_kalman_states_view[event_number];
-  const unsigned total_number_of_scifi_tracks = parameters.dev_atomics_scifi[number_of_events];
+  const unsigned total_number_of_scifi_tracks = parameters.dev_scifi_tracks_view->number_of_contained_objects();
 
   // The total track-PV association table.
   Associate::Consolidated::Table kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2, total_number_of_scifi_tracks};

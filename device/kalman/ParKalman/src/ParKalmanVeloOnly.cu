@@ -535,8 +535,8 @@ __global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters 
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Forward tracks.
-  const unsigned total_number_of_tracks = parameters.dev_atomics_scifi[number_of_events];
-  const auto event_scifi_tracks = parameters.dev_scifi_tracks_view[0].container(event_number);
+  const auto event_scifi_tracks = parameters.dev_scifi_tracks_view->container(event_number);
+  const unsigned total_number_of_tracks = parameters.dev_scifi_tracks_view->number_of_contained_objects();
 
   parameters.dev_kalman_states_view[event_number] = Allen::Views::Physics::KalmanStates {
     parameters.dev_kalman_fit_results, parameters.dev_atomics_scifi, event_number, number_of_events};

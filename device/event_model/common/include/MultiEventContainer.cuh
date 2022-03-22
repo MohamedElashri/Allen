@@ -55,6 +55,12 @@ namespace Allen {
       assert(event_number < m_number_of_events);
       return m_container[event_number];
     }
+    // TODO: This method should eventually be removed, but for now some parts of
+    // the old event model still need the total number of objects in the MEC.
+    __host__ __device__ unsigned number_of_contained_objects() const {
+      const T& last_container = m_container[number_of_events() - 1];
+      return last_container.offset() + last_container.size();
+    }
   };
 
   /**
