@@ -43,7 +43,8 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  */
 class TransposeRawBanks
   : public Gaudi::Functional::MergingTransformer<
-      std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>(VOC<LHCb::RawEvent*> const&),
+      std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>(
+        VOC<LHCb::RawEvent*> const&),
       Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
@@ -86,8 +87,8 @@ StatusCode TransposeRawBanks::initialize()
   return StatusCode::SUCCESS;
 }
 
-std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()> TransposeRawBanks::operator()(
-  VOC<LHCb::RawEvent*> const& rawEvents) const
+std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()> TransposeRawBanks::
+operator()(VOC<LHCb::RawEvent*> const& rawEvents) const
 {
 
   std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()> output;

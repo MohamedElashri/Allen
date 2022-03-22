@@ -461,7 +461,6 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
 
   Allen::memcpy_async(
     data<OFFSET_ARG>(args), bno.offsets.data(), bno.offsets.size_bytes(), Allen::memcpyHostToDevice, context);
-
 }
 
 /**

@@ -22,20 +22,19 @@ namespace Allen {
     {LHCb::RawBank::OTError, BankTypes::MCVertices}, // used for PV MC info
     {LHCb::RawBank::OTRaw, BankTypes::MCTracks}};    // used for track MC info
 
-  const std::unordered_map<SourceIdSys, BankTypes> subdetectors = {
-    {SourceIdSys::SourceIdSys_ODIN, BankTypes::ODIN},
-    {SourceIdSys::SourceIdSys_VELO_A, BankTypes::VP},
-    {SourceIdSys::SourceIdSys_VELO_C, BankTypes::VP},
-    {SourceIdSys::SourceIdSys_UT_A, BankTypes::UT},
-    {SourceIdSys::SourceIdSys_UT_C, BankTypes::UT},
-    {SourceIdSys::SourceIdSys_SCIFI_A, BankTypes::FT},
-    {SourceIdSys::SourceIdSys_SCIFI_C, BankTypes::FT},
-    {SourceIdSys::SourceIdSys_RICH_1, BankTypes::Rich1},
-    {SourceIdSys::SourceIdSys_RICH_2, BankTypes::Rich2},
-    {SourceIdSys::SourceIdSys_MUON_A, BankTypes::MUON},
-    {SourceIdSys::SourceIdSys_MUON_C, BankTypes::MUON},
-    {SourceIdSys::SourceIdSys_HCAL, BankTypes::HCal},
-    {SourceIdSys::SourceIdSys_ECAL, BankTypes::ECal}};
+  const std::unordered_map<SourceIdSys, BankTypes> subdetectors = {{SourceIdSys::SourceIdSys_ODIN, BankTypes::ODIN},
+                                                                   {SourceIdSys::SourceIdSys_VELO_A, BankTypes::VP},
+                                                                   {SourceIdSys::SourceIdSys_VELO_C, BankTypes::VP},
+                                                                   {SourceIdSys::SourceIdSys_UT_A, BankTypes::UT},
+                                                                   {SourceIdSys::SourceIdSys_UT_C, BankTypes::UT},
+                                                                   {SourceIdSys::SourceIdSys_SCIFI_A, BankTypes::FT},
+                                                                   {SourceIdSys::SourceIdSys_SCIFI_C, BankTypes::FT},
+                                                                   {SourceIdSys::SourceIdSys_RICH_1, BankTypes::Rich1},
+                                                                   {SourceIdSys::SourceIdSys_RICH_2, BankTypes::Rich2},
+                                                                   {SourceIdSys::SourceIdSys_MUON_A, BankTypes::MUON},
+                                                                   {SourceIdSys::SourceIdSys_MUON_C, BankTypes::MUON},
+                                                                   {SourceIdSys::SourceIdSys_HCAL, BankTypes::HCal},
+                                                                   {SourceIdSys::SourceIdSys_ECAL, BankTypes::ECal}};
 
   const unsigned NSourceIdSys = to_integral(SourceIdSys::SourceIdSys_TDET) + 1;
 } // namespace Allen

@@ -36,7 +36,7 @@ namespace Muon {
     }
   };
 
-  template <unsigned version = 2>
+  template<unsigned version = 2>
   struct MuonRawEvent {
   private:
     uint32_t m_number_of_raw_banks = 0;
@@ -66,7 +66,9 @@ namespace Muon {
       const unsigned* dev_muon_raw_input_sizes,
       const unsigned event_number)
     {
-      initialize(dev_muon_raw_input + dev_muon_raw_input_offsets[event_number], Allen::bank_sizes(dev_muon_raw_input_sizes, event_number));
+      initialize(
+        dev_muon_raw_input + dev_muon_raw_input_offsets[event_number],
+        Allen::bank_sizes(dev_muon_raw_input_sizes, event_number));
     }
 
     __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }

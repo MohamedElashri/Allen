@@ -40,7 +40,7 @@ template<bool mep_layout>
 static __host__ __device__ ODINRawBank
 odin_bank(const char* dev_odin_data, const uint* dev_odin_offsets, const uint* dev_odin_sizes, const uint event_number)
 {
-  if constexpr(mep_layout) {
+  if constexpr (mep_layout) {
     return MEP::raw_bank<ODINRawBank>(dev_odin_data, dev_odin_offsets, dev_odin_sizes, event_number, 0);
   }
   else {

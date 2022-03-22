@@ -73,13 +73,11 @@ Allen::Slices allocate_slices(
         bank_spans.emplace_back(events_mem, n_bytes);
       }
 
-      bank_slices.emplace_back(
-        Allen::Slice{
-          std::move(bank_spans),
-          offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)},
-          n_bytes,
-          1,
-          offsets_span {sizes_mem, static_cast<offsets_size>(n_sizes)}});
+      bank_slices.emplace_back(Allen::Slice {std::move(bank_spans),
+                                             offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)},
+                                             n_bytes,
+                                             1,
+                                             offsets_span {sizes_mem, static_cast<offsets_size>(n_sizes)}});
     }
   }
   return slices;

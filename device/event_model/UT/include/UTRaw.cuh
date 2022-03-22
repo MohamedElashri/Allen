@@ -20,9 +20,8 @@ struct UTRawBank {
     UTRawBank {reinterpret_cast<const uint32_t*>(ut_raw_bank)[0], ut_raw_bank + sizeof(uint32_t), size}
   {}
 
-  __device__ __host__
-  UTRawBank(const uint32_t sID, const char* ut_fragment, const uint16_t s)
-    : sourceID{sID}, size{static_cast<uint16_t>(s / sizeof(uint16_t))}
+  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, const uint16_t s) :
+    sourceID {sID}, size {static_cast<uint16_t>(s / sizeof(uint16_t))}
   {
     auto p = reinterpret_cast<const uint32_t*>(ut_fragment);
     if constexpr (decoding_version == 3) {
@@ -68,7 +67,6 @@ struct UTRawBank {
 template<bool mep_layout>
 struct UTRawEvent {
 private:
-
   using sizes_t = std::conditional_t<mep_layout, uint32_t, uint16_t>;
 
   uint32_t m_number_of_raw_banks = 0;
@@ -78,8 +76,9 @@ private:
   uint32_t const m_event = 0;
 
 public:
-  __device__ __host__ UTRawEvent(const char* data, const uint32_t* offsets, const uint32_t* sizes, uint32_t const event)
-    : m_event{event}
+  __device__ __host__
+  UTRawEvent(const char* data, const uint32_t* offsets, const uint32_t* sizes, uint32_t const event) :
+    m_event {event}
   {
     if constexpr (mep_layout) {
       m_data = data;

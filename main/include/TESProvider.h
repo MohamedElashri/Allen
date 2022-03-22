@@ -37,7 +37,9 @@ public:
    * @param      Array with raw bank content
    * @param      Set with bank types to be used as input for Allen
    */
-  int set_banks(const std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>& transposed_banks)
+  int set_banks(
+    const std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>&
+      transposed_banks)
   {
     // store banks and offsets as BanksAndOffsets object
     for (size_t i = 0; i < transposed_banks.size(); ++i) {
@@ -77,8 +79,11 @@ public:
       auto data_size = static_cast<span_size_t<char const>>(banks.size());
       gsl::span<char const> b {banks.data(), data_size};
 
-      m_banks_and_offsets[allen_bank_index] = {
-        {std::move(b)}, {offsets.data(), 2u}, static_cast<std::size_t>(data_size), {sizes_offsets.data(), bank_sizes.size() + 1 / 2 + 1}, version};
+      m_banks_and_offsets[allen_bank_index] = {{std::move(b)},
+                                               {offsets.data(), 2u},
+                                               static_cast<std::size_t>(data_size),
+                                               {sizes_offsets.data(), bank_sizes.size() + 1 / 2 + 1},
+                                               version};
     }
 
     return 0;

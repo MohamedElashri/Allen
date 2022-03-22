@@ -20,8 +20,11 @@ __global__ void scifi_calculate_cluster_count_kernel(
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const auto scifi_raw_event =
-    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, parameters.dev_scifi_raw_input_sizes, event_number);
+  const auto scifi_raw_event = SciFi::RawEvent<mep_layout>(
+    parameters.dev_scifi_raw_input,
+    parameters.dev_scifi_raw_input_offsets,
+    parameters.dev_scifi_raw_input_sizes,
+    event_number);
   const SciFi::SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 

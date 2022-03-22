@@ -69,10 +69,7 @@ namespace SciFi {
     }
 
     // get bank size in bytes, subtract four bytes for header word
-    __device__ __host__ unsigned bank_size(const unsigned index) const
-    {
-      return m_raw_bank_sizes[index] - 4;
-    }
+    __device__ __host__ unsigned bank_size(const unsigned index) const { return m_raw_bank_sizes[index] - 4; }
   };
 
   /**

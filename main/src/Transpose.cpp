@@ -80,7 +80,6 @@ BankTypes sd_from_sourceID(LHCb::RawBank const* raw_bank)
   }
 }
 
-
 /**
  * @brief      read events from input file into prefetch buffer
  *

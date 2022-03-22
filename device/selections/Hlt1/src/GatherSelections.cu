@@ -85,7 +85,7 @@ namespace gather_selections {
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-    LHCb::ODIN odin{dev_odin_data[event_number]};
+    LHCb::ODIN odin {dev_odin_data[event_number]};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);

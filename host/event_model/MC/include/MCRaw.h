@@ -12,15 +12,15 @@
 struct MCRawBank {
   __device__ __host__ MCRawBank(const char* raw_bank, const uint16_t s)
   {
-    char const * p = raw_bank;
+    char const* p = raw_bank;
     m_sourceID = reinterpret_cast<uint32_t const*>(p)[0];
     p += sizeof(uint32_t);
     m_data = p;
     m_last = p + s;
   }
 
-    __device__ __host__ const char* data() const { return m_data; }
-    __device__ __host__ const char* last() const { return m_last; }
+  __device__ __host__ const char* data() const { return m_data; }
+  __device__ __host__ const char* last() const { return m_last; }
 
 private:
   uint32_t m_sourceID = 0;
@@ -30,8 +30,10 @@ private:
 
 struct MCRawEvent {
 
-  __device__ __host__ MCRawEvent(const char* event_data, const uint32_t* offsets, const uint32_t* sizes, const uint32_t event_number)
-    : m_event_number{event_number}, m_raw_bank_sizes{sizes}
+  __device__ __host__
+  MCRawEvent(const char* event_data, const uint32_t* offsets, const uint32_t* sizes, const uint32_t event_number) :
+    m_event_number {event_number},
+    m_raw_bank_sizes {sizes}
   {
     const char* p = event_data + offsets[event_number];
     m_number_of_raw_banks = reinterpret_cast<uint32_t const*>(p)[0];
@@ -43,14 +45,13 @@ struct MCRawEvent {
 
   __device__ __host__ MCRawBank get_mc_raw_bank(const uint32_t index) const
   {
-    MCRawBank bank{m_payload + m_raw_bank_offset[index], Allen::bank_size(m_raw_bank_sizes, m_event_number, index)};
+    MCRawBank bank {m_payload + m_raw_bank_offset[index], Allen::bank_size(m_raw_bank_sizes, m_event_number, index)};
     return bank;
   }
 
   __device__ __host__ uint32_t number_of_raw_banks() const { return m_number_of_raw_banks; }
 
 private:
-
   uint32_t m_event_number = 0;
   uint32_t m_number_of_raw_banks = 0;
   uint32_t const* m_raw_bank_offset = nullptr;

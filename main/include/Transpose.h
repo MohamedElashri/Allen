@@ -69,10 +69,7 @@ bool check_sourceIDs(gsl::span<char const> bank_data);
  *
  * @return     sourceID of a < sourceID of b
  */
-inline bool sort_by_sourceID(LHCb::RawBank const* a, LHCb::RawBank const* b)
-{
-  return a->sourceID() < b->sourceID();
-}
+inline bool sort_by_sourceID(LHCb::RawBank const* a, LHCb::RawBank const* b) { return a->sourceID() < b->sourceID(); }
 
 /**
  * @brief      Use the bank type to source banks;

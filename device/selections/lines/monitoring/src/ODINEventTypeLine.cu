@@ -12,6 +12,6 @@ __device__ bool odin_event_type_line::odin_event_type_line_t::select(
   const Parameters& parameters,
   std::tuple<const ODINData&> input)
 {
-  const auto event_type = LHCb::ODIN{std::get<0>(input)}.eventType();
+  const auto event_type = LHCb::ODIN {std::get<0>(input)}.eventType();
   return event_type & parameters.odin_event_type;
 }

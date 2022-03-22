@@ -267,7 +267,8 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   std::cout << alloc_size << " " << split_event << " " << max_events << "\n";
 
-  auto size_fun = [as = alloc_size, n_events = max_events, bc = banks_count](BankTypes) -> std::tuple<size_t, size_t, size_t> {
+  auto size_fun =
+    [as = alloc_size, n_events = max_events, bc = banks_count](BankTypes) -> std::tuple<size_t, size_t, size_t> {
     auto n_banks = std::accumulate(bc.begin(), bc.end(), 0u);
     return {as, n_events * (n_banks + 1), n_events + 1};
   };

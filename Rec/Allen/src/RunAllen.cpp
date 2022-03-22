@@ -178,7 +178,8 @@ StatusCode RunAllen::finalize()
 /** Calls Allen for one event
  */
 std::tuple<bool, HostBuffers> RunAllen::operator()(
-  const std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>& allen_banks,
+  const std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>&
+    allen_banks,
   const LHCb::ODIN& odin) const
 {
   // Ensure non-event-data is up-to-date

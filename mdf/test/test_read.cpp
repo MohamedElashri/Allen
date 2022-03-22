@@ -59,7 +59,8 @@ int main(int argc, char* argv[])
     std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, true);
     if (eof || error) {
       return -1;
-    } else if (skipped++ < n_skip) {
+    }
+    else if (skipped++ < n_skip) {
       continue;
     }
 

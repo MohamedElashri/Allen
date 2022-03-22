@@ -131,16 +131,12 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
-  const UTBoards boards{ut_boards};
-  const UTRawEvent<mep> raw_event{parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number};
+  const UTBoards boards {ut_boards};
+  const UTRawEvent<mep> raw_event {
+    parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number};
   for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks();
        raw_bank_index += blockDim.x) {
     UTRawBank<decoding_version> bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);
-    calculate_number_of_hits(
-      dev_ut_region_offsets,
-      dev_unique_x_sector_offsets,
-      hit_offsets,
-      boards,
-      bank);
-    }
+    calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, bank);
+  }
 }

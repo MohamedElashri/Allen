@@ -48,8 +48,8 @@ namespace host_global_event_cut {
       // Check SciFi clusters
       unsigned n_SciFi_clusters = 0;
 
-      const auto scifi_event =
-        SciFi::RawEvent<mep_layout> {parameters.scifi_banks[0].data(), scifi_offsets.data(), scifi_sizes.data(), event_number};
+      const auto scifi_event = SciFi::RawEvent<mep_layout> {
+        parameters.scifi_banks[0].data(), scifi_offsets.data(), scifi_sizes.data(), event_number};
       for (unsigned i = 0; i < scifi_event.number_of_raw_banks(); ++i) {
         n_SciFi_clusters += scifi_event.bank_size(i);
       }
@@ -82,7 +82,8 @@ namespace host_global_event_cut {
         }
       }
       else {
-        const UTRawEvent<false> ut_event(parameters.ut_banks[0].data(), ut_offsets.data(), ut_sizes.data(), event_number);
+        const UTRawEvent<false> ut_event(
+          parameters.ut_banks[0].data(), ut_offsets.data(), ut_sizes.data(), event_number);
 
         for (unsigned i = 0; i < ut_event.number_of_raw_banks(); ++i) {
           if (ut_raw_bank_version == 4)
