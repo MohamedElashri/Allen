@@ -39,6 +39,7 @@ namespace Allen {
     size_t fragments_mem_size = 0;
     size_t n_offsets;
     gsl::span<unsigned int> sizes;
+    gsl::span<unsigned int> types;
   };
 
   using BankSlices = std::vector<Slice>;

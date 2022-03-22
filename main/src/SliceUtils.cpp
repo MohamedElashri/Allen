@@ -32,6 +32,7 @@ void reset_slice(
     auto& slice = slices[ib][slice_index];
     std::fill(slice.offsets.begin(), slice.offsets.end(), 0);
     std::fill(slice.sizes.begin(), slice.sizes.end(), 0);
+    std::fill(slice.types.begin(), slice.types.end(), 0);
     slice.n_offsets = 1;
     if (mep) {
       slice.fragments.clear();
@@ -56,10 +57,14 @@ Allen::Slices allocate_slices(
     for (size_t i = 0; i < n_slices; ++i) {
       char* events_mem = nullptr;
       unsigned* sizes_mem = nullptr;
+      unsigned* types_mem = nullptr;
       unsigned* offsets_mem = nullptr;
 
       if (n_bytes) Allen::malloc_host((void**) &events_mem, n_bytes);
-      if (n_sizes) Allen::malloc_host((void**) &sizes_mem, n_sizes * sizeof(unsigned));
+      if (n_sizes) {
+        Allen::malloc_host((void**) &sizes_mem, n_sizes * sizeof(unsigned));
+        Allen::malloc_host((void**) &types_mem, n_sizes * sizeof(unsigned));
+      }
       if (n_offsets) Allen::malloc_host((void**) &offsets_mem, (n_offsets + 1) * sizeof(unsigned));
 
       for (size_t i = 0; i < n_offsets + 1; ++i) {
@@ -67,6 +72,7 @@ Allen::Slices allocate_slices(
       }
       for (size_t i = 0; i < n_sizes; ++i) {
         sizes_mem[i] = 0;
+        types_mem[i] = 0;
       }
       std::vector<gsl::span<char>> bank_spans {};
       if (n_bytes) {
@@ -77,7 +83,8 @@ Allen::Slices allocate_slices(
                                              offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)},
                                              n_bytes,
                                              1,
-                                             offsets_span {sizes_mem, static_cast<offsets_size>(n_sizes)}});
+                                             offsets_span {sizes_mem, static_cast<offsets_size>(n_sizes)},
+                                             offsets_span {types_mem, static_cast<offsets_size>(n_sizes)}});
     }
   }
   return slices;

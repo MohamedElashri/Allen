@@ -282,7 +282,8 @@ public:
     gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     gsl::span<unsigned int const> s {slice.sizes.data(), slice.sizes.size()};
     gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-    return BanksAndOffsets {{std::move(b)}, std::move(o), offsets[offsets_size - 1], std::move(s), m_banks_version[ib]};
+    gsl::span<unsigned int const> t {slice.types.data(), slice.types.size()};
+    return BanksAndOffsets {{std::move(b)}, std::move(o), offsets[offsets_size - 1], std::move(s), std::move(t), m_banks_version[ib]};
   }
 
   /**
