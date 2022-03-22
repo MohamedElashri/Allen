@@ -20,7 +20,6 @@
 #include <Dumpers/Utils.h>
 
 
-
 #include <DetDesc/Condition.h>
 #include <DetDesc/ConditionAccessorHolder.h>
 #include <GaudiAlg/Transformer.h>
@@ -41,11 +40,11 @@
 //inline const std::string EcalCond = "/dd/Structure/LHCb/DownstreamRegion/Ecal";
 
 //   struct ECal_t {
-    
+
 //     // Add some variables for ECal
 
 //     ECal_t( Condition const& c )
-    
+
 //     //Put the correct parameters For E Calorimeter (if needed)
 //         // : X{( c.param<double>( "ResolPosRC" ) + c.param<double>( "ResolPosLA" ) ) / 2}
 //         // , Y{c.param<double>( "ResolPosY" )} {}
@@ -91,16 +90,16 @@ DumpCaloGeometry::DumpCaloGeometry( const std::string& name, ISvcLocator* svcLoc
 
 // Add the operator() call
 
-std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const DeCalorimeter& DeCalorimeter ) const 
+std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const DeCalorimeter& DeCalorimeter ) const
 {
 
-   
+
 
 
 
 
   // Detector and mat geometry
-  
+
   // SourceID to feCards: tell1ToCards for 0 - det.nTell1s   Returns tell1Param which has .feCards int vector.
   // Bank header code to card using cardCode() function which operates on CardParam which has card code and channels.
   // check codes in Python; check feCards to code if this is standard somehow.
@@ -266,5 +265,5 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const D
 
   return std::tuple {output.buffer(), m_id};
 
-  
+
 }
