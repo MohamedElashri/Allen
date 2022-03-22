@@ -124,7 +124,7 @@ public:
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
   void set_size(const size_t size)
   {
-    static_assert(!Allen::isDerivedFrom<input_datatype, T>::value && "set_size can only be used on output datatypes");
+    static_assert(!Allen::is_template_base_of_v<input_datatype, T> && "set_size can only be used on output datatypes");
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
     m_store_ref[index_of_T].get().set_size(size);
@@ -139,7 +139,7 @@ public:
   void reduce_size(const size_t size) const
   {
     static_assert(
-      !Allen::isDerivedFrom<input_datatype, T>::value && "reduce_size can only be used on output datatypes");
+      !Allen::is_template_base_of_v<input_datatype, T> && "reduce_size can only be used on output datatypes");
     constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
     static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
     assert(size <= m_store_ref[index_of_T].get().size());

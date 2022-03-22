@@ -107,9 +107,9 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
 
         // Find the location of the substructure in the bank.
         const auto substr = sv->child(i_substr);
+        const auto basic_substr = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(substr);
         unsigned substr_loc;
-        if (substr->type_id() == Allen::TypeIDs::BasicParticle) {
-          const auto basic_substr = static_cast<const Allen::Views::Physics::BasicParticle*>(substr);
+        if (basic_substr) {
           for (unsigned i_track = 0; i_track < n_tracks; i_track++) {
             const unsigned track_index = event_unique_track_list[i_track];
             if (basic_substr == event_track_ptrs[track_index]) {
