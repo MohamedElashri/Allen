@@ -177,7 +177,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
           for (unsigned j_track = 0; j_track < n_tracks; j_track++) {
             const unsigned test_index = parameters.dev_unique_track_list[track_offset + j_track] > 0;
             if (track_index == test_index) {
-              obj_index = n_sels + n_svs + track_index;
+              obj_index = n_sels + n_svs + j_track;
               break;
             }
           }
@@ -211,7 +211,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
           for (unsigned j_sv = 0; j_sv < n_svs; j_sv++) {
             const unsigned test_index = event_unique_sv_list[j_sv];
             if (sv_index == test_index) {
-              obj_index = n_sels + sv_index;
+              obj_index = n_sels + j_sv;
               break;
             }
           }
