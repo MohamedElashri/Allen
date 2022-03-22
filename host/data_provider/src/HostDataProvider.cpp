@@ -18,8 +18,11 @@ void host_data_provider::host_data_provider_t::set_arguments_size(
   // A single span for the offsets
   set_size<host_raw_offsets_t>(arguments, 1);
 
-  // A single span for the offsets
+  // A single span for the sizes
   set_size<host_raw_sizes_t>(arguments, 1);
+
+  // A single span for the types
+  set_size<host_raw_types_t>(arguments, 1);
 
   // A single number for the version
   set_size<host_raw_bank_version_t>(arguments, 1);
@@ -41,6 +44,10 @@ void host_data_provider::host_data_provider_t::operator()(
   // memcpy the sizes span directly
   auto const& sizes = bno.sizes;
   ::memcpy(data<host_raw_sizes_t>(arguments), &sizes, sizeof(sizes));
+
+  // memcpy the sizes span directly
+  auto const& types = bno.types;
+  ::memcpy(data<host_raw_types_t>(arguments), &types, sizeof(types));
 
   // Copy the spans for the blocks
   auto const& blocks = bno.fragments;

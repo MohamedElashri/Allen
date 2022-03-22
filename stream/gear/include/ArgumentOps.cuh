@@ -446,7 +446,7 @@ void print(const Args& arguments)
 /**
  * @brief Transfer data to the device, populating raw banks and offsets.
  */
-template<class DATA_ARG, class OFFSET_ARG, class SIZE_ARG, class ARGUMENTS>
+template<class DATA_ARG, class OFFSET_ARG, class SIZE_ARG, class TYPES_ARG, class ARGUMENTS>
 void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const Allen::Context& context)
 {
   auto offset = data<DATA_ARG>(args);
@@ -458,6 +458,9 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
 
   Allen::memcpy_async(
     data<SIZE_ARG>(args), bno.sizes.data(), bno.sizes.size_bytes(), Allen::memcpyHostToDevice, context);
+
+  Allen::memcpy_async(
+    data<TYPES_ARG>(args), bno.types.data(), bno.types.size_bytes(), Allen::memcpyHostToDevice, context);
 
   Allen::memcpy_async(
     data<OFFSET_ARG>(args), bno.offsets.data(), bno.offsets.size_bytes(), Allen::memcpyHostToDevice, context);
