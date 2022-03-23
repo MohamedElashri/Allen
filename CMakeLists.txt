@@ -325,7 +325,9 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   endif()
 
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE lib_gcc_file_raw)
+  # TODO: It is currently unclear how to get a reliable lib_gcc path
+  string(REGEX REPLACE "clang" "g" gcc_compiler ${CMAKE_CXX_COMPILER})
+  execute_process(COMMAND ${gcc_compiler} -print-libgcc-file-name OUTPUT_VARIABLE lib_gcc_file_raw)
   string(REGEX REPLACE "/lib/gcc.*\n" "" cxx_idir ${lib_gcc_file_raw})
   set(HIP_TOOLCHAIN_OPTIONS "--gcc-toolchain=${cxx_idir}")
 
