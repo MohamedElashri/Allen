@@ -477,8 +477,6 @@ foreach(sequence_filename ${available_sequences})
   endif()
 endforeach()
 
-set(EXTERNAL_DIR "external")
-
 if(BUILD_TESTING)
   add_subdirectory(test/unit_tests)
 endif()

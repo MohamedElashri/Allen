@@ -29,7 +29,7 @@ endif()
 # TODO: Remove hard-coded LCG path once that it is findable
 find_path(UMESIMD_INCLUDE_DIR
    NAMES umesimd
-   HINTS $ENV{UMESIMD_ROOT_DIR} ${UMESIMD_ROOT_DIR} /cvmfs/lhcb.cern.ch/lib/lcg/releases/LCG_101/umesimd/0.8.1/x86_64-centos7-clang12-opt)
+   HINTS $ENV{UMESIMD_ROOT_DIR} ${UMESIMD_ROOT_DIR})
 
 # Handle the regular find_package arguments:
 include(FindPackageHandleStandardArgs)
