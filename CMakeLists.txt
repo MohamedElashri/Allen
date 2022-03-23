@@ -325,11 +325,13 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   endif()
 
-  # TODO: It is currently unclear how to get a reliable lib_gcc path
-  string(REGEX REPLACE "clang" "g" gcc_compiler ${CMAKE_CXX_COMPILER})
-  execute_process(COMMAND ${gcc_compiler} -print-libgcc-file-name OUTPUT_VARIABLE lib_gcc_file_raw)
-  string(REGEX REPLACE "/lib/gcc.*\n" "" cxx_idir ${lib_gcc_file_raw})
-  set(HIP_TOOLCHAIN_OPTIONS "--gcc-toolchain=${cxx_idir}")
+  if(GCC_TOOLCHAIN_ROOT)
+    set(HIP_TOOLCHAIN_OPTIONS ${GCC_TOOLCHAIN_ROOT})
+  else()
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE lib_gcc_file_raw)
+    string(REGEX REPLACE "/lib/gcc.*\n" "" cxx_idir ${lib_gcc_file_raw})
+    set(HIP_TOOLCHAIN_OPTIONS "--gcc-toolchain=${cxx_idir}")
+  endif()
 
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
