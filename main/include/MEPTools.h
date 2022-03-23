@@ -3,9 +3,24 @@
 \*****************************************************************************/
 #pragma once
 
+// Avoid wrong warnings from nvcc:
+// Warning #940-D: missing return statement at end of non-void function "LHCb::ODINImplementation::details::get_bits"
+#ifdef __CUDACC__
+#pragma push
+#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 6)
+#pragma nv_diag_suppress = 940
+#else
+#pragma diag_suppress = 940
+#endif
+#endif
+#include <Event/ODIN.h>
+#ifdef __CUDACC__
+#pragma pop
+#endif
+#include <Event/RawBank.h>
+
 #include "Common.h"
 #include "BackendCommon.h"
-#include <Event/RawBank.h>
 
 namespace Allen {
   namespace detail {
@@ -182,12 +197,12 @@ namespace MEP {
         m_raw_input, m_raw_input_offsets, m_raw_input_sizes, m_raw_input_types, m_event_number, index);
     }
 
-    __host__ __device__ unsigned bank_size(const unsigned index) const
+    __host__ __device__ unsigned short bank_size(const unsigned index) const
     {
       return MEP::bank_size(m_raw_input, m_raw_input_sizes, m_event_number, index);
     }
 
-    __host__ __device__ unsigned bank_type(const unsigned index) const
+    __host__ __device__ unsigned char bank_type(const unsigned index) const
     {
       return m_raw_input_types == nullptr ? Allen::LastBankType :
                                             MEP::bank_type(m_raw_input, m_raw_input_types, m_event_number, index);
