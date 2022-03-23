@@ -20,7 +20,7 @@ __device__ unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::offset(
 unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::get_decisions_size(
   ArgumentReferences<Parameters>& arguments)
 {
-  return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
+  return first<host_number_of_reconstructed_velo_tracks_t>(arguments);
 }
 
 // Get input function
