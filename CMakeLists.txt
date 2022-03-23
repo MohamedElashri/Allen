@@ -374,6 +374,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
+    set(BUILD_RPATH_USE_ORIGIN ON)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
   enable_language(CUDA)
@@ -453,33 +454,36 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 if(STANDALONE)
-  #Detect target CPU architecture
-  include(TargetArch)
-  set(TARGET_CPU_ARCHITECTURE "")
-  target_architecture(TARGET_CPU_ARCHITECTURE)
-  message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
+  string(REGEX MATCH "-march=[^ ]*" march_is_set ${CMAKE_CXX_FLAGS})
+  if(!march_is_set)
+    #Detect target CPU architecture
+    include(TargetArch)
+    set(TARGET_CPU_ARCHITECTURE "")
+    target_architecture(TARGET_CPU_ARCHITECTURE)
+    message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 
-  #Specific optimizations for different architectures
-  if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
-  OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
-  #x86 family
-    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
-  #PowerPC family
-  #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
-    string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
-  OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
-  #ARM family
-    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
-  #ARM64 family
-  #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
-    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
-    -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "apple_silicon")
-  # Apple silicon
-    string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+    #Specific optimizations for different architectures
+    if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
+    OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
+    #x86 family
+      string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
+    #PowerPC family
+    #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
+      string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
+    OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
+    #ARM family
+      string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
+    #ARM64 family
+    #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
+      string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
+      -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "apple_silicon")
+    # Apple silicon
+      string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+    endif()
   endif()
 endif()
 

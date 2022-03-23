@@ -6,7 +6,7 @@
     matrix:
       - TARGET: [CPU, CUDA, HIP]
         LCG_ARCHITECTURE:
-          - x86_64-centos7-clang12-opt
+          - x86_64_v2-centos7-clang12-opt
         BUILD_TYPE:
           - RelWithDebInfo
 
@@ -15,14 +15,14 @@
   parallel:
     matrix:
       # build jobs (with tests)
-      - LCG_ARCHITECTURE: x86_64-centos7-clang12-opt
+      - LCG_ARCHITECTURE: x86_64_v2-centos7-clang12-opt
         BUILD_TYPE: [RelWithDebInfo, Debug]
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS
 
       # debug builds with GCC, Clang with various additional cmake options
       - LCG_ARCHITECTURE:
-          - x86_64-centos7-clang12-opt
+          - x86_64_v2-centos7-clang12-opt
         BUILD_TYPE: Debug
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT
@@ -30,12 +30,12 @@
           - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
 
       - LCG_ARCHITECTURE:
-          - x86_64-centos7-gcc11-opt
+          - x86_64_v2-centos7-gcc11-opt
         BUILD_TYPE: Debug
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
 
-      - LCG_ARCHITECTURE: [x86_64-centos7-clang12-opt]
+      - LCG_ARCHITECTURE: [x86_64_v2-centos7-clang12-opt]
         OPTIONS: ["USE_ROOT"]
         BUILD_TYPE: Debug
 
