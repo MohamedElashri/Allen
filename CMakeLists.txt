@@ -325,14 +325,18 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   endif()
 
+  string(REGEX MATCH "--gcc-toolchain[^ ]*" gcc_toolchain ${CMAKE_CXX_FLAGS})
   if(GCC_TOOLCHAIN_ROOT)
     set(HIP_TOOLCHAIN_OPTIONS ${GCC_TOOLCHAIN_ROOT})
+  elseif(gcc_toolchain)
+    set(HIP_TOOLCHAIN_OPTIONS ${gcc_toolchain})
   else()
     execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE lib_gcc_file_raw)
     string(REGEX REPLACE "/lib/gcc.*\n" "" cxx_idir ${lib_gcc_file_raw})
     set(HIP_TOOLCHAIN_OPTIONS "--gcc-toolchain=${cxx_idir}")
   endif()
 
+  message(STATUS "HIP GCC TOOLCHAIN: " ${HIP_TOOLCHAIN_OPTIONS})
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
   function(allen_add_host_library)
