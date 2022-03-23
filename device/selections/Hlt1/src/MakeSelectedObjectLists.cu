@@ -322,8 +322,8 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     // SVs: empty
     if (n_objects > 0) {
       parameters.dev_stdinfo_bank_size[event_number] = 2 + n_objects / 4 + parameters.dev_sel_count[event_number] +
-                                                       8 * parameters.dev_sel_track_count[event_number] +
-                                                       4 * parameters.dev_sel_sv_count[event_number];
+                                                       8 * parameters.dev_unique_track_count[event_number] +
+                                                       4 * parameters.dev_unique_sv_count[event_number];
     }
     else {
       parameters.dev_stdinfo_bank_size[event_number] = 0;
