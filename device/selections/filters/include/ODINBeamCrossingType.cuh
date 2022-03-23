@@ -11,7 +11,6 @@ namespace odin_beamcrossingtype {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
 
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_OUTPUT(dev_number_of_selected_events_t, unsigned) dev_number_of_selected_events;
@@ -23,9 +22,7 @@ namespace odin_beamcrossingtype {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
-  __global__ void odin_beamcrossingtype(Parameters, const unsigned);
   struct odin_beamcrossingtype_t : public DeviceAlgorithm, Parameters {
-
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
@@ -34,7 +31,7 @@ namespace odin_beamcrossingtype {
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
-      const RuntimeOptions&,
+      const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
       const Allen::Context&) const;

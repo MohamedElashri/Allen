@@ -128,7 +128,6 @@ def ODIN_BeamXtype(name='ODIN_BeamXType', beam_type=3):
         odin_beamcrossingtype_t,
         name = name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         beam_crossing_type = beam_type )

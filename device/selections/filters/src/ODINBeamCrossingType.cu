@@ -18,36 +18,18 @@ void odin_beamcrossingtype::odin_beamcrossingtype_t::set_arguments_size(
   set_size<dev_event_list_output_t>(arguments, size<dev_event_list_t>(arguments));
 }
 
-void odin_beamcrossingtype::odin_beamcrossingtype_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  HostBuffers&,
-  const Allen::Context& context) const
-{
-  initialize<dev_number_of_selected_events_t>(arguments, 0, context);
-  initialize<host_number_of_selected_events_t>(arguments, 0, context);
-  initialize<dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(odin_beamcrossingtype)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(arguments, 
-											  size<dev_event_list_t>(arguments));
-
-  Allen::
-    copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(
-      arguments, context);
-  reduce_size<dev_event_list_output_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments));
-}
-
-__global__ void odin_beamcrossingtype::odin_beamcrossingtype(odin_beamcrossingtype::Parameters parameters, 
-							     const unsigned number_of_events )
+template<bool mep_layout>
+__global__ void odin_beamcrossingtype_kernel(
+  odin_beamcrossingtype::Parameters parameters,
+  const unsigned number_of_events)
 {
 
   for (unsigned idx = threadIdx.x; idx < number_of_events; idx += blockDim.x) {
     const unsigned event_number = parameters.dev_event_list[idx];
 
-    const unsigned* event_odin_data = nullptr;
-    if (parameters.dev_mep_layout[0]) {
+    [[maybe_unused]] const unsigned* event_odin_data = nullptr;
+    if constexpr ( mep_layout ) {
       event_odin_data =
 	odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
     }
@@ -63,4 +45,27 @@ __global__ void odin_beamcrossingtype::odin_beamcrossingtype(odin_beamcrossingty
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }
   }
+}
+
+
+void odin_beamcrossingtype::odin_beamcrossingtype_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants&,
+  HostBuffers&,
+  const Allen::Context& context) const
+{
+  initialize<dev_number_of_selected_events_t>(arguments, 0, context);
+  initialize<host_number_of_selected_events_t>(arguments, 0, context);
+  initialize<dev_event_list_output_t>(arguments, 0, context);
+
+  global_function( runtime_options.mep_layout ? odin_beamcrossingtype_kernel<true> : odin_beamcrossingtype_kernel<false> )(dim3(1), 
+													     dim3(property<block_dim_x_t>().get()), context)(
+    arguments, size<dev_event_list_t>(arguments));
+
+  Allen::
+    copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(
+      arguments, context);
+  reduce_size<dev_event_list_output_t>(
+    arguments, first<host_number_of_selected_events_t>(arguments));
 }
