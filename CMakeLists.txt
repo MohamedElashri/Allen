@@ -324,7 +324,12 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   endif()
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
+
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE lib_gcc_file_raw)
+  string(REGEX REPLACE "/lib/gcc.*\n" "" cxx_idir ${lib_gcc_file_raw})
+  set(HIP_TOOLCHAIN_OPTIONS "--gcc-toolchain=${cxx_idir}")
+  
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
   function(allen_add_host_library)
     add_library(${ARGV})
@@ -378,8 +383,9 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} -ccbin=${CMAKE_CXX_COMPILER} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
+  message(STATUS "CMAKE CUDA FLAGS:" ${CMAKE_CUDA_FLAGS})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_host_library)
