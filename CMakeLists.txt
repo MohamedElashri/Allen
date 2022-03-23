@@ -4,6 +4,12 @@
 
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
+# For STANDALONE and cmake versions under 3.21, allow using
+# the env var CMAKE_TOOLCHAIN_FILE to specify the toolchain
+if(STANDALONE AND NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{CMAKE_TOOLCHAIN_FILE})
+  set(CMAKE_TOOLCHAIN_FILE $ENV{CMAKE_TOOLCHAIN_FILE})
+endif()
+
 project(Allen VERSION 2.0
         LANGUAGES CXX)
 

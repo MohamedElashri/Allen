@@ -23,6 +23,8 @@ The following packages are required in order to be able to compile Allen. Packag
 * zlib-devel
 * gsl-lite or alternatively the Microsoft GSL
 * python3
+* umesimd (https://github.com/edanor/umesimd)
+* catch2
 
 The following python3 packages are also needed, which can be installed with pip, conda, or the package manager:
 
@@ -34,27 +36,29 @@ The following python3 packages are also needed, which can be installed with pip,
 Further requirements depend on the device chosen as target. For each target,
 we show a proposed development setup with CVMFS and CentOS 7:
 
-* CPU target: Any modern compiler can be used::
+* CPU target::
 
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
     
 * CUDA target: CUDA is available in cvmfs as well::
 
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.4/x86_64-centos7/setup.sh
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
 
 * HIP target: Either a local installation of ROCm or CVMFS are required::
 
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
     source /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
 
 
 Compilation
 ----------------
 
-The build process doesn't differ from standard cmake projects::
+The build process doesn't differ from standard cmake projects. The `CMAKE_TOOLCHAIN_FILE` is optional::
 
-    git submodule update --init --recursive
     mkdir build
     cd build
     cmake -DSTANDALONE=ON ..
