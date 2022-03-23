@@ -72,7 +72,14 @@ bool check_sourceIDs(gsl::span<char const> bank_data);
  */
 inline bool sort_by_bank_type(LHCb::RawBank const* a, LHCb::RawBank const* b)
 {
-  return (a->type() == b->type()) ? (a->sourceID() < b->sourceID()) : (a->type() < b->type());
+  bool a_velo = a->type() == LHCb::RawBank::VP || a->type() == LHCb::RawBank::VPRetinaCluster;
+  bool b_velo = b->type() == LHCb::RawBank::VP || b->type() == LHCb::RawBank::VPRetinaCluster;
+  if (a_velo != b_velo) {
+    return a_velo;
+  }
+  else {
+    return (a->type() == b->type()) ? (a->sourceID() < b->sourceID()) : (a->type() < b->type());
+  }
 }
 
 /**
