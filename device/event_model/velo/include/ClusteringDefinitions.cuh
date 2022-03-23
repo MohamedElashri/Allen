@@ -64,11 +64,13 @@ namespace Velo {
   struct VeloRawBank {
     uint32_t sensor_index;
     uint32_t count;
+    uint8_t type;
     uint32_t* word;
 
     // For MEP format
-    __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment)
+    __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment, uint8_t t)
     {
+      type = t;
       sensor_index = source_id;
       const char* p = fragment;
       count = *((uint32_t*) p);
@@ -77,8 +79,9 @@ namespace Velo {
     }
 
     // For Allen format
-    __device__ __host__ VeloRawBank(const char* raw_bank)
+    __device__ __host__ VeloRawBank(const char* raw_bank, uint8_t t)
     {
+      type = t;
       const char* p = raw_bank;
       sensor_index = *((uint32_t*) p);
       p += sizeof(uint32_t);
@@ -90,11 +93,12 @@ namespace Velo {
 
   struct VeloRawEvent {
   private:
-    uint32_t m_number_of_raw_banks;
-    uint32_t* m_raw_bank_offset;
-    char* m_payload;
+    uint32_t m_number_of_raw_banks = 0;
+    uint32_t const* m_raw_bank_offset = nullptr;
+    uint8_t const* m_raw_bank_types = nullptr;
+    char* m_payload = nullptr;
 
-    __device__ __host__ void initialize(const char* event)
+    __device__ __host__ void initialize(const char* event, const unsigned char* types)
     {
       const char* p = event;
       m_number_of_raw_banks = *((uint32_t*) p);
@@ -102,25 +106,27 @@ namespace Velo {
       m_raw_bank_offset = (uint32_t*) p;
       p += (m_number_of_raw_banks + 1) * sizeof(uint32_t);
       m_payload = (char*) p;
+      m_raw_bank_types = types;
     }
 
   public:
-    __device__ __host__ VeloRawEvent(const char* event) { initialize(event); }
+    __device__ __host__ VeloRawEvent(const char* event, const unsigned char* types) { initialize(event, types); }
 
     __device__ __host__ VeloRawEvent(
       const char* dev_velo_raw_input,
       const unsigned* dev_velo_raw_input_offsets,
       const unsigned*,
+      const unsigned* dev_velo_raw_input_types,
       const unsigned event_number)
     {
-      initialize(dev_velo_raw_input + dev_velo_raw_input_offsets[event_number]);
+      initialize(dev_velo_raw_input + dev_velo_raw_input_offsets[event_number], Allen::bank_types(dev_velo_raw_input_types, event_number));
     }
 
     __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }
 
     __device__ __host__ VeloRawBank raw_bank(const unsigned index) const
     {
-      return VeloRawBank {m_payload + m_raw_bank_offset[index]};
+      return VeloRawBank {m_payload + m_raw_bank_offset[index], m_raw_bank_types[index]};
     }
   };
 

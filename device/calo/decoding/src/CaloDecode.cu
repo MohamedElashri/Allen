@@ -17,12 +17,13 @@ namespace {
     const char* data,
     const uint32_t* offsets,
     const uint32_t* sizes,
+    const uint32_t* types,
     unsigned const event_number,
     CaloDigit* digits,
     unsigned const number_of_digits,
     CaloGeometry const& geometry)
   {
-    auto raw_event = Calo::RawEvent<mep_layout> {data, offsets, sizes, event_number};
+    auto raw_event = Calo::RawEvent<mep_layout> {data, offsets, sizes, types, event_number};
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
       auto raw_bank = raw_event.raw_bank(bank_number);
       while (raw_bank.data < raw_bank.end) {
@@ -91,6 +92,7 @@ __global__ void calo_decode_dispatch(calo_decode::Parameters parameters, const c
     parameters.dev_ecal_raw_input,
     parameters.dev_ecal_raw_input_offsets,
     parameters.dev_ecal_raw_input_sizes,
+    parameters.dev_ecal_raw_input_types,
     event_number,
     &parameters.dev_ecal_digits[ecal_digits_offset],
     parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,

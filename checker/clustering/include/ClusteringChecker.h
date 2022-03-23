@@ -14,6 +14,7 @@ void checkClustering(
   const std::vector<char>& geometry,
   const std::vector<char>& events,
   const std::vector<unsigned>& event_offsets,
+  const std::vector<unsigned>& types_offsets,
   const std::vector<std::vector<uint32_t>>& found_clusters,
   float& reconstruction_efficiency,
   float& clone_fraction,

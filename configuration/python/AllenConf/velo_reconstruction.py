@@ -30,7 +30,9 @@ def decode_velo(retina_decoding=True):
             dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
             dev_raw_offsets_t,
             dev_velo_retina_raw_input_sizes_t=velo_retina_banks.
-            dev_raw_sizes_t)
+            dev_raw_sizes_t,
+            dev_velo_retina_raw_input_types_t=velo_retina_banks.
+            dev_raw_types_t)
 
         prefix_sum_offsets_estimated_input_size = make_algorithm(
             host_prefix_sum_t,
@@ -49,6 +51,8 @@ def decode_velo(retina_decoding=True):
             dev_raw_offsets_t,
             dev_velo_retina_raw_input_sizes_t=velo_retina_banks.
             dev_raw_sizes_t,
+            dev_velo_retina_raw_input_types_t=velo_retina_banks.
+            dev_raw_types_t,
             dev_offsets_each_sensor_size_t=
             prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
@@ -77,6 +81,7 @@ def decode_velo(retina_decoding=True):
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
+            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t
         )
 
         prefix_sum_offsets_velo_candidates = make_algorithm(
@@ -96,7 +101,8 @@ def decode_velo(retina_decoding=True):
             dev_output_buffer_t,
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
-            dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t)
+            dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
+            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t)
 
         prefix_sum_offsets_estimated_input_size = make_algorithm(
             host_prefix_sum_t,
@@ -114,6 +120,7 @@ def decode_velo(retina_decoding=True):
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
+            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t,
             dev_offsets_estimated_input_size_t=
             prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
             dev_module_candidate_num_t=velo_estimate_input_size.

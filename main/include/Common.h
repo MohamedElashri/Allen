@@ -120,6 +120,12 @@ namespace detail {
 template<template<class...> class Trait, class... Args>
 using is_detected = typename detail::is_detected<Trait, void, Args...>::type;
 
+template<typename ENUM>
+constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
+{
+  return static_cast<typename std::underlying_type<ENUM>::type>(e);
+}
+
 using events_span = gsl::span<char>;
 using offsets_span = gsl::span<unsigned int>;
 

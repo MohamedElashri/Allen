@@ -18,12 +18,14 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_kernel(
   const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_retina_raw_input,
                                                           parameters.dev_velo_retina_raw_input_offsets,
                                                           parameters.dev_velo_retina_raw_input_sizes,
+                                                          parameters.dev_velo_retina_raw_input_types,
                                                           event_number};
 
   unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-    each_sensor_size[raw_bank.sensor_index] = raw_bank.count;
+    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster)
+      each_sensor_size[raw_bank.sensor_index] = raw_bank.count;
   }
 }
 

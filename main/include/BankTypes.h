@@ -53,12 +53,6 @@ std::string bank_name(BankTypes type);
  */
 BankTypes bank_type(std::string bank_name);
 
-template<typename ENUM>
-constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
-{
-  return static_cast<typename std::underlying_type<ENUM>::type>(e);
-}
-
 struct BanksAndOffsets {
   std::vector<gsl::span<const char>> fragments;
   gsl::span<unsigned const> offsets;

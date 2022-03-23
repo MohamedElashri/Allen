@@ -5,6 +5,7 @@
 
 #include "Common.h"
 #include "BackendCommon.h"
+#include <Event/RawBank.h>
 
 namespace Allen {
   namespace detail {
@@ -37,6 +38,8 @@ namespace Allen {
   {
     return bank_types(types, event)[bank];
   }
+
+  static constexpr uint8_t LastBankType = static_cast<uint8_t>(to_integral(LHCb::RawBank::LastType));
 } // namespace Allen
 
 namespace MEP {
@@ -99,13 +102,15 @@ namespace MEP {
       char const* blocks,
       unsigned int const* offsets,
       unsigned int const* sizes,
+      unsigned int const* types,
       unsigned int const event,
       unsigned int const bank)
     {
       auto const source_id = offsets[2 + bank];
       auto const n_banks = offsets[0];
       auto const* fragment = blocks + offsets[offset_index(n_banks, event, bank)];
-      return {source_id, fragment, MEP::bank_size(blocks, sizes, event, bank)};
+      auto const type = types == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types, event, bank);
+      return {source_id, fragment, MEP::bank_size(blocks, sizes, event, bank), type};
     }
 
     template<class Bank, typename... Args, std::enable_if_t<!has_constructor<Bank, Args...>::value>* = nullptr>
@@ -113,13 +118,15 @@ namespace MEP {
       char const* blocks,
       unsigned int const* offsets,
       unsigned int const*,
+      unsigned int const* types,
       unsigned int const event,
       unsigned int const bank)
     {
       auto const source_id = offsets[2 + bank];
       auto const n_banks = offsets[0];
       auto const* fragment = blocks + offsets[offset_index(n_banks, event, bank)];
-      return {source_id, fragment};
+      auto const type = types == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types, event, bank);
+      return {source_id, fragment, type};
     }
   } // namespace detail
 
@@ -128,10 +135,11 @@ namespace MEP {
     char const* blocks,
     unsigned int const* offsets,
     unsigned const* sizes,
+    unsigned const* types,
     unsigned int const event,
     unsigned int const bank)
   {
-    return detail::raw_bank<Bank, uint32_t const, char const*, uint16_t>(blocks, offsets, sizes, event, bank);
+    return detail::raw_bank<Bank, uint32_t const, char const*, uint16_t, uint8_t>(blocks, offsets, sizes, types, event, bank);
   }
 
   template<class Bank>
@@ -139,10 +147,12 @@ namespace MEP {
   private:
     const char* m_raw_input = nullptr;
     const unsigned* m_raw_input_sizes = nullptr;
+    const unsigned* m_raw_input_types = nullptr;
     const unsigned* m_raw_input_offsets = nullptr;
     unsigned m_event_number = 0;
 
   public:
+    // Temporary until all subdetector raw events support types
     __host__ __device__ RawEvent(
       const char* raw_input,
       const unsigned* raw_input_offsets,
@@ -152,16 +162,32 @@ namespace MEP {
       m_raw_input_sizes(raw_input_sizes), m_raw_input_offsets(raw_input_offsets), m_event_number(event_number)
     {}
 
+    __host__ __device__ RawEvent(
+      const char* raw_input,
+      const unsigned* raw_input_offsets,
+      const unsigned* raw_input_sizes,
+      const unsigned* raw_input_types,
+      const unsigned event_number) :
+      m_raw_input(raw_input),
+      m_raw_input_sizes(raw_input_sizes), m_raw_input_types(raw_input_types), m_raw_input_offsets(raw_input_offsets), m_event_number(event_number)
+    {}
+
     __host__ __device__ unsigned number_of_raw_banks() const { return m_raw_input_offsets[0]; }
 
     __host__ __device__ Bank raw_bank(const unsigned index) const
     {
-      return MEP::raw_bank<Bank>(m_raw_input, m_raw_input_offsets, m_raw_input_sizes, m_event_number, index);
+      return MEP::raw_bank<Bank>(m_raw_input, m_raw_input_offsets, m_raw_input_sizes, m_raw_input_types, m_event_number, index);
     }
 
     __host__ __device__ unsigned bank_size(const unsigned index) const
     {
       return MEP::bank_size(m_raw_input, m_raw_input_sizes, m_event_number, index);
     }
+
+    __host__ __device__ unsigned bank_type(const unsigned index) const
+    {
+      return m_raw_input_types == nullptr ? LHCb::RawBank::LastType : MEP::bank_type(m_raw_input, m_raw_input_types, m_event_number, index);
+    }
+
   };
 } // namespace MEP

@@ -16,11 +16,11 @@ struct UTRawBank {
 
   static_assert(decoding_version == -1 || decoding_version == 3 || decoding_version == 4);
 
-  __device__ __host__ UTRawBank(const char* ut_raw_bank, const uint16_t size) :
-    UTRawBank {reinterpret_cast<const uint32_t*>(ut_raw_bank)[0], ut_raw_bank + sizeof(uint32_t), size}
+  __device__ __host__ UTRawBank(const char* ut_raw_bank, const uint16_t size, const uint8_t type) :
+    UTRawBank {reinterpret_cast<const uint32_t*>(ut_raw_bank)[0], ut_raw_bank + sizeof(uint32_t), size, type}
   {}
 
-  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, const uint16_t s) :
+  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, const uint16_t s, const uint8_t) :
     sourceID {sID}, size {static_cast<uint16_t>(s / sizeof(uint16_t))}
   {
     auto p = reinterpret_cast<const uint32_t*>(ut_fragment);
@@ -103,10 +103,10 @@ public:
   __device__ __host__ UTRawBank<decoding_version> raw_bank(uint32_t const bank) const
   {
     if constexpr (mep_layout) {
-      return MEP::raw_bank<UTRawBank<decoding_version>>(m_data, m_offsets, m_sizes, m_event, bank);
+      return MEP::raw_bank<UTRawBank<decoding_version>>(m_data, m_offsets, m_sizes, nullptr, m_event, bank);
     }
     else {
-      return UTRawBank<decoding_version>(m_data + m_offsets[bank], m_sizes[bank]);
+      return UTRawBank<decoding_version>(m_data + m_offsets[bank], m_sizes[bank], Allen::LastBankType);
     }
   }
 };

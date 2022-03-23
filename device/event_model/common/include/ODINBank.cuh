@@ -16,7 +16,7 @@ struct ODINRawBank {
   unsigned short size = 0;
 
   /// Constructor from Allen layout
-  __device__ __host__ ODINRawBank(const char* raw_bank, uint16_t s)
+  __device__ __host__ ODINRawBank(const char* raw_bank, uint16_t s, uint8_t)
   {
     // The source ID is the first number in the bank in Allen layout,
     // skip it.
@@ -27,7 +27,7 @@ struct ODINRawBank {
   }
 
   /// Constructor from MEP layout
-  __device__ __host__ ODINRawBank(const uint32_t, const char* fragment, uint16_t s)
+  __device__ __host__ ODINRawBank(const uint32_t, const char* fragment, uint16_t s, uint8_t)
   {
     data = reinterpret_cast<uint32_t const*>(fragment);
     size = s / sizeof(uint32_t);
@@ -41,7 +41,7 @@ static __host__ __device__ ODINRawBank
 odin_bank(const char* dev_odin_data, const uint* dev_odin_offsets, const uint* dev_odin_sizes, const uint event_number)
 {
   if constexpr (mep_layout) {
-    return MEP::raw_bank<ODINRawBank>(dev_odin_data, dev_odin_offsets, dev_odin_sizes, event_number, 0);
+    return MEP::raw_bank<ODINRawBank>(dev_odin_data, dev_odin_offsets, dev_odin_sizes, nullptr, event_number, 0);
   }
   else {
     // In Allen layout the first uint is the number of raw banks,
@@ -52,6 +52,6 @@ odin_bank(const char* dev_odin_data, const uint* dev_odin_offsets, const uint* d
     auto const size_offset = dev_odin_sizes[event_number];
     auto const size = reinterpret_cast<unsigned short const*>(dev_odin_sizes)[size_offset];
 
-    return ODINRawBank(event_data + 3 * sizeof(uint32_t), size);
+    return ODINRawBank(event_data + 3 * sizeof(uint32_t), size, 0);
   }
 }
