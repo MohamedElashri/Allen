@@ -637,7 +637,6 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 # Add host library
 allen_add_host_library(HostCommon STATIC
   main/src/BankTypes.cpp
-  main/src/CheckVP.cpp
   main/src/InputReader.cpp
   main/src/InputTools.cpp
   main/src/Logger.cpp
