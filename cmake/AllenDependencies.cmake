@@ -121,7 +121,7 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
 
   # Boost
   find_package(Boost REQUIRED COMPONENTS filesystem iostreams thread regex
-    serialization program_options)
+    serialization program_options unit_test_framework)
 
   # for ZeroMQ
   find_package(PkgConfig)
