@@ -121,8 +121,8 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         else {
           const auto composite_substr = static_cast<const Allen::Views::Physics::CompositeParticle*>(substr);
           for (unsigned i_sv = 0; i_sv < n_svs; i_sv++) {
-            const unsigned sv_index = parameters.dev_unique_sv_list[sv_offset + i_sv];
-            if (composite_substr == parameters.dev_composite_particle_ptrs[sv_offset + sv_index]) {
+            const unsigned sv_index = event_unique_sv_list[i_sv];
+            if (composite_substr == event_sv_ptrs[sv_index]) {
               substr_loc = n_sels + i_sv;
               break;
             }
@@ -175,7 +175,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
           unsigned obj_index = 0;
           // if (track_index < 0) track_index = i_track;
           for (unsigned j_track = 0; j_track < n_tracks; j_track++) {
-            const unsigned test_index = parameters.dev_unique_track_list[track_offset + j_track] > 0;
+            const unsigned test_index = parameters.dev_unique_track_list[track_offset + j_track];
             if (track_index == test_index) {
               obj_index = n_sels + n_svs + j_track;
               break;
