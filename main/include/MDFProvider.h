@@ -186,7 +186,7 @@ public:
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
 
-            auto n_sizes = allocate_events * ((Allen::max_fragments + 2) / 2 + 1);
+            auto n_sizes = allocate_events * ((m_mfp_count[ib] + 2) / 2 + 1);
 
             // When events are transposed from the read buffer into
             // the per-rawbank-type slices, a check is made each time

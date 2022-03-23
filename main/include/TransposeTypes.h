@@ -25,9 +25,6 @@ namespace LHCb {
 
 namespace Allen {
 
-  // The detector with the most Tell40s is the SciFi: 144, so 288 fragments.
-  constexpr size_t max_fragments = 300;
-
   // Read buffer containing the number of events, offsets to the start
   // of the event and the event data
   using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>, size_t>;

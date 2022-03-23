@@ -59,14 +59,6 @@ int main(int argc, char* argv[])
   // Bank ID translation
   auto bank_ids = Allen::bank_ids();
 
-  // Transposed slices
-  std::unordered_set<BankTypes> bank_types {
-    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
-  auto size_fun = [buffer_size, n_events](BankTypes) -> std::tuple<size_t, size_t, size_t> {
-    return {buffer_size, n_events * (Allen::max_fragments + 1), n_events};
-  };
-  Allen::Slices slices = allocate_slices(n_slices, bank_types, size_fun);
-
   Timer t;
 
   // Header for storage
@@ -142,6 +134,15 @@ int main(int argc, char* argv[])
 
   std::tie(count_success, banks_count) = fill_counts(bank_data, sd_from_raw);
   std::array<int, NBankTypes> banks_version {};
+
+  // Transposed slices
+  std::unordered_set<BankTypes> bank_types {
+    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+  auto size_fun = [buffer_size, n_events, banks_count](BankTypes bt) -> std::tuple<size_t, size_t, size_t> {
+    auto const ib = to_integral(bt);
+    return {buffer_size, n_events * (banks_count[ib] + 1), n_events};
+  };
+  Allen::Slices slices = allocate_slices(n_slices, bank_types, size_fun);
 
   // Allocate space for event ids
   std::vector<EventIDs> event_ids(n_slices);
