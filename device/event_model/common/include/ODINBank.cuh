@@ -6,7 +6,6 @@
 
 #include <BackendCommon.h>
 #include <MEPTools.h>
-#include <Event/ODIN.h>
 
 using ODINData = std::array<uint32_t, std::tuple_size_v<decltype(LHCb::ODIN::data)>>;
 

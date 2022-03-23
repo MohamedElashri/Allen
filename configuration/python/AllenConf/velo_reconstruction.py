@@ -16,22 +16,21 @@ from PyConf.tonic import configurable
 @configurable
 def decode_velo(retina_decoding=True):
     number_of_events = initialize_number_of_events()
-    if retina_decoding:
-        velo_retina_banks = make_algorithm(
-            data_provider_t,
-            name="velo_retina_banks",
-            bank_type="VPRetinaCluster")
 
+    velo_banks = make_algorithm(
+        data_provider_t, name="velo_banks", bank_type="VP")
+
+    if retina_decoding:
         calculate_number_of_retinaclusters_each_sensor = make_algorithm(
             calculate_number_of_retinaclusters_each_sensor_t,
             name="calculate_number_of_retinaclusters_each_sensor",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
-            dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
+            dev_velo_retina_raw_input_t=velo_banks.dev_raw_banks_t,
+            dev_velo_retina_raw_input_offsets_t=velo_banks.
             dev_raw_offsets_t,
-            dev_velo_retina_raw_input_sizes_t=velo_retina_banks.
+            dev_velo_retina_raw_input_sizes_t=velo_banks.
             dev_raw_sizes_t,
-            dev_velo_retina_raw_input_types_t=velo_retina_banks.
+            dev_velo_retina_raw_input_types_t=velo_banks.
             dev_raw_types_t)
 
         prefix_sum_offsets_estimated_input_size = make_algorithm(
@@ -46,12 +45,12 @@ def decode_velo(retina_decoding=True):
             host_total_number_of_velo_clusters_t=
             prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            dev_velo_retina_raw_input_t=velo_retina_banks.dev_raw_banks_t,
-            dev_velo_retina_raw_input_offsets_t=velo_retina_banks.
+            dev_velo_retina_raw_input_t=velo_banks.dev_raw_banks_t,
+            dev_velo_retina_raw_input_offsets_t=velo_banks.
             dev_raw_offsets_t,
-            dev_velo_retina_raw_input_sizes_t=velo_retina_banks.
+            dev_velo_retina_raw_input_sizes_t=velo_banks.
             dev_raw_sizes_t,
-            dev_velo_retina_raw_input_types_t=velo_retina_banks.
+            dev_velo_retina_raw_input_types_t=velo_banks.
             dev_raw_types_t,
             dev_offsets_each_sensor_size_t=
             prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
@@ -71,9 +70,6 @@ def decode_velo(retina_decoding=True):
             decode_retinaclusters.dev_velo_clusters_t
         }
     else:
-        velo_banks = make_algorithm(
-            data_provider_t, name="velo_banks", bank_type="VP")
-
         velo_calculate_number_of_candidates = make_algorithm(
             velo_calculate_number_of_candidates_t,
             name="velo_calculate_number_of_candidates",

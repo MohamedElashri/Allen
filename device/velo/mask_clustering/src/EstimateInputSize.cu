@@ -1,7 +1,6 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include <Event/RawBank.h>
 #include <MEPTools.h>
 #include <EstimateInputSize.cuh>
 
