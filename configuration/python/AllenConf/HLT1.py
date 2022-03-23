@@ -211,7 +211,7 @@ def default_smog2_lines(velo_tracks,
             make_SMOG2_ditrack_line(
                 secondary_vertices,
                 m1=139.57,
-                m2=493.67,
+                m2=493.68,
                 mMother=1864.83,
                 mWindow=150.,
                 name="HLT1_SMOG2_D2Kpi" + prefilter_suffix)))

@@ -23,7 +23,7 @@ namespace odin_beamcrossingtype {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
-  __global__ void odin_beamcrossingtype(Parameters);
+  __global__ void odin_beamcrossingtype(Parameters, const unsigned);
   struct odin_beamcrossingtype_t : public DeviceAlgorithm, Parameters {
 
     void set_arguments_size(
