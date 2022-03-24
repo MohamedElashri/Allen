@@ -81,8 +81,7 @@ def decode_velo(retina_decoding=True):
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
-            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t
-        )
+            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t)
 
         prefix_sum_offsets_velo_candidates = make_algorithm(
             host_prefix_sum_t,

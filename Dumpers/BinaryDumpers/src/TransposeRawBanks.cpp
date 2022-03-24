@@ -47,11 +47,9 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class TransposeRawBanks
-  : public Gaudi::Functional::MergingTransformer<
-      std::array<TransposedBanks, LHCb::RawBank::types().size()>(
-        VOC<LHCb::RawEvent*> const&),
-      Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<
+                            std::array<TransposedBanks, LHCb::RawBank::types().size()>(VOC<LHCb::RawEvent*> const&),
+                            Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
   TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
@@ -93,8 +91,8 @@ StatusCode TransposeRawBanks::initialize()
   return StatusCode::SUCCESS;
 }
 
-std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::
-operator()(VOC<LHCb::RawEvent*> const& rawEvents) const
+std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::operator()(
+  VOC<LHCb::RawEvent*> const& rawEvents) const
 {
 
   std::array<TransposedBanks, LHCb::RawBank::types().size()> output;
@@ -159,7 +157,8 @@ operator()(VOC<LHCb::RawEvent*> const& rawEvents) const
     // Dumping number_of_rawbanks + 1 offsets!
     DumpUtils::Writer bank_buffer;
     bank_buffer.write(nBanks, bankOffsets, bankData);
-    output[bt] = TransposedBanks {bank_buffer.buffer(), std::move(bankSizes), std::move(bankTypes), banks[0]->version()};
+    output[bt] =
+      TransposedBanks {bank_buffer.buffer(), std::move(bankSizes), std::move(bankTypes), banks[0]->version()};
   }
   return output;
 }

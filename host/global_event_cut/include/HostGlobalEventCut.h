@@ -80,8 +80,7 @@ namespace host_global_event_cut {
           auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
           auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
           char const* bank_data = parameters.ut_banks[i].data() + fragment_offset;
-          if (MEP::bank_type(bank_data, ut_types.data(), event_number, i) != LHCb::RawBank::UT)
-            continue;
+          if (MEP::bank_type(bank_data, ut_types.data(), event_number, i) != LHCb::RawBank::UT) continue;
           auto const bank_size = MEP::bank_size(bank_data, ut_sizes.data(), event_number, i);
           if (ut_raw_bank_version == 4)
             n_UT_clusters += UTRawBank<4> {sourceID, bank_data, bank_size, Allen::LastBankType}.get_n_hits();
@@ -96,8 +95,7 @@ namespace host_global_event_cut {
           parameters.ut_banks[0].data(), ut_offsets.data(), ut_sizes.data(), event_number);
 
         for (unsigned i = 0; i < ut_event.number_of_raw_banks(); ++i) {
-          if (Allen::bank_type(ut_types.data(), event_number, i) != LHCb::RawBank::UT)
-            continue;
+          if (Allen::bank_type(ut_types.data(), event_number, i) != LHCb::RawBank::UT) continue;
           if (ut_raw_bank_version == 4)
             n_UT_clusters += ut_event.raw_bank<4>(i).get_n_hits();
           else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)

@@ -53,7 +53,6 @@ Allen::IO MDF::open(std::string const& filepath, int flags, int mode)
   }
 }
 
-
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
   Allen::IO& input,

@@ -31,11 +31,9 @@
 // STL includes
 #include <deque>
 
-class RunAllen final
-  : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
-      const std::array<TransposedBanks, LHCb::RawBank::types().size()>&
-        allen_banks,
-      const LHCb::ODIN& odin)> {
+class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
+                         const std::array<TransposedBanks, LHCb::RawBank::types().size()>& allen_banks,
+                         const LHCb::ODIN& odin)> {
 public:
   /// Standard constructor
   RunAllen(const std::string& name, ISvcLocator* pSvcLocator);
@@ -48,8 +46,7 @@ public:
 
   /// Algorithm execution
   std::tuple<bool, HostBuffers> operator()(
-    const std::array<TransposedBanks, LHCb::RawBank::types().size()>&
-      allen_banks,
+    const std::array<TransposedBanks, LHCb::RawBank::types().size()>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
 private:

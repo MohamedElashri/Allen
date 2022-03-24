@@ -83,10 +83,12 @@ inline bool sort_by_bank_type(LHCb::RawBank const* a, LHCb::RawBank const* b)
  *
  * @return     sourceID of a < sourceID of b
  */
-inline bool sort_by_sourceID(LHCb::RawBank const* a, LHCb::RawBank const* b) {
+inline bool sort_by_sourceID(LHCb::RawBank const* a, LHCb::RawBank const* b)
+{
   // Special case to avoid mixing VP and VPRetinateCluster banks
-  if ((a->type() == LHCb::RawBank::VP || a->type() == LHCb::RawBank::VPRetinaCluster)
-      && (b->type() == LHCb::RawBank::VP || b->type() == LHCb::RawBank::VPRetinaCluster)) {
+  if (
+    (a->type() == LHCb::RawBank::VP || a->type() == LHCb::RawBank::VPRetinaCluster) &&
+    (b->type() == LHCb::RawBank::VP || b->type() == LHCb::RawBank::VPRetinaCluster)) {
     return sort_by_bank_type(a, b);
   }
   else {

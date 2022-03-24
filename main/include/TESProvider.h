@@ -37,9 +37,7 @@ public:
    * @param      Array with raw bank content
    * @param      Set with bank types to be used as input for Allen
    */
-  int set_banks(
-    const std::array<TransposedBanks, LHCb::RawBank::types().size()>&
-      transposed_banks)
+  int set_banks(const std::array<TransposedBanks, LHCb::RawBank::types().size()>& transposed_banks)
   {
     // store banks and offsets as BanksAndOffsets object
     for (size_t i = 0; i < transposed_banks.size(); ++i) {

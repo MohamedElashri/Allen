@@ -119,7 +119,9 @@ namespace Velo {
       const unsigned* dev_velo_raw_input_types,
       const unsigned event_number)
     {
-      initialize(dev_velo_raw_input + dev_velo_raw_input_offsets[event_number], Allen::bank_types(dev_velo_raw_input_types, event_number));
+      initialize(
+        dev_velo_raw_input + dev_velo_raw_input_offsets[event_number],
+        Allen::bank_types(dev_velo_raw_input_types, event_number));
     }
 
     __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }

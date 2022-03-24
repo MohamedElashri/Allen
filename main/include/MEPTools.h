@@ -15,7 +15,7 @@ namespace Allen {
       auto const offset = offsets[event];
       return reinterpret_cast<R const*>(offsets) + offset;
     }
-  }
+  } // namespace detail
 
   __host__ __device__ inline unsigned short const* bank_sizes(unsigned int const* sizes, unsigned const event)
   {
@@ -139,7 +139,8 @@ namespace MEP {
     unsigned int const event,
     unsigned int const bank)
   {
-    return detail::raw_bank<Bank, uint32_t const, char const*, uint16_t, uint8_t>(blocks, offsets, sizes, types, event, bank);
+    return detail::raw_bank<Bank, uint32_t const, char const*, uint16_t, uint8_t>(
+      blocks, offsets, sizes, types, event, bank);
   }
 
   template<class Bank>
@@ -169,14 +170,16 @@ namespace MEP {
       const unsigned* raw_input_types,
       const unsigned event_number) :
       m_raw_input(raw_input),
-      m_raw_input_sizes(raw_input_sizes), m_raw_input_types(raw_input_types), m_raw_input_offsets(raw_input_offsets), m_event_number(event_number)
+      m_raw_input_sizes(raw_input_sizes), m_raw_input_types(raw_input_types), m_raw_input_offsets(raw_input_offsets),
+      m_event_number(event_number)
     {}
 
     __host__ __device__ unsigned number_of_raw_banks() const { return m_raw_input_offsets[0]; }
 
     __host__ __device__ Bank raw_bank(const unsigned index) const
     {
-      return MEP::raw_bank<Bank>(m_raw_input, m_raw_input_offsets, m_raw_input_sizes, m_raw_input_types, m_event_number, index);
+      return MEP::raw_bank<Bank>(
+        m_raw_input, m_raw_input_offsets, m_raw_input_sizes, m_raw_input_types, m_event_number, index);
     }
 
     __host__ __device__ unsigned bank_size(const unsigned index) const
@@ -186,8 +189,8 @@ namespace MEP {
 
     __host__ __device__ unsigned bank_type(const unsigned index) const
     {
-      return m_raw_input_types == nullptr ? Allen::LastBankType : MEP::bank_type(m_raw_input, m_raw_input_types, m_event_number, index);
+      return m_raw_input_types == nullptr ? Allen::LastBankType :
+                                            MEP::bank_type(m_raw_input, m_raw_input_types, m_event_number, index);
     }
-
   };
 } // namespace MEP

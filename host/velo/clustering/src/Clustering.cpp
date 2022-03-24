@@ -28,7 +28,7 @@ std::vector<std::vector<uint32_t>> clustering(
   for (size_t i = 1; i < event_offsets.size(); ++i) {
     std::vector<unsigned int> lhcb_ids;
 
-    Velo::VeloRawEvent e{events.data() + event_offsets[i - 1], Allen::bank_types(event_types.data(), i - 1)};
+    Velo::VeloRawEvent e {events.data() + event_offsets[i - 1], Allen::bank_types(event_types.data(), i - 1)};
 
     for (unsigned int raw_bank_index = 0; raw_bank_index < e.number_of_raw_banks(); ++raw_bank_index) {
       std::vector<uint32_t> pixel_idx;

@@ -24,8 +24,7 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_kernel(
   unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster)
-      each_sensor_size[raw_bank.sensor_index] = raw_bank.count;
+    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) each_sensor_size[raw_bank.sensor_index] = raw_bank.count;
   }
 }
 

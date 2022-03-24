@@ -29,8 +29,8 @@ namespace Calo {
 
     // For MEP format
     __device__ __host__ RawBank(const uint32_t sid, const char* fragment, const uint16_t s, const uint8_t t) :
-      source_id {sid}, data {reinterpret_cast<uint32_t const*>(fragment)}, end {reinterpret_cast<uint32_t const*>(
-                                                                                                                  fragment + s)}, type{t}
+      source_id {sid}, data {reinterpret_cast<uint32_t const*>(fragment)},
+      end {reinterpret_cast<uint32_t const*>(fragment + s)}, type {t}
     {
       assert(s % sizeof(uint32_t) == 0);
     }
@@ -47,8 +47,10 @@ namespace Calo {
     const unsigned event = 0;
 
     // For Allen format
-    __device__ __host__ RawEvent(char const* d, uint32_t const* o, uint32_t const* s, uint32_t const* t, unsigned const event_number) :
-      offsets {o}, event {event_number}
+    __device__ __host__
+    RawEvent(char const* d, uint32_t const* o, uint32_t const* s, uint32_t const* t, unsigned const event_number) :
+      offsets {o},
+      event {event_number}
     {
       if constexpr (mep_layout) {
         data = d;

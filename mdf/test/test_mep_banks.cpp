@@ -77,12 +77,12 @@ namespace {
 } // namespace
 
 namespace Allen {
-  unsigned number_of_banks(gsl::span<char const> allen_banks,
-                           gsl::span<unsigned const> allen_offsets,
-                           unsigned const i_event) {
+  unsigned
+  number_of_banks(gsl::span<char const> allen_banks, gsl::span<unsigned const> allen_offsets, unsigned const i_event)
+  {
     return reinterpret_cast<unsigned const*>(allen_banks.data() + allen_offsets[i_event])[i_event];
   }
-}
+} // namespace Allen
 
 fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
 {
@@ -302,7 +302,9 @@ struct compare<BankTypes::ODIN, transpose_mep> {
     REQUIRE(allen_bank.size == mep_bank.size);
 
     // Check bank types
-    REQUIRE(Allen::bank_type(allen_types.data(), i_event, 0) == MEP::bank_type(mep_fragments.data(), mep_types.data(), i_event, 0));
+    REQUIRE(
+      Allen::bank_type(allen_types.data(), i_event, 0) ==
+      MEP::bank_type(mep_fragments.data(), mep_types.data(), i_event, 0));
 
     // Check bank contents
     for (unsigned short i = 0; i < allen_bank.size; ++i) {
@@ -327,8 +329,8 @@ struct compare<BankTypes::VP, transpose_mep> {
   {
     const auto allen_raw_event =
       Velo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
-    const auto mep_raw_event =
-      Velo::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    const auto mep_raw_event = Velo::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
@@ -419,8 +421,8 @@ struct compare<BankTypes::FT, transpose_mep> {
   {
     const auto allen_raw_event =
       SciFi::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
-    const auto mep_raw_event =
-      SciFi::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    const auto mep_raw_event = SciFi::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
@@ -500,8 +502,8 @@ struct compare<BankTypes::ECal, transpose_mep> {
 
     const auto allen_raw_event =
       Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
-    const auto mep_raw_event =
-      Calo::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    const auto mep_raw_event = Calo::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
@@ -588,7 +590,16 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
       REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
     }
     compare<BT, transpose_mep> {}(
-      mep_data.version, mep_fragments, mep_offsets, mep_sizes, mep_types, allen_banks[0], allen_offsets, allen_sizes, allen_types, i);
+      mep_data.version,
+      mep_fragments,
+      mep_offsets,
+      mep_sizes,
+      mep_types,
+      allen_banks[0],
+      allen_offsets,
+      allen_sizes,
+      allen_types,
+      i);
   }
 }
 
