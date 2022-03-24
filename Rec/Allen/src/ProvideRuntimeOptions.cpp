@@ -23,7 +23,7 @@
 
 class ProvideRuntimeOptions final
   : public Gaudi::Functional::Transformer<RuntimeOptions(
-      std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::LastType> const&)> {
+      std::array<TransposedBanks, LHCb::RawBank::LastType> const&)> {
 
 public:
   /// Standard constructor
@@ -33,7 +33,7 @@ public:
 
   /// Algorithm execution
   RuntimeOptions operator()(
-    std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::LastType> const& allen_banks)
+    std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks)
     const override;
 
 private:
@@ -59,7 +59,7 @@ StatusCode ProvideRuntimeOptions::initialize()
 }
 
 RuntimeOptions ProvideRuntimeOptions::operator()(
-  std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::LastType> const& allen_banks)
+  std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks)
   const
 {
   const unsigned number_of_repetitions = 1;

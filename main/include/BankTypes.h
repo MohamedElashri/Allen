@@ -62,6 +62,13 @@ struct BanksAndOffsets {
   int version = 0;
 };
 
+struct TransposedBanks {
+  std::vector<char> data;
+  std::vector<uint16_t> sizes;
+  std::vector<uint8_t> types;
+  int version = -1;
+};
+
 template<BankTypes... BANKS>
 std::unordered_set<BankTypes> banks_set()
 {

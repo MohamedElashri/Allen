@@ -6,14 +6,20 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <GaudiAlg/MergingTransformer.h>
+
 #include <AIDA/IHistogram1D.h>
+
+#include <GaudiAlg/MergingTransformer.h>
+#include <GaudiAlg/GaudiHistoAlg.h>
+#include <GaudiKernel/GaudiException.h>
+
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
-#include <GaudiAlg/GaudiHistoAlg.h>
+
 #include <Dumpers/Utils.h>
-#include <GaudiKernel/GaudiException.h>
+
+#include <BankTypes.h>
 
 template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;
@@ -43,7 +49,7 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  */
 class TransposeRawBanks
   : public Gaudi::Functional::MergingTransformer<
-      std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()>(
+      std::array<TransposedBanks, LHCb::RawBank::types().size()>(
         VOC<LHCb::RawEvent*> const&),
       Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
@@ -52,7 +58,7 @@ public:
 
   StatusCode initialize() override;
 
-  std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()> operator()(
+  std::array<TransposedBanks, LHCb::RawBank::types().size()> operator()(
     VOC<LHCb::RawEvent*> const& rawEvents) const override;
 
 private:
@@ -87,11 +93,11 @@ StatusCode TransposeRawBanks::initialize()
   return StatusCode::SUCCESS;
 }
 
-std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()> TransposeRawBanks::
+std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::
 operator()(VOC<LHCb::RawEvent*> const& rawEvents) const
 {
 
-  std::array<std::tuple<std::vector<char>, std::vector<uint16_t>, int>, LHCb::RawBank::types().size()> output;
+  std::array<TransposedBanks, LHCb::RawBank::types().size()> output;
   std::array<LHCb::RawBank::View, LHCb::RawBank::types().size()> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
@@ -114,10 +120,12 @@ operator()(VOC<LHCb::RawEvent*> const& rawEvents) const
     uint32_t offset = 0;
 
     std::vector<uint32_t> bankOffsets;
+    bankOffsets.push_back(0);
     std::vector<uint32_t> bankData;
     std::vector<uint16_t> bankSizes;
     bankSizes.reserve(nBanks);
-    bankOffsets.push_back(0);
+    std::vector<uint8_t> bankTypes;
+    bankTypes.reserve(nBanks);
 
     for (auto& bank : banks) {
       const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());
@@ -143,14 +151,15 @@ operator()(VOC<LHCb::RawEvent*> const& rawEvents) const
         bStart++;
         offset++;
       }
-      bankSizes.push_back(bank->size());
       bankOffsets.push_back(offset * sizeof(uint32_t));
+      bankSizes.push_back(bank->size());
+      bankTypes.push_back(static_cast<uint8_t>(bank->type()));
     }
 
     // Dumping number_of_rawbanks + 1 offsets!
     DumpUtils::Writer bank_buffer;
     bank_buffer.write(nBanks, bankOffsets, bankData);
-    output[bt] = std::tuple {bank_buffer.buffer(), std::move(bankSizes), banks[0]->version()};
+    output[bt] = TransposedBanks {bank_buffer.buffer(), std::move(bankSizes), std::move(bankTypes), banks[0]->version()};
   }
   return output;
 }

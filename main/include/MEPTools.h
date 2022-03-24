@@ -186,7 +186,7 @@ namespace MEP {
 
     __host__ __device__ unsigned bank_type(const unsigned index) const
     {
-      return m_raw_input_types == nullptr ? LHCb::RawBank::LastType : MEP::bank_type(m_raw_input, m_raw_input_types, m_event_number, index);
+      return m_raw_input_types == nullptr ? Allen::LastBankType : MEP::bank_type(m_raw_input, m_raw_input_types, m_event_number, index);
     }
 
   };
