@@ -87,7 +87,8 @@ gaudi_add_executable(test_mass_definitions
         tests/src/test_mass_definitions.cpp
     LINK
         Boost::unit_test_framework
-	AllenLib
-	LHCb::LHCbKernel
+        AllenLib
+        LHCb::LHCbKernel
+        LHCb::PartPropLib
     TEST
 )
