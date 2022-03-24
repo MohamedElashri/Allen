@@ -26,7 +26,6 @@ if(DEFINED CACHE{UMESIMD_INCLUDE_DIR})
 endif()
 
 # Look for the header directory:
-# TODO: Remove hard-coded LCG path once that it is findable
 find_path(UMESIMD_INCLUDE_DIR
    NAMES umesimd
    HINTS $ENV{UMESIMD_ROOT_DIR} ${UMESIMD_ROOT_DIR})

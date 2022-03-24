@@ -9,14 +9,14 @@ variables:
   ALLEN_DATA: "/scratch/allen_data"
   LCG_VERSION: "LCG_101"
   LB_NIGHTLY_SLOT: lhcb-head
-  BINARY_TAG: x86_64_v2-centos7-gcc11-opt
+  BINARY_TAG: x86_64_v3-centos7-gcc11-opt
   NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
 
 
   PROFILE_DEVICE: "a5000"
   RUN_THROUGHPUT_OPTIONS_CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
   RUN_THROUGHPUT_OPTIONS_CUDA: "-n 500 -m 500 -r 1000 -t 16"
-  RUN_THROUGHPUT_OPTIONS_HIP: "-n 5000 --events-per-slice 5000 -m 3000 -t 10 -r 1000"
+  RUN_THROUGHPUT_OPTIONS_HIP: "-n 3000 --events-per-slice 3000 -m 3000 -t 10 -r 1000"
   RUN_THROUGHPUT_OPTIONS_CPU: "-n 100 -m 100 -r 200"
 
   AVG_THROUGHPUT_DECREASE_THRESHOLD: "-2.5" # (%); fail throughput check if averaged throughput % change falls below -2.5%
