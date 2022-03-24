@@ -1,6 +1,8 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
+#include <iostream>
+#include <iomanip>
 #include <MEPTools.h>
 #include <CalculateNumberOfRetinaClustersPerSensor.cuh>
 
@@ -24,7 +26,12 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_kernel(
   unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) each_sensor_size[raw_bank.sensor_index] = raw_bank.count;
+    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) {
+      each_sensor_size[raw_bank.sensor_index] = raw_bank.count;
+      if (blockIdx.x == 0) {
+        parameters.dev_retina_bank_index[raw_bank.sensor_index] = raw_bank_number;
+      }
+    }
   }
 }
 
@@ -38,6 +45,7 @@ void calculate_number_of_retinaclusters_each_sensor::calculate_number_of_retinac
   set_size<dev_each_sensor_size_t>(
     arguments,
     first<host_number_of_events_t>(arguments) * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module);
+  set_size<dev_retina_bank_index_t>(arguments, Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module);
 }
 
 void calculate_number_of_retinaclusters_each_sensor::calculate_number_of_retinaclusters_each_sensor_t::operator()(

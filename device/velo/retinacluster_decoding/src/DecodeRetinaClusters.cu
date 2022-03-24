@@ -154,14 +154,15 @@ __global__ void velo_calculate_sorting_key(
       cluster_number + event_clusters_offset);
     unsigned index_within_raw_bank = cluster_number - (sensor_offsets[raw_bank_number] - event_clusters_offset);
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-
-    populate_sorting_key(
-      parameters.dev_hit_sorting_key,
-      g,
-      event_clusters_offset + cluster_number,
-      raw_bank.sensor_index,
-      raw_bank.word[index_within_raw_bank],
-      raw_bank_version);
+    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) {
+      populate_sorting_key(
+        parameters.dev_hit_sorting_key,
+        g,
+        event_clusters_offset + cluster_number,
+        raw_bank.sensor_index,
+        raw_bank.word[index_within_raw_bank],
+        raw_bank_version);
+    }
   }
 }
 
@@ -263,14 +264,15 @@ __global__ void decode_retinaclusters_sorted(
       sensor_offsets, Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module, cluster_number);
     unsigned index_within_raw_bank = cluster_number - sensor_offsets[raw_bank_number];
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-
-    populate_retinacluster(
-      velo_cluster_container,
-      g,
-      parameters.dev_hit_permutations[cluster_number],
-      raw_bank.sensor_index,
-      raw_bank.word[index_within_raw_bank],
-      raw_bank_version);
+    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) {
+      populate_retinacluster(
+        velo_cluster_container,
+        g,
+        parameters.dev_hit_permutations[cluster_number],
+        raw_bank.sensor_index,
+        raw_bank.word[index_within_raw_bank],
+        raw_bank_version);
+    }
   }
 }
 
