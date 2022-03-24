@@ -336,6 +336,9 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   message(STATUS "HIP GCC TOOLCHAIN: " ${HIP_TOOLCHAIN_OPTIONS})
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
+  # Add the origin directory
+  set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath,./")
+
   function(allen_add_host_library)
     add_library(${ARGV})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
@@ -371,7 +374,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
-    set(BUILD_RPATH_USE_ORIGIN ON)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
   enable_language(CUDA)
@@ -512,7 +514,6 @@ add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
 add_subdirectory(stream)
-
 
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
