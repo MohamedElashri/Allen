@@ -19,14 +19,14 @@
 using simd = SIMDWrapper::best::types;
 
 class TestUTHits final
-  : public Gaudi::Functional::Consumer<void(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::HitHandler&)> {
+  : public Gaudi::Functional::Consumer<void(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&)> {
 
 public:
   /// Standard constructor
   TestUTHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  void operator()(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::HitHandler&) const override;
+  void operator()(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&) const override;
 
 private:
   mutable Gaudi::Accumulators::BinomialCounter<> m_allen_hit_eff {this, "GPU UT Hit efficiency"};
@@ -47,7 +47,7 @@ TestUTHits::TestUTHits(const std::string& name, ISvcLocator* pSvcLocator) :
 void TestUTHits::operator()(
   HostBuffers const& host_buffers,
   LHCb::MCHits const& mc_hits,
-  LHCb::Pr::UT::HitHandler const& hit_handler) const
+  LHCb::Pr::UT::Hits const& hit_handler) const
 {
   if (host_buffers.host_number_of_selected_events == 0) {
     warning() << "No events from Allen. Returning" << endmsg;
