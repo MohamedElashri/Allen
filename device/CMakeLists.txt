@@ -5,7 +5,6 @@ add_library(WrapperInterface INTERFACE)
 
 add_subdirectory(utils)
 add_subdirectory(velo)
-add_subdirectory(PV/patPV)
 add_subdirectory(PV/beamlinePV)
 add_subdirectory(associate)
 add_subdirectory(UT)
