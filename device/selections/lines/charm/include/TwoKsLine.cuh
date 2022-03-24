@@ -11,9 +11,10 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "Line.cuh"
+#include "TwoTrackLine.cuh"
 #include "VertexDefinitions.cuh"
 #include "MassDefinitions.h"
+#include "ParticleTypes.cuh"
 
 namespace two_ks_line {
   struct Parameters {
@@ -29,7 +30,7 @@ namespace two_ks_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -38,8 +39,12 @@ namespace two_ks_line {
     post_scaler_hash_string;
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
-    DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_particle_container_ptr_t,
+      DEPENDENCIES(dev_particle_container_t),
+      Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minComboPt_Ks_t, "minComboPt_Ks", "minComboPt Ks description", float) minComboPt_Ks;
     PROPERTY(minCosDira_t, "minCosDira", "minCosDira description", float) minCosDira;
@@ -54,20 +59,13 @@ namespace two_ks_line {
     PROPERTY(min_combip_t, "min_combip", "min_combip description", float) min_combip;
   };
 
-  struct two_ks_line_t : public SelectionAlgorithm, Parameters, Line<two_ks_line_t, Parameters> {
-
-    constexpr static auto lhcbid_container = LHCbIDContainer::sv;
-
-    __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
-
-    static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
-
-    __device__ static std::tuple<const VertexFit::TrackMVAVertex&, const unsigned, const unsigned>
+  struct two_ks_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_ks_line_t, Parameters> {
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const VertexFit::TrackMVAVertex&, const unsigned, const unsigned> input);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

@@ -14,19 +14,27 @@ INSTANTIATE_LINE(two_track_line_ks::two_track_line_ks_t, two_track_line_ks::Para
 
 __device__ bool two_track_line_ks::two_track_line_ks_t::select(
   const Parameters& parameters,
-  std::tuple<const VertexFit::TrackMVAVertex&> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
-  const auto& vertex = std::get<0>(input);
-  if (vertex.chi2 < 0) {
+  const auto& particle = std::get<0>(input);
+  const auto& vertex = particle.vertex();
+  if (vertex.chi2() < 0) {
     return false;
   }
 
-  const bool decision =
-    vertex.chi2 < parameters.maxVertexChi2 && vertex.eta > parameters.minEta_Ks && vertex.eta < parameters.maxEta_Ks &&
-    vertex.minipchi2 > parameters.minTrackIPChi2_Ks && vertex.m(Allen::mPi, Allen::mPi) > parameters.minM_Ks &&
-    vertex.m(Allen::mPi, Allen::mPi) < parameters.maxM_Ks && vertex.pt() > parameters.minComboPt_Ks &&
-    vertex.cos > parameters.minCosOpening && vertex.dira > parameters.minCosDira &&
-    vertex.p1 > parameters.minTrackP_piKs && vertex.p2 > parameters.minTrackP_piKs &&
-    vertex.ip1 * vertex.ip2 / vertex.vertex_ip > parameters.min_combip && vertex.minpt > parameters.minTrackPt_piKs;
+  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(0));
+  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
+  const auto& state1 = trk1->state();
+  const auto& state2 = trk2->state();
+  const float cos =
+    (state1.px() * state2.px() + state1.py() * state2.py() + state1.pz() * state2.pz()) / (state1.p() * state2.p());
+  const bool decision = vertex.chi2() < parameters.maxVertexChi2 && particle.eta() > parameters.minEta_Ks &&
+                        particle.eta() < parameters.maxEta_Ks && particle.minipchi2() > parameters.minTrackIPChi2_Ks &&
+                        particle.m12(Allen::mPi, Allen::mPi) > parameters.minM_Ks &&
+                        particle.m12(Allen::mPi, Allen::mPi) < parameters.maxM_Ks &&
+                        vertex.pt() > parameters.minComboPt_Ks && cos > parameters.minCosOpening &&
+                        particle.dira() > parameters.minCosDira && particle.minp() > parameters.minTrackP_piKs &&
+                        trk1->ip() * trk2->ip() / particle.ip() > parameters.min_combip &&
+                        particle.minpt() > parameters.minTrackPt_piKs;
   return decision;
 }

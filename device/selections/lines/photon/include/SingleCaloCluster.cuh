@@ -6,6 +6,8 @@
 #include "Line.cuh"
 #include "ROOTService.h"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
+
 namespace single_calo_cluster_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -26,7 +28,9 @@ namespace single_calo_cluster_line {
 
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
+    DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
 
     // monitoring
     DEVICE_OUTPUT(dev_clusters_x_t, float) dev_clusters_x;
@@ -79,6 +83,11 @@ namespace single_calo_cluster_line {
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
       return parameters.dev_ecal_cluster_offsets[event_number];
+    }
+
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
+    {
+      return parameters.dev_ecal_cluster_offsets[event_number + 1] - parameters.dev_ecal_cluster_offsets[event_number];
     }
 
     __device__ static std::tuple<const CaloCluster>

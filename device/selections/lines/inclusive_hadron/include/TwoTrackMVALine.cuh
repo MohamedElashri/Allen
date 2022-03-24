@@ -5,15 +5,14 @@
 
 #include "AlgorithmTypes.cuh"
 #include "Line.cuh"
-#include "VertexDefinitions.cuh"
+#include "ParticleTypes.cuh"
 
 namespace two_track_mva_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_INPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
-    DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
@@ -25,7 +24,12 @@ namespace two_track_mva_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_particle_container_ptr_t,
+      DEPENDENCIES(dev_particle_container_t),
+      Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -45,18 +49,18 @@ namespace two_track_mva_line {
 
   struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, Line<two_track_mva_line_t, Parameters> {
 
-    constexpr static auto lhcbid_container = LHCbIDContainer::sv;
-
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
+
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
 
     static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
 
-    __device__ static std::tuple<const VertexFit::TrackMVAVertex&, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const VertexFit::TrackMVAVertex&, const float> input);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

@@ -10,6 +10,7 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 #include "LookingForwardConstants.cuh"
+#include "ParticleTypes.cuh"
 
 namespace scifi_consolidate_tracks {
   struct Parameters {
@@ -17,7 +18,8 @@ namespace scifi_consolidate_tracks {
     HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned)
     host_accumulated_number_of_hits_in_scifi_tracks;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
+    DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
@@ -31,6 +33,46 @@ namespace scifi_consolidate_tracks {
     DEVICE_OUTPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_OUTPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_scifi_hits_view_t,
+      DEPENDENCIES(dev_scifi_track_hits_t),
+      Allen::Views::SciFi::Consolidated::Hits)
+    dev_scifi_hits_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_scifi_track_view_t,
+      DEPENDENCIES(dev_scifi_hits_view_t, dev_ut_tracks_view_t, dev_scifi_qop_t),
+      Allen::Views::SciFi::Consolidated::Track)
+    dev_scifi_track_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_scifi_tracks_view_t,
+      DEPENDENCIES(dev_scifi_track_view_t),
+      Allen::Views::SciFi::Consolidated::Tracks)
+    dev_scifi_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_scifi_multi_event_tracks_view_t,
+      DEPENDENCIES(dev_scifi_tracks_view_t),
+      Allen::Views::SciFi::Consolidated::MultiEventTracks)
+    dev_scifi_multi_event_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_long_track_view_t,
+      DEPENDENCIES(dev_scifi_multi_event_tracks_view_t, dev_ut_tracks_view_t),
+      Allen::Views::Physics::LongTrack)
+    dev_long_track_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_long_tracks_view_t,
+      DEPENDENCIES(dev_long_track_view_t),
+      Allen::Views::Physics::LongTracks)
+    dev_long_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_multi_event_long_tracks_view_t,
+      DEPENDENCIES(dev_long_tracks_view_t),
+      Allen::Views::Physics::MultiEventLongTracks)
+    dev_multi_event_long_tracks_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_multi_event_long_tracks_ptr_t,
+      DEPENDENCIES(dev_multi_event_long_tracks_view_t),
+      Allen::Views::Physics::MultiEventLongTracks*)
+    dev_multi_event_long_tracks_ptr;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

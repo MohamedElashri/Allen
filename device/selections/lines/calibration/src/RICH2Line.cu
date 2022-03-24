@@ -27,7 +27,6 @@ void rich_2_line::rich_2_line_t::set_arguments_size(
     arguments, first<typename Parameters::host_number_of_events_t>(arguments));
   set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
   set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-  set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
   set_size<typename Parameters::dev_selected_events_t>(
     arguments, first<typename Parameters::host_number_of_events_t>(arguments));
   set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
@@ -51,6 +50,8 @@ void rich_2_line::rich_2_line_t::set_arguments_size(
 
   set_size<typename Parameters::dev_phi_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_phi_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
+
+  set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
 }
 
 #ifdef WITH_ROOT
@@ -74,16 +75,17 @@ void rich_2_line::rich_2_line_t::init_monitor(
  */
 __device__ void rich_2_line::rich_2_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
   unsigned index,
   bool sel)
 {
   const auto& track = std::get<0>(input);
 
-  parameters.dev_pt[index] = track.pt();
-  parameters.dev_p[index] = track.p();
-  parameters.dev_track_chi2[index] = track.chi2 / track.ndof;
-  parameters.dev_eta[index] = track.eta();
+  const auto state = track.state();
+  parameters.dev_pt[index] = state.pt();
+  parameters.dev_p[index] = state.p();
+  parameters.dev_track_chi2[index] = state.chi2() / state.ndof();
+  parameters.dev_eta[index] = state.eta();
   parameters.dev_phi[index] = trackPhi(track);
 
   parameters.dev_decision[index] = sel;
@@ -159,23 +161,24 @@ void rich_2_line::rich_2_line_t::output_monitor(
 #endif
 
 __device__ bool rich_2_line::rich_2_line_t::passes(
-  const ParKalmanFilter::FittedTrack& track,
+  const Allen::Views::Physics::BasicParticle& track,
   const Parameters& parameters)
 {
+  const auto state = track.state();
 
   // Cut on momentum
-  if (track.p() < parameters.minP) return false;
+  if (state.p() < parameters.minP) return false;
 
   // Cut on track Chi2 (fiducial)
-  if (track.chi2 / track.ndof > parameters.maxTrChi2) return false;
+  if (state.chi2() / state.ndof() > parameters.maxTrChi2) return false;
 
   // Cut on transverse momentum (fiducial)
-  if (track.pt() < parameters.minPt) return false;
+  if (state.pt() < parameters.minPt) return false;
 
   // For each eta/phi bin pair, check if our track falls in it
   // Put this last as we return true if the track falls within our allowed bins; otherwise return false
   for (unsigned j = 0; j < parameters.minPhi.get().size(); ++j) {
-    const auto eta {track.eta()};
+    const auto eta {state.eta()};
     const auto phi {trackPhi(track)};
 
     // For now, eta is a 1-length array
@@ -190,7 +193,7 @@ __device__ bool rich_2_line::rich_2_line_t::passes(
 
 __device__ bool rich_2_line::rich_2_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto& track = std::get<0>(input);
 

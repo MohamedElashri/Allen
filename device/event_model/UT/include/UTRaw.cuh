@@ -4,6 +4,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "BackendCommon.h"
 
 template<int decoding_version>
 struct UTRawBank {

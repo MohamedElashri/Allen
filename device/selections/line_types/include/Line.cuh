@@ -8,8 +8,8 @@
 #include <DeterministicScaler.cuh>
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
-#include "LHCbIDContainer.cuh"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \
@@ -78,7 +78,6 @@ private:
 
 public:
   using iteration_t = LineIteration::default_iteration_tag;
-  constexpr static auto lhcbid_container = LHCbIDContainer::none;
 
   void init()
   {
@@ -109,9 +108,9 @@ public:
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-    set_size<typename Parameters::host_lhcbid_container_t>(arguments, 1);
     set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
+    set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
   }
 
   void operator()(
@@ -129,7 +128,6 @@ public:
     if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
       return size<typename Parameters::dev_event_list_t>(arguments);
     }
-    // else if (std::is_same<typename Derived::iteration_t, LineIteration::event_iteration_tag>::value) {
     return 1;
   }
 
@@ -141,11 +139,6 @@ public:
   /**
    * @brief Default monitor function.
    */
-  // template<typename... Args>
-  // static __device__  void monitor(Args...) {}
-
-  // template<typename... Args>
-  // static __host__ void output_monitor(Args...) {}
   static void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) {}
   template<typename INPUT>
   static __device__ void monitor(const Parameters&, INPUT, unsigned, bool)
@@ -166,10 +159,19 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
 {
   __shared__ int event_decision;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned input_size = Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
+  const unsigned input_size = Derived::input_size(parameters, event_number);
 
   if (threadIdx.x == 0) {
     event_decision = 0;
+  }
+
+  // Populate IMultiEventContainer* if relevant
+  if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+      const auto particle_container_ptr =
+        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+    }
   }
 
   __syncthreads();
@@ -214,9 +216,12 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
   // Synchronize the event_decision
   __syncthreads();
 
-  if (threadIdx.x == 0 && event_decision) {
-    const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
-    parameters.dev_selected_events[index] = mask_t {event_number};
+  // Populate event decision
+  if (threadIdx.x == 0) {
+    if (event_decision) {
+      const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
+      parameters.dev_selected_events[index] = mask_t {event_number};
+    }
   }
 }
 
@@ -230,6 +235,15 @@ __global__ void process_line_iterate_events(
   const unsigned number_of_events,
   const unsigned pre_scaler_hash)
 {
+  // Populate IMultiEventContainer* if relevant
+  if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+      const auto particle_container_ptr =
+        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+    }
+  }
+
   // Do selection
   for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
     const auto event_number = parameters.dev_event_list[i];
@@ -314,9 +328,7 @@ void Line<Derived, Parameters>::operator()(
   initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
   initialize<typename Parameters::dev_selected_events_size_t>(arguments, 0, context);
-
-  // Populate container with tag.
-  data<typename Parameters::host_lhcbid_container_t>(arguments)[0] = to_integral(Derived::lhcbid_container);
+  initialize<typename Parameters::dev_particle_container_ptr_t>(arguments, 0, context);
 
   const auto* derived_instance = static_cast<const Derived*>(this);
 

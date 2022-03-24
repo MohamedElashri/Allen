@@ -46,13 +46,8 @@ __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
   const unsigned* event_svs_kf_idx = parameters.dev_svs_kf_idx + idx_offset;
   const unsigned* event_svs_mf_idx = parameters.dev_svs_mf_idx + idx_offset;
 
-  // KF tracks.
-  const unsigned kf_offset = parameters.dev_offsets_forward_tracks[event_number];
-  const ParKalmanFilter::FittedTrack* kf_tracks = parameters.dev_kf_tracks + kf_offset;
-
-  // MF tracks.
-  const unsigned mf_offset = parameters.dev_mf_track_offsets[event_number];
-  const ParKalmanFilter::FittedTrack* mf_tracks = parameters.dev_mf_tracks + mf_offset;
+  const auto kf_tracks = parameters.dev_kf_particles[event_number];
+  const auto mf_tracks = parameters.dev_mf_particles[event_number];
 
   // Vertices.
   VertexFit::TrackMVAVertex* event_mf_svs = parameters.dev_mf_svs + sv_offset;
@@ -63,8 +58,8 @@ __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
     event_mf_svs[i_sv].minipchi2 = 0;
     auto i_track = event_svs_kf_idx[i_sv];
     auto j_track = event_svs_mf_idx[i_sv];
-    const ParKalmanFilter::FittedTrack trackA = kf_tracks[i_track];
-    const ParKalmanFilter::FittedTrack trackB = mf_tracks[i_track];
+    const auto trackA = kf_tracks.particle(i_track);
+    const auto trackB = mf_tracks.particle(j_track);
 
     // Do the fit.
     doFit(trackA, trackB, event_mf_svs[i_sv]);

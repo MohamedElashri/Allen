@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ConsolidatedTypes.cuh"
+#include "VeloConsolidated.cuh"
 #include "UTEventModel.cuh"
 #include <stdint.h>
 #include <cassert>
@@ -93,7 +94,9 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
-        struct Track : Allen::ILHCbIDSequence {
+        struct Track : Allen::ILHCbIDSequence<Track> {
+          friend Allen::ILHCbIDSequence<Track>;
+
         private:
           const Hits* m_hits = nullptr;
           const Allen::Views::Velo::Consolidated::Track* m_velo_track = nullptr;
@@ -103,6 +106,10 @@ namespace Allen {
           unsigned m_track_index = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
+
+          __host__ __device__ unsigned number_of_ids_impl() const { return m_number_of_hits; }
+
+          __host__ __device__ unsigned id_impl(const unsigned index) const { return hit(index).id(); }
 
         public:
           Track() = default;
@@ -157,55 +164,45 @@ namespace Allen {
             assert(ut_hit_index < m_number_of_hits);
             return m_hits->hit(m_offset + ut_hit_index);
           }
-
-          __host__ __device__ unsigned number_of_ids() const override { return number_of_total_hits(); }
-
-          __host__ __device__ unsigned id(const unsigned index) const override
-          {
-            auto n_velo_hits = m_velo_track->number_of_hits();
-            if (index < n_velo_hits) {
-              return m_velo_track->hit(index).id();
-            }
-            else {
-              return hit(index - n_velo_hits).id();
-            }
-          }
         };
 
-        struct Tracks : Allen::ILHCbIDContainer {
+        struct Tracks : Allen::ILHCbIDContainer<Tracks> {
+          friend Allen::ILHCbIDContainer<Tracks>;
+          constexpr static auto TypeID = Allen::TypeIDs::VeloUTTracks;
+
         private:
           const Track* m_track = nullptr;
-          unsigned m_offset = 0;
           unsigned m_size = 0;
+          unsigned m_offset = 0;
+
+          __host__ __device__ unsigned number_of_id_sequences_impl() const { return m_size; }
+
+          __host__ __device__ const Track& id_sequence_impl(const unsigned index)
+          {
+            assert(index < number_of_id_sequences_impl());
+            return m_track[index];
+          }
 
         public:
           Tracks() = default;
 
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
-            m_track(track + offset_tracks[event_number]), m_offset(offset_tracks[event_number]),
-            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
+            m_track(track + offset_tracks[event_number]),
+            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])
           {}
 
           __host__ __device__ unsigned size() const { return m_size; }
 
           __host__ __device__ const Track& track(const unsigned index) const
           {
-            assert(m_track != nullptr);
             assert(index < m_size);
             return m_track[index];
           }
 
           __host__ __device__ unsigned offset() const { return m_offset; }
-
-          __host__ __device__ unsigned number_of_id_sequences() const override { return size(); }
-
-          __host__ __device__ const ILHCbIDSequence& id_sequence(const unsigned container_number) const override
-          {
-            return track(container_number);
-          }
         };
 
-        using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;
+        using MultiEventTracks = Allen::MultiEventContainer<Tracks>;
       } // namespace Consolidated
     }   // namespace UT
   }     // namespace Views

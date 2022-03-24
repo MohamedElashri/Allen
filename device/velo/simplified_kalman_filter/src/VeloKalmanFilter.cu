@@ -125,10 +125,10 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
   const auto velo_tracks_view = parameters.dev_velo_tracks_view[event_number];
   const auto total_number_of_tracks = parameters.dev_offsets_all_velo_tracks[number_of_events];
 
-  parameters.dev_velo_kalman_beamline_states_view[event_number] = Allen::Views::Velo::Consolidated::States {
+  parameters.dev_velo_kalman_beamline_states_view[event_number] = Allen::Views::Physics::KalmanStates {
     parameters.dev_velo_kalman_beamline_states, parameters.dev_offsets_all_velo_tracks, event_number, number_of_events};
 
-  parameters.dev_velo_kalman_endvelo_states_view[event_number] = Allen::Views::Velo::Consolidated::States {
+  parameters.dev_velo_kalman_endvelo_states_view[event_number] = Allen::Views::Physics::KalmanStates {
     parameters.dev_velo_kalman_endvelo_states, parameters.dev_offsets_all_velo_tracks, event_number, number_of_events};
 
   Velo::Consolidated::States kalman_beamline_states {parameters.dev_velo_kalman_beamline_states,

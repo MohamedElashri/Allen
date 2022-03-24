@@ -52,7 +52,7 @@ namespace velo_consolidate_tracks {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_velo_multi_event_lhcb_id_container_t,
       DEPENDENCIES(dev_velo_multi_event_tracks_view_t),
-      Allen::IMultiEventLHCbIDContainer*)
+      Allen::IMultiEventContainer*)
     dev_velo_multi_event_lhcb_id_container;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

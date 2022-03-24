@@ -74,10 +74,10 @@ Hlt1TrackMVA:                212/  1000, ( 6360.00 +/-   387.75) kHz
 Hlt1TwoTrackMVA:             421/  1000, (12630.00 +/-   468.38) kHz
 Hlt1TwoTrackKs:                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuon:          2/  1000, (   60.00 +/-    42.38) kHz
-Hlt1LowPtMuon:               106/  1000, ( 3180.00 +/-   292.04) kHz
-Hlt1D2KK:                     15/  1000, (  450.00 +/-   115.31) kHz
-Hlt1D2KPi:                    25/  1000, (  750.00 +/-   148.11) kHz
-Hlt1D2PiPi:                   20/  1000, (  600.00 +/-   132.82) kHz
+Hlt1LowPtMuon:               107/  1000, ( 3210.00 +/-   293.25) kHz
+Hlt1D2KK:                     17/  1000, (  510.00 +/-   122.64) kHz
+Hlt1D2KPi:                    27/  1000, (  810.00 +/-   153.77) kHz
+Hlt1D2PiPi:                   18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1DiMuonHighMass:           13/  1000, (  390.00 +/-   107.46) kHz
 Hlt1DiMuonLowMass:            32/  1000, (  960.00 +/-   166.97) kHz
 Hlt1DiMuonSoft:                0/  1000, (    0.00 +/-     0.00) kHz
@@ -109,14 +109,14 @@ Hlt1TrackMVA:                212         335
 Hlt1TwoTrackMVA:             421        1217
 Hlt1TwoTrackKs:                3           3
 Hlt1SingleHighPtMuon:          2           2
-Hlt1LowPtMuon:               106         120
-Hlt1D2KK:                     15          17
-Hlt1D2KPi:                    25          27
-Hlt1D2PiPi:                   20          21
+Hlt1LowPtMuon:               107         122
+Hlt1D2KK:                     17          19
+Hlt1D2KPi:                    27          28
+Hlt1D2PiPi:                   18          18
 Hlt1DiMuonHighMass:           13          14
 Hlt1DiMuonLowMass:            32          39
 Hlt1DiMuonSoft:                0           0
-Hlt1LowPtDiMuon:              49          58
+Hlt1LowPtDiMuon:              49          63
 Hlt1TrackMuonMVA:             11          11
 Hlt1TrackElectronMVA:         32          33
 Hlt1SingleHighPtElectron:      7           7
@@ -135,9 +135,9 @@ Hlt1Passthrough:            1000           0
 Hlt1RICH1Alignment:            3           3
 Hlt1RICH2Alignment:            0           0
 
-Total decisions: 2851
-Total tracks:    1749
-Total SVs:       1346
-Total hits:      43271
-Total stdinfo:   22227
+Total decisions: 2854
+Total tracks:    1748
+Total SVs:       1347
+Total hits:      43233
+Total stdinfo:   22226
 

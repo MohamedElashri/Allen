@@ -95,17 +95,6 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, ut_tracks,
         dev_brem_E_t=brem_recovery.dev_brem_E_t,
         dev_brem_ET_t=brem_recovery.dev_brem_ET_t)
 
-    add_electron_id = make_algorithm(
-        add_electron_id_t,
-        name="add_electron_id",
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_tracks_t=forward_tracks[
-            "host_number_of_reconstructed_scifi_tracks"],
-        dev_kf_tracks_t=kalman_velo_only["dev_kf_tracks"],
-        dev_kf_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
-        dev_is_electron_t=track_digit_selective_matching.
-        dev_track_isElectron_t)
-
     return {
         "dev_matched_ecal_energy":
         track_digit_selective_matching.dev_matched_ecal_energy_t,
@@ -132,9 +121,7 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, ut_tracks,
         "dev_brem_corrected_p":
         momentum_brem_correction.dev_brem_corrected_p_t,
         "dev_brem_corrected_pt":
-        momentum_brem_correction.dev_brem_corrected_pt_t,
-        "dev_kf_tracks_with_electron_id":
-        add_electron_id.dev_kf_tracks_with_electron_id_t
+        momentum_brem_correction.dev_brem_corrected_pt_t
     }
 
 

@@ -177,21 +177,32 @@ namespace Allen {
   template<typename T>
   using bool_as_char_t = std::conditional_t<std::is_same_v<std::decay_t<T>, bool>, forward_type_t<T, char>, T>;
 
+  namespace detail {
+    template<template<typename...> class Base, typename Derived>
+    struct is_template_base_of {
+      using U = typename std::remove_cv_t<typename std::remove_reference_t<Derived>>;
+
+      template<typename... Args>
+      static auto test(Base<Args...>*) -> typename std::integral_constant<bool, !std::is_same_v<U, Base<Args...>>>;
+
+      static std::false_type test(void*);
+
+      using type = decltype(test(std::declval<U*>()));
+      constexpr static auto value = type::value;
+    };
+  } // namespace detail
+
   /**
-   * @brief Checks whether class U is derived from class T,
-   *        where T is a templated class.
+   * @brief Checks whether class Derived inherits from templated class Base
    */
-  template<template<class...> class T, class U>
-  struct isDerivedFrom {
-  private:
-    template<class... V>
-    static decltype(static_cast<const T<V...>&>(std::declval<U>()), std::true_type {}) test(const T<V...>&);
+  template<template<typename...> class Base, typename Derived>
+  using is_template_base_of = typename detail::is_template_base_of<Base, Derived>::type;
 
-    static std::false_type test(...);
+  template<template<typename...> class Base, typename Derived>
+  using is_template_base_of_t = typename is_template_base_of<Base, Derived>::type::type;
 
-  public:
-    static constexpr bool value = decltype(isDerivedFrom::test(std::declval<U>()))::value;
-  };
+  template<template<typename...> class Base, typename Derived>
+  constexpr auto is_template_base_of_v = is_template_base_of<Base, Derived>::value;
 
   // SFINAE-based invocation of member function iff class provides it.
   // This is just one way to write a type trait, it's not necessarily
@@ -207,6 +218,17 @@ namespace Allen {
   // (`decltype(expr, void())`)
   template<typename T>
   struct has_init_member_fn<T, std::void_t<decltype(std::declval<T>().init())>> : std::true_type {
+  };
+
+  template<typename T, typename Base0, template<typename...> class Base1, typename = void>
+  struct has_dev_particle_container : std::false_type {
+  };
+  template<typename T, typename Base0, template<typename...> class Base1>
+  struct has_dev_particle_container<T, Base0, Base1, std::void_t<typename T::dev_particle_container_t>>
+    : std::integral_constant<
+        bool,
+        std::is_base_of_v<Base0, typename T::dev_particle_container_t> &&
+          is_template_base_of_v<Base1, typename T::dev_particle_container_t>> {
   };
 
   template<typename T>

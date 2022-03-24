@@ -12,8 +12,7 @@ namespace kstopipi_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
-    DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
@@ -25,7 +24,12 @@ namespace kstopipi_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_particle_container_ptr_t,
+      DEPENDENCIES(dev_particle_container_t),
+      Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
     DEVICE_OUTPUT(dev_sv_masses_t, float) dev_sv_masses;
     HOST_OUTPUT(host_sv_masses_t, float) host_sv_masses;
 
@@ -46,11 +50,14 @@ namespace kstopipi_line {
   };
 
   struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 #ifdef WITH_ROOT
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
-    __device__ static void
-    monitor(const Parameters& parameters, std::tuple<const VertexFit::TrackMVAVertex&> input, unsigned index, bool sel);
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      unsigned index,
+      bool sel);
     __host__ void
     output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 #endif

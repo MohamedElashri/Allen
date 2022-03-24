@@ -13,6 +13,7 @@
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "AssociateConsolidated.cuh"
+#include "ParticleTypes.cuh"
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 
@@ -22,20 +23,60 @@ namespace VertexFit {
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
-    DEVICE_INPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
-    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
-    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
-    DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;
     DEVICE_INPUT(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
+    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_INPUT(dev_sv_poca_t, float) dev_sv_poca;
+    // TODO: Choose a better name for the input particles, because they don't
+    // necessarily need to be long tracks.
+    DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::MultiEventBasicParticles)
+    dev_long_track_particles;
     DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
+    DEVICE_OUTPUT(dev_sv_pv_ipchi2_t, char) dev_sv_pv_ipchi2;
+    DEVICE_OUTPUT(dev_sv_fit_results_t, char) dev_sv_fit_results;
+
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_sv_fit_results_view_t,
+      DEPENDENCIES(dev_sv_fit_results_t),
+      Allen::Views::Physics::SecondaryVertices)
+    dev_sv_fit_results_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_sv_pv_tables_t,
+      DEPENDENCIES(dev_sv_pv_ipchi2_t),
+      Allen::Views::Physics::PVTable)
+    dev_sv_pv_tables;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_two_track_sv_track_pointers_t,
+      DEPENDENCIES(dev_long_track_particles_t),
+      std::array<const Allen::Views::Physics::IParticle*, 4>)
+    dev_two_track_sv_track_pointers;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_two_track_composite_view_t,
+      DEPENDENCIES(
+        dev_two_track_sv_track_pointers_t,
+        dev_long_track_particles_t,
+        dev_sv_fit_results_view_t,
+        dev_sv_pv_tables_t,
+        dev_multi_final_vertices_t),
+      Allen::Views::Physics::CompositeParticle)
+    dev_two_track_composite_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_two_track_composites_view_t,
+      DEPENDENCIES(dev_two_track_composite_view_t),
+      Allen::Views::Physics::CompositeParticles)
+    dev_two_track_composites_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_multi_event_composites_view_t,
+      DEPENDENCIES(dev_two_track_composites_view_t),
+      Allen::Views::Physics::MultiEventCompositeParticles)
+    dev_multi_event_composites_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_multi_event_composites_ptr_t,
+      DEPENDENCIES(dev_multi_event_composites_view_t),
+      Allen::Views::Physics::MultiEventCompositeParticles*)
+    dev_multi_event_composites_ptr;
     PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

@@ -10,8 +10,7 @@ namespace track_electron_mva_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
-    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
@@ -25,7 +24,12 @@ namespace track_electron_mva_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_particle_container_ptr_t,
+      DEPENDENCIES(dev_particle_container_t),
+      Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -45,9 +49,9 @@ namespace track_electron_mva_line {
                                      OneTrackLine<track_electron_mva_line_t, Parameters> {
     __device__ static bool select(
       const Parameters& ps,
-      std::tuple<const ParKalmanFilter::FittedTrack&, const bool, const float> input);
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
 
-    __device__ static std::tuple<const ParKalmanFilter::FittedTrack&, const bool, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
   private:

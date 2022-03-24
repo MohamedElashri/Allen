@@ -4,6 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 #include "Line.cuh"
 #include "CaloGeometry.cuh"
 #include "CaloDigit.cuh"
@@ -28,7 +29,9 @@ namespace calo_digits_minADC {
 
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
+    DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -44,6 +47,11 @@ namespace calo_digits_minADC {
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
       return parameters.dev_ecal_digits_offsets[event_number];
+    }
+
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
+    {
+      return parameters.dev_ecal_digits_offsets[event_number + 1] - parameters.dev_ecal_digits_offsets[event_number];
     }
 
     __device__ static std::tuple<const CaloDigit>

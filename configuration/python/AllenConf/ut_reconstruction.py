@@ -223,7 +223,13 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         "dev_ut_track_velo_indices":
         ut_consolidate_tracks.dev_ut_track_velo_indices_t,
         "dev_ut_tracks_view":
-        ut_consolidate_tracks.dev_ut_tracks_view_t
+        ut_consolidate_tracks.dev_ut_tracks_view_t,
+
+        # Needed for long track particle dependencies
+        "dev_ut_track_view":
+        ut_consolidate_tracks.dev_ut_track_view_t,
+        "dev_ut_hits_view":
+        ut_consolidate_tracks.dev_ut_hits_view_t
     }
 
 

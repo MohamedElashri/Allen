@@ -26,7 +26,7 @@ lines.append(
         "Hlt1TrackMVA_Restricted",
         make_track_mva_line(
             restricted_hlt1_reconstruction["forward_tracks"],
-            restricted_hlt1_reconstruction["kalman_velo_only"],
+            restricted_hlt1_reconstruction["long_track_particles"],
             name="Hlt1TrackMVA_Restricted"),
         enableGEC=True))
 lines.append(
@@ -42,7 +42,7 @@ lines.append(
         "Hlt1TrackMVA_Non_Restricted",
         make_track_mva_line(
             non_restricted_hlt1_reconstruction["forward_tracks"],
-            non_restricted_hlt1_reconstruction["secondary_vertices"],
+            non_restricted_hlt1_reconstruction["long_track_particles"],
             name="Hlt1TrackMVA_Non_Restricted"),
         enableGEC=True))
 lines.append(

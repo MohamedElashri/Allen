@@ -32,7 +32,6 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
-
     const auto ut_track = ut_tracks_view.track(track.ut_track_index);
     const auto velo_track = ut_track.velo_track();
     const auto velo_state = velo_track.state(velo_states_view);

@@ -26,7 +26,7 @@ namespace rich_2_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -40,8 +40,12 @@ namespace rich_2_line {
 
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
-    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_particle_container_ptr_t,
+      DEPENDENCIES(dev_particle_container_t),
+      Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
 
     // Monitoring
     DEVICE_OUTPUT(dev_decision_t, bool) dev_decision;
@@ -77,22 +81,25 @@ namespace rich_2_line {
   // SelectionAlgorithm definition
   struct rich_2_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<rich_2_line_t, Parameters> {
 
-    __device__ static __host__ KalmanFloat trackPhi(const ParKalmanFilter::FittedTrack& track)
+    __device__ static __host__ KalmanFloat trackPhi(const Allen::Views::Physics::BasicParticle& track)
     {
-      return atan2f(track.py(), track.px());
+      const auto state = track.state();
+      return atan2f(state.py(), state.px());
     }
     // Selection helper
-    __device__ static bool passes(const ParKalmanFilter::FittedTrack& track, const Parameters& parameters);
+    __device__ static bool passes(const Allen::Views::Physics::BasicParticle& track, const Parameters& parameters);
 
     // Selection function.
-    __device__ static bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input);
+    __device__ static bool select(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
 #ifdef WITH_ROOT
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const ParKalmanFilter::FittedTrack&> input,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
       bool sel);
     __host__ void output_monitor(

@@ -8,6 +8,7 @@
 #include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidatedTypes.cuh"
+#include "MultiEventContainer.cuh"
 #include "BackendCommon.h"
 
 namespace Allen {
@@ -92,10 +93,11 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
+        // TODO: Just replace this with Allen::Views::Physics::KalmanState.
         struct State {
         private:
-          constexpr static unsigned nb_elements_state = 5;
-          constexpr static unsigned nb_elements_cov = 6;
+          constexpr static unsigned nb_elements_state = 6;
+          constexpr static unsigned nb_elements_cov = 8;
 
           const float* m_base_pointer = nullptr;
           unsigned m_index = 0;
@@ -194,12 +196,18 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
-        struct Track : Allen::ILHCbIDSequence {
+        struct Track : Allen::ILHCbIDSequence<Track> {
+          friend Allen::ILHCbIDSequence<Track>;
+
         private:
           const Hits* m_hits = nullptr;
           unsigned m_track_index = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
+
+          __host__ __device__ unsigned number_of_ids_impl() const { return m_number_of_hits; }
+
+          __host__ __device__ unsigned id_impl(const unsigned index) const { return hit(index).id(); }
 
         public:
           Track() = default;
@@ -229,33 +237,43 @@ namespace Allen {
             return m_hits->hit(m_offset + index);
           }
 
-          __host__ __device__ State state(const States& states_view) const { return states_view.state(m_track_index); }
-
-          __host__ __device__ unsigned number_of_ids() const override { return number_of_hits(); }
-
-          __host__ __device__ unsigned id(const unsigned index) const override { return hit(index).id(); }
+          __host__ __device__ Allen::Views::Physics::KalmanState state(
+            const Allen::Views::Physics::KalmanStates& states_view) const
+          {
+            return states_view.state(m_track_index);
+          }
         };
 
-        struct Tracks : Allen::ILHCbIDContainer {
+        struct Tracks : Allen::ILHCbIDContainer<Tracks> {
+          friend Allen::ILHCbIDContainer<Tracks>;
+          constexpr static auto TypeID = Allen::TypeIDs::VeloTracks;
+
         private:
-          const Track* m_track = nullptr;
-          unsigned m_offset = 0;
+          const Track* m_track;
           unsigned m_size = 0;
+          unsigned m_offset = 0;
+
+          __host__ __device__ unsigned number_of_id_sequences_impl() const { return m_size; }
+
+          __host__ __device__ const Track& id_sequence_impl(const unsigned index) const
+          {
+            assert(index < number_of_id_sequences_impl());
+            return m_track[index];
+          }
 
         public:
           Tracks() = default;
 
           __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
-            m_track(track + offset_tracks[event_number]), m_offset(offset_tracks[event_number]),
-            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number])
+            m_track(track + offset_tracks[event_number]),
+            m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])
           {}
 
           __host__ __device__ unsigned size() const { return m_size; }
 
           __host__ __device__ const Track& track(const unsigned index) const
           {
-            assert(m_track != nullptr);
-            assert(index < m_size);
+            assert(index < size());
             return m_track[index];
           }
 
@@ -264,21 +282,15 @@ namespace Allen {
            *        tracks in the container for the current event.
            */
           __host__ __device__ unsigned offset() const { return m_offset; }
-
-          __host__ __device__ unsigned number_of_id_sequences() const override { return size(); }
-
-          __host__ __device__ const ILHCbIDSequence& id_sequence(const unsigned container_number) const override
-          {
-            return track(container_number);
-          }
         };
 
-        using MultiEventTracks = Allen::MultiEventLHCbIDContainer<Tracks>;
+        using MultiEventTracks = Allen::MultiEventContainer<Tracks>;
       } // namespace Consolidated
     }   // namespace Velo
   }     // namespace Views
 } // namespace Allen
 
+// Deprecated
 namespace Velo {
   namespace Consolidated {
     /**
@@ -352,10 +364,11 @@ namespace Velo {
 
     typedef const Tracks ConstTracks;
 
+    // TODO: Use the same states for Kalman filter and VELO.
     /**
      * @brief States data structure.
      * @detail An SOA of two AOS is used:
-     *         SOA{AOS{x, y, tx, ty, z}, AOS{c00, c20, c22, c11, c31, c33}}
+     *         SOA{AOS{x, y, z, tx, ty, qop}, AOS{c00, c20, c22, c11, c31, c33, chi2, ndof}}
      *
      * @tparam T
      */
@@ -367,9 +380,9 @@ namespace Velo {
       const unsigned m_offset;
 
     public:
-      constexpr static unsigned size = 11 * sizeof(uint32_t);
-      constexpr static unsigned nb_elements_state = 5;
-      constexpr static unsigned nb_elements_cov = 6;
+      constexpr static unsigned nb_elements_state = 6;
+      constexpr static unsigned nb_elements_cov = 8;
+      constexpr static unsigned size = (nb_elements_state + nb_elements_cov) * sizeof(uint32_t);
 
       __host__ __device__ States_t(T* base_pointer, const unsigned total_number_of_tracks, const unsigned offset = 0) :
         m_base_pointer(reinterpret_cast<Allen::forward_type_t<T, float>*>(base_pointer)),
@@ -439,6 +452,18 @@ namespace Velo {
       {
         assert(m_offset + index < m_total_number_of_tracks);
         return m_base_pointer[nb_elements_state * (m_offset + index) + 4];
+      }
+
+      __host__ __device__ float qop(const unsigned index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 5];
+      }
+
+      __host__ __device__ float& qop(const unsigned index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * (m_offset + index) + 5];
       }
 
       __host__ __device__ float c00(const unsigned index) const
@@ -511,6 +536,32 @@ namespace Velo {
       {
         assert(m_offset + index < m_total_number_of_tracks);
         return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 5];
+      }
+
+      __host__ __device__ float chi2(const unsigned index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 6];
+      }
+
+      __host__ __device__ float& chi2(const unsigned index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 6];
+      }
+
+      __host__ __device__ unsigned ndof(const unsigned index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return reinterpret_cast<const unsigned*>(
+          m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
+      }
+
+      __host__ __device__ unsigned& ndof(const unsigned index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return reinterpret_cast<unsigned*>(
+          m_base_pointer)[nb_elements_state * m_total_number_of_tracks + nb_elements_cov * (m_offset + index) + 7];
       }
 
       __host__ __device__ void set(const unsigned track_number, const KalmanVeloState& state)

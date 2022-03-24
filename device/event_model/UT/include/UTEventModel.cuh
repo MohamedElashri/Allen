@@ -7,6 +7,8 @@
 #include <ostream>
 #include <iomanip>
 #include "UTDefinitions.cuh"
+#include "VeloConsolidated.cuh"
+#include "VeloEventModel.cuh"
 
 namespace UT {
   // Hit base containing just the geometrical information about the hit.

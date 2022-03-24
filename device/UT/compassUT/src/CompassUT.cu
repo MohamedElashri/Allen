@@ -104,7 +104,7 @@ __device__ void compass_ut::compass_ut_tracking(
   const short* windows_layers,
   const unsigned number_of_tracks_event,
   const int i_track,
-  const Allen::Views::Velo::Consolidated::States& velo_states,
+  const Allen::Views::Physics::KalmanStates& velo_states,
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const float* bdl_table,

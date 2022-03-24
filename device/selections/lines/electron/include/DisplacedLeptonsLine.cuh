@@ -5,7 +5,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "EventLine.cuh"
-#include "ParKalmanFilter.cuh"
+#include "ParticleTypes.cuh"
 
 namespace displaced_leptons_line {
   struct Parameters {
@@ -15,8 +15,11 @@ namespace displaced_leptons_line {
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
     DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
-    DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
-    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    // TODO: For now, this is called a "track" container instead of a "particle"
+    // container to trick the SelReport writer into not looking for individual
+    // selected candidates. This line needs to be reworked to save individual
+    // candidate information to the SelReport.
+    DEVICE_INPUT(dev_track_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_track_container;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
@@ -26,7 +29,7 @@ namespace displaced_leptons_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+    DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*) dev_particle_container_ptr;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -38,12 +41,12 @@ namespace displaced_leptons_line {
   struct displaced_leptons_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     EventLine<displaced_leptons_line_t, Parameters> {
-    __device__ static std::tuple<const ParKalmanFilter::FittedTrack*, const unsigned, const bool*, const float*>
+    __device__ static std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
     get_input(const Parameters& parameters, const unsigned event_number);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const ParKalmanFilter::FittedTrack*, const unsigned, const bool*, const float*> input);
+      std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

@@ -14,24 +14,27 @@
 #include "ParKalmanFittedTrack.cuh"
 #include "ParKalmanMath.cuh"
 #include "VertexDefinitions.cuh"
+#include "ParticleTypes.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
 
 namespace VertexFit {
 
   __device__ inline bool poca(
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     float& x,
     float& y,
     float& z);
 
-  __device__ inline float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB);
+  __device__ inline float doca(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB);
 
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
   __device__ inline float addToDerivatives(
-    const ParKalmanFilter::FittedTrack& track,
+    const Allen::Views::Physics::BasicParticle& track,
     const float& x,
     const float& y,
     const float& z,
@@ -63,40 +66,44 @@ namespace VertexFit {
     const float& halfD2Chi2_21,
     const float& halfD2Chi2_22);
 
-  __device__ inline void
-  doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex);
+  __device__ inline void doFit(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
+    TrackMVAVertex& vertex);
 
   __device__ inline void fill_extra_info(
     TrackMVAVertex& sv,
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB);
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB);
 
-  __device__ inline void fill_extra_pv_info(
+  __device__ inline int fill_extra_pv_info(
     TrackMVAVertex& sv,
     Allen::device::span<PV::Vertex const> pvs,
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     const float max_assoc_ipchi2);
 
   //----------------------------------------------------------------------
   // Point of closest approach. Reimplementation from TrackVertexUtils.
   __device__ bool poca(
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     float& x,
     float& y,
     float& z)
   {
-    float zA = trackA.z;
-    float xA = trackA.state[0];
-    float yA = trackA.state[1];
-    float txA = trackA.state[2];
-    float tyA = trackA.state[3];
-    float zB = trackB.z;
-    float xB = trackB.state[0];
-    float yB = trackB.state[1];
-    float txB = trackB.state[2];
-    float tyB = trackB.state[3];
+    const Allen::Views::Physics::KalmanState stateA = trackA.state();
+    const Allen::Views::Physics::KalmanState stateB = trackB.state();
+    float zA = stateA.z();
+    float xA = stateA.x();
+    float yA = stateA.y();
+    float txA = stateA.tx();
+    float tyA = stateA.ty();
+    float zB = stateB.z();
+    float xB = stateB.x();
+    float yB = stateB.y();
+    float txB = stateB.tx();
+    float tyB = stateB.ty();
     float secondAA = txA * txA + tyA * tyA + 1.0f;
     float secondBB = txB * txB + tyB * tyB + 1.0f;
     float secondAB = -txA * txB - tyA * tyB - 1.0f;
@@ -128,18 +135,20 @@ namespace VertexFit {
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
   }
 
-  __device__ float doca(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB)
+  __device__ float doca(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB)
   {
-    const float xA = trackA.state[0];
-    const float yA = trackA.state[1];
-    const float zA = trackA.z;
-    const float txA = trackA.state[2];
-    const float tyA = trackA.state[3];
-    const float xB = trackB.state[0];
-    const float yB = trackB.state[1];
-    const float zB = trackB.z;
-    const float txB = trackB.state[2];
-    const float tyB = trackB.state[3];
+    const float xA = trackA.state().x();
+    const float yA = trackA.state().y();
+    const float zA = trackA.state().z();
+    const float txA = trackA.state().tx();
+    const float tyA = trackA.state().ty();
+    const float xB = trackB.state().x();
+    const float yB = trackB.state().y();
+    const float zB = trackB.state().z();
+    const float txB = trackB.state().tx();
+    const float tyB = trackB.state().ty();
     const float secondAA = txA * txA + tyA * tyA + 1.f;
     const float secondBB = txB * txB + tyB * tyB + 1.f;
     const float secondAB = -txA * txB - tyA * tyB - 1.f;
@@ -165,7 +174,7 @@ namespace VertexFit {
   // Add the contribution from one track to the vertex weight
   // matrix. NB this assumes (x, tx) and (y, ty) are uncorrelated.
   __device__ float addToDerivatives(
-    const ParKalmanFilter::FittedTrack& track,
+    const Allen::Views::Physics::BasicParticle& track,
     const float& x,
     const float& y,
     const float& z,
@@ -178,21 +187,22 @@ namespace VertexFit {
     float& halfD2Chi2_21,
     float& halfD2Chi2_22)
   {
-    float dz = z - track.z;
-    float rX = track.state[0] + dz * track.state[2] - x;
-    float rY = track.state[1] + dz * track.state[3] - y;
-    float cov00 = track.cov(0, 0) + dz * dz * track.cov(2, 2) + 2.f * dz * track.cov(2, 0);
-    float cov11 = track.cov(1, 1) + dz * dz * track.cov(3, 3) + 2.f * dz * track.cov(3, 1);
+    const Allen::Views::Physics::KalmanState state = track.state();
+    float dz = z - state.z();
+    float rX = state.x() + dz * state.tx() - x;
+    float rY = state.y() + dz * state.ty() - y;
+    float cov00 = state.c00() + dz * dz * state.c22() + 2.f * dz * state.c20();
+    float cov11 = state.c11() + dz * dz * state.c33() + 2.f * dz * state.c31();
     float invcov00 = 1.f / cov00;
     float invcov11 = 1.f / cov11;
     halfDChi2_0 += invcov00 * rX;
     halfDChi2_1 += invcov11 * rY;
-    halfDChi2_2 += -(invcov00 * rX * track.state[2] + invcov11 * rY * track.state[3]);
+    halfDChi2_2 += -(invcov00 * rX * state.tx() + invcov11 * rY * state.ty());
     halfD2Chi2_00 += invcov00;
     halfD2Chi2_11 += invcov11;
-    halfD2Chi2_20 += -invcov00 * track.state[2];
-    halfD2Chi2_21 += -invcov11 * track.state[3];
-    halfD2Chi2_22 += invcov00 * track.state[2] * track.state[2] + invcov11 * track.state[3] * track.state[3];
+    halfD2Chi2_20 += -invcov00 * state.tx();
+    halfD2Chi2_21 += -invcov11 * state.ty();
+    halfD2Chi2_22 += invcov00 * state.tx() * state.tx() + invcov11 * state.ty() * state.ty();
     return invcov00 * rX * rX + invcov11 * rY * rY;
   }
 
@@ -236,8 +246,10 @@ namespace VertexFit {
 
   //----------------------------------------------------------------------
   // Perform a vertex fit assuming x and y are uncorrelated.
-  __device__ void
-  doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex)
+  __device__ void doFit(
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
+    TrackMVAVertex& vertex)
   {
     float vertexweight00 = 0.f;
     float vertexweight11 = 0.f;
@@ -297,45 +309,48 @@ namespace VertexFit {
 
   __device__ void fill_extra_info(
     TrackMVAVertex& sv,
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB)
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB)
   {
+    const auto stateA = trackA.state();
+    const auto stateB = trackB.state();
+
     // SV momentum.
-    sv.px = trackA.px() + trackB.px();
-    sv.py = trackA.py() + trackB.py();
-    sv.pz = trackA.pz() + trackB.pz();
+    sv.px = stateA.px() + stateB.px();
+    sv.py = stateA.py() + stateB.py();
+    sv.pz = stateA.pz() + stateB.pz();
 
     // For calculating mass.
-    sv.p1 = trackA.p();
-    sv.p2 = trackB.p();
-    sv.cos = (trackA.px() * trackB.px() + trackA.py() * trackB.py() + trackA.pz() * trackB.pz()) / (sv.p1 * sv.p2);
+    sv.p1 = stateA.p();
+    sv.p2 = stateB.p();
+    sv.cos = (stateA.px() * stateB.px() + stateA.py() * stateB.py() + stateA.pz() * stateB.pz()) / (sv.p1 * sv.p2);
 
     // Sum of track pT.
-    sv.sumpt = trackA.pt() + trackB.pt();
+    sv.sumpt = stateA.pt() + stateB.pt();
 
     // Minimum pt of constituent tracks.
-    sv.minpt = trackA.pt() < trackB.pt() ? trackA.pt() : trackB.pt();
+    sv.minpt = stateA.pt() < stateB.pt() ? stateA.pt() : stateB.pt();
 
     // Muon ID.
-    sv.is_dimuon = trackA.is_muon && trackB.is_muon;
-    sv.trk1_is_muon = trackA.is_muon;
-    sv.trk2_is_muon = trackB.is_muon;
+    sv.is_dimuon = trackA.is_muon() && trackB.is_muon();
+    sv.trk1_is_muon = trackA.is_muon();
+    sv.trk2_is_muon = trackB.is_muon();
 
     // IP of constituent tracks
 
-    sv.ip1 = trackA.ip;
-    sv.ip2 = trackB.ip;
+    sv.ip1 = trackA.ip();
+    sv.ip2 = trackB.ip();
 
     // Minimum IP of constituent tracks.
-    sv.minip = trackA.ip < trackB.ip ? trackA.ip : trackB.ip;
+    // sv.minip = trackA.ip() < trackB.ip() ? trackA.ip() : trackB.ip();
 
     // Dimuon mass.
     if (sv.is_dimuon) {
       const float mdimu2 = 2.f * Allen::mMu * Allen::mMu +
                            2.f * (sqrtf(
-                                    (trackA.p() * trackA.p() + Allen::mMu * Allen::mMu) *
-                                    (trackB.p() * trackB.p() + Allen::mMu * Allen::mMu)) -
-                                  trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+                                    (stateA.p() * stateA.p() + Allen::mMu * Allen::mMu) *
+                                    (stateB.p() * stateB.p() + Allen::mMu * Allen::mMu)) -
+                                  stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
       sv.mdimu = sqrtf(mdimu2);
     }
     else {
@@ -343,15 +358,15 @@ namespace VertexFit {
     }
   }
 
-  __device__ void fill_extra_pv_info(
+  __device__ int fill_extra_pv_info(
     TrackMVAVertex& sv,
     Allen::device::span<PV::Vertex const> pvs,
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
+    const Allen::Views::Physics::BasicParticle& trackA,
+    const Allen::Views::Physics::BasicParticle& trackB,
     const float max_assoc_ipchi2)
   {
     // Number of tracks with ip chi2 < 16.
-    sv.ntrks16 = (trackA.ipChi2 < max_assoc_ipchi2) + (trackB.ipChi2 < max_assoc_ipchi2);
+    sv.ntrks16 = (trackA.ip_chi2() < max_assoc_ipchi2) + (trackB.ip_chi2() < max_assoc_ipchi2);
 
     const unsigned n_pvs = pvs.size();
     float minfdchi2 = -1.;
@@ -388,8 +403,9 @@ namespace VertexFit {
       }
     }
 
-    if (pv_idx < 0) return;
+    if (pv_idx < 0) return -1;
 
+    // Get PV-SV separation.
     sv.fdchi2 = minfdchi2;
     auto pv = pvs[pv_idx];
     const float dx = sv.x - pv.position.x;
@@ -406,11 +422,11 @@ namespace VertexFit {
     sv.vertex_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px / sv.pz, sv.py / sv.pz);
 
     if (sv.is_dimuon) {
-      const float txA = trackA.state[2];
-      const float tyA = trackA.state[3];
+      const float txA = trackA.state().tx();
+      const float tyA = trackA.state().ty();
 
-      const float txB = trackB.state[2];
-      const float tyB = trackB.state[3];
+      const float txB = trackB.state().tx();
+      const float tyB = trackB.state().ty();
 
       const float vx = tyA - tyB;
       const float vy = -txA + txB;
@@ -423,26 +439,31 @@ namespace VertexFit {
     }
 
     // Corrected mass.
-    const float px = trackA.px() + trackB.px();
-    const float py = trackA.py() + trackB.py();
-    const float pz = trackA.pz() + trackB.pz();
+    const auto stateA = trackA.state();
+    const auto stateB = trackB.state();
+    const float px = stateA.px() + stateB.px();
+    const float py = stateA.py() + stateB.py();
+    const float pz = stateA.pz() + stateB.pz();
     const float mvis2 =
       2.f * Allen::mPi * Allen::mPi +
       2.f *
         (sqrtf(
-           (trackA.p() * trackA.p() + Allen::mPi * Allen::mPi) * (trackB.p() * trackB.p() + Allen::mPi * Allen::mPi)) -
-         trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+           (stateA.p() * stateA.p() + Allen::mPi * Allen::mPi) * (stateB.p() * stateB.p() + Allen::mPi * Allen::mPi)) -
+         stateA.px() * stateB.px() - stateA.py() * stateB.py() - stateA.pz() * stateB.pz());
     const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) + (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) /
                          fd / fd;
     sv.mcor = sqrtf(mvis2 + pperp2) + sqrtf(pperp2);
 
     // Minimum IP chi2 of constituent tracks.
-    sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;
+    sv.minipchi2 = min(trackA.ip_chi2(), trackB.ip_chi2());
+    sv.minip = min(trackA.ip(), trackB.ip());
 
     // cos DIRA.
     const float p = sqrtf(sv.px * sv.px + sv.py * sv.py + sv.pz * sv.pz);
     sv.dira = (sv.px * dx + sv.py * dy + sv.pz * dz) / (p * fd);
+
+    return pv_idx;
   }
 
 } // namespace VertexFit

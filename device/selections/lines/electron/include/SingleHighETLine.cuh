@@ -4,6 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 #include "Line.cuh"
 #include "VeloConsolidated.cuh"
 
@@ -27,7 +28,10 @@ namespace single_high_et_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
+
+    DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
+
     // Properties
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -43,6 +47,8 @@ namespace single_high_et_line {
 
     // Offset function
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
+
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
 
     // Get decision size function
     static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);

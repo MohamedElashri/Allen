@@ -93,12 +93,8 @@ def is_muon(decoded_muon, forward_tracks):
 
     host_number_of_reconstructed_scifi_tracks = forward_tracks[
         "host_number_of_reconstructed_scifi_tracks"]
-    dev_offsets_forward_tracks = forward_tracks["dev_offsets_forward_tracks"]
-    dev_offsets_scifi_track_hit_number = forward_tracks[
-        "dev_offsets_scifi_track_hit_number"]
-    dev_scifi_qop = forward_tracks["dev_scifi_qop"]
+    dev_scifi_tracks_view = forward_tracks["dev_scifi_tracks_view"]
     dev_scifi_states = forward_tracks["dev_scifi_states"]
-    dev_scifi_track_ut_indices = forward_tracks["dev_scifi_track_ut_indices"]
 
     is_muon = make_algorithm(
         is_muon_t,
@@ -107,11 +103,8 @@ def is_muon(decoded_muon, forward_tracks):
         dev_number_of_events_t=dev_number_of_events,
         host_number_of_reconstructed_scifi_tracks_t=
         host_number_of_reconstructed_scifi_tracks,
-        dev_offsets_forward_tracks_t=dev_offsets_forward_tracks,
-        dev_offsets_scifi_track_hit_number=dev_offsets_scifi_track_hit_number,
-        dev_scifi_qop_t=dev_scifi_qop,
+        dev_scifi_tracks_view_t=dev_scifi_tracks_view,
         dev_scifi_states_t=dev_scifi_states,
-        dev_scifi_track_ut_indices_t=dev_scifi_track_ut_indices,
         dev_station_ocurrences_offset_t=decoded_muon[
             "dev_station_ocurrences_offset"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"])

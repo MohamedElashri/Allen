@@ -4,6 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 #include <string>
 
 namespace gather_selections {
@@ -18,7 +19,8 @@ namespace gather_selections {
     DEVICE_INPUT_AGGREGATE(dev_input_selections_offsets_t, unsigned) dev_input_selections_offsets;
     HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
     HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
-    HOST_INPUT_AGGREGATE(host_lhcbid_containers_agg_t, uint8_t) host_lhcbid_containers_agg;
+    DEVICE_INPUT_AGGREGATE(dev_particle_containers_agg_t, Allen::IMultiEventContainer*)
+    dev_particle_containers_agg;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
@@ -28,8 +30,11 @@ namespace gather_selections {
     HOST_OUTPUT(host_post_scale_hashes_t, uint32_t) host_post_scale_hashes;
     DEVICE_OUTPUT(dev_post_scale_factors_t, float) dev_post_scale_factors;
     DEVICE_OUTPUT(dev_post_scale_hashes_t, uint32_t) dev_post_scale_hashes;
-    DEVICE_OUTPUT(dev_lhcbid_containers_t, uint8_t) dev_lhcbid_containers;
-    HOST_OUTPUT(host_lhcbid_containers_t, uint8_t) host_lhcbid_containers;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_particle_containers_t,
+      DEPENDENCIES(dev_particle_containers_agg_t),
+      Allen::IMultiEventContainer*)
+    dev_particle_containers;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
     PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string);
   };

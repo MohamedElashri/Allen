@@ -4,6 +4,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
+#include "VeloConsolidated.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "CompassUTDefinitions.cuh"
 #include "AlgorithmTypes.cuh"
@@ -16,7 +17,7 @@ namespace ut_search_windows {
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
-    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
