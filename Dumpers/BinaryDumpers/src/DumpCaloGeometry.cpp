@@ -16,13 +16,17 @@
 
 #include <Detector/Calo/CaloCellID.h>
 #include <Detector/Calo/CaloCellCode.h>
-#include "DumpCaloGeometry.h"
+#include <CaloDet/DeCalorimeter.h>
 #include <Dumpers/Utils.h>
 
-
+// LHCb
 #include <DetDesc/Condition.h>
 #include <DetDesc/ConditionAccessorHolder.h>
-#include <GaudiAlg/Transformer.h>
+#include "DetDesc/IConditionDerivationMgr.h"
+
+// Gaudi
+#include "GaudiAlg/Transformer.h"
+
 
 #include <Dumpers/Identifiers.h>
 
@@ -67,7 +71,7 @@ public:
 
   std::tuple<std::vector<char>, std::string> operator()( const DeCalorimeter& DeCalorimeter ) const override;
 
-  Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::ECal::id}; // Correct ECal for Ecalorimeter for Allen Namespace
+  Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::ECalGeometry::id}; // Ecalorimeter for Allen Namespace from Updater.cpp
 };
 
 
