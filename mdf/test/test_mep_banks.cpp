@@ -76,6 +76,14 @@ namespace {
   using json = nlohmann::json;
 } // namespace
 
+namespace Allen {
+  unsigned number_of_banks(gsl::span<char const> allen_banks,
+                           gsl::span<unsigned const> allen_offsets,
+                           unsigned const i_event) {
+    return reinterpret_cast<unsigned const*>(allen_banks.data() + allen_offsets[i_event])[i_event];
+  }
+}
+
 fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
 {
 
@@ -274,16 +282,29 @@ struct compare<BankTypes::ODIN, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
     unsigned const i_event)
   {
     const auto allen_bank = odin_bank<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
     const auto mep_bank =
       odin_bank<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
 
+    // Check that the number of banks is 1
+    auto const n_mep_banks = MEP::number_of_banks(mep_offsets.data());
+    REQUIRE(n_mep_banks == 1);
+    REQUIRE(n_mep_banks == Allen::number_of_banks(allen_banks, allen_offsets, i_event));
+
+    // Check sizes
     REQUIRE(allen_bank.size == mep_bank.size);
+
+    // Check bank types
+    REQUIRE(Allen::bank_type(allen_types.data(), i_event, 0) == MEP::bank_type(mep_fragments.data(), mep_types.data(), i_event, 0));
+
+    // Check bank contents
     for (unsigned short i = 0; i < allen_bank.size; ++i) {
       REQUIRE(allen_bank.data[i] == mep_bank.data[i]);
     }
@@ -297,15 +318,17 @@ struct compare<BankTypes::VP, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
     unsigned const i_event)
   {
     const auto allen_raw_event =
-      Velo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+      Velo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
     const auto mep_raw_event =
-      Velo::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+      Velo::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
@@ -314,6 +337,7 @@ struct compare<BankTypes::VP, transpose_mep> {
       // Read raw bank
       auto const mep_bank = mep_raw_event.raw_bank(bank);
       auto const allen_bank = allen_raw_event.raw_bank(bank);
+      REQUIRE(mep_bank.type == allen_bank.type);
       auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
       REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
       REQUIRE(mep_bank.count == allen_bank.count);
@@ -331,9 +355,11 @@ struct compare<BankTypes::UT, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const>,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const>,
     unsigned const i_event)
   {
     const auto allen_raw_event =
@@ -384,15 +410,17 @@ struct compare<BankTypes::FT, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
     unsigned const i_event)
   {
     const auto allen_raw_event =
-      SciFi::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+      SciFi::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
     const auto mep_raw_event =
-      SciFi::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+      SciFi::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
@@ -403,6 +431,9 @@ struct compare<BankTypes::FT, transpose_mep> {
       auto const allen_bank = allen_raw_event.raw_bank(bank);
       auto mep_len = mep_bank.last - mep_bank.data;
       auto allen_len = allen_bank.last - allen_bank.data;
+
+      REQUIRE(mep_bank.type == allen_bank.type);
+
       auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
       REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
       REQUIRE(mep_len == allen_len);
@@ -420,9 +451,11 @@ struct compare<BankTypes::MUON, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const>,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const>,
     unsigned const i_event)
   {
 
@@ -457,16 +490,18 @@ struct compare<BankTypes::ECal, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
     unsigned const i_event)
   {
 
     const auto allen_raw_event =
-      Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+      Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
     const auto mep_raw_event =
-      Calo::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+      Calo::RawEvent<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
@@ -477,9 +512,12 @@ struct compare<BankTypes::ECal, transpose_mep> {
       auto const allen_bank = allen_raw_event.raw_bank(bank);
       auto mep_len = mep_bank.end - mep_bank.data;
       auto allen_len = allen_bank.end - allen_bank.data;
+      REQUIRE(mep_len == allen_len);
+
+      REQUIRE(mep_bank.type == allen_bank.type);
+
       auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
       REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
-      REQUIRE(mep_len == allen_len);
       for (long j = 0; j < mep_len; ++j) {
         REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
       }
@@ -515,6 +553,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
   auto const& mfps = mep_data.fragments;
   auto const& mep_offsets = mep_data.offsets;
   auto const& mep_sizes = mep_data.sizes;
+  auto const& mep_types = mep_data.types;
   vector<char> mep_fragments(mep_data.fragments_mem_size, 0);
 
   char* destination = &mep_fragments[0];
@@ -533,6 +572,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
   auto const& allen_banks = allen_data.fragments;
   auto const& allen_offsets = allen_data.offsets;
   auto const& allen_sizes = allen_data.sizes;
+  auto const& allen_types = allen_data.types;
 
   // In Allen layout the first uint32_t for each event is the number
   // of banks, while in MEP layout the first uint32_t in the offsets
@@ -548,7 +588,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
       REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
     }
     compare<BT, transpose_mep> {}(
-      mep_data.version, mep_fragments, mep_offsets, mep_sizes, allen_banks[0], allen_offsets, allen_sizes, i);
+      mep_data.version, mep_fragments, mep_offsets, mep_sizes, mep_types, allen_banks[0], allen_offsets, allen_sizes, allen_types, i);
   }
 }
 
