@@ -35,7 +35,7 @@ namespace scifi_consolidate_tracks {
     DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_hits_view_t,
-      DEPENDENCIES(dev_scifi_hits_t),
+      DEPENDENCIES(dev_scifi_track_hits_t),
       Allen::Views::SciFi::Consolidated::Hits)
     dev_scifi_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
