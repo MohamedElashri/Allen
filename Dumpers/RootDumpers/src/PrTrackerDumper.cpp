@@ -16,12 +16,13 @@
 #include "Event/RawBank.h"
 #include "Event/RawEvent.h"
 #include "Event/VPLightCluster.h"
+#include "UTDAQ/UTInfo.h"
 #include "Linker/LinkerWithKey.h"
 #include "PrKernel/PrFTHitHandler.h"
 #include "PrKernel/PrHit.h"
 #include "PrKernel/UTHit.h"
 #include "PrKernel/UTHitHandler.h"
-#include "PrKernel/UTHitInfo.h"
+
 #include <TFile.h>
 #include <TString.h>
 #include <TTree.h>
@@ -218,7 +219,7 @@ PrTrackerDumper::PrTrackerDumper(const string& name, ISvcLocator* pSvcLocator) :
     {KeyValue {"MCParticlesLocation", LHCb::MCParticleLocation::Default},
      KeyValue {"VPLightClusterLocation", LHCb::VPClusterLocation::Light},
      KeyValue {"FTHitsLocation", PrFTInfo::FTHitsLocation},
-     KeyValue {"UTHitsLocation", UT::Info::HitLocation},
+     KeyValue {"UTHitsLocation", UTInfo::HitLocation},
      KeyValue {"ODINLocation", LHCb::ODINLocation::Default},
      KeyValue {"LinkerLocation", Links::location("Pr/LHCbID")}},
     KeyValue {"OutputRawEventLocation", "Allen/MCRawEvent"})

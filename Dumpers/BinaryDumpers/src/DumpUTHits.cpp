@@ -17,7 +17,7 @@ DumpUTHits::DumpUTHits(const std::string& name, ISvcLocator* pSvcLocator) :
   Consumer(
     name,
     pSvcLocator,
-    {KeyValue {"ODINLocation", LHCb::ODINLocation::Default}, KeyValue {"UTHitsLocation", UT::Info::HitLocation}})
+    {KeyValue {"ODINLocation", LHCb::ODINLocation::Default}, KeyValue {"UTHitsLocation", UTInfo::HitLocation}})
 {}
 
 StatusCode DumpUTHits::initialize()

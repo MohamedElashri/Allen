@@ -14,7 +14,7 @@
 #include "Event/ODIN.h"
 #include "GaudiAlg/Consumer.h"
 #include "PrKernel/UTHitHandler.h"
-#include "PrKernel/UTHitInfo.h"
+#include "UTDAQ/UTInfo.h"
 
 /** @class DumpUTHits DumpUTHits.h
  *  Algorithm that dumps UT hit variables to binary files.
