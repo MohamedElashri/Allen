@@ -21,7 +21,7 @@
 
 include(FindPackageHandleStandardArgs)
 
-if (NOT LLVM_CONFIG)
+if (NOT LLVM_CONFIG AND STANDALONE)
     set(LLVM_CONFIG $ENV{LLVM_CONFIG})
     if (NOT LLVM_CONFIG)
         find_program(LLVM_CONFIG "llvm-config")
