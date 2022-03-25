@@ -40,7 +40,7 @@ struct Extremum {
 struct Cluster {
   Cluster() = default;
   Cluster(const Cluster&) = default;
-  
+
   __host__ __device__ Cluster(unsigned short _izfirst, unsigned short _izlast, unsigned short _izmax) :
     izfirst {_izfirst}, izlast {_izlast}, izmax {_izmax}
   {}
