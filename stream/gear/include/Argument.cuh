@@ -137,41 +137,49 @@ struct mask_t {
  * @brief A property datatype data holder.
  */
 template<typename T, typename = void>
-struct property_datatype {};
+struct property_datatype {
+};
 
+/**
+ * @brief Trivially copyable datatype holders can be accessed on either host or device.
+ * @details Those types that support conversions to dim3 and std::array<unsigned, 3> can also
+ *          invoke the operator dim3(), which can be used as the kernel calling parameters.
+ */
 template<typename T>
-struct property_datatype<T, std::enable_if_t<std::is_trivially_copyable_v<T> && !std::is_convertible_v<T, dim3>>> {
+struct property_datatype<T, std::enable_if_t<std::is_trivially_copyable_v<T>>> {
   using t = T;
 
+  constexpr property_datatype() = default;
   constexpr property_datatype(const t& value) : m_value(value) {}
-  constexpr property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
+  __host__ __device__ operator dim3() const
+  {
+    static_assert(
+      (std::is_convertible_v<T, dim3> ||
+       std::is_same_v<std::decay_t<T>, std::array<unsigned, 3>>) &&"The dim3 operator can only be invoked on "
+                                                                   "convertible types or std::array<unsigned, 3>");
+    if constexpr (std::is_convertible_v<T, dim3>) {
+      return m_value;
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, std::array<unsigned, 3>>) {
+      return {m_value[0], m_value[1], m_value[2]};
+    }
+  }
 
 protected:
   t m_value;
 };
 
-template<typename T>
-struct property_datatype<T, std::enable_if_t<std::is_trivially_copyable_v<T> && std::is_convertible_v<T, dim3>>> {
-  using t = T;
-
-  constexpr property_datatype(const t& value) : m_value(value) {}
-  constexpr property_datatype() {}
-  __host__ __device__ operator t() const { return this->m_value; }
-  __host__ __device__ t get() const { return this->m_value; }
-  __host__ __device__ operator dim3() const { return this->m_value; }
-
-protected:
-  t m_value;
-};
-
+/**
+ * @brief Non-trivially copyable datatype holders can be accessed solely on the host.
+ */
 template<typename T>
 struct property_datatype<T, std::enable_if_t<!std::is_trivially_copyable_v<T>>> {
   using t = T;
 
-  constexpr property_datatype(const t& value) : m_value(value) {}
-  constexpr property_datatype() {}
+  property_datatype() = default;
+  property_datatype(const t& value) : m_value(value) {}
   __host__ operator t() const { return this->m_value; }
   __host__ t get() const { return this->m_value; }
 
