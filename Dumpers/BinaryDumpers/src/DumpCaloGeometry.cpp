@@ -30,12 +30,12 @@
 
 #include <Dumpers/Identifiers.h>
 
-// namespace {
-//   const std::map<std::string, std::string> ids = {{"EcalDet", Allen::NonEventData::ECalGeometry::id},
-//                                                   {"HcalDet", Allen::NonEventData::HCalGeometry::id}};
-//   using namespace std::string_literals;
-//   constexpr unsigned max_neighbors = 9;
-// }
+namespace {
+  const std::map<std::string, std::string> ids = {{"EcalDet", Allen::NonEventData::ECalGeometry::id},
+                                                  {"HcalDet", Allen::NonEventData::HCalGeometry::id}};
+  using namespace std::string_literals;
+  constexpr unsigned max_neighbors = 9;
+}
 
 // Applies only to E Calorimeter
 
@@ -94,15 +94,12 @@ DumpCaloGeometry::DumpCaloGeometry( const std::string& name, ISvcLocator* svcLoc
 
 // Add the operator() call
 
-std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const DeCalorimeter& DeCalorimeter ) const
+std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const DeCalorimeter& det ) const
 {
 
-
-
-
-
-
   // Detector and mat geometry
+
+  // const DeCalorimeter& det = detector();
 
   // SourceID to feCards: tell1ToCards for 0 - det.nTell1s   Returns tell1Param which has .feCards int vector.
   // Bank header code to card using cardCode() function which operates on CardParam which has card code and channels.
