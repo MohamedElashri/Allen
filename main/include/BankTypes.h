@@ -20,7 +20,7 @@ enum class BankTypes { VP, UT, FT, MUON, ODIN, MCTracks, MCVertices, Rich1, Rich
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.
 // FIXME: make this configurable
-const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 20.f},
+const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 40.f},
                                                         {BankTypes::UT, 12.f},
                                                         {BankTypes::FT, 15.f},
                                                         {BankTypes::MUON, 4.f},
@@ -34,7 +34,7 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 20.f},
 
 // Average measured event size, measured
 // FIXME: make this configurable
-constexpr float average_event_size = 65.f;
+constexpr float average_event_size = 150.f;
 // Safety margin
 // FIXME: make this configurable
 constexpr float bank_size_fudge_factor = 1.5f;
