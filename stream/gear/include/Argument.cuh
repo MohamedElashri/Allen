@@ -5,7 +5,6 @@
 
 #include <array>
 #include <string>
-
 #include <BackendCommon.h>
 
 // Struct to hold the types of the dependencies (libClang)
@@ -134,62 +133,50 @@ struct mask_t {
 
 #define DEPENDENCIES(...) dependencies<__VA_ARGS__>
 
-using DeviceDimensions = std::array<unsigned, 3>;
-
 /**
  * @brief A property datatype data holder.
  */
+template<typename T, typename = void>
+struct property_datatype {};
+
 template<typename T>
-struct property_datatype {
+struct property_datatype<T, std::enable_if_t<std::is_trivially_copyable_v<T> && !std::is_convertible_v<T, dim3>>> {
   using t = T;
 
   constexpr property_datatype(const t& value) : m_value(value) {}
   constexpr property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
-  __host__ __device__ operator dim3() const;
 
 protected:
   t m_value;
 };
 
-/**
- * @brief std::string properties cannot be accessed on the device,
- *        as any retrieval of the value results in a copy constructor
- *        invocation, which is not header only.
- */
-template<>
-struct property_datatype<std::string> {
-  using t = std::string;
+template<typename T>
+struct property_datatype<T, std::enable_if_t<std::is_trivially_copyable_v<T> && std::is_convertible_v<T, dim3>>> {
+  using t = T;
 
-  // Constructors cannot be constexpr for std::string
-  property_datatype(const t& value) : m_value(value) {}
-  property_datatype() {}
-  operator t() const { return this->m_value; }
-  t get() const { return this->m_value; }
-
-protected:
-  t m_value;
-};
-
-/**
- * @brief DeviceDimension specialization.
- *
- *        A separate specialization is provided for DeviceDimensions to support
- *        conversion to dim3.
- */
-template<>
-struct property_datatype<DeviceDimensions> {
-  using t = DeviceDimensions;
-
-  property_datatype(const t& value) : m_value(value) {}
-  property_datatype() {}
+  constexpr property_datatype(const t& value) : m_value(value) {}
+  constexpr property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
-  __host__ __device__ operator dim3() const { return {this->m_value[0], this->m_value[1], this->m_value[2]}; }
+  __host__ __device__ operator dim3() const { return this->m_value; }
 
 protected:
-  t m_value = {0, 0, 0};
+  t m_value;
+};
+
+template<typename T>
+struct property_datatype<T, std::enable_if_t<!std::is_trivially_copyable_v<T>>> {
+  using t = T;
+
+  constexpr property_datatype(const t& value) : m_value(value) {}
+  constexpr property_datatype() {}
+  __host__ operator t() const { return this->m_value; }
+  __host__ t get() const { return this->m_value; }
+
+protected:
+  t m_value;
 };
 
 // Properties have an additional property method to be able to parse it with libclang.
