@@ -24,7 +24,8 @@ struct KalmanVeloState {
   float x, y, z, tx, ty;
   float c00, c20, c22, c11, c31, c33;
 
-  __host__ __device__ KalmanVeloState() {}
+  KalmanVeloState() = default;
+  KalmanVeloState(const KalmanVeloState& other) = default;
 
   __host__ __device__ KalmanVeloState(
     const float _x,
@@ -51,42 +52,24 @@ struct KalmanVeloState {
     c31 = _c31;
     c33 = _c33;
   }
-
-  __host__ __device__ KalmanVeloState(const KalmanVeloState& other) :
-    x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty), c00(other.c00), c20(other.c20), c22(other.c22),
-    c11(other.c11), c31(other.c31), c33(other.c33)
-  {}
 };
 
 /**
  * Minimal state used in most track reconstruction algorithms
  */
 struct MiniState {
-  float x = 0, y = 0, z = 0, tx = 0, ty = 0;
+  float x, y, z, tx, ty;
 
-  __host__ __device__ MiniState() {}
+  MiniState() = default;
+  MiniState(const MiniState& other) = default;
 
   __host__ __device__ MiniState(const KalmanVeloState& other) :
     x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
   {}
 
-  __host__ __device__ MiniState(const MiniState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
-  {}
-
   __host__ __device__ MiniState(const float _x, const float _y, const float _z, const float _tx, const float _ty) :
     x(_x), y(_y), z(_z), tx(_tx), ty(_ty)
   {}
-
-  __host__ __device__ MiniState operator=(const MiniState& other)
-  {
-    x = other.x;
-    y = other.y;
-    z = other.z;
-    tx = other.tx;
-    ty = other.ty;
-
-    return *this;
-  }
 };
 
 struct ProjectionState {
