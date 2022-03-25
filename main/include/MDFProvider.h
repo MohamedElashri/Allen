@@ -203,11 +203,11 @@ public:
       }
     }
 
-    if (m_config.n_transpose_threads > n_slices - 1) {
-      warning_cout << "too many transpose threads requested with respect "
-                      "to the number of read buffers; reducing the number of threads to "
-                   << n_slices - 1;
-      m_config.n_transpose_threads = n_slices - 1;
+    if (m_config.n_transpose_threads > n_slices) {
+      debug_cout << "too many transpose threads requested with respect "
+                    "to the number of read buffers; reducing the number of threads to "
+                 << n_slices;
+      m_config.n_transpose_threads = n_slices;
     }
 
     // Start the transpose threads
