@@ -113,7 +113,7 @@ StatusCode ProvideConstants::initialize()
   // Run all registered producers and consumers
   LHCb::ODIN odin{};
   odin.setRunNumber(0);
-  updater->update(std::move(odin));
+  updater->update(odin.data);
 
   return StatusCode::SUCCESS;
 }

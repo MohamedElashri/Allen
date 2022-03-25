@@ -53,7 +53,7 @@ public:
    *
    * @return     void
    */
-  void update(LHCb::ODIN odin) override;
+  void update(gsl::span<unsigned const> odin) override;
 
   /**
    * @brief      Register a consumer for that will consume binary non-event

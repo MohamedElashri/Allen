@@ -97,7 +97,7 @@ StatusCode RunAllen::initialize()
   // Run all registered producers and consumers
   LHCb::ODIN odin{};
   odin.setRunNumber(0);
-  updater->update(std::move(odin));
+  updater->update(odin.data);
 
   // Read configuration
   std::string conf_file = resolveEnvVars(m_json);

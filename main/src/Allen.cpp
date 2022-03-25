@@ -685,7 +685,7 @@ int allen(
         // Only process the run change once all GPU stream_threads have finished
         if (stream_ready.count() == number_of_threads) {
           debug_cout << "Run number changing from " << current_run_number << " to " << next_odin->runNumber() << std::endl;
-          updater->update(*next_odin);
+          updater->update(next_odin->data);
           current_run_number = next_odin->runNumber();
           next_odin.reset();
           run_change = false;
@@ -733,7 +733,8 @@ int allen(
           }
           else if (msg == "RUN") {
             run_change = true;
-            next_odin = zmqSvc->receive<LHCb::ODIN>(socket);
+            auto odin_data = zmqSvc->receive<decltype(LHCb::ODIN::data)>(socket);
+            next_odin = LHCb::ODIN{odin_data};
             debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber() << std::endl;
             // guard against double run changes if we have multiple input threads
             if (disable_run_changes || next_odin->runNumber() == current_run_number) next_odin.reset();
