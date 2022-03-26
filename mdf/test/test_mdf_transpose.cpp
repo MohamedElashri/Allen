@@ -289,6 +289,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
       sd_from_raw,
       bank_sorter,
       banks_count,
+      {},
       banks_version,
       event_ids,
       event_mask,

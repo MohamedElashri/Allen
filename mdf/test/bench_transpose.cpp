@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     bank_sorter = sort_by_sourceID;
   }
 
-  std::tie(count_success, banks_count) = fill_counts(bank_data, sd_from_raw);
+  std::tie(count_success, banks_count) = fill_counts(bank_data, sd_from_raw, {});
   std::array<int, NBankTypes> banks_version {};
 
   // Transposed slices
@@ -190,6 +190,7 @@ int main(int argc, char* argv[])
           sd_from_raw,
           bank_sorter,
           banks_count,
+          {},
           banks_version,
           event_ids[i],
           event_masks[i],

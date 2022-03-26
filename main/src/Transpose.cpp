@@ -173,9 +173,9 @@ std::tuple<bool, bool, size_t> read_events(
  */
 std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
   gsl::span<char const> bank_data,
-  Allen::sd_from_raw_bank sd_from_raw_bank)
+  Allen::sd_from_raw_bank sd_from_raw_bank,
+  std::unordered_set<LHCb::RawBank::BankType> const& skip_banks)
 {
-
   std::array<unsigned int, NBankTypes> mfp_count {0};
 
   auto const* bank = bank_data.data();
@@ -190,7 +190,7 @@ std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
     }
 
     auto const sd = sd_from_raw_bank(b);
-    if (sd != BankTypes::Unknown) {
+    if ((!skip_banks.count(b->type()) && sd != BankTypes::Unknown) || sd == BankTypes::ODIN) {
       auto const sd_idx = to_integral(sd);
       ++mfp_count[sd_idx];
     }
@@ -209,6 +209,7 @@ std::tuple<bool, bool, bool> transpose_event(
   Allen::sd_from_raw_bank sd_from_raw_bank,
   Allen::bank_sorter bank_sort,
   std::array<unsigned int, NBankTypes>& bank_count,
+  std::unordered_set<LHCb::RawBank::BankType> const& skip_banks,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   std::vector<char>& event_mask,
@@ -253,7 +254,7 @@ std::tuple<bool, bool, bool> transpose_event(
     // Allen bank type
     auto const allen_type = sd_from_raw_bank(b);
 
-    if (bank_types.count(allen_type) || allen_type == BankTypes::ODIN) {
+    if ((!skip_banks.count(b->type()) && bank_types.count(allen_type)) || allen_type == BankTypes::ODIN) {
       sorted_banks.push_back(b);
       bank_count[to_integral(allen_type)] += 1;
       size_per_type[to_integral(allen_type)] += sizeof(unsigned int) + b->size();
@@ -407,6 +408,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   Allen::sd_from_raw_bank sd_from_raw_bank,
   Allen::bank_sorter bank_sort,
   std::array<unsigned int, NBankTypes> const& mfp_count,
+  std::unordered_set<LHCb::RawBank::BankType> const& skip_banks,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   std::vector<char>& event_mask,
@@ -450,6 +452,7 @@ std::tuple<bool, bool, size_t> transpose_events(
       sd_from_raw_bank,
       bank_sort,
       bank_count,
+      skip_banks,
       banks_version,
       event_ids,
       event_mask,

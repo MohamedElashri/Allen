@@ -62,6 +62,8 @@ struct MDFProviderConfig {
   size_t n_loops = 0;
 
   bool split_by_run = false;
+
+  std::unordered_set<LHCb::RawBank::BankType> skip_banks;
 };
 
 /**
@@ -159,7 +161,7 @@ public:
           m_sd_from_raw = sd_from_sourceID;
           m_bank_sorter = sort_by_sourceID;
         }
-        std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw);
+        std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw, m_config.skip_banks);
 
         for (auto allen_type : types()) {
           if (m_mfp_count[to_integral(allen_type)] == 0) {
@@ -523,6 +525,7 @@ private:
         m_sd_from_raw,
         m_bank_sorter,
         m_mfp_count,
+        m_config.skip_banks,
         m_banks_version,
         m_event_ids[*slice_index],
         m_masks[*slice_index],

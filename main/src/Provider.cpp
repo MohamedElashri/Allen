@@ -10,6 +10,7 @@
 #include <InputReader.h>
 #include <FileWriter.h>
 #include <ZMQOutputSender.h>
+#include <Event/RawBank.h>
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
@@ -45,6 +46,29 @@ std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& js
     }
   }
   return bank_types;
+}
+
+std::tuple<bool, bool> Allen::velo_decoding_type(std::string const& json_file)
+{
+  bool veloSP = false;
+  bool retina = false;
+  std::ifstream conf(json_file);
+  nlohmann::json j;
+  conf >> j;
+  if (j.count("sequence") && j["sequence"].count("configured_algorithms")) {
+    auto algs = j["sequence"]["configured_algorithms"];
+    for (auto const& alg : algs) {
+      if (alg.size() != 2) continue;
+      auto alg_type = alg[0].get<std::string>();
+      if (alg_type.find("decode_retina") != std::string::npos) {
+        retina = true;
+      }
+      else if (alg_type.find("velo_masked_clustering") != std::string::npos) {
+        veloSP = true;
+      }
+    }
+  }
+  return {veloSP, retina};
 }
 
 std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::string> const& options)
@@ -200,6 +224,17 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
 
   auto bank_types = Allen::configured_bank_types(json_file);
 
+  // This is a hack to avoid copying both SP and Retina banks to the device.
+  auto [veloSP, retina] = Allen::velo_decoding_type(json_file);
+  std::unordered_set<LHCb::RawBank::BankType> skip_banks {};
+  if (!veloSP) {
+    skip_banks.insert(LHCb::RawBank::Velo);
+    skip_banks.insert(LHCb::RawBank::VP);
+  }
+  if (!retina) {
+    skip_banks.insert(LHCb::RawBank::VPRetinaCluster);
+  }
+
   if (!mdf_input.empty()) {
     auto connections = split_string(mdf_input, ",");
 
@@ -232,7 +267,8 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
                               events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
                               events_per_slice,          // number of events per read buffer
                               io_conf.n_io_reps,         // number of loops over the input files
-                              !disable_run_changes};     // Whether to split slices by run number
+                              !disable_run_changes,      // Whether to split slices by run number
+                              skip_banks};
     return std::make_shared<MDFProvider>(
       io_conf.number_of_slices, events_per_slice, n_events, connections, bank_types, config);
   }

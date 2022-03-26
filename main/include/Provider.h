@@ -29,6 +29,8 @@ namespace Allen {
 
   std::unordered_set<BankTypes> configured_bank_types(std::string const& json_file);
 
+  std::tuple<bool, bool> velo_decoding_type(std::string const& json_file);
+
   std::tuple<std::string, bool> sequence_conf(std::map<std::string, std::string> const& options);
 
   std::shared_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);

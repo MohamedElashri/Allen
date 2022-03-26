@@ -138,7 +138,8 @@ std::tuple<bool, bool, size_t> read_events(
  */
 std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(
   gsl::span<char const> bank_data,
-  Allen::sd_from_raw_bank sd_from_raw_bank);
+  Allen::sd_from_raw_bank sd_from_raw_bank,
+  std::unordered_set<LHCb::RawBank::BankType> const& skip_banks);
 
 /**
  * @brief      Transpose events to Allen layout
@@ -159,6 +160,7 @@ std::tuple<bool, bool, bool> transpose_event(
   Allen::sd_from_raw_bank sd_from_raw_bank,
   Allen::bank_sorter bank_sort,
   std::array<unsigned int, NBankTypes>& bank_count,
+  std::unordered_set<LHCb::RawBank::BankType> const& skip_banks,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   std::vector<char>& event_mask,
@@ -188,6 +190,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   Allen::sd_from_raw_bank sd_from_raw_bank,
   Allen::bank_sorter bank_sort,
   std::array<unsigned int, NBankTypes> const& mfp_count,
+  std::unordered_set<LHCb::RawBank::BankType> const& skip_banks,
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   std::vector<char>& event_mask,
