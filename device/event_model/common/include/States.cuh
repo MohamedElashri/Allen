@@ -25,7 +25,8 @@ struct KalmanVeloState {
   float c00, c20, c22, c11, c31, c33;
 
   KalmanVeloState() = default;
-  KalmanVeloState(const KalmanVeloState& other) = default;
+  KalmanVeloState(const KalmanVeloState&) = default;
+  KalmanVeloState& operator=(const KalmanVeloState&) = default;
 
   __host__ __device__ KalmanVeloState(
     const float _x,
@@ -61,7 +62,8 @@ struct MiniState {
   float x, y, z, tx, ty;
 
   MiniState() = default;
-  MiniState(const MiniState& other) = default;
+  MiniState(const MiniState&) = default;
+  MiniState& operator=(const MiniState&) = default;
 
   __host__ __device__ MiniState(const KalmanVeloState& other) :
     x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)

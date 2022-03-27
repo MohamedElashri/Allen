@@ -13,6 +13,7 @@
 struct PVTrack {
   PVTrack() = default;
   PVTrack(const PVTrack&) = default;
+  PVTrack& operator=(const PVTrack&) = default;
 
   __host__ __device__ PVTrack(const KalmanVeloState& state) :
     z {state.z}, x {state.x, state.y}, tx {state.tx, state.ty}, W_00 {1.f / state.c00}, W_11 {1.f / state.c11}
@@ -28,6 +29,7 @@ struct PVTrack {
 struct Extremum {
   Extremum() = default;
   Extremum(const Extremum&) = default;
+  Extremum& operator=(const Extremum&) = default;
 
   __host__ __device__ Extremum(unsigned short _index, float _value, float _integral) :
     index {_index}, value {_value}, integral {_integral} {};
@@ -40,6 +42,7 @@ struct Extremum {
 struct Cluster {
   Cluster() = default;
   Cluster(const Cluster&) = default;
+  Cluster& operator=(const Cluster&) = default;
 
   __host__ __device__ Cluster(unsigned short _izfirst, unsigned short _izlast, unsigned short _izmax) :
     izfirst {_izfirst}, izlast {_izlast}, izmax {_izmax}
