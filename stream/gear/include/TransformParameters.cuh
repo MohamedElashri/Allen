@@ -66,16 +66,11 @@ struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<Allen::is_template_bas
     const std::map<std::string, Allen::BaseProperty*>& properties,
     const Allen::KernelInvocationConfiguration&)
   {
-    if constexpr (std::is_trivially_copyable_v<T>) {
-      const auto it = properties.find(T::name);
-      if (it == properties.end()) {
-        throw std::runtime_error {"property " + std::string(T::name) + " not found"};
-      }
-      return static_cast<const Allen::Property<T>*>(it->second)->get_value();
+    const auto it = properties.find(T::name);
+    if (it == properties.end()) {
+      throw std::runtime_error {"property " + std::string(T::name) + " not found"};
     }
-    else {
-      return T {};
-    }
+    return static_cast<const Allen::Property<T>*>(it->second)->get_value();
   }
 };
 
