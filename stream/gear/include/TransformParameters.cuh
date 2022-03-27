@@ -60,24 +60,22 @@ struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<aggr
  * @brief Produces properties.
  */
 template<typename ArgMan, typename T>
-struct ProduceSingleParameter<
-  ArgMan,
-  T,
-  std::enable_if_t<
-    !std::is_base_of_v<device_datatype, T> && !std::is_base_of_v<host_datatype, T> &&
-    !std::is_base_of_v<aggregate_datatype, T> && !std::is_same_v<Allen::KernelInvocationConfiguration, T>>> {
+struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<Allen::is_template_base_of_v<property_datatype, T>>> {
   constexpr static auto produce(
     const ArgMan&,
     const std::map<std::string, Allen::BaseProperty*>& properties,
     const Allen::KernelInvocationConfiguration&)
   {
-    if (properties.find(T::name) == properties.end()) {
-      throw std::runtime_error {"property " + std::string(T::name) + " not found"};
+    if constexpr (std::is_trivially_copyable_v<T>) {
+      const auto it = properties.find(T::name);
+      if (it == properties.end()) {
+        throw std::runtime_error {"property " + std::string(T::name) + " not found"};
+      }
+      return static_cast<const Allen::Property<T>*>(it->second)->get_value();
     }
-
-    const auto base_prop = properties.at(T::name);
-    const auto prop = dynamic_cast<const Allen::Property<T>*>(base_prop);
-    return prop->get_value();
+    else {
+      return T {};
+    }
   }
 };
 
