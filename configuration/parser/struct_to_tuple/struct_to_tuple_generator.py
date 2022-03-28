@@ -24,7 +24,8 @@ class StructToTupleGenerator:
         s += "{\n    return std::make_tuple();\n  }"
         return s
 
-    def generate_file(self, output_filename, maximum_number_of_parameters, struct_to_tuple_folder):
+    def generate_file(self, output_filename, maximum_number_of_parameters,
+                      struct_to_tuple_folder):
         pre_filename = struct_to_tuple_folder + "/StructToTuple_pre"
         post_filename = struct_to_tuple_folder + "/StructToTuple_post"
         s = ""
