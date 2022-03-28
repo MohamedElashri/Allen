@@ -9,7 +9,7 @@ allen_add_host_library(TrackChecking STATIC
 target_include_directories(TrackChecking PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_link_libraries(TrackChecking PRIVATE HostEventModel EventModel Gear Backend AllenCommon Kalman)
 
-if(USE_ROOT AND ROOT_FOUND)
+if(USE_ROOT)
   # Locally suppress float->double promotion warnings caused by ROOT TH interfaces
   string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
 endif()

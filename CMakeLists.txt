@@ -621,10 +621,9 @@ target_link_libraries(AllenLib PUBLIC
 # To propagate filesystem includes/libs
 target_link_libraries(AllenLib PRIVATE AllenFS)
 
-if (USE_ROOT AND ROOT_FOUND)
+if (USE_ROOT)
+  target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree)
   target_compile_definitions(AllenCommon INTERFACE ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(AllenCommon SYSTEM INTERFACE ${ROOT_INCLUDE_DIRS})
-  target_link_libraries(AllenCommon INTERFACE ${ALLEN_ROOT_LIBRARIES})
 endif()
 
 if (NOT STANDALONE)

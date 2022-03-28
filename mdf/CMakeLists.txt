@@ -10,7 +10,7 @@ set(mdf_sources
     src/read_mdf.cpp
     src/write_mdf.cpp)
 
-if (ROOT_FOUND AND USE_ROOT)
+if (USE_ROOT)
   list(APPEND mdf_sources src/root_mdf.cpp)
 endif()
 
