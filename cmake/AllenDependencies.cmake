@@ -136,37 +136,28 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
 endif()
 
 # ROOT
-if (STANDALONE AND USE_ROOT)
-  # Support for STANDALONE without CMAKE_PREFIX_PATH
-  if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-  elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
-    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-  elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
-    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
+if (USE_ROOT)
+  set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
+
+  if (STANDALONE)
+    # Support for STANDALONE without CMAKE_PREFIX_PATH
+    if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
+      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+    elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
+      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+    elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
+      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
+    endif()
   endif()
 
-  find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} COMPONENTS Core Hist Tree)
+  find_package(ROOT REQUIRED HINTS ${ALLEN_ROOT_CMAKE} COMPONENTS RIO Core Cling Hist Tree)
   if (NOT ROOT_FOUND)
     message(FATAL_ERROR "ROOT could not be found, please either set ROOTSYS or alternatively add the ROOT path to the CMAKE_PREFIX_PATH")
   endif()
-  
-  message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
+  message(STATUS "Found ROOT: " ${ROOT_INCLUDE_DIRS})
 
-  #If ROOT is built with C++ 17 support, everything that includes ROOT
-  #headers must be built with C++ 17 support.CUDA doesn't support
-  #that, so we have to factor that out.
-  execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
-  string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
-  message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
-  if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
-    set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-  else()
-    set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
-  endif()
-
-elseif(NOT STANDALONE AND WITH_Allen_PRIVATE_DEPENDENCIES)
-  set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-elseif(STANDALONE)
+  find_package(TBB REQUIRED)
+  message(STATUS "Found TBB version " ${TBB_VERSION})
+else()
    message(STATUS "Compiling without ROOT")
 endif()

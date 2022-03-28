@@ -622,7 +622,7 @@ target_link_libraries(AllenLib PUBLIC
 target_link_libraries(AllenLib PRIVATE AllenFS)
 
 if (USE_ROOT)
-  target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree)
+  target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree TBB::tbb)
   target_compile_definitions(AllenCommon INTERFACE ${ALLEN_ROOT_DEFINITIONS})
 endif()
 
