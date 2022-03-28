@@ -9,7 +9,7 @@ variables:
   ALLEN_DATA: "/scratch/allen_data"
   LCG_VERSION: "LCG_101"
   LB_NIGHTLY_SLOT: lhcb-head
-  BINARY_TAG: x86_64-centos7-gcc11-opt
+  BINARY_TAG: x86_64_v2-centos7-gcc11-opt
   NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
 
 

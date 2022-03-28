@@ -637,11 +637,12 @@ class AlgorithmCategory(Enum):\n\
 
     @staticmethod
     def write_struct_to_tuple(algorithms,
-                              output_filename):
+                              output_filename,
+                              struct_to_tuple_folder):
         max_length = max(len(alg.parameters) + len(alg.properties) for alg in algorithms)
         from struct_to_tuple.struct_to_tuple_generator import StructToTupleGenerator
         gen = StructToTupleGenerator()
-        gen.generate_file(output_filename, max_length)
+        gen.generate_file(output_filename, max_length, struct_to_tuple_folder)
 
 
 if __name__ == '__main__':
@@ -673,6 +674,12 @@ if __name__ == '__main__':
         type=str,
         default="",
         help="location of parsed algorithms")
+    parser.add_argument(
+        "--struct_to_tuple_folder",
+        nargs="?",
+        type=str,
+        default="",
+        help="folder containing struct to tuple preamble and postamble")
     parser.add_argument(
         "--generate",
         nargs="?",
@@ -719,4 +726,4 @@ if __name__ == '__main__':
         elif args.generate == "struct_to_tuple":
             # Write struct to tuple to support all parameters and properties
             # of all existing algorithms
-            AllenCore.write_struct_to_tuple(parsed_algorithms, args.filename)
+            AllenCore.write_struct_to_tuple(parsed_algorithms, args.filename, args.struct_to_tuple_folder)

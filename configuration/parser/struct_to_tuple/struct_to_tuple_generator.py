@@ -5,10 +5,6 @@
 
 
 class StructToTupleGenerator:
-    def __init__(self):
-        self.pre_filename = "struct_to_tuple/StructToTuple_pre"
-        self.post_filename = "struct_to_tuple/StructToTuple_post"
-
     def __generate_code_struct_to_tuple(self, maximum_number_of_parameters):
         s = ""
         for i in range(maximum_number_of_parameters, 0, -1):
@@ -28,12 +24,14 @@ class StructToTupleGenerator:
         s += "{\n    return std::make_tuple();\n  }"
         return s
 
-    def generate_file(self, output_filename, maximum_number_of_parameters):
+    def generate_file(self, output_filename, maximum_number_of_parameters, struct_to_tuple_folder):
+        pre_filename = struct_to_tuple_folder + "/StructToTuple_pre"
+        post_filename = struct_to_tuple_folder + "/StructToTuple_post"
         s = ""
-        with open(self.pre_filename) as f:
+        with open(pre_filename) as f:
             s += f.read()
         s += self.__generate_code_struct_to_tuple(maximum_number_of_parameters)
-        with open(self.post_filename) as f:
+        with open(post_filename) as f:
             s += f.read()
         with open(output_filename, "w") as f:
             f.write(s)
