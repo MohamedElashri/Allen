@@ -54,7 +54,7 @@ We show a proposed development setup with the CVMFS filesystem and CentOS 7 that
 * HIP target: Either a local installation of ROCm or CVMFS are required::
 
     source /cvmfs/lhcb.cern.ch/lib/LbEnv
-    source /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
+    source /cvmfs/lhcbdev.cern.ch/tools/rocm-5.0.0/setenv.sh
     export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
 
 The build process is the standard cmake procedure::

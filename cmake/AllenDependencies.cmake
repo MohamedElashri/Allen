@@ -137,16 +137,17 @@ endif()
 
 # ROOT
 if (STANDALONE AND USE_ROOT)
+  # Support for STANDALONE without CMAKE_PREFIX_PATH
   if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
   elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
   elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
-  else()
-    message(FATAL "ROOTSYS must be set to use ROOT with a standalone build of Allen")
   endif()
-  find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
+
+  find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} ${CMAKE_PREFIX_PATH} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
+  
   if (ROOT_FOUND)
     message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
 
@@ -173,7 +174,7 @@ if (STANDALONE AND USE_ROOT)
       set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
     endif()
   else()
-    message(STATUS "Compiling without ROOT")
+    message(FATAL_ERROR "ROOT could not be found, please either set ROOTSYS to use ROOT with Allen, or alternatively add the ROOT path to the CMAKE_PREFIX_PATH")
   endif()
 elseif(NOT STANDALONE AND WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO Thread)
