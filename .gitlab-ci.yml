@@ -9,7 +9,6 @@ variables:
   ALLEN_DATA: "/scratch/allen_data"
   LCG_VERSION: "LCG_101"
   LB_NIGHTLY_SLOT: lhcb-head
-  BINARY_TAG: x86_64_v2-centos7-gcc11-opt
   NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
 
 
@@ -103,7 +102,7 @@ pages:
     # use nightly build for python environment, needed for API reference of python selection functions
     # if today's nightly build does not exist, use yesterday's
     - |
-      nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/"$BINARY_TAG
+      nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/latest"
       if [ -d $nightly_installation_path ] ; then
       	export DAY=Today
         echo "Using today's nightly"
@@ -141,7 +140,7 @@ test_pages:
     # use nightly build for python environment, needed for API reference of python selection functions
     # if today's nightly build does not exist, use yesterday's
     - |
-      nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/"$BINARY_TAG
+      nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Today/Allen/InstallArea/latest"
       if [ -d $nightly_installation_path ] ; then
       	export DAY=Today
         echo "Using today's nightly"
