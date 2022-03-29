@@ -33,7 +33,7 @@ if [ "${TARGET}" = "CPU" ]; then
     LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} \
         ./toolchain/wrapper ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
 elif [ "${TARGET}" = "HIP" ]; then
-    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
+    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-5.0.0/setenv.sh
     GPU_ID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     GPU_NUMBER_EXTRA=`rocm-smi --showuniqueid | grep $GPU_ID | awk '{ print $1; }'`
     GPU_ESCAPED_BRACKETS=`echo $GPU_NUMBER_EXTRA | sed 's/\[/\\\[/' | sed 's/\]/\\\]/'`
