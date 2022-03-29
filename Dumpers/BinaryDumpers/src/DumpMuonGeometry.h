@@ -5,6 +5,7 @@
 
 // Include files
 #include "DumpGeometry.h"
+#include <MuonDet/MuonDAQHelper.h>
 #include <MuonDet/DeMuonDetector.h>
 
 /** @class DumpMuonGeometry

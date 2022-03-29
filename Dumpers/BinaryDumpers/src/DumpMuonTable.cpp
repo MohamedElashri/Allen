@@ -25,6 +25,7 @@ namespace ranges::views {
 #include <boost/format.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 
+#include <Kernel/MuonLayout.h>
 #include "DumpMuonTable.h"
 #include <Dumpers/Utils.h>
 

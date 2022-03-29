@@ -6,12 +6,16 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <MuonDet/MuonNamespace.h>
 #include "DumpMuonGeometry.h"
 #include "fmt/format.h"
 #include <Dumpers/Utils.h>
 
 DECLARE_COMPONENT(DumpMuonGeometry)
 
+#ifdef USE_DD4HEP
+StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc*) { return StatusCode::SUCCESS; }
+#else
 StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
 {
   const auto& det = detector();
@@ -26,6 +30,7 @@ StatusCode DumpMuonGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
   }
   return updMgrSvc->update(&m_daqHelper);
 }
+#endif
 
 DumpUtils::Dumps DumpMuonGeometry::dumpGeometry() const
 {
