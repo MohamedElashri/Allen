@@ -5,7 +5,7 @@
 #include <vector>
 #include "DumpVPGeometry.h"
 #include "GaudiKernel/SystemOfUnits.h"
-#include "Kernel/VPChannelID.h"
+#include "Detector/VP/VPChannelID.h"
 #include <boost/numeric/conversion/cast.hpp>
 
 DECLARE_COMPONENT(DumpVPGeometry)
@@ -40,7 +40,7 @@ DumpUtils::Dumps DumpVPGeometry::dumpGeometry() const
     output.write(det.x_pitch(i));
   output.write(size_t {VP::NSensors}, size_t {12});
   for (unsigned int i = 0; i < VP::NSensors; i++)
-    output.write(det.ltg(LHCb::VPChannelID::SensorID {i}));
+    output.write(det.ltg(LHCb::Detector::VPChannelID::SensorID {i}));
 
   return {{std::tuple {output.buffer(), "velo_geometry", Allen::NonEventData::VeloGeometry::id}}};
 }

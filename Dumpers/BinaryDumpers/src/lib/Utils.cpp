@@ -25,7 +25,7 @@ size_t MuonUtils::size_index(
   std::array<unsigned int, 16> const& offset,
   std::array<int, 16> const& gridX,
   std::array<int, 16> const& gridY,
-  LHCb::MuonTileID const& tile)
+  LHCb::Detector::Muon::TileID const& tile)
 {
   auto idx = 4 * tile.station() + tile.region();
   auto index = offset[idx] + tile.quarter() * gridY[idx] * 6;

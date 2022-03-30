@@ -54,7 +54,7 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
   for (unsigned i = 0; i < number_of_ecal_clusters; i++) {
     const auto& cluster = ecal_clusters[i];
 
-    auto seedCellID = LHCb::Calo::DenseIndex::details::toCellID(cluster.center_id);
+    auto seedCellID = LHCb::Detector::Calo::DenseIndex::details::toCellID(cluster.center_id);
 
     if (msgLevel(MSG::DEBUG)) {
       for (unsigned j = 0; j < Calo::Constants::max_neighbours; ++j) {
@@ -65,11 +65,7 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
 
     // Add the all digits, marking the seed ones
 
-#ifndef USE_DD4HEP
-    if (LHCb::Calo::isValid(seedCellID)) {
-#else
     if (LHCb::Detector::Calo::isValid(seedCellID)) {
-#endif
       EcalClusters.emplace_back(
         seedCellID,
         cluster.e,
@@ -80,12 +76,8 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
       for (unsigned j = 0; j < Calo::Constants::max_neighbours; ++j) {
         if (cluster.digits[j] == USHRT_MAX) continue;
         ncells++;
-        auto cellID = LHCb::Calo::DenseIndex::details::toCellID(cluster.digits[j]);
-#ifndef USE_DD4HEP
-        if (LHCb::Calo::isValid(cellID)) {
-#else
+        auto cellID = LHCb::Detector::Calo::DenseIndex::details::toCellID(cluster.digits[j]);
         if (LHCb::Detector::Calo::isValid(cellID)) {
-#endif
           EcalClusters.emplace_back(
             cellID,
             0.,
