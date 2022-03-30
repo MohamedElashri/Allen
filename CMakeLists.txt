@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
-project(Allen VERSION 1.9
+project(Allen VERSION 2.0
         LANGUAGES CXX)
 
 # ---------------
