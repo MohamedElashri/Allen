@@ -16,7 +16,7 @@ variables:
   PROFILE_DEVICE: "a5000"
   RUN_THROUGHPUT_OPTIONS_CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
   RUN_THROUGHPUT_OPTIONS_CUDA: "-n 500 -m 500 -r 1000 -t 16"
-  RUN_THROUGHPUT_OPTIONS_HIP: "-n 3000 --events-per-slice 3000 -m 3000 -t 10 -r 1000"
+  RUN_THROUGHPUT_OPTIONS_HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 1000"
   RUN_THROUGHPUT_OPTIONS_CPU: "-n 100 -m 100 -r 200"
 
   AVG_THROUGHPUT_DECREASE_THRESHOLD: "-2.5" # (%); fail throughput check if averaged throughput % change falls below -2.5%
