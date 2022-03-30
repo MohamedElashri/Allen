@@ -18,6 +18,14 @@ fi
 
 RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 ${RUN_OPTIONS}"
 
+
+if [ "${AVOID_HIP}" = "1" ]; then 
+  if [ "${TARGET}" = "HIP" ]; then
+    echo "***** Variable TARGET is set to HIP, and AVOID_HIP is set to 1 - quit."
+    exit 0
+  fi
+fi
+
 set -euxo pipefail
 OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}${OPTIONS}/${DEVICE_ID}"
 mkdir -p ${OUTPUT_FOLDER_REL}
