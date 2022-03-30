@@ -158,7 +158,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     // Read compressed data
     ssize_t n_bytes = input.read(decompression_buffer.data() + rawSize, readSize);
     if (n_bytes == 0) {
-      cout << "Cannot read more data  (Header). End-of-File reached.\n";
+      cout << "Cannot read more data (Header). End-of-File reached.\n";
       return {true, false, {}};
     }
     else if (n_bytes == -1) {
@@ -193,7 +193,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     // Read uncompressed data from file
     ssize_t n_bytes = input.read(bptr + rawSize, readSize);
     if (n_bytes == 0) {
-      cout << "Cannot read more data  (Header). End-of-File reached.\n";
+      cout << "Cannot read more data (Header). End-of-File reached.\n";
       return {true, false, {}};
     }
     else if (n_bytes == -1) {

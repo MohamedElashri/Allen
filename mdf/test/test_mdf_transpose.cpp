@@ -8,7 +8,6 @@
 #include <iomanip>
 #include <unordered_set>
 #include <map>
-#include <filesystem>
 
 #include <Event/RawBank.h>
 #include <read_mdf.hpp>
@@ -17,21 +16,10 @@
 #include <MDFProvider.h>
 #include <TransposeTypes.h>
 #include <Transpose.h>
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-#else
-#include <filesystem>
-#endif
+#include <FileSystem.h>
 
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
-
-#ifdef USE_BOOST_FILESYSTEM
-namespace fs = boost::filesystem;
-#else
-namespace fs = std::filesystem;
-#endif
 
 using namespace std;
 using namespace std::string_literals;

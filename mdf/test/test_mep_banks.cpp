@@ -16,6 +16,7 @@
 #include <TransposeTypes.h>
 #include <Provider.h>
 #include <ProgramOptions.h>
+#include <FileSystem.h>
 #include <MEPTools.h>
 #include <Event/RawBank.h>
 #include <Timer.h>
@@ -32,12 +33,6 @@
 #include <GaudiKernel/IStateful.h>
 #include <GaudiKernel/ISvcLocator.h>
 #include <GaudiKernel/SmartIF.h>
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-#else
-#include <filesystem>
-#endif
 
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
@@ -67,11 +62,6 @@ namespace {
   IInputProvider* mep;
 
   namespace ba = boost::algorithm;
-#ifdef USE_BOOST_FILESYSTEM
-  namespace fs = boost::filesystem;
-#else
-  namespace fs = std::filesystem;
-#endif
 
   using json = nlohmann::json;
 } // namespace

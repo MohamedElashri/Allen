@@ -11,20 +11,7 @@
 #include <FileWriter.h>
 #include <ZMQOutputSender.h>
 #include <Event/RawBank.h>
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-#else
-#include <filesystem>
-#endif
-
-namespace {
-#ifdef USE_BOOST_FILESYSTEM
-  namespace fs = boost::filesystem;
-#else
-  namespace fs = std::filesystem;
-#endif
-} // namespace
+#include <FileSystem.h>
 
 std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& json_file)
 {
