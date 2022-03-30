@@ -123,6 +123,8 @@ std::tuple<bool, bool, size_t> read_events(
     gsl::span<char> buffer_span {buffer_start + buffer_offset, static_cast<events_size>(buffer.size() - buffer_offset)};
     std::tie(eof, error, bank_span) =
       MDF::read_banks(input, header, std::move(buffer_span), compress_buffer, check_checksum);
+    if (eof || error) break;
+
     // Fill the start offset of the next event
 
     if (eof || error) {

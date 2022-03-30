@@ -472,12 +472,13 @@ private:
       {
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
         if (m_prefetched.empty() && !m_transpose_done) {
-          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
+          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done || (m_prefetched.empty() && m_done); });
         }
         if (m_prefetched.empty() || m_transpose_done) {
           this->debug_output(
             "Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()),
             thread_id);
+          m_transpose_done = true;
           break;
         }
         i_read = m_prefetched.front();
@@ -725,10 +726,11 @@ private:
         }
       }
 
+      auto const n_events = std::get<0>(read_buffer);
       this->debug_output(
-        "Read " + std::to_string(std::get<0>(read_buffer)) + " events into " + std::to_string(i_buffer));
+        "Read " + std::to_string(n_events) + " events into " + std::to_string(i_buffer));
 
-      if (m_is_mc) {
+      if (m_is_mc && n_events > 0) {
         auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
         if (*m_is_mc != is_mc) {
           throw std::out_of_range {"The next batch of events is different from the previous events"s +
@@ -741,7 +743,11 @@ private:
       if (!error) {
         {
           std::unique_lock<std::mutex> lock {m_prefetch_mut};
-          m_prefetched.push_back(i_buffer);
+          if (n_events > 0) {
+            m_prefetched.push_back(i_buffer);
+          } else {
+            it->writable = true;
+          }
         }
         if (prefetch_done) {
           m_done = prefetch_done;
