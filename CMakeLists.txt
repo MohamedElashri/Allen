@@ -454,7 +454,7 @@ endif()
 
 if(STANDALONE)
   string(REGEX MATCH "-march=[^ ]*" march_is_set ${CMAKE_CXX_FLAGS})
-  if(!march_is_set)
+  if(NOT march_is_set)
     #Detect target CPU architecture
     include(TargetArch)
     set(TARGET_CPU_ARCHITECTURE "")
