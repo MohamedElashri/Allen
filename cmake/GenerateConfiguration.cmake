@@ -13,7 +13,7 @@ set(ALLEN_CORE_DIR ${PROJECT_SEQUENCE_DIR}/AllenCore)
 set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
 set(PARSED_ALGORITHMS_OUTPUTFILE ${CODE_GENERATION_DIR}/parsed_algorithms.pickle)
-set(ALGORITHMS_GENERATION_SCRIPT ${ALLEN_PARSER_DIR}/ParseAlgorithms.py)
+set(ALGORITHMS_GENERATION_SCRIPT ${PROJECT_SOURCE_DIR}/configuration/parser/ParseAlgorithms.py)
 
 include_guard(GLOBAL)
 
@@ -53,15 +53,16 @@ else()
   set(LIBRARY_PATH_VARNAME "LD_LIBRARY_PATH")
 endif()
 
+# We will invoke the parser a few times, set its required environment in a variable
+set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts ${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
+
 # Parse Allen algorithms
 # TODO: Parsing should depend on ALL algorithm headers and ALL algorithm sources
 add_custom_command(
   OUTPUT "${PARSED_ALGORITHMS_OUTPUTFILE}"
   COMMENT "Parsing Allen algorithms"
   COMMAND
-    ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/configuration/parser" "${ALLEN_PARSER_DIR}" &&
-    ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/scripts/clang" "${ALLEN_PARSER_DIR}/clang" &&
-    ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate parsed_algorithms --filename "${PARSED_ALGORITHMS_OUTPUTFILE}" --prefix_project_folder "${PROJECT_SOURCE_DIR}"
+    ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate parsed_algorithms --filename "${PARSED_ALGORITHMS_OUTPUTFILE}" --prefix_project_folder "${PROJECT_SOURCE_DIR}"
   DEPENDS "${PROJECT_SOURCE_DIR}/configuration/parser/ParseAlgorithms.py")
 
 # Symlink Allen build directories
@@ -79,7 +80,7 @@ add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALL
 add_custom_command(
   OUTPUT "${ALGORITHMS_OUTPUTFILE}"
   COMMAND
-    ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate views --filename "${ALGORITHMS_OUTPUTFILE}" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
+    ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate views --filename "${ALGORITHMS_OUTPUTFILE}" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" generate_conf_core)
 
@@ -89,7 +90,7 @@ add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
 add_custom_command(
   OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h"
   COMMENT "Generating AlgorithmDB"
-  COMMAND ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate db --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
+  COMMAND ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate db --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
@@ -106,7 +107,7 @@ install(TARGETS algorithm_db
 add_custom_command(
   OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh"
   COMMAND
-    ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate struct_to_tuple --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh" --prefix_project_folder "${PROJECT_SOURCE_DIR}"
+    ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate struct_to_tuple --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh" --prefix_project_folder "${PROJECT_SOURCE_DIR}" --struct_to_tuple_folder "${PROJECT_SOURCE_DIR}/configuration/parser/struct_to_tuple"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
@@ -125,9 +126,7 @@ if(NOT STANDALONE)
   set(ALGORITHM_WRAPPERS_FOLDER ${CODE_GENERATION_DIR}/algorithm_wrappers)
   set(ALGORITHM_WRAPPERS_LISTFILE ${ALGORITHM_WRAPPERS_FOLDER}/algorithm_list.txt)
   file(MAKE_DIRECTORY ${ALGORITHM_WRAPPERS_FOLDER})
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/configuration/parser" "${ALLEN_PARSER_DIR}")
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${PROJECT_SOURCE_DIR}/scripts/clang" "${ALLEN_PARSER_DIR}/clang")
-  execute_process(COMMAND ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate wrapperlist --filename "${ALGORITHM_WRAPPERS_LISTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}" --prefix_project_folder "${PROJECT_SOURCE_DIR}")
+  execute_process(COMMAND ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate wrapperlist --filename "${ALGORITHM_WRAPPERS_LISTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}" --prefix_project_folder "${PROJECT_SOURCE_DIR}")
   file(READ "${ALGORITHM_WRAPPERS_LISTFILE}" WRAPPED_ALGORITHM_SOURCES) # WRAPPED_ALGORITHM_SOURCES="a.cpp b.cpp c.cpp"
 
   # Build step that will produce all .cpp conversion files
@@ -135,7 +134,7 @@ if(NOT STANDALONE)
     OUTPUT ${WRAPPED_ALGORITHM_SOURCES}
     COMMENT "Generating wrapped algorithm sources"
     COMMAND
-      ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH}" "CPLUS_INCLUDE_PATH=$ENV{CPLUS_INCLUDE_PATH}" "${Python_EXECUTABLE}" "${ALGORITHMS_GENERATION_SCRIPT}" --generate wrappers --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}"
+      ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate wrappers --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 else()

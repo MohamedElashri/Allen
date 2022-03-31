@@ -18,6 +18,14 @@ fi
 
 RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 ${RUN_OPTIONS}"
 
+
+if [ "${AVOID_HIP}" = "1" ]; then 
+  if [ "${TARGET}" = "HIP" ]; then
+    echo "***** Variable TARGET is set to HIP, and AVOID_HIP is set to 1 - quit."
+    exit 0
+  fi
+fi
+
 set -euxo pipefail
 OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}${OPTIONS}/${DEVICE_ID}"
 mkdir -p ${OUTPUT_FOLDER_REL}
@@ -47,11 +55,11 @@ if [ "${PROFILE_DEVICE}" = "${DEVICE_ID}" ]; then
   export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
   mkdir tmp
 
-  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS} 2>&1 | tee ${OUTPUT_FOLDER}/output.txt
+  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS} 2>&1 | tee ${OUTPUT_FOLDER}/output.txt
 
   # The following ncu command always fails at removing the tmp folder, ignore that failure with || true
   {
-  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ncu --print-summary per-kernel --target-processes all -o allen_report ./Allen ${RUN_PROFILER_OPTIONS}
+  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ncu --print-summary per-kernel --target-processes all -o allen_report ./toolchain/wrapper ./Allen ${RUN_PROFILER_OPTIONS}
   } || true
 
   ncu -i allen_report.ncu-rep --csv > allen_report.csv
@@ -79,7 +87,7 @@ else
     THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CPU} -t ${THREADS}"
 
-    ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
+    ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
   elif [ "${TARGET}" = "CUDA" ]; then
     export PATH=$PATH:/usr/local/cuda/bin
     GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
@@ -87,12 +95,12 @@ else
     NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
     RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CUDA}"
 
-    ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
+    ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
 
     nvidia-smi
 
   elif [ "${TARGET}" = "HIP" ]; then
-    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
+    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-5.0.0/setenv.sh
     GPU_ID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     GPU_NUMBER_EXTRA=`rocm-smi --showuniqueid | grep $GPU_ID | awk '{ print $1; }'`
     GPU_ESCAPED_BRACKETS=`echo $GPU_NUMBER_EXTRA | sed 's/\[/\\\[/' | sed 's/\]/\\\]/'`
@@ -101,7 +109,7 @@ else
     NUMA_NODE=`lspci -vmm | grep -i $PCI_BUS -A 10 | grep NUMANode | head -n1 | awk '{ print $NF; }'`
     RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_HIP}"
 
-    ALLEN="HSA_NO_SCRATCH_RECLAIM=1 GPU_MAX_HW_QUEUES=8 HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./Allen ${RUN_OPTIONS}"
+    ALLEN="HSA_NO_SCRATCH_RECLAIM=1 GPU_MAX_HW_QUEUES=8 HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
   fi
   echo "Command: ${ALLEN}"
   {

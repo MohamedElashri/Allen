@@ -105,6 +105,8 @@ find_package(cppgsl REQUIRED)
 # std::filesytem detection
 find_package(Filesystem REQUIRED)
 
+find_package(umesimd REQUIRED)
+
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # We need a Python 3 interpreter
   find_package(Python 3 REQUIRED Interpreter)
@@ -134,50 +136,28 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
 endif()
 
 # ROOT
-if (STANDALONE AND USE_ROOT)
-  if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-  elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
-    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-  elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
-    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
-  else()
-    message(FATAL "ROOTSYS must be set to use ROOT with a standalone build of Allen")
-  endif()
-  find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
-  if (ROOT_FOUND)
-    message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
+if (USE_ROOT)
+  set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
 
-    #If ROOT is built with C++ 17 support, everything that includes ROOT
-    #headers must be built with C++ 17 support.CUDA doesn't support
-    #that, so we have to factor that out.
-    execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
-    string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
-    message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
-    if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
-      set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-    else()
-      set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
+  if (STANDALONE)
+    # Support for STANDALONE without CMAKE_PREFIX_PATH
+    if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
+      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+    elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
+      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+    elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
+      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
     endif()
-
-    set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lCore -lCling -lHist -lTree -lRIO)
-
-    execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
-    string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
-    message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
-    if (${ROOT_HAS_IMT} STREQUAL "yes")
-      find_package(TBB REQUIRED)
-      get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
-      set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
-    endif()
-  else()
-    message(STATUS "Compiling without ROOT")
   endif()
-elseif(NOT STANDALONE AND WITH_Allen_PRIVATE_DEPENDENCIES)
-  find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO Thread)
+
+  find_package(ROOT REQUIRED HINTS ${ALLEN_ROOT_CMAKE} COMPONENTS RIO Core Cling Hist Tree)
+  if (NOT ROOT_FOUND)
+    message(FATAL_ERROR "ROOT could not be found, please either set ROOTSYS or alternatively add the ROOT path to the CMAKE_PREFIX_PATH")
+  endif()
+  message(STATUS "Found ROOT: " ${ROOT_INCLUDE_DIRS})
+
   find_package(TBB REQUIRED)
-  set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-  set(ALLEN_ROOT_LIBRARIES ${ROOT_LIBRARIES} ${TBB_LIBRARIES})
-elseif(STANDALONE)
+  message(STATUS "Found TBB version " ${TBB_VERSION})
+else()
    message(STATUS "Compiling without ROOT")
 endif()

@@ -11,11 +11,9 @@ if (NOT STANDALONE)
     Boost::filesystem
     Gaudi::GaudiKernel
     LHCb::ZMQLib
-    ${ALLEN_ROOT_LIBRARIES}
     PRIVATE
     EventModel
     AllenCommon)
-  target_compile_definitions(ZMQSvc PUBLIC ${ALLEN_ROOT_DEFINITIONS})
 
   add_library(AllenZMQ INTERFACE)
   install(TARGETS AllenZMQ EXPORT Allen)

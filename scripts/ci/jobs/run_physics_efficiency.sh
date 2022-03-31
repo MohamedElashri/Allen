@@ -32,7 +32,7 @@ OUTPUT_FOLDER=$(realpath "${OUTPUT_FOLDER}")
 cd ${BUILD_FOLDER} && ls || exit 1
 export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
 
-JOB="./Allen ${RUN_OPTIONS}"
+JOB="./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
 if [ "${TARGET}" = "CPU" ]; then
   ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB}"
 elif [ "${TARGET}" = "CUDA" ]; then

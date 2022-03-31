@@ -28,6 +28,7 @@
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
         OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
+        AVOID_HIP: "1" # This shouldn't have multiple values
 
 
       # run throughput, no_gec
@@ -55,6 +56,7 @@
         SEQUENCE: ["hlt1_pp_veloSP_validation"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster"]
         GEOMETRY: ["scifi_v6"]
+        AVOID_HIP: "1" # This shouldn't have multiple values
 
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
@@ -109,7 +111,7 @@
 
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    LCG_ARCHITECTURE: "x86_64-centos7-clang12-opt"
+    LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12-opt"
     BUILD_TYPE: "RelWithDebInfo"
 
   retry: 2

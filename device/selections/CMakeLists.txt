@@ -18,7 +18,7 @@ target_link_libraries(Selections PRIVATE
   Kalman
   VertexFitter)
 
-if(USE_ROOT AND ROOT_FOUND)
+if(USE_ROOT)
   # Locally suppress float->double promotion warnings caused by ROOT TH interfaces
   string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
 endif()

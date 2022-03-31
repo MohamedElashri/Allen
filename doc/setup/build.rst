@@ -21,8 +21,10 @@ The following packages are required in order to be able to compile Allen. Packag
 * json-devel
 * zeromq-devel
 * zlib-devel
-* gsl-lite or alternatively the Microsoft GSL
+* The Microsoft GSL or alternatively gsl-lite
 * python3
+* catch2
+* umesimd (https://github.com/edanor/umesimd)
 
 The following python3 packages are also needed, which can be installed with pip, conda, or the package manager:
 
@@ -31,34 +33,87 @@ The following python3 packages are also needed, which can be installed with pip,
 * pydot
 * sympy
 
-Further requirements depend on the device chosen as target. For each target,
-we show a proposed development setup with CVMFS and CentOS 7:
+Further requirements depend on the device chosen as target. Allen supports targets CPU (default), CUDA and HIP. The CUDA target requires a CUDA installation, whereas the HIP target requires a ROCm installation.
 
-* CPU target: Any modern compiler can be used::
+Building with CVMFS
+-------------------
 
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
+We show a proposed development setup with the CVMFS filesystem and CentOS 7 that automatically provides all the aforementioned requisites::
+
+* CPU target::
+
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
     
 * CUDA target: CUDA is available in cvmfs as well::
 
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
     source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.4/x86_64-centos7/setup.sh
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
 
 * HIP target: Either a local installation of ROCm or CVMFS are required::
 
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_101 x86_64-centos7-clang12-opt
-    source /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
+    source /cvmfs/lhcbdev.cern.ch/tools/rocm-5.0.0/setenv.sh
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
 
+The build process is the standard cmake procedure::
 
-Compilation
-----------------
+    mkdir build
+    cd build
+    cmake -DSTANDALONE=ON -DTARGET_DEVICE=(CPU|CUDA|HIP) ..
+    make
+
+In order to run, use the generated wrapper::
+
+    ./toolchain/wrapper ./Allen --sequence hlt1_pp_validation
+
+Building without CVMFS
+----------------------
+
+While most requisites can be found as packages on the various OSs, you will need to manually provide the umesimd library::
+
+    git clone https://github.com/edanor/umesimd.git <some_dir>/umesimd
+    export UMESIMD_ROOT_DIR=<some_dir>
 
 The build process doesn't differ from standard cmake projects::
 
-    git submodule update --init --recursive
     mkdir build
     cd build
     cmake -DSTANDALONE=ON ..
     make
+
+To run Allen, simply invoke the generated binary::
+
+    ./Allen --sequence hlt1_pp_validation
+
+Building on macOS
+-----------------
+
+Allen supports macOS, including Apple Silicon, on a best-effort basis. The installation requires the following packages, which can be installed through `brew`::
+
+    brew install llvm cpp-gsl catch2 zeromq nlohmann-json python3 boost
+    pip3 install --user wrapt cachetools pydot sympy
+
+It also requires the aforementioned umesimd package::
+
+    git clone https://github.com/edanor/umesimd.git <some_dir>/umesimd
+    export UMESIMD_ROOT_DIR=<some_dir>
+
+Due to the recent security features of macOS ignoring `DYLD_LIBRARY_PATH` settings not playing nicely with `cindex.py`'s requirement of `libclang`, it is necessary to provide a symlink in `/usr/local/lib` as follows::
+
+    ln -s /Library/Developer/CommandLineTools/usr/lib/libclang.dylib /usr/local/lib/libclang.dylib
+
+Finally, Allen can be built and run as on any other platform::
+
+    mkdir build
+    cd build
+    cmake -DSTANDALONE=ON ..
+    make
+    ./Allen --sequence hlt1_pp_validation
+
+Compilation options
+-------------------
 
 The build process can be configured with cmake options. For a complete list of options and for editing them we suggest using the `ccmake` tool.:
 

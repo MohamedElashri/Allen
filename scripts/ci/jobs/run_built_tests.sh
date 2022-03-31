@@ -31,9 +31,9 @@ if [ "${TARGET}" = "CPU" ]; then
 
     # TODO: expand to support multiple catch2 executables
     LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} \
-        ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
+        ./toolchain/wrapper ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
 elif [ "${TARGET}" = "HIP" ]; then
-    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-4.2.0/setenv.sh
+    source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-5.0.0/setenv.sh
     GPU_ID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     GPU_NUMBER_EXTRA=`rocm-smi --showuniqueid | grep $GPU_ID | awk '{ print $1; }'`
     GPU_ESCAPED_BRACKETS=`echo $GPU_NUMBER_EXTRA | sed 's/\[/\\\[/' | sed 's/\]/\\\]/'`
@@ -42,7 +42,7 @@ elif [ "${TARGET}" = "HIP" ]; then
     NUMA_NODE=`lspci -vmm | grep -i $PCI_BUS -A 10 | grep NUMANode | head -n1 | awk '{ print $NF; }'`
 
     LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} \
-        --membind=${NUMA_NODE} ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
+        --membind=${NUMA_NODE} ./toolchain/wrapper ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
 elif [ "${TARGET}" = "CUDA" ]; then
     GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
@@ -50,7 +50,7 @@ elif [ "${TARGET}" = "CUDA" ]; then
     export PATH=$PATH:/usr/local/cuda/bin
 
     LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} \
-        numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
+        numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./test/unit_tests/unit_tests -r junit | tee ${JUNITREPORT}
 else
     echo "TARGET ${TARGET} not supported. Please check your CI configuration."
     exit 1

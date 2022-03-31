@@ -4,6 +4,12 @@
 
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
+# For STANDALONE and cmake versions under 3.21, allow using
+# the env var CMAKE_TOOLCHAIN_FILE to specify the toolchain
+if(STANDALONE AND NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{CMAKE_TOOLCHAIN_FILE})
+  set(CMAKE_TOOLCHAIN_FILE $ENV{CMAKE_TOOLCHAIN_FILE})
+endif()
+
 project(Allen VERSION 2.0
         LANGUAGES CXX)
 
@@ -166,14 +172,6 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.18.0" OR ${CMAKE_VERSION} VERSION_EQUAL "
   cmake_policy(SET CMP0104 OLD)
 endif()
 
-# List of all expected submodules
-set(EXPECTED_SUBMODULES umesimd)
-foreach(SUBMODULE ${EXPECTED_SUBMODULES})
-  if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/${SUBMODULE}/CMakeLists.txt")
-    message(FATAL_ERROR "Submodule ${SUBMODULE} was not downloaded! Please update submodules and try again. You may need to run `git submodule update --init --recursive`.")
-  endif()
-endforeach()
-
 # Detect CUDA architecture
 if(TARGET_DEVICE STREQUAL "CUDA")
   if (NOT CMAKE_CUDA_COMPILER)
@@ -326,7 +324,20 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   endif()
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
+
+  if(GCC_TOOLCHAIN_ROOT)
+    set(HIP_TOOLCHAIN_OPTIONS "--gcc-toolchain=${GCC_TOOLCHAIN_ROOT}")
+  else()
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-libgcc-file-name OUTPUT_VARIABLE lib_gcc_file_raw)
+    string(REGEX REPLACE "/lib/gcc.*\n" "" cxx_idir ${lib_gcc_file_raw})
+    set(HIP_TOOLCHAIN_OPTIONS "--gcc-toolchain=${cxx_idir}")
+  endif()
+
+  message(STATUS "HIP GCC TOOLCHAIN: " ${HIP_TOOLCHAIN_OPTIONS})
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
+
+  # Add the origin directory
+  set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath,./")
 
   function(allen_add_host_library)
     add_library(${ARGV})
@@ -380,8 +391,10 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  string(REGEX REPLACE "toolchain/.*" "toolchain" CXX_COMPILER_DIR ${CMAKE_CXX_COMPILER})
+  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} -ccbin=${CXX_COMPILER_DIR} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
+  message(STATUS "CMAKE CUDA FLAGS:" ${CMAKE_CUDA_FLAGS})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_host_library)
@@ -440,33 +453,36 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 if(STANDALONE)
-  #Detect target CPU architecture
-  include(TargetArch)
-  set(TARGET_CPU_ARCHITECTURE "")
-  target_architecture(TARGET_CPU_ARCHITECTURE)
-  message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
+  string(REGEX MATCH "-march=[^ ]*" march_is_set ${CMAKE_CXX_FLAGS})
+  if(NOT march_is_set)
+    #Detect target CPU architecture
+    include(TargetArch)
+    set(TARGET_CPU_ARCHITECTURE "")
+    target_architecture(TARGET_CPU_ARCHITECTURE)
+    message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 
-  #Specific optimizations for different architectures
-  if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
-  OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
-  #x86 family
-    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
-  #PowerPC family
-  #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
-    string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
-  OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
-  #ARM family
-    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
-  #ARM64 family
-  #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
-    string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
-    -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
-  elseif(TARGET_CPU_ARCHITECTURE STREQUAL "apple_silicon")
-  # Apple silicon
-    string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+    #Specific optimizations for different architectures
+    if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
+    OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
+    #x86 family
+      string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
+    #PowerPC family
+    #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
+      string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
+    OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
+    #ARM family
+      string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
+    #ARM64 family
+    #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
+      string(APPEND CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
+      -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+    elseif(TARGET_CPU_ARCHITECTURE STREQUAL "apple_silicon")
+    # Apple silicon
+      string(APPEND CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
+    endif()
   endif()
 endif()
 
@@ -485,8 +501,6 @@ foreach(sequence_filename ${available_sequences})
   endif()
 endforeach()
 
-set(EXTERNAL_DIR "external")
-
 if(BUILD_TESTING)
   add_subdirectory(test/unit_tests)
 endif()
@@ -500,7 +514,6 @@ add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
 add_subdirectory(stream)
-
 
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
@@ -572,7 +585,7 @@ allen_add_host_library(HostCommon STATIC
 target_link_libraries(AllenCommon INTERFACE
   mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
-  EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent)
+  EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent Boost::iostreams)
 
 allen_add_host_library(AllenLib SHARED
   main/src/Allen.cpp
@@ -608,10 +621,9 @@ target_link_libraries(AllenLib PUBLIC
 # To propagate filesystem includes/libs
 target_link_libraries(AllenLib PRIVATE AllenFS)
 
-if (USE_ROOT AND ROOT_FOUND)
+if (USE_ROOT)
+  target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree TBB::tbb)
   target_compile_definitions(AllenCommon INTERFACE ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(AllenCommon SYSTEM INTERFACE ${ROOT_INCLUDE_DIRS})
-  target_link_libraries(AllenCommon INTERFACE ${ALLEN_ROOT_LIBRARIES})
 endif()
 
 if (NOT STANDALONE)

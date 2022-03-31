@@ -16,9 +16,10 @@ function setupViews() {
         exit 1
     fi
 
-    echo "Setting up LCG view at version ${LCG_VERSION} and architecture ${LCG_ARCHITECTURE}"
+    echo "Setting CMAKE_TOOLCHAIN_FILE to LCG version ${LCG_VERSION} and architecture ${LCG_ARCHITECTURE}"
 
-    source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh ${LCG_VERSION} ${LCG_ARCHITECTURE}
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/${LCG_VERSION}/${LCG_ARCHITECTURE}.cmake
     set -u; set -x
 }
 
