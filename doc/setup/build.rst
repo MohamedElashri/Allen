@@ -38,7 +38,7 @@ Further requirements depend on the device chosen as target. Allen supports targe
 Building with CVMFS
 -------------------
 
-We show a proposed development setup with the CVMFS filesystem and CentOS 7 that automatically provides all the aforementioned requisites::
+We show a proposed development setup with the CVMFS filesystem and CentOS 7 that automatically provides all the aforementioned requisites:
 
 * CPU target::
 
