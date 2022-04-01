@@ -195,7 +195,7 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-converters = [DumpBeamline(),DumpCaloGeometry()]
+converters = [DumpBeamline(), DumpCaloGeometry()]
 producers = []
 for converter in converters:
     converter_id = converter.type.getDefaultProperties()['ID']
