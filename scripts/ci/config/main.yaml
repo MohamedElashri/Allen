@@ -194,11 +194,11 @@ HIP:
 # dependencies: instead.
 
 .cpu_run_job:
-  needs: [CPU, build]
+  needs: [CPU, build, full-pipeline]
 .cuda_run_job:
-  needs: [CUDA, build]
+  needs: [CUDA, build, full-pipeline]
 .hip_run_job:
-  needs: [HIP, build]
+  needs: [HIP, build, full-pipeline]
 
 
 # CPU
