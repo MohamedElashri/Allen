@@ -84,6 +84,7 @@ public:
       m_data = data;
       m_offsets = offsets;
       m_sizes = sizes;
+	  m_number_of_raw_banks = MEP::number_of_banks(offsets);
     }
     else {
       m_data = data + offsets[event];
