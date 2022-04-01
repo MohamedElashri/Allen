@@ -19,7 +19,6 @@ target_link_libraries(Stream
   PRIVATE
     Associate
     Velo
-    AllenPatPV
     PV_beamline
     HostClustering
     HostPrefixSum
