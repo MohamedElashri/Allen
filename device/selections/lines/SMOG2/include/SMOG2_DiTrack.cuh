@@ -12,17 +12,20 @@ namespace SMOG2_ditrack_line {
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
 
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-    DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
-    DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_particle_container_ptr_t,
+      DEPENDENCIES(dev_particle_container_t),
+      Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
@@ -46,7 +49,7 @@ namespace SMOG2_ditrack_line {
     PROPERTY(massWindow_t, "massWindow", "maximum mass difference wrt mM", float) massWindow;
   };
   struct SMOG2_ditrack_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<SMOG2_ditrack_line_t, Parameters> {
-    __device__ static bool select(const Parameters& parameters, std::tuple<const VertexFit::TrackMVAVertex&> input);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

@@ -72,7 +72,7 @@ def make_rich_1_line(forward_tracks,
                      name="Hlt1RICH1Alignment", 
                      pre_scaler_hash_string=None,
                      post_scaler_hash_string=None ):
-    return make_rich_line(rich_1_line_t, reconstructed_objects,
+    return make_rich_line(rich_1_line_t, forward_tracks, long_track_particles,
                           name, pre_scaler_hash_string, post_scaler_hash_string )
 
 
@@ -81,5 +81,5 @@ def make_rich_2_line(forward_tracks,
                      name="Hlt1RICH2Alignment", 
                      pre_scaler_hash_string=None,
                      post_scaler_hash_string=None ):
-    return make_rich_line(rich_2_line_t, reconstructed_objects,
+    return make_rich_line(rich_2_line_t, forward_tracks, long_track_particles,
                           name, pre_scaler_hash_string, post_scaler_hash_string )

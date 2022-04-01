@@ -13,19 +13,21 @@ namespace SMOG2_minimum_bias_line {
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
 
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
-    DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
+    DEVICE_INPUT(dev_tracks_container_t, Allen::Views::Velo::Consolidated::Tracks) dev_tracks_container;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
+
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(dev_particle_container_ptr_t,
+				    DEPENDENCIES(dev_tracks_container_t),
+				    Allen::IMultiEventContainer*) dev_particle_container_ptr;
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
@@ -52,9 +54,11 @@ namespace SMOG2_minimum_bias_line {
     // Get decision size function
     static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
 
+    // Get input size function    
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
+
     // Get input function
-    __device__ static std::tuple<const unsigned, const float>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    __device__ static std::tuple<const unsigned, const float> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     // Selection function
     __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned, const float> input);

@@ -21,7 +21,6 @@ restricted_hlt1_reconstruction = hlt1_reconstruction()
 gec = make_gec()
 
 lines = []
-<<<<<<< HEAD
 with line_maker.bind(prefilter=gec):
     lines.append(
         line_maker(
@@ -39,7 +38,7 @@ with line_maker.bind(prefilter=gec):
         line_maker(
             make_track_mva_line(
                 non_restricted_hlt1_reconstruction["forward_tracks"],
-                non_restricted_hlt1_reconstruction["secondary_vertices"],
+                non_restricted_hlt1_reconstruction["long_track_particles"],
                 name="Hlt1TrackMVA_Non_Restricted")))
     lines.append(
         line_maker(
@@ -103,7 +102,7 @@ validators_leaf = CompositeNode(
         make_composite_node_with_gec(
             "restricted_kalman_validation",
             kalman_validation(
-                restricted_hlt1_reconstruction["long_track_particles"],
+                restricted_hlt1_reconstruction["kalman_velo_only"],
                 "restricted_kalman_validation"))
     ],
     NodeLogic.NONLAZY_AND,

@@ -43,7 +43,7 @@ __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
 
   const bool decision =
     track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
-						  track.bpv_z > parameters.minBPVz &&			      
+						  track.pv().position.z > parameters.minBPVz &&			      
     ((ptShift > maxPt && trackIPChi2 > minIPChi2) ||
      (ptShift > parameters.minPt && ptShift < maxPt &&
       logf(trackIPChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +

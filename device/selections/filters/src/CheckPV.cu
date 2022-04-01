@@ -43,7 +43,7 @@ __global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const PV::Vertex* vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;
 
-  __shared__ int event_decision;
+  __shared__ unsigned event_decision;
   if ( threadIdx.x == 0 ) event_decision = 0;
   __syncthreads();
 
@@ -51,7 +51,7 @@ __global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
   for (unsigned i = threadIdx.x; i < parameters.dev_number_of_multi_final_vertices[event_number]; i += blockDim.x) {
     const auto& pv = vertices[i];
     const bool dec = pv.position.z >= parameters.minZ and pv.position.z < parameters.maxZ;
-    if (dec) atomicOr( event_decision, dec );
+    if (dec) atomicOr( &event_decision, dec );
   }
 
   __syncthreads();

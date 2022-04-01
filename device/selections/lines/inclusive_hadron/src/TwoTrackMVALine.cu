@@ -34,7 +34,7 @@ __device__ bool two_track_mva_line::two_track_mva_line_t::select(
   const bool presel =
     (vertex.minpt() > parameters.minPt && vertex.eta() > parameters.minEta && vertex.eta() < parameters.maxEta &&
      vertex.mcor() > parameters.minMcor && vertex.vertex().pt() > parameters.minSVpt &&
-     vertex.vertex().chi2() < parameters.maxSVchi2 && vertex.doca12() < parameters.maxDOCA && vertex.z >= parameters.minZ && vertex.bpvz >= parameters.minZ );
+     vertex.vertex().chi2() < parameters.maxSVchi2 && vertex.doca12() < parameters.maxDOCA && vertex.vertex().z() >= parameters.minZ && vertex.pv().position.z >= parameters.minZ );
   return presel && response > parameters.minMVA;
 
 }

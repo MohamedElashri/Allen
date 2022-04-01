@@ -328,11 +328,8 @@ namespace VertexFit {
     // Sum of track pT.
     sv.sumpt = stateA.pt() + stateB.pt();
 
-    // Sum of track charges
-    sv.charge = trackA.charge() + trackB.charge();    
-
     // Minimum p of constituent tracks.
-    sv.minp = trackA.p() < trackB.p() ? trackA.p() : trackB.p();
+    sv.minp = stateA.p() < stateB.p() ? stateA.p() : stateB.p();
 
     // Minimum pt of constituent tracks.
     sv.minpt = stateA.pt() < stateB.pt() ? stateA.pt() : stateB.pt();
@@ -418,9 +415,6 @@ namespace VertexFit {
     const float dy = sv.y - pv.position.y;
     const float dz = sv.z - pv.position.z;
     const float fd = sqrtf(dx * dx + dy * dy + dz * dz);
-
-    //z of the best associated PV
-    sv.bpvz = pv.position.z;
 
     // PV-SV eta.
     sv.eta = atanhf(dz / fd);

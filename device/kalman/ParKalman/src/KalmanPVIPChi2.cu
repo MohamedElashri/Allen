@@ -62,20 +62,17 @@ __device__ void associate_and_muon_id(
   for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
     float best_value = 0.f;
     short best_index = -1;
-    float best_pvz = -999999.f;
     bool first = true;
     for (unsigned j = 0; j < vertices.size(); ++j) {
       float val = fabsf(Distance::kalman_ipchi2(states.state(i), *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
-      best_pvz   = (first || val < best_value) ? pv.position.z : best_pvz;
       first = false;
     }
     table.pv(i) = best_index;
     table.value(i) = best_value;
     tracks[i].ipChi2 = best_value;
     tracks[i].is_muon = is_muon[i];
-    tracks[i].bpv_z = best_pvz;
   }
 }
 

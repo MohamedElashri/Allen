@@ -29,8 +29,8 @@ def make_track_electron_mva_line(
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
@@ -78,8 +78,8 @@ def make_displaced_dielectron_line(
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])

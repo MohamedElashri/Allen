@@ -12,14 +12,17 @@ namespace SMOG2_singletrack_line {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_lhcbid_container_t, uint8_t) host_lhcbid_container;
     HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
     
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-    DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
-    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+				    dev_particle_container_ptr_t,
+				    DEPENDENCIES(dev_particle_container_t),
+				    Allen::IMultiEventContainer*)
+    dev_particle_container_ptr;
     DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
@@ -40,7 +43,7 @@ namespace SMOG2_singletrack_line {
     PROPERTY(maxBPVz_t, "maxBPVz", "maximum z for the best associated primary vertex", float) maxBPVz;
   };
   struct SMOG2_singletrack_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<SMOG2_singletrack_line_t, Parameters> {
-    __device__ static bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input);
+    __device__ static bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

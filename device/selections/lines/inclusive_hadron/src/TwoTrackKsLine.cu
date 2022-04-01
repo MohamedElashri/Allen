@@ -35,6 +35,6 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
                         vertex.pt() > parameters.minComboPt_Ks && cos > parameters.minCosOpening &&
                         particle.dira() > parameters.minCosDira && particle.minp() > parameters.minTrackP_piKs &&
                         trk1->ip() * trk2->ip() / particle.ip() > parameters.min_combip &&
-    particle.minpt() > parameters.minTrackPt_piKs  && vertex.z >= parameters.minZ;
+    particle.minpt() > parameters.minTrackPt_piKs  && vertex.z() >= parameters.minZ;
   return decision;
 }

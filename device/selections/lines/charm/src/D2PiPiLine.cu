@@ -19,7 +19,7 @@ __device__ bool d2pipi_line::d2pipi_line_t::select(
                         particle.doca12() < parameters.maxDOCA && particle.minpt() > parameters.minTrackPt &&
                         particle.minip() > parameters.minTrackIP &&
                         fabsf(particle.m12(Allen::mPi, Allen::mPi) - Allen::mDz) < parameters.massWindow &&
-										   vertex.z >= parameters.minZ;
+										   vertex.z() >= parameters.minZ;
 
   return decision;
 }

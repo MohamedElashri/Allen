@@ -5,7 +5,7 @@ from AllenCore.generator import make_algorithm
 from AllenConf.algorithms import (host_init_number_of_events_t,
                                   host_data_provider_t,
                                   host_global_event_cut_t, layout_provider_t, 
-                                  check_pvs_t, low_occupancy_t, odin_beamcrossingtype_t)
+                                  check_pvs_t, low_occupancy_t )
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -41,12 +41,9 @@ def make_gec(gec_name='gec',
 def make_checkPV(pvs, name='check_PV', minZ=-9999999, maxZ=99999999):
     return checkPV(pvs, name=name, minZ=minZ, maxZ=maxZ)
 
-
 @configurable
-def make_lowocc(velo_tracks, minTracks=0, maxTracks=9999999):
-    return lowOcc(velo_tracks, minTracks=minTracks, maxTracks=maxTracks)
->>>>>>> 34ca63d1e (Solve MR first comments)
-
+def make_lowmult(velo_tracks, name = "lowMult", minTracks=0, maxTracks=9999999):
+    return lowMult(velo_tracks, name = name, minTracks=minTracks, maxTracks=maxTracks)
 
 def initialize_number_of_events():
     initialize_number_of_events = make_algorithm(
@@ -116,18 +113,3 @@ def lowMult( velo_tracks, name='LowMult', minTracks=0, maxTracks=99999):
         dev_offsets_velo_track_hit_number_t=velo_tracks["dev_offsets_velo_track_hit_number"],
         minTracks=minTracks,
         maxTracks=maxTracks)
-
-
-def ODIN_BeamXtype(name='ODIN_BeamXType', beam_type=3):
-
-    number_of_events = initialize_number_of_events()
-    layout = mep_layout()
-    odin = decode_odin()
-
-    return make_algorithm(
-        odin_beamcrossingtype_t,
-        name = name,
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        beam_crossing_type = beam_type )

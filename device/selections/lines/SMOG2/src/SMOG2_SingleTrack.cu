@@ -7,10 +7,12 @@ INSTANTIATE_LINE(SMOG2_singletrack_line::SMOG2_singletrack_line_t, SMOG2_singlet
 
 __device__ bool SMOG2_singletrack_line::SMOG2_singletrack_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ParKalmanFilter::FittedTrack&> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto& track = std::get<0>(input);
   
-  const bool decision = track.bpv_z < parameters.maxBPVz && track.bpv_z >= parameters.minBPVz && track.pt() >= parameters.minPt && track.pt() >= parameters.minP && track.chi2 / track.ndof < parameters.maxChi2Ndof;
+  const bool decision = track.pv().position.z < parameters.maxBPVz && track.pv().position.z >= parameters.minBPVz && 
+    track.state().pt() >= parameters.minPt && track.state().p() >= parameters.minP && track.chi2() / track.ndof() < parameters.maxChi2Ndof;
+
   return decision;
 }
