@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/interprocess/streams/vectorstream.hpp>
 
-#include <Kernel/MuonTileID.h>
+#include <Detector/Muon/TileID.h>
 #include <Kernel/STLExtensions.h>
 #include <fstream>
 #include <functional>
@@ -98,7 +98,7 @@ namespace MuonUtils {
     std::array<unsigned int, 16> const& sizeXOffset,
     std::array<int, 16> const& gridX,
     std::array<int, 16> const& gridY,
-    LHCb::MuonTileID const& tile);
+    LHCb::Detector::Muon::TileID const& tile);
 }
 
 #endif

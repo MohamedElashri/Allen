@@ -25,7 +25,7 @@ namespace ranges::views {
 #include <boost/format.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 
-#include <Kernel/MuonLayout.h>
+#include <Detector/Muon/Layout.h>
 #include "DumpMuonTable.h"
 #include <Dumpers/Utils.h>
 
@@ -114,13 +114,13 @@ DumpUtils::Dumps DumpMuonTable::dumpGeometry() const
         // loop over quarters
         for (auto [quarter, yx] : views::cartesian_product(views::ints(0, 4), yxRange)) {
           auto [y, x] = yx;
-          LHCb::MuonTileID tile {
-            station,
-            MuonLayout {static_cast<unsigned int>(gridX[gidx]), static_cast<unsigned int>(gridY[gidx])},
-            region,
-            quarter,
-            x,
-            y};
+          LHCb::Detector::Muon::TileID tile {station,
+                                             LHCb::Detector::Muon::Layout {static_cast<unsigned int>(gridX[gidx]),
+                                                                           static_cast<unsigned int>(gridY[gidx])},
+                                             region,
+                                             quarter,
+                                             x,
+                                             y};
           auto pos = det.position(tile);
           if (!pos) {
             std::stringstream e;

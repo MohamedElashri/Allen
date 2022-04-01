@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "DumpFTGeometry.h"
-#include "Kernel/FTChannelID.h"
+#include "Detector/FT/FTChannelID.h"
 
 namespace {
   using std::ios;
@@ -123,13 +123,14 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
   uint32_t number_of_tell40s = stations_.size();
   bank_first_channel.reserve(number_of_tell40s);
   for (unsigned int i = 0; i < number_of_tell40s; i++) {
-    bank_first_channel.push_back(static_cast<uint32_t>(LHCb::FTChannelID {LHCb::FTChannelID::StationID(stations_[i]),
-                                                                          LHCb::FTChannelID::LayerID(layers[i]),
-                                                                          LHCb::FTChannelID::QuarterID(quarters[i]),
-                                                                          LHCb::FTChannelID::ModuleID(firstModules[i]),
-                                                                          LHCb::FTChannelID::MatID(firstMats[i]),
-                                                                          0u,
-                                                                          0u}));
+    bank_first_channel.push_back(
+      static_cast<uint32_t>(LHCb::Detector::FTChannelID {LHCb::Detector::FTChannelID::StationID(stations_[i]),
+                                                         LHCb::Detector::FTChannelID::LayerID(layers[i]),
+                                                         LHCb::Detector::FTChannelID::QuarterID(quarters[i]),
+                                                         LHCb::Detector::FTChannelID::ModuleID(firstModules[i]),
+                                                         LHCb::Detector::FTChannelID::MatID(firstMats[i]),
+                                                         0u,
+                                                         0u}));
   }
   DumpUtils::Writer output {};
   output.write(

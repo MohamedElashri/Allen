@@ -49,21 +49,21 @@ namespace {
 // Declaration of the Algorithm Factory
 DECLARE_COMPONENT(TestMuonTable)
 
-unsigned int pad_offset(MuonTable const& table, LHCb::MuonTileID const& tile)
+unsigned int pad_offset(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile)
 {
   int idx = 4 * tile.station() + tile.region();
   int perQuarter = 3 * table.gridX[idx] * table.gridY[idx];
   return static_cast<unsigned int>((4 * tile.region() + tile.quarter()) * perQuarter);
 }
 
-unsigned int strip_offset(MuonTable const& table, LHCb::MuonTileID const& tile)
+unsigned int strip_offset(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile)
 {
   int idx = 4 * tile.station() + tile.region();
   int perQuarter = 3 * table.gridX[idx] * table.gridY[idx];
   return table.offset[4 * tile.station() + tile.region()] + tile.quarter() * perQuarter;
 }
 
-size_t lookup_index(MuonTable const& table, LHCb::MuonTileID const& tile)
+size_t lookup_index(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile)
 {
   int station = tile.station();
   int region = tile.region();
@@ -83,7 +83,7 @@ size_t lookup_index(MuonTable const& table, LHCb::MuonTileID const& tile)
 
 void lookup(
   MuonTable const& table,
-  LHCb::MuonTileID const& tile,
+  LHCb::Detector::Muon::TileID const& tile,
   double& x,
   double& deltax,
   double& y,
@@ -113,7 +113,7 @@ unsigned int getLayoutY(MuonTable const& table, unsigned int station, unsigned i
 }
 
 tuple<std::reference_wrapper<const MuonTable>, string> lookup_table(
-  LHCb::MuonTileID const& tile,
+  LHCb::Detector::Muon::TileID const& tile,
   bool const uncrossed,
   MuonTable const& pad,
   MuonTable const& stripX,
@@ -136,7 +136,7 @@ tuple<std::reference_wrapper<const MuonTable>, string> lookup_table(
 }
 
 void coord_position(
-  LHCb::MuonTileID const& tile,
+  LHCb::Detector::Muon::TileID const& tile,
   MuonTable const& pad,
   MuonTable const& stripX,
   MuonTable const& stripY,

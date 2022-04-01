@@ -56,11 +56,11 @@ void TestAllenCaloDigits::compare(gsl::span<CaloDigit> const& allenDigits, LHCb:
   const
 {
 
-  namespace IndexDetails = LHCb::Calo::DenseIndex::details;
+  namespace IndexDetails = LHCb::Detector::Calo::DenseIndex::details;
   unsigned offset = 0;
 
   for (auto d : lhcbDigits) {
-    LHCb::Calo::Index idx {d.cellID()};
+    LHCb::Detector::Calo::Index idx {d.cellID()};
     unsigned digit_index = unsigned {idx} - offset;
     if (d.adc() != allenDigits[digit_index].adc) {
       std::stringstream msg;

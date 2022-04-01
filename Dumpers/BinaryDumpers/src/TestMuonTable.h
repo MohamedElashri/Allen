@@ -17,10 +17,10 @@
 #include <MuonDet/DeMuonDetector.h>
 
 struct MuonTable;
-using offset_fun_t = std::function<unsigned int(MuonTable const& table, LHCb::MuonTileID const& tile)>;
+using offset_fun_t = std::function<unsigned int(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile)>;
 
-unsigned int pad_offset(MuonTable const& table, LHCb::MuonTileID const& tile);
-unsigned int strip_offset(MuonTable const& table, LHCb::MuonTileID const& tile);
+unsigned int pad_offset(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile);
+unsigned int strip_offset(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile);
 
 struct MuonTable {
   MuonTable(offset_fun_t of) : offset_fun {std::move(of)} {}

@@ -23,7 +23,7 @@
 #include "VeloConsolidated.cuh"
 #include "CaloCluster.cuh"
 #include "Event/CaloClusters_v2.h"
-#include "Kernel/CaloCellID.h"
+#include "Detector/Calo/CaloCellID.h"
 #include "GaudiKernel/Point3DTypes.h"
 
 class AllenCaloToCaloClusters final

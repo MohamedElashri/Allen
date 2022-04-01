@@ -59,7 +59,7 @@ void DumpMuonCoords::operator()(const LHCb::ODIN& odin, const LHCb::MuonCoords& 
   for (int station = 0; station < n_stations_muon; station++) {
     for (const auto& coord : sortedCoords[station]) {
       uncrossed[station].push_back((int) (coord->uncrossed()));
-      for (LHCb::MuonTileID tileID : coord->digitTile()) {
+      for (LHCb::Detector::Muon::TileID tileID : coord->digitTile()) {
         digitTile[station].push_back(int(tileID));
       }
       digitTDC1[station].push_back(coord->digitTDC1());
