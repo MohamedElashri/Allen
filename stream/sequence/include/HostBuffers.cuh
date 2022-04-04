@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <gsl/gsl>
 #include <BackendCommon.h>
 #include <AllenBuffer.cuh>

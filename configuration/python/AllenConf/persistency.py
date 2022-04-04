@@ -9,8 +9,25 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
-# Example routing bits map to be passed as routingbit_map=str(rb_map) in the host_routingbits_writer algorithm
 
+def _build_decision_ids(decision_names, offset=0):
+    """Return a dict of decision names to integer IDs.
+
+    Decision report IDs must not be zero. This method generates IDs starting
+    from offset.
+
+    Args:
+        decision_names (list of str)
+        offset (int): needed so that there are no identical ints in the int->str relations
+        of HltRawBankDecoderBase
+
+    Returns:
+        decision_ids (dict of str to int): Mapping from decision name to ID.
+    """
+    return {idx: name for idx, name in enumerate(decision_names, offset)}
+
+
+# Example routing bits map to be passed as routingbit_map=str(rb_map) in the host_routingbits_writer algorithm
 rb_map = {
     33:
     '^Hlt1.*Lumi.*',
@@ -94,6 +111,7 @@ def make_routingbits_writer(lines):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
+    name_to_decID_map = _build_decision_ids([line.name for line in lines])
     return make_algorithm(
         host_routingbits_writer_t,
         name="host_routingbits_writer",
@@ -103,7 +121,8 @@ def make_routingbits_writer(lines):
         host_names_of_active_lines_t=gather_selections.
         host_names_of_active_lines_t,
         host_dec_reports_t=dec_reporter.host_dec_reports_t,
-        routingbit_map=str(rb_map))
+        routingbit_map=rb_map,
+        name_to_id_map=name_to_decID_map)
 
 
 def make_global_decision(lines):

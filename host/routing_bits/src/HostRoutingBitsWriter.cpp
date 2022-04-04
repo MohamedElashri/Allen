@@ -13,17 +13,27 @@ void host_routingbits_writer::host_routingbits_writer_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  // Two words for the routing bits (ODIN + HLT1)
   set_size<host_routingbits_t>(arguments, RoutingBitsDefinition::n_words * first<host_number_of_events_t>(arguments));
 }
 
 void host_routingbits_writer::host_routingbits_writer_t::init() const
 {
+  const auto name_to_id_map = m_name_to_id_map.get_value().get();
+  const auto rb_map = m_routingbit_map.get_value().get();
+  const auto nlines = name_to_id_map.size();
 
-  const auto map = m_routingbit_map.get_value().get();
-  for (auto const& [bit, expr] : map) {
-    boost::regex rb_regex(expr);
-    m_regex_map[bit] = rb_regex;
+  // Find set of decisionIDs that match each routing bit
+  for (auto const& [bit, expr] : rb_map) {
+    std::regex rb_regex(expr);
+    boost::dynamic_bitset<> rb_bitset(nlines);
+    for (auto const& [id, name] : name_to_id_map) {
+      if (std::regex_match(name, rb_regex)) {
+        debug_cout << "Bit: " << bit << " expression: " << expr << " matched to line: " << name << " with ID " << id
+                   << std::endl;
+        rb_bitset[id] = 1;
+      }
+    }
+    m_rb_ids[bit] = rb_bitset;
   }
 }
 
@@ -35,58 +45,63 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
   const Allen::Context& context) const
 {
 
-  const auto map = m_routingbit_map.get_value().get();
-  if (logger::verbosity() >= logger::debug) {
-    for (auto const& pair : m_routingbit_map.get_value().get()) {
-      debug_cout << "{" << pair.first << ": " << pair.second << "}\n";
-    }
-  }
-  host_routingbits_conf_impl(
+  host_routingbits_impl(
     first<host_number_of_events_t>(arguments),
     first<host_number_of_active_lines_t>(arguments),
     data<host_names_of_active_lines_t>(arguments),
     data<host_dec_reports_t>(arguments),
     data<host_routingbits_t>(arguments),
-    m_regex_map);
+    m_rb_ids);
   // Copy routing bit info to the host buffer
   safe_assign_to_host_buffer<host_routingbits_t>(host_buffers.host_routingbits, arguments, context);
 }
 
-void host_routingbits_writer::host_routingbits_conf_impl(
+void host_routingbits_writer::host_routingbits_impl(
   unsigned host_number_of_events,
   unsigned host_number_of_active_lines,
   char* host_names_of_active_lines,
   unsigned* host_dec_reports,
   unsigned* host_routing_bits,
-  const std::map<uint32_t, boost::regex>& routingbit_map)
+  const std::unordered_map<uint32_t, boost::dynamic_bitset<>>& rb_ids)
 {
   auto line_names = split_string(static_cast<char const*>(host_names_of_active_lines), ",");
 
+  boost::dynamic_bitset<> fired(host_number_of_active_lines);
   for (unsigned event = 0; event < host_number_of_events; ++event) {
 
+    fired.reset();
+
     unsigned* bits = host_routing_bits + RoutingBitsDefinition::n_words * event;
+
     unsigned const* dec_reports = host_dec_reports + (2 + host_number_of_active_lines) * event;
-    for (auto const& [bit, expr] : routingbit_map) {
-      int result = 0;
 
-      for (unsigned line_index = 0; line_index < host_number_of_active_lines; line_index++) {
-        HltDecReport dec_report;
-        dec_report.setDecReport(dec_reports[2 + line_index]);
-
-        if (!dec_report.getDecision()) continue;
-        auto line_name = line_names[line_index];
-
-        if (!boost::regex_match(line_name, expr))
-          continue; // only works with OR logic so far. TODO: implement AND logic / * logic
-        result = 1;
-        debug_cout << "line " << line_name << " fired, setting " << bit << " bit " << std::endl;
-      }
-      int word = bit / 32;
-      if (result) bits[word] |= (0x01UL << (bit - 32 * word));
+    for (unsigned line_index = 0; line_index < host_number_of_active_lines; ++line_index) {
+      HltDecReport dec_report {dec_reports[2 + line_index]};
+      if (dec_report.decision())
+        fired.set(dec_report.decisionID() - 1); // offset of decisionIDs starts from 1 while dynamic_bitset starts from
+                                                // 0
     }
+
+    // set routing bit based on set of decisionIDs that match it
+    for (auto const& [bit, line_ids] : rb_ids) {
+      auto rb_fired = line_ids.intersects(fired);
+      int word = bit / 32;
+      if (rb_fired) {
+        bits[word] |= (0x01UL << (bit - 32 * word));
+      }
+    }
+
+    // make sure that at least one routing bit is non-zero, needed to create the output streams
+    for (int i = 0; i < RoutingBitsDefinition::n_words; i++) {
+      if (bits[i] == 0) bits[i] = 0xFFFFFFFF;
+    }
+
     if (logger::verbosity() >= logger::debug) {
-      debug_cout << " HostRoutingBits: Event n. " << event << ", routing bits: " << bits[0] << "   " << bits[1] << "   "
-                 << bits[2] << "   " << bits[3] << std::endl;
+      debug_cout << " HostRoutingBits: Event n. " << event << ", routing bits: ";
+      for (int i = 0; i < RoutingBitsDefinition::n_words; i++) {
+        debug_cout << bits[i] << "  ";
+      }
+      debug_cout << std::endl;
     }
   }
 }

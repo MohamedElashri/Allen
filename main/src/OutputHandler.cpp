@@ -18,6 +18,7 @@
 
 #include <InputProvider.h>
 #include <OutputHandler.h>
+#include <RoutingBitsDefinition.h>
 
 std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const thread_id,
@@ -37,7 +38,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   // size of the DecReport RawBank
   const unsigned dec_report_size = (m_nlines + 2) * sizeof(uint32_t);
   // size of the RoutingBits RawBank
-  const unsigned routing_bits_size = 4 * sizeof(uint32_t);
+  const unsigned routing_bits_size = RoutingBitsDefinition::n_words * sizeof(uint32_t);
 
   std::vector<unsigned> selected_events;
   selected_events.reserve(selected_events_bool.size());
@@ -165,7 +166,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       header->setSpare(0);
       // Fixed triggermask for now
       // FIXME update when routing bits are implemented
-      header->subHeader().H1->setTriggerMask(m_trigger_mask.data());
+      header->subHeader().H1->setTriggerMask(routing_bits.data() + RoutingBitsDefinition::n_words * event_number);
       // Set run number
       // FIXME: get orbit and bunch number from ODIN
       // The batch is offset by start_event with respect to the slice, so we add start_event

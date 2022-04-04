@@ -681,6 +681,7 @@ target_link_libraries(AllenLib
     Stream
     HostCommon
     HostEventModel
+    HostRoutingBits
     NonEventData
     TrackChecking
     PVChecking

@@ -7,7 +7,7 @@
 #include "AlgorithmTypes.cuh"
 #include "GenericContainerContracts.h"
 #include "RoutingBitsDefinition.h"
-#include "boost/regex.hpp"
+#include "boost/dynamic_bitset.hpp"
 
 namespace host_routingbits_writer {
   struct Parameters {
@@ -22,20 +22,23 @@ namespace host_routingbits_writer {
       "mapping of expressions to routing bits",
       std::map<uint32_t, std::string>)
     routingbit_map;
+    PROPERTY(name_to_id_map_t, "name_to_id_map", "mapping of line names to decIDs", std::map<uint32_t, std::string>)
+    name_to_id_map;
   };
 
   /**
    * @brief Implementation of routing bits writer on the host.
    */
-  std::map<uint32_t, boost::regex> m_regex_map;
+  std::unordered_map<uint32_t, boost::dynamic_bitset<>> m_rb_ids;
+  const std::map<uint32_t, std::string> default_routingbit_map;
 
-  void host_routingbits_conf_impl(
+  void host_routingbits_impl(
     unsigned host_number_of_events,
     unsigned number_of_active_lines,
     char* names_of_active_lines,
     unsigned* host_dec_reports,
     unsigned* host_routing_bits,
-    const std::map<uint32_t, boost::regex>& routingbit_map);
+    const std::unordered_map<uint32_t, boost::dynamic_bitset<>>& rb_ids);
 
   struct host_routingbits_writer_t : public HostAlgorithm, Parameters {
     void init() const;
@@ -55,5 +58,6 @@ namespace host_routingbits_writer {
 
   private:
     Property<routingbit_map_t> m_routingbit_map {this, RoutingBitsDefinition::default_routingbit_map};
+    Property<name_to_id_map_t> m_name_to_id_map {this, RoutingBitsDefinition::default_routingbit_map};
   };
 } // namespace host_routingbits_writer

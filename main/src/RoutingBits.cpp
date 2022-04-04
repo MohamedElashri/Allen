@@ -38,3 +38,10 @@ std::map<uint32_t, std::string> rb_map(std::string s)
 
   return rb;
 }
+void from_json(const nlohmann::json& j,  std::map<uint32_t, std::string>& map)
+{
+  std::string s = j.get<std::string>();
+  map = rb_map(s);
+}
+
+void to_json(nlohmann::json& j, const std::map<uint32_t, std::string>& map) { j = routingbits_string(map); }
