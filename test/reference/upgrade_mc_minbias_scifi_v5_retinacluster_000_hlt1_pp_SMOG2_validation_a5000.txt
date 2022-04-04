@@ -1,0 +1,40 @@
+rate_validator validation:
+Hlt1KsToPiPi_gec_pp_checkPV:                         20/  1000, (  600.00 +/-   132.82) kHz
+Hlt1TrackMVA_gec_pp_checkPV:                         17/  1000, (  510.00 +/-   122.64) kHz
+Hlt1TwoTrackMVA_gec_pp_checkPV:                      21/  1000, (  630.00 +/-   136.03) kHz
+Hlt1TwoTrackKs_gec_pp_checkPV:                        1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1SingleHighPtMuon_gec_pp_checkPV:                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LowPtMuon_gec_pp_checkPV:                        67/  1000, ( 2010.00 +/-   237.19) kHz
+Hlt1D2KK_gec_pp_checkPV:                              1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1D2KPi_gec_pp_checkPV:                             2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1D2PiPi_gec_pp_checkPV:                            2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1DiMuonHighMass_gec_pp_checkPV:                    6/  1000, (  180.00 +/-    73.26) kHz
+Hlt1DiMuonLowMass_gec_pp_checkPV:                    10/  1000, (  300.00 +/-    94.39) kHz
+Hlt1DiMuonSoft_gec_pp_checkPV:                        0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LowPtDiMuon_gec_pp_checkPV:                      15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1TrackMuonMVA_gec_pp_checkPV:                      0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1TrackElectronMVA_gec_pp_checkPV:                  3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1SingleHighPtElectron_gec_pp_checkPV:              4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1DisplacedDielectron_gec_pp_checkPV:               1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1DisplacedLeptons_gec_pp_checkPV:                  3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1SingleHighEt_gec_pp_checkPV:                      0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1Passthrough:                                   1000/  1000, (30000.00 +/-     0.00) kHz
+Hlt1Passthrough_gec:                                935/  1000, (28050.00 +/-   233.87) kHz
+Hlt1NoBeam:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BeamOne:                                          0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BeamTwo:                                          0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BothBeams:                                        3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1ODINLumi:                                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODINNoBias:                                       0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1VeloMicroBias_gec:                                3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1RICH1Alignment_gec:                               0/  1000, (    0.00 +/-     0.00) kHz
+HLt1RICH2Alignment_gec:                               0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1PassThrough_LowMult5:                             3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1_SMOG2_NoBias_BE:                                 0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1_SMOG2_SMOG2Lumi_BE:                              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1_SMOG2_MinimumBiasLine_gec_SMOG2_checkPV:         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1_SMOG2_DiMuonHighMassLine_gec_SMOG2_checkPV:      0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1_SMOG2_D2Kpi_gec_SMOG2_checkPV:                   0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1_SMOG2_eta2pp_gec_SMOG2_checkPV:                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1_SMOG2_2BodyGeneric_gec_SMOG2_checkPV:            0/  1000, (    0.00 +/-     0.00) kHz
+Inclusive:                                         1000/  1000, (30000.00 +/-     0.00) kHz

@@ -75,7 +75,7 @@
       # run physics efficiency, pp_SMOG2_default, minbias_scifi_v5
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_SMOG2_default"]
+        SEQUENCE: ["hlt1_pp_SMOG2_validation"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
 
       # run throughput, scifi_v6
