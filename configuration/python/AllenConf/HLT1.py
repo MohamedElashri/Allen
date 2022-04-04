@@ -5,7 +5,7 @@ from AllenConf.utils import initialize_number_of_events, mep_layout, make_line_c
 from AllenConf.odin import make_bxtype
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
-from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_ks_line
+from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
@@ -294,13 +294,14 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             reconstructed_objects["forward_tracks"], 
             reconstructed_objects["long_track_particles"], 
             reconstructed_objects["velo_states"],
-            prefilter_suffix = prefilter_suffix )
+            prefilter_suffix = "_gec" )
 
     if EnableGEC:
         with line_maker.bind(prefilter=gec):
-            prefilter_suffix = '_gec' 
             physics_lines += [
-                line_maker(make_passthrough_line(name="Hlt1Passthrough" + prefilter_suffix))
+                line_maker(
+                    make_passthrough_line(
+                        name="Hlt1Passthrough_gec"))
             ]
 
 

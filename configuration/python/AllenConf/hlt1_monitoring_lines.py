@@ -26,7 +26,7 @@ def make_beam_line(pre_scaler_hash_string=None,
 
     return make_algorithm(
         beam_crossing_line_t,
-        name= name or name_map[beam_crossing_type],
+        name=line_name,
         beam_crossing_type=beam_crossing_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
@@ -70,7 +70,7 @@ def make_odin_event_type_line(
     line_name = name or name_map[odin_event_type_int]
     return make_algorithm(
         odin_event_type_line_t,
-        name= name or name_map[odin_event_type_int],
+        name=line_name,
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],

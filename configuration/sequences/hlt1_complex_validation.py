@@ -27,25 +27,25 @@ with line_maker.bind(prefilter=gec):
             make_track_mva_line(
                 restricted_hlt1_reconstruction["forward_tracks"],
                 restricted_hlt1_reconstruction["long_track_particles"],
-                name="Hlt1TrackMVA_Restricted")))
+                name="Hlt1TrackMVA_Restricted_gec")))
     lines.append(
         line_maker(
             make_two_track_mva_line(
                 restricted_hlt1_reconstruction["forward_tracks"],
                 restricted_hlt1_reconstruction["secondary_vertices"],
-                name="Hlt1TwoTrackMVA_Restricted")))
+                name="Hlt1TwoTrackMVA_Restricted_gec")))
     lines.append(
         line_maker(
             make_track_mva_line(
                 non_restricted_hlt1_reconstruction["forward_tracks"],
                 non_restricted_hlt1_reconstruction["long_track_particles"],
-                name="Hlt1TrackMVA_Non_Restricted")))
+                name="Hlt1TrackMVA_Non_Restricted_gec")))
     lines.append(
         line_maker(
             make_two_track_mva_line(
                 non_restricted_hlt1_reconstruction["forward_tracks"],
                 non_restricted_hlt1_reconstruction["secondary_vertices"],
-                name="Hlt1TwoTrackMVA_Non_Restricted")))
+                name="Hlt1TwoTrackMVA_Non_Restricted_gec")))
 
 # list of line algorithms, required for the gather selection and DecReport algorithms
 line_algorithms = [tup[0] for tup in lines]

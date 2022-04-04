@@ -4,7 +4,7 @@
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 from AllenConf.persistency import make_global_decision
-from AllenConf.utils import line_maker, make_gec
+from AllenConf.utils import line_maker
 from AllenConf.validators import rate_validation
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
@@ -23,6 +23,7 @@ with line_maker.bind(prefilter = gec ):
         make_calo_digits_minADC_line(decode_calo(), name="Hlt1CaloDigitsMinADC"))
 
 line_algorithms = [calo_cluster_line[0], calo_digits_line[0]]
+
 global_decision = make_global_decision(lines=line_algorithms)
 
 lines = CompositeNode(

@@ -1,5 +1,5 @@
 /************************************************************************\
-* (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration      *
 \************************************************************************/
 #include "ODINBeamCrossingType.cuh"
 #include "Event/ODIN.h"

@@ -14,7 +14,7 @@ def make_track_electron_mva_line(
         forward_tracks,
         long_track_particles,
         calo,
-        name = "Hlt1TrackElectronMVA",
+        name="Hlt1TrackElectronMVA",
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -39,7 +39,7 @@ def make_single_high_pt_electron_line(
         forward_tracks,
         long_track_particles,
         calo,
-        name = "Hlt1SingleHighPtElectron",
+        name="Hlt1SingleHighPtElectron",
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -64,7 +64,7 @@ def make_displaced_dielectron_line(
         forward_tracks,
         secondary_vertices,
         calo,
-        name = "Hlt1DisplacedDielectron",
+        name="Hlt1DisplacedDielectron",
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -89,8 +89,8 @@ def make_displaced_leptons_line(
         forward_tracks,
         long_track_particles,
         calo,
-        name = "Hlt1DisplacedLeptons",
-        pre_scaler_hash_string=None, 
+        name="Hlt1DisplacedLeptons",
+        pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -112,8 +112,8 @@ def make_displaced_leptons_line(
 def make_single_high_et_line(
         velo_tracks,
         calo,
-        name = "Hlt1SingleHighEt", 
-        pre_scaler_hash_string=None, 
+        name="Hlt1SingleHighEt",
+        pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()

@@ -4,7 +4,7 @@
 from AllenConf.utils import initialize_number_of_events, mep_layout, line_maker, make_line_composite_node, make_gec, make_checkPV, make_lowmult
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
-from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_ks_line
+from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
@@ -84,12 +84,6 @@ def default_physics_lines(forward_tracks,
                 forward_tracks,
                 secondary_vertices,
                 name="Hlt1DiMuonHighMass" + prefilter_suffix)))
-    lines.append(
-        line_maker(
-            make_two_ks_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1TwoKs" + prefilter_suffix)))
     lines.append(
         line_maker(
             make_di_muon_mass_line(
@@ -242,15 +236,16 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         pp_prefilters += [gec]
         prefilter_suffix += '_gec'
 
-    pp_checkPV = make_checkPV(
-        reconstructed_objects['pvs'],
-        name='pp_checkPV',
-        minZ=-300,  #mm
-        maxZ=+300  #mm
-    )
+    if withSMOG2:
+        pp_checkPV = make_checkPV(
+            reconstructed_objects['pvs'],
+            name='pp_checkPV',
+            minZ=-300,  #mm
+            maxZ=+300  #mm
+        )
 
-    pp_prefilters    += [pp_checkPV]
-    prefilter_suffix += '_pp_checkPV'
+        pp_prefilters += [pp_checkPV]
+        prefilter_suffix += '_pp_checkPV'
 
     with line_maker.bind(prefilter=pp_prefilters):
         physics_lines = default_physics_lines(
@@ -266,11 +261,11 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         with line_maker.bind(prefilter=gec):
             physics_lines += [line_maker( make_passthrough_line(name="Hlt1Passthrough_gec") )]
 
-            monitoring_lines += alignment_monitoring_lines( 
-                reconstructed_objects["velo_tracks"], 
-                reconstructed_objects["forward_tracks"], 
-                reconstructed_objects["long_track_particles"], 
-                prefilter_suffix = prefilter_suffix )
+            monitoring_lines += alignment_monitoring_lines(
+                reconstructed_objects["velo_tracks"],
+                reconstructed_objects["forward_tracks"],
+                reconstructed_objects["long_track_particles"],
+                prefilter_suffix="_gec")
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
@@ -288,6 +283,23 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(name="Hlt1PassThrough_LowMult5"))]
+
+        bx_BE = make_bxtype("BX_BeamEmpty", bx_type=1)
+        with line_maker.bind(prefilter=bx_BE):
+            SMOG2_lines += [
+                line_maker(make_passthrough_line(name="Hlt1_SMOG2_NoBias_BE"))
+            ]
+
+        lowMult_10 = make_lowmult(
+            reconstructed_objects['velo_tracks'],
+            name="LowMult_10",
+            minTracks=1,
+            maxTracks=10)
+        with line_maker.bind(prefilter=[bx_BE, lowMult_10]):
+            SMOG2_lines += [
+                line_maker(
+                    make_passthrough_line(name="Hlt1_SMOG2_SMOG2Lumi_BE"))
+            ]
 
         if EnableGEC:
             SMOG2_prefilters += [gec]

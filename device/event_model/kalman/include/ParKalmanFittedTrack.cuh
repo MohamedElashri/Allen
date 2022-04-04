@@ -24,6 +24,7 @@ namespace ParKalmanFilter {
     KalmanFloat chi2T;
     KalmanFloat ipChi2;
     KalmanFloat ip;
+
     unsigned ndof;
     unsigned ndofV;
     unsigned ndofT;
