@@ -126,6 +126,8 @@ namespace Allen {
   } // namespace device
 } // namespace Allen
 
+using DeviceDimensions = std::array<unsigned, 3>;
+
 // Helper structure to deal with constness of T
 template<typename T, typename U>
 struct ForwardType {

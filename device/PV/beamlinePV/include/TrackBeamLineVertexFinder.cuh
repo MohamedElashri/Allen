@@ -11,7 +11,9 @@
 
 // structure with minimal track info needed for PV search
 struct PVTrack {
-  __host__ __device__ PVTrack() {}
+  PVTrack() = default;
+  PVTrack(const PVTrack&) = default;
+  PVTrack& operator=(const PVTrack&) = default;
 
   __host__ __device__ PVTrack(const KalmanVeloState& state) :
     z {state.z}, x {state.x, state.y}, tx {state.tx, state.ty}, W_00 {1.f / state.c00}, W_11 {1.f / state.c11}
@@ -24,23 +26,41 @@ struct PVTrack {
   float W_11;
 };
 
+#ifdef TARGET_DEVICE_HIP
+// UGLY HACK to support trivially copyable check on HIP for float2, float3 and float4
+// See https://github.com/ROCm-Developer-Tools/HIP/issues/2610
+namespace std {
+  template<>
+  struct is_trivially_copyable<PVTrack> : std::true_type {
+  };
+} // namespace std
+#endif
+
 struct Extremum {
+  Extremum() = default;
+  Extremum(const Extremum&) = default;
+  Extremum& operator=(const Extremum&) = default;
+
   __host__ __device__ Extremum(unsigned short _index, float _value, float _integral) :
     index {_index}, value {_value}, integral {_integral} {};
-  __host__ __device__ Extremum() {};
+
   unsigned short index;
   float value;
   float integral;
 };
 
 struct Cluster {
+  Cluster() = default;
+  Cluster(const Cluster&) = default;
+  Cluster& operator=(const Cluster&) = default;
+
   __host__ __device__ Cluster(unsigned short _izfirst, unsigned short _izlast, unsigned short _izmax) :
     izfirst {_izfirst}, izlast {_izlast}, izmax {_izmax}
   {}
+
   unsigned short izfirst;
   unsigned short izlast;
   unsigned short izmax;
-  __host__ __device__ Cluster() {};
 };
 
 // Need a small extension to the track when fitting the

@@ -5,7 +5,6 @@
 
 #include <array>
 #include <string>
-
 #include <BackendCommon.h>
 
 // Struct to hold the types of the dependencies (libClang)
@@ -26,20 +25,11 @@ struct aggregate_datatype {
 struct optional_datatype {
 };
 
-// Checks all Ts inherit from host_datatype
-template<typename... Ts>
-constexpr bool all_host_v = (std::is_base_of_v<host_datatype, Ts> && ...);
-// Checks all Ts inherit from device_datatype
-template<typename... Ts>
-constexpr bool all_device_v = (std::is_base_of_v<device_datatype, Ts> && ...);
-// Checks all Ts either inherit from host_datatype or all inherit from device_datatype
-template<typename... Ts>
-constexpr bool all_host_or_all_device_v = all_host_v<Ts...> || all_device_v<Ts...>;
-
 // A generic datatype* data holder.
 template<typename internal_t>
 struct datatype {
   using type = internal_t;
+  static_assert(std::is_trivially_copyable_v<type> && "Allen datatypes must be trivially copyable");
   __host__ __device__ datatype(type* value) : m_value(value) {}
   __host__ __device__ datatype() {}
 
@@ -143,62 +133,58 @@ struct mask_t {
 
 #define DEPENDENCIES(...) dependencies<__VA_ARGS__>
 
-using DeviceDimensions = std::array<unsigned, 3>;
-
 /**
  * @brief A property datatype data holder.
  */
-template<typename T>
+template<typename T, typename = void>
 struct property_datatype {
+};
+
+/**
+ * @brief Trivially copyable datatype holders can be accessed on either host or device.
+ * @details Those types that support conversions to dim3 and std::array<unsigned, 3> can also
+ *          invoke the operator dim3(), which can be used as the kernel calling parameters.
+ */
+template<typename T>
+struct property_datatype<T, std::enable_if_t<std::is_trivially_copyable_v<T>>> {
   using t = T;
 
+  constexpr property_datatype() = default;
   constexpr property_datatype(const t& value) : m_value(value) {}
-  constexpr property_datatype() {}
   __host__ __device__ operator t() const { return this->m_value; }
   __host__ __device__ t get() const { return this->m_value; }
-  __host__ __device__ operator dim3() const;
+  __host__ __device__ operator dim3() const
+  {
+    static_assert(
+      (std::is_convertible_v<T, dim3> ||
+       std::is_same_v<std::decay_t<T>, std::array<unsigned, 3>>) &&"The dim3 operator can only be invoked on "
+                                                                   "convertible types or std::array<unsigned, 3>");
+    if constexpr (std::is_convertible_v<T, dim3>) {
+      return m_value;
+    }
+    else if constexpr (std::is_same_v<std::decay_t<T>, std::array<unsigned, 3>>) {
+      return {m_value[0], m_value[1], m_value[2]};
+    }
+  }
 
 protected:
   t m_value;
 };
 
 /**
- * @brief std::string properties cannot be accessed on the device,
- *        as any retrieval of the value results in a copy constructor
- *        invocation, which is not header only.
+ * @brief Non-trivially copyable datatype holders can be accessed solely on the host.
  */
-template<>
-struct property_datatype<std::string> {
-  using t = std::string;
+template<typename T>
+struct property_datatype<T, std::enable_if_t<!std::is_trivially_copyable_v<T>>> {
+  using t = T;
 
-  // Constructors cannot be constexpr for std::string
+  property_datatype() = default;
   property_datatype(const t& value) : m_value(value) {}
-  property_datatype() {}
-  operator t() const { return this->m_value; }
-  t get() const { return this->m_value; }
+  __host__ operator t() const { return this->m_value; }
+  __host__ t get() const { return this->m_value; }
 
 protected:
   t m_value;
-};
-
-/**
- * @brief DeviceDimension specialization.
- *
- *        A separate specialization is provided for DeviceDimensions to support
- *        conversion to dim3.
- */
-template<>
-struct property_datatype<DeviceDimensions> {
-  using t = DeviceDimensions;
-
-  property_datatype(const t& value) : m_value(value) {}
-  property_datatype() {}
-  __host__ __device__ operator t() const { return this->m_value; }
-  __host__ __device__ t get() const { return this->m_value; }
-  __host__ __device__ operator dim3() const { return {this->m_value[0], this->m_value[1], this->m_value[2]}; }
-
-protected:
-  t m_value = {0, 0, 0};
 };
 
 // Properties have an additional property method to be able to parse it with libclang.
