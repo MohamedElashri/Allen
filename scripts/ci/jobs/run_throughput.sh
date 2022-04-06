@@ -111,7 +111,7 @@ else
 
     ALLEN="HSA_NO_SCRATCH_RECLAIM=1 GPU_MAX_HW_QUEUES=8 HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
 
-    rocm-smi
+    rocm-smi || echo "error occurred during rocm-smi; it will be ignored"
 
   fi
   echo "Command: ${ALLEN}"
