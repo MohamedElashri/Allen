@@ -31,7 +31,7 @@ struct PVTrack {
 // See https://github.com/ROCm-Developer-Tools/HIP/issues/2610
 namespace std {
   template<>
-  struct is_trivially_copyable<PVTrack> : std::true_type {
+  struct Allen::is_trivially_copyable<PVTrack> : std::true_type {
   };
 } // namespace std
 #endif

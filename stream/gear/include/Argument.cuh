@@ -29,7 +29,7 @@ struct optional_datatype {
 template<typename internal_t>
 struct datatype {
   using type = internal_t;
-  static_assert(std::is_trivially_copyable_v<type> && "Allen datatypes must be trivially copyable");
+  static_assert(Allen::is_trivially_copyable_v<type> && "Allen datatypes must be trivially copyable");
   __host__ __device__ datatype(type* value) : m_value(value) {}
   __host__ __device__ datatype() {}
 
