@@ -50,13 +50,14 @@
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_veloSP"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
+        AVOID_HIP: "1" # This shouldn't have multiple values FIXME
 
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_veloSP_validation"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster"]
         GEOMETRY: ["scifi_v6"]
-        AVOID_HIP: "1" # This shouldn't have multiple values
+        AVOID_HIP: "1" # This shouldn't have multiple values FIXME
 
       # run throughput, scifi_v6
       - TEST_NAME: "run_throughput"
