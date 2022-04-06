@@ -24,46 +24,46 @@ def _build_decision_ids(decision_names, offset=0):
     Returns:
         decision_ids (dict of str to int): Mapping from decision name to ID.
     """
-    return {idx: name for idx, name in enumerate(decision_names, offset)}
+    return {name: idx for idx, name in enumerate(decision_names, offset)}
 
 
-# Example routing bits map to be passed as routingbit_map=str(rb_map) in the host_routingbits_writer algorithm
+# Example routing bits map to be passed as property in the host_routingbits_writer algorithm
 rb_map = {
-    33:
-    '^Hlt1.*Lumi.*',
+    '^Hlt1.*Lumi.*':
+    33,
     # RB 35 Beam-Gas for Velo alignment
-    35:
-    'Hlt1(?!BeamGasHighRhoVertices)BeamGas.*',
+    'Hlt1(?!BeamGasHighRhoVertices)BeamGas.*':
+    35,
     # Hlt1ODINBeamGas? RB 36 EXPRESS stream (bypasses Hlt2)
-    36:
-    'Hlt1(Velo.*|BeamGas.*VeloOpen)',
+    'Hlt1(Velo.*|BeamGas.*VeloOpen)':
+    36,
     #RB 37 Beam-Beam collisions for Velo alignment
-    37:
-    'Hlt1(TrackMVA|TwoTrackMVA|TwoTrackCatBoost|TrackMuonMVA)',
+    'Hlt1(TrackMVA|TwoTrackMVA|TwoTrackCatBoost|TrackMuonMVA)':
+    37,
     # RB 40 Velo (closing) monitoring
-    40:
-    'Hlt1Velo.*',
+    'Hlt1Velo.*':
+    40,
     #RB 46 HLT1 physics for monitoring and alignment
-    46:
-    'Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*',
+    'Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
+    46,
     #RB 48 NoBias, prescaled
-    48:
-    'Hlt1.*NoBias',
+    'Hlt1.*NoBias':
+    48,
     #RB 50 Passthrough for tests
-    50:
-    'Hlt1Passthrough',
+    'Hlt1Passthrough':
+    50,
     # RB 53 Tracker alignment
-    53:
-    'Hlt1D2KPi',
+    'Hlt1D2KPi':
+    53,
     #RB 54 RICH mirror alignment
-    54:
-    'Hlt1RICH.*Alignment',
+    'Hlt1RICH.*Alignment':
+    54,
     #RB 56 Muon alignment
-    56:
-    'Hlt1CalibMuonAlignJpsi',
+    'Hlt1CalibMuonAlignJpsi':
+    56,
     #RB 57 Tell1 Error events
-    57:
-    'Hlt1Tell1Error'
+    'Hlt1Tell1Error':
+    57
 }
 
 

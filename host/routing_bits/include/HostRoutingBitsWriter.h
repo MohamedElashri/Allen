@@ -20,9 +20,9 @@ namespace host_routingbits_writer {
       routingbit_map_t,
       "routingbit_map",
       "mapping of expressions to routing bits",
-      std::map<uint32_t, std::string>)
+      std::map<std::string, uint32_t>)
     routingbit_map;
-    PROPERTY(name_to_id_map_t, "name_to_id_map", "mapping of line names to decIDs", std::map<uint32_t, std::string>)
+    PROPERTY(name_to_id_map_t, "name_to_id_map", "mapping of line names to decIDs", std::map<std::string, uint32_t>)
     name_to_id_map;
   };
 
@@ -30,7 +30,6 @@ namespace host_routingbits_writer {
    * @brief Implementation of routing bits writer on the host.
    */
   std::unordered_map<uint32_t, boost::dynamic_bitset<>> m_rb_ids;
-  const std::map<uint32_t, std::string> default_routingbit_map;
 
   void host_routingbits_impl(
     unsigned host_number_of_events,

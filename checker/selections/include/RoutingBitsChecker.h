@@ -15,7 +15,7 @@ private:
   // Event counters.
   std::vector<unsigned> m_counters;
   std::vector<std::string> m_line_names;
-  std::map<uint32_t, std::string> m_rb_map;
+  std::map<std::string, uint32_t> m_rb_map;
   unsigned m_tot;
   std::mutex m_mutex;
 
@@ -27,7 +27,7 @@ public:
     const unsigned* dec_reports,
     const uint32_t* routing_bits,
     const unsigned number_of_events,
-    const std::map<uint32_t, std::string> rb_map);
+    const std::map<std::string, uint32_t> rb_map);
 
   void report(size_t) const override;
 };

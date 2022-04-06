@@ -11,7 +11,7 @@ void RoutingBitsChecker::accumulate(
   const unsigned* dec_reports,
   const unsigned* routing_bits,
   const unsigned number_of_events,
-  const std::map<uint32_t, std::string> rb_map)
+  const std::map<std::string, uint32_t> rb_map)
 {
   for (auto i = 0u; i < number_of_events; ++i) {
     auto const* rbs = routing_bits + 4 * i;
@@ -31,7 +31,7 @@ void RoutingBitsChecker::report(size_t) const
   for (auto line_name : m_line_names) {
     bool line_found = false;
     std::vector<int> set_rbs;
-    for (auto const& [bit, expr] : m_rb_map) {
+    for (auto const& [expr, bit] : m_rb_map) {
       std::regex rb_regex(expr);
       if (std::regex_match(line_name, rb_regex)) {
         line_found = true;

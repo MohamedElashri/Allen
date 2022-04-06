@@ -23,10 +23,10 @@ void host_routingbits_writer::host_routingbits_writer_t::init() const
   const auto nlines = name_to_id_map.size();
 
   // Find set of decisionIDs that match each routing bit
-  for (auto const& [bit, expr] : rb_map) {
+  for (auto const& [expr, bit] : rb_map) {
     std::regex rb_regex(expr);
     boost::dynamic_bitset<> rb_bitset(nlines);
-    for (auto const& [id, name] : name_to_id_map) {
+    for (auto const& [name, id] : name_to_id_map) {
       if (std::regex_match(name, rb_regex)) {
         debug_cout << "Bit: " << bit << " expression: " << expr << " matched to line: " << name << " with ID " << id
                    << std::endl;
@@ -74,7 +74,6 @@ void host_routingbits_writer::host_routingbits_impl(
     unsigned* bits = host_routing_bits + RoutingBitsDefinition::n_words * event;
 
     unsigned const* dec_reports = host_dec_reports + (2 + host_number_of_active_lines) * event;
-
     for (unsigned line_index = 0; line_index < host_number_of_active_lines; ++line_index) {
       HltDecReport dec_report {dec_reports[2 + line_index]};
       if (dec_report.decision())

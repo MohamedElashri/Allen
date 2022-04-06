@@ -18,7 +18,7 @@ namespace host_routingbits_validator {
       routingbit_map_t,
       "routingbit_map",
       "mapping of expressions to routing bits",
-      std::map<uint32_t, std::string>);
+      std::map<std::string, uint32_t>);
   };
 
   struct host_routingbits_validator_t : public HostAlgorithm, Parameters {
