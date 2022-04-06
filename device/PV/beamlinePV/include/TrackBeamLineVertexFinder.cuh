@@ -29,11 +29,9 @@ struct PVTrack {
 #ifdef TARGET_DEVICE_HIP
 // UGLY HACK to support trivially copyable check on HIP for float2, float3 and float4
 // See https://github.com/ROCm-Developer-Tools/HIP/issues/2610
-namespace std {
-  template<>
-  struct Allen::is_trivially_copyable<PVTrack> : std::true_type {
-  };
-} // namespace std
+template<>
+struct Allen::is_trivially_copyable<PVTrack> : std::true_type {
+};
 #endif
 
 struct Extremum {
