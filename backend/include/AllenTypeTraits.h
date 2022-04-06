@@ -240,7 +240,8 @@ namespace Allen {
   }
 
   template<typename T>
-  struct is_trivially_copyable : std::is_trivially_copyable<T> {};
+  struct is_trivially_copyable : std::is_trivially_copyable<T> {
+  };
 
   template<typename T>
   inline constexpr bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
