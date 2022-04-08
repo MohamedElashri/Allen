@@ -19,6 +19,8 @@ namespace gather_selections {
     DEVICE_INPUT_AGGREGATE(dev_input_selections_offsets_t, unsigned) dev_input_selections_offsets;
     HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
     HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
+    DEVICE_INPUT_AGGREGATE(dev_fn_agg_t, std::function<void()>*) dev_fn_agg;
+    DEVICE_OUTPUT(dev_fns_t, std::function<void()>*) dev_fns;
     DEVICE_INPUT_AGGREGATE(dev_particle_containers_agg_t, Allen::IMultiEventContainer*)
     dev_particle_containers_agg;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;

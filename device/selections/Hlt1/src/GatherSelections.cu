@@ -82,6 +82,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<dev_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
   set_size<dev_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
   set_size<dev_particle_containers_t>(arguments, dev_particle_containers_agg.size_of_aggregate());
+  set_size<dev_fns_t>(arguments, input_aggregate<dev_fn_agg_t>(arguments).size_of_aggregate());
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
@@ -97,6 +98,15 @@ void gather_selections::gather_selections_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
+  // Run the selection algorithms
+  Allen::aggregate::store_contiguous_async<dev_fns_t, dev_fn_agg_t>(
+    arguments, context);
+  Allen::synchronize(context);
+
+  for (unsigned i = 0; i < size<dev_fns_t>(arguments); ++i) {
+    (*data<dev_fns_t>(arguments)[i])();
+  }
+
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
   const auto line_names = std::string(property<names_of_active_lines_t>());

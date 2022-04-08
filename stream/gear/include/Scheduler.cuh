@@ -243,7 +243,9 @@ private:
     }
 
     // Free all arguments in OutDependencies
-    MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
+    if (algorithm.scope() != "SelectionAlgorithm") {
+      MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
+    }
 
     // Reserve all arguments in InDependencies
     MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);

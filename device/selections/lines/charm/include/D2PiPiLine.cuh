@@ -23,6 +23,7 @@ namespace d2pipi_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    DEVICE_OUTPUT(fn_t, std::function<void()>*) dev_fn;
 
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,

@@ -45,6 +45,7 @@ namespace LineIteration {
  *  DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
  *  HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
  *  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    DEVICE_OUTPUT(fn_t, std::function<void()>*) dev_fn;
  *  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
  *  PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
  *  PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -75,6 +76,7 @@ struct Line {
 private:
   uint32_t m_pre_scaler_hash;
   uint32_t m_post_scaler_hash;
+  mutable std::function<void()> m_wrapped_fn;
 
 public:
   using iteration_t = LineIteration::default_iteration_tag;
@@ -111,6 +113,7 @@ public:
     set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
+    set_size<typename Parameters::fn_t>(arguments, 1);
   }
 
   void operator()(
@@ -281,46 +284,10 @@ __global__ void process_line_iterate_events(
   }
 }
 
-template<typename Derived, typename Parameters, typename GlobalFunctionDispatch>
-struct LineIterationDispatch;
-
-template<typename Derived, typename Parameters>
-struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iteration_tag> {
-  static void dispatch(
-    const ArgumentReferences<Parameters>& arguments,
-    const Allen::Context& context,
-    const Derived* derived_instance,
-    const unsigned grid_dim_x,
-    const unsigned pre_scaler_hash)
-  {
-    derived_instance->global_function(process_line<Derived, Parameters>)(
-      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
-      arguments, first<typename Parameters::host_number_of_events_t>(arguments), pre_scaler_hash);
-  }
-};
-
-template<typename Derived, typename Parameters>
-struct LineIterationDispatch<Derived, Parameters, LineIteration::event_iteration_tag> {
-  static void dispatch(
-    const ArgumentReferences<Parameters>& arguments,
-    const Allen::Context& context,
-    const Derived* derived_instance,
-    const unsigned grid_dim_x,
-    const unsigned pre_scaler_hash)
-  {
-    derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
-      arguments,
-      size<typename Parameters::dev_event_list_t>(arguments),
-      first<typename Parameters::host_number_of_events_t>(arguments),
-      pre_scaler_hash);
-  }
-};
-
 template<typename Derived, typename Parameters>
 void Line<Derived, Parameters>::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
   const Allen::Context& context) const
@@ -337,19 +304,37 @@ void Line<Derived, Parameters>::operator()(
   data<typename Parameters::host_post_scaler_t>(arguments)[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
   data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
+  data<typename Parameters::fn_t>(arguments)[0] = &m_wrapped_fn;
 
-  Derived::init_monitor(arguments, context);
+  // Derived::init_monitor(arguments, context);
 
   // Dispatch the executing global function.
-  LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
-    arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
+  if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
+    m_wrapped_fn = [=] () {
+      derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
+        Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
+        arguments,
+        size<typename Parameters::dev_event_list_t>(arguments),
+        first<typename Parameters::host_number_of_events_t>(arguments),
+        m_pre_scaler_hash);
+    };
+  } else {
+    m_wrapped_fn = [=] () {
+      derived_instance->global_function(process_line<Derived, Parameters>)(
+        Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
+        arguments, first<typename Parameters::host_number_of_events_t>(arguments), m_pre_scaler_hash);
+    };
+  }
 
-  Allen::copy<typename Parameters::host_selected_events_size_t, typename Parameters::dev_selected_events_size_t>(
-    arguments, context);
-  reduce_size<typename Parameters::dev_selected_events_t>(
-    arguments, first<typename Parameters::host_selected_events_size_t>(arguments));
+  // LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
+  //   arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
 
-  derived_instance->output_monitor(arguments, runtime_options, context);
+  // Allen::copy<typename Parameters::host_selected_events_size_t, typename Parameters::dev_selected_events_size_t>(
+  //   arguments, context);
+  // reduce_size<typename Parameters::dev_selected_events_t>(
+  //   arguments, first<typename Parameters::host_selected_events_size_t>(arguments));
+
+  // derived_instance->output_monitor(arguments, runtime_options, context);
 }
 
 #endif
