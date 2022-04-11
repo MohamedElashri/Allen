@@ -70,7 +70,7 @@ namespace Allen {
   unsigned
   number_of_banks(gsl::span<char const> allen_banks, gsl::span<unsigned const> allen_offsets, unsigned const i_event)
   {
-    return reinterpret_cast<unsigned const*>(allen_banks.data() + allen_offsets[i_event])[i_event];
+    return reinterpret_cast<unsigned const*>(allen_banks.data() + allen_offsets[i_event])[0];
   }
 } // namespace Allen
 
