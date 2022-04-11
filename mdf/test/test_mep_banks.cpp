@@ -284,7 +284,7 @@ struct compare<BankTypes::ODIN, transpose_mep> {
       odin_bank<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
 
     // Check that the number of banks is 1
-    auto const n_mep_banks = MEP::number_of_banks(mep_offsets.data());
+    auto const n_mep_banks = transpose_mep ? Allen::number_of_banks(mep_fragments, mep_offsets, i_event) : MEP::number_of_banks(mep_offsets.data());
     REQUIRE(n_mep_banks == 1);
     REQUIRE(n_mep_banks == Allen::number_of_banks(allen_banks, allen_offsets, i_event));
 
