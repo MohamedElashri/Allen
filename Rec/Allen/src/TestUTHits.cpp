@@ -9,8 +9,8 @@
 #include "Event/MCHit.h"
 #include "Kernel/LHCbID.h"
 #include "LHCbMath/SIMDWrapper.h"
-// Rec
-#include "PrKernel/PrUTHitHandler.h"
+#include "Event/PrHits.h"
+
 // Allen
 #include "HostBuffers.cuh"
 #include "UTEventModel.cuh"
@@ -19,14 +19,14 @@
 using simd = SIMDWrapper::best::types;
 
 class TestUTHits final
-  : public Gaudi::Functional::Consumer<void(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::HitHandler&)> {
+  : public Gaudi::Functional::Consumer<void(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&)> {
 
 public:
   /// Standard constructor
   TestUTHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  void operator()(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::HitHandler&) const override;
+  void operator()(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&) const override;
 
 private:
   mutable Gaudi::Accumulators::BinomialCounter<> m_allen_hit_eff {this, "GPU UT Hit efficiency"};
@@ -41,13 +41,11 @@ TestUTHits::TestUTHits(const std::string& name, ISvcLocator* pSvcLocator) :
     pSvcLocator,
     {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"},
      KeyValue {"UnpackedUTHits", "/Event/MC/UT/Hits"},
-     KeyValue {"UTHitsLocation", UT::Info::HitLocation}})
+     KeyValue {"UTHitsLocation", UTInfo::HitLocation}})
 {}
 
-void TestUTHits::operator()(
-  HostBuffers const& host_buffers,
-  LHCb::MCHits const& mc_hits,
-  LHCb::Pr::UT::HitHandler const& hit_handler) const
+void TestUTHits::
+operator()(HostBuffers const& host_buffers, LHCb::MCHits const& mc_hits, LHCb::Pr::UT::Hits const& hit_handler) const
 {
   if (host_buffers.host_number_of_selected_events == 0) {
     warning() << "No events from Allen. Returning" << endmsg;
@@ -62,7 +60,7 @@ void TestUTHits::operator()(
   const auto n_hits_total_rec = hit_handler.nHits();
   // call the UT::Hits_t ctor in UTEventModel.cuh with offset=0
   UT::ConstHits ut_hit_container_allen {ut_hits.data(), n_hits_total_allen};
-  const auto& ut_hit_container_rec = hit_handler.hits().simd();
+  const auto& ut_hit_container_rec = hit_handler.simd();
 
   debug() << "Number of UT hits (Allen) in this event " << n_hits_total_allen << endmsg;
   debug() << "Number of UT hits (Rec) in this event   " << n_hits_total_rec << endmsg;
