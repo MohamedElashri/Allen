@@ -62,7 +62,7 @@ namespace Calo {
         data = d + offsets[event];
         number_of_raw_banks = reinterpret_cast<uint32_t const*>(data)[0];
         sizes = Allen::bank_sizes(s, event);
-        types = Allen::bank_types(s, event);
+        types = Allen::bank_types(t, event);
       }
     }
 
