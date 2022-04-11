@@ -18,6 +18,7 @@ namespace Muon {
     uint32_t sourceID = 0;
     const data_type* data = nullptr;
     const data_type* last = nullptr;
+    uint8_t type = Allen::LastBankType;
 
     __device__ MuonRawBank(const char* raw_bank, const uint16_t s)
     {
@@ -28,11 +29,12 @@ namespace Muon {
       last = reinterpret_cast<const data_type*>(p + s);
     }
 
-    __device__ MuonRawBank(const uint32_t sID, const char* bank_start, const uint16_t s)
+    __device__ MuonRawBank(const uint32_t sID, const char* bank_start, const uint16_t s, const uint8_t t)
     {
       sourceID = sID;
       data = reinterpret_cast<const data_type*>(bank_start);
       last = reinterpret_cast<const data_type*>(bank_start + s);
+      type = t;
     }
   };
 
