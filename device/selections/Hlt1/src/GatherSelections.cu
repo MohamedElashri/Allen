@@ -112,14 +112,14 @@ void gather_selections::gather_selections_t::operator()(
     arguments, context);
   Allen::synchronize(context);
 
-  Allen::func_t<void> h_blah_func;
-  cudaMemcpyFromSymbol(&h_blah_func, blah, sizeof(Allen::func_t<void>));
+  // Allen::func_t<void> h_blah_func;
+  // cudaMemcpyFromSymbol(&h_blah_func, blah, sizeof(Allen::func_t<void>));
 
-  foo<<<1, 1, 0, context.stream()>>>(h_blah_func);
+  // foo<<<1, 1, 0, context.stream()>>>(h_blah_func);
 
-  for (unsigned i = 0; i < size<dev_fns_t>(arguments); ++i) {
-    (*data<dev_fns_t>(arguments)[i])();
-  }
+  // for (unsigned i = 0; i < size<dev_fns_t>(arguments); ++i) {
+  //   (*data<dev_fns_t>(arguments)[i])();
+  // }
 
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
