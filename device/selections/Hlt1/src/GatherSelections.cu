@@ -7,6 +7,7 @@
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
 #include <algorithm>
+#include <nvfunctional>
 
 INSTANTIATE_ALGORITHM(gather_selections::gather_selections_t)
 
@@ -91,6 +92,14 @@ void gather_selections::gather_selections_t::set_arguments_size(
   }
 }
 
+__global__ void foo (Allen::func_t<void> op) {
+  (*op)();
+}
+
+__device__ void blah () {
+  printf("Hello world\n");
+}
+
 void gather_selections::gather_selections_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
@@ -102,6 +111,11 @@ void gather_selections::gather_selections_t::operator()(
   Allen::aggregate::store_contiguous_async<dev_fns_t, dev_fn_agg_t>(
     arguments, context);
   Allen::synchronize(context);
+
+  Allen::func_t<void> h_blah_func;
+  cudaMemcpyFromSymbol(&h_blah_func, blah, sizeof(Allen::func_t<void>));
+
+  foo<<<1, 1, 0, context.stream()>>>(h_blah_func);
 
   for (unsigned i = 0; i < size<dev_fns_t>(arguments); ++i) {
     (*data<dev_fns_t>(arguments)[i])();

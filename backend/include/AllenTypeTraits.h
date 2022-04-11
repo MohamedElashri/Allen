@@ -245,4 +245,7 @@ namespace Allen {
 
   template<typename T>
   inline constexpr bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
+
+  template<typename T>
+  using func_t = T (*) ();
 } // namespace Allen

@@ -304,27 +304,27 @@ void Line<Derived, Parameters>::operator()(
   data<typename Parameters::host_post_scaler_t>(arguments)[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
   data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
-  data<typename Parameters::fn_t>(arguments)[0] = &m_wrapped_fn;
+  // data<typename Parameters::fn_t>(arguments)[0] = &m_wrapped_fn;
 
   // Derived::init_monitor(arguments, context);
 
   // Dispatch the executing global function.
-  if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
-    m_wrapped_fn = [=] () {
-      derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-        Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
-        arguments,
-        size<typename Parameters::dev_event_list_t>(arguments),
-        first<typename Parameters::host_number_of_events_t>(arguments),
-        m_pre_scaler_hash);
-    };
-  } else {
-    m_wrapped_fn = [=] () {
-      derived_instance->global_function(process_line<Derived, Parameters>)(
-        Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
-        arguments, first<typename Parameters::host_number_of_events_t>(arguments), m_pre_scaler_hash);
-    };
-  }
+  // if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
+  //   m_wrapped_fn = [=] () {
+  //     derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
+  //       Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
+  //       arguments,
+  //       size<typename Parameters::dev_event_list_t>(arguments),
+  //       first<typename Parameters::host_number_of_events_t>(arguments),
+  //       m_pre_scaler_hash);
+  //   };
+  // } else {
+  //   m_wrapped_fn = [=] () {
+  //     derived_instance->global_function(process_line<Derived, Parameters>)(
+  //       Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
+  //       arguments, first<typename Parameters::host_number_of_events_t>(arguments), m_pre_scaler_hash);
+  //   };
+  // }
 
   // LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
   //   arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
