@@ -74,7 +74,7 @@ namespace Allen {
   }
 } // namespace Allen
 
-fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
+fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_sp)
 {
 
   // Write a JSON file that can be fed to AllenConfiguration to
@@ -83,6 +83,8 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
   for (auto bt : bank_types) {
     bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
   }
+  std::array<std::string, 2> velo_decoding{velo_sp ? "velo_masked_clustering" : "decode_retina", "decode"};
+  bank_types_json["sequence"]["configured_algorithms"] = std::vector<std::array<std::string, 2>>{velo_decoding};
 
   auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
   std::ofstream bt_json(bt_filename.string());
@@ -146,23 +148,26 @@ int main(int argc, char* argv[])
 {
 
   Catch::Session session; // There must be exactly one instance
+  bool velo_sp = false;
 
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
-  auto cli = session.cli()                                   // Get Catch's composite command line parser
-             | Opt(s_config.mdf_files, string {"MDF files"}) // bind variable to a new option, with a hint string
+  auto cli = session.cli()
+             | Opt(s_config.mdf_files, string {"MDF files"})
                  ["--mdf"]("MDF files") |
-             Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
+             Opt(s_config.mep_files, string {"MEP files"})
                ["--mep"]("MEP files") |
-             Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
+             Opt(s_config.n_events, string {"#events"})
                ["--nevents"]("number of events") |
-             Opt(s_config.transpose_mep) // bind variable to a new option, with a hint string
+             Opt(s_config.transpose_mep)
                ["--transpose-mep"]("transpose MEPs") |
-             Opt(s_config.debug) // bind variable to a new option, with a hint string
+             Opt(velo_sp)
+               ["--velo-sp"]("Use Velo SuperPixel banks") |
+             Opt(s_config.debug)
                ["--debug"]("debug output") |
-             Opt(s_config.subdetectors, string {"SDs"}) // bind variable to a new option, with a hint string
+             Opt(s_config.subdetectors, string {"SDs"})
                ["--subdetectors"]("subdetectors") |
-             Opt(s_config.eps, string {"#events-per-slice"}) // bind variable to a new option, with a hint string
+             Opt(s_config.eps, string {"#events-per-slice"})
                ["--eps"]("number of events per slice");
 
   // Now pass the new composite back to Catch so it uses that
@@ -197,7 +202,7 @@ int main(int argc, char* argv[])
         sds.emplace(bt);
       }
     }
-    auto json_file = write_json(sds);
+    auto json_file = write_json(sds, velo_sp);
 
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
