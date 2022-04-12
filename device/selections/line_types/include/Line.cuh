@@ -10,6 +10,7 @@
 #include "ODINBank.cuh"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
+#include <tuple>
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(LINE, PARAMETERS)          \
@@ -29,6 +30,8 @@ namespace LineIteration {
   };
 } // namespace LineIteration
 
+using line_fn_t = void(*)(const char*);
+
 /**
  * @brief A generic Line.
  * @detail It assumes the line has the following parameters:
@@ -45,7 +48,10 @@ namespace LineIteration {
  *  DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
  *  HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
  *  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    DEVICE_OUTPUT(fn_t, std::function<void()>*) dev_fn;
+    HOST_OUTPUT(host_fn_t, line_fn_t) host_fn;
+    DEVICE_OUTPUT(dev_fn_t, line_fn_t) dev_fn;
+    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+    DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
  *  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
  *  PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
  *  PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -76,7 +82,6 @@ struct Line {
 private:
   uint32_t m_pre_scaler_hash;
   uint32_t m_post_scaler_hash;
-  mutable std::function<void()> m_wrapped_fn;
 
 public:
   using iteration_t = LineIteration::default_iteration_tag;
@@ -103,6 +108,8 @@ public:
     const Constants&,
     const HostBuffers&) const
   {
+    const auto* derived_instance = static_cast<const Derived*>(this);
+
     set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
@@ -113,7 +120,24 @@ public:
     set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
-    set_size<typename Parameters::fn_t>(arguments, 1);
+
+    // Function pointer of the fn to run the selection algorithm
+    set_size<typename Parameters::host_fn_t>(arguments, 1);
+    set_size<typename Parameters::dev_fn_t>(arguments, 1);
+
+    // Set the size of the type-erased fn parameters
+    set_size<typename Parameters::host_fn_parameters_t>(
+      arguments,
+        sizeof(std::make_tuple(derived_instance->make_parameters(
+          Derived::get_grid_dim_x(arguments),
+          Derived::get_block_dim_x(arguments),
+          0,
+          arguments),
+          size<typename Parameters::dev_event_list_t>(arguments),
+          first<typename Parameters::host_number_of_events_t>(arguments),
+          m_pre_scaler_hash)));
+    printf("set args size (%s): %lu\n", derived_instance->name().c_str(), size<typename Parameters::host_fn_parameters_t>(arguments));
+    set_size<typename Parameters::dev_fn_parameters_t>(arguments, size<typename Parameters::host_fn_parameters_t>(arguments));
   }
 
   void operator()(
@@ -158,8 +182,15 @@ public:
  *        The way process line parallelizes is highly configurable.
  */
 template<typename Derived, typename Parameters>
-__global__ void process_line(Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
+__device__ void process_line(const char* input)
 {
+  const auto type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
+  const auto& parameters = std::get<0>(type_casted_input);
+  const auto number_of_events = std::get<2>(type_casted_input);
+  const auto pre_scaler_hash = std::get<3>(type_casted_input);
+
+  printf("Number of events: %i\n", number_of_events);
+
   __shared__ int event_decision;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned input_size = Derived::input_size(parameters, event_number);
@@ -232,12 +263,13 @@ __global__ void process_line(Parameters parameters, const unsigned number_of_eve
  * @brief Processes a line by iterating over events and applying the line.
  */
 template<typename Derived, typename Parameters>
-__global__ void process_line_iterate_events(
-  Parameters parameters,
-  const unsigned number_of_events_in_event_list,
-  const unsigned number_of_events,
-  const unsigned pre_scaler_hash)
+__device__ void process_line_iterate_events(const char* input)
 {
+  const auto type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
+  const auto& [parameters, number_of_events_in_event_list, number_of_events, pre_scaler_hash] = type_casted_input;
+
+  printf("Number of events: %i\n", number_of_events);
+
   // Populate IMultiEventContainer* if relevant
   if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
     if (blockIdx.x == 0 && threadIdx.x == 0) {
@@ -304,26 +336,35 @@ void Line<Derived, Parameters>::operator()(
   data<typename Parameters::host_post_scaler_t>(arguments)[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
   data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
-  // data<typename Parameters::fn_t>(arguments)[0] = &m_wrapped_fn;
 
-  // Derived::init_monitor(arguments, context);
-
-  // Dispatch the executing global function.
+  // Delay the execution of the line:
+  // * Pass the function pointer of the device function executing the line
+  auto fn_pointer = reinterpret_cast<line_fn_t*>(data<typename Parameters::host_fn_t>(arguments));
   if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
-    derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-      Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
-      arguments,
-      size<typename Parameters::dev_event_list_t>(arguments),
-      first<typename Parameters::host_number_of_events_t>(arguments),
-      m_pre_scaler_hash);
-  } else {
-    derived_instance->global_function(process_line<Derived, Parameters>)(
-      Derived::get_grid_dim_x(arguments), Derived::get_block_dim_x(arguments), context)(
-      arguments, first<typename Parameters::host_number_of_events_t>(arguments), m_pre_scaler_hash);
+    fn_pointer[0] = &process_line_iterate_events<Derived, Parameters>;
+  }
+  else {
+    fn_pointer[0] = &process_line<Derived, Parameters>;
   }
 
-  // LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
-  //   arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
+  // * Pass the parameters
+  auto parameters = std::make_tuple(derived_instance->make_parameters(
+    Derived::get_grid_dim_x(arguments),
+    Derived::get_block_dim_x(arguments),
+    0,
+    arguments),
+    size<typename Parameters::dev_event_list_t>(arguments),
+    first<typename Parameters::host_number_of_events_t>(arguments),
+    m_pre_scaler_hash);
+
+  printf("operator() size (%s): %lu\n", derived_instance->name().c_str(), sizeof(parameters));
+
+  auto fn_parameters_pointer = reinterpret_cast<decltype(parameters)*>(data<typename Parameters::host_fn_parameters_t>(arguments));
+  fn_parameters_pointer[0] = parameters;
+
+  // * Prepare the function and parameters on the device
+  Allen::copy_async<typename Parameters::dev_fn_t, typename Parameters::host_fn_t>(arguments, context);
+  Allen::copy_async<typename Parameters::dev_fn_parameters_t, typename Parameters::host_fn_parameters_t>(arguments, context);
 
   // Allen::copy<typename Parameters::host_selected_events_size_t, typename Parameters::dev_selected_events_size_t>(
   //   arguments, context);

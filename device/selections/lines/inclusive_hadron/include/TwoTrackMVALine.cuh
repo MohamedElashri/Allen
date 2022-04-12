@@ -24,7 +24,10 @@ namespace two_track_mva_line {
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    DEVICE_OUTPUT(fn_t, std::function<void()>*) dev_fn;
+    HOST_OUTPUT(host_fn_t, line_fn_t) host_fn;
+    DEVICE_OUTPUT(dev_fn_t, line_fn_t) dev_fn;
+    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+    DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
 
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,

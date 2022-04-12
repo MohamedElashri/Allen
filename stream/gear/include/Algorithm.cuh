@@ -180,7 +180,7 @@ namespace Allen {
           const Allen::Context& context) {
           using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
           using preconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::preconditions;
-          if constexpr (std::tuple_size_v<preconditions_t>> 0) {
+          if constexpr (std::tuple_size_v < preconditions_t >> 0) {
             auto preconditions = preconditions_t {};
             const auto location = static_cast<ALGORITHM const*>(p)->name();
             std::apply(
@@ -203,7 +203,7 @@ namespace Allen {
           const Allen::Context& context) {
           using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
           using postconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::postconditions;
-          if constexpr (std::tuple_size_v<postconditions_t>> 0) {
+          if constexpr (std::tuple_size_v < postconditions_t >> 0) {
             auto postconditions = postconditions_t {};
             const auto location = static_cast<ALGORITHM const*>(p)->name();
             std::apply(
@@ -226,7 +226,7 @@ namespace Allen {
     TypeErasedAlgorithm& operator=(const TypeErasedAlgorithm&) = delete;
     TypeErasedAlgorithm& operator=(TypeErasedAlgorithm&&) = delete;
 
-    std::string name() const { return (table.name)(instance); }
+    std::string name() const { return (table.name) (instance); }
     std::any create_arg_ref_manager(
       std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
       std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates)
@@ -255,15 +255,15 @@ namespace Allen {
     {
       (table.set_properties)(instance, algo_config);
     }
-    std::map<std::string, nlohmann::json> get_properties() const { return (table.get_properties)(instance); }
-    std::string scope() const { return (table.scope)(); }
+    std::map<std::string, nlohmann::json> get_properties() const { return (table.get_properties) (instance); }
+    std::string scope() const { return (table.scope) (); }
     void run_preconditions(
       std::any& arg_ref_manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const Allen::Context& context)
     {
-      return (table.run_preconditions)(instance, arg_ref_manager, runtime_options, constants, context);
+      return (table.run_preconditions) (instance, arg_ref_manager, runtime_options, constants, context);
     }
     void run_postconditions(
       std::any& arg_ref_manager,
@@ -271,7 +271,7 @@ namespace Allen {
       const Constants& constants,
       const Allen::Context& context)
     {
-      return (table.run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
+      return (table.run_postconditions) (instance, arg_ref_manager, runtime_options, constants, context);
     }
   };
 
@@ -389,6 +389,17 @@ namespace Allen {
     auto global_function(const Fn& fn) const
     {
       return GlobalFunction<Fn> {m_properties, fn};
+    }
+
+    template<typename... S>
+    auto make_parameters(
+      const dim3& grid_dim,
+      const dim3& block_dim,
+      const unsigned dynamic_shared_memory_size,
+      S&&... arguments) const
+    {
+      return Allen::Gear::Function::make_parameters (
+        m_properties, grid_dim, block_dim, dynamic_shared_memory_size, arguments...);
     }
 
     PROPERTY(verbosity_t, "verbosity", "verbosity of algorithm", int);

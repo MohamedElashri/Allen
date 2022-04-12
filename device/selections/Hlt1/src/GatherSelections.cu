@@ -7,7 +7,6 @@
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
 #include <algorithm>
-#include <nvfunctional>
 
 INSTANTIATE_ALGORITHM(gather_selections::gather_selections_t)
 
@@ -27,10 +26,10 @@ namespace gather_selections {
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-    const LHCb::ODIN odin {{*dev_mep_layout ?
-                              odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-                              odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
-                            10}};
+    const LHCb::ODIN odin {
+      {*dev_mep_layout ? odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                         odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
+       10}};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -84,6 +83,8 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<dev_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
   set_size<dev_particle_containers_t>(arguments, dev_particle_containers_agg.size_of_aggregate());
   set_size<dev_fns_t>(arguments, input_aggregate<dev_fn_agg_t>(arguments).size_of_aggregate());
+  set_size<host_fns_parameters_t>(arguments, input_aggregate<dev_fn_parameters_agg_t>(arguments).size_of_aggregate());
+  set_size<dev_fns_parameters_t>(arguments, input_aggregate<dev_fn_parameters_agg_t>(arguments).size_of_aggregate());
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
@@ -92,12 +93,11 @@ void gather_selections::gather_selections_t::set_arguments_size(
   }
 }
 
-__global__ void foo (Allen::func_t<void> op) {
-  (*op)();
-}
-
-__device__ void blah () {
-  printf("Hello world\n");
+__global__ void run_lines(line_fn_t* line_fns, char** parameters, unsigned number_of_lines)
+{
+  for (unsigned i = 0; i < number_of_lines; ++i) {
+    line_fns[i](parameters[i]);
+  }
 }
 
 void gather_selections::gather_selections_t::operator()(
@@ -108,18 +108,20 @@ void gather_selections::gather_selections_t::operator()(
   const Allen::Context& context) const
 {
   // Run the selection algorithms
-  Allen::aggregate::store_contiguous_async<dev_fns_t, dev_fn_agg_t>(
-    arguments, context);
-  Allen::synchronize(context);
+  // * Prepare dev_fns_t, containing all fn pointers
+  Allen::aggregate::store_contiguous_async<dev_fns_t, dev_fn_agg_t>(arguments, context);
 
-  // Allen::func_t<void> h_blah_func;
-  // cudaMemcpyFromSymbol(&h_blah_func, blah, sizeof(Allen::func_t<void>));
+  // Prepare dev_fns_parameters_t, containing all parameter pointers
+  auto dev_fn_parameters_agg = input_aggregate<dev_fn_parameters_agg_t>(arguments);
+  const auto number_of_lines = dev_fn_parameters_agg.size_of_aggregate();
+  for (unsigned i = 0; i < number_of_lines; ++i) {
+    data<host_fns_parameters_t>(arguments)[i] = dev_fn_parameters_agg.data(i);
+  }
+  Allen::copy_async<dev_fns_parameters_t, host_fns_parameters_t>(arguments, context);
 
-  // foo<<<1, 1, 0, context.stream()>>>(h_blah_func);
-
-  // for (unsigned i = 0; i < size<dev_fns_t>(arguments); ++i) {
-  //   (*data<dev_fns_t>(arguments)[i])();
-  // }
+  // * Run all selections in one go
+  global_function(run_lines)(first<host_number_of_events_t>(arguments), 256, context)(
+    data<dev_fns_t>(arguments), data<dev_fns_parameters_t>(arguments), number_of_lines);
 
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
@@ -198,9 +200,10 @@ void gather_selections::gather_selections_t::operator()(
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
-    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
-                                      data<host_selections_offsets_t>(arguments),
-                                      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {
+      reinterpret_cast<bool*>(host_selections.data()),
+      data<host_selections_offsets_t>(arguments),
+      first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {

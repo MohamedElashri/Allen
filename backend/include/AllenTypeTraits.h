@@ -97,23 +97,8 @@ namespace details {
 template<typename Tuple>
 using reverse_tuple_t = typename details::ReverseTuple<Tuple, std::make_index_sequence<std::tuple_size_v<Tuple>>>::type;
 
-namespace details {
-  template<typename...>
-  struct ConcatTuple;
-
-  template<typename... First, typename... Second>
-  struct ConcatTuple<std::tuple<First...>, std::tuple<Second...>> {
-    using type = std::tuple<First..., Second...>;
-  };
-
-  template<typename T1, typename T2, typename... Ts>
-  struct ConcatTuple<T1, T2, Ts...> {
-    using type = typename ConcatTuple<typename ConcatTuple<T1, T2>::type, Ts...>::type;
-  };
-} // namespace details
-
-template<typename... Tuples>
-using cat_tuples_t = typename details::ConcatTuple<Tuples...>::type;
+template<typename... input_t>
+using tuple_cat_t = decltype(std::tuple_cat(std::declval<input_t>()...));
 
 namespace details {
   template<typename T>
@@ -126,12 +111,12 @@ namespace details {
 
   template<typename... InTuple, typename... Ts>
   struct FlattenTuple<std::tuple<std::tuple<InTuple...>, Ts...>> {
-    using type = cat_tuples_t<std::tuple<InTuple...>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+    using type = tuple_cat_t<std::tuple<InTuple...>, typename FlattenTuple<std::tuple<Ts...>>::type>;
   };
 
   template<typename T, typename... Ts>
   struct FlattenTuple<std::tuple<T, Ts...>> {
-    using type = cat_tuples_t<std::tuple<T>, typename FlattenTuple<std::tuple<Ts...>>::type>;
+    using type = tuple_cat_t<std::tuple<T>, typename FlattenTuple<std::tuple<Ts...>>::type>;
   };
 } // namespace details
 
@@ -247,5 +232,5 @@ namespace Allen {
   inline constexpr bool is_trivially_copyable_v = is_trivially_copyable<T>::value;
 
   template<typename T>
-  using func_t = T (*) ();
+  using func_t = T (*)();
 } // namespace Allen
