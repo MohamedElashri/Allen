@@ -297,6 +297,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     }
 
     // Add SV information to the beginning of the bank.
+    const auto svs_start_word = sels_start_word + n_sels;
     for (unsigned i_sv = 0; i_sv < n_svs; i_sv++) {
       unsigned i_obj = n_sels + i_sv;
       unsigned i_word = 1 + i_obj / 4;
@@ -306,11 +307,19 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       unsigned n_info = 4;
       event_rb_stdinfo[i_word] = (event_rb_stdinfo[i_word] & ~mask) | (n_info << bits);
 
-      // i_word = svs_start_word + i_sv;
-      // event_rb_stdinfo[i_word] = 0;
+      unsigned sv_index = event_unique_sv_list[i_sv];
+      const auto sv_ptr = event_sv_ptrs[sv_index];
+      // Store pt, (dipion) mass, FD, FD chi2
+      i_word = svs_start_word + i_sv;
+      float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
+      float_info[i_word] = sv_ptr->vertex().pt();
+      float_info[i_word + 1] = sv_ptr->mdipi();
+      float_info[i_word + 2] = sv_ptr->fd();
+      float_info[i_word + 3] = sv_ptr->fdchi2();
     }
 
     // Add track information to the beginning of the bank.
+    const auto tracks_start_word = svs_start_word + 4 * n_svs;
     for (unsigned i_track = 0; i_track < n_tracks; i_track++) {
       unsigned i_obj = n_sels + n_svs + i_track;
       unsigned i_word = 1 + i_obj / 4;
@@ -320,8 +329,18 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       unsigned n_info = 8;
       event_rb_stdinfo[i_word] = (event_rb_stdinfo[i_word] & ~mask) | (n_info << bits);
 
-      // i_word = tracks_start_word + i_track;
-      // event_rb_stdinfo[i_word] = 0;
+      unsigned track_index = event_unique_track_list[i_track];
+      const auto track_ptr = event_track_ptrs[track_index];
+      // Store pt, tx, ty, IP, IP chi2, muon ID, electron ID
+      i_word = tracks_start_word + i_track;
+      float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
+      float_info[i_word] = track_ptr->state().pt();
+      float_info[i_word + 1] = track_ptr->state().tx();
+      float_info[i_word + 2] = track_ptr->state().ty();
+      float_info[i_word + 3] = track_ptr->ip();
+      float_info[i_word + 4] = track_ptr->ip_chi2();
+      float_info[i_word + 5] = static_cast<float>(track_ptr->is_muon());
+      float_info[i_word + 6] = static_cast<float>(track_ptr->is_electron());
     }
   }
 }
