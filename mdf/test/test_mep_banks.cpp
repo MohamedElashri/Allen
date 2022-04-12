@@ -53,6 +53,8 @@ struct Config {
 
   std::unordered_map<EventID, unsigned> mdf_slices;
   std::unordered_map<EventID, unsigned> mep_slices;
+
+  std::unordered_set<BankTypes> sds {};
 };
 
 namespace {
@@ -188,8 +190,6 @@ int main(int argc, char* argv[])
   logger::setVerbosity(s_config.debug ? 4 : 3);
 
   if (s_config.run) {
-
-    std::unordered_set<BankTypes> sds {};
     std::vector<std::string> s;
     ba::split(s, s_config.subdetectors, ba::is_any_of(","));
     for (auto sd : s) {
@@ -199,10 +199,10 @@ int main(int argc, char* argv[])
         return 1;
       }
       else {
-        sds.emplace(bt);
+        s_config.sds.emplace(bt);
       }
     }
-    auto json_file = write_json(sds, velo_sp);
+    auto json_file = write_json(s_config.sds, velo_sp);
 
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
@@ -370,9 +370,8 @@ struct compare<BankTypes::UT, transpose_mep> {
     for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
       // Read raw bank
       if (version == 3) {
-        auto const mep_bank = mep_raw_event.raw_bank<3>(bank);
-        ;
-        auto const allen_bank = allen_raw_event.raw_bank<3>(bank);
+        auto const mep_bank = mep_raw_event.template raw_bank<3>(bank);
+        auto const allen_bank = allen_raw_event.template raw_bank<3>(bank);
         auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
         REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
         REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
@@ -382,8 +381,8 @@ struct compare<BankTypes::UT, transpose_mep> {
         }
       }
       if (version == 4) {
-        auto const mep_bank = mep_raw_event.raw_bank<4>(bank);
-        auto const allen_bank = allen_raw_event.raw_bank<4>(bank);
+        auto const mep_bank = mep_raw_event.template raw_bank<4>(bank);
+        auto const allen_bank = allen_raw_event.template raw_bank<4>(bank);
 
         // skip buggy banks without content
         if (allen_bank.size < sizeof(uint32_t) * 6) continue;
@@ -600,9 +599,11 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
 // Main test case, multiple bank types are checked
 // VeloTag, UTTag, SciFiTag,
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ODINTag, ECalTag, MuonTag)
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ODINTag, ECalTag, MuonTag, VeloTag, SciFiTag, UTTag)
 {
   if (!s_config.run) return;
+
+  if (!s_config.sds.count(TestType::BT)) return;
 
   for (auto [event_id, slice_mdf] : s_config.mdf_slices) {
     auto it = s_config.mep_slices.find(event_id);
