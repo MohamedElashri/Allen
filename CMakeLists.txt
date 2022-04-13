@@ -436,6 +436,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 
   function(allen_add_executable)
     add_executable(${ARGV})
+    set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     target_link_libraries(${ARGV0} PRIVATE -dlto)

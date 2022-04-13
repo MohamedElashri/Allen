@@ -93,11 +93,17 @@ void gather_selections::gather_selections_t::set_arguments_size(
   }
 }
 
-__global__ void run_lines(line_fn_t* line_fns, char** parameters, unsigned number_of_lines)
+__global__ void run_lines(line_fn_t* line_fns
+  // , char** parameters, unsigned number_of_lines
+  )
 {
-  for (unsigned i = 0; i < number_of_lines; ++i) {
-    line_fns[i](parameters[i]);
-  }
+  printf("Line fn 0: %p\n", line_fns[0]);
+  char* asdf = nullptr;
+  (*line_fns[0])(asdf);
+  
+  // for (unsigned i = 0; i < number_of_lines; ++i) {
+  //   (*line_fns[i])(parameters[i]);
+  // }
 }
 
 void gather_selections::gather_selections_t::operator()(
@@ -120,8 +126,10 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_fns_parameters_t, host_fns_parameters_t>(arguments, context);
 
   // * Run all selections in one go
-  global_function(run_lines)(first<host_number_of_events_t>(arguments), 256, context)(
-    data<dev_fns_t>(arguments), data<dev_fns_parameters_t>(arguments), number_of_lines);
+  global_function(run_lines)(1, 1, context)(
+    input_aggregate<dev_fn_agg_t>(arguments).data(0)
+    // , data<dev_fns_parameters_t>(arguments), number_of_lines
+    );
 
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
