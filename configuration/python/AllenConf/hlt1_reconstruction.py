@@ -44,6 +44,7 @@ def hlt1_reconstruction(add_electron_id=False):
         forward_tracks, pvs, kalman_velo_only, long_track_particles)
     return {
         "velo_tracks": velo_tracks,
+        "velo_states": velo_states,
         "pvs": pvs,
         "ut_tracks": ut_tracks,
         "forward_tracks": forward_tracks,

@@ -87,6 +87,7 @@ Hlt1ODINNoBias:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:            1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH2Alignment:            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BeamGas:                   0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:                  1000/  1000, (30000.00 +/-     0.00) kHz
 
 
@@ -122,6 +123,7 @@ Hlt1ODINNoBias:                0           0
 Hlt1Passthrough:            1000           0
 Hlt1RICH1Alignment:            0           0
 Hlt1RICH2Alignment:            0           0
+Hlt1BeamGas:                   0           0
 
 Total decisions: 2011
 Total tracks:    12

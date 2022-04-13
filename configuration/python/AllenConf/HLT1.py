@@ -8,7 +8,7 @@ from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_tw
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
-from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
+from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
 
 from AllenConf.validators import rate_validation
 from AllenCore.generator import make_algorithm
@@ -135,8 +135,8 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def default_monitoring_lines(velo_tracks, forward_tracks,
-                             long_track_particles):
+def default_monitoring_lines(velo_tracks, forward_tracks, long_track_particles,
+                             velo_states):
     lines = []
     lines.append(
         line_maker(
@@ -204,6 +204,16 @@ def default_monitoring_lines(velo_tracks, forward_tracks,
             "HLt1RICH2Alignment",
             make_rich_2_line(forward_tracks, long_track_particles),
             enableGEC=True))
+    lines.append(
+        line_maker(
+            "Hlt1BeamGas",
+            make_beam_gas_line(
+                velo_tracks,
+                velo_states,
+                pre_scaler_hash_string="no_beam_line_pre",
+                post_scaler_hash_string="no_beam_line_post",
+                beam_crossing_type=1),
+            enableGEC=True))
 
     return lines
 
@@ -223,7 +233,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     monitoring_lines = default_monitoring_lines(
         reconstructed_objects["velo_tracks"],
         reconstructed_objects["forward_tracks"],
-        reconstructed_objects["long_track_particles"])
+        reconstructed_objects["long_track_particles"],
+        reconstructed_objects["velo_states"])
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
