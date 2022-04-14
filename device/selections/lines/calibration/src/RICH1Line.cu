@@ -23,7 +23,7 @@ void rich_1_line::rich_1_line_t::set_arguments_size(
   const HostBuffers& host_buffers) const
 {
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
-  
+
   set_size<typename Parameters::dev_decision_t>(arguments, rich_1_line::rich_1_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_decision_t>(arguments, rich_1_line::rich_1_line_t::get_decisions_size(arguments));
 
