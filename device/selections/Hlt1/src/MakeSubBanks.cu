@@ -340,7 +340,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       float_info[i_word + 3] = track_ptr->state().tx();
       float_info[i_word + 4] = track_ptr->state().ty();
       float_info[i_word + 5] = track_ptr->state().qop();
-      float_info[i_word + 6] = track_ptr->state().chi2()/track_ptr->state().ndof();
+      float_info[i_word + 6] = track_ptr->state().chi2() / track_ptr->state().ndof();
       float_info[i_word + 7] = static_cast<float>(track_ptr->state().ndof());
     }
   }
