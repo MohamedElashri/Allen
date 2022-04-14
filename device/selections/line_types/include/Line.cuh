@@ -164,119 +164,9 @@ public:
   static __host__ void
   output_monitor(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&)
   {}
-
-  static __device__ void process_line(char* input)
-  {
-    printf("Line processing\n");
-    // if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
-    //   /**
-    //    * @brief Processes a line by iterating over events and applying the line.
-    //    */
-    //   const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
-    //   const auto& [parameters, number_of_events_in_event_list, number_of_events, pre_scaler_hash] = type_casted_input;
-
-    //   // Populate IMultiEventContainer* if relevant
-    //   if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-    //     if (blockIdx.x == 0 && threadIdx.x == 0) {
-    //       const auto particle_container_ptr =
-    //         static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-    //       parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
-    //     }
-    //   }
-
-    //   // Do selection
-    //   for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
-    //     const auto event_number = parameters.dev_event_list[i];
-
-    //     // ODIN data
-    //     const LHCb::ODIN odin {
-    //       {*parameters.dev_mep_layout ?
-    //          odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-    //          odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
-    //        10}};
-
-    //     const uint32_t run_no = odin.runNumber();
-    //     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
-    //     const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
-    //     const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
-    //     const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
-
-    //     bool decision = false;
-    //     if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-    //       auto input = Derived::get_input(parameters, event_number);
-    //       decision = Derived::select(parameters, input);
-    //       parameters.dev_decisions[event_number] = decision;
-    //       Derived::monitor(parameters, input, event_number, decision);
-    //     }
-    //   }
-
-    //   // Populate offsets
-    //   for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
-    //     parameters.dev_decisions_offsets[event_number] = event_number;
-    //   }
-    // }
-    // else {
-    //   *
-    //    * @brief Processes a line by iterating over all events and all "input sizes" (ie. tracks, vertices, etc.).
-    //    *        The way process line parallelizes is highly configurable.
-       
-    //   const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
-    //   const auto& parameters = std::get<0>(type_casted_input);
-    //   const auto number_of_events = std::get<2>(type_casted_input);
-    //   const auto pre_scaler_hash = std::get<3>(type_casted_input);
-
-    //   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-    //   const unsigned input_size = Derived::input_size(parameters, event_number);
-
-    //   // Populate IMultiEventContainer* if relevant
-    //   if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-    //     if (blockIdx.x == 0 && threadIdx.x == 0) {
-    //       const auto particle_container_ptr =
-    //         static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-    //       parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
-    //     }
-    //   }
-
-    //   // ODIN data
-    //   const LHCb::ODIN odin {
-    //     {*parameters.dev_mep_layout ?
-    //        odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-    //        odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
-    //      10}};
-
-    //   const uint32_t run_no = odin.runNumber();
-    //   const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
-    //   const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
-    //   const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
-    //   const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
-
-    //   // Pre-scaler
-    //   if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-    //     // Do selection
-    //     for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-    //       auto input = Derived::get_input(parameters, event_number, i);
-    //       bool sel = Derived::select(parameters, input);
-    //       unsigned index = Derived::offset(parameters, event_number) + i;
-    //       parameters.dev_decisions[index] = sel;
-    //     }
-    //   }
-
-    //   // Populate offsets in first block
-    //   if (blockIdx.x == 0) {
-    //     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-    //       parameters.dev_decisions_offsets[i] = Derived::offset(parameters, i);
-    //     }
-    //   }
-    // }
-  }
 };
 
 #if defined(DEVICE_COMPILER)
-
-// template<typename Line, typename Parameters>
-// __global__ void populate_fn_pointer(line_fn_t* p) {
-//   p[0] = process_line<Line, Parameters>;
-// }
 
 template<typename Line, typename Parameters>
 __global__ void run_lines_asdf(line_fn_t* line_fns) {
@@ -285,24 +175,116 @@ __global__ void run_lines_asdf(line_fn_t* line_fns) {
   (*line_fns[0])(asdf);
 }
 
+template<typename Derived, typename Parameters>
+__device__ void process_line(char* input)
+{
+  printf("Line processing\n");
+  // if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
+  //   /**
+  //    * @brief Processes a line by iterating over events and applying the line.
+  //    */
+  //   const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
+  //   const auto& [parameters, number_of_events_in_event_list, number_of_events, pre_scaler_hash] = type_casted_input;
+
+  //   // Populate IMultiEventContainer* if relevant
+  //   if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+  //     if (blockIdx.x == 0 && threadIdx.x == 0) {
+  //       const auto particle_container_ptr =
+  //         static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+  //       parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+  //     }
+  //   }
+
+  //   // Do selection
+  //   for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
+  //     const auto event_number = parameters.dev_event_list[i];
+
+  //     // ODIN data
+  //     const LHCb::ODIN odin {
+  //       {*parameters.dev_mep_layout ?
+  //          odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+  //          odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
+  //        10}};
+
+  //     const uint32_t run_no = odin.runNumber();
+  //     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
+  //     const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
+  //     const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
+  //     const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
+
+  //     bool decision = false;
+  //     if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
+  //       auto input = Derived::get_input(parameters, event_number);
+  //       decision = Derived::select(parameters, input);
+  //       parameters.dev_decisions[event_number] = decision;
+  //       Derived::monitor(parameters, input, event_number, decision);
+  //     }
+  //   }
+
+  //   // Populate offsets
+  //   for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
+  //     parameters.dev_decisions_offsets[event_number] = event_number;
+  //   }
+  // }
+  // else {
+  //   *
+  //    * @brief Processes a line by iterating over all events and all "input sizes" (ie. tracks, vertices, etc.).
+  //    *        The way process line parallelizes is highly configurable.
+     
+  //   const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
+  //   const auto& parameters = std::get<0>(type_casted_input);
+  //   const auto number_of_events = std::get<2>(type_casted_input);
+  //   const auto pre_scaler_hash = std::get<3>(type_casted_input);
+
+  //   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  //   const unsigned input_size = Derived::input_size(parameters, event_number);
+
+  //   // Populate IMultiEventContainer* if relevant
+  //   if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+  //     if (blockIdx.x == 0 && threadIdx.x == 0) {
+  //       const auto particle_container_ptr =
+  //         static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+  //       parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+  //     }
+  //   }
+
+  //   // ODIN data
+  //   const LHCb::ODIN odin {
+  //     {*parameters.dev_mep_layout ?
+  //        odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
+  //        odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
+  //      10}};
+
+  //   const uint32_t run_no = odin.runNumber();
+  //   const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
+  //   const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
+  //   const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
+  //   const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
+
+  //   // Pre-scaler
+  //   if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
+  //     // Do selection
+  //     for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+  //       auto input = Derived::get_input(parameters, event_number, i);
+  //       bool sel = Derived::select(parameters, input);
+  //       unsigned index = Derived::offset(parameters, event_number) + i;
+  //       parameters.dev_decisions[index] = sel;
+  //     }
+  //   }
+
+  //   // Populate offsets in first block
+  //   if (blockIdx.x == 0) {
+  //     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
+  //       parameters.dev_decisions_offsets[i] = Derived::offset(parameters, i);
+  //     }
+  //   }
+  // }
+}
+
 // Static __device__ pointer to the function
 // https://leimao.github.io/blog/Pass-Function-Pointers-to-Kernels-CUDA/
 template<typename Derived, typename Parameters>
-__device__ line_fn_t dev_line_fn_p = Line<Derived, Parameters>::process_line;
-
-// template<typename A, typename B>
-// __global__ void foo(line_fn_t bar) {
-//   char* a = nullptr;
-//   (*bar)(a);
-// }
-
-// template<typename, typename>
-// __device__ void blah (char*) {
-//   printf("Hello world\n");
-// }
-
-// template<typename A, typename B>
-// __device__ line_fn_t blah_p = blah<A, B>;
+__device__ line_fn_t dev_line_fn_p = process_line<Derived, Parameters>;
 
 template<typename Derived, typename Parameters>
 void Line<Derived, Parameters>::operator()(
@@ -328,24 +310,9 @@ void Line<Derived, Parameters>::operator()(
   // Delay the execution of the line:
   // * Pass the function pointer of the device function executing the line
   cudaMemcpyFromSymbol(
-    data<typename Parameters::dev_fn_t>(arguments),
+    data<typename Parameters::host_fn_t>(arguments),
     dev_line_fn_p<Derived, Parameters>,
     sizeof(line_fn_t));
-  // derived_instance->global_function(populate_fn_pointer<Derived, Parameters>)(1, 1, context)(data<typename Parameters::dev_fn_t>(arguments));
-  derived_instance->global_function(run_lines_asdf<Derived, Parameters>)(1, 1, context)(data<typename Parameters::dev_fn_t>(arguments));
-
-  // cudaMemcpyFromSymbol(
-  //   data<typename Parameters::host_fn_t>(arguments),
-  //   blah_p<Derived, Parameters>,
-  //   sizeof(line_fn_t));
-
-  // printf("Line fn: %lu\n", (unsigned long) data<typename Parameters::host_fn_t>(arguments)[0]);
-
-  // // If the following line is commented out, the printf above prints "2"
-  // // If it is not commented out, the above line prints a proper memory location
-  // // Hence, the memory pointer is not populated unless the .cu compilation unit detects
-  // // that there is a global function invocation (seemingly).
-  // foo<Derived, Parameters><<<1, 1>>>(data<typename Parameters::host_fn_t>(arguments)[0]);
 
   // * Pass the parameters
   auto parameters = std::make_tuple(

@@ -407,6 +407,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     endif()
 
     add_library(${ARGV})
+    set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${PROJECT_BINARY_DIR}/code_generation)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
@@ -425,7 +426,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     endif()
 
     add_library(${ARGV})
-
+    set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
