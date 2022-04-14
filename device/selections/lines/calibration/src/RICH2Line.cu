@@ -18,19 +18,11 @@ INSTANTIATE_LINE(rich_2_line::rich_2_line_t, rich_2_line::Parameters)
 
 void rich_2_line::rich_2_line_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
 {
-  set_size<typename Parameters::dev_decisions_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
-  set_size<typename Parameters::dev_decisions_offsets_t>(
-    arguments, first<typename Parameters::host_number_of_events_t>(arguments));
-  set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
-  set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-  set_size<typename Parameters::dev_selected_events_t>(
-    arguments, first<typename Parameters::host_number_of_events_t>(arguments));
-  set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
-  set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
+  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
 
   set_size<typename Parameters::dev_decision_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_decision_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
