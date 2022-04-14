@@ -312,10 +312,10 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       // Store pt, (dipion) mass, FD, FD chi2
       i_word = svs_start_word + i_sv;
       float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
-      float_info[i_word] = sv_ptr->vertex().pt();
-      float_info[i_word + 1] = sv_ptr->mdipi();
-      float_info[i_word + 2] = sv_ptr->fd();
-      float_info[i_word + 3] = sv_ptr->fdchi2();
+      float_info[i_word] = sv_ptr->vertex().x();
+      float_info[i_word + 1] = sv_ptr->vertex().y();
+      float_info[i_word + 2] = sv_ptr->vertex().z();
+      float_info[i_word + 3] = sv_ptr->vertex().chi2();
     }
 
     // Add track information to the beginning of the bank.
@@ -334,13 +334,14 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       // Store pt, tx, ty, IP, IP chi2, muon ID, electron ID
       i_word = tracks_start_word + i_track;
       float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
-      float_info[i_word] = track_ptr->state().pt();
-      float_info[i_word + 1] = track_ptr->state().tx();
-      float_info[i_word + 2] = track_ptr->state().ty();
-      float_info[i_word + 3] = track_ptr->ip();
-      float_info[i_word + 4] = track_ptr->ip_chi2();
-      float_info[i_word + 5] = static_cast<float>(track_ptr->is_muon());
-      float_info[i_word + 6] = static_cast<float>(track_ptr->is_electron());
+      float_info[i_word] = track_ptr->state().z();
+      float_info[i_word + 1] = track_ptr->state().x();
+      float_info[i_word + 2] = track_ptr->state().y();
+      float_info[i_word + 3] = track_ptr->state().tx();
+      float_info[i_word + 4] = track_ptr->state().ty();
+      float_info[i_word + 5] = track_ptr->state().qop();
+      float_info[i_word + 6] = track_ptr->state().chi2()/track_ptr->state().ndof();
+      float_info[i_word + 7] = static_cast<float>(track_ptr->state().ndof());
     }
   }
 }
