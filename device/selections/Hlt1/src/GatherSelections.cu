@@ -7,8 +7,28 @@
 #include "Event/ODIN.h"
 #include "ODINBank.cuh"
 #include <algorithm>
+#include "ExternLines.cuh"
+#include <string>
+#include <sstream>
+#include <vector>
+#include <iterator>
 
 INSTANTIATE_ALGORITHM(gather_selections::gather_selections_t)
+
+template <typename Out>
+void split(const std::string &s, char delim, Out result) {
+    std::istringstream iss(s);
+    std::string item;
+    while (std::getline(iss, item, delim)) {
+        *result++ = item;
+    }
+}
+
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, std::back_inserter(elems));
+    return elems;
+}
 
 namespace gather_selections {
   __global__ void postscaler(
@@ -44,6 +64,14 @@ namespace gather_selections {
     }
   }
 } // namespace gather_selections
+
+void gather_selections::gather_selections_t::init() {
+  const auto names_of_active_line_algorithms = split(property<names_of_active_line_algorithms_t>().get(), ',');
+  for (const auto& name : names_of_active_line_algorithms) {
+    const auto it = std::find(std::begin(line_strings), std::end(line_strings), name);
+    m_indices_active_line_algorithms.push_back(it - std::begin(line_strings));
+  }
+}
 
 void gather_selections::gather_selections_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -82,9 +110,10 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<dev_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
   set_size<dev_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
   set_size<dev_particle_containers_t>(arguments, dev_particle_containers_agg.size_of_aggregate());
-  set_size<dev_fns_t>(arguments, input_aggregate<dev_fn_agg_t>(arguments).size_of_aggregate());
   set_size<host_fns_parameters_t>(arguments, input_aggregate<dev_fn_parameters_agg_t>(arguments).size_of_aggregate());
   set_size<dev_fns_parameters_t>(arguments, input_aggregate<dev_fn_parameters_agg_t>(arguments).size_of_aggregate());
+  set_size<host_fn_indices_t>(arguments, m_indices_active_line_algorithms.size());
+  set_size<dev_fn_indices_t>(arguments, m_indices_active_line_algorithms.size());
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
@@ -93,10 +122,10 @@ void gather_selections::gather_selections_t::set_arguments_size(
   }
 }
 
-__global__ void run_lines(line_fn_t* line_fns, char** parameters, unsigned number_of_lines)
+__global__ void run_lines(unsigned* line_fn_indices, char** parameters, unsigned number_of_lines)
 {
   for (unsigned i = 0; i < number_of_lines; ++i) {
-    (*line_fns[i])(parameters[i]);
+    line_functions[line_fn_indices[i]](parameters[i]);
   }
 }
 
@@ -108,8 +137,11 @@ void gather_selections::gather_selections_t::operator()(
   const Allen::Context& context) const
 {
   // Run the selection algorithms
-  // * Prepare dev_fns_t, containing all fn pointers
-  Allen::aggregate::store_contiguous_async<dev_fns_t, dev_fn_agg_t>(arguments, context);
+  // * Prepare dev_fn_indices_t, containing all fn indices
+  for (unsigned i = 0; i < m_indices_active_line_algorithms.size(); ++i) {
+    data<host_fn_indices_t>(arguments)[i] = m_indices_active_line_algorithms[i];
+  }
+  Allen::copy_async<dev_fn_indices_t, host_fn_indices_t>(arguments, context);
 
   // Prepare dev_fns_parameters_t, containing all parameter pointers
   auto dev_fn_parameters_agg = input_aggregate<dev_fn_parameters_agg_t>(arguments);
@@ -121,7 +153,7 @@ void gather_selections::gather_selections_t::operator()(
 
   // * Run all selections in one go
   global_function(run_lines)(1, 1, context)(
-    input_aggregate<dev_fn_agg_t>(arguments).data(0), data<dev_fns_parameters_t>(arguments), number_of_lines);
+    data<dev_fn_indices_t>(arguments), data<dev_fns_parameters_t>(arguments), number_of_lines);
 
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);

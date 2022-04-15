@@ -20,11 +20,11 @@ namespace gather_selections {
     DEVICE_INPUT_AGGREGATE(dev_input_selections_offsets_t, unsigned) dev_input_selections_offsets;
     HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
     HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
-    DEVICE_INPUT_AGGREGATE(dev_fn_agg_t, line_fn_t) dev_fn_agg;
     DEVICE_INPUT_AGGREGATE(dev_fn_parameters_agg_t, char) dev_fn_parameters_agg;
-    DEVICE_OUTPUT(dev_fns_t, line_fn_t) dev_fns;
     HOST_OUTPUT(host_fns_parameters_t, char*) host_fns_parameters;
     DEVICE_OUTPUT(dev_fns_parameters_t, char*) dev_fns_parameters;
+    HOST_OUTPUT(host_fn_indices_t, unsigned) host_fn_indices;
+    DEVICE_OUTPUT(dev_fn_indices_t, unsigned) dev_fn_indices;
     DEVICE_INPUT_AGGREGATE(dev_particle_containers_agg_t, Allen::IMultiEventContainer*)
     dev_particle_containers_agg;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
@@ -43,9 +43,12 @@ namespace gather_selections {
     dev_particle_containers;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
     PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string);
+    PROPERTY(names_of_active_line_algorithms_t, "names_of_active_line_algorithms", "names of active line algorithms", std::string);
   };
 
   struct gather_selections_t : public HostAlgorithm, Parameters {
+    void init();
+
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
@@ -60,7 +63,9 @@ namespace gather_selections {
       const Allen::Context& context) const;
 
   private:
+    std::vector<unsigned> m_indices_active_line_algorithms;
     Property<block_dim_x_t> m_block_dim_x {this, 256};
+    Property<names_of_active_line_algorithms_t> m_names_of_active_line_algorithms {this, ""};
     Property<names_of_active_lines_t> m_names_of_active_lines {this, ""};
   };
 } // namespace gather_selections

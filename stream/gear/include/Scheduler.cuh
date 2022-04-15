@@ -243,7 +243,7 @@ private:
     }
 
     // Free all arguments in OutDependencies
-    if (algorithm.scope() != "SelectionAlgorithm") {
+    if (algorithm.scope() != "SelectionAlgorithm" && algorithm.name() != "gather_selections") {
       MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
     }
 
