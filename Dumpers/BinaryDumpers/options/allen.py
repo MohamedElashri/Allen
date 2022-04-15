@@ -14,7 +14,8 @@ from PyConf.application import (
 from PyConf.Algorithms import (
     AllenTESProducer,
     DumpBeamline,
-    DumpCaloGeometry
+    DumpCaloGeometry,
+    DumpVPGeometry
 )
 from threading import Thread
 from time import sleep
@@ -195,7 +196,7 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-converters = [DumpBeamline(), DumpCaloGeometry()]
+converters = [DumpBeamline(), DumpCaloGeometry(), DumpVPGeometry()]
 producers = []
 for converter in converters:
     converter_id = converter.type.getDefaultProperties()['ID']
