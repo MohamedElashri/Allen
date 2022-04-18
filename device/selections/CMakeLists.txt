@@ -16,7 +16,8 @@ target_link_libraries(Selections PRIVATE
   Utils
   LHCbEvent
   Kalman
-  VertexFitter)
+  VertexFitter
+  extern_lines)
 
 if(USE_ROOT)
   # Locally suppress float->double promotion warnings caused by ROOT TH interfaces

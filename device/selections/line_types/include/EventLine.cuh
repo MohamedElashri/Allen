@@ -16,11 +16,6 @@ struct EventLine : public Line<Derived, Parameters> {
   using iteration_t = LineIteration::event_iteration_tag;
 
   /**
-   * @brief Execute with a block dimension of 512.
-   */
-  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 512; }
-
-  /**
    * @brief Decision size is the number of events.
    */
   static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)

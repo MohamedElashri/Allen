@@ -645,6 +645,37 @@ class AlgorithmCategory(Enum):\n\
         gen.generate_file(output_filename, max_length, struct_to_tuple_folder)
 
 
+    @staticmethod
+    def write_extern_lines(algorithms,
+                           filename):
+        selection_algorithms = [a for a in algorithms if a.scope == "SelectionAlgorithm"]
+        code = "\n".join(
+            ("#pragma once", "", "#include \"BackendCommon.h\"", "\n"))
+        for alg in selection_algorithms:
+            code += "\n".join((
+                f"namespace {alg.namespace} {{",
+                f"  struct {alg.name};",
+                "  struct Parameters;",
+                "}\n"))
+        code += "\n"
+        for alg in selection_algorithms:
+            code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*);\n"
+        code += "\nconstexpr auto line_strings = {\n"
+        for i, alg in enumerate(selection_algorithms):
+            code += f"  \"{alg.name}\""
+            if i != len(selection_algorithms) - 1:
+                code += ",\n"
+        code += "\n};\n\n"
+        code += f"constexpr __device__ std::array<void(*)(char*), {len(selection_algorithms)}> line_functions = {{\n"
+        for i, alg in enumerate(selection_algorithms):
+            code += f"  process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>"
+            if i != len(selection_algorithms) - 1:
+                code += ",\n"
+        code += "\n};\n"
+        with open(filename, "w") as f:
+            f.write(code)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Parse the Allen codebase and generate a python representation of all algorithms.'
@@ -687,7 +718,7 @@ if __name__ == '__main__':
         default="views",
         choices=["parsed_algorithms", "views",
                  "wrapperlist", "wrappers", "db",
-                 "struct_to_tuple"],
+                 "struct_to_tuple", "extern_lines"],
         help="action that will be performed")
 
     args = parser.parse_args()
@@ -727,3 +758,6 @@ if __name__ == '__main__':
             # Write struct to tuple to support all parameters and properties
             # of all existing algorithms
             AllenCore.write_struct_to_tuple(parsed_algorithms, args.filename, args.struct_to_tuple_folder)
+        elif args.generate == "extern_lines":
+            # Write extern lines header file
+            AllenCore.write_extern_lines(parsed_algorithms, args.filename)

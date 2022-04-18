@@ -31,6 +31,13 @@ std::vector<std::string> split(const std::string &s, char delim) {
 }
 
 namespace gather_selections {
+  __global__ void run_lines(unsigned* line_fn_indices, char** parameters, unsigned number_of_lines)
+  {
+    for (unsigned i = 0; i < number_of_lines; ++i) {
+      line_functions[line_fn_indices[i]](parameters[i]);
+    }
+  }
+
   __global__ void postscaler(
     bool* dev_selections,
     const unsigned* dev_selections_offsets,
@@ -122,13 +129,6 @@ void gather_selections::gather_selections_t::set_arguments_size(
   }
 }
 
-__global__ void run_lines(unsigned* line_fn_indices, char** parameters, unsigned number_of_lines)
-{
-  for (unsigned i = 0; i < number_of_lines; ++i) {
-    line_functions[line_fn_indices[i]](parameters[i]);
-  }
-}
-
 void gather_selections::gather_selections_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
@@ -143,7 +143,7 @@ void gather_selections::gather_selections_t::operator()(
   }
   Allen::copy_async<dev_fn_indices_t, host_fn_indices_t>(arguments, context);
 
-  // Prepare dev_fns_parameters_t, containing all parameter pointers
+  // * Prepare dev_fns_parameters_t, containing all parameter pointers
   auto dev_fn_parameters_agg = input_aggregate<dev_fn_parameters_agg_t>(arguments);
   const auto number_of_lines = dev_fn_parameters_agg.size_of_aggregate();
   for (unsigned i = 0; i < number_of_lines; ++i) {
@@ -152,7 +152,7 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_fns_parameters_t, host_fns_parameters_t>(arguments, context);
 
   // * Run all selections in one go
-  global_function(run_lines)(1, 1, context)(
+  global_function(gather_selections::run_lines)(first<host_number_of_events_t>(arguments), 256, context)(
     data<dev_fn_indices_t>(arguments), data<dev_fns_parameters_t>(arguments), number_of_lines);
 
   // Save the names of active lines as output

@@ -24,8 +24,6 @@
 template<typename Derived, typename Parameters>
 struct OneTrackLine : public Line<Derived, Parameters> {
 
-  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 64; }
-
   static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
   {
     return first<typename Parameters::host_number_of_reconstructed_scifi_tracks_t>(arguments);
