@@ -117,9 +117,6 @@ public:
   template<typename... S>
   auto operator()(S&&... arguments) const
   {
-    return m_fn(TransformParameters<S>::transform(
-      std::forward<S>(arguments),
-      m_properties,
-      {})...);
+    return m_fn(TransformParameters<S>::transform(std::forward<S>(arguments), m_properties, {})...);
   }
 };

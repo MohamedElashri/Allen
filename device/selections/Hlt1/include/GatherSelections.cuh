@@ -43,7 +43,11 @@ namespace gather_selections {
     dev_particle_containers;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
     PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string);
-    PROPERTY(names_of_active_line_algorithms_t, "names_of_active_line_algorithms", "names of active line algorithms", std::string);
+    PROPERTY(
+      names_of_active_line_algorithms_t,
+      "names_of_active_line_algorithms",
+      "names of active line algorithms",
+      std::string);
   };
 
   struct gather_selections_t : public HostAlgorithm, Parameters {

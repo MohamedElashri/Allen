@@ -15,19 +15,21 @@
 
 INSTANTIATE_ALGORITHM(gather_selections::gather_selections_t)
 
-template <typename Out>
-void split(const std::string &s, char delim, Out result) {
-    std::istringstream iss(s);
-    std::string item;
-    while (std::getline(iss, item, delim)) {
-        *result++ = item;
-    }
+template<typename Out>
+void split(const std::string& s, char delim, Out result)
+{
+  std::istringstream iss(s);
+  std::string item;
+  while (std::getline(iss, item, delim)) {
+    *result++ = item;
+  }
 }
 
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, std::back_inserter(elems));
-    return elems;
+std::vector<std::string> split(const std::string& s, char delim)
+{
+  std::vector<std::string> elems;
+  split(s, delim, std::back_inserter(elems));
+  return elems;
 }
 
 namespace gather_selections {
@@ -53,10 +55,10 @@ namespace gather_selections {
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-    const LHCb::ODIN odin {
-      {*dev_mep_layout ? odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-                         odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
-       10}};
+    const LHCb::ODIN odin {{*dev_mep_layout ?
+                              odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                              odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
+                            10}};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -72,7 +74,8 @@ namespace gather_selections {
   }
 } // namespace gather_selections
 
-void gather_selections::gather_selections_t::init() {
+void gather_selections::gather_selections_t::init()
+{
   const auto names_of_active_line_algorithms = split(property<names_of_active_line_algorithms_t>().get(), ',');
   for (const auto& name : names_of_active_line_algorithms) {
     const auto it = std::find(std::begin(line_strings), std::end(line_strings), name);
@@ -232,10 +235,9 @@ void gather_selections::gather_selections_t::operator()(
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
-    Selections::ConstSelections sels {
-      reinterpret_cast<bool*>(host_selections.data()),
-      data<host_selections_offsets_t>(arguments),
-      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
+                                      data<host_selections_offsets_t>(arguments),
+                                      first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {

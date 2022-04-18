@@ -145,7 +145,8 @@ __device__ void process_line(char* input)
   if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
     if (blockIdx.x == 0) {
       // Iterates over events and processes the line
-      const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
+      const auto& type_casted_input =
+        *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
       const auto& [parameters, number_of_events_in_event_list, number_of_events, pre_scaler_hash] = type_casted_input;
 
       // Populate IMultiEventContainer* if relevant

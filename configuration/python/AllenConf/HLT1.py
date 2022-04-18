@@ -252,7 +252,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
     hlt1_node = CompositeNode(
-        "Allen", [
+        "Allen",
+        [
             lines,
             make_global_decision(lines=line_algorithms),
             rate_validation(lines=line_algorithms),

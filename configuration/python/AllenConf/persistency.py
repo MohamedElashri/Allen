@@ -36,7 +36,8 @@ def make_gather_selections(lines):
         dev_odin_raw_input_t=odin["dev_odin_raw_input"],
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         names_of_active_lines=",".join([line.name for line in lines]),
-        names_of_active_line_algorithms=",".join([line.typename for line in lines]),
+        names_of_active_line_algorithms=",".join(
+            [line.typename for line in lines]),
         dev_fn_parameters_agg_t=[line.dev_fn_parameters_t for line in lines])
 
 
