@@ -334,7 +334,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 
   message(STATUS "HIP GCC TOOLCHAIN: " ${HIP_TOOLCHAIN_OPTIONS})
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH} -fgpu-rdc")
 
   # Add the origin directory
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath,./")
@@ -363,6 +363,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_link_options(${ARGV0} PUBLIC --hip-link)
 
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -373,6 +374,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_link_options(${ARGV0} PUBLIC --hip-link)
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
