@@ -10,7 +10,7 @@ from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_l
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
-from AllenConf.hlt1_smog2_lines import ( make_SMOG2_minimum_bias_line, make_SMOG2_dimon_highmass_line, 
+from AllenConf.hlt1_smog2_lines import ( make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line, 
                                          make_SMOG2_ditrack_line, make_SMOG2_singletrack_line )
 
 
@@ -199,11 +199,11 @@ def alignment_monitoring_lines( velo_tracks, forward_tracks, long_track_particle
                 name="HLt1RICH2Alignment" + prefilter_suffix)))
     lines.append(
         line_maker(
-            "Hlt1BeamGas",
             make_beam_gas_line(
                 velo_tracks,
                 velo_states,
-                beam_crossing_type=1)))
+                beam_crossing_type=1, 
+                name = "Hlt1BeamGas" + prefilter_suffix)))
     return lines
 
 

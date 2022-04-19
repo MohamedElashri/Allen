@@ -102,6 +102,7 @@ def make_calo_digits_minADC_line(
 
 def make_beam_gas_line(velo_tracks,
                        velo_states,
+                       name = "Hlt1BeamGas",
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
                        beam_crossing_type=1):
@@ -111,7 +112,7 @@ def make_beam_gas_line(velo_tracks,
 
     return make_algorithm(
         beam_gas_line_t,
-        name="Hlt1BeamGas",
+        name=name,
         beam_crossing_type=beam_crossing_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
