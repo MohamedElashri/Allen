@@ -8,7 +8,8 @@ INSTANTIATE_LINE(velo_micro_bias_line::velo_micro_bias_line_t, velo_micro_bias_l
 
 __device__ std::tuple<const unsigned> velo_micro_bias_line::velo_micro_bias_line_t::get_input(
   const Parameters& parameters,
-  const unsigned event_number)
+  const unsigned event_number,
+  const unsigned)
 {
   Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_offsets_velo_tracks,
                                                parameters.dev_offsets_velo_track_hit_number,

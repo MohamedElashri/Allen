@@ -17,7 +17,9 @@ namespace beam_crossing_line {
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
-
+    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
+    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
+    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
 

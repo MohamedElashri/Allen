@@ -27,7 +27,7 @@ namespace passthrough_line {
   };
 
   struct passthrough_line_t : public SelectionAlgorithm, Parameters, EventLine<passthrough_line_t, Parameters> {
-    __device__ static std::tuple<const bool> get_input(const Parameters& parameters, const unsigned event_number);
+    __device__ static std::tuple<const bool> get_input(const Parameters& parameters, const unsigned event_number, const unsigned);
 
     __device__ static bool select(const Parameters& parameters, std::tuple<const bool> input);
 

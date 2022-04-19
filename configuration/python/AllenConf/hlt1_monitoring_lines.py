@@ -63,6 +63,8 @@ def make_odin_event_type_line(
     return make_algorithm(
         odin_event_type_line_t,
         name=name_map[odin_event_type],
+        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
+        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         odin_event_type=odin_event_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string,

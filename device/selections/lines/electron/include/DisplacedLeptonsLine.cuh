@@ -38,7 +38,7 @@ namespace displaced_leptons_line {
                                     Parameters,
                                     EventLine<displaced_leptons_line_t, Parameters> {
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
-    get_input(const Parameters& parameters, const unsigned event_number);
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned);
 
     __device__ static bool select(
       const Parameters& parameters,

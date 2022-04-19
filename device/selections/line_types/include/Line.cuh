@@ -23,14 +23,6 @@
   template __device__ void process_line<LINE, PARAMETERS>(char*, unsigned, unsigned, unsigned, unsigned, unsigned); \
   INSTANTIATE_ALGORITHM(LINE)
 
-// "Enum of types" to determine dispatch to global_function
-namespace LineIteration {
-  struct default_iteration_tag {
-  };
-  struct event_iteration_tag {
-  };
-} // namespace LineIteration
-
 // Type-erased line function type
 using line_fn_t = void (*)(char*, unsigned, unsigned, unsigned, unsigned, unsigned);
 
@@ -78,8 +70,6 @@ private:
   uint32_t m_post_scaler_hash;
 
 public:
-  using iteration_t = LineIteration::default_iteration_tag;
-
   void init()
   {
     auto derived_instance = static_cast<const Derived*>(this);
@@ -139,105 +129,47 @@ template<typename Derived, typename Parameters>
 __device__ void
 process_line(char* input, unsigned run_no, unsigned evt_hi, unsigned evt_lo, unsigned gps_hi, unsigned gps_lo)
 {
-  if constexpr (!std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
-    const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
-    const auto& parameters = std::get<0>(type_casted_input);
-    const auto number_of_events = std::get<2>(type_casted_input);
+  const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
+  const auto& parameters = std::get<0>(type_casted_input);
+  const auto event_list_size = std::get<1>(type_casted_input);
+  const auto number_of_events = std::get<2>(type_casted_input);
 
-    // Check if blockIdx.x (event_number) is in dev_event_list
-    unsigned mask = 0;
-    for (unsigned i = 0; i < (number_of_events + warp_size - 1) / warp_size; ++i) {
-      const auto index = i * warp_size + threadIdx.x;
-      mask |= __ballot_sync(0xFFFFFFFF, index < number_of_events ? threadIdx.x == parameters.dev_event_list[i] : false);
-    }
+  // Check if blockIdx.x (event_number) is in dev_event_list
+  unsigned mask = 0;
+  for (unsigned i = 0; i < (event_list_size + warp_size - 1) / warp_size; ++i) {
+    const auto index = i * warp_size + threadIdx.x;
+    mask |= __ballot_sync(0xFFFFFFFF, index < event_list_size ? threadIdx.x == parameters.dev_event_list[i] : false);
+  }
 
-    // Do initialization for all events, regardless of mask
-    // * Populate offsets in first block
-    if (blockIdx.x == 0) {
-      for (unsigned i = threadIdx.x * blockIdx.y + threadIdx.y; i < number_of_events; i += blockDim.x * blockDim.y) {
-        parameters.dev_decisions_offsets[i] = mask ? Derived::offset(parameters, i) : 0;
-      }
-    }
-
-    // * Populate IMultiEventContainer* if relevant
-    if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
-      if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-        const auto particle_container_ptr =
-          static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-        parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
-      } else {
-        parameters.dev_particle_container_ptr[0] = nullptr;
-      }
-    }
-
-    // * Populate decisions
-    const auto pre_scaler_hash = std::get<3>(type_casted_input);
-    const bool pre_scaler_result = deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-    const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
-
-    for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-      const bool sel = mask && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
-      unsigned index = Derived::offset(parameters, blockIdx.x) + i;
-      parameters.dev_decisions[index] = sel;
+  // Do initialization for all events, regardless of mask
+  // * Populate offsets in first block
+  if (blockIdx.x == 0) {
+    for (unsigned i = threadIdx.x * blockIdx.y + threadIdx.y; i < number_of_events; i += blockDim.x * blockDim.y) {
+      parameters.dev_decisions_offsets[i] = mask ? Derived::offset(parameters, i) : 0;
     }
   }
 
-  // if constexpr (std::is_same_v<typename Derived::iteration_t, LineIteration::event_iteration_tag>) {
-  //   if (blockIdx.x == 0) {
-  //     // Iterates over events and processes the line
-  //     const auto& type_casted_input =
-  //       *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
-  //     const auto& [parameters, number_of_events_in_event_list, number_of_events, pre_scaler_hash] =
-  //     type_casted_input;
+  // * Populate IMultiEventContainer* if relevant
+  if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
+    if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+      const auto particle_container_ptr =
+        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
+    } else {
+      parameters.dev_particle_container_ptr[0] = nullptr;
+    }
+  }
 
-  //     // Populate IMultiEventContainer* if relevant
-  //     if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-  //       if (blockIdx.x == 0 && threadIdx.x == 0) {
-  //         const auto particle_container_ptr =
-  //           static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-  //         parameters.dev_particle_container_ptr[0] =
-  //         const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
-  //       }
-  //     }
+  // * Populate decisions
+  const auto pre_scaler_hash = std::get<3>(type_casted_input);
+  const bool pre_scaler_result = deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
 
-  //     // Do selection
-  //     for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
-  //       const auto event_number = parameters.dev_event_list[i];
-
-  //       // ODIN data
-  //       const LHCb::ODIN odin {
-  //         {*parameters.dev_mep_layout ?
-  //            odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets,
-  //            event_number) : odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets,
-  //            event_number),
-  //          10}};
-
-  //       const uint32_t run_no = odin.runNumber();
-  //       const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
-  //       const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
-  //       const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
-  //       const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
-
-  //       bool decision = false;
-  //       if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-  //         auto input = Derived::get_input(parameters, event_number);
-  //         decision = Derived::select(parameters, input);
-  //         parameters.dev_decisions[event_number] = decision;
-  //         Derived::monitor(parameters, input, event_number, decision);
-  //       }
-  //     }
-
-  //     // Populate offsets
-  //     for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
-  //       parameters.dev_decisions_offsets[event_number] = event_number;
-  //     }
-  //   }
-  // }
-  // else {
-
-  // Processes a line by iterating over all events and all "input sizes" (ie. tracks, vertices, etc.).
-
-  // }
+  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+    const bool sel = mask && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
+    unsigned index = Derived::offset(parameters, blockIdx.x) + i;
+    parameters.dev_decisions[index] = sel;
+  }
 }
 
 template<typename Derived, typename Parameters>
