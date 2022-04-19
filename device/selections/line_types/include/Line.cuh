@@ -145,7 +145,7 @@ process_line(char* input, unsigned run_no, unsigned evt_hi, unsigned evt_lo, uns
   // * Populate offsets in first block
   if (blockIdx.x == 0) {
     for (unsigned i = threadIdx.x * blockIdx.y + threadIdx.y; i < number_of_events; i += blockDim.x * blockDim.y) {
-      parameters.dev_decisions_offsets[i] = mask ? Derived::offset(parameters, i) : 0;
+      parameters.dev_decisions_offsets[i] = mask > 0 ? Derived::offset(parameters, i) : 0;
     }
   }
 
@@ -166,7 +166,7 @@ process_line(char* input, unsigned run_no, unsigned evt_hi, unsigned evt_lo, uns
   const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
 
   for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-    const bool sel = mask && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
+    const bool sel = mask > 0 && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
     unsigned index = Derived::offset(parameters, blockIdx.x) + i;
     parameters.dev_decisions[index] = sel;
   }
