@@ -14,14 +14,7 @@ namespace single_calo_cluster_line {
     HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
-
-    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
-    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
-    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
 
     DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;

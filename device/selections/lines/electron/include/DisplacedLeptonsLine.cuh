@@ -12,17 +12,11 @@ namespace displaced_leptons_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
-    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
-    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
     // TODO: For now, this is called a "track" container instead of a "particle"
     // container to trick the SelReport writer into not looking for individual
     // selected candidates. This line needs to be reworked to save individual
     // candidate information to the SelReport.
     DEVICE_INPUT(dev_track_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_track_container;
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     DEVICE_INPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
     DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;

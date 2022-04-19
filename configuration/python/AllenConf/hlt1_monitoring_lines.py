@@ -27,9 +27,6 @@ def make_beam_line(pre_scaler_hash_string="beam_line_pre",
         name=name_map[beam_crossing_type],
         beam_crossing_type=beam_crossing_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
@@ -50,9 +47,6 @@ def make_velo_micro_bias_line(
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
@@ -71,9 +65,6 @@ def make_odin_event_type_line(
         name=name_map[odin_event_type],
         odin_event_type=odin_event_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
@@ -93,9 +84,6 @@ def make_calo_digits_minADC_line(
         host_ecal_number_of_digits_t=decode_calo["host_ecal_number_of_digits"],
         dev_ecal_digits_t=decode_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decode_calo["dev_ecal_digits_offsets"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
