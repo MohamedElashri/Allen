@@ -36,7 +36,8 @@ def make_track_mva_line(forward_tracks,
                         long_track_particles,
                         pre_scaler_hash_string="track_mva_line_pre",
                         post_scaler_hash_string="track_mva_line_post",
-                        name="Hlt1TrackMVA"):
+                        name="Hlt1TrackMVA",
+                        dummy=1):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
@@ -53,7 +54,8 @@ def make_track_mva_line(forward_tracks,
         dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
         dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        post_scaler_hash_string=post_scaler_hash_string,
+        dummy=dummy)
 
 
 def make_two_track_mva_line(forward_tracks,
