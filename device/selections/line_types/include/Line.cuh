@@ -150,10 +150,10 @@ process_line(char* input, unsigned run_no, unsigned evt_hi, unsigned evt_lo, uns
 
     // Check if blockIdx.x (event_number) is in dev_event_list
     unsigned mask = 0;
-    for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-      mask |= __ballot_sync(0xFFFFFFFF, parameters.dev_event_list[i]);
+    for (unsigned i = 0; i < (number_of_events + 31) / 32; ++i) {
+      const auto index = i * 32 + threadIdx.x;
+      mask |= __ballot_sync(0xFFFFFFFF, index < number_of_events ? threadIdx.x == parameters.dev_event_list[i] : false);
     }
-    __syncwarp();
 
     if (mask) {
       const auto pre_scaler_hash = std::get<3>(type_casted_input);
