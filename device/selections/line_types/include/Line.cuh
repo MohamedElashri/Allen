@@ -105,12 +105,8 @@ public:
     set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
     set_size<typename Parameters::dev_decisions_offsets_t>(
       arguments, first<typename Parameters::host_number_of_events_t>(arguments));
-    set_size<typename Parameters::dev_selected_events_t>(
-      arguments, first<typename Parameters::host_number_of_events_t>(arguments));
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-    set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
-    set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
     set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
 
     // Set the size of the type-erased fn parameters
@@ -256,7 +252,6 @@ void Line<Derived, Parameters>::operator()(
 {
   initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
   initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
-  initialize<typename Parameters::dev_selected_events_size_t>(arguments, 0, context);
   initialize<typename Parameters::dev_particle_container_ptr_t>(arguments, 0, context);
 
   const auto* derived_instance = static_cast<const Derived*>(this);

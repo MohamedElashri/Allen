@@ -176,7 +176,7 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_fns_parameters_t, host_fns_parameters_t>(arguments, context);
 
   // * Run all selections in one go
-  global_function(gather_selections::run_lines)(first<host_number_of_events_t>(arguments), dim3(32, 8), context)(
+  global_function(gather_selections::run_lines)(first<host_number_of_events_t>(arguments), dim3(32, 4), context)(
     data<dev_fn_indices_t>(arguments), data<dev_fns_parameters_t>(arguments), 
     data<dev_odin_raw_input_t>(arguments),
     data<dev_odin_raw_input_offsets_t>(arguments),
