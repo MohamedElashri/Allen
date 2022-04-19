@@ -231,8 +231,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     reconstructed_objects = hlt1_reconstruction()
 
     pp_prefilters, physics_lines, prefilter_suffix = [], [], ''
+    gec = make_gec()
     if EnableGEC:
-        gec = make_gec()
         pp_prefilters += [gec]
         prefilter_suffix += '_gec'
 
@@ -257,15 +257,16 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         monitoring_lines = event_monitoring_lines()
         physics_lines += [ line_maker( make_passthrough_line()) ]
 
-    if EnableGEC:
-        with line_maker.bind(prefilter=gec):
-            physics_lines += [line_maker( make_passthrough_line(name="Hlt1Passthrough_gec") )]
-
-            monitoring_lines += alignment_monitoring_lines(
+    with line_maker.bind(prefilter=gec):
+        monitoring_lines += alignment_monitoring_lines(
                 reconstructed_objects["velo_tracks"],
                 reconstructed_objects["forward_tracks"],
                 reconstructed_objects["long_track_particles"],
                 prefilter_suffix="_gec")
+
+    if EnableGEC:
+        with line_maker.bind(prefilter=gec):
+            physics_lines += [line_maker( make_passthrough_line(name="Hlt1Passthrough_gec") )]
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines

@@ -260,8 +260,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
 
     pp_prefilters, physics_lines, prefilter_suffix = [], [], ''
+    gec = make_gec()
     if EnableGEC:
-        gec = make_gec()
         pp_prefilters += [gec]
         prefilter_suffix += '_gec'
 
