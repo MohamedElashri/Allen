@@ -6,12 +6,7 @@
 #include "HltDecReport.cuh"
 #include <regex>
 
-void RoutingBitsChecker::accumulate(
-  const char* line_names,
-  const unsigned* dec_reports,
-  const unsigned* routing_bits,
-  const unsigned number_of_events,
-  const std::map<std::string, uint32_t> rb_map)
+void RoutingBitsChecker::accumulate(const unsigned* routing_bits, const unsigned number_of_events)
 {
   for (auto i = 0u; i < number_of_events; ++i) {
     auto const* rbs = routing_bits + 4 * i;

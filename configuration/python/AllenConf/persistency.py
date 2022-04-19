@@ -29,41 +29,42 @@ def _build_decision_ids(decision_names, offset=0):
 
 # Example routing bits map to be passed as property in the host_routingbits_writer algorithm
 rb_map = {
+    # RB 1 Lumi after HLT1
     '^Hlt1.*Lumi.*':
-    33,
-    # RB 35 Beam-Gas for Velo alignment
+    1,
+    # RB 3 Beam-Gas for Velo alignment
     'Hlt1(?!BeamGasHighRhoVertices)BeamGas.*':
-    35,
-    # Hlt1ODINBeamGas? RB 36 EXPRESS stream (bypasses Hlt2)
+    3,
+    # Hlt1ODINBeamGas? RB 4 EXPRESS stream (bypasses Hlt2)
     'Hlt1(Velo.*|BeamGas.*VeloOpen)':
-    36,
-    #RB 37 Beam-Beam collisions for Velo alignment
+    4,
+    #RB 5 Beam-Beam collisions for Velo alignment
     'Hlt1(TrackMVA|TwoTrackMVA|TwoTrackCatBoost|TrackMuonMVA)':
-    37,
-    # RB 40 Velo (closing) monitoring
+    5,
+    # RB 8 Velo (closing) monitoring
     'Hlt1Velo.*':
-    40,
-    #RB 46 HLT1 physics for monitoring and alignment
+    8,
+    #RB 14 HLT1 physics for monitoring and alignment
     'Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
-    46,
-    #RB 48 NoBias, prescaled
+    14,
+    #RB 16 NoBias, prescaled
     'Hlt1.*NoBias':
-    48,
-    #RB 50 Passthrough for tests
+    16,
+    #RB 18 Passthrough for tests
     'Hlt1Passthrough':
-    50,
-    # RB 53 Tracker alignment
+    18,
+    # RB 21 Tracker alignment
     'Hlt1D2KPi':
-    53,
-    #RB 54 RICH mirror alignment
+    21,
+    #RB 22 RICH mirror alignment
     'Hlt1RICH.*Alignment':
-    54,
-    #RB 56 Muon alignment
+    22,
+    #RB 24 Muon alignment
     'Hlt1CalibMuonAlignJpsi':
-    56,
-    #RB 57 Tell1 Error events
+    24,
+    #RB 25 Tell1 Error events
     'Hlt1Tell1Error':
-    57
+    25
 }
 
 

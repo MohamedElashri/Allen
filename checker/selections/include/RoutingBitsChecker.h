@@ -22,12 +22,7 @@ private:
 public:
   RoutingBitsChecker(CheckerInvoker const*, std::string const&, std::string const&) { m_tot = 0; }
 
-  void accumulate(
-    const char* names_of_lines,
-    const unsigned* dec_reports,
-    const uint32_t* routing_bits,
-    const unsigned number_of_events,
-    const std::map<std::string, uint32_t> rb_map);
+  void accumulate(const uint32_t* routing_bits, const unsigned number_of_events);
 
   void report(size_t) const override;
 };
