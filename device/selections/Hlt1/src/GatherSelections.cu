@@ -33,10 +33,31 @@ std::vector<std::string> split(const std::string& s, char delim)
 }
 
 namespace gather_selections {
-  __global__ void run_lines(unsigned* line_fn_indices, char** parameters, unsigned number_of_lines)
+  __global__ void run_lines(
+    unsigned* line_fn_indices,
+    char** parameters,
+    const char* dev_odin_raw_input,
+    const unsigned* dev_odin_raw_input_offsets,
+    const uint32_t* dev_mep_layout,
+    const unsigned number_of_events,
+    const unsigned number_of_lines)
   {
-    for (unsigned i = 0; i < number_of_lines; ++i) {
-      line_functions[line_fn_indices[i]](parameters[i]);
+    // Process each event with a different block
+    // ODIN data
+    const LHCb::ODIN odin {
+      {*dev_mep_layout ? odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, blockIdx.x) :
+                         odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, blockIdx.x),
+       10}};
+
+    const uint32_t run_no = odin.runNumber();
+    const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
+    const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
+    const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
+    const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
+
+    for (unsigned i = threadIdx.y; i < number_of_lines; i += blockDim.y) {
+      // __syncthreads();
+      line_functions[line_fn_indices[i]](parameters[i], run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     }
   }
 
@@ -55,10 +76,10 @@ namespace gather_selections {
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-    const LHCb::ODIN odin {{*dev_mep_layout ?
-                              odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-                              odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
-                            10}};
+    const LHCb::ODIN odin {
+      {*dev_mep_layout ? odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                         odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
+       10}};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -155,8 +176,13 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_fns_parameters_t, host_fns_parameters_t>(arguments, context);
 
   // * Run all selections in one go
-  global_function(gather_selections::run_lines)(first<host_number_of_events_t>(arguments), 256, context)(
-    data<dev_fn_indices_t>(arguments), data<dev_fns_parameters_t>(arguments), number_of_lines);
+  global_function(gather_selections::run_lines)(first<host_number_of_events_t>(arguments), dim3(32, 4), context)(
+    data<dev_fn_indices_t>(arguments), data<dev_fns_parameters_t>(arguments), 
+    data<dev_odin_raw_input_t>(arguments),
+    data<dev_odin_raw_input_offsets_t>(arguments),
+    data<dev_mep_layout_t>(arguments),
+    first<host_number_of_events_t>(arguments),
+    number_of_lines);
 
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
@@ -235,9 +261,10 @@ void gather_selections::gather_selections_t::operator()(
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
-    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
-                                      data<host_selections_offsets_t>(arguments),
-                                      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {
+      reinterpret_cast<bool*>(host_selections.data()),
+      data<host_selections_offsets_t>(arguments),
+      first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
