@@ -13,18 +13,18 @@
 #include <tuple>
 
 // Helper macro to explicitly instantiate lines
-#define INSTANTIATE_LINE(LINE, PARAMETERS)                                                                          \
-  template void Line<LINE, PARAMETERS>::operator()(                                                                 \
-    const ArgumentReferences<PARAMETERS>&,                                                                          \
-    const RuntimeOptions&,                                                                                          \
-    const Constants&,                                                                                               \
-    HostBuffers&,                                                                                                   \
-    const Allen::Context&) const;                                                                                   \
-  template __device__ void process_line<LINE, PARAMETERS>(char*, unsigned, unsigned, unsigned, unsigned, unsigned); \
+#define INSTANTIATE_LINE(LINE, PARAMETERS)                                                                                    \
+  template void Line<LINE, PARAMETERS>::operator()(                                                                           \
+    const ArgumentReferences<PARAMETERS>&,                                                                                    \
+    const RuntimeOptions&,                                                                                                    \
+    const Constants&,                                                                                                         \
+    HostBuffers&,                                                                                                             \
+    const Allen::Context&) const;                                                                                             \
+  template __device__ void process_line<LINE, PARAMETERS>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned); \
   INSTANTIATE_ALGORITHM(LINE)
 
 // Type-erased line function type
-using line_fn_t = void (*)(char*, unsigned, unsigned, unsigned, unsigned, unsigned);
+using line_fn_t = void (*)(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);
 
 /**
  * @brief A generic Line.
@@ -127,7 +127,7 @@ public:
 
 template<typename Derived, typename Parameters>
 __device__ void
-process_line(char* input, unsigned run_no, unsigned evt_hi, unsigned evt_lo, unsigned gps_hi, unsigned gps_lo)
+process_line(char* input, bool* decisions, unsigned* decisions_offsets, Allen::IMultiEventContainer** particle_container_ptr, unsigned run_no, unsigned evt_hi, unsigned evt_lo, unsigned gps_hi, unsigned gps_lo, unsigned line_offset)
 {
   const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
   const auto& parameters = std::get<0>(type_casted_input);
@@ -144,9 +144,30 @@ process_line(char* input, unsigned run_no, unsigned evt_hi, unsigned evt_lo, uns
   // Do initialization for all events, regardless of mask
   // * Populate offsets in first block
   if (blockIdx.x == 0) {
-    for (unsigned i = threadIdx.x * blockIdx.y + threadIdx.y; i < number_of_events; i += blockDim.x * blockDim.y) {
-      parameters.dev_decisions_offsets[i] = mask > 0 ? Derived::offset(parameters, i) : 0;
+    for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
+      decisions_offsets[i] = (mask ? Derived::offset(parameters, i) : 0) + line_offset;
     }
+  }
+
+  // * Populate IMultiEventContainer* if relevant
+  if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
+    if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+      const auto ptr = static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+      *particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);
+    } else {
+      *particle_container_ptr = nullptr;
+    }
+  }
+
+  // * Populate decisions
+  const auto pre_scaler_hash = std::get<3>(type_casted_input);
+  const bool pre_scaler_result = deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
+
+  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+    const bool sel = mask && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
+    unsigned index = Derived::offset(parameters, blockIdx.x) + i;
+    decisions[index] = sel;
   }
 
   // * Populate IMultiEventContainer* if relevant

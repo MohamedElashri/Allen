@@ -30,6 +30,7 @@ namespace gather_selections {
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
+    DEVICE_OUTPUT(dev_selections_lines_offsets_t, unsigned) dev_selections_lines_offsets;
     DEVICE_OUTPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_OUTPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     HOST_OUTPUT(host_post_scale_factors_t, float) host_post_scale_factors;

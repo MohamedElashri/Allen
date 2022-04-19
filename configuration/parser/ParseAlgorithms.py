@@ -659,14 +659,14 @@ class AlgorithmCategory(Enum):\n\
                 "}\n"))
         code += "\n"
         for alg in selection_algorithms:
-            code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
+            code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
         code += "\nconstexpr auto line_strings = {\n"
         for i, alg in enumerate(selection_algorithms):
             code += f"  \"{alg.name}\""
             if i != len(selection_algorithms) - 1:
                 code += ",\n"
         code += "\n};\n\n"
-        code += f"constexpr __device__ std::array<void(*)(char*, unsigned, unsigned, unsigned, unsigned, unsigned), {len(selection_algorithms)}> line_functions = {{\n"
+        code += f"constexpr __device__ std::array<void(*)(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned), {len(selection_algorithms)}> line_functions = {{\n"
         for i, alg in enumerate(selection_algorithms):
             code += f"  process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>"
             if i != len(selection_algorithms) - 1:
