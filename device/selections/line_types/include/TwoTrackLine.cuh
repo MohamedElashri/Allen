@@ -6,7 +6,6 @@
 #include "Line.cuh"
 #include "VertexDefinitions.cuh"
 #include "ParticleTypes.cuh"
-#include "LHCbIDContainer.cuh"
 
 /**
  * A TwoTrackLine.

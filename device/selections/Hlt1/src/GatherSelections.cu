@@ -231,8 +231,6 @@ void gather_selections::gather_selections_t::operator()(
     dev_input_selections.size_of_aggregate(),
     data<dev_selections_lines_offsets_t>(arguments));
 
-  print<dev_selections_offsets_t>(arguments);
-
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
   const auto line_names = std::string(property<names_of_active_lines_t>());
@@ -250,9 +248,6 @@ void gather_selections::gather_selections_t::operator()(
   // and host_post_scale_hashes_t to dev_post_scale_hashes_t
   Allen::copy_async<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
   Allen::copy_async<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
-
-  // Synchronize after all the copies above
-  Allen::synchronize(context);
 
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(

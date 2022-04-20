@@ -4,7 +4,6 @@
 #pragma once
 
 #include "Line.cuh"
-#include "LHCbIDContainer.cuh"
 #include "ParKalmanFilter.cuh"
 #include "ParticleTypes.cuh"
 

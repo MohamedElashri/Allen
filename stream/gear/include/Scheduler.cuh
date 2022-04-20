@@ -222,7 +222,7 @@ private:
   static void setup(
     Allen::TypeErasedAlgorithm& algorithm,
     const LifetimeDependencies& in_dependencies,
-    const LifetimeDependencies& out_dependencies,
+    const LifetimeDependencies&,
     host_memory_manager_t& host_memory_manager,
     device_memory_manager_t& device_memory_manager,
     UnorderedStore& store,
@@ -242,10 +242,10 @@ private:
       info_cout << "Sequence step \"" << algorithm.name() << "\":\n";
     }
 
-    // Free all arguments in OutDependencies
-    if (algorithm.scope() != "SelectionAlgorithm" && algorithm.name() != "gather_selections") {
-      MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
-    }
+    // TODO: Free all arguments in OutDependencies
+    // if (algorithm.scope() != "SelectionAlgorithm" && algorithm.name() != "gather_selections") {
+    //   MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
+    // }
 
     // Reserve all arguments in InDependencies
     MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);
