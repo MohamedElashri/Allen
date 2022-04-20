@@ -134,10 +134,12 @@ public:
    * @brief Default monitor function.
    */
   static void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) {}
+
   template<typename INPUT>
   static __device__ void monitor(const Parameters&, INPUT, unsigned, bool)
   {}
-  static __host__ void
+
+  static void
   output_monitor(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&)
   {}
 };
@@ -193,9 +195,13 @@ __device__ void process_line(
   const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
 
   for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-    const bool sel = mask > 0 && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
+    const auto input = Derived::get_input(parameters, blockIdx.x, i);
+    const bool decision = mask > 0 && pre_scaler_result && Derived::select(parameters, input);
     unsigned index = Derived::offset(parameters, blockIdx.x) + i;
-    decisions[index] = sel;
+    decisions[index] = decision;
+#ifdef MONITOR_SELECTIONS
+    Derived::monitor(parameters, input, blockIdx.x, decision);
+#endif
   }
 }
 
@@ -205,7 +211,7 @@ void Line<Derived, Parameters>::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  const Allen::Context&) const
+  [[maybe_unused]] const Allen::Context& context) const
 {
   const auto* derived_instance = static_cast<const Derived*>(this);
 
@@ -225,4 +231,8 @@ void Line<Derived, Parameters>::operator()(
   assert(sizeof(std::tuple<Parameters, size_t, unsigned, unsigned>) == sizeof(parameters));
 
   std::memcpy(data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
+
+#ifdef MONITOR_SELECTIONS
+  Derived::init_monitor(arguments, context);
+#endif
 }

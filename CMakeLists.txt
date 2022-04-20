@@ -135,10 +135,16 @@ if(ENABLE_CONTRACTS)
   add_compile_definitions(ENABLE_CONTRACTS)
 endif()
 
-# Chioce of profiling with callgrind
+# Choice of profiling with callgrind
 option(CALLGRIND_PROFILE "Set Callgrind macros around sequence" OFF)
 if(CALLGRIND_PROFILE)
   add_compile_definitions(CALLGRIND_PROFILE)
+endif()
+
+# Choice of monitoring selections
+option(MONITOR_SELECTIONS "Set Monitoring selections" OFF)
+if(MONITOR_SELECTIONS)
+  add_compile_definitions(MONITOR_SELECTIONS)
 endif()
 
 set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
