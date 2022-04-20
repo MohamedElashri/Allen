@@ -38,14 +38,8 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
 
 
 def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
-                          secondary_vertices, calo_matching_objects, nlines):
+                          secondary_vertices, calo_matching_objects):
     lines = []
-    for i in range(nlines):
-            lines.append(
-                line_maker("Hlt1TrackMVA" + str(i),
-                           make_track_mva_line(forward_tracks, long_track_particles, name="Hlt1TrackMVA" + str(i), dummy=i)))
-    return lines
-
     lines.append(
         line_maker("Hlt1KsToPiPi",
                    make_kstopipi_line(forward_tracks, secondary_vertices)))
@@ -149,7 +143,6 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
 def default_monitoring_lines(velo_tracks, forward_tracks, long_track_particles,
                              velo_states):
     lines = []
-    return lines
     lines.append(
         line_maker(
             "Hlt1NoBeam",
@@ -230,7 +223,7 @@ def default_monitoring_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def setup_hlt1_node(number_of_lines=1, withMCChecking=False, EnableGEC=True):
+def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
 
@@ -240,8 +233,7 @@ def setup_hlt1_node(number_of_lines=1, withMCChecking=False, EnableGEC=True):
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
             reconstructed_objects["secondary_vertices"],
-            reconstructed_objects["calo_matching_objects"],
-            number_of_lines)
+            reconstructed_objects["calo_matching_objects"])
 
     monitoring_lines = default_monitoring_lines(
         reconstructed_objects["velo_tracks"],
@@ -262,14 +254,13 @@ def setup_hlt1_node(number_of_lines=1, withMCChecking=False, EnableGEC=True):
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
-            make_gather_selections(lines=line_algorithms),
-            # make_global_decision(lines=line_algorithms),
-            # rate_validation(lines=line_algorithms),
-            # *make_sel_report_writer(
-            #     lines=line_algorithms,
-            #     forward_tracks=reconstructed_objects["long_track_particles"],
-            #     secondary_vertices=reconstructed_objects["secondary_vertices"])
-            # ["algorithms"],
+            make_global_decision(lines=line_algorithms),
+            rate_validation(lines=line_algorithms),
+            *make_sel_report_writer(
+                lines=line_algorithms,
+                forward_tracks=reconstructed_objects["long_track_particles"],
+                secondary_vertices=reconstructed_objects["secondary_vertices"])
+            ["algorithms"],
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)

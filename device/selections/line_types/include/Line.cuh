@@ -13,18 +13,38 @@
 #include <tuple>
 
 // Helper macro to explicitly instantiate lines
-#define INSTANTIATE_LINE(LINE, PARAMETERS)                                                                                    \
-  template void Line<LINE, PARAMETERS>::operator()(                                                                           \
-    const ArgumentReferences<PARAMETERS>&,                                                                                    \
-    const RuntimeOptions&,                                                                                                    \
-    const Constants&,                                                                                                         \
-    HostBuffers&,                                                                                                             \
-    const Allen::Context&) const;                                                                                             \
-  template __device__ void process_line<LINE, PARAMETERS>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned); \
+#define INSTANTIATE_LINE(LINE, PARAMETERS)                 \
+  template void Line<LINE, PARAMETERS>::operator()(        \
+    const ArgumentReferences<PARAMETERS>&,                 \
+    const RuntimeOptions&,                                 \
+    const Constants&,                                      \
+    HostBuffers&,                                          \
+    const Allen::Context&) const;                          \
+  template __device__ void process_line<LINE, PARAMETERS>( \
+    char*,                                                 \
+    bool*,                                                 \
+    unsigned*,                                             \
+    Allen::IMultiEventContainer**,                         \
+    unsigned,                                              \
+    unsigned,                                              \
+    unsigned,                                              \
+    unsigned,                                              \
+    unsigned,                                              \
+    unsigned);                                             \
   INSTANTIATE_ALGORITHM(LINE)
 
 // Type-erased line function type
-using line_fn_t = void (*)(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);
+using line_fn_t = void (*)(
+  char*,
+  bool*,
+  unsigned*,
+  Allen::IMultiEventContainer**,
+  unsigned,
+  unsigned,
+  unsigned,
+  unsigned,
+  unsigned,
+  unsigned);
 
 /**
  * @brief A generic Line.
@@ -123,8 +143,17 @@ public:
 };
 
 template<typename Derived, typename Parameters>
-__device__ void
-process_line(char* input, bool* decisions, unsigned* decisions_offsets, Allen::IMultiEventContainer** particle_container_ptr, unsigned run_no, unsigned evt_hi, unsigned evt_lo, unsigned gps_hi, unsigned gps_lo, unsigned line_offset)
+__device__ void process_line(
+  char* input,
+  bool* decisions,
+  unsigned* decisions_offsets,
+  Allen::IMultiEventContainer** particle_container_ptr,
+  unsigned run_no,
+  unsigned evt_hi,
+  unsigned evt_lo,
+  unsigned gps_hi,
+  unsigned gps_lo,
+  unsigned line_offset)
 {
   const auto& type_casted_input = *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned>*>(input);
   const auto& parameters = std::get<0>(type_casted_input);
@@ -151,14 +180,16 @@ process_line(char* input, bool* decisions, unsigned* decisions_offsets, Allen::I
     if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
       const auto ptr = static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
       *particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);
-    } else {
+    }
+    else {
       *particle_container_ptr = nullptr;
     }
   }
 
   // * Populate decisions
   const auto pre_scaler_hash = std::get<3>(type_casted_input);
-  const bool pre_scaler_result = deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  const bool pre_scaler_result =
+    deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
   const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
 
   for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
@@ -196,7 +227,7 @@ void Line<Derived, Parameters>::operator()(
   const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  const Allen::Context& context) const
+  const Allen::Context&) const
 {
   const auto* derived_instance = static_cast<const Derived*>(this);
 
@@ -213,7 +244,7 @@ void Line<Derived, Parameters>::operator()(
     first<typename Parameters::host_number_of_events_t>(arguments),
     m_pre_scaler_hash);
 
-  auto fn_parameters_pointer =
-    reinterpret_cast<decltype(parameters)*>(data<typename Parameters::host_fn_parameters_t>(arguments));
-  fn_parameters_pointer[0] = parameters;
+  assert(sizeof(std::tuple<Parameters, size_t, unsigned, unsigned>) == sizeof(parameters));
+
+  std::memcpy(data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
 }

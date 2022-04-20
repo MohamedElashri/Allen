@@ -60,7 +60,6 @@ namespace gather_selections {
     const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
 
     for (unsigned i = threadIdx.y; i < number_of_lines; i += blockDim.y) {
-      // __syncthreads();
       line_functions[line_fn_indices[i]](
         parameters[i],
         &dev_decisions[line_offsets[i]],
@@ -73,7 +72,8 @@ namespace gather_selections {
         gps_lo,
         line_offsets[i]);
     }
-    if (blockIdx.x == 0 && threadIdx.x == 0) {
+
+    if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
       dev_decisions_offsets[number_of_lines * number_of_events] = line_offsets[number_of_lines];
     }
   }

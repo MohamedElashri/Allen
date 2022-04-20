@@ -35,7 +35,6 @@ namespace track_mva_line {
     PROPERTY(param2_t, "param2", "param2 description", float) param2;
     PROPERTY(param3_t, "param3", "param3 description", float) param3;
     PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
-    PROPERTY(dummy_t, "dummy", "dummy desc", int) dummy;
   };
 
   struct track_mva_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<track_mva_line_t, Parameters> {
@@ -54,6 +53,5 @@ namespace track_mva_line {
     Property<param2_t> m_param2 {this, 2.f * Gaudi::Units::GeV};
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 0.f};
-    Property<dummy_t> m_dummy {this, 0};
   };
 } // namespace track_mva_line
