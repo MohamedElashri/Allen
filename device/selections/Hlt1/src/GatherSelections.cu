@@ -231,6 +231,8 @@ void gather_selections::gather_selections_t::operator()(
     dev_input_selections.size_of_aggregate(),
     data<dev_selections_lines_offsets_t>(arguments));
 
+  print<dev_selections_offsets_t>(arguments);
+
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
   const auto line_names = std::string(property<names_of_active_lines_t>());

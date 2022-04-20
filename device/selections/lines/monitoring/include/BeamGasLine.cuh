@@ -13,9 +13,6 @@ namespace beam_gas_line {
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
-    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
-    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
@@ -23,6 +20,7 @@ namespace beam_gas_line {
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
+    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;

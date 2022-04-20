@@ -171,7 +171,7 @@ __device__ void process_line(
   // * Populate offsets in first block
   if (blockIdx.x == 0) {
     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-      decisions_offsets[i] = (mask ? Derived::offset(parameters, i) : 0) + line_offset;
+      decisions_offsets[i] = (mask > 0 ? Derived::offset(parameters, i) : 0) + line_offset;
     }
   }
 
@@ -193,31 +193,9 @@ __device__ void process_line(
   const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
 
   for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-    const bool sel = mask && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
-    unsigned index = Derived::offset(parameters, blockIdx.x) + i;
-    decisions[index] = sel;
-  }
-
-  // * Populate IMultiEventContainer* if relevant
-  if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
-    if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-      const auto particle_container_ptr =
-        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
-    } else {
-      parameters.dev_particle_container_ptr[0] = nullptr;
-    }
-  }
-
-  // * Populate decisions
-  const auto pre_scaler_hash = std::get<3>(type_casted_input);
-  const bool pre_scaler_result = deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-  const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
-
-  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
     const bool sel = mask > 0 && pre_scaler_result && Derived::select(parameters, Derived::get_input(parameters, blockIdx.x, i));
     unsigned index = Derived::offset(parameters, blockIdx.x) + i;
-    parameters.dev_decisions[index] = sel;
+    decisions[index] = sel;
   }
 }
 
