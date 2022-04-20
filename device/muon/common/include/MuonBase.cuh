@@ -20,7 +20,7 @@ namespace Muon {
     // add new bits to allow the compactification of muonTileID in 28 as requested by LHCbID class
     // the trick is to evaluate BitsLayoutX+BitsLayouty*50 and store it in 10 bits instead of 11. Possible if max number
     // of granularity in X is 48 (as for Run1-2 and Run3)
-    inline const unsigned int BitsCompactedLayout = 10;
+    static constexpr unsigned int BitsCompactedLayout = 10;
 
     //
     static constexpr unsigned int BitsIndex = BitsX + BitsY + BitsRegion + BitsQuarter;
@@ -37,7 +37,7 @@ namespace Muon {
     static constexpr unsigned int ShiftLayoutY = ShiftLayoutX + BitsLayoutX;
 
     // start at standard layoutX
-    inline const unsigned int ShiftCompactedLayout = ShiftStation + BitsStation;
+    static constexpr unsigned int ShiftCompactedLayout = ShiftStation + BitsStation;
     //
     static constexpr unsigned int ShiftIndex = 0;
     static constexpr unsigned int ShiftKey = 0;
@@ -52,8 +52,8 @@ namespace Muon {
     static constexpr ContentType MaskLayer = ((((ContentType) 1) << BitsLayer) - 1) << ShiftLayer;
     static constexpr ContentType MaskStation = ((((ContentType) 1) << BitsStation) - 1) << ShiftStation;
     //
-    inline const unsigned int MaskCompactedLayout = ((((ContentType) 1) << BitsCompactedLayout) - 1)
-                                                    << ShiftCompactedLayout;
+    static constexpr unsigned int MaskCompactedLayout = ((((ContentType) 1) << BitsCompactedLayout) - 1)
+                                                        << ShiftCompactedLayout;
 
     static constexpr ContentType MaskIndex = ((((ContentType) 1) << BitsIndex) - 1) << ShiftIndex;
     static constexpr ContentType MaskKey = ((((ContentType) 1) << BitsKey) - 1) << ShiftKey;
@@ -64,6 +64,6 @@ namespace Muon {
     static constexpr int RIGHT = 1;
     static constexpr int LEFT = -1;
 
-    inline const unsigned int max_compacted_xGrid = 50UL;
+    static constexpr unsigned int max_compacted_xGrid = 50UL;
   } // namespace MuonBase
 } // namespace Muon
