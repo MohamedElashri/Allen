@@ -23,8 +23,7 @@ namespace calo_digits_minADC {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
-
+    
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
 

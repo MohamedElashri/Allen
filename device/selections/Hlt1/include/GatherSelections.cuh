@@ -20,9 +20,11 @@ namespace gather_selections {
     DEVICE_INPUT_AGGREGATE(dev_input_selections_offsets_t, unsigned) dev_input_selections_offsets;
     HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
     HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
-    DEVICE_INPUT_AGGREGATE(dev_fn_parameters_agg_t, char) dev_fn_parameters_agg;
-    HOST_OUTPUT(host_fns_parameters_t, char*) host_fns_parameters;
-    DEVICE_OUTPUT(dev_fns_parameters_t, char*) dev_fns_parameters;
+    HOST_INPUT_AGGREGATE(host_fn_parameters_agg_t, char) host_fn_parameters_agg;
+    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+    DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
+    HOST_OUTPUT(host_fn_parameter_pointers_t, char*) host_fn_parameter_pointers;
+    DEVICE_OUTPUT(dev_fn_parameter_pointers_t, char*) dev_fn_parameter_pointers;
     HOST_OUTPUT(host_fn_indices_t, unsigned) host_fn_indices;
     DEVICE_OUTPUT(dev_fn_indices_t, unsigned) dev_fn_indices;
     DEVICE_INPUT_AGGREGATE(dev_particle_containers_agg_t, Allen::IMultiEventContainer*)

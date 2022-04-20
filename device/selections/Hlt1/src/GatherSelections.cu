@@ -44,8 +44,7 @@ namespace gather_selections {
     const uint32_t* dev_mep_layout,
     const unsigned number_of_events,
     const unsigned number_of_lines,
-    const unsigned* line_offsets
-  )
+    const unsigned* line_offsets)
   {
     // Process each event with a different block
     // ODIN data
@@ -62,16 +61,17 @@ namespace gather_selections {
 
     for (unsigned i = threadIdx.y; i < number_of_lines; i += blockDim.y) {
       // __syncthreads();
-      line_functions[line_fn_indices[i]](parameters[i],
-                                         &dev_decisions[line_offsets[i]],
-                                         &dev_decisions_offsets[i * number_of_events],
-                                         &dev_particle_container_ptr[i],
-                                         run_no,
-                                         evt_hi,
-                                         evt_lo,
-                                         gps_hi,
-                                         gps_lo,
-                                         line_offsets[i]);
+      line_functions[line_fn_indices[i]](
+        parameters[i],
+        &dev_decisions[line_offsets[i]],
+        &dev_decisions_offsets[i * number_of_events],
+        &dev_particle_container_ptr[i],
+        run_no,
+        evt_hi,
+        evt_lo,
+        gps_hi,
+        gps_lo,
+        line_offsets[i]);
     }
     if (blockIdx.x == 0 && threadIdx.x == 0) {
       dev_decisions_offsets[number_of_lines * number_of_events] = line_offsets[number_of_lines];
@@ -159,8 +159,14 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<dev_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
   set_size<dev_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
   set_size<dev_particle_containers_t>(arguments, dev_particle_containers_agg.size_of_aggregate());
-  set_size<host_fns_parameters_t>(arguments, input_aggregate<dev_fn_parameters_agg_t>(arguments).size_of_aggregate());
-  set_size<dev_fns_parameters_t>(arguments, input_aggregate<dev_fn_parameters_agg_t>(arguments).size_of_aggregate());
+  set_size<host_fn_parameters_t>(
+    arguments, sum_sizes_from_aggregate(input_aggregate<host_fn_parameters_agg_t>(arguments)));
+  set_size<dev_fn_parameters_t>(
+    arguments, sum_sizes_from_aggregate(input_aggregate<host_fn_parameters_agg_t>(arguments)));
+  set_size<host_fn_parameter_pointers_t>(
+    arguments, input_aggregate<host_fn_parameters_agg_t>(arguments).size_of_aggregate());
+  set_size<dev_fn_parameter_pointers_t>(
+    arguments, input_aggregate<host_fn_parameters_agg_t>(arguments).size_of_aggregate());
   set_size<host_fn_indices_t>(arguments, m_indices_active_line_algorithms.size());
   set_size<dev_fn_indices_t>(arguments, m_indices_active_line_algorithms.size());
 
@@ -178,12 +184,26 @@ void gather_selections::gather_selections_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  // Pass the number of lines for posterior algorithms
+  // Run the selection algorithms
+  // * Aggregate parameter fns
+  Allen::aggregate::store_contiguous_async<host_fn_parameters_t, host_fn_parameters_agg_t>(arguments, context);
+  Allen::copy_async<dev_fn_parameters_t, host_fn_parameters_t>(arguments, context);
+
+  // * Prepare pointers to parameters
+  unsigned accumulated_offset_params = 0;
+  const auto host_fn_parameters_agg = input_aggregate<host_fn_parameters_agg_t>(arguments);
+  for (unsigned i = 0; i < host_fn_parameters_agg.size_of_aggregate(); ++i) {
+    data<host_fn_parameter_pointers_t>(arguments)[i] = data<dev_fn_parameters_t>(arguments) + accumulated_offset_params;
+    accumulated_offset_params += host_fn_parameters_agg.size(i);
+  }
+  Allen::copy_async<dev_fn_parameter_pointers_t, host_fn_parameter_pointers_t>(arguments, context);
+
+  // * Pass the number of lines for posterior algorithms
   const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
   data<host_number_of_active_lines_t>(arguments)[0] = dev_input_selections.size_of_aggregate();
   Allen::copy_async<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
 
-  // Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
+  // * Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
   auto* container = data<host_selections_lines_offsets_t>(arguments);
   container[0] = 0;
   for (size_t i = 0; i < dev_input_selections.size_of_aggregate(); ++i) {
@@ -191,24 +211,16 @@ void gather_selections::gather_selections_t::operator()(
   }
   Allen::copy_async<dev_selections_lines_offsets_t, host_selections_lines_offsets_t>(arguments, context);
 
-  // Run the selection algorithms
   // * Prepare dev_fn_indices_t, containing all fn indices
   for (unsigned i = 0; i < m_indices_active_line_algorithms.size(); ++i) {
     data<host_fn_indices_t>(arguments)[i] = m_indices_active_line_algorithms[i];
   }
   Allen::copy_async<dev_fn_indices_t, host_fn_indices_t>(arguments, context);
 
-  // * Prepare dev_fns_parameters_t, containing all parameter pointers
-  auto dev_fn_parameters_agg = input_aggregate<dev_fn_parameters_agg_t>(arguments);
-  const auto number_of_lines = dev_fn_parameters_agg.size_of_aggregate();
-  for (unsigned i = 0; i < number_of_lines; ++i) {
-    data<host_fns_parameters_t>(arguments)[i] = dev_fn_parameters_agg.data(i);
-  }
-  Allen::copy_async<dev_fns_parameters_t, host_fns_parameters_t>(arguments, context);
-
   // * Run all selections in one go
   global_function(gather_selections::run_lines)(first<host_number_of_events_t>(arguments), dim3(warp_size, 8), context)(
-    data<dev_fn_indices_t>(arguments), data<dev_fns_parameters_t>(arguments), 
+    data<dev_fn_indices_t>(arguments),
+    data<dev_fn_parameter_pointers_t>(arguments),
     data<dev_selections_t>(arguments),
     data<dev_selections_offsets_t>(arguments),
     data<dev_particle_containers_t>(arguments),
@@ -216,7 +228,7 @@ void gather_selections::gather_selections_t::operator()(
     data<dev_odin_raw_input_offsets_t>(arguments),
     data<dev_mep_layout_t>(arguments),
     first<host_number_of_events_t>(arguments),
-    number_of_lines,
+    dev_input_selections.size_of_aggregate(),
     data<dev_selections_lines_offsets_t>(arguments));
 
   // Save the names of active lines as output

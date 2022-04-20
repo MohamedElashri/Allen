@@ -43,8 +43,7 @@ using line_fn_t = void (*)(char*, bool*, unsigned*, Allen::IMultiEventContainer*
  *  HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
  *  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
- *  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
+     *  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
  *  PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
  *  PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
  *  PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
@@ -102,8 +101,6 @@ public:
     // Set the size of the type-erased fn parameters
     set_size<typename Parameters::host_fn_parameters_t>(
       arguments, sizeof(std::tuple<Parameters, size_t, unsigned, unsigned>));
-    set_size<typename Parameters::dev_fn_parameters_t>(
-      arguments, size<typename Parameters::host_fn_parameters_t>(arguments));
   }
 
   void operator()(
@@ -209,8 +206,7 @@ void Line<Derived, Parameters>::operator()(
     derived_instance->template property<typename Parameters::post_scaler_t>();
   data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
 
-  // Delay the execution of the line:
-  // * Pass the parameters
+  // Delay the execution of the line: Pass the parameters
   auto parameters = std::make_tuple(
     derived_instance->make_parameters(1, 1, 0, arguments),
     size<typename Parameters::dev_event_list_t>(arguments),
@@ -220,8 +216,4 @@ void Line<Derived, Parameters>::operator()(
   auto fn_parameters_pointer =
     reinterpret_cast<decltype(parameters)*>(data<typename Parameters::host_fn_parameters_t>(arguments));
   fn_parameters_pointer[0] = parameters;
-
-  // * Prepare the function and parameters on the device
-  Allen::copy_async<typename Parameters::dev_fn_parameters_t, typename Parameters::host_fn_parameters_t>(
-    arguments, context);
 }

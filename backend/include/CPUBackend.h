@@ -40,6 +40,10 @@ using std::signbit;
 #define fminf_impl fminf
 constexpr int warp_size = 1;
 
+unsigned inline __ballot_sync(unsigned mask, int predicate) {
+  return predicate & mask;
+}
+
 // Support for dynamic shared memory buffers
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config)                                                  \
   auto _dynamic_shared_memory_buffer = std::vector<_type>(_config.dynamic_shared_memory_size() / sizeof(_type)); \
