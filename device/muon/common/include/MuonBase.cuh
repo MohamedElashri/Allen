@@ -52,8 +52,8 @@ namespace Muon {
     static constexpr ContentType MaskLayer = ((((ContentType) 1) << BitsLayer) - 1) << ShiftLayer;
     static constexpr ContentType MaskStation = ((((ContentType) 1) << BitsStation) - 1) << ShiftStation;
     //
-    static constexpr unsigned int MaskCompactedLayout = ((((ContentType) 1) << BitsCompactedLayout) - 1)
-                                                        << ShiftCompactedLayout;
+    static constexpr ContentType MaskCompactedLayout = ((((ContentType) 1) << BitsCompactedLayout) - 1)
+                                                       << ShiftCompactedLayout;
 
     static constexpr ContentType MaskIndex = ((((ContentType) 1) << BitsIndex) - 1) << ShiftIndex;
     static constexpr ContentType MaskKey = ((((ContentType) 1) << BitsKey) - 1) << ShiftKey;
