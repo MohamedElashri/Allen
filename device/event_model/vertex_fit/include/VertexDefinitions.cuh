@@ -57,8 +57,6 @@ namespace VertexFit {
     float ip2 = 0.0f;
     // Minimum IP of the tracks.
     float minip = 0.0f;
-    // Minimum p of the tracks.
-    float minp = 0.0f;
     // Minimum pt of the tracks.
     float minpt = 0.0f;
     // Number of tracks associated to a PV (min IP chi2 < 16).

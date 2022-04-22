@@ -328,9 +328,6 @@ namespace VertexFit {
     // Sum of track pT.
     sv.sumpt = stateA.pt() + stateB.pt();
 
-    // Minimum p of constituent tracks.
-    sv.minp = stateA.p() < stateB.p() ? stateA.p() : stateB.p();
-
     // Minimum pt of constituent tracks.
     sv.minpt = stateA.pt() < stateB.pt() ? stateA.pt() : stateB.pt();
 

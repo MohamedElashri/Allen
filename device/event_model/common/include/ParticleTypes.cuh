@@ -454,7 +454,7 @@ namespace Allen {
         __host__ __device__ int charge() const
         {
           return transform_reduce(
-            [](const BasicParticle* p) { return p->state().charge(); }, [](int f1, int f2) { return f1 + f2; }, -99999);
+            [](const BasicParticle* p) { return p->state().charge(); }, [](int f1, int f2) { return f1 + f2; }, 0);
         }
 
         __host__ __device__ float m() const
