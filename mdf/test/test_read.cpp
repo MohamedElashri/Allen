@@ -9,6 +9,11 @@
 #include <unordered_set>
 #include <map>
 
+#include <boost/program_options.hpp>
+#include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -19,19 +24,56 @@
 #include "sourceid.h"
 
 using namespace std;
+namespace po = boost::program_options;
+namespace ba = boost::algorithm;
 
 int main(int argc, char* argv[])
 {
-  if (argc != 3 && argc != 4) {
-    cout << "usage: test_read file.mdf n_events [n_skip]" << endl;
-    return -1;
+
+  string filename;
+  string dump;
+  size_t n_events = 0;
+  size_t n_skip = 0;
+
+  // Declare the supported options.
+  po::options_description desc("Allowed options");
+  desc.add_options()("help,h", "produce help message")
+    ("filename,f", po::value<string>(&filename), "filename pattern")
+    ("n_events,n", po::value<size_t>(&n_events), "number of events")
+    ("skip,s", po::value<size_t>(&n_skip)->default_value(0), "number of events to skip")
+    ("dump", po::value<string>(&dump), "dump bank content (bank_type,bank_number");
+
+  po::positional_options_description p;
+  p.add("filename", 1);
+  p.add("n_events", 1);
+
+  po::variables_map vm;
+  po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+  po::notify(vm);
+
+  if (vm.count("help")) {
+    std::cout << desc << "\n";
+    return 1;
   }
 
-  string filename = {argv[1]};
-  size_t n_events = atol(argv[2]);
-  size_t n_skip = 0;
-  if (argc == 4) {
-    n_skip = atol(argv[3]);
+  LHCb::RawBank::BankType dump_type = LHCb::RawBank::BankType::LastType;
+  std::optional<unsigned> dump_n;
+  if (!dump.empty()) {
+    vector<string> entries;
+    ba::split(entries, dump, boost::is_any_of(","));
+#if defined(STANDALONE)
+    dump_type = LHCb::RawBank::BankType{boost::lexical_cast<int>(entries[0])};
+#else
+    using Gaudi::Parsers::parse;
+    auto sc = parse(dump_type, entries[0]);
+    if (sc.isFailure()) {
+      cout << "Invalid bank type: " << entries[0] << "\n";
+      return 1;
+    }
+    if (entries.size() == 2) {
+      dump_n = boost::lexical_cast<unsigned>(entries[1]);
+    }
+#endif
   }
 
   // Some storage for reading the events into
@@ -56,7 +98,7 @@ int main(int argc, char* argv[])
   size_t skipped = 0;
   while (!eof && i_event++ < (n_events + n_skip)) {
 
-    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, true);
+    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, dump.empty());
     if (eof || error) {
       return -1;
     }
@@ -83,15 +125,28 @@ int main(int argc, char* argv[])
       std::string det = SourceId_sysstr(source_id);
       std::string fill(7 - det.size(), ' ');
 
+      bool dump_bank = b->type() == dump_type && (!dump_n || (dump_n && bank_counts[b->type()] == *dump_n));
+
       if (b->type() < LHCb::RawBank::LastType) {
         ++bank_counts[b->type()];
-        cout << "bank: " << std::setw(16) << b->type() << " version " << std::setw(2) << b->version()
-             << " sourceID: " << std::setw(6) << b->sourceID() << " top5: " << std::setw(2) << SourceId_sys(source_id)
-             << fill << " (" << det << ") " << std::setw(5) << SourceId_num(source_id) << " " << std::setw(5)
-             << b->size() << "\n";
+        if (b->type() == LHCb::RawBank::ODIN && !dump.empty()) {
+          auto odin = MDF::decode_odin(b->version(), b->begin<unsigned>());
+          cout << odin.runNumber() << " " << odin.eventNumber() << "\n";
+        }
+
+        if (dump.empty() || dump_bank) {
+          cout << "bank: " << std::setw(16) << b->type() << " version " << std::setw(2) << b->version()
+               << " sourceID: " << std::setw(6) << b->sourceID() << " top5: " << std::setw(2) << SourceId_sys(source_id)
+               << fill << " (" << det << ") " << std::setw(5) << SourceId_num(source_id) << " " << std::setw(5)
+               << b->size() << "\n";
+        }
       }
       else {
         ++bank_counts[LHCb::RawBank::LastType];
+      }
+
+      if (!dump.empty() && dump_bank) {
+        MDF::dump_hex(bank + b->hdrSize(), b->totalSize() - b->hdrSize());
       }
 
       // Move to next raw bank
@@ -101,15 +156,17 @@ int main(int argc, char* argv[])
       }
     }
 
-    cout << "Event " << std::setw(7) << i_event << "; header size: " << header_size
-         << "; bank total size: " << bank_total_size << "\n";
-    cout << "Type | #Banks\n";
-    for (size_t i = 0; i < bank_counts.size(); ++i) {
-      if (bank_counts[i] != 0) {
-        cout << std::setw(4) << i << " | " << std::setw(6) << bank_counts[i] << "\n";
+    if (dump.empty()) {
+      cout << "Event " << std::setw(7) << i_event - 1 << "; header size: " << header_size
+           << "; bank total size: " << bank_total_size << "\n";
+      cout << "Type | #Banks\n";
+      for (size_t i = 0; i < bank_counts.size(); ++i) {
+        if (bank_counts[i] != 0) {
+          cout << std::setw(4) << i << " | " << std::setw(6) << bank_counts[i] << "\n";
+        }
       }
+      cout << "\n";
     }
-    cout << "\n";
   }
 
 error:

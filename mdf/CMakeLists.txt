@@ -76,11 +76,11 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  target_link_libraries(${test_name} PRIVATE Transpose Threads::Threads EventModel AllenZMQ Catch2::Catch2)
+  target_link_libraries(${test_name} PRIVATE Transpose Threads::Threads EventModel AllenZMQ Catch2::Catch2 Boost::program_options)
   target_compile_definitions(${test_name} PRIVATE ODIN_WITHOUT_GAUDI)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
-    target_link_libraries(${test_name} PRIVATE fmt::fmt)
+    target_link_libraries(${test_name} PRIVATE fmt::fmt LHCb::DAQEventLib)
   endif()
 
   install(TARGETS ${test_name} RUNTIME DESTINATION bin)
