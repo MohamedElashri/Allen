@@ -242,13 +242,7 @@ public:
       thread.join();
     }
 
-    for (auto& bank_slices : m_slices) {
-      for (auto& slice : bank_slices) {
-        if (!slice.fragments[0].empty()) Allen::free_host(slice.fragments[0].data());
-        if (!slice.offsets.empty()) Allen::free_host(slice.offsets.data());
-        if (!slice.sizes.empty()) Allen::free_host(slice.sizes.data());
-      }
-    }
+    free_slices(m_slices);
   }
 
   /**

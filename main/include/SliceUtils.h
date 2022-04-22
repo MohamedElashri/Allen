@@ -29,3 +29,5 @@ Allen::Slices allocate_slices(
   size_t n_slices,
   std::unordered_set<BankTypes> const& bank_types,
   std::function<std::tuple<size_t, size_t, size_t>(BankTypes)> size_fun);
+
+void free_slices(Allen::Slices& slices);

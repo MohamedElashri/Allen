@@ -89,3 +89,14 @@ Allen::Slices allocate_slices(
   }
   return slices;
 }
+
+void free_slices(Allen::Slices& slices)
+{
+  for (auto& bank_slices : slices) {
+    for (auto& slice : bank_slices) {
+      if (!slice.fragments.empty() && !slice.fragments[0].empty()) Allen::free_host(slice.fragments[0].data());
+      if (!slice.offsets.empty()) Allen::free_host(slice.offsets.data());
+      if (!slice.sizes.empty()) Allen::free_host(slice.sizes.data());
+    }
+  }
+}
