@@ -37,11 +37,10 @@ int main(int argc, char* argv[])
 
   // Declare the supported options.
   po::options_description desc("Allowed options");
-  desc.add_options()("help,h", "produce help message")
-    ("filename,f", po::value<string>(&filename), "filename pattern")
-    ("n_events,n", po::value<size_t>(&n_events), "number of events")
-    ("skip,s", po::value<size_t>(&n_skip)->default_value(0), "number of events to skip")
-    ("dump", po::value<string>(&dump), "dump bank content (bank_type,bank_number");
+  desc.add_options()("help,h", "produce help message")("filename,f", po::value<string>(&filename), "filename pattern")(
+    "n_events,n", po::value<size_t>(&n_events), "number of events")(
+    "skip,s", po::value<size_t>(&n_skip)->default_value(0), "number of events to skip")(
+    "dump", po::value<string>(&dump), "dump bank content (bank_type,bank_number");
 
   po::positional_options_description p;
   p.add("filename", 1);
@@ -62,7 +61,7 @@ int main(int argc, char* argv[])
     vector<string> entries;
     ba::split(entries, dump, boost::is_any_of(","));
 #if defined(STANDALONE)
-    dump_type = LHCb::RawBank::BankType{boost::lexical_cast<int>(entries[0])};
+    dump_type = LHCb::RawBank::BankType {boost::lexical_cast<int>(entries[0])};
 #else
     using Gaudi::Parsers::parse;
     auto sc = parse(dump_type, entries[0]);
@@ -98,7 +97,8 @@ int main(int argc, char* argv[])
   size_t skipped = 0;
   while (!eof && i_event++ < (n_events + n_skip)) {
 
-    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, dump.empty());
+    std::tie(eof, error, bank_span) =
+      MDF::read_event(input, header, read_buffer, decompression_buffer, true, dump.empty());
     if (eof || error) {
       return -1;
     }

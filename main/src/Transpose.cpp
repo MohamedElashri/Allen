@@ -35,8 +35,9 @@ bool check_sourceIDs(gsl::span<char const> bank_data)
 
     const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
 
-    if (b->type() != LHCb::RawBank::DAQ && b->type() != LHCb::RawBank::HltDecReports
-        && b->type() != LHCb::RawBank::HltSelReports) {
+    if (
+      b->type() != LHCb::RawBank::DAQ && b->type() != LHCb::RawBank::HltDecReports &&
+      b->type() != LHCb::RawBank::HltSelReports) {
       is_mc &= (SourceId_sys(static_cast<short>(b->sourceID())) == 0);
     }
 

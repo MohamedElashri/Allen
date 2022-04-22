@@ -466,7 +466,8 @@ private:
       {
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
         if (m_prefetched.empty() && !m_transpose_done) {
-          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done || (m_prefetched.empty() && m_done); });
+          m_prefetch_cond.wait(
+            lock, [this] { return !m_prefetched.empty() || m_transpose_done || (m_prefetched.empty() && m_done); });
         }
         if (m_prefetched.empty() || m_transpose_done) {
           this->debug_output(
@@ -721,8 +722,7 @@ private:
       }
 
       auto const n_events = std::get<0>(read_buffer);
-      this->debug_output(
-        "Read " + std::to_string(n_events) + " events into " + std::to_string(i_buffer));
+      this->debug_output("Read " + std::to_string(n_events) + " events into " + std::to_string(i_buffer));
 
       if (m_is_mc && n_events > 0) {
         auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
@@ -739,7 +739,8 @@ private:
           std::unique_lock<std::mutex> lock {m_prefetch_mut};
           if (n_events > 0) {
             m_prefetched.push_back(i_buffer);
-          } else {
+          }
+          else {
             it->writable = true;
           }
         }

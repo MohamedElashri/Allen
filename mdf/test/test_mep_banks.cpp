@@ -86,8 +86,8 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_s
   for (auto bt : bank_types) {
     bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
   }
-  std::array<std::string, 2> velo_decoding{velo_sp ? "velo_masked_clustering" : "decode_retina", "decode"};
-  bank_types_json["sequence"]["configured_algorithms"] = std::vector<std::array<std::string, 2>>{velo_decoding};
+  std::array<std::string, 2> velo_decoding {velo_sp ? "velo_masked_clustering" : "decode_retina", "decode"};
+  bank_types_json["sequence"]["configured_algorithms"] = std::vector<std::array<std::string, 2>> {velo_decoding};
 
   auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
   std::ofstream bt_json(bt_filename.string());
@@ -155,23 +155,13 @@ int main(int argc, char* argv[])
 
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
-  auto cli = session.cli()
-             | Opt(s_config.mdf_files, string {"MDF files"})
-                 ["--mdf"]("MDF files") |
-             Opt(s_config.mep_files, string {"MEP files"})
-               ["--mep"]("MEP files") |
-             Opt(s_config.n_events, string {"#events"})
-               ["--nevents"]("number of events") |
-             Opt(s_config.transpose_mep)
-               ["--transpose-mep"]("transpose MEPs") |
-             Opt(velo_sp)
-               ["--velo-sp"]("Use Velo SuperPixel banks") |
-             Opt(s_config.debug)
-               ["--debug"]("debug output") |
-             Opt(s_config.subdetectors, string {"SDs"})
-               ["--subdetectors"]("subdetectors") |
-             Opt(s_config.eps, string {"#events-per-slice"})
-               ["--eps"]("number of events per slice");
+  auto cli = session.cli() | Opt(s_config.mdf_files, string {"MDF files"})["--mdf"]("MDF files") |
+             Opt(s_config.mep_files, string {"MEP files"})["--mep"]("MEP files") |
+             Opt(s_config.n_events, string {"#events"})["--nevents"]("number of events") |
+             Opt(s_config.transpose_mep)["--transpose-mep"]("transpose MEPs") |
+             Opt(velo_sp)["--velo-sp"]("Use Velo SuperPixel banks") | Opt(s_config.debug)["--debug"]("debug output") |
+             Opt(s_config.subdetectors, string {"SDs"})["--subdetectors"]("subdetectors") |
+             Opt(s_config.eps, string {"#events-per-slice"})["--eps"]("number of events per slice");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
@@ -293,7 +283,8 @@ struct compare<BankTypes::ODIN, transpose_mep> {
       odin_bank<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
 
     // Check that the number of banks is 1
-    auto const n_mep_banks = transpose_mep ? Allen::number_of_banks(mep_fragments, mep_offsets, i_event) : MEP::number_of_banks(mep_offsets.data());
+    auto const n_mep_banks = transpose_mep ? Allen::number_of_banks(mep_fragments, mep_offsets, i_event) :
+                                             MEP::number_of_banks(mep_offsets.data());
     REQUIRE(n_mep_banks == 1);
     REQUIRE(n_mep_banks == Allen::number_of_banks(allen_banks, allen_offsets, i_event));
 
