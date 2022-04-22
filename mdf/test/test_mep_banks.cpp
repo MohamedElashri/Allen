@@ -61,6 +61,7 @@ namespace {
   Config s_config;
 
   std::shared_ptr<IInputProvider> mdf;
+  SmartIF<IStateful> app;
   IInputProvider* mep;
 
   namespace ba = boost::algorithm;
@@ -104,7 +105,7 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_s
 IInputProvider* mep_provider(std::string json_file)
 {
 
-  SmartIF<IStateful> app = Gaudi::createApplicationMgr();
+  app = Gaudi::createApplicationMgr();
   auto prop = app.as<IProperty>();
   bool sc = prop->setProperty("ExtSvc", "[\"AllenConfiguration\", \"MEPProvider\"]").isSuccess();
   sc &= prop->setProperty("JobOptionsType", "\"NONE\"");
@@ -263,6 +264,9 @@ int main(int argc, char* argv[])
     mep->slice_free(slice_mep);
   }
 
+  mdf.reset();
+  app->stop().ignore();
+  app->finalize().ignore();
   return r;
 }
 
@@ -390,6 +394,9 @@ struct compare<BankTypes::UT, transpose_mep> {
         auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
         REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
         REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
+
+        REQUIRE(allen_bank.get_n_hits() == mep_bank.get_n_hits());
+        if (allen_bank.get_n_hits() == 0) continue;
 
         for (size_t j = 0; j < allen_bank.size; ++j) {
           REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
@@ -576,8 +583,8 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
   // consistent
   for (unsigned i = 0; i < n_events; ++i) {
     if constexpr (transpose_mep) {
-      for (size_t i = 0; i < allen_offsets.size(); ++i) {
-        REQUIRE(allen_offsets[i] == mep_offsets[i]);
+      for (size_t j = 0; j < allen_offsets.size(); ++j) {
+        REQUIRE(allen_offsets[j] == mep_offsets[j]);
       }
     }
     else {
@@ -599,7 +606,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
 // Main test case, multiple bank types are checked
 // VeloTag, UTTag, SciFiTag,
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ODINTag, ECalTag, MuonTag, VeloTag, SciFiTag, UTTag)
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag, VeloTag, SciFiTag, UTTag, ODINTag)
 {
   if (!s_config.run) return;
 
@@ -623,6 +630,9 @@ TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ODINTag, ECalTag, MuonTag, VeloTag
 
     auto mdf_banks = mdf->banks(TestType::BT, slice_mdf);
     auto mep_banks = mep->banks(TestType::BT, slice_mep);
+
+    // Skip comparison of ODIN banks if one of them has been converted on the fly
+    if (TestType::BT == BankTypes::ODIN && mep_banks.version != mdf_banks.version) return;
 
     // Compare reported versions
     REQUIRE(mep_banks.version == mdf_banks.version);
