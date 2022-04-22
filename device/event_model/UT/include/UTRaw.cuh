@@ -21,7 +21,7 @@ struct UTRawBank {
   {}
 
   __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, const uint16_t s, const uint8_t) :
-    sourceID {sID}, size {static_cast<uint16_t>(s / sizeof(uint16_t))}
+    sourceID {sID}, size {static_cast<uint16_t>(s / sizeof(uint16_t)  - decoding_version == 3 ? 2 : 4)}
   {
     auto p = reinterpret_cast<const uint32_t*>(ut_fragment);
     if constexpr (decoding_version == 3) {
