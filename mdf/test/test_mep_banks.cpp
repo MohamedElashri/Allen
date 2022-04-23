@@ -171,9 +171,12 @@ int main(int argc, char* argv[])
   if (returnCode != 0) {
     return returnCode;
   }
-  std::cout << "mdf_files = " << s_config.mdf_files << std::endl;
-  std::cout << "mep_files = " << s_config.mep_files << std::endl;
-  s_config.run = !s_config.mdf_files.empty();
+  s_config.run = !s_config.mdf_files.empty() && !s_config.mep_files.empty();
+
+  if (s_config.run) {
+    std::cout << "mdf_files = " << s_config.mdf_files << std::endl;
+    std::cout << "mep_files = " << s_config.mep_files << std::endl;
+  }
 
   if (s_config.eps == 0) s_config.eps = s_config.n_events;
   s_config.n_slices = (s_config.n_events - 1) / s_config.eps + 1;
@@ -255,8 +258,10 @@ int main(int argc, char* argv[])
   }
 
   mdf.reset();
-  app->stop().ignore();
-  app->finalize().ignore();
+  if (app) {
+    app->stop().ignore();
+    app->finalize().ignore();
+  }
   return r;
 }
 
