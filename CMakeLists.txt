@@ -400,8 +400,11 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  string(REGEX REPLACE "toolchain/.*" "toolchain" CXX_COMPILER_DIR ${CMAKE_CXX_COMPILER})
-  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} -ccbin=${CXX_COMPILER_DIR} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  if (NOT DEFINED CMAKE_CUDA_HOST_COMPILER)
+    string(REGEX REPLACE "toolchain/.*" "toolchain" CXX_COMPILER_DIR ${CMAKE_CXX_COMPILER})
+    string(APPEND CMAKE_CUDA_FLAGS " -ccbin=${CXX_COMPILER_DIR} ")
+  endif()
 
   message(STATUS "CMAKE CUDA FLAGS:" ${CMAKE_CUDA_FLAGS})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
