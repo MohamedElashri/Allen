@@ -660,6 +660,9 @@ class AlgorithmCategory(Enum):\n\
         code += "\n"
         for alg in selection_algorithms:
             code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
+        code += "\n"
+        for alg in selection_algorithms:
+            code += f"extern template __device__ void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
         code += "\nconstexpr auto line_strings = {\n"
         for i, alg in enumerate(selection_algorithms):
             code += f"  \"{alg.name}\""
@@ -671,7 +674,14 @@ class AlgorithmCategory(Enum):\n\
             code += f"  process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>"
             if i != len(selection_algorithms) - 1:
                 code += ",\n"
+        code += "\n};\n\n"
+        code += f"constexpr std::array<void(*)(char*, const RuntimeOptions&, const Allen::Context&), {len(selection_algorithms)}> line_output_monitor_functions = {{\n"
+        for i, alg in enumerate(selection_algorithms):
+            code += f"  line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>"
+            if i != len(selection_algorithms) - 1:
+                code += ",\n"
         code += "\n};\n"
+        # void inline invoke_output_monitor(const char* arg_ref, const RuntimeOptions& runtime_options, const Allen::Context& context) {
         with open(filename, "w") as f:
             f.write(code)
 

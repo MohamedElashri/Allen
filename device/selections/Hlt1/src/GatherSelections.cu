@@ -231,6 +231,12 @@ void gather_selections::gather_selections_t::operator()(
     dev_input_selections.size_of_aggregate(),
     data<dev_selections_lines_offsets_t>(arguments));
 
+#ifdef MONITOR_SELECTIONS
+  for (const auto i : m_indices_active_line_algorithms) {
+    line_output_monitor_functions[i](data<host_fn_parameter_pointers_t>(arguments)[i], runtime_options, context);
+  }
+#endif
+
   // Save the names of active lines as output
   initialize<host_names_of_active_lines_t>(arguments, 0, context);
   const auto line_names = std::string(property<names_of_active_lines_t>());

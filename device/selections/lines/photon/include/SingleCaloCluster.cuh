@@ -56,15 +56,12 @@ namespace single_calo_cluster_line {
                                       Parameters,
                                       Line<single_calo_cluster_line_t, Parameters> {
 
-#ifdef WITH_ROOT
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
     __device__ static void
     monitor(const Parameters& parameters, std::tuple<const CaloCluster> input, unsigned index, bool sel);
 
-    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
-      const;
-#endif
+    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 
     __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster> input);
 

@@ -89,18 +89,18 @@ namespace rich_1_line {
       std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
-#ifdef WITH_ROOT
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+    
     __device__ static void monitor(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
       bool sel);
-    __host__ void output_monitor(
+
+    void output_monitor(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Allen::Context& context) const;
-#endif
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

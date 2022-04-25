@@ -29,13 +29,16 @@ __device__ bool kstopipi_line::kstopipi_line_t::select(
          vertex.m12(Allen::mPi, Allen::mPi) > 400 && vertex.m12(Allen::mPi, Allen::mPi) < 600;
 }
 
-#ifdef WITH_ROOT
 void kstopipi_line::kstopipi_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
+  const Allen::Context& context) const
 {
   initialize<dev_sv_masses_t>(arguments, -1, context);
   initialize<dev_pt_t>(arguments, -1, context);
+
+  printf("Monitoring ks to pipi line input\n");
+  if (!property<make_tuple_t>()) return;
+  printf("Monitoring ks to pipi line input 2\n");
 }
 
 __device__ void kstopipi_line::kstopipi_line_t::monitor(
@@ -57,6 +60,9 @@ void kstopipi_line::kstopipi_line_t::output_monitor(
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
 {
+  printf("Monitoring ks to pipi line output\n");
+
+#ifdef WITH_ROOT
   if (!property<make_tuple_t>()) return;
 
   auto handler = runtime_options.root_service->handle(name());
@@ -89,5 +95,5 @@ void kstopipi_line::kstopipi_line_t::output_monitor(
       tree->Fill();
     }
   }
-}
 #endif
+}

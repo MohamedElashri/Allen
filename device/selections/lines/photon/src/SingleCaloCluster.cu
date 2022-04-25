@@ -76,10 +76,9 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   return decision;
 }
 
-#ifdef WITH_ROOT
 void single_calo_cluster_line::single_calo_cluster_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
+  const Allen::Context& context) const
 {
 
   initialize<dev_clusters_x_t>(arguments, -1, context);
@@ -116,6 +115,7 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
 {
+#ifdef WITH_ROOT
   if (!property<make_tuple_t>()) return;
 
   auto handler = runtime_options.root_service->handle(name());
@@ -167,5 +167,5 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
       tree->Fill();
     }
   }
-}
 #endif
+}
