@@ -51,6 +51,7 @@
 constexpr int warp_size = 64;
 #define __shfl_down_sync(_, val, offset) __shfl_down(val, offset)
 #define __shfl_sync(_, val, offset) __shfl(val, offset)
+#define __ballot_sync(_, predicate) __ballot(predicate)
 
 // Support for dynamic shared memory buffers
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) HIP_DYNAMIC_SHARED(_type, _instance)

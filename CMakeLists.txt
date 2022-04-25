@@ -369,7 +369,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    target_link_options(${ARGV0} PUBLIC --hip-link)
+    target_link_options(${ARGV0} PUBLIC -fgpu-rdc --hip-link)
 
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -380,7 +380,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    target_link_options(${ARGV0} PUBLIC --hip-link)
+    target_link_options(${ARGV0} PUBLIC -fgpu-rdc --hip-link)
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
