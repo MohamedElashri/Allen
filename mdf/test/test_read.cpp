@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     vector<string> entries;
     ba::split(entries, dump, boost::is_any_of(","));
 #if defined(STANDALONE)
-    dump_type = LHCb::RawBank::BankType {boost::lexical_cast<int>(entries[0])};
+    dump_type = static_cast<LHCb::RawBank::BankType>(boost::lexical_cast<int>(entries[0]));
 #else
     using Gaudi::Parsers::parse;
     auto sc = parse(dump_type, entries[0]);

@@ -119,8 +119,8 @@ options = ApplicationOptions(_enabled=False)
 options.simulation = True
 options.data_type = 'Upgrade'
 options.input_type = 'MDF'
-options.dddb_tag = "dddb-20171122"
-options.conddb_tag = "sim-20180530-vc-md100"
+options.dddb_tag = "dddb-20210617"
+options.conddb_tag = "sim-20210617-vc-md100"
 
 # tags for FEST sample from 10/2021
 # dddb_tag="dddb-20210617"
