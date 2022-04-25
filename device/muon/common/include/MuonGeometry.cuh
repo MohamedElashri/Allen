@@ -28,7 +28,7 @@ namespace Muon {
     {
       assert(Tell1_num <= m_tiles_size);
       assert(ch < m_sizes[Tell1_num]);
-      
+
       return m_tiles[Tell1_num][ch];
     }
   };
