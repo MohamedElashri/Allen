@@ -49,7 +49,7 @@ void __global__ make_long_track_particles::make_particles(make_long_track_partic
   const unsigned number_of_tracks = event_long_tracks.size();
   const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
 
-  for (unsigned i = threadIdx.x; i < number_of_tracks; i++) {
+  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto* long_track = &(event_long_tracks.track(i));
     const int i_pv = pv_table.pv(i);
     new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
