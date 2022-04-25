@@ -320,8 +320,8 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   h_reconstructed_phi[phi_name]->Fill(mcp.phi);
   h_reconstructed_nPV[nPV_name]->Fill(mcp.nPV);
   h_reconstructed_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
-  float tx = std::sin(mcp.phi) / std::sinh(mcp.eta);
-  float ty = std::cos(mcp.phi) / std::sinh(mcp.eta);
+  float tx = std::cos(mcp.phi) / std::sinh(mcp.eta);
+  float ty = std::sin(mcp.phi) / std::sinh(mcp.eta);
   float docaz = std::abs(ty * mcp.ovtx_x - tx * mcp.ovtx_y) / std::sqrt(tx * tx + ty * ty);
   h_reconstructed_docaz[docaz_name]->Fill(docaz);
 #else
