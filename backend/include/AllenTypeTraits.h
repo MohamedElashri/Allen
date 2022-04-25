@@ -216,6 +216,13 @@ namespace Allen {
           is_template_base_of_v<Base1, typename T::dev_particle_container_t>> {
   };
 
+  template<typename T, typename = void>
+  struct has_enable_monitoring : std::false_type {
+  };
+  template<typename T>
+  struct has_enable_monitoring<T, std::void_t<typename T::enable_monitoring_t>> : std::true_type {
+  };
+
   template<typename T>
   void initialize_algorithm(T& alg)
   {

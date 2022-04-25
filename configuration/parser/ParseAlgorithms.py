@@ -662,7 +662,7 @@ class AlgorithmCategory(Enum):\n\
             code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
         code += "\n"
         for alg in selection_algorithms:
-            code += f"extern template __device__ void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
+            code += f"extern template void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
         code += "\nconstexpr auto line_strings = {\n"
         for i, alg in enumerate(selection_algorithms):
             code += f"  \"{alg.name}\""

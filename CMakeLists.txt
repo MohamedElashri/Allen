@@ -141,12 +141,6 @@ if(CALLGRIND_PROFILE)
   add_compile_definitions(CALLGRIND_PROFILE)
 endif()
 
-# Choice of monitoring selections
-option(MONITOR_SELECTIONS "Set Monitoring selections" OFF)
-if(MONITOR_SELECTIONS)
-  add_compile_definitions(MONITOR_SELECTIONS)
-endif()
-
 set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
 include(AllenDependencies)
 

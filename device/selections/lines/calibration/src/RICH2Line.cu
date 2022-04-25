@@ -89,12 +89,8 @@ void rich_2_line::rich_2_line_t::output_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
-{
-  printf("Monitoring rich 1 line output\n");
-  
+{ 
 #ifdef WITH_ROOT
-  if (!property<make_tuple_t>()) return;
-
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
   if (tree == nullptr) return;

@@ -69,7 +69,7 @@ namespace rich_2_line {
     PROPERTY(minPhi_t, "minPhi", "minimum azi angle", std::array<float, 4>) minPhi;
     PROPERTY(maxPhi_t, "maxPhi", "maximum azi angle", std::array<float, 4>) maxPhi;
 
-    PROPERTY(make_tuple_t, "make_tuple", "Make tuple for monitoring", bool) make_tuple;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   // SelectionAlgorithm definition
@@ -126,7 +126,7 @@ namespace rich_2_line {
     Property<maxPhi_t> m_maxPhi {this, {-2.49, -0.55, 0.65, 2.59}};
 
     // Switch to create monitoring tuple
-    Property<make_tuple_t> m_make_tuple {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 
 } // namespace rich_2_line

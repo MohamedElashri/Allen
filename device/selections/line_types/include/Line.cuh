@@ -13,26 +13,26 @@
 #include <tuple>
 
 // Helper macro to explicitly instantiate lines
-#define INSTANTIATE_LINE(LINE, PARAMETERS)                                                                  \
-  template void Line<LINE, PARAMETERS>::operator()(                                                         \
-    const ArgumentReferences<PARAMETERS>&,                                                                  \
-    const RuntimeOptions&,                                                                                  \
-    const Constants&,                                                                                       \
-    HostBuffers&,                                                                                           \
-    const Allen::Context&) const;                                                                           \
-  template __device__ void process_line<LINE, PARAMETERS>(                                                  \
-    char*,                                                                                                  \
-    bool*,                                                                                                  \
-    unsigned*,                                                                                              \
-    Allen::IMultiEventContainer**,                                                                          \
-    unsigned,                                                                                               \
-    unsigned,                                                                                               \
-    unsigned,                                                                                               \
-    unsigned,                                                                                               \
-    unsigned,                                                                                               \
-    unsigned);                                                                                              \
-  template void line_output_monitor<LINE, PARAMETERS>(char*, const RuntimeOptions&, const Allen::Context&); \
-  INSTANTIATE_ALGORITHM(LINE)
+#define INSTANTIATE_LINE(DERIVED, PARAMETERS)                                                                  \
+  template void Line<DERIVED, PARAMETERS>::operator()(                                                         \
+    const ArgumentReferences<PARAMETERS>&,                                                                     \
+    const RuntimeOptions&,                                                                                     \
+    const Constants&,                                                                                          \
+    HostBuffers&,                                                                                              \
+    const Allen::Context&) const;                                                                              \
+  template __device__ void process_line<DERIVED, PARAMETERS>(                                                  \
+    char*,                                                                                                     \
+    bool*,                                                                                                     \
+    unsigned*,                                                                                                 \
+    Allen::IMultiEventContainer**,                                                                             \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned);                                                                                                 \
+  template void line_output_monitor<DERIVED, PARAMETERS>(char*, const RuntimeOptions&, const Allen::Context&); \
+  INSTANTIATE_ALGORITHM(DERIVED)
 
 // Type-erased line function type
 using line_fn_t = void (*)(
@@ -46,6 +46,10 @@ using line_fn_t = void (*)(
   unsigned,
   unsigned,
   unsigned);
+
+template<typename Derived, typename Parameters>
+using type_erased_tuple_t =
+  std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>;
 
 /**
  * @brief A generic Line.
@@ -120,8 +124,7 @@ public:
     set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
 
     // Set the size of the type-erased fn parameters
-    set_size<typename Parameters::host_fn_parameters_t>(
-      arguments, sizeof(std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>));
+    set_size<typename Parameters::host_fn_parameters_t>(arguments, sizeof(type_erased_tuple_t<Derived, Parameters>));
   }
 
   void operator()(
@@ -136,8 +139,8 @@ public:
    */
   void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) const {}
 
-  template<typename INPUT>
-  static __device__ void monitor(const Parameters&, INPUT, unsigned, bool)
+  template<typename T>
+  static __device__ void monitor(const Parameters&, T, unsigned, bool)
   {}
 
   void output_monitor(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&) const {}
@@ -146,11 +149,12 @@ public:
 template<typename Derived, typename Parameters>
 void line_output_monitor(char* input, const RuntimeOptions& runtime_options, const Allen::Context& context)
 {
-  const auto& type_casted_input =
-    *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>*>(input);
-  
-  const auto* derived_instance = std::get<5>(type_casted_input);
-  derived_instance->output_monitor(std::get<4>(type_casted_input), runtime_options, context);
+  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+    const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+
+    auto derived_instance = std::get<5>(type_casted_input);
+    derived_instance->output_monitor(std::get<4>(type_casted_input), runtime_options, context);
+  }
 }
 
 template<typename Derived, typename Parameters>
@@ -166,8 +170,7 @@ __device__ void process_line(
   unsigned gps_lo,
   unsigned line_offset)
 {
-  const auto& type_casted_input =
-    *reinterpret_cast<const std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>*>(input);
+  const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
   const auto& parameters = std::get<0>(type_casted_input);
   const auto event_list_size = std::get<1>(type_casted_input);
   const auto number_of_events = std::get<2>(type_casted_input);
@@ -209,9 +212,11 @@ __device__ void process_line(
     const bool decision = mask > 0 && pre_scaler_result && Derived::select(parameters, input);
     unsigned index = Derived::offset(parameters, blockIdx.x) + i;
     decisions[index] = decision;
-#ifdef MONITOR_SELECTIONS
-    Derived::monitor(parameters, input, blockIdx.x, decision);
-#endif
+    if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+      if (parameters.enable_monitoring) {
+        Derived::monitor(parameters, input, blockIdx.x, decision);
+      }
+    }
   }
 }
 
@@ -240,11 +245,10 @@ void Line<Derived, Parameters>::operator()(
     arguments,
     derived_instance);
 
-  assert(
-    sizeof(std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>) == sizeof(parameters));
+  assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
   std::memcpy(data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
 
-#ifdef MONITOR_SELECTIONS
-  derived_instance->init_monitor(arguments, context);
-#endif
+  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+    derived_instance->init_monitor(arguments, context);
+  }
 }

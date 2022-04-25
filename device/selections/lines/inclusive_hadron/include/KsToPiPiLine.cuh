@@ -41,7 +41,7 @@ namespace kstopipi_line {
     PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
-    PROPERTY(make_tuple_t, "make_tuple", "Make tuple for monitoring", bool) make_tuple;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
@@ -76,6 +76,6 @@ namespace kstopipi_line {
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
 
     // Switch to create monitoring tuple
-    Property<make_tuple_t> m_make_tuple {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 } // namespace kstopipi_line

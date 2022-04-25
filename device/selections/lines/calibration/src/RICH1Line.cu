@@ -53,7 +53,6 @@ void rich_1_line::rich_1_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
-  printf("Monitoring rich 1 line init\n");
   initialize<dev_decision_t>(arguments, false, context);
   initialize<dev_pt_t>(arguments, 0, context);
   initialize<dev_p_t>(arguments, 0, context);
@@ -92,10 +91,6 @@ void rich_1_line::rich_1_line_t::output_monitor(
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
 {
-  printf("Monitoring rich 1 line output\n");
-
-  if (!property<make_tuple_t>()) return;
-
 #ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");

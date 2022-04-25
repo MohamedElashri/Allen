@@ -43,7 +43,6 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker("Hlt1KsToPiPi",
                    make_kstopipi_line(forward_tracks, secondary_vertices)))
-    return lines
     lines.append(
         line_maker("Hlt1TrackMVA",
                    make_track_mva_line(forward_tracks, long_track_particles)))
@@ -144,7 +143,6 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
 def default_monitoring_lines(velo_tracks, forward_tracks, long_track_particles,
                              velo_states):
     lines = []
-    return lines
     lines.append(
         line_maker(
             "Hlt1NoBeam",
