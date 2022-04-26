@@ -99,15 +99,24 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
   std::array<LHCb::RawBank::View, LHCb::RawBank::types().size()> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
-    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
+    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [this, rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
       if (!banks.empty()) {
-        rawBanks[bt] = banks;
-      }
-      else {
-        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+        if (rawBanks[bt].empty()) {
+          rawBanks[bt] = banks;
+        }
+        else {
+          warning() << "Multiple RawEvents contain " << toString(bt)
+                    << " banks. The first ones found will be used." << endmsg;
+        }
       }
     });
+  }
+
+  for (auto bt : m_bankTypes.value()) {
+    if (rawBanks[bt].empty()) {
+      throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+    }
   }
 
   for (auto bt : LHCb::RawBank::types()) {
