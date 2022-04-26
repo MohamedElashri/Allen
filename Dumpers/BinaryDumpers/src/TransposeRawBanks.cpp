@@ -105,9 +105,9 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
         if (rawBanks[bt].empty()) {
           rawBanks[bt] = banks;
         }
-        else {
-          warning() << "Multiple RawEvents contain " << toString(bt)
-                    << " banks. The first ones found will be used." << endmsg;
+        else if (msgLevel(MSG::DEBUG)) {
+          debug() << "Multiple RawEvents contain " << toString(bt) << " banks. The first ones found will be used."
+                  << endmsg;
         }
       }
     });
