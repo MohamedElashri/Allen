@@ -484,7 +484,7 @@ function(allen_add_device_library_unified)
   set(UNIFIED_FILENAME "${GROUPCOMP_DIR}/group_${COUNTER}.cu")
   add_custom_command(
     OUTPUT "${UNIFIED_FILENAME}"
-    COMMAND cat ${LIBRARY_SOURCES} >> "${UNIFIED_FILENAME}"
+    COMMAND ${CMAKE_COMMAND} -E remove "${UNIFIED_FILENAME}" && cat ${LIBRARY_SOURCES} >> "${UNIFIED_FILENAME}"
     DEPENDS "${LIBRARY_SOURCES}")
 
   if(TARGET_DEVICE STREQUAL "CPU")
