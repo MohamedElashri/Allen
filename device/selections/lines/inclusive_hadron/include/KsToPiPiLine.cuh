@@ -19,7 +19,7 @@ namespace kstopipi_line {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    
+
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_container_ptr_t,
       DEPENDENCIES(dev_particle_container_t),
@@ -48,14 +48,15 @@ namespace kstopipi_line {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
-    
+
     __device__ static void monitor(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-    
-    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
+
+    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
+      const;
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

@@ -398,7 +398,7 @@ namespace Allen {
       const unsigned dynamic_shared_memory_size,
       S&&... arguments) const
     {
-      return Allen::Gear::Function::make_parameters (
+      return Allen::Gear::Function::make_parameters(
         m_properties, grid_dim, block_dim, dynamic_shared_memory_size, arguments...);
     }
 

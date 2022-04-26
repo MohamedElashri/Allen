@@ -22,7 +22,7 @@ namespace single_calo_cluster_line {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    
+
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
 
@@ -61,8 +61,9 @@ namespace single_calo_cluster_line {
     __device__ static void
     monitor(const Parameters& parameters, std::tuple<const CaloCluster> input, unsigned index, bool sel);
 
-    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-    
+    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
+      const;
+
     __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster> input);
 
     void set_arguments_size(

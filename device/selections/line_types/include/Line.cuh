@@ -52,8 +52,7 @@ using type_erased_tuple_t =
   std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>;
 
 template<typename Derived, typename Parameters>
-using type_erased_tuple_slice_t =
-  std::tuple<Parameters, size_t, unsigned, unsigned>;
+using type_erased_tuple_slice_t = std::tuple<Parameters, size_t, unsigned, unsigned>;
 
 /**
  * @brief A generic Line.

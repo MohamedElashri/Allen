@@ -27,7 +27,6 @@ using host_memory_manager_t = MemoryManager<memory_manager_details::Host, memory
 using device_memory_manager_t = MemoryManager<memory_manager_details::Device, memory_manager_details::SingleAlloc>;
 #endif
 
-
 class Scheduler {
   std::vector<Allen::TypeErasedAlgorithm> m_sequence;
   UnorderedStore m_store;
@@ -90,7 +89,8 @@ private:
 
           // dependencies
           for (const auto& alg_arg : alg.arguments) {
-            if (argument_in_map(alg_arg, argument_dependencies) && argument_in(arg, argument_dependencies.at(alg_arg))) {
+            if (
+              argument_in_map(alg_arg, argument_dependencies) && argument_in(arg, argument_dependencies.at(alg_arg))) {
               arg_can_be_freed = false;
               break;
             }
@@ -156,7 +156,8 @@ public:
     initialize_store(configured_arguments);
 
     // Calculate in and out dependencies of defined sequence
-    std::tie(m_in_dependencies, m_out_dependencies) = calculate_lifetime_dependencies(sequence_arguments, arg_deps, m_sequence);
+    std::tie(m_in_dependencies, m_out_dependencies) =
+      calculate_lifetime_dependencies(sequence_arguments, arg_deps, m_sequence);
 
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
@@ -383,7 +384,15 @@ private:
     algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, host_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
-    setup(algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print, do_free);
+    setup(
+      algorithm,
+      in_dependencies,
+      out_dependencies,
+      host_memory_manager,
+      device_memory_manager,
+      store,
+      do_print,
+      do_free);
 
     // Run preconditions
     if constexpr (contracts_enabled) {

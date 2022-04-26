@@ -16,14 +16,14 @@ namespace calo_digits_minADC {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
-    
+
     DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
     DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
 
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    
+
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
     dev_particle_container_ptr;
 

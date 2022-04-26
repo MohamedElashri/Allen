@@ -86,7 +86,7 @@ void rich_2_line::rich_2_line_t::output_monitor(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const
-{ 
+{
 #ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
