@@ -53,6 +53,6 @@ struct any_type {
  * @brief Struct to tuple conversion using structured binding.
  */
 template<class T>
-auto struct_to_tuple(T&& object) noexcept
+__host__ __device__ auto struct_to_tuple(T&& object) noexcept
 {
   using type = std::decay_t<T>;

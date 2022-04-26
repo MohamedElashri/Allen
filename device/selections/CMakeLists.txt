@@ -4,13 +4,13 @@
 file(GLOB selections_src "Hlt1/src/*cu")
 file(GLOB lines_src "lines/calibration/src/*cu" "lines/charm/src/*cu" "lines/inclusive_hadron/src/*cu" "lines/inclusive_hadron/src/*cpp" "lines/muon/src/*cu" "lines/photon/src/*cu" "lines/electron/src/*cu" "lines/monitoring/src/*cu")
 
-if(TARGET_DEVICE STREQUAL "HIP")
-  allen_add_device_library_singlecu(Selections STATIC
+if(SEPARABLE_COMPILATION)
+  allen_add_device_library(Selections STATIC
     ${lines_src}
     ${selections_src}
   )
 else()
-  allen_add_device_library(Selections STATIC
+  allen_add_device_library_unified(Selections STATIC
     ${lines_src}
     ${selections_src}
   )

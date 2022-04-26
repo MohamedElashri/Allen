@@ -97,16 +97,16 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(
   const auto& ecal_cluster = std::get<0>(input);
   const float& z = Calo::Constants::z; // mm
   const float& sintheta =
-    sqrt((POW(ecal_cluster.x) + POW(ecal_cluster.y)) / (POW(ecal_cluster.x) + POW(ecal_cluster.y) + POW(z)));
-  const float& cosphi = ecal_cluster.x / sqrt(POW(ecal_cluster.x) + POW(ecal_cluster.y));
+    sqrtf((POW(ecal_cluster.x) + POW(ecal_cluster.y)) / (POW(ecal_cluster.x) + POW(ecal_cluster.y) + POW(z)));
+  const float& cosphi = ecal_cluster.x / sqrtf(POW(ecal_cluster.x) + POW(ecal_cluster.y));
   const float& E_T = ecal_cluster.e * sintheta;
 
   if (sel) {
     parameters.dev_clusters_x[index] = ecal_cluster.x;
     parameters.dev_clusters_y[index] = ecal_cluster.y;
     parameters.dev_clusters_Et[index] = E_T;
-    parameters.dev_clusters_Eta[index] = asin(sintheta);
-    parameters.dev_clusters_Phi[index] = acos(cosphi);
+    parameters.dev_clusters_Eta[index] = asinf(sintheta);
+    parameters.dev_clusters_Phi[index] = acosf(cosphi);
   }
 }
 
