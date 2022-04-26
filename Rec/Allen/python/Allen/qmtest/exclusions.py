@@ -16,6 +16,7 @@ remove_throughput = LineSkipper(regexps=[
     # Throughput messages
     r"\s*(\d+\.\d+)\s+events/s",
     r"Ran test for (\d+\.\d+)\s+seconds",
+    r"Providing banks for",
     r"Providing events in.*",
     r"Opened\s.*",
     r"Cannot read more data.*"

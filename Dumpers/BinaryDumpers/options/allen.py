@@ -4,6 +4,7 @@
 ###############################################################################
 import os
 from Configurables import ApplicationMgr
+from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 from Allen.config import setup_allen_non_event_data_service
 from PyConf.application import (configure, setup_component, ComponentConfig,
                                 ApplicationOptions)
@@ -27,7 +28,7 @@ interpreter.Declare("#include <Allen/Provider.h>")
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
-                                'hlt1_pp_default')
+                                'hlt1_pp_default.json')
 
 
 def cast_service(return_type, svc):
@@ -59,6 +60,7 @@ parser.add_argument(
         allen_dir, "input", "minbias", "mdf",
         "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf"))
 parser.add_argument("--mep", dest="mep", default=None)
+parser.add_argument("--mep-mask-source-id-top-5", action="store_true", dest="mask_top5", default=False)
 parser.add_argument(
     "--reuse-meps",
     action="store_true",
@@ -108,6 +110,7 @@ parser.add_argument(
     default=300,
     help="How long to run when reusing MEPs",
 )
+parser.add_argument("--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
 
 args = parser.parse_args()
 
@@ -115,16 +118,14 @@ runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
 
+dddb_tag, conddb_tag = args.tags.split(',')
+
 options = ApplicationOptions(_enabled=False)
 options.simulation = True
 options.data_type = 'Upgrade'
 options.input_type = 'MDF'
-options.dddb_tag = "dddb-20210617"
-options.conddb_tag = "sim-20210617-vc-md100"
-
-# tags for FEST sample from 10/2021
-# dddb_tag="dddb-20210617"
-# conddb_tag="sim-20210617-vc-md100")
+options.dddb_tag = dddb_tag
+options.conddb_tag = conddb_tag
 
 options.finalize()
 config = ComponentConfig()
@@ -132,24 +133,29 @@ config = ComponentConfig()
 # Some extra stuff for timing table
 extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 
+# RootCnvSvc becauce it sets up a bunch of ROOT IO stuff
+rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
+ApplicationMgr().ExtSvc += [rootSvc]
+
 if args.mep is not None:
     extSvc += ["AllenConfiguration", "MEPProvider"]
     from Configurables import MEPProvider, AllenConfiguration
 
     allen_conf = AllenConfiguration("AllenConfiguration")
     allen_conf.JSON = args.sequence
-    allen_conf.OutputLevel = 2
+    allen_conf.OutputLevel = 3
 
     mep_provider = MEPProvider()
     mep_provider.NSlices = args.slices
     mep_provider.EventsPerSlice = args.events_per_slice
-    mep_provider.OutputLevel = 2
+    mep_provider.OutputLevel = 3
     # Number of MEP buffers and number of transpose/offset threads
     mep_provider.BufferConfig = (10, 8)
     mep_provider.TransposeMEPs = False
     mep_provider.SplitByRun = False
     mep_provider.Source = "Files"
-    mep_dir = args.mep
+    mep_provider.MaskSourceIDTop5 = args.mask_top5
+    mep_dir = os.path.expandvars(args.mep)
     if os.path.isdir(mep_dir):
         mep_provider.Connections = sorted([
             os.path.join(mep_dir, mep_file) for mep_file in os.listdir(mep_dir)
@@ -201,7 +207,7 @@ for flag, value in [("g", args.det_folder),
                     ("m", args.reserve), ("v", args.verbosity),
                     ("p", args.print_memory),
                     ("sequence", os.path.expandvars(args.sequence)),
-                    ("s", args.slices), ("mdf", args.mdf),
+                    ("s", args.slices), ("mdf", os.path.expandvars(args.mdf)),
                     ("cpu-offload", args.cpu_offload),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
