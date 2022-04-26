@@ -51,6 +51,10 @@ template<typename Derived, typename Parameters>
 using type_erased_tuple_t =
   std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>;
 
+template<typename Derived, typename Parameters>
+using type_erased_tuple_slice_t =
+  std::tuple<Parameters, size_t, unsigned, unsigned>;
+
 /**
  * @brief A generic Line.
  * @detail It assumes the line has the following parameters:
@@ -170,7 +174,7 @@ __device__ void process_line(
   unsigned gps_lo,
   unsigned line_offset)
 {
-  const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+  const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_slice_t<Derived, Parameters>*>(input);
   const auto& parameters = std::get<0>(type_casted_input);
   const auto event_list_size = std::get<1>(type_casted_input);
   const auto number_of_events = std::get<2>(type_casted_input);

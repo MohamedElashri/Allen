@@ -373,12 +373,12 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set(UNIFIED_FILENAME "${GROUPCOMP_DIR}/group_${COUNTER}.cu")
     add_custom_command(
       OUTPUT "${UNIFIED_FILENAME}"
-      COMMAND cat "${LIBRARY_SOURCES}" >> "${UNIFIED_FILENAME}"
+      COMMAND cat ${LIBRARY_SOURCES} >> "${UNIFIED_FILENAME}"
       DEPENDS "${LIBRARY_SOURCES}")
 
     hip_add_library(${LIBRARY_SETTINGS} ${UNIFIED_FILENAME} HIPCC_OPTIONS ${HIPCC_OPTIONS})
 
-    target_sources(${ARGV0} "${UNIFIED_FILENAME}")
+    target_sources(${ARGV0} PRIVATE "${UNIFIED_FILENAME}")
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
