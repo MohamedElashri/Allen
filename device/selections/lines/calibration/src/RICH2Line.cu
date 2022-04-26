@@ -82,13 +82,10 @@ __device__ void rich_2_line::rich_2_line_t::monitor(
   parameters.dev_decision[index] = sel;
 }
 
-/*
- * Documented in ExampleOneTrackLine.cuh
- */
 void rich_2_line::rich_2_line_t::output_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Allen::Context& context) const
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const RuntimeOptions& runtime_options,
+  [[maybe_unused]] const Allen::Context& context) const
 { 
 #ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());

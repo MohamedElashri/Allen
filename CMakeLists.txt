@@ -313,6 +313,10 @@ if(TARGET_DEVICE STREQUAL "CPU")
    endif()
 
 elseif(TARGET_DEVICE STREQUAL "HIP")
+  # Mechanism to mimic a UNITY build
+  set(COUNTER 0)
+  set(GROUPCOMP_DIR ${PROJECT_BINARY_DIR}/group_comp)
+  file(MAKE_DIRECTORY ${GROUPCOMP_DIR})
 
   # Deal with build type (HIP)
   if(NOT CMAKE_BUILD_TYPE)
@@ -334,7 +338,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 
   message(STATUS "HIP GCC TOOLCHAIN: " ${HIP_TOOLCHAIN_OPTIONS})
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH} -fgpu-rdc")
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
   # Add the origin directory
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath,./")
@@ -347,6 +351,43 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION lib)
+  endfunction()
+
+  function(allen_add_device_library_singlecu)
+    set(destination lib)
+    list(FIND ARGV STREAM is_stream)
+    list(FILTER ARGV EXCLUDE REGEX "STREAM")
+
+    foreach(arg IN LISTS ARGN)
+      if(${arg} MATCHES "\\.cu$")
+        list(APPEND LIBRARY_SOURCES ${arg})
+      else()
+        list(APPEND LIBRARY_SETTINGS ${arg})
+      endif()
+    endforeach()
+
+    if (NOT ${is_stream} EQUAL -1)
+      set(destination lib/sequences)
+    endif()
+
+    set(UNIFIED_FILENAME "${GROUPCOMP_DIR}/group_${COUNTER}.cu")
+    add_custom_command(
+      OUTPUT "${UNIFIED_FILENAME}"
+      COMMAND cat "${LIBRARY_SOURCES}" >> "${UNIFIED_FILENAME}"
+      DEPENDS "${LIBRARY_SOURCES}")
+
+    hip_add_library(${LIBRARY_SETTINGS} ${UNIFIED_FILENAME} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+
+    target_sources(${ARGV0} "${UNIFIED_FILENAME}")
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+
+    install(TARGETS ${ARGV0}
+      EXPORT Allen
+      LIBRARY DESTINATION ${destination})
+
+    MATH(EXPR COUNTER "${COUNTER}+1")
   endfunction()
 
   function(allen_add_device_library)
@@ -363,7 +404,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    target_link_options(${ARGV0} PUBLIC -fgpu-rdc --hip-link)
 
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -374,7 +414,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    target_link_options(${ARGV0} PUBLIC -fgpu-rdc --hip-link)
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")

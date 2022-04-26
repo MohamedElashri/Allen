@@ -73,7 +73,6 @@ add_custom_command(
     ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
     ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}"
   DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/AllenCore")
-
 add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
 # Generate algorithms.py
@@ -83,7 +82,6 @@ add_custom_command(
     ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate views --filename "${ALGORITHMS_OUTPUTFILE}" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" generate_conf_core)
-
 add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
 
 # Generate Allen AlgorithmDB
@@ -93,9 +91,8 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate db --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
-add_custom_target(algorithm_db_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
 add_library(algorithm_db INTERFACE)
-add_dependencies(algorithm_db algorithm_db_generation)
+target_sources(algorithm_db "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
 target_include_directories(algorithm_db INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
 install(TARGETS algorithm_db
       EXPORT Allen
@@ -108,23 +105,32 @@ add_custom_command(
     ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate struct_to_tuple --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --struct_to_tuple_folder "${PROJECT_SOURCE_DIR}/configuration/parser/struct_to_tuple"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
-add_custom_target(struct_to_tuple_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh")
 add_library(struct_to_tuple INTERFACE)
-add_dependencies(struct_to_tuple struct_to_tuple_generation)
+target_sources(struct_to_tuple "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh")
 target_include_directories(struct_to_tuple INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
 install(TARGETS struct_to_tuple
       EXPORT Allen
       LIBRARY DESTINATION lib)
 
-add_custom_command(
-  OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh"
-  COMMAND
-    ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate extern_lines --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
-  WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
-add_custom_target(extern_lines_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh")
+if(TARGET_DEVICE STREQUAL "HIP")
+  # Special case for HIP, that doesn't support separable compilation yet
+  add_custom_command(
+    OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh"
+    COMMAND
+      ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate extern_lines --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
+    WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
+    DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+else()
+  add_custom_command(
+    OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh"
+    COMMAND
+      ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate extern_lines_nosepcomp --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
+    WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
+    DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+endif()
+
 add_library(extern_lines INTERFACE)
-add_dependencies(extern_lines extern_lines_generation)
+target_sources(extern_lines "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh")
 target_include_directories(extern_lines INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
 install(TARGETS extern_lines
       EXPORT Allen

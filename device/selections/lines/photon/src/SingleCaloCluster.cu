@@ -111,13 +111,11 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(
 }
 
 void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Allen::Context& context) const
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const RuntimeOptions& runtime_options,
+  [[maybe_unused]] const Allen::Context& context) const
 {
 #ifdef WITH_ROOT
-  if (!property<make_tuple_t>()) return;
-
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
   if (tree == nullptr) return;

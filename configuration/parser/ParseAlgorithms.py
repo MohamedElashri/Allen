@@ -647,7 +647,8 @@ class AlgorithmCategory(Enum):\n\
 
     @staticmethod
     def write_extern_lines(algorithms,
-                           filename):
+                           filename,
+                           separable_compilation):
         selection_algorithms = [a for a in algorithms if a.scope == "SelectionAlgorithm"]
         code = "\n".join(
             ("#pragma once", "", "#include \"BackendCommon.h\"", "\n"))
@@ -658,11 +659,12 @@ class AlgorithmCategory(Enum):\n\
                 "  struct Parameters;",
                 "}\n"))
         code += "\n"
-        for alg in selection_algorithms:
-            code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
-        code += "\n"
-        for alg in selection_algorithms:
-            code += f"extern template void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
+        if separable_compilation:
+            for alg in selection_algorithms:
+                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
+            code += "\n"
+            for alg in selection_algorithms:
+                code += f"extern template void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
         code += "\nconstexpr auto line_strings = {\n"
         for i, alg in enumerate(selection_algorithms):
             code += f"  \"{alg.name}\""
@@ -728,7 +730,8 @@ if __name__ == '__main__':
         default="views",
         choices=["parsed_algorithms", "views",
                  "wrapperlist", "wrappers", "db",
-                 "struct_to_tuple", "extern_lines"],
+                 "struct_to_tuple", "extern_lines",
+                 "extern_lines_nosepcomp"],
         help="action that will be performed")
 
     args = parser.parse_args()
@@ -770,4 +773,7 @@ if __name__ == '__main__':
             AllenCore.write_struct_to_tuple(parsed_algorithms, args.filename, args.struct_to_tuple_folder)
         elif args.generate == "extern_lines":
             # Write extern lines header file
-            AllenCore.write_extern_lines(parsed_algorithms, args.filename)
+            AllenCore.write_extern_lines(parsed_algorithms, args.filename, True)
+        elif args.generate == "extern_lines_nosepcomp":
+            # Write extern lines header file, without separable compilation
+            AllenCore.write_extern_lines(parsed_algorithms, args.filename, False)

@@ -49,7 +49,7 @@ namespace single_calo_cluster_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(minEt_t, "minEt", "minEt description", float) minEt;
     PROPERTY(maxEt_t, "maxEt", "maxEt description", float) maxEt;
-    PROPERTY(make_tuple_t, "make_tuple", "Make tuple for monitoring", bool) make_tuple;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct single_calo_cluster_line_t : public SelectionAlgorithm,
@@ -62,7 +62,7 @@ namespace single_calo_cluster_line {
     monitor(const Parameters& parameters, std::tuple<const CaloCluster> input, unsigned index, bool sel);
 
     void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-
+    
     __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster> input);
 
     void set_arguments_size(
@@ -101,6 +101,6 @@ namespace single_calo_cluster_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<minEt_t> m_minEt {this, 200.0f};   // MeV
     Property<maxEt_t> m_maxEt {this, 10000.0f}; // MeV
-    Property<make_tuple_t> m_make_tuple {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 } // namespace single_calo_cluster_line
