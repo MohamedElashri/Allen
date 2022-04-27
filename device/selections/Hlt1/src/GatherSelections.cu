@@ -226,15 +226,8 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_fn_indices_t, host_fn_indices_t>(arguments, context);
 
   // * Run all selections in one go
-#ifdef TARGET_DEVICE_CUDA
-  constexpr unsigned block_dim_y = 8;
-#else
-  // HIP throws an error with anything bigger here
-  constexpr unsigned block_dim_y = 1;
-#endif
-
   global_function(gather_selections::run_lines)(
-    first<host_number_of_events_t>(arguments), dim3(warp_size, block_dim_y), context)(
+    first<host_number_of_events_t>(arguments), dim3(warp_size, 256 / warp_size), context)(
     data<dev_fn_indices_t>(arguments),
     data<dev_fn_parameter_pointers_t>(arguments),
     data<dev_selections_t>(arguments),
