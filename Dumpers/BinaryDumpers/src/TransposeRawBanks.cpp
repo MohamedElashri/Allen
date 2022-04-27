@@ -99,6 +99,7 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
   std::array<LHCb::RawBank::View, LHCb::RawBank::types().size()> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
+    if (rawEvent == nullptr) continue;
     std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [this, rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
       if (!banks.empty()) {
