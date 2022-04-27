@@ -48,10 +48,10 @@ namespace gather_selections {
   {
     // Process each event with a different block
     // ODIN data
-    const LHCb::ODIN odin {
-      {*dev_mep_layout ? odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, blockIdx.x) :
-                         odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, blockIdx.x),
-       10}};
+    const LHCb::ODIN odin {{*dev_mep_layout ?
+                              odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, blockIdx.x) :
+                              odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, blockIdx.x),
+                            10}};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -94,10 +94,10 @@ namespace gather_selections {
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
-    const LHCb::ODIN odin {
-      {*dev_mep_layout ? odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
-                         odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
-       10}};
+    const LHCb::ODIN odin {{*dev_mep_layout ?
+                              odin_data_mep_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number) :
+                              odin_data_t::data(dev_odin_raw_input, dev_odin_raw_input_offsets, event_number),
+                            10}};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -226,7 +226,8 @@ void gather_selections::gather_selections_t::operator()(
   constexpr unsigned block_dim_y = 1;
 #endif
 
-  global_function(gather_selections::run_lines)(first<host_number_of_events_t>(arguments), dim3(warp_size, block_dim_y), context)(
+  global_function(gather_selections::run_lines)(
+    first<host_number_of_events_t>(arguments), dim3(warp_size, block_dim_y), context)(
     data<dev_fn_indices_t>(arguments),
     data<dev_fn_parameter_pointers_t>(arguments),
     data<dev_selections_t>(arguments),
@@ -278,10 +279,9 @@ void gather_selections::gather_selections_t::operator()(
     assign_to_host_buffer<dev_selections_t>(host_selections.data(), arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
-    Selections::ConstSelections sels {
-      reinterpret_cast<bool*>(host_selections.data()),
-      data<host_selections_offsets_t>(arguments),
-      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {reinterpret_cast<bool*>(host_selections.data()),
+                                      data<host_selections_offsets_t>(arguments),
+                                      first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
