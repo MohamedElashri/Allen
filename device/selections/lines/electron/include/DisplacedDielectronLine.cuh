@@ -19,7 +19,7 @@ namespace displaced_dielectron_line {
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
     // Outputs
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 

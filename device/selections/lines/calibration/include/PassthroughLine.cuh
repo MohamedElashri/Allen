@@ -13,7 +13,7 @@ namespace passthrough_line {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)

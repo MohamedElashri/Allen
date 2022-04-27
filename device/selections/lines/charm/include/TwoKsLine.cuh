@@ -21,7 +21,7 @@ namespace two_ks_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
