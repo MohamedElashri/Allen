@@ -671,12 +671,12 @@ class AlgorithmCategory(Enum):\n\
             if i != len(selection_algorithms) - 1:
                 code += ",\n"
         code += "\n};\n\n"
-        code += f"constexpr __device__ std::array<void(*)(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned), {len(selection_algorithms)}> line_functions = {{\n"
+        code += "__device__ void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j) {\n"
+        code += f"  assert(index < {len(selection_algorithms)});\n"
+        code += "  switch (index) {\n"
         for i, alg in enumerate(selection_algorithms):
-            code += f"  process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>"
-            if i != len(selection_algorithms) - 1:
-                code += ",\n"
-        code += "\n};\n\n"
+            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j); break;\n"
+        code += "  }\n}\n\n"
         code += f"constexpr std::array<void(*)(char*, const RuntimeOptions&, const Allen::Context&), {len(selection_algorithms)}> line_output_monitor_functions = {{\n"
         for i, alg in enumerate(selection_algorithms):
             code += f"  line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>"

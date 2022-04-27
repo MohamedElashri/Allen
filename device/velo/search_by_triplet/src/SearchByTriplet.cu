@@ -283,11 +283,12 @@ __device__ std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_can
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  return {binary_search_leftmost(
-            hit_phis + module_pair.hit_start,
-            module_pair.hit_num,
-            static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
-          track_extrapolation_phi};
+  return {
+    binary_search_leftmost(
+      hit_phis + module_pair.hit_start,
+      module_pair.hit_num,
+      static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
+    track_extrapolation_phi};
 }
 
 /**
@@ -815,4 +816,17 @@ __device__ void velo_search_by_triplet::track_seeding_vectorized(
     }
   }
 }
+#else
+__device__ void velo_search_by_triplet::track_seeding_vectorized(
+  Velo::ConstClusters&,
+  const Velo::ModulePair*,
+  const bool*,
+  Velo::TrackletHits*,
+  unsigned*,
+  uint16_t*,
+  unsigned*,
+  const float,
+  const int16_t,
+  const unsigned)
+{}
 #endif

@@ -331,7 +331,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
+    set(HIP_RELEASE_OPTIONS "-O0 -g -DALLEN_DEBUG")
   endif()
 
   if(GCC_TOOLCHAIN_ROOT)
@@ -498,7 +498,7 @@ function(allen_add_device_library_unified)
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
   endif()
 
-  target_sources(${ARGV0} PRIVATE "${UNIFIED_FILENAME}")
+  target_sources(${ARGV0} PRIVATE ${UNIFIED_FILENAME} ${LIBRARY_SOURCES})
   add_library(Allen::${ARGV0} ALIAS ${ARGV0})
   target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
 
