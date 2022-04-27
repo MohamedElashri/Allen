@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "Line.cuh"
+#include "TwoTrackLine.cuh"
 #include "ParticleTypes.cuh"
 
 namespace two_track_mva_line {
