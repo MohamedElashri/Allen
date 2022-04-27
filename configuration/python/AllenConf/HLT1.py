@@ -57,10 +57,12 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                 name = "Hlt1SingleHighPtMuon" + prefilter_suffix )))
     lines.append(
         line_maker(
-            make_single_high_pt_muon_no_muid_line(forward_tracks,
-                                                  long_track_particles, 
-                                                  name = "Hlt1SingleHighPtMuonNoMuID" + prefilter_suffix)))
+            make_single_high_pt_muon_no_muid_line(
+                forward_tracks,
+                long_track_particles, 
+                name = "Hlt1SingleHighPtMuonNoMuID" + prefilter_suffix)))
     lines.append(
+        line_maker(
             make_low_pt_muon_line(
                 forward_tracks,
                 long_track_particles,
@@ -343,7 +345,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
                 maxZ=-300  )]
         prefilter_suffix += '_SMOG2_checkPV'
 
-             
+
         with line_maker.bind( prefilter = SMOG2_prefilters) :
             SMOG2_lines += default_smog2_lines(
                 reconstructed_objects["velo_tracks"],
