@@ -18,9 +18,8 @@ namespace single_high_et_line {
     // ECAL
     DEVICE_INPUT(dev_brem_ET_t, float) dev_brem_ET;
     // Outputs
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
+HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
@@ -44,7 +43,7 @@ namespace single_high_et_line {
     __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
 
     // Get decision size function
-    static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
+    static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);
 
     // Get input function
     __device__ static std::tuple<const float>

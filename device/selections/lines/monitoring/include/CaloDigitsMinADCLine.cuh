@@ -17,8 +17,7 @@ namespace calo_digits_minADC {
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
 
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+    DEVICE_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
 
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
@@ -56,7 +55,7 @@ namespace calo_digits_minADC {
       return std::forward_as_tuple(event_ecal_digits);
     }
 
-    static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
+    static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
     {
       return first<typename Parameters::host_ecal_number_of_digits_t>(arguments);
     }

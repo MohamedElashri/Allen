@@ -19,45 +19,38 @@ void single_calo_cluster_line::single_calo_cluster_line_t::set_arguments_size(
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
 
   // must set_size of all output variables
+  set_size<host_post_scaler_t>(arguments, 1);
 
-  set_size<typename Parameters::dev_decisions_t>(
+  set_size<host_post_scaler_hash_t>(arguments, 1);
+
+  set_size<dev_clusters_x_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_decisions_offsets_t>(
-    arguments, first<typename Parameters::host_number_of_events_t>(arguments));
-
-  set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
-
-  set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-
-  set_size<typename Parameters::dev_clusters_x_t>(
+  set_size<host_clusters_x_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_x_t>(
+  set_size<dev_clusters_y_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_y_t>(
+  set_size<host_clusters_y_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_y_t>(
+  set_size<dev_clusters_Et_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_Et_t>(
+  set_size<host_clusters_Et_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_Et_t>(
+  set_size<dev_clusters_Eta_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_Eta_t>(
+  set_size<host_clusters_Eta_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_Eta_t>(
+  set_size<dev_clusters_Phi_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_Phi_t>(
-    arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
-
-  set_size<typename Parameters::host_clusters_Phi_t>(
+  set_size<host_clusters_Phi_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 }
 

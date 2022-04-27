@@ -21,8 +21,7 @@ namespace beam_gas_line {
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*)
@@ -47,7 +46,7 @@ namespace beam_gas_line {
       const Parameters& parameters,
       std::tuple<const unsigned, const unsigned, const unsigned, const float> input);
 
-    static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
+    static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
     {
       return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
     }

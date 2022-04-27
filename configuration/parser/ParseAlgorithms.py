@@ -671,7 +671,7 @@ class AlgorithmCategory(Enum):\n\
             if i != len(selection_algorithms) - 1:
                 code += ",\n"
         code += "\n};\n\n"
-        code += "__device__ void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j) {\n"
+        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j) {\n"
         code += f"  assert(index < {len(selection_algorithms)});\n"
         code += "  switch (index) {\n"
         for i, alg in enumerate(selection_algorithms):

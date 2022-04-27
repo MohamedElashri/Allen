@@ -11,9 +11,8 @@ namespace beam_crossing_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
+HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;

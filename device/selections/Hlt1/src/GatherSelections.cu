@@ -137,8 +137,8 @@ void gather_selections::gather_selections_t::set_arguments_size(
     return total_size;
   };
 
-  const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
-  const auto total_size_dev_input_selections = sum_sizes_from_aggregate(dev_input_selections);
+  const auto host_decisions_sizes = input_aggregate<host_decisions_sizes_t>(arguments);
+  const auto total_size_host_decisions_sizes = sum_sizes_from_aggregate(host_decisions_sizes);
   const auto total_size_host_input_post_scale_factors =
     sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
   const auto host_input_post_scale_hashes =
@@ -148,13 +148,13 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);
   set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size() + 1);
-  set_size<host_selections_lines_offsets_t>(arguments, dev_input_selections.size_of_aggregate() + 1);
-  set_size<dev_selections_lines_offsets_t>(arguments, dev_input_selections.size_of_aggregate() + 1);
+  set_size<host_selections_lines_offsets_t>(arguments, host_decisions_sizes.size_of_aggregate() + 1);
+  set_size<dev_selections_lines_offsets_t>(arguments, host_decisions_sizes.size_of_aggregate() + 1);
   set_size<host_selections_offsets_t>(
-    arguments, first<host_number_of_events_t>(arguments) * dev_input_selections.size_of_aggregate() + 1);
+    arguments, first<host_number_of_events_t>(arguments) * host_decisions_sizes.size_of_aggregate() + 1);
   set_size<dev_selections_offsets_t>(
-    arguments, first<host_number_of_events_t>(arguments) * dev_input_selections.size_of_aggregate() + 1);
-  set_size<dev_selections_t>(arguments, total_size_dev_input_selections);
+    arguments, first<host_number_of_events_t>(arguments) * host_decisions_sizes.size_of_aggregate() + 1);
+  set_size<dev_selections_t>(arguments, total_size_host_decisions_sizes);
   set_size<host_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
   set_size<host_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
   set_size<dev_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
@@ -200,15 +200,15 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_fn_parameter_pointers_t, host_fn_parameter_pointers_t>(arguments, context);
 
   // * Pass the number of lines for posterior algorithms
-  const auto dev_input_selections = input_aggregate<dev_input_selections_t>(arguments);
-  data<host_number_of_active_lines_t>(arguments)[0] = dev_input_selections.size_of_aggregate();
+  const auto host_decisions_sizes = input_aggregate<host_decisions_sizes_t>(arguments);
+  data<host_number_of_active_lines_t>(arguments)[0] = host_decisions_sizes.size_of_aggregate();
   Allen::copy_async<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
 
-  // * Calculate prefix sum of dev_input_selections_t sizes into host_selections_lines_offsets_t
+  // * Calculate prefix sum of host_decisions_sizes_t sizes into host_selections_lines_offsets_t
   auto* container = data<host_selections_lines_offsets_t>(arguments);
   container[0] = 0;
-  for (size_t i = 0; i < dev_input_selections.size_of_aggregate(); ++i) {
-    container[i + 1] = container[i] + dev_input_selections.size(i);
+  for (size_t i = 0; i < host_decisions_sizes.size_of_aggregate(); ++i) {
+    container[i + 1] = container[i] + host_decisions_sizes.first(i);
   }
   Allen::copy_async<dev_selections_lines_offsets_t, host_selections_lines_offsets_t>(arguments, context);
 
@@ -237,7 +237,7 @@ void gather_selections::gather_selections_t::operator()(
     data<dev_odin_raw_input_offsets_t>(arguments),
     data<dev_mep_layout_t>(arguments),
     first<host_number_of_events_t>(arguments),
-    dev_input_selections.size_of_aggregate(),
+    host_decisions_sizes.size_of_aggregate(),
     data<dev_selections_lines_offsets_t>(arguments));
 
   for (unsigned i = 0; i < m_indices_active_line_algorithms.size(); ++i) {

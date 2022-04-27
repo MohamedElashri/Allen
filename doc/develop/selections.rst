@@ -101,25 +101,13 @@ Event list to which the selection is applied::
 
   MASK_INPUT(dev_event_list_t);
 
-ODIN raw inputs. Needed for pre-scalers::
+Size of the decision object::
 
-  DEVICE_INPUT(dev_odin_raw_input_t, char), dev_odin_raw_input;
+  HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
 
-ODIN raw input offsets. Needed for pre-scalers::
+Parameters for delayed line processing::
 
-  DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned), dev_odin_raw_input_offsets;
-
-MEP layout. Needed to properly read ODIN input::
-
-  DEVICE_INPUT(dev_mep_layout_t, unsigned), dev_mep_layout;
-
-Results of the selection::
-
-  DEVICE_OUTPUT(dev_decisions_t, bool), dev_decisions;
-
-Offsets to each event decision::
-
-  DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned), dev_decisions_offsets;
+  HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
 Post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling::
 
@@ -223,15 +211,11 @@ header.
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-      DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-      DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-      DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-      DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-          PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
+      HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
        pre_scaler_hash_string;
@@ -300,15 +284,13 @@ secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-      DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-      DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-      DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-      DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-          PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
+      HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
        pre_scaler_hash_string;
@@ -387,15 +369,13 @@ The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhc
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-      DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-      DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-      DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-      DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-          PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
+      HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
        pre_scaler_hash_string;
@@ -474,20 +454,19 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
     struct Parameters {
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-      HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
       MASK_INPUT(dev_event_list_t);
-      DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-      DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-      DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-      DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-      DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-          PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
+      HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-      PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;
-      PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string) post_scaler_hash_string;
+      PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
+       pre_scaler_hash_string;
+      PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
+       post_scaler_hash_string;
       // Line-specific inputs and properties
       DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
       DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
@@ -650,7 +629,7 @@ Let us take a closer look at one example, i.e. how the Hlt1DiMuonLowMass line is
                   maxDoca="0.2",
                   maxVertexChi2="25.",
                   minIPChi2="4."),
-              enableGEC=True))
+                  enableGEC=True))
 
 The `line_maker <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/HLT1.py>`_ function is called to set the line name, the line algorithm with its required inputs and to specify whether or not the prefilter of the global event cut (GEC) should be applied. The line algorithm can be configured as described below. `line_maker` returns a tuple of `[algorithm, node]` which is appended to the list of lines. 
 
@@ -687,9 +666,6 @@ The HLT1DiMuonLowMass line is defined in `hlt1_muon_lines.py` as follows:
           di_muon_mass_line_t,
           name=name,
           host_number_of_events_t=number_of_events["host_number_of_events"],
-          dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-          dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-          dev_mep_layout_t=layout["dev_mep_layout"],
           host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
           dev_svs_t=secondary_vertices["dev_consolidated_svs"],
           dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
@@ -737,9 +713,6 @@ First define the line algorithm, for example within `hlt1_inclusive_hadron_lines
             "host_number_of_reconstructed_scifi_tracks"],
         dev_tracks_t=kalman_velo_only["dev_kf_tracks"],
         dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 

@@ -51,42 +51,6 @@ template<typename Derived, typename Parameters>
 using type_erased_tuple_t =
   std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>;
 
-/**
- * @brief A generic Line.
- * @detail It assumes the line has the following parameters:
- *
- *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
- *  MASK_INPUT(dev_event_list_t) dev_event_list;
- *  MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
- *  HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
- *  DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
- *  DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
- *  DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
- *  DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
- *  DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
- *  DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
- *  HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
- *  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-     *  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
- *  PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
- *  PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
- *  PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
- *
- * The inheriting line must also provide the following methods:
- *
- *     __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const;
- *
- *     unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
- *
- *     __device__ std::tuple<types...>
- *     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
- *
- *     __device__ bool select(const Parameters& parameters, std::tuple<types...> input) const;
- *
- *     where "types..." is a list of types that can be freely configured.
- *
- */
 template<typename Derived, typename Parameters>
 struct Line {
 private:
@@ -116,9 +80,7 @@ public:
     const Constants&,
     const HostBuffers&) const
   {
-    set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
-    set_size<typename Parameters::dev_decisions_offsets_t>(
-      arguments, first<typename Parameters::host_number_of_events_t>(arguments));
+    set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
     set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
@@ -151,7 +113,6 @@ void line_output_monitor(char* input, const RuntimeOptions& runtime_options, con
 {
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
     const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
-
     auto derived_instance = std::get<5>(type_casted_input);
     derived_instance->output_monitor(std::get<4>(type_casted_input), runtime_options, context);
   }
@@ -235,6 +196,7 @@ void Line<Derived, Parameters>::operator()(
   data<typename Parameters::host_post_scaler_t>(arguments)[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
   data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
+  data<typename Parameters::host_decisions_size_t>(arguments)[0] = Derived::get_decisions_size(arguments);
 
   // Delay the execution of the line: Pass the parameters
   auto parameters = std::make_tuple(

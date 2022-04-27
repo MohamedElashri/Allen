@@ -17,7 +17,7 @@ struct EventLine : public Line<Derived, Parameters> {
   /**
    * @brief Decision size is the number of events.
    */
-  static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
+  static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
   {
     return first<typename Parameters::host_number_of_events_t>(arguments);
   }

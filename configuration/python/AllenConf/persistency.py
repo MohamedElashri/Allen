@@ -20,10 +20,7 @@ def make_gather_selections(lines):
         name="gather_selections",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_mep_layout_t=layout["dev_mep_layout"],
-        dev_input_selections_t=[line.dev_decisions_t for line in lines],
-        dev_input_selections_offsets_t=[
-            line.dev_decisions_offsets_t for line in lines
-        ],
+        host_decisions_sizes_t=[line.host_decisions_size_t for line in lines],
         host_input_post_scale_factors_t=[
             line.host_post_scaler_t for line in lines
         ],

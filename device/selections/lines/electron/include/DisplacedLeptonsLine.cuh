@@ -19,9 +19,8 @@ namespace displaced_leptons_line {
     DEVICE_INPUT(dev_track_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_track_container;
     DEVICE_INPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
+HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*) dev_particle_container_ptr;
