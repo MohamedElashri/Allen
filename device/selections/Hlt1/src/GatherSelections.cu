@@ -138,7 +138,14 @@ void gather_selections::gather_selections_t::set_arguments_size(
   };
 
   const auto host_decisions_sizes = input_aggregate<host_decisions_sizes_t>(arguments);
-  const auto total_size_host_decisions_sizes = sum_sizes_from_aggregate(host_decisions_sizes);
+  const auto total_size_host_decisions_sizes = [&host_decisions_sizes] () {
+    unsigned sum = 0;
+    for (unsigned i = 0; i < host_decisions_sizes.size_of_aggregate(); ++i) {
+      sum += host_decisions_sizes.first(i);
+    }
+    return sum;
+  } ();
+
   const auto total_size_host_input_post_scale_factors =
     sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
   const auto host_input_post_scale_hashes =
@@ -237,7 +244,7 @@ void gather_selections::gather_selections_t::operator()(
     data<dev_odin_raw_input_offsets_t>(arguments),
     data<dev_mep_layout_t>(arguments),
     first<host_number_of_events_t>(arguments),
-    host_decisions_sizes.size_of_aggregate(),
+    first<host_number_of_active_lines_t>(arguments),
     data<dev_selections_lines_offsets_t>(arguments));
 
   for (unsigned i = 0; i < m_indices_active_line_algorithms.size(); ++i) {
