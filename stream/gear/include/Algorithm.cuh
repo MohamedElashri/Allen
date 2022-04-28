@@ -79,6 +79,7 @@ namespace Allen {
     struct vtable {
       std::string (*name)(void const*) = nullptr;
       std::any (*create_arg_ref_manager)(
+        const std::string&,
         std::vector<std::reference_wrapper<ArgumentData>>,
         std::vector<std::vector<std::reference_wrapper<ArgumentData>>>) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) =
@@ -118,13 +119,17 @@ namespace Allen {
       table = vtable {
         [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
         [](
+          const std::string& name,
           std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
           std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {
           using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
           using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
           using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
           if (std::tuple_size_v<store_ref_t> != vector_store_ref.size()) {
-            throw std::runtime_error("unexpected number of arguments");
+            throw std::runtime_error(
+              "algorithm " + name +
+              " received an unexpected number of arguments: " + std::to_string(vector_store_ref.size()) +
+              " were passed, while the store expects " + std::to_string(std::tuple_size_v<store_ref_t>));
           }
           auto store_ref =
             create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<store_ref_t>> {});
@@ -226,7 +231,7 @@ namespace Allen {
       std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
       std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates)
     {
-      return (table.create_arg_ref_manager)(std::move(vector_store_ref), std::move(input_aggregates));
+      return (table.create_arg_ref_manager)(name(), std::move(vector_store_ref), std::move(input_aggregates));
     }
     void set_arguments_size(
       std::any& arg_ref_manager,
