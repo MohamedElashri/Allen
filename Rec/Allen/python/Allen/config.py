@@ -30,7 +30,7 @@ def setup_allen_non_event_data_service(dump_geometry=False,
     producers = [
         p(DumpToFile=dump_geometry, OutputDirectory=out_dir)
         for p in (DumpUTGeometry, DumpFTGeometry,
-                  DumpMuonGeometry, DumpMuonTable, DumpMagneticField,
+                  DumpMuonGeometry, DumpMuonTable,
                   DumpUTLookupTables)
     ]
     ApplicationMgr().ExtSvc += [AllenUpdater()] + producers
