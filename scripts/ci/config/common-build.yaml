@@ -50,6 +50,7 @@
     expire_in: 1 day
     paths:
       - input
+      - input/PARAM/ParamFiles/*
       - build*/*Allen*
       - build*/sequences/libStream_*.so
       - build*/*.json

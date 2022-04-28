@@ -62,15 +62,15 @@ StatusCode RunAllen::initialize()
   }
 
   // get constants
-  const std::string params_path = resolveEnvVars(m_paramDir);
+  const std::string params_path = resolveEnvVars(m_paramDir) + "/data";
 
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(muon_field_of_interest_params, params_path + "/field_of_interest_params.bin");
+  read_muon_field_of_interest(muon_field_of_interest_params, params_path + "/allen_muon_field_of_interest_params.bin");
 
-  m_constants.reserve_and_initialize(muon_field_of_interest_params, params_path + "/params_kalman_FT6x2/");
+  m_constants.reserve_and_initialize(muon_field_of_interest_params, params_path);
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(params_path + "/muon_catboost_model.json");
+    std::make_unique<CatboostModelReader>(params_path + "/allen_muon_catboost_model.json");
   m_constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
@@ -81,7 +81,7 @@ StatusCode RunAllen::initialize()
     muon_catboost_model_reader->split_feature());
 
   std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader =
-    std::make_unique<TwoTrackMVAModelReader>(params_path + "/two_track_mva_model.json");
+    std::make_unique<TwoTrackMVAModelReader>(params_path + "/allen_two_track_mva_model.json");
   m_constants.initialize_two_track_mva_model_constants(
     two_track_mva_model_reader->weights(),
     two_track_mva_model_reader->biases(),

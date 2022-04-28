@@ -28,7 +28,7 @@ void Constants::reserve_constants()
 
 void Constants::initialize_constants(
   const std::vector<float>& muon_field_of_interest_params,
-  const std::string& folder_params_kalman)
+  const std::string& param_file_location)
 {
   // SciFi constants
   host_inv_clus_res = {1 / 0.05, 1 / 0.08, 1 / 0.11, 1 / 0.14, 1 / 0.17, 1 / 0.20, 1 / 0.23, 1 / 0.26, 1 / 0.29};
@@ -39,7 +39,7 @@ void Constants::initialize_constants(
 
   // Kalman filter constants.
   ParKalmanFilter::KalmanParametrizations host_kalman_params;
-  host_kalman_params.SetParameters(folder_params_kalman, ParKalmanFilter::Polarity::Down);
+  host_kalman_params.SetParameters(param_file_location, ParKalmanFilter::Polarity::Down);
   Allen::memcpy(
     dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), Allen::memcpyHostToDevice);
 

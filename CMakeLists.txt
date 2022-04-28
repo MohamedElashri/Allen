@@ -523,6 +523,10 @@ target_include_directories(AllenCommon
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/test/contracts/include>)
 
+if (STANDALONE)
+  target_compile_definitions(AllenCommon INTERFACE ALLEN_STANDALONE)
+endif()
+
 set(AllenHeaders)
 foreach(header
     Allen.h
@@ -568,6 +572,7 @@ endif()
 
 message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
+
 # Add host library
 allen_add_host_library(HostCommon STATIC
   main/src/BankTypes.cpp
@@ -594,6 +599,8 @@ allen_add_host_library(AllenLib SHARED
   main/src/Provider.cpp
   main/src/RegisterConsumers.cpp
   main/src/ZMQOutputSender.cpp)
+
+
 
 target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
 
@@ -642,3 +649,23 @@ if (NOT STANDALONE)
   # Finalize configuration
   lhcb_finalize_configuration()
 endif()
+
+
+# Download parameter files if in STANDALONE
+if (STANDALONE)
+  find_package(Git REQUIRED)
+  file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/")
+  SET(PARAMFILESROOT "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/ParamFiles/")
+  add_custom_command(  
+    OUTPUT "${PARAMFILESROOT}"
+    COMMENT "Checking out parameterization files from the LHCb stack"
+    COMMAND
+      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb-datapkg/ParamFiles.git --no-checkout &&
+      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} --work-tree=ParamFiles --git-dir=ParamFiles/.git checkout origin/master -- data
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/")
+  add_custom_target(checkout_param_files DEPENDS "${PARAMFILESROOT}")
+  add_dependencies(AllenLib checkout_param_files)
+  add_compile_definitions(PARAMFILESROOTPATH=${PARAMFILESROOT})
+  message(STATUS "PARAMFILESROOT set to ${PARAMFILESROOT}")
+endif()
+

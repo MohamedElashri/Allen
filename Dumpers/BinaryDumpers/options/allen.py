@@ -42,10 +42,6 @@ parser.add_argument(
     "-g",
     dest="det_folder",
     default=os.path.join(allen_dir, "input", "detector_configuration", "down"))
-parser.add_argument(
-    "--params",
-    dest="param_folder",
-    default=os.path.join(allen_dir, "input", "parameters"))
 parser.add_argument("-n", dest="n_events", default=0)
 parser.add_argument("-t", dest="threads", default=1)
 parser.add_argument("-r", dest="repetitions", default=1)
@@ -181,7 +177,8 @@ updater = cast_service(gbl.Allen.NonEventData.IUpdater, svc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
-for flag, value in [("g", args.det_folder), ("params", args.param_folder),
+for flag, value in [("g", args.det_folder),
+                    ("params", os.getenv("PARAMFILESROOT")),
                     ("n", args.n_events), ("t", args.threads),
                     ("r", args.repetitions), ("output-file", args.output_file),
                     ("m", args.reserve), ("v", args.verbosity),

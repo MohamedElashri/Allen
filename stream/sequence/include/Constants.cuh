@@ -128,10 +128,10 @@ struct Constants {
    */
   void reserve_and_initialize(
     const std::vector<float>& muon_field_of_interest_params,
-    const std::string& folder_params_kalman)
+    const std::string& param_file_location)
   {
     reserve_constants();
-    initialize_constants(muon_field_of_interest_params, folder_params_kalman);
+    initialize_constants(muon_field_of_interest_params, param_file_location);
   }
 
   /**
