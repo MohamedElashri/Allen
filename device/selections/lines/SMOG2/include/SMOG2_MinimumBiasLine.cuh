@@ -70,7 +70,7 @@ namespace SMOG2_minimum_bias_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Line-specific properties
-    Property<minNHits_t> m_minNHits {this, 12};
+    Property<minNHits_t> m_minNHits {this, 18};
     Property<minZ_t> m_minZ {this, -550.f * Gaudi::Units::mm};
     Property<maxZ_t> m_maxZ {this, -300.f * Gaudi::Units::mm};
   };

@@ -27,6 +27,7 @@ namespace single_high_pt_electron_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float) maxChi2Ndof;
     PROPERTY(singleMinPt_t, "singleMinPt", "singleMinPt description", float) singleMinPt;
+    PROPERTY(minZ_t, "MinZ", "Minimum track state z", float) minZ;
   };
 
   struct single_high_pt_electron_line_t : public SelectionAlgorithm,
@@ -46,5 +47,6 @@ namespace single_high_pt_electron_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
     Property<singleMinPt_t> m_singleMinPt {this, 6000.f / Gaudi::Units::MeV};
+    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
   };
 } // namespace single_high_pt_electron_line

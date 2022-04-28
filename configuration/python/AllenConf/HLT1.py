@@ -261,34 +261,23 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
 
-    pp_prefilters, physics_lines, prefilter_suffix = [], [], ''
     gec = make_gec()
-    if EnableGEC:
-        pp_prefilters += [gec]
-        prefilter_suffix += '_gec'
-
-    if withSMOG2:
-        pp_checkPV = make_checkPV(
-            reconstructed_objects['pvs'],
-            name='pp_checkPV',
-            minZ=-300,
-            maxZ=+300)
-
-        pp_prefilters += [pp_checkPV]
-        prefilter_suffix += '_pp_checkPV'
-
-    with line_maker.bind(prefilter=pp_prefilters):
-        physics_lines += default_physics_lines(
+    with line_maker.bind(prefilter= gec if EnableGEC else None):
+        physics_lines = default_physics_lines(
             reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
             reconstructed_objects["secondary_vertices"],
             reconstructed_objects["calo_matching_objects"],
-            prefilter_suffix=prefilter_suffix)
+            prefilter_suffix="_gec" if EnableGEC else "")
 
     with line_maker.bind(prefilter=None):
         monitoring_lines = event_monitoring_lines()
         physics_lines += [line_maker(make_passthrough_line())]
+
+    if EnableGEC:
+        with line_maker.bind(prefilter=gec):
+            physics_lines += [ line_maker(make_passthrough_line(name="Hlt1Passthrough_gec"))]
 
     with line_maker.bind(prefilter=gec):
         monitoring_lines += alignment_monitoring_lines( 
@@ -297,15 +286,6 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             reconstructed_objects["long_track_particles"], 
             reconstructed_objects["velo_states"],
             prefilter_suffix = "_gec" )
-
-    if EnableGEC:
-        with line_maker.bind(prefilter=gec):
-            physics_lines += [
-                line_maker(
-                    make_passthrough_line(
-                        name="Hlt1Passthrough_gec"))
-            ]
-
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines] + [tup[0] for tup in monitoring_lines]

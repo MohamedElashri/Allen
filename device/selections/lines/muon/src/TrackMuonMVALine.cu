@@ -21,13 +21,12 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
   const auto ipChi2    = track.ip_chi2();
   const auto minBPVz   = parameters.minBPVz;
 
-  bool decision =
+  const bool decision =
     track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
     ((ptShift > maxPt_GeV && ipChi2 > parameters.minIPChi2) ||
      (ptShift > minPt_GeV && ptShift < maxPt_GeV &&
       logf(ipChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
-                       parameters.param3 / maxPt_GeV * (maxPt_GeV - ptShift) + logf(parameters.minIPChi2)));
-  if ( track.has_pv() ) decision = decision && track.pv().position.z >= minBPVz;
+                       parameters.param3 / maxPt_GeV * (maxPt_GeV - ptShift) + logf(parameters.minIPChi2))) && track.pv().position.z >= minBPVz;
 
   return decision;
 }
