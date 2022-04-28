@@ -131,8 +131,10 @@ namespace ParKalmanFilter {
 
     //----------------------------------------------------------------------
     // Set parameters.
-    __host__ void SetParameters(std::string ParamFileLocation, Polarity polarity)
+    __host__ void SetParameters(std::string param_file_location, Polarity polarity)
     {
+
+      const std::string ParamFileLocation = param_file_location + "/ParametrizedKalmanFit/FT6x2/" + "MagDown";
 
       // Get polarity.
       if ((m_Polarity == polarity) && paramsLoaded) return;

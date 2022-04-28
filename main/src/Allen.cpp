@@ -27,6 +27,7 @@
 #include <getopt.h>
 #include <memory>
 #include <tuple>
+#include <stdio.h>
 
 #include <zmq/zmq.hpp>
 #include <ZeroMQ/IZeroMQSvc.h>
@@ -81,8 +82,7 @@ int allen(
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
 {
-  // Folder containing detector configuration and mva models
-  std::string folder_parameters = "../input/parameters/";
+  std::string folder_parameters = "";
 
   unsigned n_slices = 0;
   unsigned number_of_buffers = 0;
@@ -111,7 +111,7 @@ int allen(
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
     if (flag_in(flag, {"params"})) {
-      folder_parameters = arg + "/";
+      folder_parameters = arg;
     }
     else if (flag_in(flag, {"write-configuration"})) {
       write_config = atoi(arg.c_str());
@@ -222,17 +222,36 @@ int allen(
   // Load constant parameters from JSON
   configuration_reader = std::make_unique<ConfigurationReader>(json_configuration_file);
 
+  // Get the path to the parameter folder: different for standalone and Gaudi build
+  // Only in case of standalone gitlab CI pipepline the parameters folder path is passed as runtime argument
+  if (folder_parameters == "") {
+#ifdef ALLEN_STANDALONE
+#define xstr(s) str(s)
+#define str(s) #s
+    folder_parameters = xstr(PARAMFILESROOTPATH);
+    info_cout << "Local copy of param files is used: " << folder_parameters << std::endl;
+#endif
+  }
+  if (folder_parameters == "") {
+    error_cout << "Parameters file path is empty!" << std::endl;
+  }
+  folder_parameters += "/data/";
+
   // Read the Muon catboost model
-  muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_parameters + "muon_catboost_model.json");
+  muon_catboost_model_reader =
+    std::make_unique<CatboostModelReader>(folder_parameters + "allen_muon_catboost_model.json");
   // Two Track Model
-  two_track_mva_model_reader = std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "two_track_mva_model.json");
+  two_track_mva_model_reader =
+    std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "allen_two_track_mva_model.json");
 
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(muon_field_of_interest_params, folder_parameters + "field_of_interest_params.bin");
+  read_muon_field_of_interest(
+    muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
 
   // Initialize detector constants on GPU
   Constants constants;
-  constants.reserve_and_initialize(muon_field_of_interest_params, folder_parameters + "params_kalman_FT6x2/");
+
+  constants.reserve_and_initialize(muon_field_of_interest_params, folder_parameters);
   constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
