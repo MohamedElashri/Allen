@@ -6,6 +6,7 @@ DetectorPersist...   INFO Added successfully Conversion service:XmlCnvSvc
 DetectorDataSvc   SUCCESS Detector description database: git:/lhcb.xml
 EventClockSvc.F...   INFO Event times generated from 0 with steps of 0
 DeFTDetector         INFO Current FT geometry version =   63
+DumpFTGeometry       INFO Conditions DB is compatible with FT bank version 4, 5, 6.
 DumpMuonGeometry     INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M2/Cabling
 DumpMuonGeometry     INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M3/Cabling
 DumpMuonGeometry     INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M4/Cabling
