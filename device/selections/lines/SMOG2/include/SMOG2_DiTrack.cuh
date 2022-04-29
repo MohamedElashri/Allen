@@ -36,6 +36,7 @@ namespace SMOG2_ditrack_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string) post_scaler_hash_string;
 
     // SMOG2_DITRACK
+    PROPERTY(maxTrackChi2Ndf_t, "minTrackChi2Ndf", "max track fit Chi2ndf", float) maxTrackChi2Ndf;
     PROPERTY(minTrackP_t, "minTrackP", "minimum final-state particles momentum", float) minTrackP;
     PROPERTY(minTrackPt_t, "minTrackPt", "minimum final-state particles transverse momentum", float) minTrackPt;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "max SV Chi2", float) maxVertexChi2;
@@ -57,6 +58,7 @@ namespace SMOG2_ditrack_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
 
+    Property<maxTrackChi2Ndf_t> m_maxTrackChi2Ndf {this, 4.f};
     Property<minTrackP_t> m_minTrackP {this, 3.f * Gaudi::Units::GeV};
     Property<minTrackPt_t> m_minTrackPt {this, 400.f * Gaudi::Units::MeV};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.f};

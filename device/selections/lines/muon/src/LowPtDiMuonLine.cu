@@ -16,7 +16,8 @@ __device__ bool low_pt_di_muon_line::low_pt_di_muon_line_t::select(
   if (vertex.minip() < parameters.minTrackIP) return false;
 
   const bool decision = vertex.vertex().chi2() > 0 && vertex.mdimu() > parameters.minMass &&
-    vertex.minpt() > parameters.minTrackPt && vertex.minp() > parameters.minTrackP &&
-    vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.doca12() < parameters.maxDOCA && vertex.vertex().z() > parameters.minZ;
+                        vertex.minpt() > parameters.minTrackPt && vertex.minp() > parameters.minTrackP &&
+                        vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.doca12() < parameters.maxDOCA &&
+			vertex.vertex().z() >= parameters.minZ && vertex.pv().position.z >= parameters.minZ;
   return decision;
 }

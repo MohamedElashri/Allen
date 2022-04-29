@@ -14,8 +14,12 @@ __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select
     return false;
   }
 
+  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vtx.child(0));
+  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vtx.child(1));
+  
   bool decision = vtx.vertex().z() < parameters.maxZ && vtx.is_dimuon() && vtx.doca12() < parameters.maxDoca &&
-                  vtx.mdimu() >= parameters.minMass && vtx.minpt() >= parameters.minTrackPt &&
+											  trk1 -> chi2()/trk1 -> ndof() < parameters.maxTrackChi2Ndf && trk2 -> chi2()/trk2 -> ndof() < parameters.maxTrackChi2Ndf &&  
+											  vtx.mdimu() >= parameters.minMass && vtx.minpt() >= parameters.minTrackPt &&
                   vtx.minp() >= parameters.minTrackP && vtx.vertex().chi2() < parameters.maxVertexChi2 &&
                   vtx.vertex().z() >= parameters.minZ && vtx.charge() == parameters.CombCharge;
   if (vtx.has_pv()) decision = decision && vtx.pv().position.z < parameters.maxZ;
