@@ -56,9 +56,9 @@ def make_SMOG2_minimum_bias_line(
 
 
 def make_SMOG2_ditrack_line(secondary_vertices,
-                            m1=0.,
-                            m2=0.,
-                            mMother=0.,
+                            m1=-1.,
+                            m2=-1.,
+                            mMother=-1.,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None,
                             name="Hlt1_SMOG2_DiTrack",

@@ -14,13 +14,13 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
     return false;
   }
   
-  const bool mass_decision = parameters.m1 == -1 and parameters.m2 == -1 ?
-                               true :
-                               fabsf(vtx.m12(parameters.m1, parameters.m2) - parameters.mMother) < parameters.massWindow;
-
-  const bool decision = vtx.vertex().z() < parameters.maxZ && vtx.vertex().z() >= parameters.minZ && 
-												   vtx.minp() > parameters.minTrackP && vtx.minpt() > parameters.minTrackPt &&
-    vtx.vertex().chi2() < parameters.maxVertexChi2 && vtx.doca12() <= parameters.maxDoca &&
-    vtx.charge() == parameters.combCharge && mass_decision;
+  const bool mass_decision = parameters.mMother == -1.f ? true :
+    fabsf(vtx.m12(parameters.m1, parameters.m2) - parameters.mMother) < parameters.massWindow && vtx.charge() == parameters.combCharge;
+  
+  bool decision = vtx.vertex().z() < parameters.maxZ && vtx.vertex().z() >= parameters.minZ &&
+									vtx.maxp() > parameters.minTrackP && vtx.maxpt() > parameters.minTrackPt &&
+    vtx.vertex().chi2() < parameters.maxVertexChi2 && vtx.doca12() <= parameters.maxDoca && mass_decision;
+  if (vtx.has_pv()) decision = decision && vtx.pv().position.z < parameters.maxZ;
+  
   return decision;
 }

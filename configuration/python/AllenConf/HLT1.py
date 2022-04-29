@@ -211,7 +211,6 @@ def alignment_monitoring_lines( velo_tracks, forward_tracks, long_track_particle
 
 
 def default_smog2_lines(velo_tracks,
-                        velo_states,
                         forward_tracks,
                         long_track_particles,
                         secondary_vertices,
@@ -220,13 +219,9 @@ def default_smog2_lines(velo_tracks,
     lines = []
     lines.append(
         line_maker(
-            make_SMOG2_minimum_bias_line(
-                velo_tracks, velo_states, name = "Hlt1_SMOG2_MinimumBiasLine" + prefilter_suffix )))
-
-    lines.append(
-        line_maker(
-            make_SMOG2_dimuon_highmass_line( 
-                secondary_vertices, name =  "Hlt1_SMOG2_DiMuonHighMassLine" + prefilter_suffix )))
+            make_SMOG2_dimuon_highmass_line(
+                secondary_vertices,
+                name="Hlt1_SMOG2_DiMuonHighMassLine" + prefilter_suffix)))
 
     lines.append(
         line_maker( 
@@ -254,6 +249,13 @@ def default_smog2_lines(velo_tracks,
                 secondary_vertices,
                 minTrackPt=800.,
                 name="Hlt1_SMOG2_2BodyGeneric" + prefilter_suffix)))
+
+    lines.append(
+        line_maker(
+            make_SMOG2_singletrack_line(
+                forward_tracks,
+                long_track_particles,
+                name="Hlt1_SMOG2_SingleTrack" + prefilter_suffix)))
 
     return lines
 
@@ -317,24 +319,32 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             SMOG2_prefilters += [gec]
             prefilter_suffix += '_gec'
 
+        with line_maker.bind( prefilter = SMOG2_prefilters):
+            SMOG2_lines +=  [
+            line_maker(
+                make_SMOG2_minimum_bias_line(
+                    reconstructed_objects["velo_tracks"],
+                    reconstructed_objects["velo_states"],
+                    name="Hlt1_SMOG2_MinimumBiasLine" + prefilter_suffix)) ]
+
         SMOG2_prefilters += [
             make_checkPV(
                 reconstructed_objects['pvs'],
                 name='check_SMOG2_PV',
-                minZ=-550, 
-                maxZ=-300  )]
+                minZ=-550,
+                maxZ=-300) ]
         prefilter_suffix += '_SMOG2_checkPV'
 
+        with line_maker.bind(prefilter=SMOG2_prefilters):
+            SMOG2_lines += [ line_maker( make_passthrough_line(name="Hlt1_SMOG2_" + prefilter_suffix) )]
 
-        with line_maker.bind( prefilter = SMOG2_prefilters) :
             SMOG2_lines += default_smog2_lines(
                 reconstructed_objects["velo_tracks"],
-                reconstructed_objects["velo_states"], 
-                reconstructed_objects["forward_tracks"],        
-                reconstructed_objects["long_track_particles"],      
-                reconstructed_objects["secondary_vertices"], 
-                prefilter_suffix = prefilter_suffix )
-        
+                reconstructed_objects["forward_tracks"],
+                reconstructed_objects["long_track_particles"],
+                reconstructed_objects["secondary_vertices"],
+                prefilter_suffix=prefilter_suffix)
+
         line_algorithms += [ tup[0] for tup in SMOG2_lines ]
         line_nodes      += [ tup[1] for tup in SMOG2_lines ]
 

@@ -578,6 +578,22 @@ namespace Allen {
             -1.f);
         }
 
+        __host__ __device__ float maxp() const
+        {
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().p(); },
+            [](float f1, float f2) { return f2 > f1 ? f2 : f1; },
+            -1.f);
+        }
+
+        __host__ __device__ float maxpt() const
+        {
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().pt(); },
+            [](float f1, float f2) { return f2 > f1 ? f2 : f1; },
+            -1.f);
+        }
+
         __host__ __device__ float dira() const
         {
           if (!has_pv()) return 0.f;
