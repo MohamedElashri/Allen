@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "DumpFTGeometry.h"
+#include "FTDAQ/FTReadoutMap.h"
 #include "Detector/FT/FTChannelID.h"
 
 namespace {
@@ -109,55 +110,51 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
   }
 #endif
   // Raw bank layout (from FTReadoutTool)
-  vector<uint32_t> bank_first_channel;
   string conditionLocation = "/dd/Conditions/ReadoutConf/FT/ReadoutMap";
   Condition* rInfo = getDet<Condition>(conditionLocation);
-
-  std::vector<int> stations_ = rInfo->param<std::vector<int>>("FTBankStation");
-  std::vector<int> layers = rInfo->param<std::vector<int>>("FTBankLayer");
-  std::vector<int> quarters = rInfo->param<std::vector<int>>("FTBankQuarter");
-  std::vector<int> firstModules = rInfo->param<std::vector<int>>("FTBankFirstModule");
-  std::vector<int> firstMats = rInfo->param<std::vector<int>>("FTBankFirstMat");
-
-  // Construct the first channel attribute
-  uint32_t number_of_tell40s = stations_.size();
-  bank_first_channel.reserve(number_of_tell40s);
-  for (unsigned int i = 0; i < number_of_tell40s; i++) {
-    bank_first_channel.push_back(
-      static_cast<uint32_t>(LHCb::Detector::FTChannelID {LHCb::Detector::FTChannelID::StationID(stations_[i]),
-                                                         LHCb::Detector::FTChannelID::LayerID(layers[i]),
-                                                         LHCb::Detector::FTChannelID::QuarterID(quarters[i]),
-                                                         LHCb::Detector::FTChannelID::ModuleID(firstModules[i]),
-                                                         LHCb::Detector::FTChannelID::MatID(firstMats[i]),
-                                                         0u,
-                                                         0u}));
-  }
+  auto readoutMap = FTReadoutMap {this, *rInfo};
   DumpUtils::Writer output {};
-  output.write(
-    number_of_stations,
-    number_of_layers_per_station,
-    number_of_layers,
-    number_of_quarters_per_layer,
-    number_of_quarters,
-    number_of_modules,
-    number_of_mats_per_module,
-    number_of_mats,
-    number_of_tell40s,
-    bank_first_channel,
-    max_uniqueMat,
-    mirrorPointX,
-    mirrorPointY,
-    mirrorPointZ,
-    ddxX,
-    ddxY,
-    ddxZ,
-    uBegin,
-    halfChannelPitch,
-    dieGap,
-    sipmPitch,
-    dxdy,
-    dzdy,
-    globaldy);
 
+  auto comp = readoutMap.compatibleVersions();
+  if (comp.count(4)) {
+    auto number_of_tell40s = readoutMap.nBanks();
+    // Decoding v6
+    vector<uint32_t> bank_first_channel;
+    bank_first_channel.reserve(number_of_tell40s);
+    for (unsigned int i = 0; i < number_of_tell40s; i++) {
+      bank_first_channel.push_back(readoutMap.channelIDShift(i));
+    }
+    output.write(
+      number_of_stations,
+      number_of_layers_per_station,
+      number_of_layers,
+      number_of_quarters_per_layer,
+      number_of_quarters,
+      number_of_modules,
+      number_of_mats_per_module,
+      number_of_mats,
+      number_of_tell40s,
+      bank_first_channel,
+      max_uniqueMat,
+      mirrorPointX,
+      mirrorPointY,
+      mirrorPointZ,
+      ddxX,
+      ddxY,
+      ddxZ,
+      uBegin,
+      halfChannelPitch,
+      dieGap,
+      sipmPitch,
+      dxdy,
+      dzdy,
+      globaldy);
+  }
+  else {
+    std::stringstream s;
+    Gaudi::Utils::toStream(comp, s);
+    throw GaudiException {"Unsupported conditions compatible with " + s.str(), __FILE__, StatusCode::FAILURE};
+  }
+  return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
   return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
 }
