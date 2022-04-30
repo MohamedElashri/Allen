@@ -58,6 +58,9 @@
       - build*/test/unit_tests/unit_tests
       - build*/test/unit_tests/*cmake
       - build*/toolchain/*
+      - build*/code_generation/sequences/LHCb/PyConf/python/PyConf/*
+      - build*/code_generation/sequences/Gaudi/GaudiKernel/python/GaudiKernel/*
+      - configuration/python/AllenConf/algorithms.py
   tags:
     - cvmfs
   retry: 2
