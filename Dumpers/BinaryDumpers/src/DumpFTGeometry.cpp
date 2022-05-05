@@ -1,4 +1,3 @@
-// FIXME: LoH: will not work with DD4HEP as is
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
@@ -7,9 +6,26 @@
 #include <tuple>
 #include <vector>
 
-#include "DumpFTGeometry.h"
+//#include "DumpFTGeometry.h"
+#include "DumpGeometry.h"
+#include <FTDet/DeFTDetector.h>
 #include "FTDAQ/FTReadoutMap.h"
-#include "Detector/FT/FTChannelID.h"
+#include <Dumpers/Utils.h>
+
+//#include "Kernel/FTChannelID.h"
+
+
+// LHCb
+#include <DetDesc/Condition.h>
+#include <DetDesc/ConditionAccessorHolder.h>
+#include "DetDesc/IConditionDerivationMgr.h"
+#include <LHCbAlgs/Transformer.h>
+
+// Gaudi
+//#include "GaudiAlg/Transformer.h"
+
+
+#include <Dumpers/Identifiers.h>
 
 namespace {
   using std::ios;
@@ -17,12 +33,68 @@ namespace {
   using std::string;
   using std::tuple;
   using std::vector;
+
+  inline const std::string FTconditionLocation = "/dd/Conditions/ReadoutConf/FT/ReadoutMap";
+
 } // namespace
+
+/** @class DumpCaloGeometry
+ *  Dump Calo Geometry.
+ *
+ *  @author Nabil Garroum
+ *  @date   2022-04-23
+ */
+
+class DumpFTGeometry final
+  : public LHCb::Algorithm::MultiTransformer<std::tuple<std::vector<char>, std::string>(
+                                                const DeFT& , const FTReadoutMap<DumpFTGeometry>&),
+                                            LHCb::DetDesc::usesBaseAndConditions<GaudiAlgorithm, FTReadoutMap<DumpFTGeometry>, DeFT>> {
+public:
+
+  DumpFTGeometry( const std::string& name, ISvcLocator* pSvcLocator );
+
+  std::tuple<std::vector<char>, std::string> operator()( const DeFT& DeFT , const FTReadoutMap<DumpFTGeometry>& readoutMap) const override;
+
+  StatusCode initialize() override;
+
+  Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::SciFiGeometry::id};
+
+
+private:
+
+  Gaudi::Property<std::string> m_mapLocation{this, "ReadoutMapLocation", "/dd/Conditions/ReadoutConf/FT/ReadoutMap"};
+
+
+};
+
+
 
 DECLARE_COMPONENT(DumpFTGeometry)
 
-DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
+
+DumpFTGeometry::DumpFTGeometry( const std::string& name, ISvcLocator* pSvcLocator )
+    : MultiTransformer{
+          name,
+          pSvcLocator,
+          {KeyValue{"FTLocation", DeFTDetectorLocation::Default},
+           KeyValue{"ReadoutMapStorage", "AlgorithmSpecific-" + name + "-ReadoutMap"}},
+          {KeyValue{"Converted", "Allen/NonEventData/DeFT"},
+           KeyValue{"OutputID", "Allen/NonEventData/DeFTID"}}} {}
+
+
+StatusCode DumpFTGeometry::initialize()
 {
+  return MultiTransformer::initialize().andThen(
+    [&] { FTReadoutMap<DumpFTGeometry>::addConditionDerivation( this, inputLocation<FTReadoutMap<DumpFTGeometry>>() ); } );
+}
+
+
+
+// Add the operator() call
+
+std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()( const DeFT& det , const FTReadoutMap<DumpFTGeometry>& readoutMap ) const 
+{
+
 // Detector and mat geometry
 #ifdef USE_DD4HEP
   //  const auto& det = detector();
@@ -33,7 +105,7 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
   uint32_t number_of_quarters = number_of_quarters_per_layer * number_of_layers;
   vector<uint32_t> number_of_modules(number_of_quarters);
 #else
-  const auto& det = detector();
+  // const auto& det = detector();
   const auto& stations = det.stations();
   const auto& layersFirstStation = stations[0]->layers();
   const auto& quartersFirstLayer = layersFirstStation[0]->quarters();
@@ -109,10 +181,7 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
     }
   }
 #endif
-  // Raw bank layout (from FTReadoutTool)
-  string conditionLocation = "/dd/Conditions/ReadoutConf/FT/ReadoutMap";
-  Condition* rInfo = getDet<Condition>(conditionLocation);
-  auto readoutMap = FTReadoutMap {this, *rInfo};
+
   DumpUtils::Writer output {};
 
   auto comp = readoutMap.compatibleVersions();
@@ -155,6 +224,7 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
     Gaudi::Utils::toStream(comp, s);
     throw GaudiException {"Unsupported conditions compatible with " + s.str(), __FILE__, StatusCode::FAILURE};
   }
-  return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
-  return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
+  // return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
+
+  return std::tuple {output.buffer(), m_id};
 }

@@ -13,6 +13,7 @@ gaudi_add_library(BinaryDumpers
                     Gaudi::GaudiKernel
                     LHCb::DAQEventLib
                     LHCb::MagnetLib
+                    LHCb::FTDetLib
                     LHCb::MuonDAQLib)
 
 gaudi_add_module(BinaryDumpersModule

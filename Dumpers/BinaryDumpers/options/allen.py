@@ -16,7 +16,8 @@ from PyConf.Algorithms import (
     DumpBeamline,
     DumpCaloGeometry,
     DumpMagneticField,
-    DumpVPGeometry
+    DumpVPGeometry,
+    DumpFTGeometry
 )
 from threading import Thread
 from time import sleep
@@ -197,7 +198,7 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-converters = [DumpBeamline(), DumpCaloGeometry(), DumpVPGeometry(), DumpMagneticField()]
+converters = [DumpBeamline(), DumpCaloGeometry(), DumpVPGeometry(), DumpMagneticField(), DumpFTGeometry()]
 producers = []
 for converter in converters:
     converter_id = converter.type.getDefaultProperties()['ID']
