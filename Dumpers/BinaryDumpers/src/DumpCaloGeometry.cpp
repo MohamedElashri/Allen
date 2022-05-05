@@ -8,18 +8,18 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+
 #include <array>
 #include <fstream>
 #include <iostream>
 #include <tuple>
 #include <vector>
 
+
+// LHCb
 #include <Detector/Calo/CaloCellID.h>
 #include <Detector/Calo/CaloCellCode.h>
 #include <CaloDet/DeCalorimeter.h>
-#include <Dumpers/Utils.h>
-
-// LHCb
 #include <DetDesc/Condition.h>
 #include <DetDesc/ConditionAccessorHolder.h>
 #include "DetDesc/IConditionDerivationMgr.h"
@@ -27,8 +27,9 @@
 // Gaudi
 #include "GaudiAlg/Transformer.h"
 
-
+//Allen
 #include <Dumpers/Identifiers.h>
+#include <Dumpers/Utils.h>
 
 namespace {
   const std::map<std::string, std::string> ids = {{"EcalDet", Allen::NonEventData::ECalGeometry::id},
@@ -40,27 +41,17 @@ namespace {
 // Applies only to E Calorimeter
 
 
-// namespace {
-//inline const std::string EcalCond = "/dd/Structure/LHCb/DownstreamRegion/Ecal";
-
-//   struct ECal_t {
-
-//     // Add some variables for ECal
-
-//     ECal_t( Condition const& c )
-
-//     //Put the correct parameters For E Calorimeter (if needed)
-//         // : X{( c.param<double>( "ResolPosRC" ) + c.param<double>( "ResolPosLA" ) ) / 2}
-//         // , Y{c.param<double>( "ResolPosY" )} {}
-//   };
-// }
-
 /** @class DumpCaloGeometry
  *  Dump Calo Geometry.
  *
  *  @author Nabil Garroum
+ *  This Class dumps geometry for SciFi using DD4HEP and Gaudi Algorithm
+ *  This Class uses a condition derivation and a detector description
+ *  This Class is basically an instation of a Gaudi algorithm with specific inputs and outputs:
+ *  The role of this class is to get data from TES to Allen for the Calo
  *  @date   2022-02-14
  */
+
 class DumpCaloGeometry final
   : public Gaudi::Functional::MultiTransformer<std::tuple<std::vector<char>, std::string>(
                                                 const DeCalorimeter&),
@@ -80,16 +71,13 @@ DECLARE_COMPONENT(DumpCaloGeometry)
 
 
 
-
-
-// Add the multitransformer call , which keyvalues for E calorimeter ?/ keep the same keyvalues ?
-
 DumpCaloGeometry::DumpCaloGeometry( const std::string& name, ISvcLocator* svcLoc )
     : MultiTransformer( name, svcLoc,
                    {KeyValue{"ECalLocation", DeCalorimeterLocation::Ecal}},
                    {KeyValue{"Converted", "Allen/NonEventData/ECal"},
                     KeyValue{"OutputID", "Allen/NonEventData/ECalID"}}) {}
 
+// MultiTrasnformer algorithm with 1 input and 2 outputs , cf Gaudi algorithmas taxonomy as reference.
 
 
 // Add the operator() call
@@ -98,8 +86,6 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const D
 {
 
   // Detector and mat geometry
-
-  // const DeCalorimeter& det = detector();
 
   // SourceID to feCards: tell1ToCards for 0 - det.nTell1s   Returns tell1Param which has .feCards int vector.
   // Bank header code to card using cardCode() function which operates on CardParam which has card code and channels.
@@ -256,13 +242,7 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const D
     throw GaudiException {"Cannot find "s + det.caloName(), name(), StatusCode::FAILURE};
   }
 
-  // if (det.caloName()[0] == 'E') {
-  //   return {{std::tuple {output.buffer(), "ecal_geometry", id->second}}};
-  // }
-  // else {
-  //   return {{std::tuple {output.buffer(), "hcal_geometry", id->second}}};
-
-  //return {{std::tuple {output.buffer(), m_id}}};
+  // Final data output
 
   return std::tuple {output.buffer(), m_id};
 

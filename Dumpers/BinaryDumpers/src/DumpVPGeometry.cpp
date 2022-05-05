@@ -1,26 +1,34 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the GNU General Public      *
+* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+
 
 #include <tuple>
 #include <vector>
-//#include "DumpVPGeometry.h"
-#include "GaudiKernel/SystemOfUnits.h"
-#include "Detector/VP/VPChannelID.h"
-#include <boost/numeric/conversion/cast.hpp>
-#include <VPDet/DeVP.h>
-#include <Dumpers/Utils.h>
 
 // LHCb
 #include <DetDesc/Condition.h>
 #include <DetDesc/ConditionAccessorHolder.h>
 #include "DetDesc/IConditionDerivationMgr.h"
-
+#include "Detector/VP/VPChannelID.h"
+#include <boost/numeric/conversion/cast.hpp>
+#include <VPDet/DeVP.h>
 
 // Gaudi
 #include "GaudiAlg/Transformer.h"
+#include "GaudiKernel/SystemOfUnits.h"
 
+//Allen
 #include <Dumpers/Identifiers.h>
+#include <Dumpers/Utils.h>
+//#include "DumpVPGeometry.h"  , Old header, delted for this class
 
 
 /** @class DumpVPGeometry
@@ -28,6 +36,10 @@
  *
  *  @author Nabil Garroum
  *  @date   2022-04-15
+ *  This Class dumps geometry for Velo using DD4HEP and Gaudi Algorithm
+ *  This Class uses a detector description
+ *  This Class is basically an instation of a Gaudi algorithm with specific inputs and outputs:
+ *  The role of this class is to get data from TES to Allen for the Velo Geometry
  */
 
 class DumpVPGeometry final
@@ -42,8 +54,6 @@ public:
 
   Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::VeloGeometry::id};
   
-  //Gaudi::Property<bool> m_dumpToFile {this, "DumpToFile", true};
-  //Gaudi::Property<std::string> m_outputDirectory {this, "OutputDirectory", "velo_geometry"};
 };
 
 
@@ -52,18 +62,7 @@ DECLARE_COMPONENT(DumpVPGeometry)
 
 
 
-// StatusCode DumpVPGeometry::registerConditions(IUpdateManagerSvc* updMgrSvc)
-// {
-// #ifndef USE_DD4HEP
-//   auto& det = detector();
-//   return updMgrSvc->update(&det);
-// #else
-//   return StatusCode::SUCCESS;
-// #endif
-// }
-
-
-// Add the multitransformer call , which keyvalues ?
+// Add the multitransformer call 
 
 DumpVPGeometry::DumpVPGeometry( const std::string& name, ISvcLocator* svcLoc )
     : MultiTransformer( name, svcLoc,
@@ -71,17 +70,13 @@ DumpVPGeometry::DumpVPGeometry( const std::string& name, ISvcLocator* svcLoc )
                    {KeyValue{"Converted", "Allen/NonEventData/DeVP"},
                     KeyValue{"OutputID", "Allen/NonEventData/DeVPID"}}) {}
 
-
+// MultiTrasnformer algorithm with 1 input and 2 outputs , cf Gaudi algorithmas taxonomy as reference.
 
 // Add the operator() call
 
 std::tuple<std::vector<char>, std::string> DumpVPGeometry::operator()( const DeVP& det ) const 
 {
 
-// DumpUtils::Dumps DumpVPGeometry::dumpGeometry() const
-// {
-
-  // auto const& det = detector();
 
   DumpUtils::Writer output {};
   const size_t sensorPerModule = 4;
@@ -100,7 +95,8 @@ std::tuple<std::vector<char>, std::string> DumpVPGeometry::operator()( const DeV
   for (unsigned int i = 0; i < VP::NSensors; i++)
     output.write(det.ltg(LHCb::Detector::VPChannelID::SensorID {i}));
 
-  // return {{std::tuple {output.buffer(), "velo_geometry", Allen::NonEventData::VeloGeometry::id}}};
+  // Final data output
+
   return std::tuple {output.buffer(), m_id};
 
 }
