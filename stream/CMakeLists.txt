@@ -33,6 +33,7 @@ target_link_libraries(Stream
     HostErrorBanks
     Calo
     Muon
+    Svs_pair_cand
     Examples
     HostDataProvider
     HostInitEventList
