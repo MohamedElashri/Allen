@@ -75,7 +75,7 @@ namespace VertexFit {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_multi_event_composites_ptr_t,
       DEPENDENCIES(dev_multi_event_composites_view_t),
-      Allen::Views::Physics::MultiEventCompositeParticles*)
+      Allen::IMultiEventContainer*)
     dev_multi_event_composites_ptr;
     PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

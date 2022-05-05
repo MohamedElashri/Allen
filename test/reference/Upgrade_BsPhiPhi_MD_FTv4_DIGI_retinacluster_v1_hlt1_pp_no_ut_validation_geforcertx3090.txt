@@ -134,6 +134,7 @@ Hlt1SingleHighPtMuonNoMuID:                             7           9
 Hlt1LowPtMuon:                                         17          18
 Hlt1DiMuonHighMass:                                    10          14
 Hlt1DiMuonLowMass:                                     12          14
+Hlt1TwoKs:                                              0           0
 Hlt1DiMuonSoft:                                         0           0
 Hlt1LowPtDiMuon:                                        3           3
 Hlt1TrackMuonMVA:                                      17          18

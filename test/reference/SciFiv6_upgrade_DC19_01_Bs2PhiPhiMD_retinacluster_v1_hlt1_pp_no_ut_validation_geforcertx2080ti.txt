@@ -73,6 +73,7 @@ Hlt1SingleHighPtMuonNoMuID:                             6/  1000, (  180.00 +/- 
 Hlt1LowPtMuon:                                         20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1DiMuonHighMass:                                    22/  1000, (  660.00 +/-   139.16) kHz
 Hlt1DiMuonLowMass:                                     18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:                                        3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1TrackMuonMVA:                                      14/  1000, (  420.00 +/-   111.46) kHz
@@ -134,6 +135,7 @@ Hlt1SingleHighPtMuonNoMuID:                             6           7
 Hlt1LowPtMuon:                                         20          20
 Hlt1DiMuonHighMass:                                    22          29
 Hlt1DiMuonLowMass:                                     18          19
+Hlt1TwoKs:                                              0           0
 Hlt1DiMuonSoft:                                         0           0
 Hlt1LowPtDiMuon:                                        3           3
 Hlt1TrackMuonMVA:                                      14          14

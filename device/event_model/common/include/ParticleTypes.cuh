@@ -736,6 +736,11 @@ namespace Allen {
           return m_particle[particle_index];
         }
 
+        __host__ __device__ const CompositeParticle* particle_pointer(const unsigned particle_index) const
+        {
+          return static_cast<const CompositeParticle*>(m_particle) + particle_index;
+        }
+
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
 
