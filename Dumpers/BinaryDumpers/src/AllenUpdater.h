@@ -24,7 +24,6 @@
  */
 class AllenUpdater final : public Service, public Allen::NonEventData::IUpdater {
 public:
-
   /// Retrieve interface ID
   static const InterfaceID& interfaceID()
   {
@@ -35,7 +34,6 @@ public:
 
   /// Query interfaces of Interface
   StatusCode queryInterface(const InterfaceID& riid, void** ppv) override;
-
 
   AllenUpdater(std::string name, ISvcLocator* loc) : Service {name, loc} {}
 
@@ -77,7 +75,7 @@ public:
    */
   void registerProducer(std::string const& id, Allen::NonEventData::Producer p) override;
 
-  LHCb::ODIN odin() const { return m_odin ? *m_odin : LHCb::ODIN{}; }
+  LHCb::ODIN odin() const { return m_odin ? *m_odin : LHCb::ODIN {}; }
 
 private:
   std::map<
@@ -90,5 +88,4 @@ private:
   SmartIF<Gaudi::Interfaces::IQueueingEventProcessor> m_evtProc;
 
   std::optional<LHCb::ODIN> m_odin;
-
 };

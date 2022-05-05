@@ -6,19 +6,11 @@ import os
 from Configurables import ApplicationMgr
 from Allen.config import setup_allen_non_event_data_service
 from PyConf.control_flow import CompositeNode, NodeLogic
-from PyConf.application import (
-    configure,
-    setup_component,
-    ComponentConfig,
-    ApplicationOptions)
-from PyConf.Algorithms import (
-    AllenTESProducer,
-    DumpBeamline,
-    DumpCaloGeometry,
-    DumpMagneticField,
-    DumpVPGeometry,
-    DumpFTGeometry
-)
+from PyConf.application import (configure, setup_component, ComponentConfig,
+                                ApplicationOptions)
+from PyConf.Algorithms import (AllenTESProducer, DumpBeamline,
+                               DumpCaloGeometry, DumpMagneticField,
+                               DumpVPGeometry, DumpFTGeometry)
 from threading import Thread
 from time import sleep
 import ctypes
@@ -179,16 +171,13 @@ if args.mep is not None:
     # mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
     mep_provider.EvtMax = -1 if args.n_events == 0 else args.n_events
 
-config.add(ApplicationMgr(EvtSel="NONE",
-                          ExtSvc=ApplicationMgr().ExtSvc + extSvc))
-
+config.add(
+    ApplicationMgr(EvtSel="NONE", ExtSvc=ApplicationMgr().ExtSvc + extSvc))
 
 # Copeid from PyConf.application.configure_input
 config.add(
     setup_component(
-        'DDDBConf',
-        Simulation=options.simulation,
-        DataType=options.data_type))
+        'DDDBConf', Simulation=options.simulation, DataType=options.data_type))
 config.add(
     setup_component(
         'CondDB',
@@ -198,24 +187,32 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-converters = [DumpBeamline(), DumpCaloGeometry(), DumpVPGeometry(), DumpMagneticField(), DumpFTGeometry()]
+converters = [
+    DumpBeamline(),
+    DumpCaloGeometry(),
+    DumpVPGeometry(),
+    DumpMagneticField(),
+    DumpFTGeometry()
+]
 producers = []
 for converter in converters:
     converter_id = converter.type.getDefaultProperties()['ID']
-    producer = AllenTESProducer(InputID=converter.OutputID,
-                                InputData=converter.Converted,
-                                ID=converter_id)
+    producer = AllenTESProducer(
+        InputID=converter.OutputID,
+        InputData=converter.Converted,
+        ID=converter_id)
     producers.append(producer)
 
-
-converters_node = CompositeNode("converters",
-                                converters,
-                                combine_logic=NodeLogic.NONLAZY_OR,
-                                force_order=True)
-producers_node = CompositeNode("producers",
-                               producers,
-                               combine_logic=NodeLogic.NONLAZY_OR,
-                               force_order=True)
+converters_node = CompositeNode(
+    "converters",
+    converters,
+    combine_logic=NodeLogic.NONLAZY_OR,
+    force_order=True)
+producers_node = CompositeNode(
+    "producers",
+    producers,
+    combine_logic=NodeLogic.NONLAZY_OR,
+    force_order=True)
 
 control_flow = [converters_node, producers_node]
 cf_node = CompositeNode(

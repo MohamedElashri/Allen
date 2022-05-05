@@ -15,7 +15,6 @@
 #include <tuple>
 #include <vector>
 
-
 // LHCb
 #include <Detector/Calo/CaloCellID.h>
 #include <Detector/Calo/CaloCellCode.h>
@@ -27,7 +26,7 @@
 // Gaudi
 #include "GaudiAlg/Transformer.h"
 
-//Allen
+// Allen
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
 
@@ -36,10 +35,9 @@ namespace {
                                                   {"HcalDet", Allen::NonEventData::HCalGeometry::id}};
   using namespace std::string_literals;
   constexpr unsigned max_neighbors = 9;
-}
+} // namespace
 
 // Applies only to E Calorimeter
-
 
 /** @class DumpCaloGeometry
  *  Dump Calo Geometry.
@@ -52,37 +50,35 @@ namespace {
  *  @date   2022-02-14
  */
 
-class DumpCaloGeometry final
-  : public Gaudi::Functional::MultiTransformer<std::tuple<std::vector<char>, std::string>(
-                                                const DeCalorimeter&),
-                                            LHCb::DetDesc::usesConditions<DeCalorimeter>> {
+class DumpCaloGeometry final : public Gaudi::Functional::MultiTransformer<
+                                 std::tuple<std::vector<char>, std::string>(const DeCalorimeter&),
+                                 LHCb::DetDesc::usesConditions<DeCalorimeter>> {
 public:
+  DumpCaloGeometry(const std::string& name, ISvcLocator* svcLoc);
 
-  DumpCaloGeometry( const std::string& name, ISvcLocator* svcLoc );
+  std::tuple<std::vector<char>, std::string> operator()(const DeCalorimeter& DeCalorimeter) const override;
 
-  std::tuple<std::vector<char>, std::string> operator()( const DeCalorimeter& DeCalorimeter ) const override;
-
-  Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::ECalGeometry::id}; // Ecalorimeter for Allen Namespace from Updater.cpp
+  Gaudi::Property<std::string> m_id {
+    this,
+    "ID",
+    Allen::NonEventData::ECalGeometry::id}; // Ecalorimeter for Allen Namespace from Updater.cpp
 };
-
-
 
 DECLARE_COMPONENT(DumpCaloGeometry)
 
-
-
-DumpCaloGeometry::DumpCaloGeometry( const std::string& name, ISvcLocator* svcLoc )
-    : MultiTransformer( name, svcLoc,
-                   {KeyValue{"ECalLocation", DeCalorimeterLocation::Ecal}},
-                   {KeyValue{"Converted", "Allen/NonEventData/ECal"},
-                    KeyValue{"OutputID", "Allen/NonEventData/ECalID"}}) {}
+DumpCaloGeometry::DumpCaloGeometry(const std::string& name, ISvcLocator* svcLoc) :
+  MultiTransformer(
+    name,
+    svcLoc,
+    {KeyValue {"ECalLocation", DeCalorimeterLocation::Ecal}},
+    {KeyValue {"Converted", "Allen/NonEventData/ECal"}, KeyValue {"OutputID", "Allen/NonEventData/ECalID"}})
+{}
 
 // MultiTrasnformer algorithm with 1 input and 2 outputs , cf Gaudi algorithmas taxonomy as reference.
 
-
 // Add the operator() call
 
-std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const DeCalorimeter& det ) const
+std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const DeCalorimeter& det) const
 {
 
   // Detector and mat geometry
@@ -245,6 +241,4 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()( const D
   // Final data output
 
   return std::tuple {output.buffer(), m_id};
-
-
 }

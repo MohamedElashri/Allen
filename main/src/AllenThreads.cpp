@@ -176,7 +176,7 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
     if (!timed_out && good && n_filled != 0) {
       // If run number has change then report this first
       auto odin_data = std::any_cast<gsl::span<unsigned const>>(a);
-      LHCb::ODIN odin{odin_data};
+      LHCb::ODIN odin {odin_data};
       if (odin.runNumber() != current_run_number) {
         current_run_number = odin.runNumber();
         zmqSvc->send(control, "RUN", send_flags::sndmore);

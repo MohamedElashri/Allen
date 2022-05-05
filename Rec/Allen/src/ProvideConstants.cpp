@@ -111,7 +111,7 @@ StatusCode ProvideConstants::initialize()
   register_consumers(updater, m_constants);
 
   // Run all registered producers and consumers
-  LHCb::ODIN odin{};
+  LHCb::ODIN odin {};
   odin.setRunNumber(0);
   updater->update(odin.data);
 

@@ -36,7 +36,7 @@ StatusCode AllenUpdater::queryInterface(const InterfaceID& riid, void** ppv)
 StatusCode AllenUpdater::initialize()
 {
 
-  m_evtProc = serviceLocator()->service<Gaudi::Interfaces::IQueueingEventProcessor>( "ApplicationMgr" );
+  m_evtProc = serviceLocator()->service<Gaudi::Interfaces::IQueueingEventProcessor>("ApplicationMgr");
   if (!m_evtProc) {
     error() << "Failed to obtain ApplicationMgr as IQueueingEventProcessor" << endmsg;
     return StatusCode::FAILURE;
@@ -49,7 +49,7 @@ StatusCode AllenUpdater::start()
   auto sc = Service::start();
   if (!sc.isSuccess()) return sc;
 
-  m_taskArena = std::make_unique<tbb::task_arena>( 2, 1 );
+  m_taskArena = std::make_unique<tbb::task_arena>(2, 1);
 
   return sc;
 }
@@ -58,8 +58,8 @@ StatusCode AllenUpdater::stop()
 {
   if (m_taskArena) {
     // this is our "threads.join()" alternative
-    while ( !m_evtProc->empty() )
-      std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+    while (!m_evtProc->empty())
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     m_taskArena->terminate(); // non blocking
     m_taskArena.reset();
   }
@@ -104,7 +104,7 @@ void AllenUpdater::registerProducer(string const& id, Allen::NonEventData::Produ
 
 void AllenUpdater::update(gsl::span<unsigned const> odin_data)
 {
-  LHCb::ODIN odin{odin_data};
+  LHCb::ODIN odin {odin_data};
   if (m_odin && m_odin->runNumber() == odin.runNumber()) {
     return;
   }
@@ -129,13 +129,14 @@ void AllenUpdater::update(gsl::span<unsigned const> odin_data)
   }
 
   // Run the "fake" event loop to produce the new data
-  EventContext ctx( m_evtProc->createEventContext() );
-  m_evtProc->push( std::move( ctx ) );
+  EventContext ctx(m_evtProc->createEventContext());
+  m_evtProc->push(std::move(ctx));
   auto result = m_evtProc->pop();
-  for ( ; !result; result = m_evtProc->pop() ) std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
-  auto&& [sc, context] = std::move( *result );
-  if ( !sc.isSuccess() ) {
-    throw GaudiException{"Failed to process event for conditions update", name(), StatusCode::FAILURE};
+  for (; !result; result = m_evtProc->pop())
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  auto&& [sc, context] = std::move(*result);
+  if (!sc.isSuccess()) {
+    throw GaudiException {"Failed to process event for conditions update", name(), StatusCode::FAILURE};
   }
 
   // Feed the consumers with the produced update

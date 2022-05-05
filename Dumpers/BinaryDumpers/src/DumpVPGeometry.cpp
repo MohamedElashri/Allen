@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 
-
 #include <tuple>
 #include <vector>
 
@@ -25,11 +24,10 @@
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/SystemOfUnits.h"
 
-//Allen
+// Allen
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
 //#include "DumpVPGeometry.h"  , Old header, delted for this class
-
 
 /** @class DumpVPGeometry
  *  Dump Calo Geometry.
@@ -43,40 +41,34 @@
  */
 
 class DumpVPGeometry final
-  : public Gaudi::Functional::MultiTransformer<std::tuple<std::vector<char>, std::string>(
-                                                const DeVP&),
-                                            LHCb::DetDesc::usesConditions<DeVP>> {
+  : public Gaudi::Functional::
+      MultiTransformer<std::tuple<std::vector<char>, std::string>(const DeVP&), LHCb::DetDesc::usesConditions<DeVP>> {
 public:
+  DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc);
 
-  DumpVPGeometry( const std::string& name, ISvcLocator* svcLoc );
+  std::tuple<std::vector<char>, std::string> operator()(const DeVP& DeVP) const override;
 
-  std::tuple<std::vector<char>, std::string> operator()( const DeVP& DeVP ) const override;
-
-  Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::VeloGeometry::id};
-  
+  Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::VeloGeometry::id};
 };
-
-
 
 DECLARE_COMPONENT(DumpVPGeometry)
 
+// Add the multitransformer call
 
-
-// Add the multitransformer call 
-
-DumpVPGeometry::DumpVPGeometry( const std::string& name, ISvcLocator* svcLoc )
-    : MultiTransformer( name, svcLoc,
-                   {KeyValue{"VPLocation", DeVPLocation::Default}},
-                   {KeyValue{"Converted", "Allen/NonEventData/DeVP"},
-                    KeyValue{"OutputID", "Allen/NonEventData/DeVPID"}}) {}
+DumpVPGeometry::DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc) :
+  MultiTransformer(
+    name,
+    svcLoc,
+    {KeyValue {"VPLocation", DeVPLocation::Default}},
+    {KeyValue {"Converted", "Allen/NonEventData/DeVP"}, KeyValue {"OutputID", "Allen/NonEventData/DeVPID"}})
+{}
 
 // MultiTrasnformer algorithm with 1 input and 2 outputs , cf Gaudi algorithmas taxonomy as reference.
 
 // Add the operator() call
 
-std::tuple<std::vector<char>, std::string> DumpVPGeometry::operator()( const DeVP& det ) const 
+std::tuple<std::vector<char>, std::string> DumpVPGeometry::operator()(const DeVP& det) const
 {
-
 
   DumpUtils::Writer output {};
   const size_t sensorPerModule = 4;
@@ -98,6 +90,4 @@ std::tuple<std::vector<char>, std::string> DumpVPGeometry::operator()( const DeV
   // Final data output
 
   return std::tuple {output.buffer(), m_id};
-
 }
-

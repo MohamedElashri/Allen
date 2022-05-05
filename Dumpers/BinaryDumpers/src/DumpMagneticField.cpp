@@ -9,16 +9,13 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 
-
 #ifndef DUMPMAGNETICFIELD_H
 #define DUMPMAGNETICFIELD_H 1
-
 
 #include <tuple>
 #include <vector>
 
 //#include "DumpMagneticField.h"
-
 
 // Include files
 #include "DumpGeometry.h"
@@ -36,8 +33,6 @@
 #include "GaudiAlg/Transformer.h"
 #include "GaudiAlg/FunctionalUtilities.h"
 
-
-
 /** @class DumpMagneticField
  *  Dump Magnetic Field Polarity.
  *
@@ -49,36 +44,35 @@
  *  The role of this class is to get data from TES to Allen for the Magnetic Field
  */
 
-
-class DumpMagneticField final
-  : public Gaudi::Functional::MultiTransformer<std::tuple<std::vector<char>, std::string>(
-                                                const DeMagnet&),
-                                            LHCb::DetDesc::usesConditions<DeMagnet>> {
+class DumpMagneticField final : public Gaudi::Functional::MultiTransformer<
+                                  std::tuple<std::vector<char>, std::string>(const DeMagnet&),
+                                  LHCb::DetDesc::usesConditions<DeMagnet>> {
 public:
+  DumpMagneticField(const std::string& name, ISvcLocator* svcLoc);
 
-  DumpMagneticField( const std::string& name, ISvcLocator* svcLoc );
+  std::tuple<std::vector<char>, std::string> operator()(const DeMagnet& magField) const override;
 
-  std::tuple<std::vector<char>, std::string> operator()( const DeMagnet& magField ) const override;
-
-  Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::MagneticField::id}; // Allen Namespace from Identifiers.h
+  Gaudi::Property<std::string> m_id {this,
+                                     "ID",
+                                     Allen::NonEventData::MagneticField::id}; // Allen Namespace from Identifiers.h
 };
-
-
 
 DECLARE_COMPONENT(DumpMagneticField)
 
 // Add the multitransformer call , which keyvalues for Magnetic Field ?
 
-DumpMagneticField::DumpMagneticField( const std::string& name, ISvcLocator* svcLoc )
-    : MultiTransformer( name, svcLoc,
-                   {KeyValue{"Magnet", LHCb::Det::Magnet::det_path}},
-                   {KeyValue{"Converted", "Allen/NonEventData/MagField"},
-                    KeyValue{"OutputID", "Allen/NonEventData/MagFieldID"}}) {}
+DumpMagneticField::DumpMagneticField(const std::string& name, ISvcLocator* svcLoc) :
+  MultiTransformer(
+    name,
+    svcLoc,
+    {KeyValue {"Magnet", LHCb::Det::Magnet::det_path}},
+    {KeyValue {"Converted", "Allen/NonEventData/MagField"}, KeyValue {"OutputID", "Allen/NonEventData/MagFieldID"}})
+{}
 
-std::tuple<std::vector<char>, std::string> DumpMagneticField::operator()( const DeMagnet& magField ) const
+std::tuple<std::vector<char>, std::string> DumpMagneticField::operator()(const DeMagnet& magField) const
 {
 
-  //auto& magnetSvc = detector();
+  // auto& magnetSvc = detector();
 
   DumpUtils::Writer output {};
   float polarity = magField.isDown() ? -1.f : 1.f;

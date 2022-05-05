@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 
-
 #ifndef DUMPFTGEOMETRY_H
 #define DUMPFTGEOMETRY_H 1
 
@@ -17,7 +16,6 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
-
 
 // LHCb
 #include "DumpGeometry.h"
@@ -32,7 +30,7 @@
 //#include "GaudiAlg/Transformer.h"
 // Attention : in this class, we are using Algs from LHCb and not from Gaudi
 
-//Allen
+// Allen
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
 //#include "DumpFTGeometry.h" , Old header, delted for this class
@@ -60,58 +58,53 @@ namespace {
  */
 
 class DumpFTGeometry final
-  : public LHCb::Algorithm::MultiTransformer<std::tuple<std::vector<char>, std::string>(
-                                                const DeFT& , const FTReadoutMap<DumpFTGeometry>&),
-                                            LHCb::DetDesc::usesBaseAndConditions<GaudiAlgorithm, FTReadoutMap<DumpFTGeometry>, DeFT>> {
+  : public LHCb::Algorithm::MultiTransformer<
+      std::tuple<std::vector<char>, std::string>(const DeFT&, const FTReadoutMap<DumpFTGeometry>&),
+      LHCb::DetDesc::usesBaseAndConditions<GaudiAlgorithm, FTReadoutMap<DumpFTGeometry>, DeFT>> {
 public:
+  DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator);
 
-  DumpFTGeometry( const std::string& name, ISvcLocator* pSvcLocator );
-
-  std::tuple<std::vector<char>, std::string> operator()( const DeFT& DeFT , const FTReadoutMap<DumpFTGeometry>& readoutMap) const override;
+  std::tuple<std::vector<char>, std::string> operator()(
+    const DeFT& DeFT,
+    const FTReadoutMap<DumpFTGeometry>& readoutMap) const override;
 
   StatusCode initialize() override;
 
-  Gaudi::Property<std::string> m_id{this, "ID", Allen::NonEventData::SciFiGeometry::id};
-
+  Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::SciFiGeometry::id};
 
 private:
-
-  Gaudi::Property<std::string> m_mapLocation{this, "ReadoutMapLocation", "/dd/Conditions/ReadoutConf/FT/ReadoutMap"};
-
+  Gaudi::Property<std::string> m_mapLocation {this, "ReadoutMapLocation", "/dd/Conditions/ReadoutConf/FT/ReadoutMap"};
 };
-
-
 
 DECLARE_COMPONENT(DumpFTGeometry)
 
-
-DumpFTGeometry::DumpFTGeometry( const std::string& name, ISvcLocator* pSvcLocator )
-    : MultiTransformer{
-          name,
-          pSvcLocator,
-          {KeyValue{"FTLocation", DeFTDetectorLocation::Default},
-           KeyValue{"ReadoutMapStorage", "AlgorithmSpecific-" + name + "-ReadoutMap"}},
-          {KeyValue{"Converted", "Allen/NonEventData/DeFT"},
-           KeyValue{"OutputID", "Allen/NonEventData/DeFTID"}}} {}
+DumpFTGeometry::DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator) :
+  MultiTransformer {
+    name,
+    pSvcLocator,
+    {KeyValue {"FTLocation", DeFTDetectorLocation::Default},
+     KeyValue {"ReadoutMapStorage", "AlgorithmSpecific-" + name + "-ReadoutMap"}},
+    {KeyValue {"Converted", "Allen/NonEventData/DeFT"}, KeyValue {"OutputID", "Allen/NonEventData/DeFTID"}}}
+{}
 
 // MultiTrasnformer algorithm with 2 inputs and 2 outputs , cf Gaudi algorithmas taxonomy as reference.
 
 StatusCode DumpFTGeometry::initialize()
 {
   return MultiTransformer::initialize().andThen(
-    [&] { FTReadoutMap<DumpFTGeometry>::addConditionDerivation( this, inputLocation<FTReadoutMap<DumpFTGeometry>>() ); } );
+    [&] { FTReadoutMap<DumpFTGeometry>::addConditionDerivation(this, inputLocation<FTReadoutMap<DumpFTGeometry>>()); });
 }
-
-
 
 // operator() call
 
-std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()( const DeFT& det , const FTReadoutMap<DumpFTGeometry>& readoutMap ) const 
+std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
+  const DeFT& det,
+  const FTReadoutMap<DumpFTGeometry>& readoutMap) const
 {
 
 // Detector and mat geometry
 #ifdef USE_DD4HEP
-  
+
   uint32_t number_of_stations = LHCb::Detector::FT::nStations;
   uint32_t number_of_layers_per_station = LHCb::Detector::FT::nLayers;
   uint32_t number_of_layers = number_of_stations * number_of_layers_per_station;
@@ -197,7 +190,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()( const DeF
 
   DumpUtils::Writer output {};
 
-// Data from Condition
+  // Data from Condition
   auto comp = readoutMap.compatibleVersions();
   if (comp.count(4)) {
     auto number_of_tell40s = readoutMap.nBanks();
@@ -238,10 +231,10 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()( const DeF
     Gaudi::Utils::toStream(comp, s);
     throw GaudiException {"Unsupported conditions compatible with " + s.str(), __FILE__, StatusCode::FAILURE};
   }
-  
+
   // Final data output
 
   return std::tuple {output.buffer(), m_id};
 }
 
-#endif 
+#endif
