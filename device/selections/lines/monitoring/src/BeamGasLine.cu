@@ -17,17 +17,7 @@ beam_gas_line::beam_gas_line_t::get_input(const Parameters& parameters, const un
 
   const unsigned number_of_velo_hits = (velo_tracks.track(i)).number_of_hits();
 
-  const unsigned* event_odin_data = nullptr;
-  if (parameters.dev_mep_layout[0]) {
-    event_odin_data =
-      odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
-  }
-  else {
-    event_odin_data =
-      odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
-  }
-
-  const unsigned bxt = static_cast<unsigned int>(LHCb::ODIN({event_odin_data, 10}).bunchCrossingType());
+  const unsigned bxt = static_cast<unsigned>(LHCb::ODIN {parameters.dev_odin_data[event_number]}.bunchCrossingType());
 
   const auto velo_states = parameters.dev_velo_states_view[event_number];
 
