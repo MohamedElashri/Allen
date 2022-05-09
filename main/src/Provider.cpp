@@ -268,6 +268,7 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
   std::map<std::string, std::string> const& options)
 {
   std::string output_file;
+  size_t output_batch_size = 10;
   auto const [json_file, run_from_json] = Allen::sequence_conf(options);
 
   for (auto const& entry : options) {
@@ -275,6 +276,14 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
     if (flag_in(flag, {"output-file"})) {
       output_file = arg;
     }
+    else if (flag_in(flag, {"output-batch-size"})) {
+      output_batch_size = atol(arg.c_str());
+    }
+  }
+
+  if (!output_file.empty() && output_batch_size == 0) {
+    error_cout << "Output batch size must not be 0\n";
+    return {};
   }
 
   // Load constant parameters from JSON
@@ -294,10 +303,10 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, n_lines, zmq_svc);
+        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, n_lines, zmq_svc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider, output_file, n_lines);
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size, n_lines);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";

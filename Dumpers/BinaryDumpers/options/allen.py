@@ -87,6 +87,7 @@ parser.add_argument(
     help="Add profiler start and stop calls",
 )
 parser.add_argument("--output-file", dest="output_file", default=None)
+parser.add_argument("--output-batch-size", dest="output_batch_size", default=10)
 parser.add_argument(
     "--monitoring-save-period", dest="mon_save_period", default=0)
 parser.add_argument(
@@ -209,6 +210,7 @@ for flag, value in [("g", args.det_folder),
                     ("params", os.getenv("PARAMFILESROOT")),
                     ("n", args.n_events), ("t", args.threads),
                     ("r", args.repetitions), ("output-file", args.output_file),
+                    ("output-batch-size", args.output_batch_size),
                     ("m", args.reserve), ("v", args.verbosity),
                     ("p", args.print_memory),
                     ("sequence", os.path.expandvars(args.sequence)),

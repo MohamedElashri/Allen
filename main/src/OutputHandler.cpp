@@ -52,16 +52,15 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   m_input_provider->event_sizes(slice_index, selected_events, m_sizes);
   auto event_ids = m_input_provider->event_ids(slice_index);
 
-  size_t output_batch = 100;
   bool output_success = true;
   bool n_output = 0;
-  size_t n_batches = n_events / output_batch + (n_events % output_batch != 0);
+  size_t n_batches = n_events / m_output_batch_size + (n_events % m_output_batch_size != 0);
 
   for (size_t i_batch = 0; i_batch < n_batches && output_success; ++i_batch) {
 
     size_t batch_buffer_size = 0;
     size_t output_event_offset = 0;
-    size_t batch_size = std::min(i_batch + output_batch, n_events);
+    size_t batch_size = std::min(i_batch + m_output_batch_size, n_events);
 
     for (size_t i = 0; i < batch_size; ++i) {
 
