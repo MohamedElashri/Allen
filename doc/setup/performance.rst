@@ -25,7 +25,7 @@ The results of the tests are published in this |mattermost_channel_throughput|.
 
 For local throughput measurements, we recommend the following settings in Allen standalone mode::
 
-  ./Allen --sequence hlt1_pp_default --mdf /scratch/allen_data/mdf_input/upgrade_mc_minbias_scifi_v5_retinacluster_000.mdf -n 500 -m 500 -r 1000 -t 16
+  ./Allen --sequence hlt1_pp_default --mdf /scratch/allen_data/mdf_input/upgrade_mc_minbias_scifi_v5_retinacluster_000_v1.mdf -n 500 -m 500 -r 1000 -t 16
 
 For other input files, please see the section on :ref:`input_files`. 
 

@@ -30,15 +30,36 @@ __device__ void put_retinaclusters_into_container(
   VeloGeometry const& g,
   unsigned const cluster_index,
   const unsigned raw_bank_sensor_index,
-  const unsigned raw_bank_word)
+  const unsigned raw_bank_word,
+  const unsigned raw_bank_version)
 {
   const float* ltg = g.ltg + g.n_trans * raw_bank_sensor_index;
 
+  uint32_t cx, cy, or_fx, or_fy, cx_frac_half, cx_frac_quarter, cy_frac_half, cy_frac_quarter;
+  float fx, fy;
+
   // Decode cluster
-  const uint32_t cx = (raw_bank_word >> 14) & 0x3FF;
-  const float fx = ((raw_bank_word >> 11) & 0x7) / 8.f;
-  const uint32_t cy = (raw_bank_word >> 3) & 0xFF;
-  const float fy = (raw_bank_word & 0x7FF) / 8.f;
+  if (raw_bank_version == 2) {
+    cx = (raw_bank_word >> 14) & 0x3FF;
+    fx = ((raw_bank_word >> 11) & 0x7) / 8.f;
+    cy = (raw_bank_word >> 3) & 0xFF;
+    fy = (raw_bank_word & 0x7FF) / 8.f;
+    or_fx = (0);
+    or_fy = (0);
+  }
+  else {
+    cx = (raw_bank_word >> 12) & 0x3FF;
+    cx_frac_half = (raw_bank_word >> 11) & 0x1;
+    cx_frac_quarter = (raw_bank_word >> 10) & 0x1;
+    fx = ((raw_bank_word >> 10) & 0x3) / 4.f;
+    cy = (raw_bank_word >> 2) & 0xFF;
+    cy_frac_half = (raw_bank_word >> 1) & 0x1;
+    cy_frac_quarter = (raw_bank_word) &0x1;
+    fy = (raw_bank_word & 0x3FF) / 4.f;
+
+    or_fx = (cx_frac_half | cx_frac_quarter);
+    or_fy = (cy_frac_half | cy_frac_quarter);
+  }
 
   const uint32_t chip = cx >> VP::ChipColumns_division;
   const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
@@ -47,7 +68,8 @@ __device__ void put_retinaclusters_into_container(
   const float gx = (ltg[0] * local_x + ltg[1] * local_y + ltg[9]);
   const float gy = (ltg[3] * local_x + ltg[4] * local_y + ltg[10]);
   const float gz = (ltg[6] * local_x + ltg[7] * local_y + ltg[11]);
-  const unsigned cid = get_channel_id(raw_bank_sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+
+  const unsigned cid = get_channel_id(raw_bank_sensor_index, chip, cx & VP::ChipColumns_mask, cy, or_fx, or_fy);
 
   velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
   velo_cluster_container.set_x(cluster_index, gx);
@@ -62,6 +84,9 @@ __global__ void decode_retinaclusters_kernel(
   const VeloGeometry* dev_velo_geometry)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
+
+  const int raw_bank_version = parameters.host_raw_bank_version[0];
+
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned* sensor_offsets = parameters.dev_offsets_each_sensor_size +
@@ -103,7 +128,8 @@ __global__ void decode_retinaclusters_kernel(
       g,
       event_clusters_offset + cluster_number,
       raw_bank.sensor_index,
-      raw_bank.word[index_within_raw_bank]);
+      raw_bank.word[index_within_raw_bank],
+      raw_bank_version);
   }
 }
 
@@ -129,6 +155,14 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
+
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+
+  // Ensure the bank version is supported
+  if (bank_version != 2 && bank_version != 3) {
+    throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
+  }
+
   initialize<dev_module_cluster_num_t>(arguments, 0, context);
   initialize<dev_offsets_module_pair_cluster_t>(arguments, 0, context);
 

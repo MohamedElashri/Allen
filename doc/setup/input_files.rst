@@ -12,7 +12,7 @@ For various samples, MDF files and the corresponding geometry information have b
   
 With lhcb/Allen!655, the default sequence uses Retina clusters for VELO tracking. MDF samples containing Retina clusters are available here:
 
-  /eos/lhcb/wg/rta/WP6/Allen/mdf_input/RetinaCluster_samples/
+  /eos/lhcb/wg/rta/WP6/Allen/mdf_input/RetinaCluster_samples_v1/
 
 The directory name corresponds to the TestFileDB key of the sample. Some of these files have also been copied to the GPU development server (see :ref:`where_to_develop_for_gpus`), because they are used in the nightly CI tests. These can be found here:
 
@@ -46,9 +46,10 @@ If you would like to dump a large amount of events into MDF files, it is conveni
 
 DIGI files containing RetinaClusters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-DIGI files containing RetinaClusters are available here:
+Starting from Boole v43, centrally-produced DIGI files contain RetinaClusters by default.
+DIGI files containing RetinaClusters are also available here:
 
-  /eos/lhcb/wg/rta/WP6/Allen/digi_input/RetinaCluster_samples/
+  /eos/lhcb/wg/rta/WP6/Allen/digi_input/RetinaCluster_samples_v1/
   
 These files can be called within option files using the corresponding entries in the TestFileDB.  
 

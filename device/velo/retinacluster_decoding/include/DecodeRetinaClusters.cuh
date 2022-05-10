@@ -13,6 +13,7 @@
 namespace decode_retinaclusters {
   struct Parameters {
     HOST_INPUT(host_total_number_of_velo_clusters_t, unsigned) host_total_number_of_velo_clusters;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_velo_retina_raw_input_t, char) dev_velo_retina_raw_input;
     DEVICE_INPUT(dev_velo_retina_raw_input_offsets_t, unsigned) dev_velo_retina_raw_input_offsets;

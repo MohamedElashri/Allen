@@ -26,10 +26,17 @@ namespace VeloClustering {
 namespace Allen {
   namespace VPChannelID {
     /// Offsets of bitfield channelID
-    enum channelIDBits { rowBits = 0, colBits = 8, chipBits = 16, sensorBits = 18 };
+    enum channelIDBits { rowBits = 0, colBits = 8, chipBits = 16, sensorBits = 18, orfyBits = 26, orfxBits = 27 };
 
     /// Bitmasks for bitfield channelID
-    enum channelIDMasks { rowMask = 0xffL, colMask = 0xff00L, chipMask = 0x30000L, sensorMask = 0xffc0000L };
+    enum channelIDMasks {
+      rowMask = 0xffL,
+      colMask = 0xff00L,
+      chipMask = 0x30000L,
+      sensorMask = 0x3fc0000L,
+      orfyMask = 0x4000000L,
+      orfxMask = 0x8000000L
+    };
 
     enum channelIDtype { Velo = 1, TT, IT, OT, Rich, Calo, Muon, VP, FT = 10, UT, HC };
   } // namespace VPChannelID
@@ -169,10 +176,16 @@ struct VeloGeometry {
   }
 };
 
-__device__ __host__ inline uint32_t
-get_channel_id(const unsigned sensor, const unsigned chip, const unsigned col, const unsigned row)
+__device__ __host__ inline uint32_t get_channel_id(
+  const unsigned sensor,
+  const unsigned chip,
+  const unsigned col,
+  const unsigned row,
+  const unsigned orfx = 0,
+  const unsigned orfy = 0)
 {
-  return (sensor << Allen::VPChannelID::sensorBits) | (chip << Allen::VPChannelID::chipBits) |
+  return (orfx << Allen::VPChannelID::orfxBits) | (orfy << Allen::VPChannelID::orfyBits) |
+         (sensor << Allen::VPChannelID::sensorBits) | (chip << Allen::VPChannelID::chipBits) |
          (col << Allen::VPChannelID::colBits) | row;
 }
 

@@ -7,7 +7,7 @@ Standalone Allen
 
 Some input files are included with the project for testing:
 
-* `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster TestFile DB entry. Includes raw banks with MC information.
+* `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster TestFile DB entry. Includes raw banks with MC information.
 * the directory `input/detector_configuration/down` contains the dumped geometry files for the above listed three data sets (they all have the same geometry version)
 * other dumped geometries shipped with Allen are located in `input/detector_configuration` and used for other data sets in the CI tests
 
@@ -48,7 +48,7 @@ A run of the Allen program with the help option `-h` will let you know the basic
 Here are some examples for run options::
 
     # Run on an MDF input file shipped with Allen once
-    ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf
+    ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
 
     # Run a total of 1000 events once with validation
     ./Allen --sequence hlt1_pp_validation -n 1000 --mdf /path/to/mdf/input/file
