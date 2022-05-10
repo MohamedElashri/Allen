@@ -55,7 +55,7 @@ parser.add_argument(
     dest="mdf",
     default=os.path.join(
         allen_dir, "input", "minbias", "mdf",
-        "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf"))
+        "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf"))
 parser.add_argument("--mep", dest="mep", default=None)
 parser.add_argument(
     "--reuse-meps",

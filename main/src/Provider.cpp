@@ -134,7 +134,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   std::optional<size_t> n_events;
 
   // Input file options
-  std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster.mdf";
+  std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf";
   bool disable_run_changes = 0;
 
   // MPI options

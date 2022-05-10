@@ -103,18 +103,11 @@ pages:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
-    - python3 -m pip install --user pydot wrapt sympy
-    - BUILD_FOLDER=`pwd`/"build_x86_64_v3-centos7-clang12-opt_CPU_RelWithDebInfo_all_"
-    - ls -l $BUILD_FOLDER
-    - PYTHONPATH=$BUILD_FOLDER/code_generation/sequences:$PYTHONPATH
-    - echo $PYTHONPATH
-    - ln -s `pwd`/configuration/python/AllenConf/ $BUILD_FOLDER/code_generation/sequences/AllenConf
-    - ln -s `pwd`/configuration/AllenCore/ $BUILD_FOLDER/code_generation/sequences/AllenCore
-    - ln -s $BUILD_FOLDER/code_generation/sequences/LHCb/PyConf/python/PyConf $BUILD_FOLDER/code_generation/sequences/PyConf
-    - ln -s $BUILD_FOLDER/code_generation/sequences/Gaudi/GaudiKernel/python/GaudiKernel $BUILD_FOLDER/code_generation/sequences/GaudiKernel
-    - ls -l $BUILD_FOLDER/code_generation/sequences/
-    - make -C doc linkcheck || reasons+='ERROR failed link check\n'
-    - make -C doc html || reasons+='ERROR failed html generation\n'
+    # use nightly build for python environment, needed for API reference of python selection functions
+    # if today's nightly build does not exist, use yesterday's
+    - nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/latest/Allen/InstallArea/"$BINARY_TAG
+    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html public
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:
@@ -142,23 +135,11 @@ test_pages:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
-    - python3 -m pip install --user pydot wrapt sympy
-    - BUILD_FOLDER=`pwd`/"build_x86_64_v3-centos7-clang12-opt_CPU_RelWithDebInfo_all_"
-    - ls -l $BUILD_FOLDER
-    - PYTHONPATH=$BUILD_FOLDER/code_generation/sequences:$PYTHONPATH
-    - echo $PYTHONPATH
-    - ls -l 
-    - pwd
-    - ls -l /builds/lhcb/Allen
-    - ls -l `pwd`/configuration/python/AllenConf/
-    - ls -l /builds/lhcb/Allen/configuration/python/AllenConf/
-    - ln -s `pwd`/configuration/python/AllenConf/ $BUILD_FOLDER/code_generation/sequences/AllenConf
-    - ln -s `pwd`/configuration/AllenCore/ $BUILD_FOLDER/code_generation/sequences/AllenCore
-    - ln -s $BUILD_FOLDER/code_generation/sequences/LHCb/PyConf/python/PyConf $BUILD_FOLDER/code_generation/sequences/PyConf
-    - ln -s $BUILD_FOLDER/code_generation/sequences/Gaudi/GaudiKernel/python/GaudiKernel $BUILD_FOLDER/code_generation/sequences/GaudiKernel
-    - ls -l $BUILD_FOLDER/code_generation/sequences/
-    - make -C doc linkcheck || reasons+='ERROR failed link check\n'
-    - make -C doc html || reasons+='ERROR failed html generation\n'
+    # use nightly build for python environment, needed for API reference of python selection functions
+    # if today's nightly build does not exist, use yesterday's
+    - nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/latest/Allen/InstallArea/"$BINARY_TAG
+    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html test
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:

@@ -25,6 +25,7 @@ void decode_retinaclusters::cluster_container_checks::operator()(
   bool y_greater_than_min_value = true;
   bool y_lower_than_max_value = true;
   bool valid_id_hit = true;
+  bool unique_id_hit = true;
 
   const auto velo_container_view = Velo::ConstClusters {
     velo_cluster_container.data(), first<Parameters::host_total_number_of_velo_clusters_t>(arguments)};
@@ -39,15 +40,35 @@ void decode_retinaclusters::cluster_container_checks::operator()(
         const auto module_hit_num = module_cluster_num[event_number * Velo::Constants::n_module_pairs + i];
 
         if (module_hit_num > 0) {
+          auto previous_hit_phi = velo_container_view.phi(module_hit_start);
+          auto previous_hit_id = velo_container_view.id(module_hit_start);
+          auto previous_hit_x = velo_container_view.x(module_hit_start);
+          auto previous_hit_y = velo_container_view.y(module_hit_start);
           for (unsigned hit_number = 0; hit_number < module_hit_num; ++hit_number) {
             const auto hit_index = module_hit_start + hit_number;
 
             valid_id_hit &= lhcb_id::is_velo(velo_container_view.id(hit_index));
 
+            if (hit_number != 0) {
+              unique_id_hit &= velo_container_view.id(hit_index) != previous_hit_id;
+            }
+
+            if (velo_container_view.id(hit_index) == previous_hit_id and hit_number != 0) {
+              std::cout << "Phi " << velo_container_view.phi(hit_index) << " " << previous_hit_phi << std::endl;
+              std::cout << "ID " << velo_container_view.id(hit_index) << " " << previous_hit_id << std::endl;
+              std::cout << "X " << velo_container_view.x(hit_index) << " " << previous_hit_x << std::endl;
+              std::cout << "Y " << velo_container_view.y(hit_index) << " " << previous_hit_y << std::endl;
+            }
+
             x_greater_than_min_value &= velo_container_view.x(hit_index) > velo_cluster_min_x;
             x_lower_than_max_value &= velo_container_view.x(hit_index) < velo_cluster_max_x;
             y_greater_than_min_value &= velo_container_view.y(hit_index) > velo_cluster_min_y;
             y_lower_than_max_value &= velo_container_view.y(hit_index) < velo_cluster_max_y;
+
+            previous_hit_phi = velo_container_view.phi(hit_index);
+            previous_hit_id = velo_container_view.id(hit_index);
+            previous_hit_x = velo_container_view.x(hit_index);
+            previous_hit_y = velo_container_view.y(hit_index);
           }
         }
       }
@@ -59,4 +80,5 @@ void decode_retinaclusters::cluster_container_checks::operator()(
   require(y_greater_than_min_value, "Require that y be greater than min value");
   require(y_lower_than_max_value, "Require that y be lower than max value");
   require(valid_id_hit, "Require that every hit id is valid");
+  require(unique_id_hit, "Require that every hit has unique id");
 }

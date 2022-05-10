@@ -10,13 +10,13 @@
       # run_throughput tests
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
 
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
 
 
 .run_matrix_jobs_full:
@@ -26,7 +26,7 @@
       # run throughput, contracts enabled
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
         OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
         AVOID_HIP: "1" # This shouldn't have multiple values
 
@@ -35,14 +35,14 @@
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_no_gec"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
 
       # run throughput, default, SMOG2_pppHe
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["SMOG2_pppHe_retinacluster"]
+        DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]
         GEOMETRY: ["smog"]
 
       # Allen clustering jobs
@@ -55,7 +55,7 @@
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_veloSP_validation"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
         GEOMETRY: ["scifi_v6"]
         AVOID_HIP: "1" # This shouldn't have multiple values FIXME
 
@@ -63,20 +63,20 @@
       - TEST_NAME: "run_throughput"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1"]
         GEOMETRY: ["scifi_v6"]
 
       # run physics efficiency, scifi_v6
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
         GEOMETRY: ["scifi_v6"]
 
       # efficiency tests, SMOG2 pHe
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: ["SMOG2_pHe_5k_retinacluster"]
+        DATA_TAG: ["SMOG2_pHe_5k_retinacluster_v1"]
         GEOMETRY: ["smog"]
 
       # FIXME
@@ -95,11 +95,11 @@
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_complex_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
 
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster"]
+        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"]
         GEOMETRY: ["sim10_up08_md"]
 
 
@@ -151,7 +151,7 @@
     matrix:
       - TEST_NAME: "run_toggle_run_changes"
         SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster"
+        DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"
         RUN_CHANGES: ["ON", "OFF"]
   artifacts:
     expire_in: 1 day
