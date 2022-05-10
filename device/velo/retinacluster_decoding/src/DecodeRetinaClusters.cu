@@ -135,11 +135,6 @@ __global__ void velo_calculate_sorting_key(
   const unsigned* sensor_offsets = parameters.dev_offsets_each_sensor_size +
                                    event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
 
-  // Local pointers to parameters.dev_velo_cluster_container
-  const unsigned total_number_of_clusters =
-    parameters.dev_offsets_each_sensor_size
-      [number_of_events * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module];
-
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
 
