@@ -199,3 +199,9 @@ def make_ecal_clusters(decoded_calo):
         "dev_ecal_twoclusters":
         calo_find_twoclusters.dev_ecal_twoclusters_t
     }
+
+def ecal_cluster_reco():
+    decoded_calo = decode_calo()
+    ecal_clusters = make_ecal_clusters(decoded_calo)
+    alg = ecal_clusters["dev_ecal_clusters"].producer
+    return alg
