@@ -128,7 +128,6 @@ __global__ void velo_calculate_sorting_key(
   decode_retinaclusters::Parameters parameters,
   const VeloGeometry* dev_velo_geometry)
 {
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const int raw_bank_version = parameters.host_raw_bank_version[0];
 
