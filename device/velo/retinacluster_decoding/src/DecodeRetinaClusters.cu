@@ -74,20 +74,43 @@ __device__ void populate_sorting_key(
   VeloGeometry const& g,
   unsigned const cluster_index,
   const unsigned raw_bank_sensor_index,
-  const unsigned raw_bank_word)
+  const unsigned raw_bank_word,
+  const int raw_bank_version)
 {
   const float* ltg = g.ltg + g.n_trans * raw_bank_sensor_index;
 
+  uint32_t cx, cy, or_fx, or_fy, cx_frac_half, cx_frac_quarter, cy_frac_half, cy_frac_quarter;
+  float fx, fy;
+
+  // Decode cluster
+  if (raw_bank_version == 2) {
+    cx = (raw_bank_word >> 14) & 0x3FF;
+    fx = ((raw_bank_word >> 11) & 0x7) / 8.f;
+    cy = (raw_bank_word >> 3) & 0xFF;
+    fy = (raw_bank_word & 0x7FF) / 8.f;
+    or_fx = (0);
+    or_fy = (0);
+  }
+  else {
+    cx = (raw_bank_word >> 12) & 0x3FF;
+    cx_frac_half = (raw_bank_word >> 11) & 0x1;
+    cx_frac_quarter = (raw_bank_word >> 10) & 0x1;
+    fx = ((raw_bank_word >> 10) & 0x3) / 4.f;
+    cy = (raw_bank_word >> 2) & 0xFF;
+    cy_frac_half = (raw_bank_word >> 1) & 0x1;
+    cy_frac_quarter = (raw_bank_word) &0x1;
+    fy = (raw_bank_word & 0x3FF) / 4.f;
+
+    or_fx = (cx_frac_half | cx_frac_quarter);
+    or_fy = (cy_frac_half | cy_frac_quarter);
+  }
+
   // Decode ID
-  const uint32_t cx = (raw_bank_word >> 14) & 0x3FF;
-  const uint32_t cy = (raw_bank_word >> 3) & 0xFF;
   const uint32_t chip = cx >> VP::ChipColumns_division;
-  const unsigned cid = get_channel_id(raw_bank_sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+  const unsigned cid = get_channel_id(raw_bank_sensor_index, chip, cx & VP::ChipColumns_mask, cy, or_fx, or_fy);
   const uint32_t id = get_lhcb_id(cid);
 
   // Calculate phi
-  const float fx = ((raw_bank_word >> 11) & 0x7) / 8.f;
-  const float fy = (raw_bank_word & 0x7FF) / 8.f;
   const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
   const float local_y = (0.5f + fy) * Velo::Constants::pixel_size;
   const float gx = (ltg[0] * local_x + ltg[1] * local_y + ltg[9]);
@@ -95,7 +118,7 @@ __device__ void populate_sorting_key(
   const int16_t phi = hit_phi_16(gx, gy);
 
   // Create sorting key
-  const int64_t sorting_key = static_cast<int64_t>(phi) << 32 | id;
+  const int64_t sorting_key = static_cast<int64_t>(phi) << 48 | id;
 
   hit_sorting_key[cluster_index] = sorting_key;
 }
@@ -107,6 +130,7 @@ __global__ void velo_calculate_sorting_key(
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const int raw_bank_version = parameters.host_raw_bank_version[0];
 
   const unsigned* sensor_offsets = parameters.dev_offsets_each_sensor_size +
                                    event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
@@ -142,7 +166,8 @@ __global__ void velo_calculate_sorting_key(
       g,
       event_clusters_offset + cluster_number,
       raw_bank.sensor_index,
-      raw_bank.word[index_within_raw_bank]);
+      raw_bank.word[index_within_raw_bank],
+      raw_bank_version);
   }
 }
 
