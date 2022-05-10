@@ -140,19 +140,17 @@ namespace LHCb {
       Plume,             // 84
       PlumeSpecial,      // 85
       PlumeError,        // 86
+      VeloThresholdScan,         // 87
+      FTError,                   // 88
+      DaqErrorFragmentThrottled, // 89
+      DaqErrorBXIDCorrupted,     // 90
+      DaqErrorSyncBXIDCorrupted, // 91
+      DaqErrorFragmentMissing,   // 92
+      DaqErrorFragmentTruncated, // 93
+
 
       // Add new types here. Don't forget to update also RawBank.cpp
       LastType, // LOOP Marker; add new bank types ONLY before!
-
-      DaqErrorBase = 192, // Lowest DaqError type available in Run 3 (EDMS2100937)
-      // Banks above are reserved for DAQ, add only generic DaqError types below.
-      DaqErrorFragmentThrottled = 250,
-      DaqErrorBXIDCorrupted = 251,
-      DaqErrorBXIDJump = 252,
-      DaqErrorFragmentMissing = 253,
-      DaqErrorFragmentTruncated = 254,
-      DaqErrorInvalid = 255
-      // 255 is the highest type allowed by the Run 3 raw-data format (8-bit unsigned)
     };
 
     [[nodiscard]] static constexpr auto types()
