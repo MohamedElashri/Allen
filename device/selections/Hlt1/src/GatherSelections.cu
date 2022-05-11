@@ -288,10 +288,12 @@ void gather_selections::gather_selections_t::operator()(
       bool dec = false;
       for (auto j = 0u; j < first<host_number_of_active_lines_t>(arguments); ++j) {
         auto decs = sels.get_span(j, i);
-        std::cout << "Size of span (event " << i << ", line " << j << "): " << decs.size() << "\n";
+        bool span_decision = false;
         for (auto k = 0u; k < decs.size(); ++k) {
           dec |= decs[k];
+          span_decision |= decs[k];
         }
+        std::cout << "Span (event " << i << ", line " << j << "), size " << decs.size() << ", decision: " << span_decision << "\n";
       }
       event_decisions.emplace_back(dec);
     }

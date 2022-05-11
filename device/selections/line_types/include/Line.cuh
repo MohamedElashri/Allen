@@ -135,19 +135,20 @@ __device__ void process_line(
   const auto& parameters = std::get<0>(type_casted_input);
   const auto event_list_size = std::get<1>(type_casted_input);
   const auto number_of_events = std::get<2>(type_casted_input);
+  const auto event_number = blockIdx.x;
 
   // Check if blockIdx.x (event_number) is in dev_event_list
   unsigned mask = 0;
   for (unsigned i = 0; i < (event_list_size + warp_size - 1) / warp_size; ++i) {
     const auto index = i * warp_size + threadIdx.x;
-    mask |= __ballot_sync(0xFFFFFFFF, index < event_list_size ? blockIdx.x == parameters.dev_event_list[index] : false);
+    mask |= __ballot_sync(0xFFFFFFFF, index < event_list_size ? event_number == parameters.dev_event_list[index] : false);
   }
 
   // Do initialization for all events, regardless of mask
   // * Populate offsets in first block
   if (blockIdx.x == 0) {
     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-      decisions_offsets[i] = (mask > 0 ? Derived::offset(parameters, i) : 0) + line_offset;
+      decisions_offsets[i] = line_offset + Derived::offset(parameters, i);
     }
   }
 
@@ -166,16 +167,16 @@ __device__ void process_line(
   const auto pre_scaler_hash = std::get<3>(type_casted_input);
   const bool pre_scaler_result =
     deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-  const unsigned input_size = Derived::input_size(parameters, blockIdx.x);
+  const unsigned input_size = Derived::input_size(parameters, event_number);
 
   for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-    const auto input = Derived::get_input(parameters, blockIdx.x, i);
+    const auto input = Derived::get_input(parameters, event_number, i);
     const bool decision = mask > 0 && pre_scaler_result && Derived::select(parameters, input);
-    unsigned index = Derived::offset(parameters, blockIdx.x) + i;
+    unsigned index = Derived::offset(parameters, event_number) + i;
     decisions[index] = decision;
     if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
       if (parameters.enable_monitoring) {
-        Derived::monitor(parameters, input, blockIdx.x, decision);
+        Derived::monitor(parameters, input, event_number, decision);
       }
     }
   }
