@@ -141,7 +141,8 @@ __device__ void process_line(
   unsigned mask = 0;
   for (unsigned i = 0; i < (event_list_size + warp_size - 1) / warp_size; ++i) {
     const auto index = i * warp_size + threadIdx.x;
-    mask |= __ballot_sync(0xFFFFFFFF, index < event_list_size ? event_number == parameters.dev_event_list[index] : false);
+    mask |=
+      __ballot_sync(0xFFFFFFFF, index < event_list_size ? event_number == parameters.dev_event_list[index] : false);
   }
 
   // Do initialization for all events, regardless of mask

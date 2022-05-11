@@ -293,7 +293,8 @@ void gather_selections::gather_selections_t::operator()(
           dec |= decs[k];
           span_decision |= decs[k];
         }
-        std::cout << "Span (event " << i << ", line " << j << "), size " << decs.size() << ", decision: " << span_decision << "\n";
+        std::cout << "Span (event " << i << ", line " << j << "), size " << decs.size()
+                  << ", decision: " << span_decision << "\n";
       }
       event_decisions.emplace_back(dec);
     }
