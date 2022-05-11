@@ -152,7 +152,7 @@ __device__ void process_line(
   }
 
   // * Populate IMultiEventContainer* if relevant
-  if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
+  if (blockIdx.x == 0 && threadIdx.x == 0) {
     if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
       const auto ptr = static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
       *particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);

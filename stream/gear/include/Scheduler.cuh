@@ -283,7 +283,6 @@ public:
     HostBuffers* host_buffers,
     const Allen::Context& context)
   {
-    bool do_free = true;
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       run(
         m_sequence[i],
@@ -297,8 +296,7 @@ public:
         constants,
         *host_buffers,
         context,
-        do_print,
-        do_free);
+        do_print);
     }
   }
 
@@ -327,8 +325,7 @@ private:
     host_memory_manager_t& host_memory_manager,
     device_memory_manager_t& device_memory_manager,
     UnorderedStore& store,
-    bool do_print,
-    bool& do_free)
+    bool do_print)
   {
     /**
      * @brief Runs a step of the scheduler and determines
@@ -344,16 +341,8 @@ private:
       info_cout << "Sequence step \"" << algorithm.name() << "\":\n";
     }
 
-    // TODO: Debug and improve this
-    // From selection algorithm onwards do not free
-    if (algorithm.scope() == "SelectionAlgorithm") {
-      do_free = false;
-    }
-
-    if (do_free) {
-      // Free all arguments in OutDependencies
-      MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
-    }
+    // Free all arguments in OutDependencies
+    MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
 
     // Reserve all arguments in InDependencies
     MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);
@@ -377,8 +366,7 @@ private:
     const Constants& constants,
     HostBuffers& host_buffers,
     const Allen::Context& context,
-    bool do_print,
-    bool& do_free)
+    bool do_print)
   {
     // Sets the arguments sizes
     algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, host_buffers);
@@ -391,8 +379,7 @@ private:
       host_memory_manager,
       device_memory_manager,
       store,
-      do_print,
-      do_free);
+      do_print);
 
     // Run preconditions
     if constexpr (contracts_enabled) {
