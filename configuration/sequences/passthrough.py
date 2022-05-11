@@ -13,10 +13,10 @@ from AllenConf.validators import rate_validation
 bank_providers = [decode_odin()['dev_odin_data'].producer]
 
 # To test memory traffic when copying to the device, add the following
-# for det, bt in (("velo", "VP"), ("ut", "UT"), ("scifi", "FT"),
-#                 ("muon", "Muon")):
-#     bank_providers.append(
-#         make_algorithm(data_provider_t, name=det + "_banks", bank_type=bt))
+for det, bt in (("velo", "VP"), ("ut", "UT"), ("scifi", "FT"),
+                ("muon", "Muon"), ("ecal_banks", "ECal")):
+     bank_providers.append(
+         make_algorithm(data_provider_t, name=det + "_banks", bank_type=bt))
 
 passthrough_line = line_maker(make_passthrough_line())
 line_algorithms = [passthrough_line[0]]
@@ -31,7 +31,7 @@ lines = CompositeNode(
 
 passthrough_sequence = CompositeNode(
     "Passthrough",
-    [lines, global_decision,
+    [providers, lines, global_decision,
      rate_validation(lines=line_algorithms)],
     NodeLogic.NONLAZY_AND,
     force_order=True)
