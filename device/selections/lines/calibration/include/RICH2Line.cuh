@@ -31,7 +31,8 @@ namespace rich_2_line {
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
-    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
 
     // Monitoring
     DEVICE_OUTPUT(dev_decision_t, bool) dev_decision;

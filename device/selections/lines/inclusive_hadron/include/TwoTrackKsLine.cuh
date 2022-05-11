@@ -29,7 +29,8 @@ namespace two_track_line_ks {
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
-    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minComboPt_Ks_t, "minComboPt_Ks", "minComboPt Ks description", float) minComboPt_Ks;
     PROPERTY(minCosDira_t, "minCosDira", "minCosDira description", float) minCosDira;
