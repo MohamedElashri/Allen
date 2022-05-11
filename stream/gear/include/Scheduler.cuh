@@ -372,14 +372,7 @@ private:
     algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, host_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
-    setup(
-      algorithm,
-      in_dependencies,
-      out_dependencies,
-      host_memory_manager,
-      device_memory_manager,
-      store,
-      do_print);
+    setup(algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
 
     // Run preconditions
     if constexpr (contracts_enabled) {
