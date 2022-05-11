@@ -20,14 +20,12 @@ namespace gather_selections {
     HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
     HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
     HOST_INPUT_AGGREGATE(host_fn_parameters_agg_t, char) host_fn_parameters_agg;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
     HOST_OUTPUT(host_fn_parameter_pointers_t, char*) host_fn_parameter_pointers;
     DEVICE_OUTPUT(dev_fn_parameter_pointers_t, char*) dev_fn_parameter_pointers;
     HOST_OUTPUT(host_fn_indices_t, unsigned) host_fn_indices;
     DEVICE_OUTPUT(dev_fn_indices_t, unsigned) dev_fn_indices;
-    DEVICE_INPUT_AGGREGATE(dev_particle_containers_agg_t, Allen::IMultiEventContainer*)
-    dev_particle_containers_agg;
+    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
     DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
@@ -40,7 +38,7 @@ namespace gather_selections {
     DEVICE_OUTPUT(dev_post_scale_hashes_t, uint32_t) dev_post_scale_hashes;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_containers_t,
-      DEPENDENCIES(dev_particle_containers_agg_t),
+      DEPENDENCIES(host_fn_parameters_agg_t),
       Allen::IMultiEventContainer*)
     dev_particle_containers;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);

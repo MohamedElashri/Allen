@@ -17,13 +17,8 @@ namespace kstopipi_line {
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_particle_container_ptr_t,
-      DEPENDENCIES(dev_particle_container_t),
-      Allen::IMultiEventContainer*)
-    dev_particle_container_ptr;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
     DEVICE_OUTPUT(dev_sv_masses_t, float) dev_sv_masses;
     HOST_OUTPUT(host_sv_masses_t, float) host_sv_masses;
 

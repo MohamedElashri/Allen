@@ -42,8 +42,6 @@ void rich_1_line::rich_1_line_t::set_arguments_size(
 
   set_size<typename Parameters::dev_phi_t>(arguments, rich_1_line::rich_1_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_phi_t>(arguments, rich_1_line::rich_1_line_t::get_decisions_size(arguments));
-
-  set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
 }
 
 /*

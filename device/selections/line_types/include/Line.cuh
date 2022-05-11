@@ -83,7 +83,6 @@ public:
     set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-    set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
 
     // Set the size of the type-erased fn parameters
     set_size<typename Parameters::host_fn_parameters_t>(arguments, sizeof(type_erased_tuple_t<Derived, Parameters>));
