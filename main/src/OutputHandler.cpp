@@ -52,7 +52,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   m_input_provider->event_sizes(slice_index, selected_events, m_sizes);
   auto event_ids = m_input_provider->event_ids(slice_index);
 
-  size_t output_batch = 10;
+  size_t output_batch = 100;
   bool output_success = true;
   bool n_output = 0;
   size_t n_batches = n_events / output_batch + (n_events % output_batch != 0);
@@ -165,7 +165,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         header->setChecksum(c);
       }
       else {
-        header->setChecksum(0);
+	header->setChecksum(0);
       }
 
       output_event_offset += event_size;
