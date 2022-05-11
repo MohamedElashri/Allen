@@ -60,7 +60,11 @@ parser.add_argument(
         allen_dir, "input", "minbias", "mdf",
         "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf"))
 parser.add_argument("--mep", dest="mep", default=None)
-parser.add_argument("--mep-mask-source-id-top-5", action="store_true", dest="mask_top5", default=False)
+parser.add_argument(
+    "--mep-mask-source-id-top-5",
+    action="store_true",
+    dest="mask_top5",
+    default=False)
 parser.add_argument(
     "--reuse-meps",
     action="store_true",
@@ -110,7 +114,8 @@ parser.add_argument(
     default=300,
     help="How long to run when reusing MEPs",
 )
-parser.add_argument("--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
+parser.add_argument(
+    "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
 
 args = parser.parse_args()
 

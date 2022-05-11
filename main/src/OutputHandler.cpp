@@ -133,30 +133,33 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       // Set run number
       // FIXME: get orbit and bunch number from ODIN
       // The batch is offset by start_event with respect to the slice, so we add start_event
-      header->subHeader().H1->setRunNumber(static_cast<unsigned int>(std::get<0>(event_ids[event_number + start_event])));
+      header->subHeader().H1->setRunNumber(
+        static_cast<unsigned int>(std::get<0>(event_ids[event_number + start_event])));
 
       // The batch is offset by start_event with respect to the slice, so we add start_event
       m_input_provider->copy_banks(
-                                   slice_index, event_number + start_event, {event_span.data() + header_size, static_cast<events_size>(m_sizes[i])});
+        slice_index,
+        event_number + start_event,
+        {event_span.data() + header_size, static_cast<events_size>(m_sizes[i])});
 
       // add the dec report
       Allen::add_raw_bank(
-                          LHCb::RawBank::HltDecReports,
-                          2u,
-                          1 << 13,
-                          {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * event_number,
-                           static_cast<events_size>(dec_report_size)},
-                          event_span.data() + header_size + m_sizes[i]);
+        LHCb::RawBank::HltDecReports,
+        2u,
+        1 << 13,
+        {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * event_number,
+         static_cast<events_size>(dec_report_size)},
+        event_span.data() + header_size + m_sizes[i]);
 
       // add the sel report
       if (sel_report_size > 0) {
         Allen::add_raw_bank(
-                            LHCb::RawBank::HltSelReports,
-                            11u,
-                            1 << 13,
-                            {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
-                             static_cast<events_size>(sel_report_size)},
-                            event_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
+          LHCb::RawBank::HltSelReports,
+          11u,
+          1 << 13,
+          {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
+           static_cast<events_size>(sel_report_size)},
+          event_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
       }
 
       if (m_checksum) {
@@ -165,7 +168,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         header->setChecksum(c);
       }
       else {
-	header->setChecksum(0);
+        header->setChecksum(0);
       }
 
       output_event_offset += event_size;
@@ -173,7 +176,6 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
     auto output_success = write_buffer(buffer_id);
     n_output += output_success ? batch_size : 0;
-
   }
 
   return {output_success, n_output};
