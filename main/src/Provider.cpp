@@ -207,7 +207,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
     // it contains a list of filenames, one per line. Each file should
     // exist and end in .mdf
     if (connections.size() == 1) {
-      fs::path p{connections[0]};
+      fs::path p {connections[0]};
       if (fs::exists(p) && p.extension() != ".mdf") {
         std::ifstream file(p.string());
         std::string line;
@@ -216,8 +216,8 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
         }
         file.close();
         if (std::all_of(connections.begin() + 1, connections.end(), [](fs::path file) {
-          return fs::exists(file) && file.extension() == ".mdf";
-        })) {
+              return fs::exists(file) && file.extension() == ".mdf";
+            })) {
           connections.erase(connections.begin());
         }
         else {
