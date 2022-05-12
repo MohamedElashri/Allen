@@ -41,7 +41,8 @@ std::tuple<bool, std::string, unsigned> Allen::set_device(int hip_device, size_t
     hipCheck(hipSetDevice(hip_device));
     hipCheck(hipGetDeviceProperties(&device_properties, hip_device));
 
-    device_name = std::string {device_properties.name} == "Device 738c" ? "MI100" : device_properties.name;
+    device_name =
+      std::string {device_properties.gcnArchName}.find("gfx908") == 0 ? "MI100" : device_properties.gcnArchName;
 
     if (n_devices == 0) {
       error_cout << "Failed to select device " << hip_device << "\n";
