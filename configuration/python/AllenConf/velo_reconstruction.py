@@ -51,7 +51,7 @@ def decode_velo(retina_decoding=True):
             host_raw_bank_version_t=velo_retina_banks.host_raw_bank_version_t)
 
         return {
-            "dev_velo_cluster_container":
+            "dev_sorted_velo_cluster_container":
             decode_retinaclusters.dev_velo_cluster_container_t,
             "dev_module_cluster_num":
             decode_retinaclusters.dev_module_cluster_num_t,
@@ -119,9 +119,25 @@ def decode_velo(retina_decoding=True):
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
         )
 
+        velo_sort_by_phi = make_algorithm(
+            velo_sort_by_phi_t,
+            name="velo_sort_by_phi",
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_total_number_of_velo_clusters_t=
+            prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
+            dev_offsets_estimated_input_size_t=
+            prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+            dev_module_cluster_num_t=velo_masked_clustering.
+            dev_module_cluster_num_t,
+            dev_velo_cluster_container_t=velo_masked_clustering.
+            dev_velo_cluster_container_t,
+            dev_number_of_events_t=number_of_events["dev_number_of_events"],
+            dev_velo_clusters_t=velo_masked_clustering.dev_velo_clusters_t,
+        )
+
         return {
-            "dev_velo_cluster_container":
-            velo_masked_clustering.dev_velo_cluster_container_t,
+            "dev_sorted_velo_cluster_container":
+            velo_sort_by_phi.dev_sorted_velo_cluster_container_t,
             "dev_module_cluster_num":
             velo_masked_clustering.dev_module_cluster_num_t,
             "dev_offsets_estimated_input_size":
@@ -135,7 +151,8 @@ def decode_velo(retina_decoding=True):
 
 def make_velo_tracks(decoded_velo):
     number_of_events = initialize_number_of_events()
-    dev_velo_cluster_container = decoded_velo["dev_velo_cluster_container"]
+    dev_sorted_velo_cluster_container = decoded_velo[
+        "dev_sorted_velo_cluster_container"]
     dev_module_cluster_num = decoded_velo["dev_module_cluster_num"]
     dev_offsets_estimated_input_size = decoded_velo[
         "dev_offsets_estimated_input_size"]
@@ -143,25 +160,12 @@ def make_velo_tracks(decoded_velo):
         "host_total_number_of_velo_clusters"]
     dev_velo_clusters = decoded_velo["dev_velo_clusters"]
 
-    velo_sort_by_phi = make_algorithm(
-        velo_sort_by_phi_t,
-        name="velo_sort_by_phi",
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_total_number_of_velo_clusters_t=host_total_number_of_velo_clusters,
-        dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
-        dev_module_cluster_num_t=dev_module_cluster_num,
-        dev_velo_cluster_container_t=dev_velo_cluster_container,
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_velo_clusters_t=dev_velo_clusters,
-    )
-
     velo_search_by_triplet = make_algorithm(
         velo_search_by_triplet_t,
         name="velo_search_by_triplet",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_total_number_of_velo_clusters_t=host_total_number_of_velo_clusters,
-        dev_sorted_velo_cluster_container_t=velo_sort_by_phi.
-        dev_sorted_velo_cluster_container_t,
+        dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_module_cluster_num_t=dev_module_cluster_num,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
@@ -180,8 +184,7 @@ def make_velo_tracks(decoded_velo):
         name="velo_three_hit_tracks_filter",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_total_number_of_velo_clusters_t=host_total_number_of_velo_clusters,
-        dev_sorted_velo_cluster_container_t=velo_sort_by_phi.
-        dev_sorted_velo_cluster_container_t,
+        dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_atomics_velo_t=velo_search_by_triplet.dev_atomics_velo_t,
         dev_hit_used_t=velo_search_by_triplet.dev_hit_used_t,
@@ -238,8 +241,7 @@ def make_velo_tracks(decoded_velo):
         dev_tracks_t=velo_search_by_triplet.dev_tracks_t,
         dev_offsets_velo_track_hit_number_t=
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t,
-        dev_sorted_velo_cluster_container_t=velo_sort_by_phi.
-        dev_sorted_velo_cluster_container_t,
+        dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_three_hit_tracks_output_t=velo_three_hit_tracks_filter.
         dev_three_hit_tracks_output_t,
