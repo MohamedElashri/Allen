@@ -109,6 +109,10 @@ Parameters for delayed line processing::
 
   HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
+In case that the selection algorithm requires a `dev_particle_container_t`, then the `host_fn_parameters_t` should be defined as follows instead::
+
+  HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
+
 Post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling::
 
   HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler;
