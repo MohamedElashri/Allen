@@ -1,4 +1,4 @@
-/*****************************************************************************\
+/***************************************************************************** \
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #pragma once
@@ -22,6 +22,7 @@
 #include "Common.h"
 #include "BackendCommon.h"
 
+
 namespace Allen {
   namespace detail {
     template<typename R>
@@ -43,15 +44,15 @@ namespace Allen {
     return bank_sizes(sizes, event)[bank];
   }
 
-  __host__ __device__ inline unsigned char const* bank_types(unsigned int const* types, unsigned const event)
+  __host__ __device__ inline unsigned char const* bank_types(unsigned int const* types_offsets, unsigned const event)
   {
-    return detail::offsets_to_content<unsigned char>(types, event);
+    return detail::offsets_to_content<unsigned char>(types_offsets, event);
   }
 
   __host__ __device__ inline unsigned char
-  bank_type(unsigned int const* types, unsigned const event, unsigned const bank)
+  bank_type(unsigned int const* types_offsets, unsigned const event, unsigned const bank)
   {
-    return bank_types(types, event)[bank];
+    return bank_types(types_offsets, event)[bank];
   }
 
   static constexpr uint8_t LastBankType = static_cast<uint8_t>(to_integral(LHCb::RawBank::LastType));
@@ -89,19 +90,19 @@ namespace MEP {
   }
 
   __host__ __device__ inline unsigned char const*
-  bank_types(char const*, unsigned int const* types, unsigned const bank_number)
+  bank_types(char const*, unsigned int const* types_offsets, unsigned const bank_number)
   {
     // NOTE: Once we move to copying large chunks of the MEP into a
     // separate piece of device memory, this will have to change.
-    return Allen::bank_types(types, bank_number);
+    return Allen::bank_types(types_offsets, bank_number);
   }
 
   __host__ __device__ inline unsigned char
-  bank_type(char const*, unsigned int const* types, unsigned const event, unsigned const bank)
+  bank_type(char const*, unsigned int const* types_offsets, unsigned const event, unsigned const bank)
   {
     // NOTE: Once we move to copying large chunks of the MEP into a
     // separate piece of device memory, this will have to change.
-    return Allen::bank_type(types, bank, event);
+    return Allen::bank_type(types_offsets, bank, event);
   }
 
   // Check if an algorithm has a check member function
@@ -116,16 +117,16 @@ namespace MEP {
     __host__ __device__ inline Bank raw_bank(
       char const* blocks,
       unsigned int const* offsets,
-      unsigned int const* sizes,
-      unsigned int const* types,
+      unsigned int const* sizes_offsets,
+      unsigned int const* types_offsets,
       unsigned int const event,
       unsigned int const bank)
     {
       auto const source_id = offsets[2 + bank];
       auto const n_banks = offsets[0];
       auto const* fragment = blocks + offsets[offset_index(n_banks, event, bank)];
-      auto const type = types == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types, event, bank);
-      return {source_id, fragment, MEP::bank_size(blocks, sizes, event, bank), type};
+      auto const type = types_offsets == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types_offsets, event, bank);
+      return {source_id, fragment, MEP::bank_size(blocks, sizes_offsets, event, bank), type};
     }
 
     template<class Bank, typename... Args, std::enable_if_t<!has_constructor<Bank, Args...>::value>* = nullptr>
@@ -133,14 +134,14 @@ namespace MEP {
       char const* blocks,
       unsigned int const* offsets,
       unsigned int const*,
-      unsigned int const* types,
+      unsigned int const* types_offsets,
       unsigned int const event,
       unsigned int const bank)
     {
       auto const source_id = offsets[2 + bank];
       auto const n_banks = offsets[0];
       auto const* fragment = blocks + offsets[offset_index(n_banks, event, bank)];
-      auto const type = types == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types, event, bank);
+      auto const type = types_offsets == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types_offsets, event, bank);
       return {source_id, fragment, type};
     }
   } // namespace detail
@@ -149,13 +150,13 @@ namespace MEP {
   __host__ __device__ inline Bank raw_bank(
     char const* blocks,
     unsigned int const* offsets,
-    unsigned const* sizes,
-    unsigned const* types,
+    unsigned const* sizes_offsets,
+    unsigned const* types_offsets,
     unsigned int const event,
     unsigned int const bank)
   {
     return detail::raw_bank<Bank, uint32_t const, char const*, uint16_t, uint8_t>(
-      blocks, offsets, sizes, types, event, bank);
+      blocks, offsets, sizes_offsets, types_offsets, event, bank);
   }
 
   template<class Bank>
