@@ -105,7 +105,7 @@ Size of the decision object::
 
   HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
 
-Parameters for delayed line processing::
+Type-erased parameters to be passed to the line functions for delayed line processing::
 
   HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
