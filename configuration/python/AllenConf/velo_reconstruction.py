@@ -52,7 +52,7 @@ def decode_velo(retina_decoding=True):
             dev_offsets_each_sensor_size_t=
             prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
-            host_raw_bank_version_t=velo_retina_banks.host_raw_bank_version_t)
+            host_raw_bank_version_t=velo_banks.host_raw_bank_version_t)
 
         return {
             "dev_sorted_velo_cluster_container":

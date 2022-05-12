@@ -24,7 +24,7 @@ foreach(odin_file ${odin_files})
 endforeach()
 
 add_library(odin OBJECT ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
-target_link_libraries(odin PRIVATE LHCbEvent)
+target_link_libraries(odin PRIVATE LHCbEvent cppgsl::cppgsl)
 target_compile_definitions(odin PRIVATE ODIN_WITHOUT_GAUDI)
 
 set(mdf_sources

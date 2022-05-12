@@ -138,8 +138,11 @@ __global__ void velo_calculate_sorting_key(
   const VeloGeometry& g = *dev_velo_geometry;
 
   // Read raw event
-  const auto velo_raw_event = Velo::RawEvent<mep_layout> {
-    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, event_number};
+  const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_retina_raw_input,
+                                                          parameters.dev_velo_retina_raw_input_offsets,
+                                                          parameters.dev_velo_retina_raw_input_sizes,
+                                                          parameters.dev_velo_retina_raw_input_types,
+                                                          event_number};
 
   // Populate retina clusters
   const auto event_clusters_offset = sensor_offsets[0];
@@ -300,12 +303,11 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
   // Ensure the bank version is supported
   if (bank_version != 2 && bank_version != 3) {
-    throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
+    throw StrException("Velo bank version not supported (" + std::to_string(bank_version) + ")");
   }
 
   initialize<dev_module_cluster_num_t>(arguments, 0, context);
