@@ -251,7 +251,7 @@ std::tuple<bool, bool, bool> transpose_event(
 
     // Check what to do with this bank
     if (allen_type == BankTypes::ODIN) {
-      auto const odin_error = b->type() >= LHCb::RawBank::DaqErrorBase;
+      auto const odin_error = b->type() >= LHCb::RawBank::DaqErrorFragmentThrottled;
       event_mask[event_ids.size()] = !odin_error;
 
       if (!odin_error) {
