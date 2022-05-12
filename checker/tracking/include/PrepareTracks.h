@@ -12,6 +12,7 @@
 #include "UTEventModel.cuh"
 #include "States.cuh"
 #include "Argument.cuh"
+#include "ParticleTypes.cuh"
 
 float eta_from_rho(const float rho);
 
@@ -42,26 +43,13 @@ std::vector<Checker::Tracks> prepareUTTracks(
   gsl::span<const mask_t> event_list);
 
 /**
- * @brief Prepares tracks for Velo, UT, SciFi consolidated datatypes.
+ * @brief Prepares tracks for Long consolidated datatypes.
  */
-std::vector<Checker::Tracks> prepareForwardTracks(
+std::vector<Checker::Tracks> prepareLongTracks(
   const unsigned number_of_events,
-  gsl::span<const unsigned> velo_track_atomics,
-  gsl::span<const unsigned> velo_track_hit_number,
-  gsl::span<const char> velo_track_hits,
-  gsl::span<const char> kalman_velo_states,
-  gsl::span<const unsigned> ut_track_atomics,
-  gsl::span<const unsigned> ut_track_hit_number,
-  gsl::span<const char> ut_track_hits,
-  gsl::span<const unsigned> ut_track_velo_indices,
-  gsl::span<const float> ut_qop,
-  gsl::span<const unsigned> scifi_track_atomics,
-  gsl::span<const unsigned> scifi_track_hit_number,
-  gsl::span<const char> scifi_track_hits,
-  gsl::span<const unsigned> scifi_track_ut_indices,
-  gsl::span<const float> scifi_qop,
-  gsl::span<const MiniState> scifi_states,
-  const char* host_scifi_geometry,
+  gsl::span<const Allen::Views::Physics::MultiEventLongTracks> multi_event_long_tracks_view,
+  gsl::span<const Allen::Views::Velo::Consolidated::States> velo_states,
+  const char* scifi_geometry,
   gsl::span<const mask_t> event_list,
   gsl::span<const Allen::bool_as_char_t<bool>> is_muon = {});
 

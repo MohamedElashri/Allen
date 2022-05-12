@@ -9,7 +9,7 @@ from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices
 from AllenConf.validators import (
-    velo_validation, veloUT_validation, forward_validation, muon_validation,
+    velo_validation, veloUT_validation, long_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation, selreport_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -74,8 +74,8 @@ def validator_node(reconstructed_objects, line_algorithms):
                 "veloUT_validation",
                 veloUT_validation(reconstructed_objects["ut_tracks"])),
             make_composite_node_with_gec(
-                "forward_validation",
-                forward_validation(reconstructed_objects["forward_tracks"])),
+                "long_validation",
+                long_validation(reconstructed_objects["forward_tracks"])),
             make_composite_node_with_gec(
                 "muon_validation",
                 muon_validation(reconstructed_objects["muonID"])),

@@ -510,5 +510,5 @@ public:
 
 using TrackCheckerVelo = TrackChecker<Checker::Subdetector::Velo>;
 using TrackCheckerVeloUT = TrackChecker<Checker::Subdetector::UT>;
-using TrackCheckerForward = TrackChecker<Checker::Subdetector::SciFi>;
+using TrackCheckerLong = TrackChecker<Checker::Subdetector::SciFi>;
 using TrackCheckerMuon = TrackChecker<Checker::Subdetector::Muon>;
