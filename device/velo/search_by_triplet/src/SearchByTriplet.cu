@@ -815,4 +815,17 @@ __device__ void velo_search_by_triplet::track_seeding_vectorized(
     }
   }
 }
+#else
+__device__ void velo_search_by_triplet::track_seeding_vectorized(
+  Velo::ConstClusters&,
+  const Velo::ModulePair*,
+  const bool*,
+  Velo::TrackletHits*,
+  unsigned*,
+  uint16_t*,
+  unsigned*,
+  const float,
+  const int16_t,
+  const unsigned)
+{}
 #endif

@@ -70,6 +70,16 @@ set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 
 set(HIP_ARCH gfx908 CACHE STRING "HIP target architecture")
 set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 gfx909 gfx1010 gfx1011 gfx1012 gfx1030)
 
+# Forces a no separable compilation build
+# Note: For now, HIP *requires* a no separable compilation build
+option(SEPARABLE_COMPILATION "Sets the build to no separable compilation" ON)
+if(TARGET_DEVICE STREQUAL "HIP")
+  set(SEPARABLE_COMPILATION OFF)
+  message(STATUS "Separable compilation: OFF (required by HIP)")
+else()
+  message(STATUS "Separable compilation: " ${SEPARABLE_COMPILATION})
+endif()
+
 # --------------------
 # Unrestricted options
 # --------------------
@@ -135,7 +145,7 @@ if(ENABLE_CONTRACTS)
   add_compile_definitions(ENABLE_CONTRACTS)
 endif()
 
-# Chioce of profiling with callgrind
+# Choice of profiling with callgrind
 option(CALLGRIND_PROFILE "Set Callgrind macros around sequence" OFF)
 if(CALLGRIND_PROFILE)
   add_compile_definitions(CALLGRIND_PROFILE)
@@ -240,7 +250,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
       string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_${arch},code=sm_${arch}")
     endforeach()
     if(CUDA_ARCH STREQUAL "COMPATIBILITY")
-      string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_86,code=compute_86")
+      string(APPEND DEVICE_ARCHITECTURE " -gencode=arch=compute_86,code=sm_86")
     endif()
   endif()
   message(STATUS "Device architecture set to ${DEVICE_ARCHITECTURE}")
@@ -313,7 +323,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
    endif()
 
 elseif(TARGET_DEVICE STREQUAL "HIP")
-
   # Deal with build type (HIP)
   if(NOT CMAKE_BUILD_TYPE)
     set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
@@ -322,7 +331,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
+    set(HIP_RELEASE_OPTIONS "-O0 -g -DALLEN_DEBUG")
   endif()
 
   if(GCC_TOOLCHAIN_ROOT)
@@ -407,6 +416,9 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     endif()
 
     add_library(${ARGV})
+    if(SEPARABLE_COMPILATION)
+      set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+    endif()
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${PROJECT_BINARY_DIR}/code_generation)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
@@ -425,7 +437,9 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     endif()
 
     add_library(${ARGV})
-
+    if(SEPARABLE_COMPILATION)
+      set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+    endif()
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
@@ -436,6 +450,9 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
 
   function(allen_add_executable)
     add_executable(${ARGV})
+    if(SEPARABLE_COMPILATION)
+      set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+    endif()
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
@@ -447,6 +464,50 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     string(APPEND CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 endif()
+
+# Mechanism to mimic a UNITY build
+set(COUNTER 0)
+set(GROUPCOMP_DIR ${PROJECT_BINARY_DIR}/group_comp)
+file(MAKE_DIRECTORY ${GROUPCOMP_DIR})
+
+function(allen_add_device_library_unified)
+  set(destination lib)
+
+  foreach(arg IN LISTS ARGN)
+    if(${arg} MATCHES "\\.cu$")
+      list(APPEND LIBRARY_SOURCES ${arg})
+    else()
+      list(APPEND LIBRARY_SETTINGS ${arg})
+    endif()
+  endforeach()
+
+  set(UNIFIED_FILENAME "${GROUPCOMP_DIR}/group_${COUNTER}.cu")
+  add_custom_command(
+    OUTPUT "${UNIFIED_FILENAME}"
+    COMMAND ${CMAKE_COMMAND} -E remove "${UNIFIED_FILENAME}" && cat ${LIBRARY_SOURCES} >> "${UNIFIED_FILENAME}"
+    DEPENDS "${LIBRARY_SOURCES}")
+
+  if(TARGET_DEVICE STREQUAL "CPU")
+    add_library(${LIBRARY_SETTINGS} ${UNIFIED_FILENAME})
+    set_source_files_properties(${UNIFIED_FILENAME} PROPERTIES LANGUAGE CXX)
+  elseif(TARGET_DEVICE STREQUAL "HIP")
+    hip_add_library(${LIBRARY_SETTINGS} ${UNIFIED_FILENAME} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+    target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
+  elseif(TARGET_DEVICE STREQUAL "CUDA")
+    add_library(${LIBRARY_SETTINGS} ${UNIFIED_FILENAME})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+  endif()
+
+  target_sources(${ARGV0} PRIVATE ${UNIFIED_FILENAME} ${LIBRARY_SOURCES})
+  add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+  target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+
+  install(TARGETS ${ARGV0}
+    EXPORT Allen
+    LIBRARY DESTINATION ${destination})
+
+  MATH(EXPR COUNTER "${COUNTER}+1")
+endfunction()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments")

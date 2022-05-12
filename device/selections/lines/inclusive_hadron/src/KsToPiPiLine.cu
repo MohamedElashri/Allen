@@ -4,6 +4,8 @@
 #include "KsToPiPiLine.cuh"
 #include <ROOTHeaders.h>
 #include "ROOTService.h"
+#include "ROOTService.h"
+
 INSTANTIATE_LINE(kstopipi_line::kstopipi_line_t, kstopipi_line::Parameters)
 
 void kstopipi_line::kstopipi_line_t::set_arguments_size(
@@ -29,10 +31,9 @@ __device__ bool kstopipi_line::kstopipi_line_t::select(
          vertex.m12(Allen::mPi, Allen::mPi) > 400 && vertex.m12(Allen::mPi, Allen::mPi) < 600;
 }
 
-#ifdef WITH_ROOT
 void kstopipi_line::kstopipi_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
+  const Allen::Context& context) const
 {
   initialize<dev_sv_masses_t>(arguments, -1, context);
   initialize<dev_pt_t>(arguments, -1, context);
@@ -53,12 +54,11 @@ __device__ void kstopipi_line::kstopipi_line_t::monitor(
 }
 
 void kstopipi_line::kstopipi_line_t::output_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Allen::Context& context) const
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const RuntimeOptions& runtime_options,
+  [[maybe_unused]] const Allen::Context& context) const
 {
-  if (!property<make_tuple_t>()) return;
-
+#ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
   if (tree == nullptr) return;
@@ -89,5 +89,5 @@ void kstopipi_line::kstopipi_line_t::output_monitor(
       tree->Fill();
     }
   }
-}
 #endif
+}

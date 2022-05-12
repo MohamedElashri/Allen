@@ -12,6 +12,22 @@
 #include <utility>
 #include <tuple>
 
+namespace Allen::Gear::Function {
+  template<typename... S>
+  auto make_parameters(
+    const std::map<std::string, Allen::BaseProperty*>& properties,
+    const dim3& grid_dim,
+    const dim3& block_dim,
+    const unsigned dynamic_shared_memory_size,
+    S&&... arguments)
+  {
+    return std::make_tuple(TransformParameters<S>::transform(
+      std::forward<S>(arguments),
+      properties,
+      Allen::KernelInvocationConfiguration {grid_dim, block_dim, dynamic_shared_memory_size})...);
+  }
+} // namespace Allen::Gear::Function
+
 template<typename Fn>
 struct GlobalFunctionImpl {
 private:
@@ -38,10 +54,8 @@ public:
   template<typename... S>
   void operator()(S&&... arguments) const
   {
-    const auto invoke_arguments = std::make_tuple(TransformParameters<S>::transform(
-      std::forward<S>(arguments),
-      m_properties,
-      Allen::KernelInvocationConfiguration {m_grid_dim, m_block_dim, m_dynamic_shared_memory_size})...);
+    const auto invoke_arguments = Allen::Gear::Function::make_parameters(
+      m_properties, m_grid_dim, m_block_dim, m_dynamic_shared_memory_size, arguments...);
 
     invoke_device_function(
       m_fn,
@@ -103,7 +117,6 @@ public:
   template<typename... S>
   auto operator()(S&&... arguments) const
   {
-    return m_fn(TransformParameters<S>::transform(
-      std::forward<S>(arguments), m_properties, Allen::KernelInvocationConfiguration {})...);
+    return m_fn(TransformParameters<S>::transform(std::forward<S>(arguments), m_properties, {})...);
   }
 };

@@ -645,6 +645,49 @@ class AlgorithmCategory(Enum):\n\
         gen.generate_file(output_filename, max_length, struct_to_tuple_folder)
 
 
+    @staticmethod
+    def write_extern_lines(algorithms,
+                           filename,
+                           separable_compilation):
+        selection_algorithms = [a for a in algorithms if a.scope == "SelectionAlgorithm"]
+        code = "\n".join(
+            ("#pragma once", "", "#include \"BackendCommon.h\"", "\n"))
+        for alg in selection_algorithms:
+            code += "\n".join((
+                f"namespace {alg.namespace} {{",
+                f"  struct {alg.name};",
+                "  struct Parameters;",
+                "}\n"))
+        code += "\n"
+        if separable_compilation:
+            for alg in selection_algorithms:
+                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
+            code += "\n"
+            for alg in selection_algorithms:
+                code += f"extern template void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
+        code += "\nconstexpr auto line_strings = {\n"
+        for i, alg in enumerate(selection_algorithms):
+            code += f"  \"{alg.name}\""
+            if i != len(selection_algorithms) - 1:
+                code += ",\n"
+        code += "\n};\n\n"
+        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j) {\n"
+        code += f"  assert(index < {len(selection_algorithms)});\n"
+        code += "  switch (index) {\n"
+        for i, alg in enumerate(selection_algorithms):
+            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j); break;\n"
+        code += "  }\n}\n\n"
+        code += f"constexpr std::array<void(*)(char*, const RuntimeOptions&, const Allen::Context&), {len(selection_algorithms)}> line_output_monitor_functions = {{\n"
+        for i, alg in enumerate(selection_algorithms):
+            code += f"  line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>"
+            if i != len(selection_algorithms) - 1:
+                code += ",\n"
+        code += "\n};\n"
+        # void inline invoke_output_monitor(const char* arg_ref, const RuntimeOptions& runtime_options, const Allen::Context& context) {
+        with open(filename, "w") as f:
+            f.write(code)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Parse the Allen codebase and generate a python representation of all algorithms.'
@@ -687,7 +730,8 @@ if __name__ == '__main__':
         default="views",
         choices=["parsed_algorithms", "views",
                  "wrapperlist", "wrappers", "db",
-                 "struct_to_tuple"],
+                 "struct_to_tuple", "extern_lines",
+                 "extern_lines_nosepcomp"],
         help="action that will be performed")
 
     args = parser.parse_args()
@@ -727,3 +771,9 @@ if __name__ == '__main__':
             # Write struct to tuple to support all parameters and properties
             # of all existing algorithms
             AllenCore.write_struct_to_tuple(parsed_algorithms, args.filename, args.struct_to_tuple_folder)
+        elif args.generate == "extern_lines":
+            # Write extern lines header file
+            AllenCore.write_extern_lines(parsed_algorithms, args.filename, True)
+        elif args.generate == "extern_lines_nosepcomp":
+            # Write extern lines header file, without separable compilation
+            AllenCore.write_extern_lines(parsed_algorithms, args.filename, False)

@@ -12,24 +12,17 @@ namespace displaced_leptons_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
-    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
-    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
     // TODO: For now, this is called a "track" container instead of a "particle"
     // container to trick the SelReport writer into not looking for individual
     // selected candidates. This line needs to be reworked to save individual
     // candidate information to the SelReport.
     DEVICE_INPUT(dev_track_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_track_container;
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     DEVICE_INPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    DEVICE_OUTPUT(dev_particle_container_ptr_t, Allen::IMultiEventContainer*) dev_particle_container_ptr;
+    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -42,7 +35,7 @@ namespace displaced_leptons_line {
                                     Parameters,
                                     EventLine<displaced_leptons_line_t, Parameters> {
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
-    get_input(const Parameters& parameters, const unsigned event_number);
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned);
 
     __device__ static bool select(
       const Parameters& parameters,

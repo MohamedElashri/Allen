@@ -8,6 +8,14 @@ Monitoring Lines with ROOT
 ------------------------------
 In order to monitor your lines **three** functions have to be added. The first one is devoted to initialize the arrays that will be filled by the `monitor` function. The second one is used to retrieve the necessary information from the inputs of the `Line` (both `Tracks` and `Vertices`). A third one has to be added in order to transport the information into a ROOT file.
 
+In addition, your selection algorithm should contain an additional property::
+
+  PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+
+The property should be defaulted to false::
+
+  Property<enable_monitoring_t> m_enable_monitoring {this, false};
+
 In this example we want to monitor the `Mass` and `pT` of the Secondary Vertices selected by a line meant for the decay Ks-> pi+ pi- .
 
 First wee need to add the additional `Parameters` that will carry our arrays to our `Line` header:
@@ -23,6 +31,8 @@ First wee need to add the additional `Parameters` that will carry our arrays to 
    
        DEVICE_OUTPUT(dev_pt_t, float) dev_pt;
        HOST_OUTPUT(host_pt_t, float) host_pt;
+
+       PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
      };
     };
   

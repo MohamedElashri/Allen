@@ -10,66 +10,47 @@
 #include "ODINBank.cuh"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
+#include <tuple>
 
 // Helper macro to explicitly instantiate lines
-#define INSTANTIATE_LINE(LINE, PARAMETERS)          \
-  template void Line<LINE, PARAMETERS>::operator()( \
-    const ArgumentReferences<PARAMETERS>&,          \
-    const RuntimeOptions&,                          \
-    const Constants&,                               \
-    HostBuffers&,                                   \
-    const Allen::Context&) const;                   \
-  INSTANTIATE_ALGORITHM(LINE)
+#define INSTANTIATE_LINE(DERIVED, PARAMETERS)                                                                  \
+  template void Line<DERIVED, PARAMETERS>::operator()(                                                         \
+    const ArgumentReferences<PARAMETERS>&,                                                                     \
+    const RuntimeOptions&,                                                                                     \
+    const Constants&,                                                                                          \
+    HostBuffers&,                                                                                              \
+    const Allen::Context&) const;                                                                              \
+  template __device__ void process_line<DERIVED, PARAMETERS>(                                                  \
+    char*,                                                                                                     \
+    bool*,                                                                                                     \
+    unsigned*,                                                                                                 \
+    Allen::IMultiEventContainer**,                                                                             \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned,                                                                                                  \
+    unsigned);                                                                                                 \
+  template void line_output_monitor<DERIVED, PARAMETERS>(char*, const RuntimeOptions&, const Allen::Context&); \
+  INSTANTIATE_ALGORITHM(DERIVED)
 
-// "Enum of types" to determine dispatch to global_function
-namespace LineIteration {
-  struct default_iteration_tag {
-  };
-  struct event_iteration_tag {
-  };
-} // namespace LineIteration
+// Type-erased line function type
+using line_fn_t = void (*)(
+  char*,
+  bool*,
+  unsigned*,
+  Allen::IMultiEventContainer**,
+  unsigned,
+  unsigned,
+  unsigned,
+  unsigned,
+  unsigned,
+  unsigned);
 
-/**
- * @brief A generic Line.
- * @detail It assumes the line has the following parameters:
- *
- *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
- *  MASK_INPUT(dev_event_list_t) dev_event_list;
- *  MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
- *  HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
- *  DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
- *  DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
- *  DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
- *  DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
- *  DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
- *  DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
- *  HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
- *  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
- *  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
- *  PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
- *  PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
- *  PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
- *
- * The inheriting line must also provide the following methods:
- *
- *     __device__ unsigned offset(const Parameters& parameters, const unsigned event_number) const;
- *
- *     unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments) const;
- *
- *     __device__ std::tuple<types...>
- *     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i) const;
- *
- *     __device__ bool select(const Parameters& parameters, std::tuple<types...> input) const;
- *
- *     where "types..." is a list of types that can be freely configured.
- *
- *
- * The following methods can optionally be defined in an inheriting class:
- *
- *     unsigned get_grid_dim_x(const ArgumentReferences<Parameters>&) const;
- *
- *     unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const;
- */
+template<typename Derived, typename Parameters>
+using type_erased_tuple_t =
+  std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>;
+
 template<typename Derived, typename Parameters>
 struct Line {
 private:
@@ -77,8 +58,6 @@ private:
   uint32_t m_post_scaler_hash;
 
 public:
-  using iteration_t = LineIteration::default_iteration_tag;
-
   void init()
   {
     auto derived_instance = static_cast<const Derived*>(this);
@@ -101,16 +80,12 @@ public:
     const Constants&,
     const HostBuffers&) const
   {
-    set_size<typename Parameters::dev_decisions_t>(arguments, Derived::get_decisions_size(arguments));
-    set_size<typename Parameters::dev_decisions_offsets_t>(
-      arguments, first<typename Parameters::host_number_of_events_t>(arguments));
-    set_size<typename Parameters::dev_selected_events_t>(
-      arguments, first<typename Parameters::host_number_of_events_t>(arguments));
+    set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
     set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-    set_size<typename Parameters::host_selected_events_size_t>(arguments, 1);
-    set_size<typename Parameters::dev_selected_events_size_t>(arguments, 1);
-    set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
+
+    // Set the size of the type-erased fn parameters
+    set_size<typename Parameters::host_fn_parameters_t>(arguments, sizeof(type_erased_tuple_t<Derived, Parameters>));
   }
 
   void operator()(
@@ -121,215 +96,100 @@ public:
     const Allen::Context& context) const;
 
   /**
-   * @brief Grid dimension of kernel call. get_grid_dim returns the size of the event list.
-   */
-  static unsigned get_grid_dim_x(const ArgumentReferences<Parameters>& arguments)
-  {
-    if constexpr (std::is_same<typename Derived::iteration_t, LineIteration::default_iteration_tag>::value) {
-      return size<typename Parameters::dev_event_list_t>(arguments);
-    }
-    return 1;
-  }
-
-  /**
-   * @brief Default block dim x of kernel call. Can be "overriden".
-   */
-  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 256; }
-
-  /**
    * @brief Default monitor function.
    */
-  static void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) {}
-  template<typename INPUT>
-  static __device__ void monitor(const Parameters&, INPUT, unsigned, bool)
+  void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) const {}
+
+  template<typename T>
+  static __device__ void monitor(const Parameters&, T, unsigned, bool)
   {}
-  static __host__ void
-  output_monitor(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&)
-  {}
+
+  void output_monitor(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&) const {}
 };
 
-#if defined(DEVICE_COMPILER)
-
-/**
- * @brief Processes a line by iterating over all events and all "input sizes" (ie. tracks, vertices, etc.).
- *        The way process line parallelizes is highly configurable.
- */
 template<typename Derived, typename Parameters>
-__global__ void process_line(Parameters parameters, const unsigned number_of_events, const unsigned pre_scaler_hash)
+void line_output_monitor(char* input, const RuntimeOptions& runtime_options, const Allen::Context& context)
 {
-  __shared__ int event_decision;
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned input_size = Derived::input_size(parameters, event_number);
+  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+    const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+    auto derived_instance = std::get<5>(type_casted_input);
+    derived_instance->output_monitor(std::get<4>(type_casted_input), runtime_options, context);
+  }
+}
 
-  if (threadIdx.x == 0) {
-    event_decision = 0;
+template<typename Derived, typename Parameters>
+__device__ void process_line(
+  char* input,
+  bool* decisions,
+  unsigned* decisions_offsets,
+  Allen::IMultiEventContainer** particle_container_ptr,
+  unsigned run_no,
+  unsigned evt_hi,
+  unsigned evt_lo,
+  unsigned gps_hi,
+  unsigned gps_lo,
+  unsigned line_offset)
+{
+  const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+  const auto& parameters = std::get<0>(type_casted_input);
+  const auto event_list_size = std::get<1>(type_casted_input);
+  const auto number_of_events = std::get<2>(type_casted_input);
+  const auto event_number = blockIdx.x;
+
+  // Check if blockIdx.x (event_number) is in dev_event_list
+  unsigned mask = 0;
+  for (unsigned i = 0; i < (event_list_size + warp_size - 1) / warp_size; ++i) {
+    const auto index = i * warp_size + threadIdx.x;
+    mask |=
+      __ballot_sync(0xFFFFFFFF, index < event_list_size ? event_number == parameters.dev_event_list[index] : false);
   }
 
-  // Populate IMultiEventContainer* if relevant
-  if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-    if (blockIdx.x == 0 && threadIdx.x == 0) {
-      const auto particle_container_ptr =
-        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
-    }
-  }
-
-  __syncthreads();
-
-  // ODIN data
-  const LHCb::ODIN odin {
-    {*parameters.dev_mep_layout ?
-       odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-       odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
-     10}};
-
-  const uint32_t run_no = odin.runNumber();
-  const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
-  const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
-  const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
-  const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
-
-  bool thread_local_event_decision = false;
-  // Pre-scaler
-  if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-    // Do selection
-    for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-      auto input = Derived::get_input(parameters, event_number, i);
-      bool sel = Derived::select(parameters, input);
-      unsigned index = Derived::offset(parameters, event_number) + i;
-      parameters.dev_decisions[index] = sel;
-      Derived::monitor(parameters, input, index, sel);
-      thread_local_event_decision |= sel;
-    }
-  }
-
-  // Populate offsets in first block
+  // Do initialization for all events, regardless of mask
+  // * Populate offsets in first block
   if (blockIdx.x == 0) {
     for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-      parameters.dev_decisions_offsets[i] = Derived::offset(parameters, i);
+      decisions_offsets[i] = line_offset + Derived::offset(parameters, i);
     }
   }
 
-  // Note: This could be done more efficiently with warp intrinsics
-  atomicOr(&event_decision, thread_local_event_decision);
+  // * Populate IMultiEventContainer* if relevant
+  if (blockIdx.x == 0 && threadIdx.x == 0) {
+    if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+      const auto ptr = static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+      *particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);
+    }
+    else {
+      *particle_container_ptr = nullptr;
+    }
+  }
 
-  // Synchronize the event_decision
-  __syncthreads();
+  // * Populate decisions
+  const auto pre_scaler_hash = std::get<3>(type_casted_input);
+  const bool pre_scaler_result =
+    deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  const unsigned input_size = Derived::input_size(parameters, event_number);
 
-  // Populate event decision
-  if (threadIdx.x == 0) {
-    if (event_decision) {
-      const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
-      parameters.dev_selected_events[index] = mask_t {event_number};
+  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+    const auto input = Derived::get_input(parameters, event_number, i);
+    const bool decision = mask > 0 && pre_scaler_result && Derived::select(parameters, input);
+    unsigned index = Derived::offset(parameters, event_number) + i;
+    decisions[index] = decision;
+    if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+      if (parameters.enable_monitoring) {
+        Derived::monitor(parameters, input, event_number, decision);
+      }
     }
   }
 }
-
-/**
- * @brief Processes a line by iterating over events and applying the line.
- */
-template<typename Derived, typename Parameters>
-__global__ void process_line_iterate_events(
-  Parameters parameters,
-  const unsigned number_of_events_in_event_list,
-  const unsigned number_of_events,
-  const unsigned pre_scaler_hash)
-{
-  // Populate IMultiEventContainer* if relevant
-  if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-    if (blockIdx.x == 0 && threadIdx.x == 0) {
-      const auto particle_container_ptr =
-        static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-      parameters.dev_particle_container_ptr[0] = const_cast<Allen::IMultiEventContainer*>(particle_container_ptr);
-    }
-  }
-
-  // Do selection
-  for (unsigned i = threadIdx.x; i < number_of_events_in_event_list; i += blockDim.x) {
-    const auto event_number = parameters.dev_event_list[i];
-
-    // ODIN data
-    const LHCb::ODIN odin {
-      {*parameters.dev_mep_layout ?
-         odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number) :
-         odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number),
-       10}};
-
-    const uint32_t run_no = odin.runNumber();
-    const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
-    const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
-    const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
-    const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
-
-    bool decision = false;
-    if (deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
-      auto input = Derived::get_input(parameters, event_number);
-      decision = Derived::select(parameters, input);
-      parameters.dev_decisions[event_number] = decision;
-      Derived::monitor(parameters, input, event_number, decision);
-    }
-
-    if (decision) {
-      const auto index = atomicAdd(parameters.dev_selected_events_size.get(), 1);
-      parameters.dev_selected_events[index] = mask_t {event_number};
-    }
-  }
-
-  // Populate offsets
-  for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
-    parameters.dev_decisions_offsets[event_number] = event_number;
-  }
-}
-
-template<typename Derived, typename Parameters, typename GlobalFunctionDispatch>
-struct LineIterationDispatch;
-
-template<typename Derived, typename Parameters>
-struct LineIterationDispatch<Derived, Parameters, LineIteration::default_iteration_tag> {
-  static void dispatch(
-    const ArgumentReferences<Parameters>& arguments,
-    const Allen::Context& context,
-    const Derived* derived_instance,
-    const unsigned grid_dim_x,
-    const unsigned pre_scaler_hash)
-  {
-    derived_instance->global_function(process_line<Derived, Parameters>)(
-      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
-      arguments, first<typename Parameters::host_number_of_events_t>(arguments), pre_scaler_hash);
-  }
-};
-
-template<typename Derived, typename Parameters>
-struct LineIterationDispatch<Derived, Parameters, LineIteration::event_iteration_tag> {
-  static void dispatch(
-    const ArgumentReferences<Parameters>& arguments,
-    const Allen::Context& context,
-    const Derived* derived_instance,
-    const unsigned grid_dim_x,
-    const unsigned pre_scaler_hash)
-  {
-    derived_instance->global_function(process_line_iterate_events<Derived, Parameters>)(
-      grid_dim_x, Derived::get_block_dim_x(arguments), context)(
-      arguments,
-      size<typename Parameters::dev_event_list_t>(arguments),
-      first<typename Parameters::host_number_of_events_t>(arguments),
-      pre_scaler_hash);
-  }
-};
 
 template<typename Derived, typename Parameters>
 void Line<Derived, Parameters>::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
   HostBuffers&,
-  const Allen::Context& context) const
+  [[maybe_unused]] const Allen::Context& context) const
 {
-  initialize<typename Parameters::dev_decisions_t>(arguments, 0, context);
-  initialize<typename Parameters::dev_decisions_offsets_t>(arguments, 0, context);
-  initialize<typename Parameters::dev_selected_events_size_t>(arguments, 0, context);
-  initialize<typename Parameters::dev_particle_container_ptr_t>(arguments, 0, context);
-
   const auto* derived_instance = static_cast<const Derived*>(this);
 
   // Copy post scaler and hash to an output, such that GatherSelections can later
@@ -337,19 +197,21 @@ void Line<Derived, Parameters>::operator()(
   data<typename Parameters::host_post_scaler_t>(arguments)[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
   data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
+  data<typename Parameters::host_decisions_size_t>(arguments)[0] = Derived::get_decisions_size(arguments);
 
-  Derived::init_monitor(arguments, context);
+  // Delay the execution of the line: Pass the parameters
+  auto parameters = std::make_tuple(
+    derived_instance->make_parameters(1, 1, 0, arguments),
+    size<typename Parameters::dev_event_list_t>(arguments),
+    first<typename Parameters::host_number_of_events_t>(arguments),
+    m_pre_scaler_hash,
+    arguments,
+    derived_instance);
 
-  // Dispatch the executing global function.
-  LineIterationDispatch<Derived, Parameters, typename Derived::iteration_t>::dispatch(
-    arguments, context, derived_instance, Derived::get_grid_dim_x(arguments), m_pre_scaler_hash);
+  assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
+  std::memcpy(data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
 
-  Allen::copy<typename Parameters::host_selected_events_size_t, typename Parameters::dev_selected_events_size_t>(
-    arguments, context);
-  reduce_size<typename Parameters::dev_selected_events_t>(
-    arguments, first<typename Parameters::host_selected_events_size_t>(arguments));
-
-  derived_instance->output_monitor(arguments, runtime_options, context);
+  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+    derived_instance->init_monitor(arguments, context);
+  }
 }
-
-#endif

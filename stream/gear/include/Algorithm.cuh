@@ -391,6 +391,17 @@ namespace Allen {
       return GlobalFunction<Fn> {m_properties, fn};
     }
 
+    template<typename... S>
+    auto make_parameters(
+      const dim3& grid_dim,
+      const dim3& block_dim,
+      const unsigned dynamic_shared_memory_size,
+      S&&... arguments) const
+    {
+      return Allen::Gear::Function::make_parameters(
+        m_properties, grid_dim, block_dim, dynamic_shared_memory_size, arguments...);
+    }
+
     PROPERTY(verbosity_t, "verbosity", "verbosity of algorithm", int);
 
   protected:

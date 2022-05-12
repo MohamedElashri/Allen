@@ -42,17 +42,14 @@ void rich_2_line::rich_2_line_t::set_arguments_size(
 
   set_size<typename Parameters::dev_phi_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_phi_t>(arguments, rich_2_line::rich_2_line_t::get_decisions_size(arguments));
-
-  set_size<typename Parameters::dev_particle_container_ptr_t>(arguments, 1);
 }
 
-#ifdef WITH_ROOT
 /*
  * Documented in ExampleOneTrackLine.cuh
  */
 void rich_2_line::rich_2_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
+  const Allen::Context& context) const
 {
   initialize<dev_decision_t>(arguments, false, context);
   initialize<dev_pt_t>(arguments, 0, context);
@@ -83,16 +80,12 @@ __device__ void rich_2_line::rich_2_line_t::monitor(
   parameters.dev_decision[index] = sel;
 }
 
-/*
- * Documented in ExampleOneTrackLine.cuh
- */
 void rich_2_line::rich_2_line_t::output_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Allen::Context& context) const
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const RuntimeOptions& runtime_options,
+  [[maybe_unused]] const Allen::Context& context) const
 {
-  if (!property<make_tuple_t>()) return;
-
+#ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
   if (tree == nullptr) return;
@@ -149,8 +142,8 @@ void rich_2_line::rich_2_line_t::output_monitor(
     tree->Fill();
   }
   tree->Write(0, TObject::kOverwrite);
-}
 #endif
+}
 
 __device__ bool rich_2_line::rich_2_line_t::passes(
   const Allen::Views::Physics::BasicParticle& track,

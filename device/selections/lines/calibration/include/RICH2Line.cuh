@@ -19,33 +19,20 @@ namespace rich_2_line {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
-    pre_scaler_hash_string;
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
-    post_scaler_hash_string;
-
-    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
-    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
-    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
+    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
+    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
 
     // Line-specific inputs and properties
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_particle_container_ptr_t,
-      DEPENDENCIES(dev_particle_container_t),
-      Allen::IMultiEventContainer*)
-    dev_particle_container_ptr;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
 
     // Monitoring
     DEVICE_OUTPUT(dev_decision_t, bool) dev_decision;
@@ -75,7 +62,7 @@ namespace rich_2_line {
     PROPERTY(minPhi_t, "minPhi", "minimum azi angle", std::array<float, 4>) minPhi;
     PROPERTY(maxPhi_t, "maxPhi", "maximum azi angle", std::array<float, 4>) maxPhi;
 
-    PROPERTY(make_tuple_t, "make_tuple", "Make tuple for monitoring", bool) make_tuple;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   // SelectionAlgorithm definition
@@ -95,18 +82,18 @@ namespace rich_2_line {
       std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
-#ifdef WITH_ROOT
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+
     __device__ static void monitor(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
       bool sel);
-    __host__ void output_monitor(
+
+    void output_monitor(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Allen::Context& context) const;
-#endif
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
@@ -132,7 +119,7 @@ namespace rich_2_line {
     Property<maxPhi_t> m_maxPhi {this, {-2.49, -0.55, 0.65, 2.59}};
 
     // Switch to create monitoring tuple
-    Property<make_tuple_t> m_make_tuple {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 
 } // namespace rich_2_line

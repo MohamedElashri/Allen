@@ -10,20 +10,14 @@
  */
 template<typename Derived, typename Parameters>
 struct EventLine : public Line<Derived, Parameters> {
-  /**
-   * @brief Set the tag to event_iteration_tag, to mark how to iterate events.
-   */
-  using iteration_t = LineIteration::event_iteration_tag;
+  __device__ static unsigned offset(const Parameters&, const unsigned event_number) { return event_number; }
 
-  /**
-   * @brief Execute with a block dimension of 512.
-   */
-  static unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) { return 512; }
+  __device__ static unsigned input_size(const Parameters&, const unsigned) { return 1; }
 
   /**
    * @brief Decision size is the number of events.
    */
-  static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments)
+  static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
   {
     return first<typename Parameters::host_number_of_events_t>(arguments);
   }

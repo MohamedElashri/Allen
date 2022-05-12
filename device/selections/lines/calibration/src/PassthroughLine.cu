@@ -6,7 +6,8 @@
 // Explicit instantiation
 INSTANTIATE_LINE(passthrough_line::passthrough_line_t, passthrough_line::Parameters)
 
-__device__ std::tuple<const bool> passthrough_line::passthrough_line_t::get_input(const Parameters&, const unsigned)
+__device__ std::tuple<const bool>
+passthrough_line::passthrough_line_t::get_input(const Parameters&, const unsigned, const unsigned)
 {
   return std::forward_as_tuple(true);
 }

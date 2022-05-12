@@ -37,6 +37,104 @@ class Scheduler {
   device_memory_manager_t device_memory_manager {"Device memory manager"};
   bool do_print = false;
 
+private:
+  // Get in and out dependencies
+  std::tuple<std::vector<LifetimeDependencies>, std::vector<LifetimeDependencies>> calculate_lifetime_dependencies(
+    const std::vector<ConfiguredAlgorithmArguments>& sequence_arguments,
+    const ArgumentDependencies& argument_dependencies,
+    const std::vector<Allen::TypeErasedAlgorithm>& sequence)
+  {
+    std::vector<LifetimeDependencies> in_deps;
+    std::vector<LifetimeDependencies> out_deps;
+    std::vector<std::string> temp_arguments;
+
+    const auto argument_in = [](const std::string& arg, const auto& args) {
+      return std::find(std::begin(args), std::end(args), arg) != std::end(args);
+    };
+
+    const auto argument_in_map = [](const std::string& arg, const auto& args) {
+      return args.find(arg) != std::end(args);
+    };
+
+    auto seq_args = sequence_arguments;
+
+    // Add all dependencies from all SelectionAlgorithms to in_deps of algorithm gather_selections
+    std::set<std::string> selection_arguments;
+    for (unsigned i = 0; i < seq_args.size(); ++i) {
+      if (sequence[i].scope() == "SelectionAlgorithm") {
+        for (const auto& arg : seq_args[i].arguments) {
+          selection_arguments.insert(arg);
+        }
+      }
+      if (sequence[i].name() == "gather_selections") {
+        for (const auto& arg : selection_arguments) {
+          seq_args[i].arguments.push_back(arg);
+        }
+      }
+    }
+
+    for (unsigned i = 0; i < seq_args.size(); ++i) {
+      // Calculate out_dep for this algorithm
+      LifetimeDependencies out_dep;
+      std::vector<std::string> next_temp_arguments;
+
+      for (const auto& arg : temp_arguments) {
+        bool arg_can_be_freed = true;
+
+        for (unsigned j = i; j < seq_args.size(); ++j) {
+          const auto& alg = seq_args[j];
+          if (argument_in(arg, alg.arguments)) {
+            arg_can_be_freed = false;
+          }
+
+          // dependencies
+          for (const auto& alg_arg : alg.arguments) {
+            if (
+              argument_in_map(alg_arg, argument_dependencies) && argument_in(arg, argument_dependencies.at(alg_arg))) {
+              arg_can_be_freed = false;
+              break;
+            }
+          }
+
+          // input aggregates
+          for (const auto& input_aggregate : alg.input_aggregates) {
+            if (argument_in(arg, input_aggregate)) {
+              arg_can_be_freed = false;
+              break;
+            }
+          }
+
+          if (!arg_can_be_freed) {
+            break;
+          }
+        }
+
+        if (arg_can_be_freed) {
+          out_dep.arguments.push_back(arg);
+        }
+        else {
+          next_temp_arguments.push_back(arg);
+        }
+      }
+      out_deps.emplace_back(out_dep);
+
+      // Update temp_arguments
+      temp_arguments = next_temp_arguments;
+
+      // Calculate in_dep for this algorithm
+      LifetimeDependencies in_dep;
+      for (const auto& arg : seq_args[i].arguments) {
+        if (!argument_in(arg, temp_arguments)) {
+          temp_arguments.push_back(arg);
+          in_dep.arguments.push_back(arg);
+        }
+      }
+      in_deps.emplace_back(in_dep);
+    }
+
+    return {in_deps, out_deps};
+  }
+
 public:
   Scheduler(
     const ConfiguredSequence& configuration,
@@ -58,7 +156,8 @@ public:
     initialize_store(configured_arguments);
 
     // Calculate in and out dependencies of defined sequence
-    std::tie(m_in_dependencies, m_out_dependencies) = calculate_lifetime_dependencies(sequence_arguments, arg_deps);
+    std::tie(m_in_dependencies, m_out_dependencies) =
+      calculate_lifetime_dependencies(sequence_arguments, arg_deps, m_sequence);
 
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {

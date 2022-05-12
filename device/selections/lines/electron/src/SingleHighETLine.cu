@@ -22,7 +22,7 @@ __device__ unsigned single_high_et_line::single_high_et_line_t::input_size(
 }
 
 // Get decision size function
-unsigned single_high_et_line::single_high_et_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments)
+unsigned single_high_et_line::single_high_et_line_t::get_decisions_size(const ArgumentReferences<Parameters>& arguments)
 {
   return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
 }

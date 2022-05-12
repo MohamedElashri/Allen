@@ -14,22 +14,12 @@ namespace kstopipi_line {
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
-    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
-    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
 
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_particle_container_ptr_t,
-      DEPENDENCIES(dev_particle_container_t),
-      Allen::IMultiEventContainer*)
-    dev_particle_container_ptr;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
     DEVICE_OUTPUT(dev_sv_masses_t, float) dev_sv_masses;
     HOST_OUTPUT(host_sv_masses_t, float) host_sv_masses;
 
@@ -46,21 +36,22 @@ namespace kstopipi_line {
     PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
-    PROPERTY(make_tuple_t, "make_tuple", "Make tuple for monitoring", bool) make_tuple;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
-#ifdef WITH_ROOT
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+
+    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+
     __device__ static void monitor(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-#endif
+
+    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
+      const;
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
@@ -81,6 +72,6 @@ namespace kstopipi_line {
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
 
     // Switch to create monitoring tuple
-    Property<make_tuple_t> m_make_tuple {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 } // namespace kstopipi_line

@@ -19,45 +19,38 @@ void single_calo_cluster_line::single_calo_cluster_line_t::set_arguments_size(
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
 
   // must set_size of all output variables
+  set_size<host_post_scaler_t>(arguments, 1);
 
-  set_size<typename Parameters::dev_decisions_t>(
+  set_size<host_post_scaler_hash_t>(arguments, 1);
+
+  set_size<dev_clusters_x_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_decisions_offsets_t>(
-    arguments, first<typename Parameters::host_number_of_events_t>(arguments));
-
-  set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
-
-  set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
-
-  set_size<typename Parameters::dev_clusters_x_t>(
+  set_size<host_clusters_x_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_x_t>(
+  set_size<dev_clusters_y_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_y_t>(
+  set_size<host_clusters_y_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_y_t>(
+  set_size<dev_clusters_Et_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_Et_t>(
+  set_size<host_clusters_Et_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_Et_t>(
+  set_size<dev_clusters_Eta_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_Eta_t>(
+  set_size<host_clusters_Eta_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::host_clusters_Eta_t>(
+  set_size<dev_clusters_Phi_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
-  set_size<typename Parameters::dev_clusters_Phi_t>(
-    arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
-
-  set_size<typename Parameters::host_clusters_Phi_t>(
+  set_size<host_clusters_Phi_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 }
 
@@ -76,10 +69,9 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   return decision;
 }
 
-#ifdef WITH_ROOT
 void single_calo_cluster_line::single_calo_cluster_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
+  const Allen::Context& context) const
 {
 
   initialize<dev_clusters_x_t>(arguments, -1, context);
@@ -98,26 +90,25 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(
   const auto& ecal_cluster = std::get<0>(input);
   const float& z = Calo::Constants::z; // mm
   const float& sintheta =
-    sqrt((POW(ecal_cluster.x) + POW(ecal_cluster.y)) / (POW(ecal_cluster.x) + POW(ecal_cluster.y) + POW(z)));
-  const float& cosphi = ecal_cluster.x / sqrt(POW(ecal_cluster.x) + POW(ecal_cluster.y));
+    sqrtf((POW(ecal_cluster.x) + POW(ecal_cluster.y)) / (POW(ecal_cluster.x) + POW(ecal_cluster.y) + POW(z)));
+  const float& cosphi = ecal_cluster.x / sqrtf(POW(ecal_cluster.x) + POW(ecal_cluster.y));
   const float& E_T = ecal_cluster.e * sintheta;
 
   if (sel) {
     parameters.dev_clusters_x[index] = ecal_cluster.x;
     parameters.dev_clusters_y[index] = ecal_cluster.y;
     parameters.dev_clusters_Et[index] = E_T;
-    parameters.dev_clusters_Eta[index] = asin(sintheta);
-    parameters.dev_clusters_Phi[index] = acos(cosphi);
+    parameters.dev_clusters_Eta[index] = asinf(sintheta);
+    parameters.dev_clusters_Phi[index] = acosf(cosphi);
   }
 }
 
 void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Allen::Context& context) const
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const RuntimeOptions& runtime_options,
+  [[maybe_unused]] const Allen::Context& context) const
 {
-  if (!property<make_tuple_t>()) return;
-
+#ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
   if (tree == nullptr) return;
@@ -167,5 +158,5 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
       tree->Fill();
     }
   }
-}
 #endif
+}

@@ -12,27 +12,6 @@
 
 INSTANTIATE_LINE(two_track_mva_line::two_track_mva_line_t, two_track_mva_line::Parameters)
 
-__device__ unsigned two_track_mva_line::two_track_mva_line_t::offset(
-  const Parameters& parameters,
-  const unsigned event_number)
-{
-  const auto particles = parameters.dev_particle_container->container(event_number);
-  return particles.offset();
-}
-
-__device__ unsigned two_track_mva_line::two_track_mva_line_t::input_size(
-  const Parameters& parameters,
-  const unsigned event_number)
-{
-  const auto particles = parameters.dev_particle_container->container(event_number);
-  return particles.size();
-}
-
-unsigned two_track_mva_line::two_track_mva_line_t::get_decisions_size(ArgumentReferences<Parameters>& arguments)
-{
-  return first<typename Parameters::host_number_of_svs_t>(arguments);
-}
-
 __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
 two_track_mva_line::two_track_mva_line_t::get_input(
   const Parameters& parameters,
