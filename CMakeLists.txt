@@ -401,7 +401,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   endif()
 
   string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
-  if (NOT DEFINED CMAKE_CUDA_HOST_COMPILER)
+  if (NOT CMAKE_CUDA_HOST_COMPILER)
     string(REGEX REPLACE "toolchain/.*" "toolchain" CXX_COMPILER_DIR ${CMAKE_CXX_COMPILER})
     string(APPEND CMAKE_CUDA_FLAGS " -ccbin=${CXX_COMPILER_DIR} ")
   endif()
@@ -720,7 +720,7 @@ if (STANDALONE)
   find_package(Git REQUIRED)
   file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/")
   SET(PARAMFILESROOT "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/ParamFiles/")
-  add_custom_command(  
+  add_custom_command(
     OUTPUT "${PARAMFILESROOT}"
     COMMENT "Checking out parameterization files from the LHCb stack"
     COMMAND
@@ -732,4 +732,3 @@ if (STANDALONE)
   add_compile_definitions(PARAMFILESROOTPATH=${PARAMFILESROOT})
   message(STATUS "PARAMFILESROOT set to ${PARAMFILESROOT}")
 endif()
-
