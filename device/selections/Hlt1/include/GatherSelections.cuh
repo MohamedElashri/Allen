@@ -10,7 +10,6 @@
 #include "Line.cuh"
 #include "ODINBank.cuh"
 
-
 namespace gather_selections {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;

@@ -16,7 +16,12 @@ class OutputHandler {
 public:
   OutputHandler() {}
 
-  OutputHandler(IInputProvider const* input_provider, std::string const connection, size_t const output_batch_size, size_t const n_lines, bool const checksum)
+  OutputHandler(
+    IInputProvider const* input_provider,
+    std::string const connection,
+    size_t const output_batch_size,
+    size_t const n_lines,
+    bool const checksum)
   {
     init(input_provider, std::move(connection), output_batch_size, n_lines, checksum);
   }
@@ -44,7 +49,12 @@ public:
   bool do_checksum() const { return m_checksum; }
 
 protected:
-  void init(IInputProvider const* input_provider, std::string const connection, size_t const output_batch_size, size_t const n_lines, bool const checksum)
+  void init(
+    IInputProvider const* input_provider,
+    std::string const connection,
+    size_t const output_batch_size,
+    size_t const n_lines,
+    bool const checksum)
   {
     m_input_provider = input_provider;
     m_connection = std::move(connection);

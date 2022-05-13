@@ -22,7 +22,6 @@
 #include "Common.h"
 #include "BackendCommon.h"
 
-
 namespace Allen {
   namespace detail {
     template<typename R>
@@ -125,7 +124,8 @@ namespace MEP {
       auto const source_id = offsets[2 + bank];
       auto const n_banks = offsets[0];
       auto const* fragment = blocks + offsets[offset_index(n_banks, event, bank)];
-      auto const type = types_offsets == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types_offsets, event, bank);
+      auto const type =
+        types_offsets == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types_offsets, event, bank);
       return {source_id, fragment, MEP::bank_size(blocks, sizes_offsets, event, bank), type};
     }
 
@@ -141,7 +141,8 @@ namespace MEP {
       auto const source_id = offsets[2 + bank];
       auto const n_banks = offsets[0];
       auto const* fragment = blocks + offsets[offset_index(n_banks, event, bank)];
-      auto const type = types_offsets == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types_offsets, event, bank);
+      auto const type =
+        types_offsets == nullptr ? Allen::LastBankType : MEP::bank_type(blocks, types_offsets, event, bank);
       return {source_id, fragment, type};
     }
   } // namespace detail

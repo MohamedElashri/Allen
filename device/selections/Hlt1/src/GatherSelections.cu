@@ -44,7 +44,7 @@ namespace gather_selections {
   {
     // Process each event with a different block
     // ODIN data
-    LHCb::ODIN odin{dev_odin_data[blockIdx.x]};
+    LHCb::ODIN odin {dev_odin_data[blockIdx.x]};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);

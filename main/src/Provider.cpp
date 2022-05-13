@@ -303,7 +303,8 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, n_lines, zmq_svc);
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, n_lines, zmq_svc);
       }
       else {
         output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size, n_lines);
