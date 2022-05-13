@@ -15,6 +15,7 @@ from Configurables import (ApplicationMgr, DumpUTGeometry, DumpFTGeometry,
 from PyConf import configurable
 from DDDB.CheckDD4Hep import UseDD4Hep
 
+
 @configurable
 def setup_allen_non_event_data_service(dump_geometry=False,
                                        out_dir="geometry"):
@@ -38,4 +39,3 @@ def setup_allen_non_event_data_service(dump_geometry=False,
         appMgr.ExtSvc.append("MagneticFieldSvc")
     appMgr.ExtSvc.extend(AllenUpdater())
     appMgr.ExtSvc.extend(producers)
-
