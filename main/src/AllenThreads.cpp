@@ -7,7 +7,6 @@
 
 #include <zmq_compat.h>
 #include <ZeroMQ/IZeroMQSvc.h>
-#include <Serialize/ODIN.h>
 #include <AllenThreads.h>
 
 #include <OutputHandler.h>

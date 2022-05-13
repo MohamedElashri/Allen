@@ -4,9 +4,9 @@
 #include <tuple>
 #include <vector>
 
-#include <DetDesc/Condition.h>
-#include <DetDesc/ConditionAccessorHolder.h>
 #include <GaudiAlg/Transformer.h>
+
+#include <DetDesc/GenericConditionAccessorHolder.h>
 
 #include <Dumpers/Identifiers.h>
 

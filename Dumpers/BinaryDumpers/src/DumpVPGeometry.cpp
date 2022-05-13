@@ -13,12 +13,14 @@
 #include <vector>
 
 // LHCb
-#include <DetDesc/Condition.h>
-#include <DetDesc/ConditionAccessorHolder.h>
-#include "DetDesc/IConditionDerivationMgr.h"
+// #include <DetDesc/Condition.h>
+// #include <DetDesc/ConditionAccessorHolder.h>
+// #include "DetDesc/IConditionDerivationMgr.h"
 #include "Detector/VP/VPChannelID.h"
 #include <boost/numeric/conversion/cast.hpp>
 #include <VPDet/DeVP.h>
+
+#include <DetDesc/GenericConditionAccessorHolder.h>
 
 // Gaudi
 #include "GaudiAlg/Transformer.h"

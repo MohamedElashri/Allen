@@ -19,9 +19,11 @@
 #include <Detector/Calo/CaloCellID.h>
 #include <Detector/Calo/CaloCellCode.h>
 #include <CaloDet/DeCalorimeter.h>
-#include <DetDesc/Condition.h>
-#include <DetDesc/ConditionAccessorHolder.h>
-#include "DetDesc/IConditionDerivationMgr.h"
+// #include <DetDesc/Condition.h>
+// #include <DetDesc/ConditionAccessorHolder.h>
+// #include "DetDesc/IConditionDerivationMgr.h"
+
+#include <DetDesc/GenericConditionAccessorHolder.h>
 
 // Gaudi
 #include "GaudiAlg/Transformer.h"

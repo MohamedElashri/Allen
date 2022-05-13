@@ -31,7 +31,6 @@
 
 #include <zmq/zmq.hpp>
 #include <ZeroMQ/IZeroMQSvc.h>
-#include <Serialize/ODIN.h>
 #include <zmq_compat.h>
 
 #include "BackendCommon.h"

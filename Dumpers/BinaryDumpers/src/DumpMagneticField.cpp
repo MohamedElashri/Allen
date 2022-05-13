@@ -15,8 +15,6 @@
 #include <tuple>
 #include <vector>
 
-//#include "DumpMagneticField.h"
-
 // Include files
 #include "DumpGeometry.h"
 #include <Dumpers/Utils.h>
@@ -25,9 +23,11 @@
 // LHCb
 #include <Kernel/ILHCbMagnetSvc.h>
 #include "Magnet/DeMagnet.h"
-#include <DetDesc/Condition.h>
-#include <DetDesc/ConditionAccessorHolder.h>
-#include "DetDesc/IConditionDerivationMgr.h"
+// #include <DetDesc/Condition.h>
+// #include <DetDesc/ConditionAccessorHolder.h>
+// #include "DetDesc/IConditionDerivationMgr.h"
+
+#include <DetDesc/GenericConditionAccessorHolder.h>
 
 // Gaudi
 #include "GaudiAlg/Transformer.h"
