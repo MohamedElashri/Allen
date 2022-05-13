@@ -37,6 +37,6 @@ def setup_allen_non_event_data_service(dump_geometry=False,
     if not UseDD4Hep:
         # MagneticFieldSvc is required for non-DD4hep builds
         appMgr.ExtSvc.append("MagneticFieldSvc")
-    
+
     appMgr.ExtSvc.extend(AllenUpdater())
     appMgr.ExtSvc.extend(producers)
