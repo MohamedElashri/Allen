@@ -3,10 +3,10 @@
 ###############################################################################
 from AllenConf.utils import initialize_number_of_events, mep_layout, gec
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
-from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
 from AllenConf.hlt1_calibration_lines import make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
-
+from AllenConf.hlt1_heavy_ions_lines import make_heavy_ion_event_line
+from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
 from AllenCore.generator import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
@@ -34,7 +34,7 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
     return line_algorithm, node
 
 def default_lines(velo_tracks, forward_tracks, long_track_particles,
-                  velo_states, calo):
+                  velo_states, calo_decoding, pvs):
     lines = []
     lines.append(
         line_maker(
@@ -92,16 +92,16 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             "Hlt1Passthrough", make_passthrough_line(), enableGEC=False))
-    lines.append(
-        line_maker(
-            "Hlt1RICH1Alignment",
-            make_rich_1_line(forward_tracks, long_track_particles),
-            enableGEC=True))
-    lines.append(
-        line_maker(
-            "HLt1RICH2Alignment",
-            make_rich_2_line(forward_tracks, long_track_particles),
-            enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "Hlt1RICH1Alignment",
+    #         make_rich_1_line(forward_tracks, long_track_particles),
+    #         enableGEC=True))
+    # lines.append(
+    #     line_maker(
+    #         "HLt1RICH2Alignment",
+    #         make_rich_2_line(forward_tracks, long_track_particles),
+    #         enableGEC=True))
     lines.append(
         line_maker(
             "Hlt1BeamGas",
@@ -122,8 +122,12 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
 
     lines.append(
         line_maker(
-            "Hlt1SinglePhoton",
-            make_single_calo_cluster_line(calo),
+            "Hlt1PbPbMicroBiasVelo",
+            make_heavy_ion_event_line(
+                name="Hlt1HeavyIonPbPbMicroBias",
+                velo_tracks=velo_tracks,
+                pvs=pvs,
+                calo_decoding=calo_decoding),
             enableGEC=False))
 
     return lines
@@ -132,13 +136,15 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
 def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
+    calo_decoding = decode_calo()
 
     lines = default_lines(
         reconstructed_objects["velo_tracks"],
         reconstructed_objects["forward_tracks"],
         reconstructed_objects["long_track_particles"],
         reconstructed_objects["velo_states"],
-        reconstructed_objects["ecal_clusters"])
+        calo_decoding,
+        reconstructed_objects["pvs"])
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in lines]
