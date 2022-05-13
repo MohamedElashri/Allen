@@ -29,8 +29,8 @@ def make_beam_line(pre_scaler_hash_string=None,
         beam_crossing_type=beam_crossing_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")
-        dev_odin_t=odin["dev_odin"])
+        post_scaler_hash_string=post_scaler_hash_string or line_name + "_post",
+        dev_odin_data_t=odin["dev_odin_data"])
 
 
 def make_velo_micro_bias_line(velo_tracks,

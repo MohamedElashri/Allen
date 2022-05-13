@@ -6,6 +6,7 @@
 #include "AlgorithmTypes.cuh"
 #include "Line.cuh"
 #include "VeloConsolidated.cuh"
+#include "ODINBank.cuh"
 
 namespace beam_gas_line {
   struct Parameters {
