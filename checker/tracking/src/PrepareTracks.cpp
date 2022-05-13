@@ -171,8 +171,7 @@ std::vector<Checker::Tracks> prepareLongTracks(
 
       // add all hits
       const auto total_number_of_hits = long_track.number_of_hits();
-      for (unsigned int ihit=0; ihit<total_number_of_hits; ihit++)
-      {
+      for (unsigned int ihit = 0; ihit < total_number_of_hits; ihit++) {
         const auto id = long_track.get_id(ihit);
         t.addId(id);
       }

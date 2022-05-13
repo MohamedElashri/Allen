@@ -78,7 +78,7 @@ def long_validation(long_tracks, name="long_validator"):
     mc_events = mc_data_provider()
     number_of_events = initialize_number_of_events()
     velo_kalman_filter = long_tracks["velo_kalman_filter"]
- 
+
     return make_algorithm(
         host_long_validator_t,
         name=name,
@@ -140,38 +140,19 @@ def kalman_validation(kalman_velo_only, name="kalman_validator"):
     number_of_events = initialize_number_of_events()
     mc_events = mc_data_provider()
 
-    forward_tracks = kalman_velo_only["forward_tracks"]
-    veloUT_tracks = forward_tracks["veloUT_tracks"]
-    velo_tracks = veloUT_tracks["velo_tracks"]
-    velo_states = veloUT_tracks["velo_states"]
+    long_tracks = kalman_velo_only["forward_tracks"]
+    velo_kalman_filter = long_tracks["velo_kalman_filter"]
     pvs = kalman_velo_only["pvs"]
 
     return make_algorithm(
         host_kalman_validator_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_offsets_all_velo_tracks_t=velo_tracks[
-            "dev_offsets_all_velo_tracks"],
-        dev_offsets_velo_track_hit_number_t=velo_tracks[
-            "dev_offsets_velo_track_hit_number"],
-        dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
         host_mc_events_t=mc_events.host_mc_events_t,
-        dev_velo_kalman_states_t=velo_states["dev_velo_kalman_endvelo_states"],
-        dev_offsets_ut_tracks_t=veloUT_tracks["dev_offsets_ut_tracks"],
-        dev_offsets_ut_track_hit_number_t=veloUT_tracks[
-            "dev_offsets_ut_track_hit_number"],
-        dev_ut_track_hits_t=veloUT_tracks["dev_ut_track_hits"],
-        dev_ut_track_velo_indices_t=veloUT_tracks["dev_ut_track_velo_indices"],
-        dev_ut_qop_t=veloUT_tracks["dev_ut_qop"],
-        dev_offsets_forward_tracks_t=forward_tracks[
-            "dev_offsets_forward_tracks"],
-        dev_offsets_scifi_track_hit_number_t=forward_tracks[
-            "dev_offsets_scifi_track_hit_number"],
-        dev_scifi_track_hits_t=forward_tracks["dev_scifi_track_hits"],
-        dev_scifi_track_ut_indices_t=forward_tracks[
-            "dev_scifi_track_ut_indices"],
-        dev_scifi_qop_t=forward_tracks["dev_scifi_qop"],
-        dev_scifi_states_t=forward_tracks["dev_scifi_states"],
+        dev_velo_states_view_t=velo_kalman_filter[
+            "dev_velo_kalman_endvelo_states_view"],
+        dev_multi_event_long_tracks_view_t=long_tracks[
+            "dev_multi_event_long_tracks_view"],
         dev_kf_tracks_t=kalman_velo_only["dev_kf_tracks"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
