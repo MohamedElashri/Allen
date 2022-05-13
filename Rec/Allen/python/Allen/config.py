@@ -13,7 +13,7 @@ from Configurables import (ApplicationMgr, DumpUTGeometry, DumpFTGeometry,
                            DumpVPGeometry, DumpMagneticField, DumpBeamline,
                            DumpUTLookupTables, AllenUpdater)
 from PyConf import configurable
-
+from DDDB.CheckDD4Hep import UseDD4Hep
 
 @configurable
 def setup_allen_non_event_data_service(dump_geometry=False,
@@ -33,7 +33,6 @@ def setup_allen_non_event_data_service(dump_geometry=False,
                   DumpUTLookupTables)
     ]
     
-    from DDDB.CheckDD4Hep import UseDD4Hep
 
     appMgr = ApplicationMgr()
     if not UseDD4Hep:
