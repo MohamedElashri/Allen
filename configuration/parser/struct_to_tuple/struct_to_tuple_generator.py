@@ -16,12 +16,12 @@ class StructToTupleGenerator:
             for j in range(i):
                 s += "p" + str(j) + ", "
             s = s[:-2]
-            s += "] = object;\n    return std::make_tuple("
+            s += "] = object;\n    return std::tuple{"
             for j in range(i):
                 s += "p" + str(j) + ", "
             s = s[:-2]
-            s += ");\n  } else "
-        s += "{\n    return std::make_tuple();\n  }"
+            s += "};\n  } else "
+        s += "{\n    return std::tuple{};\n  }"
         return s
 
     def generate_file(self, output_filename, maximum_number_of_parameters,
