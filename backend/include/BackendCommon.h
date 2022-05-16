@@ -100,7 +100,34 @@ namespace Allen {
 // // Replacement for gsl::span in device code
 namespace Allen {
   namespace device {
+#if defined(TARGET_DEVICE_HIP)
+    template<class T>
+    struct span {
+      T* __ptr = nullptr;
+      size_t __size = 0;
+
+      constexpr span() = default;
+
+      constexpr __device__ __host__ span(T* ptr, size_t size) : __ptr(ptr), __size(size) {}
+
+      template<size_t N>
+      constexpr __device__ __host__ span(std::array<T, N>& a) : __ptr(std::data(a)), __size(N)
+      {}
+
+      template<size_t N>
+      constexpr __device__ __host__ span(const std::array<std::remove_const_t<T>, N>& a) :
+        __ptr(std::data(a)), __size(N)
+      {}
+
+      constexpr __device__ __host__ T* data() const { return __ptr; }
+      constexpr __device__ __host__ size_t size() const { return __size; }
+      constexpr __device__ __host__ size_t size_bytes() const { return __size * sizeof(T); }
+      constexpr __device__ __host__ T& operator[](int i) { return __ptr[i]; }
+      constexpr __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
+    };
+#else
     using gsl::span;
+#endif
   } // namespace device
 } // namespace Allen
 
