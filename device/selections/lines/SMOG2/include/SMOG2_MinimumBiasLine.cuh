@@ -41,11 +41,12 @@ namespace SMOG2_minimum_bias_line {
     // Get decision size function
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);
 
-    // Get input size function    
+    // Get input size function
     __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
 
     // Get input function
-    __device__ static std::tuple<const unsigned, const float> get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    __device__ static std::tuple<const unsigned, const float>
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     // Selection function
     __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned, const float> input);

@@ -13,8 +13,7 @@ void check_pvs::check_pvs_t::set_arguments_size(
 {
   set_size<dev_number_of_selected_events_t>(arguments, 1);
   set_size<host_number_of_selected_events_t>(arguments, 1);
-  set_size<dev_event_list_output_t>(
-    arguments, size<dev_event_list_t>(arguments));
+  set_size<dev_event_list_output_t>(arguments, size<dev_event_list_t>(arguments));
 }
 
 void check_pvs::check_pvs_t::operator()(
@@ -30,11 +29,8 @@ void check_pvs::check_pvs_t::operator()(
 
   global_function(check_pvs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
-  Allen::
-    copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(
-      arguments, context);
-  reduce_size<dev_event_list_output_t>(
-    arguments, first<host_number_of_selected_events_t>(arguments));
+  Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
+  reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
 __global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
@@ -44,14 +40,13 @@ __global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
   const PV::Vertex* vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;
 
   __shared__ unsigned event_decision;
-  if ( threadIdx.x == 0 ) event_decision = 0;
+  if (threadIdx.x == 0) event_decision = 0;
   __syncthreads();
-
 
   for (unsigned i = threadIdx.x; i < parameters.dev_number_of_multi_final_vertices[event_number]; i += blockDim.x) {
     const auto& pv = vertices[i];
     const bool dec = pv.position.z >= parameters.minZ and pv.position.z < parameters.maxZ;
-    if (dec) atomicOr( &event_decision, dec );
+    if (dec) atomicOr(&event_decision, dec);
   }
 
   __syncthreads();

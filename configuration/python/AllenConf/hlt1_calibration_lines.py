@@ -13,7 +13,7 @@ def make_d2kpi_line(forward_tracks,
                     secondary_vertices,
                     name="Hlt1D2KPi",
                     pre_scaler_hash_string=None,
-                    post_scaler_hash_string=None ):
+                    post_scaler_hash_string=None):
 
     number_of_events = initialize_number_of_events()
 
@@ -24,13 +24,13 @@ def make_d2kpi_line(forward_tracks,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string= pre_scaler_hash_string or name + '_pre' ,
-        post_scaler_hash_string= post_scaler_hash_string or name + '_post')
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
-def make_passthrough_line(name="Hlt1Passthrough", 
+def make_passthrough_line(name="Hlt1Passthrough",
                           pre_scaler_hash_string=None,
-                          post_scaler_hash_string=None ):
+                          post_scaler_hash_string=None):
 
     number_of_events = initialize_number_of_events()
 
@@ -43,10 +43,12 @@ def make_passthrough_line(name="Hlt1Passthrough",
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
-def make_rich_line(line_type, forward_tracks, long_track_particles,
-                   name, 
-                   pre_scaler_hash_string = None,
-                   post_scaler_hash_string = None):
+def make_rich_line(line_type,
+                   forward_tracks,
+                   long_track_particles,
+                   name,
+                   pre_scaler_hash_string=None,
+                   post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -63,17 +65,19 @@ def make_rich_line(line_type, forward_tracks, long_track_particles,
 
 def make_rich_1_line(forward_tracks,
                      long_track_particles,
-                     name="Hlt1RICH1Alignment", 
+                     name="Hlt1RICH1Alignment",
                      pre_scaler_hash_string=None,
-                     post_scaler_hash_string=None ):
+                     post_scaler_hash_string=None):
     return make_rich_line(rich_1_line_t, forward_tracks, long_track_particles,
-                          name, pre_scaler_hash_string, post_scaler_hash_string )
+                          name, pre_scaler_hash_string,
+                          post_scaler_hash_string)
 
 
 def make_rich_2_line(forward_tracks,
                      long_track_particles,
-                     name="Hlt1RICH2Alignment", 
+                     name="Hlt1RICH2Alignment",
                      pre_scaler_hash_string=None,
-                     post_scaler_hash_string=None ):
+                     post_scaler_hash_string=None):
     return make_rich_line(rich_2_line_t, forward_tracks, long_track_particles,
-                          name, pre_scaler_hash_string, post_scaler_hash_string )
+                          name, pre_scaler_hash_string,
+                          post_scaler_hash_string)

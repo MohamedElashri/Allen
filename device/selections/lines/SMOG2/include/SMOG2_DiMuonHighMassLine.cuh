@@ -17,7 +17,8 @@ namespace SMOG2_dimuon_highmass_line {
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t,DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;

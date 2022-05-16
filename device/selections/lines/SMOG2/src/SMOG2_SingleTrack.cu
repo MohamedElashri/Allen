@@ -12,8 +12,8 @@ __device__ bool SMOG2_singletrack_line::SMOG2_singletrack_line_t::select(
   const auto& track = std::get<0>(input);
 
   bool decision = track.state().pt() >= parameters.minPt && track.state().p() >= parameters.minP &&
-    track.chi2() / track.ndof() < parameters.maxChi2Ndof &&
-				  track.state().z() < parameters.maxBPVz && track.state().z() >= parameters.minBPVz;
+                  track.chi2() / track.ndof() < parameters.maxChi2Ndof && track.state().z() < parameters.maxBPVz &&
+                  track.state().z() >= parameters.minBPVz;
   if (track.has_pv()) decision = decision && track.pv().position.z < parameters.maxBPVz;
 
   return decision;

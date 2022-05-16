@@ -18,7 +18,6 @@ from AllenConf.odin import decode_odin
 from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer
 
 
-
 def default_physics_lines(forward_tracks,
                           long_track_particles,
                           secondary_vertices,
@@ -117,23 +116,20 @@ def default_physics_lines(forward_tracks,
     return lines
 
 
-def event_monitoring_lines( prefilter_suffix = ""):
+def event_monitoring_lines(prefilter_suffix=""):
     lines = []
     lines.append(
         line_maker(
             make_beam_line(
-                name="Hlt1NoBeam" + prefilter_suffix,
-                beam_crossing_type=0 )))
+                name="Hlt1NoBeam" + prefilter_suffix, beam_crossing_type=0)))
     lines.append(
         line_maker(
             make_beam_line(
-                name="Hlt1BeamOne" + prefilter_suffix,
-                beam_crossing_type=1)))
+                name="Hlt1BeamOne" + prefilter_suffix, beam_crossing_type=1)))
     lines.append(
         line_maker(
             make_beam_line(
-                name="Hlt1BeamTwo" + prefilter_suffix,
-                beam_crossing_type=2)))
+                name="Hlt1BeamTwo" + prefilter_suffix, beam_crossing_type=2)))
     lines.append(
         line_maker(
             make_beam_line(
@@ -142,8 +138,7 @@ def event_monitoring_lines( prefilter_suffix = ""):
     lines.append(
         line_maker(
             make_odin_event_type_line(
-                name="Hlt1ODINLumi" + prefilter_suffix,
-                odin_event_type=0x8)))
+                name="Hlt1ODINLumi" + prefilter_suffix, odin_event_type=0x8)))
     lines.append(
         line_maker(
             make_odin_event_type_line(
@@ -153,24 +148,26 @@ def event_monitoring_lines( prefilter_suffix = ""):
     return lines
 
 
-def alignment_monitoring_lines( velo_tracks, forward_tracks, long_track_particles, prefilter_suffix = ''):
+def alignment_monitoring_lines(velo_tracks,
+                               forward_tracks,
+                               long_track_particles,
+                               prefilter_suffix=''):
 
     lines = []
     lines.append(
         line_maker(
             make_velo_micro_bias_line(
-                velo_tracks,
-                name="Hlt1VeloMicroBias" + prefilter_suffix)))
+                velo_tracks, name="Hlt1VeloMicroBias" + prefilter_suffix)))
     lines.append(
         line_maker(
             make_rich_1_line(
-                forward_tracks, 
+                forward_tracks,
                 long_track_particles,
                 name="Hlt1RICH1Alignment" + prefilter_suffix)))
     lines.append(
         line_maker(
             make_rich_2_line(
-                forward_tracks, 
+                forward_tracks,
                 long_track_particles,
                 name="Hlt1RICH2Alignment" + prefilter_suffix)))
 
@@ -237,23 +234,25 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         physics_lines = default_physics_lines(
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
-            reconstructed_objects["secondary_vertices"], 
-            prefilter_suffix = "_gec" if EnableGEC else "")
+            reconstructed_objects["secondary_vertices"],
+            prefilter_suffix="_gec" if EnableGEC else "")
 
     with line_maker.bind(prefilter=None):
         monitoring_lines = event_monitoring_lines()
-        physics_lines += [ line_maker( make_passthrough_line()) ]
+        physics_lines += [line_maker(make_passthrough_line())]
 
     if EnableGEC:
         with line_maker.bind(prefilter=gec):
-            physics_lines += [ line_maker( make_passthrough_line(name="Hlt1Passthrough_gec")) ]
+            physics_lines += [
+                line_maker(make_passthrough_line(name="Hlt1Passthrough_gec"))
+            ]
 
     with line_maker.bind(prefilter=gec):
         monitoring_lines += alignment_monitoring_lines(
-                reconstructed_objects["velo_tracks"],
-                reconstructed_objects["forward_tracks"],
-                reconstructed_objects["long_track_particles"],
-                prefilter_suffix="_gec")
+            reconstructed_objects["velo_tracks"],
+            reconstructed_objects["forward_tracks"],
+            reconstructed_objects["long_track_particles"],
+            prefilter_suffix="_gec")
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
@@ -266,9 +265,11 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         SMOG2_prefilters, SMOG2_lines, prefilter_suffix = [], [], ''
 
         lowMult_5 = make_lowmult(
-            reconstructed_objects['velo_tracks'], name="LowMult_5", 
-            minTracks=1, maxTracks=5)
-        with line_maker.bind(prefilter= [gec, lowMult_5]):
+            reconstructed_objects['velo_tracks'],
+            name="LowMult_5",
+            minTracks=1,
+            maxTracks=5)
+        with line_maker.bind(prefilter=[gec, lowMult_5]):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(name="Hlt1PassThrough_gec_LowMult5"))
@@ -308,7 +309,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             make_checkPV(
                 reconstructed_objects['pvs'],
                 name='check_SMOG2_PV',
-                minZ=-550,  
+                minZ=-550,
                 maxZ=-300)
         ]
         prefilter_suffix += '_SMOG2_checkPV'

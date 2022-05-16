@@ -36,11 +36,10 @@ def make_beam_line(pre_scaler_hash_string=None,
         post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")
 
 
-def make_velo_micro_bias_line(
-        velo_tracks,
-        name="Hlt1VeloMicroBias",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_velo_micro_bias_line(velo_tracks,
+                              name="Hlt1VeloMicroBias",
+                              pre_scaler_hash_string=None,
+                              post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -55,11 +54,10 @@ def make_velo_micro_bias_line(
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_odin_event_type_line(
-        name=None,
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None,
-        odin_event_type=0x8):
+def make_odin_event_type_line(name=None,
+                              pre_scaler_hash_string=None,
+                              post_scaler_hash_string=None,
+                              odin_event_type=0x8):
     name_map = {0x8: "Hlt1ODINLumi", 0x4: "Hlt1ODINNoBias"}
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -78,11 +76,10 @@ def make_odin_event_type_line(
         post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")
 
 
-def make_calo_digits_minADC_line(
-        decode_calo,
-        name = "Hlt1CaloDigitsMinADC",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_calo_digits_minADC_line(decode_calo,
+                                 name="Hlt1CaloDigitsMinADC",
+                                 pre_scaler_hash_string=None,
+                                 post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -98,7 +95,7 @@ def make_calo_digits_minADC_line(
 
 def make_beam_gas_line(velo_tracks,
                        velo_states,
-                       name = "Hlt1BeamGas",
+                       name="Hlt1BeamGas",
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
                        beam_crossing_type=1):

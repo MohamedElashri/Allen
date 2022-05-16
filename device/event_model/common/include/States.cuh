@@ -119,7 +119,7 @@ namespace Allen {
 
         __host__ __device__ float qop() const { return m_base_pointer[nb_elements_state * m_index + 5]; }
 
-        __host__ __device__ int charge() const { return qop() > 0? +1 : -1; }
+        __host__ __device__ int charge() const { return qop() > 0 ? +1 : -1; }
 
         __host__ __device__ float c00() const
         {

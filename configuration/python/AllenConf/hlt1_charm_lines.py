@@ -45,9 +45,9 @@ def make_d2pipi_line(forward_tracks,
 
 def make_two_ks_line(forward_tracks,
                      secondary_vertices,
-                     name = "Hlt1TwoKs", 
+                     name="Hlt1TwoKs",
                      pre_scaler_hash_string=None,
-                     post_scaler_hash_string=None ):
+                     post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(

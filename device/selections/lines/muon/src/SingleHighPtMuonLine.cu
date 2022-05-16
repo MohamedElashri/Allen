@@ -12,8 +12,8 @@ __device__ bool single_high_pt_muon_line::single_high_pt_muon_line_t::select(
 {
   const auto track = std::get<0>(input);
   const bool decision = track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
-								      track.state().pt() > parameters.singleMinPt && track.state().p() > parameters.singleMinP &&
-    track.is_muon() && track.state().z() > parameters.minZ;
+                        track.state().pt() > parameters.singleMinPt && track.state().p() > parameters.singleMinP &&
+                        track.is_muon() && track.state().z() > parameters.minZ;
 
   return decision;
 }

@@ -10,13 +10,12 @@ from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
 
-def make_track_electron_mva_line(
-        forward_tracks,
-        long_track_particles,
-        calo,
-        name="Hlt1TrackElectronMVA",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_track_electron_mva_line(forward_tracks,
+                                 long_track_particles,
+                                 calo,
+                                 name="Hlt1TrackElectronMVA",
+                                 pre_scaler_hash_string=None,
+                                 post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -33,13 +32,12 @@ def make_track_electron_mva_line(
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
 
-def make_single_high_pt_electron_line(
-        forward_tracks,
-        long_track_particles,
-        calo,
-        name="Hlt1SingleHighPtElectron",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_single_high_pt_electron_line(forward_tracks,
+                                      long_track_particles,
+                                      calo,
+                                      name="Hlt1SingleHighPtElectron",
+                                      pre_scaler_hash_string=None,
+                                      post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -56,13 +54,12 @@ def make_single_high_pt_electron_line(
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
 
-def make_displaced_dielectron_line(
-        forward_tracks,
-        secondary_vertices,
-        calo,
-        name="Hlt1DisplacedDielectron",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_displaced_dielectron_line(forward_tracks,
+                                   secondary_vertices,
+                                   calo,
+                                   name="Hlt1DisplacedDielectron",
+                                   pre_scaler_hash_string=None,
+                                   post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -79,13 +76,12 @@ def make_displaced_dielectron_line(
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
 
-def make_displaced_leptons_line(
-        forward_tracks,
-        long_track_particles,
-        calo,
-        name="Hlt1DisplacedLeptons",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_displaced_leptons_line(forward_tracks,
+                                long_track_particles,
+                                calo,
+                                name="Hlt1DisplacedLeptons",
+                                pre_scaler_hash_string=None,
+                                post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -101,12 +97,11 @@ def make_displaced_leptons_line(
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
 
-def make_single_high_et_line(
-        velo_tracks,
-        calo,
-        name="Hlt1SingleHighEt",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_single_high_et_line(velo_tracks,
+                             calo,
+                             name="Hlt1SingleHighEt",
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(

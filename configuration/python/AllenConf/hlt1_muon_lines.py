@@ -10,12 +10,11 @@ from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
 
-def make_single_high_pt_muon_line(
-        forward_tracks,
-        long_track_particles,
-        name="Hlt1SingleHighPtMuon",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_single_high_pt_muon_line(forward_tracks,
+                                  long_track_particles,
+                                  name="Hlt1SingleHighPtMuon",
+                                  pre_scaler_hash_string=None,
+                                  post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -30,12 +29,11 @@ def make_single_high_pt_muon_line(
             "dev_multi_event_basic_particles"])
 
 
-def make_single_high_pt_muon_no_muid_line(
-        forward_tracks,
-        long_track_particles,
-        name = "Hlt1SingleHighPtMuonNoMuID",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_single_high_pt_muon_no_muid_line(forward_tracks,
+                                          long_track_particles,
+                                          name="Hlt1SingleHighPtMuonNoMuID",
+                                          pre_scaler_hash_string=None,
+                                          post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -52,7 +50,7 @@ def make_single_high_pt_muon_no_muid_line(
 
 def make_low_pt_muon_line(forward_tracks,
                           long_track_particles,
-                          name = "Hlt1LowPtMuon", 
+                          name="Hlt1LowPtMuon",
                           pre_scaler_hash_string=None,
                           post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -117,12 +115,11 @@ def make_di_muon_soft_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_low_pt_di_muon_line(
-        forward_tracks,
-        secondary_vertices,
-        name="Hlt1LowPtDiMuon",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_low_pt_di_muon_line(forward_tracks,
+                             secondary_vertices,
+                             name="Hlt1LowPtDiMuon",
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -136,12 +133,11 @@ def make_low_pt_di_muon_line(
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_track_muon_mva_line(
-        forward_tracks,
-        long_track_particles,
-        name="Hlt1TrackMuonMVA",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_track_muon_mva_line(forward_tracks,
+                             long_track_particles,
+                             name="Hlt1TrackMuonMVA",
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(

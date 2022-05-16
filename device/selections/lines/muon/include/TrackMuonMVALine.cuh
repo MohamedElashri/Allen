@@ -30,7 +30,7 @@ namespace track_muon_mva_line {
     PROPERTY(param2_t, "param2", "param2 description", float) param2;
     PROPERTY(param3_t, "param3", "param3 description", float) param3;
     PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
-    PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best primary vertex associated to the muon", float) minBPVz;    
+    PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best primary vertex associated to the muon", float) minBPVz;
   };
 
   struct track_muon_mva_line_t : public SelectionAlgorithm,

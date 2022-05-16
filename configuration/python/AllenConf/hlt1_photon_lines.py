@@ -7,11 +7,10 @@ from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
 
-def make_single_calo_cluster_line(
-        calo,
-        name="Hlt1SingleCaloCluster",
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None):
+def make_single_calo_cluster_line(calo,
+                                  name="Hlt1SingleCaloCluster",
+                                  pre_scaler_hash_string=None,
+                                  post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(

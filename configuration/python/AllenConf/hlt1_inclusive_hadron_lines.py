@@ -29,7 +29,7 @@ def make_kstopipi_line(forward_tracks,
 
 def make_track_mva_line(forward_tracks,
                         long_track_particles,
-                        pre_scaler_hash_string=None, 
+                        pre_scaler_hash_string=None,
                         post_scaler_hash_string=None,
                         name="Hlt1TrackMVA"):
     number_of_events = initialize_number_of_events()
@@ -48,8 +48,8 @@ def make_track_mva_line(forward_tracks,
 
 def make_two_track_mva_line(forward_tracks,
                             secondary_vertices,
-                            pre_scaler_hash_string=None, 
-                            post_scaler_hash_string=None, 
+                            pre_scaler_hash_string=None,
+                            post_scaler_hash_string=None,
                             name="Hlt1TwoTrackMVA"):
     number_of_events = initialize_number_of_events()
 

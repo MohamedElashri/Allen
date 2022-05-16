@@ -7,7 +7,6 @@ from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
 
-
 def make_SMOG2_dimuon_highmass_line(secondary_vertices,
                                     pre_scaler_hash_string=None,
                                     post_scaler_hash_string=None,
@@ -19,17 +18,17 @@ def make_SMOG2_dimuon_highmass_line(secondary_vertices,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_SMOG2_minimum_bias_line(
-        velo_tracks,
-        velo_states,
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None,
-        name="Hlt1SMOG2_MinimumBias"):
+def make_SMOG2_minimum_bias_line(velo_tracks,
+                                 velo_states,
+                                 pre_scaler_hash_string=None,
+                                 post_scaler_hash_string=None,
+                                 name="Hlt1SMOG2_MinimumBias"):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -42,7 +41,8 @@ def make_SMOG2_minimum_bias_line(
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         dev_tracks_container_t=velo_tracks["dev_velo_tracks_view"],
-        dev_velo_states_view_t=velo_states["dev_velo_kalman_beamline_states_view"] )
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_beamline_states_view"])
 
 
 def make_SMOG2_ditrack_line(secondary_vertices,
@@ -63,7 +63,8 @@ def make_SMOG2_ditrack_line(secondary_vertices,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_particle_container_t=secondary_vertices["dev_multi_event_composites"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         m1=m1,
@@ -74,12 +75,11 @@ def make_SMOG2_ditrack_line(secondary_vertices,
         minTrackPt=minTrackPt)
 
 
-def make_SMOG2_singletrack_line(
-        forward_tracks,
-        long_track_particles,
-        pre_scaler_hash_string=None,
-        post_scaler_hash_string=None,
-        name="Hlt1_SMOG2_SingleTrack"):
+def make_SMOG2_singletrack_line(forward_tracks,
+                                long_track_particles,
+                                pre_scaler_hash_string=None,
+                                post_scaler_hash_string=None,
+                                name="Hlt1_SMOG2_SingleTrack"):
 
     number_of_events = initialize_number_of_events()
 

@@ -43,7 +43,7 @@ namespace two_track_line_ks {
     PROPERTY(maxM_Ks_t, "maxM_Ks", "maxM_Ks description", float) maxM_Ks;
     PROPERTY(minCosOpening_t, "minCosOpening", "minCosOpening description", float) minCosOpening;
     PROPERTY(min_combip_t, "min_combip", "min_combip description", float) min_combip;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;    
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
   struct two_track_line_ks_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_line_ks_t, Parameters> {

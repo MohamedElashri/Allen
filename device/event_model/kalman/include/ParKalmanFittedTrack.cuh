@@ -97,7 +97,5 @@ namespace ParKalmanFilter {
     }
 
     __device__ __host__ inline KalmanFloat eta() const { return atanhf(pz() / p()); }
-
-
   };
 } // namespace ParKalmanFilter

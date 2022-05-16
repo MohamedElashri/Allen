@@ -18,6 +18,6 @@ __device__ bool displaced_di_muon_line::displaced_di_muon_line_t::select(
 
   bool decision = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2 &&
                   vertex.eta() > parameters.dispMinEta && vertex.eta() < parameters.dispMaxEta &&
-									 vertex.minpt() > parameters.minDispTrackPt && vertex.vertex().z() >= parameters.minZ;
+                  vertex.minpt() > parameters.minDispTrackPt && vertex.vertex().z() >= parameters.minZ;
   return decision;
 }

@@ -17,7 +17,8 @@ namespace SMOG2_singletrack_line {
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -29,8 +30,12 @@ namespace SMOG2_singletrack_line {
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best associated primary vertex", float) minBPVz;
     PROPERTY(maxBPVz_t, "maxBPVz", "maximum z for the best associated primary vertex", float) maxBPVz;
   };
-  struct SMOG2_singletrack_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<SMOG2_singletrack_line_t, Parameters> {
-    __device__ static bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+  struct SMOG2_singletrack_line_t : public SelectionAlgorithm,
+                                    Parameters,
+                                    OneTrackLine<SMOG2_singletrack_line_t, Parameters> {
+    __device__ static bool select(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

@@ -30,8 +30,7 @@ namespace d2kpi_line {
     PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
     PROPERTY(massWindow_t, "massWindow", "massWindow description", float) massWindow;
     PROPERTY(minTrackIP_t, "minTrackIP", "minTrackIP description", float) minTrackIP;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;    
-
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
   struct d2kpi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<d2kpi_line_t, Parameters> {
