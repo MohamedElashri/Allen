@@ -640,7 +640,7 @@ class AlgorithmCategory(Enum):\n\
                               output_filename,
                               struct_to_tuple_folder):
         max_length = max(len(alg.parameters) + len(alg.properties) for alg in algorithms)
-        from struct_to_tuple.struct_to_tuple_generator import StructToTupleGenerator
+        from StructToTupleGenerator import StructToTupleGenerator
         gen = StructToTupleGenerator()
         gen.generate_file(output_filename, max_length, struct_to_tuple_folder)
 

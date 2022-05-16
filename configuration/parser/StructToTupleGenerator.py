@@ -41,7 +41,10 @@ class StructToTupleGenerator:
             else:
                 s += ");\n"
             s += "  } else "
-        s += "\n".join(["{", "    return std::tuple{};", "  }", "}"])
+        if style == "new":
+            s += "\n".join(["{", "    return std::tuple{};", "  }", "}"])
+        else:
+            s += "\n".join(["{", "    return std::make_tuple();", "  }", "}"])
         return s
 
     def __generate_code_struct_to_tuple(self, maximum_number_of_parameters):
