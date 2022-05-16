@@ -13,8 +13,6 @@ def make_d2kk_line(forward_tracks,
                    pre_scaler_hash_string=None,
                    post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         d2kk_line_t,
@@ -33,8 +31,6 @@ def make_d2pipi_line(forward_tracks,
                      pre_scaler_hash_string=None,
                      post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         d2pipi_line_t,
@@ -53,8 +49,6 @@ def make_two_ks_line(forward_tracks,
                      pre_scaler_hash_string=None,
                      post_scaler_hash_string=None ):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         two_ks_line_t,

@@ -16,8 +16,6 @@ def make_d2kpi_line(forward_tracks,
                     post_scaler_hash_string=None ):
 
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         d2kpi_line_t,
@@ -35,8 +33,6 @@ def make_passthrough_line(name="Hlt1Passthrough",
                           post_scaler_hash_string=None ):
 
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         passthrough_line_t,
@@ -52,8 +48,6 @@ def make_rich_line(line_type, forward_tracks, long_track_particles,
                    pre_scaler_hash_string = None,
                    post_scaler_hash_string = None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         line_type,

@@ -15,8 +15,6 @@ def make_kstopipi_line(forward_tracks,
                        post_scaler_hash_string=None,
                        name="Hlt1KsToPiPi"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         kstopipi_line_t,
@@ -35,8 +33,6 @@ def make_track_mva_line(forward_tracks,
                         post_scaler_hash_string=None,
                         name="Hlt1TrackMVA"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         track_mva_line_t,
@@ -56,8 +52,6 @@ def make_two_track_mva_line(forward_tracks,
                             post_scaler_hash_string=None, 
                             name="Hlt1TwoTrackMVA"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     two_track_mva_evaluator = make_algorithm(
         two_track_mva_evaluator_t,
@@ -85,8 +79,6 @@ def make_two_track_line_ks(forward_tracks,
                            post_scaler_hash_string=None,
                            name="Hlt1TwoTrackKs"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         two_track_line_ks_t,

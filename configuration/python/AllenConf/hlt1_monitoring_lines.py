@@ -42,8 +42,6 @@ def make_velo_micro_bias_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         velo_micro_bias_line_t,
@@ -86,8 +84,6 @@ def make_calo_digits_minADC_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         calo_digits_minADC_t,

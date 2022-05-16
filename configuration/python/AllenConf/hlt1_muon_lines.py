@@ -17,8 +17,6 @@ def make_single_high_pt_muon_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         single_high_pt_muon_line_t,
@@ -39,16 +37,11 @@ def make_single_high_pt_muon_no_muid_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         single_high_pt_muon_no_muid_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
@@ -63,8 +56,6 @@ def make_low_pt_muon_line(forward_tracks,
                           pre_scaler_hash_string=None,
                           post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         low_pt_muon_line_t,
@@ -90,8 +81,6 @@ def make_di_muon_mass_line(forward_tracks,
                            minIPChi2=0.,
                            name="Hlt1DiMuonHighMass"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         di_muon_mass_line_t,
@@ -116,8 +105,6 @@ def make_di_muon_soft_line(forward_tracks,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         di_muon_soft_line_t,
@@ -137,8 +124,6 @@ def make_low_pt_di_muon_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         low_pt_di_muon_line_t,
@@ -158,8 +143,6 @@ def make_track_muon_mva_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         track_muon_mva_line_t,

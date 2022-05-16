@@ -9,35 +9,22 @@
 
 namespace SMOG2_minimum_bias_line {
   struct Parameters {
-    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_selected_events_size_t, unsigned) host_selected_events_size;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
 
-    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_tracks_container_t, Allen::Views::Velo::Consolidated::Tracks) dev_tracks_container;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
 
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
-    DEVICE_OUTPUT(dev_decisions_t, bool) dev_decisions;
-    DEVICE_OUTPUT(dev_decisions_offsets_t, unsigned) dev_decisions_offsets;
-    DEVICE_OUTPUT(dev_selected_events_size_t, unsigned) dev_selected_events_size;
-    DEVICE_OUTPUT_WITH_DEPENDENCIES(dev_particle_container_ptr_t,
-				    DEPENDENCIES(dev_tracks_container_t),
-				    Allen::IMultiEventContainer*) dev_particle_container_ptr;
-
-    MASK_INPUT(dev_event_list_t) dev_event_list;
-    MASK_OUTPUT(dev_selected_events_t) dev_selected_events;
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
+    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
+    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_tracks_container_t), char) host_fn_parameters;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string) post_scaler_hash_string;
-
-    // SMOG2 MINIMUM-BIAS
+    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
+    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(minNHits_t, "minNHits", "min number of hits of velo track", unsigned) minNHits;
     PROPERTY(minZ_t, "minZ", "min z coordinate for accepted reconstructed primary vertex", float) minZ;
     PROPERTY(maxZ_t, "maxZ", "max z coordinate for accepted reconstructed primary vertex", float) maxZ;
@@ -52,7 +39,7 @@ namespace SMOG2_minimum_bias_line {
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
 
     // Get decision size function
-    static unsigned get_decisions_size(ArgumentReferences<Parameters>& arguments);
+    static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);
 
     // Get input size function    
     __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);

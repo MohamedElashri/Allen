@@ -17,7 +17,7 @@ __device__ unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::offset(
 }
 
 // Get decision size function
-unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::get_decisions_size(
+unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::get_decisions_size(const
   ArgumentReferences<Parameters>& arguments)
 {
   return first<host_number_of_reconstructed_velo_tracks_t>(arguments);

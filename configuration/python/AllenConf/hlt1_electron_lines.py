@@ -18,8 +18,6 @@ def make_track_electron_mva_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         track_electron_mva_line_t,
@@ -43,8 +41,6 @@ def make_single_high_pt_electron_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         single_high_pt_electron_line_t,
@@ -68,8 +64,6 @@ def make_displaced_dielectron_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         displaced_dielectron_line_t,
@@ -93,8 +87,6 @@ def make_displaced_leptons_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         displaced_leptons_line_t,
@@ -116,8 +108,6 @@ def make_single_high_et_line(
         pre_scaler_hash_string=None,
         post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         single_high_et_line_t,
