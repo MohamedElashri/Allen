@@ -54,6 +54,7 @@ gaudi_add_module(BinaryDumpersModule
                    LHCb::FTDetLib
                    LHCb::MuonDAQLib
                    Rec::PrKernel
+                   yaml-cpp
                    BinaryDumpers)
 
 gaudi_add_tests(QMTest)

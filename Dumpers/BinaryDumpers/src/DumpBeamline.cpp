@@ -4,13 +4,16 @@
 #include <tuple>
 #include <vector>
 
-#include <GaudiAlg/Transformer.h>
-
+#include <yaml-cpp/yaml.h>
+#include <LHCbAlgs/Transformer.h>
 #include <DetDesc/GenericConditionAccessorHolder.h>
 
 #include <Dumpers/Identifiers.h>
+#include <Dumpers/Utils.h>
 
-#include "Dumpers/Utils.h"
+#ifdef USE_DD4HEP
+#include <DD4hep/GrammarUnparsed.h>
+#endif
 
 namespace {
   inline const std::string beamSpotCond = "/dd/Conditions/Online/Velo/MotionSystem";
@@ -18,8 +21,11 @@ namespace {
   struct Beamline_t {
     double X = std::numeric_limits<double>::signaling_NaN();
     double Y = std::numeric_limits<double>::signaling_NaN();
-    Beamline_t(Condition const& c) :
-      X {(c.param<double>("ResolPosRC") + c.param<double>("ResolPosLA")) / 2}, Y {c.param<double>("ResolPosY")}
+
+    Beamline_t() {}
+
+    Beamline_t(YAML::Node const& n) :
+      X {(n["ResolPosRC"].as<double>() + n["ResolPosLA"].as<double>()) / 2}, Y {n["ResolPosY"].as<double>()}
     {}
   };
 } // namespace
@@ -30,7 +36,7 @@ namespace {
  *  @author Roel Aaij
  *  @date   2019-04-27
  */
-class DumpBeamline final : public Gaudi::Functional::MultiTransformer<
+class DumpBeamline final : public LHCb::Algorithm::MultiTransformer<
                              std::tuple<std::vector<char>, std::string>(const Beamline_t&),
                              LHCb::DetDesc::usesConditions<Beamline_t>> {
 public:
@@ -55,8 +61,10 @@ DumpBeamline::DumpBeamline(const std::string& name, ISvcLocator* svcLoc) :
 
 StatusCode DumpBeamline::initialize()
 {
-  return MultiTransformer::initialize().andThen(
-    [&] { addConditionDerivation<Beamline_t(Condition const&)>({beamSpotCond}, inputLocation<Beamline_t>()); });
+  return MultiTransformer::initialize().andThen([&] {
+    addConditionDerivation(
+      {beamSpotCond}, inputLocation<Beamline_t>(), [](YAML::Node const& n) { return Beamline_t {n}; });
+  });
 }
 
 std::tuple<std::vector<char>, std::string> DumpBeamline::operator()(const Beamline_t& beamline) const
